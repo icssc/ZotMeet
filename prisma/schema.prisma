@@ -13,3 +13,29 @@ model Session {
   createdAt DateTime @default(now())
   profileId String
 }
+
+model User {
+  id            String  @id @default(cuid())
+  profileId     String  @unique
+  preferredName String?
+  Plan          Plan[]
+}
+
+model Plan {
+  id          String      @id @default(cuid())
+  ownerId     String
+  owner       User        @relation(fields: [ownerId], references: [id])
+  title       String
+  description String?     @db.Text
+  timezone    String
+  timeBlocks  TimeBlock[]
+}
+
+model TimeBlock {
+  planId String
+  plan   Plan     @relation(fields: [planId], references: [id])
+  start  DateTime
+  end    DateTime
+
+  @@id([planId, start])
+}
