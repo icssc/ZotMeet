@@ -14,6 +14,7 @@
     "preview": "vite preview",
     "sst:deploy": "sst deploy",
     "sst:dev": "sst dev",
+    "start": "vite",
     "test": "pnpm test:integration && pnpm test:unit",
     "test:integration": "playwright test",
     "test:unit": "vitest"
