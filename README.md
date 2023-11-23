@@ -29,3 +29,11 @@ TBA
 3. Start the development server
    1. `pnpm start` (run `pnpm start --host` if you want to access the server from other devices on your network)
 4. The app should be viewable at `localhost:5173` by default. Changes to the code will automatically update the page. If you ran `pnpm start --host`, you can access the app from other devices on your network at `host-ip:5173`.
+
+### Committing Changes
+
+- Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) specification when writing commit messages.
+  - E.g., `git commit -m "feat: add this feature"`; `git commit -m "fix: fix this bug"`.
+- Keep commits and PRs atomic.
+  - A PR should be a single feature or bug fix.
+  - A commit should be a single logical change.
