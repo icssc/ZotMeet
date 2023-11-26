@@ -17,7 +17,13 @@ export function getSelection(arg: DateSpanApi): DayJSSelection {
     end = end.add(30, 'minutes')
   }
 
-  return start.isBefore(end) ? { start, end } : { start: end, end: start }
+  // Remove the day difference, and only compare the time. i.e. HH:mm
+  // If the end is before the start, then switch the two.
+  // When it's added to the calendar, only the HH:mm component is used, so we compare that instead of the full date.
+
+  const endIsBefore = end.day(0).isBefore(start.day(0))
+
+  return endIsBefore ? { start: end, end: start } : { start, end }
 }
 
 export function getDaysOfWeek(arg: DateSpanApi): number[] {
