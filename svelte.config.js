@@ -1,5 +1,5 @@
-import adapter from "@svelte.kit/adapter-aws";
-import { vitePreprocess } from "@sveltejs/kit/vite";
+import adapter from '@svelte.kit/adapter-aws'
+import { vitePreprocess } from '@sveltejs/kit/vite'
 
 /**
  * @type {import('@sveltejs/kit').Config}
@@ -9,6 +9,6 @@ const config = {
   kit: {
     adapter: adapter(),
   },
-};
+}
 
-export default config;
+export default config

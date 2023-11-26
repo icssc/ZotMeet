@@ -1,7 +1,7 @@
 // @ts-check
 
-import autoprefixer from "autoprefixer";
-import tailwindcss from "tailwindcss";
+import autoprefixer from 'autoprefixer'
+import tailwindcss from 'tailwindcss'
 
 /**
  * @type{import('postcss-load-config').ConfigFn}
@@ -9,7 +9,7 @@ import tailwindcss from "tailwindcss";
 function config() {
   return {
     plugins: [tailwindcss(), autoprefixer()],
-  };
+  }
 }
 
-export default config;
+export default config
