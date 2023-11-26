@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Calendar } from '@fullcalendar/core'
+  import type { EventImpl } from '@fullcalendar/core/internal'
   import interactionPlugin from '@fullcalendar/interaction'
   import listPlugin from '@fullcalendar/list'
   import timeGridPlugin from '@fullcalendar/timegrid'
@@ -15,6 +16,8 @@
 
   export let endHour = 21
 
+  let currentEvent: EventImpl | undefined
+
   onMount(() => {
     calendar = new Calendar(element, {
       editable: true,
@@ -29,12 +32,13 @@
       selectAllow: (arg) => handleSelection(arg, calendar),
       eventClick: (arg) => {
         arg.event.remove()
+        currentEvent = undefined
       },
       eventMouseEnter: (arg) => {
-        arg.event.setProp('backgroundColor', 'red')
+        currentEvent = arg.event
       },
-      eventMouseLeave: (arg) => {
-        arg.event.setProp('backgroundColor', 'blue')
+      eventMouseLeave: () => {
+        currentEvent = undefined
       },
       plugins: [timeGridPlugin, listPlugin, interactionPlugin],
       initialView: 'timeGridWeek',
@@ -100,4 +104,11 @@
       <button on:click={onClick} class="btn variant-filled">Get Events</button>
     </div>
   </div>
+
+  {#if currentEvent}
+    <div>
+      <p>You're hovering over:</p>
+      <pre>{JSON.stringify(currentEvent, null, 2)}</pre>
+    </div>
+  {/if}
 </div>
