@@ -56,9 +56,7 @@ export function handleSelection(arg: DateSpanApi, calendar: Calendar): boolean {
   const { start, end } = getSelection(arg)
 
   calendar.getEvents().forEach((event) => {
-    // I can't seem to test the case where start is actually null ??
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-    if (!daysOfWeek.includes(event.start?.getDay()!)) {
+    if (event.start == null || !daysOfWeek.includes(event.start?.getDay())) {
       return
     }
 
@@ -68,6 +66,7 @@ export function handleSelection(arg: DateSpanApi, calendar: Calendar): boolean {
     const selectionAsRecurring = daysOfWeek.map((day) => {
       const selectionStart = dayjs(start).day(day)
       const selectionEnd = dayjs(end).day(day)
+
       return { start: selectionStart, end: selectionEnd }
     })
 

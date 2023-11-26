@@ -11,10 +11,8 @@
     "postinstall": "prisma generate && svelte-kit sync",
     "lint": "eslint --fix .",
     "prettier": "3.1.0",
-    "prettier-plugin-packagejson": "2.4.6",
-    "prettier-plugin-prisma": "5.0.0",
-    "prettier-plugin-svelte": "3.1.2",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.9",
@@ -35,6 +33,9 @@
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.24",
     "postcss-load-config": "^4.0.1",
+    "prettier-plugin-packagejson": "2.4.6",
+    "prettier-plugin-prisma": "5.0.0",
+    "prettier-plugin-svelte": "3.1.2",
     "prisma": "5.6.0",
     "svelte": "^4.2.7",
     "svelte-check": "3.6.2",

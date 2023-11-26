@@ -1,6 +1,9 @@
 import { sveltekit } from '@sveltejs/kit/vite'
-import { defineConfig } from 'vite'
+import { defineProject } from 'vitest/config'
 
-export default defineConfig({
+export default defineProject({
   plugins: [sveltekit()],
+  test: {
+    environment: 'jsdom',
+  },
 })
