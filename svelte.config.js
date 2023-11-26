@@ -1,7 +1,9 @@
+import adapter from "@svelte.kit/adapter-aws";
 import { vitePreprocess } from "@sveltejs/kit/vite";
-import adapter from "svelte-kit-sst";
 
-/** @type {import('@sveltejs/kit').Config} */
+/**
+ * @type {import('@sveltejs/kit').Config}
+ */
 const config = {
   preprocess: [vitePreprocess({})],
   kit: {

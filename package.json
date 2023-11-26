@@ -5,33 +5,23 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "dev": "sst bind vite dev",
+    "check": "svelte-check",
+    "dev": "vite",
     "format": "prettier --write .",
     "postinstall": "husky install && prisma generate && svelte-kit sync",
     "lint": "eslint --quiet --fix .",
-    "preview": "vite preview",
-    "sst:deploy": "sst deploy",
-    "sst:dev": "sst dev",
-    "start": "vite",
-    "test": "pnpm test:integration && pnpm test:unit",
-    "test:integration": "playwright test",
-    "test:unit": "vitest"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@lucia-auth/adapter-prisma": "3.0.2",
-    "@prisma/client": "5.6.0",
-    "lucia": "2.7.4"
+    "@prisma/client": "5.6.0"
   },
   "devDependencies": {
     "@commitlint/cli": "18.4.3",
     "@commitlint/config-conventional": "18.4.3",
     "@commitlint/types": "18.4.3",
-    "@playwright/test": "1.40.0",
     "@skeletonlabs/skeleton": "^2.5.1",
     "@skeletonlabs/tw-plugin": "^0.2.4",
-    "@sveltejs/adapter-auto": "2.1.1",
+    "@svelte.kit/adapter-aws": "^0.2.1",
     "@sveltejs/kit": "1.27.6",
     "@types/lint-staged": "13.2.2",
     "@types/node": "20.10.0",
@@ -39,7 +29,6 @@
     "@typescript-eslint/parser": "6.12.0",
     "autoprefixer": "^10.4.14",
     "aws-cdk-lib": "2.110.1",
-    "constructs": "10.3.0",
     "cz-conventional-changelog": "3.3.0",
     "devmoji": "2.3.0",
     "eslint": "8.54.0",
@@ -55,14 +44,10 @@
     "prettier-plugin-prisma": "5.0.0",
     "prettier-plugin-svelte": "3.1.2",
     "prisma": "5.6.0",
-    "sst": "2.36.6",
     "svelte": "4.2.7",
     "svelte-check": "3.6.2",
-    "svelte-kit-sst": "2.36.6",
     "tailwindcss": "^3.3.2",
-    "tslib": "2.6.2",
     "typescript": "5.3.2",
-    "vite": "5.0.2",
-    "vitest": "0.34.6"
+    "vite": "5.0.2"
   }
 }
