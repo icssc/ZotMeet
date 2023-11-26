@@ -1,13 +1,27 @@
-.DS_Store
-node_modules
-/build
-/.svelte-kit
-/package
-.env
-.env.*
-!.env.example
+#####################################################################################
+# Generated
+#####################################################################################
 
-# Ignore files for PNPM, NPM and YARN
-pnpm-lock.yaml
+## Packages installed by NPM. https://docs.npmjs.com/about-packages-and-modules
+node_modules/
+
+## Vitest coverage output. https://vitest.dev/guide/coverage.html
+coverage/
+
+## Build outputs.
+
+### SvelteKit outputs.
+.svelte-kit/
+build/
+
+### tsc out directory, specified in tsconfig.json .
+dist/
+
+#####################################################################################
+# Development
+#####################################################################################
+
+### Lock files for NPM, Yarn, and PNPM respectively.
 package-lock.json
 yarn.lock
+pnpm-lock.yaml
