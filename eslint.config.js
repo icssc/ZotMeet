@@ -44,6 +44,7 @@ const config = [
       'import/no-unresolved': 'off',
       'import/extensions': 'off',
       'no-unused-vars': 'off',
+      'import/no-extraneous-dependencies': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -71,7 +72,7 @@ const config = [
         },
       },
     ],
-    ignorePatterns: ['.svelte-kit', '*.config.*'],
+    ignorePatterns: ['.svelte-kit', '*.config.*', '*.test.*', 'dist/**/*', 'build/**/*'],
   }),
 ]
 

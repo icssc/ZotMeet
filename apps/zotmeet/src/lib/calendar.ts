@@ -1,45 +1,44 @@
 import type { Calendar, DateSpanApi } from '@fullcalendar/core'
 import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 import isBetween from 'dayjs/plugin/isBetween'
 
 dayjs.extend(isBetween)
+dayjs.extend(customParseFormat)
 
 export interface DayJSSelection {
   start: dayjs.Dayjs
   end: dayjs.Dayjs
 }
 
+export const PENDING_KEY = 'PENDING'
+
 export function getSelection(arg: DateSpanApi): DayJSSelection {
   const start = dayjs(arg.start)
-  let end = dayjs(arg.end)
+  const end = dayjs(arg.end)
 
   if (start.isSame(end)) {
-    end = end.add(30, 'minutes')
+    return { start, end: end.add(30, 'minutes') }
   }
 
-  // Remove the day difference, and only compare the time. i.e. HH:mm
-  // If the end is before the start, then switch the two.
-  // When it's added to the calendar, only the HH:mm component is used, so we compare that instead of the full date.
-
+  /**
+   * Remove the day difference, and only compare the time. i.e. HH:mm
+   * If the end is before the start, then switch the two.
+   * When it's added to the calendar, only the HH:mm component is used, so we compare that instead of the full date.
+   */
   const endIsBefore = end.day(0).isBefore(start.day(0))
 
   return endIsBefore ? { start: end, end: start } : { start, end }
 }
 
 export function getDaysOfWeek(arg: DateSpanApi): number[] {
-  const { start, end } = arg
-
-  const daysOfWeek = []
-
-  for (let i = start.getDay(); i <= end.getDay(); i += 1) {
-    daysOfWeek.push(i)
-  }
-
-  return daysOfWeek
+  const startDay = arg.start.getDay()
+  const endDay = arg.end.getDay()
+  return Array.from({ length: endDay - startDay + 1 }, (_, i) => i + startDay)
 }
 
 export function handleSelect(arg: DateSpanApi, calendar: Calendar): void {
-  calendar.getEventById('PENDING')?.remove()
+  calendar.getEventById(PENDING_KEY)?.remove()
 
   const startEndTime = getSelection(arg)
 
@@ -51,17 +50,15 @@ export function handleSelect(arg: DateSpanApi, calendar: Calendar): void {
 }
 
 export function handleSelection(arg: DateSpanApi, calendar: Calendar): boolean {
-  calendar.getEventById('PENDING')?.remove()
+  calendar.getEventById(PENDING_KEY)?.remove()
 
   const daysOfWeek = getDaysOfWeek(arg)
   const { start, end } = getSelection(arg)
 
   calendar.getEvents().forEach((event) => {
-    if (event.start == null || event.end == null) {
-      return
-    }
-
-    if (!daysOfWeek.includes(event.start.getDay())) {
+    // I can't seem to test the case where start is actually null ??
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+    if (!daysOfWeek.includes(event.start?.getDay()!)) {
       return
     }
 
@@ -93,8 +90,8 @@ export function handleSelection(arg: DateSpanApi, calendar: Calendar): boolean {
 
   calendar.addEvent({
     id: 'PENDING',
-    startTime: start.format('HH:mm'),
-    endTime: end.format('HH:mm'),
+    startTime: start.format('HH:mm:ms'),
+    endTime: end.format('HH:mm:ms'),
     daysOfWeek,
     backgroundColor: 'pink',
   })
