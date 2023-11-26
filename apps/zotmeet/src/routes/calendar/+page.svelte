@@ -7,6 +7,7 @@
   import { onMount } from 'svelte'
 
   import { handleSelect, handleSelection } from '$lib/calendar'
+  import type { Reservation } from '$lib/reservation'
 
   let element: HTMLElement
 
@@ -15,6 +16,8 @@
   export let startHour = 9
 
   export let endHour = 21
+
+  export let reservation: Reservation = {}
 
   let currentEvent: EventImpl | undefined
 
@@ -27,9 +30,9 @@
       slotMinTime: `${startHour}:00:00`,
       slotMaxTime: `${endHour}:00:00`,
       select: (arg) => {
-        handleSelect(arg, calendar)
+        handleSelect(arg, calendar, reservation)
       },
-      selectAllow: (arg) => handleSelection(arg, calendar),
+      selectAllow: (arg) => handleSelection(arg, calendar, reservation),
       eventClick: (arg) => {
         arg.event.remove()
         currentEvent = undefined

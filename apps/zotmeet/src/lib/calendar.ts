@@ -3,6 +3,8 @@ import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import isBetween from 'dayjs/plugin/isBetween'
 
+import type { Reservation } from './reservation'
+
 dayjs.extend(isBetween)
 dayjs.extend(customParseFormat)
 
@@ -37,7 +39,11 @@ export function getDaysOfWeek(arg: DateSpanApi): number[] {
   return Array.from({ length: endDay - startDay + 1 }, (_, i) => i + startDay)
 }
 
-export function handleSelect(arg: DateSpanApi, calendar: Calendar): void {
+export function handleSelect(
+  arg: DateSpanApi,
+  calendar: Calendar,
+  reservation?: Reservation,
+): void {
   calendar.getEventById(PENDING_KEY)?.remove()
 
   const startEndTime = getSelection(arg)
@@ -49,12 +55,17 @@ export function handleSelect(arg: DateSpanApi, calendar: Calendar): void {
     calendar.addEvent({
       start,
       end,
-      backgroundColor: 'rgb(var(--color-primary-500))',
+      reservation,
+      classNames: ['bg-primary-500'],
     })
   })
 }
 
-export function handleSelection(arg: DateSpanApi, calendar: Calendar): boolean {
+export function handleSelection(
+  arg: DateSpanApi,
+  calendar: Calendar,
+  reservation?: Reservation,
+): boolean {
   calendar.getEventById(PENDING_KEY)?.remove()
 
   const daysOfWeek = getDaysOfWeek(arg)
@@ -97,7 +108,8 @@ export function handleSelection(arg: DateSpanApi, calendar: Calendar): boolean {
     startTime: start.format('HH:mm:ms'),
     endTime: end.format('HH:mm:ms'),
     daysOfWeek,
-    backgroundColor: 'rgb(var(--color-secondary-500))',
+    reservation,
+    classNames: ['bg-secondary-500'],
   })
 
   return true

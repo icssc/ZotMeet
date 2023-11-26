@@ -74,7 +74,14 @@ const config = [
         },
       },
     ],
-    ignorePatterns: ['.svelte-kit', '*.config.*', '*.test.*', 'dist/**/*', 'build/**/*'],
+    ignorePatterns: [
+      '.svelte-kit',
+      '*.config.*',
+      '*.test.*',
+      'dist/**/*',
+      'build/**/*',
+      'coverage/**/*',
+    ],
   }),
 ]
 
