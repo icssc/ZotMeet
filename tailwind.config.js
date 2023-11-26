@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { skeleton } from "@skeletonlabs/tw-plugin";
 
-import { zotmeetTheme } from "./theme";
+import { zotmeetTheme } from "./src/theme";
 
 /**
  * @type {import('tailwindcss').Config}
