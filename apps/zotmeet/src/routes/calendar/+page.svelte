@@ -11,8 +11,9 @@
 
   let calendar: Calendar
 
-  let startHour = 0
-  let endHour = 24
+  export let startHour = 9
+
+  export let endHour = 21
 
   onMount(() => {
     calendar = new Calendar(element, {
@@ -26,6 +27,15 @@
         handleSelect(arg, calendar)
       },
       selectAllow: (arg) => handleSelection(arg, calendar),
+      eventClick: (arg) => {
+        arg.event.remove()
+      },
+      eventMouseEnter: (arg) => {
+        arg.event.setProp('backgroundColor', 'red')
+      },
+      eventMouseLeave: (arg) => {
+        arg.event.setProp('backgroundColor', 'blue')
+      },
       plugins: [timeGridPlugin, listPlugin, interactionPlugin],
       initialView: 'timeGridWeek',
       headerToolbar: {
@@ -66,13 +76,6 @@
   </div>
 
   <div class="p-4 flex flex-wrap gap-4">
-    <div class="w-full">
-      <label>
-        <span>Username</span>
-        <input class="input" title="Input (text)" type="text" placeholder="input text" />
-      </label>
-    </div>
-
     <div class="w-full flex gap-8">
       <label class="w-full">
         <span>Start Hour</span>
@@ -94,7 +97,7 @@
     </div>
 
     <div>
-      <button on:click={onClick} class="btn variant-filled btn-sm">Get Events</button>
+      <button on:click={onClick} class="btn variant-filled">Get Events</button>
     </div>
   </div>
 </div>

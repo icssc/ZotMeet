@@ -29,7 +29,7 @@
 
 /* All the row labels. */
 .fc-timegrid-slot-label {
-  /* @apply bg-tertiary-500 !important; */
+  @apply bg-tertiary-500 !important;
 }
 
 /* The row labels with the time. */
@@ -39,7 +39,7 @@
 
 /* Column headers. */
 .fc-col-header-cell {
-  @apply bg-red-400 !important;
+  @apply bg-primary-500 !important;
 }
 
 /* The table where user selects time. */
