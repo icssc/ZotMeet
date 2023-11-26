@@ -7,9 +7,11 @@
  * @type {import("prettier").Config}
  */
 const config = {
+  semi: false,
+  singleQuote: true,
   printWidth: 100,
-  plugins: ["prettier-plugin-packagejson", "prettier-plugin-prisma", "prettier-plugin-svelte"],
-  overrides: [{ files: "*.svelte", options: { parser: "svelte" } }],
-};
+  plugins: ['prettier-plugin-packagejson', 'prettier-plugin-prisma', 'prettier-plugin-svelte'],
+  overrides: [{ files: '*.svelte', options: { parser: 'svelte' } }],
+}
 
-export default config;
+export default config
