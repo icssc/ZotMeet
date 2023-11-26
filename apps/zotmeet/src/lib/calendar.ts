@@ -45,7 +45,12 @@ export function handleSelect(arg: DateSpanApi, calendar: Calendar): void {
   getDaysOfWeek(arg).forEach((day) => {
     const start = startEndTime.start.day(day).toDate()
     const end = startEndTime.end.day(day).toDate()
-    calendar.addEvent({ start, end, backgroundColor: 'purple' })
+
+    calendar.addEvent({
+      start,
+      end,
+      backgroundColor: 'rgb(var(--color-primary-500))',
+    })
   })
 }
 
@@ -92,7 +97,7 @@ export function handleSelection(arg: DateSpanApi, calendar: Calendar): boolean {
     startTime: start.format('HH:mm:ms'),
     endTime: end.format('HH:mm:ms'),
     daysOfWeek,
-    backgroundColor: 'pink',
+    backgroundColor: 'rgb(var(--color-secondary-500))',
   })
 
   return true

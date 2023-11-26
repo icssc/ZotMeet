@@ -2,10 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
-.fc .fc-timegrid-col-bg .fc-highlight {
-  display: none;
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-VariableFont_slnt,wght.ttf');
 }
 
-.fc-toolbar-title {
-  background-color: rgb(var(--color-primary-500));
+/* The entire calendar container. */
+.fc-scrollgrid {
+  @apply rounded-lg overflow-hidden !important;
+}
+
+/* Remove shadow when selecting. */
+.fc .fc-timegrid-col-bg .fc-highlight {
+  @apply hidden !important;
+}
+
+/* The column for today has a yellow background by default. */
+.fc-day-today {
+  @apply bg-inherit !important;
+}
+
+/* The top-left table cell. */
+.fc-timegrid-axis {
+  @apply bg-success-500 !important;
+}
+
+/* All the row labels. */
+.fc-timegrid-slot-label {
+  /* @apply bg-tertiary-500 !important; */
+}
+
+/* The row labels with the time. */
+.fc-timegrid-slot-label-frame {
+  /* @apply bg-secondary-500 !important; */
+}
+
+/* Column headers. */
+.fc-col-header-cell {
+  @apply bg-red-400 !important;
+}
+
+/* The table where user selects time. */
+.fc-timegrid-slots > table {
+  @apply table table-interactive rounded-none !important;
+}
+
+/* Table cells. */
+.fc-timegrid-slots table tbody td {
+  @apply p-0 !important;
+}
+
+/* "Today" button.  */
+.fc-today-button {
+  @apply btn variant-filled-primary text-on-primary-token !important;
+}
+
+/* Prev/next button group. */
+.fc-button-group {
+  @apply btn-group variant-filled-secondary !important;
+}
+
+/* Prev/next buttons. */
+.fc-button-group button {
+  @apply variant-filled-secondary text-on-secondary-token !important;
 }

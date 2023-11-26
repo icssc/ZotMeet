@@ -11,16 +11,28 @@
 
   let calendar: Calendar
 
+  let startHour = 0
+  let endHour = 24
+
   onMount(() => {
     calendar = new Calendar(element, {
       editable: true,
       selectable: true,
+      allDaySlot: false,
+      height: 'auto',
+      slotMinTime: `${startHour}:00:00`,
+      slotMaxTime: `${endHour}:00:00`,
       select: (arg) => {
         handleSelect(arg, calendar)
       },
       selectAllow: (arg) => handleSelection(arg, calendar),
       plugins: [timeGridPlugin, listPlugin, interactionPlugin],
       initialView: 'timeGridWeek',
+      headerToolbar: {
+        left: undefined,
+        center: undefined,
+        right: undefined,
+      },
     })
 
     calendar.render()
@@ -34,8 +46,55 @@
     const events = calendar.getEvents()
     console.log(events)
   }
+
+  const hours = Array.from({ length: 25 }, (_, i) => i)
+
+  function handleStartSelect(e: SvelteInputEvent<Event, HTMLSelectElement>): void {
+    startHour = +e.currentTarget.value
+    calendar.setOption('slotMinTime', `${startHour}:00:00`)
+  }
+
+  function handleEndSelect(e: SvelteInputEvent<Event, HTMLSelectElement>): void {
+    endHour = +e.currentTarget.value
+    calendar.setOption('slotMaxTime', `${endHour}:00:00`)
+  }
 </script>
 
-<div bind:this={element}></div>
+<div class="p-4 flex flex-col gap-8">
+  <div class="max-w-5xl">
+    <div bind:this={element}></div>
+  </div>
 
-<button on:click={onClick} class="btn variant-filled">Get Events</button>
+  <div class="p-4 flex flex-wrap gap-4">
+    <div class="w-full">
+      <label>
+        <span>Username</span>
+        <input class="input" title="Input (text)" type="text" placeholder="input text" />
+      </label>
+    </div>
+
+    <div class="w-full flex gap-8">
+      <label class="w-full">
+        <span>Start Hour</span>
+        <select class="select" on:change={handleStartSelect} value={startHour}>
+          {#each hours as hour}
+            <option value={hour}>{hour}</option>
+          {/each}
+        </select>
+      </label>
+
+      <label class="w-full">
+        <span>End Hour</span>
+        <select class="select" on:change={handleEndSelect} value={endHour}>
+          {#each hours as hour}
+            <option value={hour}>{hour}</option>
+          {/each}
+        </select>
+      </label>
+    </div>
+
+    <div>
+      <button on:click={onClick} class="btn variant-filled btn-sm">Get Events</button>
+    </div>
+  </div>
+</div>
