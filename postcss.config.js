@@ -1,13 +1,15 @@
+// @ts-check
+
 import autoprefixer from "autoprefixer";
 import tailwindcss from "tailwindcss";
 
-const config = {
-  plugins: [
-    //Some plugins, like tailwindcss/nesting, need to run before Tailwind,
-    tailwindcss(),
-    //But others, like autoprefixer, need to run after,
-    autoprefixer,
-  ],
-};
+/**
+ * @type{import('postcss-load-config').ConfigFn}
+ */
+function config() {
+  return {
+    plugins: [tailwindcss(), autoprefixer()],
+  };
+}
 
 export default config;
