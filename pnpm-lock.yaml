@@ -4,132 +4,149 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-dependencies:
-  '@prisma/client':
-    specifier: 5.6.0
-    version: 5.6.0(prisma@5.6.0)
+importers:
 
-devDependencies:
-  '@commitlint/cli':
-    specifier: 18.4.3
-    version: 18.4.3(typescript@5.2.2)
-  '@commitlint/config-conventional':
-    specifier: 18.4.3
-    version: 18.4.3
-  '@commitlint/types':
-    specifier: 18.4.3
-    version: 18.4.3
-  '@eslint/js':
-    specifier: ^8.54.0
-    version: 8.54.0
-  '@skeletonlabs/skeleton':
-    specifier: ^2.5.1
-    version: 2.5.1(svelte@4.2.7)
-  '@skeletonlabs/tw-plugin':
-    specifier: ^0.2.4
-    version: 0.2.4(tailwindcss@3.3.5)
-  '@svelte.kit/adapter-aws':
-    specifier: ^0.2.1
-    version: 0.2.1(svelte@4.2.7)(vite@4.5.0)
-  '@sveltejs/kit':
-    specifier: 1.27.6
-    version: 1.27.6(svelte@4.2.7)(vite@4.5.0)
-  '@types/lint-staged':
-    specifier: 13.2.2
-    version: 13.2.2
-  '@types/node':
-    specifier: 20.10.0
-    version: 20.10.0
-  '@typescript-eslint/eslint-plugin':
-    specifier: ^6.12.0
-    version: 6.12.0(@typescript-eslint/parser@6.12.0)(eslint@8.54.0)(typescript@5.2.2)
-  '@typescript-eslint/parser':
-    specifier: ^6.12.0
-    version: 6.12.0(eslint@8.54.0)(typescript@5.2.2)
-  autoprefixer:
-    specifier: ^10.4.14
-    version: 10.4.16(postcss@8.4.31)
-  aws-cdk-lib:
-    specifier: 2.110.1
-    version: 2.110.1(constructs@10.3.0)
-  cz-conventional-changelog:
-    specifier: 3.3.0
-    version: 3.3.0(typescript@5.2.2)
-  devmoji:
-    specifier: 2.3.0
-    version: 2.3.0
-  eslint:
-    specifier: ^8.54.0
-    version: 8.54.0
-  eslint-config-airbnb-base:
-    specifier: ^15.0.0
-    version: 15.0.0(eslint-plugin-import@2.29.0)(eslint@8.54.0)
-  eslint-config-airbnb-typescript:
-    specifier: ^17.1.0
-    version: 17.1.0(@typescript-eslint/eslint-plugin@6.12.0)(@typescript-eslint/parser@6.12.0)(eslint-plugin-import@2.29.0)(eslint@8.54.0)
-  eslint-config-prettier:
-    specifier: ^9.0.0
-    version: 9.0.0(eslint@8.54.0)
-  eslint-config-standard-with-typescript:
-    specifier: ^40.0.0
-    version: 40.0.0(@typescript-eslint/eslint-plugin@6.12.0)(eslint-plugin-import@2.29.0)(eslint-plugin-n@16.3.1)(eslint-plugin-promise@6.1.1)(eslint@8.54.0)(typescript@5.2.2)
-  eslint-plugin-import:
-    specifier: ^2.29.0
-    version: 2.29.0(@typescript-eslint/parser@6.12.0)(eslint@8.54.0)
-  eslint-plugin-n:
-    specifier: ^16.3.1
-    version: 16.3.1(eslint@8.54.0)
-  eslint-plugin-promise:
-    specifier: ^6.1.1
-    version: 6.1.1(eslint@8.54.0)
-  eslint-plugin-svelte:
-    specifier: ^2.35.1
-    version: 2.35.1(eslint@8.54.0)(svelte@4.2.7)
-  globals:
-    specifier: ^13.23.0
-    version: 13.23.0
-  husky:
-    specifier: 8.0.3
-    version: 8.0.3
-  lint-staged:
-    specifier: 15.1.0
-    version: 15.1.0
-  postcss:
-    specifier: ^8.4.24
-    version: 8.4.31
-  postcss-load-config:
-    specifier: ^4.0.1
-    version: 4.0.2(postcss@8.4.31)
-  prettier:
-    specifier: 3.1.0
-    version: 3.1.0
-  prettier-plugin-packagejson:
-    specifier: 2.4.6
-    version: 2.4.6(prettier@3.1.0)
-  prettier-plugin-prisma:
-    specifier: 5.0.0
-    version: 5.0.0(prettier@3.1.0)
-  prettier-plugin-svelte:
-    specifier: 3.1.2
-    version: 3.1.2(prettier@3.1.0)(svelte@4.2.7)
-  prisma:
-    specifier: 5.6.0
-    version: 5.6.0
-  svelte:
-    specifier: 4.2.7
-    version: 4.2.7
-  svelte-check:
-    specifier: 3.6.2
-    version: 3.6.2(postcss-load-config@4.0.2)(postcss@8.4.31)(svelte@4.2.7)
-  tailwindcss:
-    specifier: ^3.3.2
-    version: 3.3.5
-  typescript:
-    specifier: 5.2.2
-    version: 5.2.2
-  vite:
-    specifier: 4.5.0
-    version: 4.5.0(@types/node@20.10.0)
+  .:
+    devDependencies:
+      '@commitlint/cli':
+        specifier: 18.4.3
+        version: 18.4.3(typescript@5.2.2)
+      '@commitlint/config-conventional':
+        specifier: 18.4.3
+        version: 18.4.3
+      '@commitlint/types':
+        specifier: 18.4.3
+        version: 18.4.3
+      '@eslint/js':
+        specifier: ^8.54.0
+        version: 8.54.0
+      '@types/eslint__eslintrc':
+        specifier: ^2.1.1
+        version: 2.1.1
+      '@types/lint-staged':
+        specifier: 13.2.2
+        version: 13.2.2
+      '@types/node':
+        specifier: ^20.10.0
+        version: 20.10.0
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.12.0
+        version: 6.12.0(@typescript-eslint/parser@6.12.0)(eslint@8.54.0)(typescript@5.2.2)
+      '@typescript-eslint/parser':
+        specifier: ^6.12.0
+        version: 6.12.0(eslint@8.54.0)(typescript@5.2.2)
+      aws-cdk-lib:
+        specifier: 2.110.1
+        version: 2.110.1(constructs@10.3.0)
+      cz-conventional-changelog:
+        specifier: 3.3.0
+        version: 3.3.0(typescript@5.2.2)
+      devmoji:
+        specifier: 2.3.0
+        version: 2.3.0
+      eslint:
+        specifier: ^8.54.0
+        version: 8.54.0
+      eslint-config-airbnb-base:
+        specifier: ^15.0.0
+        version: 15.0.0(eslint-plugin-import@2.29.0)(eslint@8.54.0)
+      eslint-config-airbnb-typescript:
+        specifier: ^17.1.0
+        version: 17.1.0(@typescript-eslint/eslint-plugin@6.12.0)(@typescript-eslint/parser@6.12.0)(eslint-plugin-import@2.29.0)(eslint@8.54.0)
+      eslint-config-prettier:
+        specifier: ^9.0.0
+        version: 9.0.0(eslint@8.54.0)
+      eslint-config-standard-with-typescript:
+        specifier: ^40.0.0
+        version: 40.0.0(@typescript-eslint/eslint-plugin@6.12.0)(eslint-plugin-import@2.29.0)(eslint-plugin-n@16.3.1)(eslint-plugin-promise@6.1.1)(eslint@8.54.0)(typescript@5.2.2)
+      eslint-plugin-import:
+        specifier: ^2.29.0
+        version: 2.29.0(@typescript-eslint/parser@6.12.0)(eslint@8.54.0)
+      eslint-plugin-n:
+        specifier: ^16.3.1
+        version: 16.3.1(eslint@8.54.0)
+      eslint-plugin-promise:
+        specifier: ^6.1.1
+        version: 6.1.1(eslint@8.54.0)
+      eslint-plugin-svelte:
+        specifier: ^2.35.1
+        version: 2.35.1(eslint@8.54.0)(svelte@4.2.7)
+      husky:
+        specifier: 8.0.3
+        version: 8.0.3
+      lint-staged:
+        specifier: 15.1.0
+        version: 15.1.0
+      prettier:
+        specifier: 3.1.0
+        version: 3.1.0
+      prettier-plugin-packagejson:
+        specifier: 2.4.6
+        version: 2.4.6(prettier@3.1.0)
+      prettier-plugin-prisma:
+        specifier: 5.0.0
+        version: 5.0.0(prettier@3.1.0)
+      prettier-plugin-svelte:
+        specifier: 3.1.2
+        version: 3.1.2(prettier@3.1.0)(svelte@4.2.7)
+      prisma:
+        specifier: 5.6.0
+        version: 5.6.0
+      typescript:
+        specifier: 5.2.2
+        version: 5.2.2
+
+  apps/zotmeet:
+    dependencies:
+      '@prisma/client':
+        specifier: 5.6.0
+        version: 5.6.0(prisma@5.6.0)
+    devDependencies:
+      '@skeletonlabs/skeleton':
+        specifier: ^2.5.1
+        version: 2.5.1(svelte@4.2.7)
+      '@skeletonlabs/tw-plugin':
+        specifier: ^0.2.4
+        version: 0.2.4(tailwindcss@3.3.5)
+      '@svelte.kit/adapter-aws':
+        specifier: ^0.2.1
+        version: 0.2.1(svelte@4.2.7)(vite@4.5.0)
+      '@sveltejs/kit':
+        specifier: 1.27.6
+        version: 1.27.6(svelte@4.2.7)(vite@4.5.0)
+      '@types/eslint__eslintrc':
+        specifier: ^2.1.1
+        version: 2.1.1
+      '@types/node':
+        specifier: ^20.10.0
+        version: 20.10.0
+      autoprefixer:
+        specifier: ^10.4.14
+        version: 10.4.16(postcss@8.4.31)
+      postcss:
+        specifier: ^8.4.24
+        version: 8.4.31
+      postcss-load-config:
+        specifier: ^4.0.1
+        version: 4.0.2(postcss@8.4.31)
+      prisma:
+        specifier: 5.6.0
+        version: 5.6.0
+      svelte:
+        specifier: 4.2.7
+        version: 4.2.7
+      svelte-check:
+        specifier: 3.6.2
+        version: 3.6.2(postcss-load-config@4.0.2)(postcss@8.4.31)(svelte@4.2.7)
+      tailwindcss:
+        specifier: ^3.3.2
+        version: 3.3.5
+      typescript:
+        specifier: 5.2.2
+        version: 5.2.2
+      vite:
+        specifier: 4.5.0
+        version: 4.5.0(@types/node@20.10.0)
 
 packages:
 
@@ -2020,6 +2037,19 @@ packages:
 
   /@types/cookie@0.5.4:
     resolution: {integrity: sha512-7z/eR6O859gyWIAjuvBWFzNURmf2oPBmJlfVWkwehU5nzIyjwBsTh7WMmEEV4JFnHuQ3ex4oyTvfKzcyJVDBNA==}
+    dev: true
+
+  /@types/eslint@8.44.7:
+    resolution: {integrity: sha512-f5ORu2hcBbKei97U73mf+l9t4zTGl74IqZ0GQk4oVea/VS8tQZYkUveSYojk+frraAVYId0V2WC9O4PTNru2FQ==}
+    dependencies:
+      '@types/estree': 1.0.5
+      '@types/json-schema': 7.0.15
+    dev: true
+
+  /@types/eslint__eslintrc@2.1.1:
+    resolution: {integrity: sha512-LI51vVv3N7WI4+fM7Xkh1+ciLA1gtuQPgXdKdece+vD8f/G2hrFqtwb4YIQyIM6VXpRM4vSy1PW5y3yuHK+Y2w==}
+    dependencies:
+      '@types/eslint': 8.44.7
     dev: true
 
   /@types/estree@1.0.5:
@@ -5724,8 +5754,8 @@ packages:
       picocolors: 1.0.0
       sade: 1.8.1
       svelte: 4.2.7
-      svelte-preprocess: 5.1.1(postcss-load-config@4.0.2)(postcss@8.4.31)(svelte@4.2.7)(typescript@5.3.2)
-      typescript: 5.3.2
+      svelte-preprocess: 5.1.1(postcss-load-config@4.0.2)(postcss@8.4.31)(svelte@4.2.7)(typescript@5.2.2)
+      typescript: 5.2.2
     transitivePeerDependencies:
       - '@babel/core'
       - coffeescript
@@ -5764,7 +5794,7 @@ packages:
       svelte: 4.2.7
     dev: true
 
-  /svelte-preprocess@5.1.1(postcss-load-config@4.0.2)(postcss@8.4.31)(svelte@4.2.7)(typescript@5.3.2):
+  /svelte-preprocess@5.1.1(postcss-load-config@4.0.2)(postcss@8.4.31)(svelte@4.2.7)(typescript@5.2.2):
     resolution: {integrity: sha512-p/Dp4hmrBW5mrCCq29lEMFpIJT2FZsRlouxEc5qpbOmXRbaFs7clLs8oKPwD3xCFyZfv1bIhvOzpQkhMEVQdMw==}
     engines: {node: '>= 14.10.0'}
     requiresBuild: true
@@ -5810,7 +5840,7 @@ packages:
       sorcery: 0.11.0
       strip-indent: 3.0.0
       svelte: 4.2.7
-      typescript: 5.3.2
+      typescript: 5.2.2
     dev: true
 
   /svelte@4.2.7:
@@ -6050,12 +6080,6 @@ packages:
 
   /typescript@5.2.2:
     resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
-    engines: {node: '>=14.17'}
-    hasBin: true
-    dev: true
-
-  /typescript@5.3.2:
-    resolution: {integrity: sha512-6l+RyNy7oAHDfxC4FzSJcz9vnjTKxrLpDG5M2Vu4SHRVNg6xzqZp6LYSR9zjqQTu8DU/f5xwxUdADOkbrIX2gQ==}
     engines: {node: '>=14.17'}
     hasBin: true
     dev: true
