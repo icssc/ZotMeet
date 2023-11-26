@@ -41,6 +41,8 @@ const config = [
     ],
     plugins: ['import', '@typescript-eslint'],
     rules: {
+      'import/no-unresolved': 'off',
+      'import/extensions': 'off',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
