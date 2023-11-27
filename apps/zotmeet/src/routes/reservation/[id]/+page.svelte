@@ -77,19 +77,12 @@
   }
 </script>
 
-<div class="flex flex-col">
-  <p class="text-4xl text-center font-semibold">
+<div>
+  <p class="text-4xl text-center font-semibold px-8 py-16">
     Reservation ID: {data.id}
   </p>
 
-  <Calendar {reservation} {backgroundEvents} />
-
   <div>
-    <button class="btn variant-filled-primary" on:click={updateTimeSlots}>Update timeslot</button>
-  </div>
-
-  <div>
-    <p>Time slots</p>
-    <pre>{JSON.stringify($reservationQuery.data?.timeSlots, undefined, 2)}</pre>
+    <Calendar {reservation} {backgroundEvents} />
   </div>
 </div>

@@ -117,10 +117,10 @@
     }
   })
 
-  function onClick(): void {
-    const events = calendar.getEvents()
-    console.log(events)
-  }
+  // function onClick(): void {
+  //   const events = calendar.getEvents()
+  //   console.log(events)
+  // }
 
   $: if (calendar != null) {
     calendar.setOption('slotMinTime', `${startEndHours[0]}:00:00`)
@@ -142,17 +142,4 @@
       <div bind:this={element}></div>
     </div>
   </div>
-
-  <div class="p-4 flex flex-wrap gap-4">
-    <div>
-      <button on:click={onClick} class="btn variant-filled">Get Events</button>
-    </div>
-  </div>
-
-  {#if currentEvent}
-    <div>
-      <p>You're hovering over:</p>
-      <pre>{JSON.stringify(currentEvent, undefined, 2)}</pre>
-    </div>
-  {/if}
 </div>
