@@ -27,16 +27,6 @@
 
   const utils = trpc.getContext()
 
-  // function randomTimeSlotThisWeek(): { start: Date; end: Date } {
-  //   const start = dayjs()
-  //     .startOf('week')
-  //     .add(Math.random() * 3, 'day')
-  //     .hour(10 + Math.random() * 10)
-  //     .toDate()
-  //   const end = dayjs(start).add(1, 'hour').toDate()
-  //   return { start, end }
-  // }
-
   function updateTimeSlots(events: EventImpl[]): void {
     const myEvents = events
       .filter((event) => event.id === 'FINALIZED')
