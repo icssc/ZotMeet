@@ -5,15 +5,17 @@
   import listPlugin from '@fullcalendar/list'
   import timeGridPlugin from '@fullcalendar/timegrid'
   import { onMount } from 'svelte'
-  import { get, writable } from 'svelte/store'
+  import { get, readable, writable } from 'svelte/store'
   import RangeSlider from 'svelte-range-slider-pips'
 
   import { handleSelect, handleSelection } from '$lib/calendar'
-  import type { Reservation } from '$lib/reservation'
+  import type { Reservation, ReservationEvent } from '$lib/reservation'
 
   let element: HTMLElement
 
   let calendar: Calendar
+
+  export let onSelect = (event: EventImpl[]): unknown => event
 
   export let startHour = 9
 
@@ -25,6 +27,8 @@
   })
 
   export let backgroundEvents = writable<EventInput[]>([])
+
+  export let myEvents = readable<ReservationEvent[]>([])
 
   let startEndHours = [9, 21]
 
@@ -86,6 +90,7 @@
       slotMaxTime: `${endHour}:00:00`,
       select: (arg) => {
         handleSelect(arg, calendar, get(reservation))
+        onSelect(calendar.getEvents())
       },
       selectAllow: (arg) => handleSelection(arg, calendar, get(reservation)),
       eventClick: (arg) => {
@@ -117,17 +122,33 @@
     }
   })
 
-  // function onClick(): void {
-  //   const events = calendar.getEvents()
-  //   console.log(events)
-  // }
-
   $: if (calendar != null) {
     calendar.setOption('slotMinTime', `${startEndHours[0]}:00:00`)
   }
 
   $: if (calendar != null) {
     calendar.setOption('slotMaxTime', `${startEndHours[1]}:00:00`)
+  }
+
+  $: if (calendar != null) {
+    console.log($myEvents)
+
+    calendar
+      .getEvents()
+      .filter((event) => event.id === 'FINALIZED')
+      .forEach((event) => {
+        event.remove()
+      })
+
+    $myEvents.forEach((event) => {
+      calendar.addEvent({
+        id: 'FINALIZED',
+        start: event.start,
+        end: event.end,
+        display: 'background',
+        backgroundColor: 'green',
+      })
+    })
   }
 </script>
 

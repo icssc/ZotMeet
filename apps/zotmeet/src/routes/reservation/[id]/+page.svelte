@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { EventInput } from '@fullcalendar/core/index.js'
-  import dayjs from 'dayjs'
-  import { writable } from 'svelte/store'
+  import type { EventImpl } from '@fullcalendar/core/internal'
+  import { derived, writable } from 'svelte/store'
 
   import type { PageData } from './$types'
 
@@ -19,7 +19,7 @@
 
   const backgroundEvents = writable<EventInput[]>([])
 
-  const cslQuery = trpc.csl.byId.createQuery(405)
+  const cslQuery = trpc.csl.byId.createQuery(406)
 
   const reservationQuery = trpc.reservations.byId.createQuery(data.id)
 
@@ -27,24 +27,29 @@
 
   const utils = trpc.getContext()
 
-  function randomTimeSlotThisWeek(): { start: Date; end: Date } {
-    const start = dayjs()
-      .startOf('week')
-      .add(Math.random() * 3, 'day')
-      .hour(10 + Math.random() * 10)
-      .toDate()
-    const end = dayjs(start).add(1, 'hour').toDate()
-    return { start, end }
-  }
+  // function randomTimeSlotThisWeek(): { start: Date; end: Date } {
+  //   const start = dayjs()
+  //     .startOf('week')
+  //     .add(Math.random() * 3, 'day')
+  //     .hour(10 + Math.random() * 10)
+  //     .toDate()
+  //   const end = dayjs(start).add(1, 'hour').toDate()
+  //   return { start, end }
+  // }
 
-  function updateTimeSlots(): void {
-    const { start, end } = randomTimeSlotThisWeek()
+  function updateTimeSlots(events: EventImpl[]): void {
+    const myEvents = events
+      .filter((event) => event.id === 'FINALIZED')
+      .map((event) => ({
+        start: event.start ?? new Date(),
+        end: event.end ?? new Date(),
+      }))
 
     $mutation.mutate(
       {
         id: $page.data.session?.user?.id,
         reservationId: data.id,
-        events: [{ start, end }],
+        events: myEvents,
       },
       {
         onSuccess: () => {
@@ -75,6 +80,10 @@
       })),
     )
   }
+
+  const myEvents = derived(reservationQuery, ($reservation) => $reservation.data?.timeSlots ?? [])
+
+  $: console.log($reservationQuery)
 </script>
 
 <div>
@@ -83,6 +92,6 @@
   </p>
 
   <div>
-    <Calendar {reservation} {backgroundEvents} />
+    <Calendar {reservation} {backgroundEvents} onSelect={updateTimeSlots} {myEvents} />
   </div>
 </div>

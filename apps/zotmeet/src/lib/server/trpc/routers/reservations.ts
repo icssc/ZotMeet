@@ -79,4 +79,15 @@ export const reservationsRouter = router({
 
       return timeslots
     }),
+
+  /**
+   * Delete all of a reservation's timeslots.
+   */
+  deleteAllTimeSlots: procedure.input(type('string').assert).mutation(async ({ input }) => {
+    await prisma.timeSlot.deleteMany({
+      where: {
+        reservationId: input,
+      },
+    })
+  }),
 })
