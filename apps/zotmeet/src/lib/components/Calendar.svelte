@@ -5,7 +5,7 @@
   import listPlugin from '@fullcalendar/list'
   import timeGridPlugin from '@fullcalendar/timegrid'
   import { onMount } from 'svelte'
-  import { get, readable, writable } from 'svelte/store'
+  import { get, readable } from 'svelte/store'
   import RangeSlider from 'svelte-range-slider-pips'
 
   import { handleSelect, handleSelection } from '$lib/calendar'
@@ -17,16 +17,13 @@
 
   export let onSelect = (event: EventImpl[]): unknown => event
 
-  export let startHour = 9
+  export let startHour = 7
 
-  export let endHour = 21
+  export let endHour = 20
 
-  export let reservation = writable<Reservation>({
-    id: '',
-    events: [],
-  })
+  export let reservation = readable<Reservation>({ id: '', events: [] })
 
-  export let backgroundEvents = writable<EventInput[]>([])
+  export let backgroundEvents = readable<EventInput[]>([])
 
   export let myEvents = readable<ReservationEvent[]>([])
 
@@ -94,7 +91,8 @@
       },
       selectAllow: (arg) => handleSelection(arg, calendar, get(reservation)),
       eventClick: (arg) => {
-        if (!arg.event.startEditable || !arg.event.durationEditable) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-boolean-literal-compare
+        if (arg.event.startEditable === false || arg.event.durationEditable === false) {
           return
         }
         arg.event.remove()
@@ -131,8 +129,6 @@
   }
 
   $: if (calendar != null) {
-    console.log($myEvents)
-
     calendar
       .getEvents()
       .filter((event) => event.id === 'FINALIZED')
@@ -145,7 +141,7 @@
         id: 'FINALIZED',
         start: event.start,
         end: event.end,
-        display: 'background',
+        // display: 'background',
         backgroundColor: 'green',
       })
     })
