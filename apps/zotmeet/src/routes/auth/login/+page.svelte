@@ -27,14 +27,14 @@
       <div class="space-y-4">
         <label class="space-y-2">
           <span>Email Address</span>
-          <input type="text" class="input input-bordered w-full" />
+          <input type="text" class="input w-full" />
         </label>
         <button class="btn variant-filled-primary w-full">Continue</button>
       </div>
 
       <div class="space-x-1">
         <span>No account?</span>
-        <a href="/auth/signup" class="text-primary-500 link-hover">Sign up</a>
+        <a href="/auth/signup" class="text-primary-500 hover:underline">Sign up</a>
       </div>
     </div>
   </div>
