@@ -51,15 +51,20 @@
           <a href="/auth/login" class="btn variant-filled-primary w-full"> Login </a>
         </div>
       {:else}
-        <div class="space-y-4">
+        <div>
           <p class="text-3xl text-center">
             <span>Welcome, </span>
             <span class="font-bold">{$page.data.session.user.name}</span>
           </p>
+          <div class="flex gap-4 items-end p-2">
+            <button type="submit" class="w-1/2 btn variant-filled-secondary" on:click={handleClick}>
+              Create Reservation
+            </button>
 
-          <button type="submit" class="w-full btn variant-filled-secondary" on:click={handleClick}>
-            Create Reservation
-          </button>
+            <a href="/developer" class="w-1/2 btn variant-filled-tertiary">
+              Debug -- Developers Only!
+            </a>
+          </div>
         </div>
       {/if}
     </section>
