@@ -75,8 +75,6 @@
     })
   }
 
-  let currentEvent: EventImpl | undefined
-
   onMount(() => {
     calendar = new Calendar(element, {
       editable: true,
@@ -96,13 +94,6 @@
           return
         }
         arg.event.remove()
-        currentEvent = undefined
-      },
-      eventMouseEnter: (arg) => {
-        currentEvent = arg.event
-      },
-      eventMouseLeave: () => {
-        currentEvent = undefined
       },
       plugins: [timeGridPlugin, listPlugin, interactionPlugin],
       initialView: 'timeGridWeek',

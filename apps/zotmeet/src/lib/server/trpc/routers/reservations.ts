@@ -57,6 +57,11 @@ export const reservationsRouter = router({
     return reservation
   }),
 
+  getAllTimeSlots: procedure.query(async () => {
+    const timeslots = await prisma.timeSlot.findMany()
+    return timeslots
+  }),
+
   /**
    * Returns all of a reservation's timeslots.
    */
@@ -77,6 +82,7 @@ export const reservationsRouter = router({
       await prisma.timeSlot.deleteMany({
         where: {
           userId: input.id,
+          reservationId: input.reservationId,
         },
       })
 
