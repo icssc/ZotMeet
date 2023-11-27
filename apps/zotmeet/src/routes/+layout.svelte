@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { AppShell, AppBar } from '@skeletonlabs/skeleton'
   import { QueryClientProvider } from '@tanstack/svelte-query'
 
   import type { PageData } from './$types'
@@ -11,5 +12,14 @@
 </script>
 
 <QueryClientProvider client={data.trpc.queryClient}>
-  <slot />
+  <AppShell>
+    <svelte:fragment slot="header">
+      <AppBar>
+        <svelte:fragment slot="lead">(icon)</svelte:fragment>
+        (title)
+        <svelte:fragment slot="trail">(actions)</svelte:fragment>
+      </AppBar>
+    </svelte:fragment>
+    <slot />
+  </AppShell>
 </QueryClientProvider>
