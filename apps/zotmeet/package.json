@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@auth/core": "^0.18.3",
+    "@floating-ui/dom": "^1.5.3",
     "@fullcalendar/core": "^6.1.9",
     "@fullcalendar/daygrid": "^6.1.9",
     "@fullcalendar/interaction": "^6.1.9",

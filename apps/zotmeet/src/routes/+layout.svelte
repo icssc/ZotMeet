@@ -1,7 +1,15 @@
 <script lang="ts">
   import '../app.css'
 
-  import { AppShell, Drawer, Modal, Toast, initializeStores } from '@skeletonlabs/skeleton'
+  import { computePosition, autoUpdate, offset, shift, flip, arrow } from '@floating-ui/dom'
+  import {
+    AppShell,
+    Drawer,
+    Modal,
+    Toast,
+    initializeStores,
+    storePopup,
+  } from '@skeletonlabs/skeleton'
   import { QueryClientProvider } from '@tanstack/svelte-query'
 
   import type { PageData } from './$types'
@@ -12,6 +20,7 @@
 
   data.trpc.setContext(data.trpc.client, data.trpc.queryClient)
   initializeStores()
+  storePopup.set({ computePosition, autoUpdate, offset, shift, flip, arrow })
 </script>
 
 <QueryClientProvider client={data.trpc.queryClient}>
