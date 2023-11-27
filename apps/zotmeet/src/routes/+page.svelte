@@ -1,27 +1,8 @@
 <script lang="ts">
-  import { getDrawerStore, getToastStore } from '@skeletonlabs/skeleton'
-
   import { page } from '$app/stores'
   import { trpc } from '$lib/client/trpc'
 
   const query = trpc.hello.createQuery({ text: 'Elysia' })
-
-  const drawerStore = getDrawerStore()
-  const toastStore = getToastStore()
-
-  toastStore.trigger({
-    message: 'Lorem ipsum dolor sit amet consectetur adipisicing elit...',
-  })
-
-  drawerStore.open({
-    id: 'example-3',
-    // Provide your property overrides:
-    bgDrawer: 'bg-purple-900 text-white',
-    bgBackdrop: 'bg-gradient-to-tr from-indigo-500/50 via-purple-500/50 to-pink-500/50',
-    width: 'w-[280px] md:w-[480px]',
-    padding: 'p-4',
-    rounded: 'rounded-xl',
-  })
 </script>
 
 <div class="container mx-auto p-8 space-y-8">
