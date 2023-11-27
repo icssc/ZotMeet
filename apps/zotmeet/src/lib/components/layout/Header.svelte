@@ -28,6 +28,20 @@
     </div>
   </svelte:fragment>
 
+  <nav class="hidden md:block">
+    <ul class="flex flex-row gap-2 justify-center items-center">
+      <li class="btn hover:variant-soft-primary text-lg">
+        <a href="/">Home</a>
+      </li>
+      <li class="btn hover:variant-soft-primary text-lg">
+        <a href="/about">About</a>
+      </li>
+      <li class="btn hover:variant-soft-primary text-lg">
+        <a href="/requirements">Requirements</a>
+      </li>
+    </ul>
+  </nav>
+
   <svelte:fragment slot="trail">
     {#if $page.data.session?.user}
       <div class="flex items-center gap-4">
@@ -76,7 +90,6 @@
           </button>
         </form>
       </li>
-      <!-- ... -->
     </ul>
   </nav>
 </div>
