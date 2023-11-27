@@ -39,4 +39,6 @@ declare global {
   type SvelteInputEvent<E extends Event = Event, Element = HTMLInputElement> = E & {
     currentTarget: EventTarget & Element
   }
+
+  declare module '*.md'
 }
