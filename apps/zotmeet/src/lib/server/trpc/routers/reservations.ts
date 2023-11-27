@@ -16,7 +16,7 @@ export const reservationsRouter = router({
   /**
    * Create.
    */
-  create: procedure.input(type('string').assert).mutation(async ({ input }) => {
+  create: procedure.input(type('string | null | undefined').assert).mutation(async ({ input }) => {
     const reservation = await prisma.reservation.create({
       data: {
         userId: input,
