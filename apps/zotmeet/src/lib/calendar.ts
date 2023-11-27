@@ -53,6 +53,7 @@ export function handleSelect(
     const end = startEndTime.end.day(day).toDate()
 
     calendar.addEvent({
+      id: 'FINALIZED',
       start,
       end,
       reservation,
@@ -73,6 +74,10 @@ export function handleSelection(
 
   calendar.getEvents().forEach((event) => {
     if (event.start == null || !daysOfWeek.includes(event.start?.getDay())) {
+      return
+    }
+
+    if (event.id !== 'FINALIZED' && event.id !== 'PENDING') {
       return
     }
 

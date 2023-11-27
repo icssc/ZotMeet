@@ -25,9 +25,21 @@
 
   $: {
     if (shouldLoadData && $byIdquery.data != null && $byIdquery.data.length > 0) {
+      calendar
+        .getEvents()
+        .filter((event) => event.id === 'CSL')
+        .forEach((event) => {
+          event.remove()
+        })
+
       $byIdquery.data?.forEach((room) => {
-        calendar.addEvent(room)
+        calendar.addEvent({
+          id: 'CSL',
+          display: 'background',
+          ...room,
+        })
       })
+
       shouldLoadData = false
     }
   }
@@ -56,6 +68,9 @@
       },
       selectAllow: (arg) => handleSelection(arg, calendar, reservation),
       eventClick: (arg) => {
+        if (!arg.event.startEditable || !arg.event.durationEditable) {
+          return
+        }
         arg.event.remove()
         currentEvent = undefined
       },
@@ -143,11 +158,14 @@
   {/if}
 
   <div>
-    <select class="select" on:change={handleSelectRoom} value={currentRoomId}>
-      {#each $roomIdQuery.data ?? [] as roomId}
-        <option value={roomId}>{roomId}</option>
-      {/each}
-    </select>
+    <label>
+      <span>Select CSL room availability</span>
+      <select class="select" on:change={handleSelectRoom} value={currentRoomId}>
+        {#each $roomIdQuery.data ?? [] as roomId}
+          <option value={roomId}>{roomId}</option>
+        {/each}
+      </select>
+    </label>
   </div>
   <div>
     <pre>{JSON.stringify($byIdquery.data, undefined, 2)}</pre>
