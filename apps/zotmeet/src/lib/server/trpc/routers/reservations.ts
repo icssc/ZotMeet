@@ -34,7 +34,7 @@ export const reservationsRouter = router({
       where: { id: input },
       include: {
         participants: true,
-        timeSlot: true,
+        timeSlots: true,
       },
     })
     return reservation

@@ -88,7 +88,7 @@
 
   <div>
     <p>Time slots</p>
-    <pre>{JSON.stringify($timeslotQuery.data, undefined, 2)}</pre>
+    <pre>{JSON.stringify($reservationQuery.data?.timeSlots, undefined, 2)}</pre>
   </div>
 
   <Calendar {reservation} {backgroundEvents} />

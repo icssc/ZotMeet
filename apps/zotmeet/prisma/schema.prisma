@@ -17,9 +17,9 @@ model User {
   session Session[]
   account Account[]
 
-  reservations           Reservation[]
-  ReservationParticipant ReservationParticipant[]
-  timeSlots              TimeSlot[]
+  reservations   Reservation[]
+  participations ReservationParticipant[]
+  timeSlots      TimeSlot[]
 }
 
 model Account {
@@ -45,7 +45,7 @@ model Reservation {
   id           String                   @id @default(cuid())
   userId       String?
   participants ReservationParticipant[]
-  timeSlot     TimeSlot[]
+  timeSlots    TimeSlot[]
   user         User?                    @relation(fields: [userId], references: [id])
 }
 

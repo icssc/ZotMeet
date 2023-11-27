@@ -8,7 +8,7 @@
 
   async function handleClick(event: Event): Promise<void> {
     event.preventDefault()
-    const reservation = await $mutation.mutateAsync($page.data.session?.user?.name)
+    const reservation = await $mutation.mutateAsync($page.data.session?.user?.id)
     await goto(`/reservation/${reservation.id}`)
   }
 </script>
@@ -20,11 +20,23 @@
     </header>
 
     <section class="card-body p-4 flex flex-col items-center gap-2">
-      <a href="/auth/login" class="btn variant-filled-primary">
-        <ArrowCircleRightIcon class="w-6 h-6" />
-        <span>Login with Oauth</span>
-      </a>
-      <p class="opacity-50">Logging in allows you to edit the reservation</p>
+      {#if $page.data.session?.user?.name}
+        <div class="flex flex-col gap-2">
+          <p class="text-2xl text-center">
+            <span>Welcome </span>
+            <span class="font-semibold">{$page.data.session.user.name}</span>
+          </p>
+          <p class="opacity-50">Logging in allows you to edit the reservation</p>
+        </div>
+      {:else}
+        <div class="flex flex-col gap-2">
+          <a href="/auth/login" class="btn variant-filled-primary">
+            <ArrowCircleRightIcon class="w-6 h-6" />
+            <span>Login with Oauth</span>
+          </a>
+          <p class="opacity-50">Logging in allows you to edit the reservation</p>
+        </div>
+      {/if}
     </section>
 
     <footer class="card-footer">
