@@ -18,7 +18,10 @@ const config = {
   ],
   plugins: [
     skeleton({
-      themes: { custom: [zotmeetTheme] },
+      themes: {
+        preset: ['modern'],
+        custom: [zotmeetTheme],
+      },
     }),
     forms(),
   ],
