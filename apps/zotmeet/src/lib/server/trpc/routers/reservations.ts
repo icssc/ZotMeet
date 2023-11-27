@@ -9,6 +9,19 @@ import { prisma } from '$lib/server/db'
  */
 export const reservationsRouter = router({
   /**
+   * Create.
+   */
+  create: procedure.input(type('string').assert).query(async ({ input }) => {
+    const reservation = await prisma.reservation.create({
+      data: {
+        user_id: input,
+      },
+    })
+
+    return reservation
+  }),
+
+  /**
    * Get a single reservation by its unique ID.
    */
   byId: procedure.input(type('string').assert).query(async ({ input }) => {
