@@ -25,6 +25,6 @@ export const load: LayoutLoad = async (event) => {
 
   return {
     trpc,
-    user: event.data.user,
+    session: event.data.session,
   }
 }

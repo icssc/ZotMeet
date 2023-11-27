@@ -1,6 +1,6 @@
 import 'unplugin-icons/types/svelte'
 
-import type { User } from '@auth/core/types'
+import type { Session } from '@auth/core/types'
 
 declare global {
   namespace App {
@@ -8,14 +8,14 @@ declare global {
       /**
        * Helper function to get the user for the current request.
        */
-      getUser: () => Promise<User | null>
+      getSession: () => Promise<Session | null>
     }
 
     interface PageData {
       /**
-       * User parsed from session / cookies.
+       * Session parsed from cookies.
        */
-      user?: User
+      session?: Session
     }
   }
 

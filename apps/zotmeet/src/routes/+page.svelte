@@ -5,7 +5,7 @@
 
   const query = trpc.hello.createQuery({ text: 'Elysia' })
 
-  $: console.log($page.data.user)
+  $: console.log($page.data.session)
 </script>
 
 <div class="p-8 max-w-4xl mx-auto">
