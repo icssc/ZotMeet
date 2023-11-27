@@ -5,6 +5,7 @@
 
   import type { PageData } from './$types'
 
+  import { page } from '$app/stores'
   import { trpc } from '$lib/client/trpc'
   import Calendar from '$lib/components/Calendar.svelte'
   import type { Reservation } from '$lib/reservation'
@@ -20,13 +21,15 @@
 
   const backgroundEvents = writable<EventInput[]>([])
 
-  const query = trpc.reservations.getTimeSlots.createQuery(data.id)
+  const reservationQuery = trpc.reservations.byId.createQuery(data.id)
+
+  $: console.log($reservationQuery.data)
 
   const mutation = trpc.reservations.updateTimeSlots.createMutation()
 
   const utils = trpc.getContext()
 
-  let participantId = ''
+  let participantId = $page.data.session?.user?.id ?? 'Anonymous'
 
   function randomTimeSlotThisWeek(): { start: Date; end: Date } {
     const start = dayjs()
@@ -58,7 +61,7 @@
 
     $mutation.mutate(
       {
-        id: 'Anonymous',
+        id: participantId,
         reservationId: data.id,
         events: [{ start, end }],
       },
@@ -85,7 +88,7 @@
 
   <div>
     <p>Time slots</p>
-    <pre>{JSON.stringify($query.data, undefined, 2)}</pre>
+    <pre>{JSON.stringify($timeslotQuery.data, undefined, 2)}</pre>
   </div>
 
   <Calendar {reservation} {backgroundEvents} />

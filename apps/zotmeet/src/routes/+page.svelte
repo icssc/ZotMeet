@@ -33,7 +33,7 @@
     <footer class="card-footer">
       <div class="p-8">
         <p class="text-4xl text-center font-semibold">Create a Reservation</p>
-        <p class="opacity-50 text-lg text-center">Try creating a reservation without logging in.</p>
+        <p class="opacity-50 text-lg text-center">Creating a reservation without logging in.</p>
       </div>
       <div>
         <button type="submit" class="w-full btn variant-filled-secondary" on:click={handleClick}>
