@@ -6,6 +6,7 @@
   import timeGridPlugin from '@fullcalendar/timegrid'
   import { onMount } from 'svelte'
   import { get, writable } from 'svelte/store'
+  import RangeSlider from 'svelte-range-slider-pips'
 
   import { handleSelect, handleSelection } from '$lib/calendar'
   import type { Reservation } from '$lib/reservation'
@@ -24,6 +25,8 @@
   })
 
   export let backgroundEvents = writable<EventInput[]>([])
+
+  let startEndHours = [9, 21]
 
   $: if (calendar != null) {
     calendar
@@ -119,16 +122,12 @@
     console.log(events)
   }
 
-  const hours = Array.from({ length: 25 }, (_, i) => i)
-
-  function handleStartSelect(e: SvelteInputEvent<Event, HTMLSelectElement>): void {
-    startHour = +e.currentTarget.value
-    calendar.setOption('slotMinTime', `${startHour}:00:00`)
+  $: if (calendar != null) {
+    calendar.setOption('slotMinTime', `${startEndHours[0]}:00:00`)
   }
 
-  function handleEndSelect(e: SvelteInputEvent<Event, HTMLSelectElement>): void {
-    endHour = +e.currentTarget.value
-    calendar.setOption('slotMaxTime', `${endHour}:00:00`)
+  $: if (calendar != null) {
+    calendar.setOption('slotMaxTime', `${startEndHours[1]}:00:00`)
   }
 </script>
 
@@ -138,24 +137,8 @@
   </div>
 
   <div class="p-4 flex flex-wrap gap-4">
-    <div class="w-full flex gap-8">
-      <label class="w-full">
-        <span>Start Hour</span>
-        <select class="select" on:change={handleStartSelect} value={startHour}>
-          {#each hours as hour}
-            <option value={hour}>{hour}</option>
-          {/each}
-        </select>
-      </label>
-
-      <label class="w-full">
-        <span>End Hour</span>
-        <select class="select" on:change={handleEndSelect} value={endHour}>
-          {#each hours as hour}
-            <option value={hour}>{hour}</option>
-          {/each}
-        </select>
-      </label>
+    <div class="w-full">
+      <RangeSlider min={0} max={24} pips float bind:values={startEndHours} />
     </div>
 
     <div>
