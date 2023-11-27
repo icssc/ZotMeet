@@ -15,7 +15,6 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@aponia.js/adapter-prisma": "^0.1.0",
     "@auth/core": "^0.18.3",
     "@fullcalendar/core": "^6.1.9",
     "@fullcalendar/daygrid": "^6.1.9",
@@ -30,8 +29,9 @@
     "superjson": "^2.2.1"
   },
   "devDependencies": {
-    "@aponia.js/core": "^0.1.0",
-    "@aponia.js/sveltekit": "^0.1.0",
+    "@aponia.js/adapter-prisma": "^0.1.1",
+    "@aponia.js/core": "^0.1.1",
+    "@aponia.js/sveltekit": "^0.1.1",
     "@bevm0/trpc-svelte-query": "^0.10.0",
     "@bevm0/trpc-sveltekit": "^0.9.22",
     "@skeletonlabs/skeleton": "^2.5.1",

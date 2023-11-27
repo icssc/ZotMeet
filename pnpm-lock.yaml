@@ -107,9 +107,6 @@ importers:
 
   apps/zotmeet:
     dependencies:
-      '@aponia.js/adapter-prisma':
-        specifier: ^0.1.0
-        version: 0.1.0
       '@auth/core':
         specifier: ^0.18.3
         version: 0.18.3
@@ -147,12 +144,15 @@ importers:
         specifier: ^2.2.1
         version: 2.2.1
     devDependencies:
+      '@aponia.js/adapter-prisma':
+        specifier: ^0.1.1
+        version: 0.1.1
       '@aponia.js/core':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.1.1
+        version: 0.1.1
       '@aponia.js/sveltekit':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.1.1
+        version: 0.1.1
       '@bevm0/trpc-svelte-query':
         specifier: ^0.10.0
         version: 0.10.0(@tanstack/svelte-query@5.8.7)(@trpc/client@10.44.1)(@trpc/server@10.44.1)(svelte@4.2.7)
@@ -242,15 +242,15 @@ packages:
       '@jridgewell/gen-mapping': 0.3.3
       '@jridgewell/trace-mapping': 0.3.20
 
-  /@aponia.js/adapter-prisma@0.1.0:
-    resolution: {integrity: sha512-l8XJ2tYUR5V/Vpyl23p/arVnI0Mz9uIB4m/dQGbaQTrk9NVgS8jDuu+u0F0shmzL+zFpTVobI9P79oSOZlfDsg==}
+  /@aponia.js/adapter-prisma@0.1.1:
+    resolution: {integrity: sha512-bMZStTPLMvuHS/Im0Rx90dsnIRLhW/2nnqOLh4JPTqqp97kjtgUR7IpRcboArd8Q0c/yiPt3LMobB4irJK9h3g==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
-      '@aponia.js/core': 0.1.0
-    dev: false
+      '@aponia.js/core': 0.1.1
+    dev: true
 
-  /@aponia.js/core@0.1.0:
-    resolution: {integrity: sha512-T4hiIj6T0Ey2aLnkXLfR14qXJzQzlHc3ooO0Dv0zPn89WESB5eeRCnhVDxDwwZbE9pccBGV7DkzInC924GIDNg==}
+  /@aponia.js/core@0.1.1:
+    resolution: {integrity: sha512-OVBV9hbx03645MAPqDX3vKaCgsfQ+u60diYXYEJRpDLE/xqZ3nzznGTTDJUrbMlgH+wuOHBppRrx5zqDTWTCIw==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
       '@panva/hkdf': 1.1.1
@@ -258,12 +258,13 @@ packages:
       jose: 4.15.4
       oauth4webapi: 2.4.0
       universal-cookie: 6.1.1
+    dev: true
 
-  /@aponia.js/sveltekit@0.1.0:
-    resolution: {integrity: sha512-VJYm60pnLfCgr8iifSKKkZNanBzLM1YUNZvs6zBSKQvE+I7DlETTQ+LIkqsiEHQBebqmJiKa8mGE0PJgBXCp8A==}
+  /@aponia.js/sveltekit@0.1.1:
+    resolution: {integrity: sha512-wqRluUpXEDWrNLMSbXrXVuhmXJTxGdNbLL/vNTBQSp6p22NSsLEq97Zi3khKyOaMt21y5VM/ydtqFpo+xh4Ipg==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
-      '@aponia.js/core': 0.1.0
+      '@aponia.js/core': 0.1.1
       '@auth/core': 0.18.3
       cookie: 0.5.0
     transitivePeerDependencies:
@@ -2281,6 +2282,7 @@ packages:
 
   /@types/cookie@0.5.4:
     resolution: {integrity: sha512-7z/eR6O859gyWIAjuvBWFzNURmf2oPBmJlfVWkwehU5nzIyjwBsTh7WMmEEV4JFnHuQ3ex4oyTvfKzcyJVDBNA==}
+    dev: true
 
   /@types/eslint@8.44.7:
     resolution: {integrity: sha512-f5ORu2hcBbKei97U73mf+l9t4zTGl74IqZ0GQk4oVea/VS8tQZYkUveSYojk+frraAVYId0V2WC9O4PTNru2FQ==}
@@ -4893,6 +4895,7 @@ packages:
 
   /jose@4.15.4:
     resolution: {integrity: sha512-W+oqK4H+r5sITxfxpSU+MMdr/YSWGvgZMQDIsNoBDGGy4i7GBPTtvFKibQzW06n3U3TqHjhvBJsirShsEJ6eeQ==}
+    dev: true
 
   /jose@5.1.1:
     resolution: {integrity: sha512-bfB+lNxowY49LfrBO0ITUn93JbUhxUN8I11K6oI5hJu/G6PO6fEUddVLjqdD0cQ9SXIHWXuWh7eJYwZF7Z0N/g==}
@@ -6872,6 +6875,7 @@ packages:
     dependencies:
       '@types/cookie': 0.5.4
       cookie: 0.5.0
+    dev: true
 
   /universalify@0.2.0:
     resolution: {integrity: sha512-CJ1QgKmNg3CwvAv/kOFmtnEN05f0D/cn9QntgNOQlQF9dgvVTHj3t+8JPdjqawCHk7V/KA+fbUqzZ9XWhcqPUg==}
