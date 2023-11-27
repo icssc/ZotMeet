@@ -98,8 +98,10 @@ model TimeSlot {
   end DateTime
 
   // The user that this timeslot is for.
-  user User @relation(references: [id], fields: [user_id], onDelete: Cascade)
+  // user User @relation(references: [id], fields: [user_id], onDelete: Cascade)
 
   // The reservation that this timeslot is for.
   reservation Reservation @relation(references: [id], fields: [reservation_id], onDelete: Cascade)
+  User        User?       @relation(fields: [userId], references: [id])
+  userId      String?
 }
