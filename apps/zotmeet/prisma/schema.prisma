@@ -55,9 +55,12 @@ model Reservation {
   // A reservation is created by a single person.
   user_id String
 
-  user                   User                     @relation(references: [id], fields: [user_id], onDelete: Cascade)
   ReservationParticipant ReservationParticipant[]
   TimeSlot               TimeSlot[]
+
+  // user                   User                     @relation(references: [id], fields: [user_id], onDelete: Cascade)
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String?
 }
 
 // Reservations can have participants that are trying to agree on a meeting date.
