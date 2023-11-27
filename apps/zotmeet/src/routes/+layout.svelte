@@ -1,17 +1,12 @@
 <script lang="ts">
-  import {
-    AppShell,
-    AppBar,
-    Drawer,
-    LightSwitch,
-    Toast,
-    initializeStores,
-  } from '@skeletonlabs/skeleton'
+  import '../app.css'
+
+  import { AppShell, Drawer, Toast, initializeStores } from '@skeletonlabs/skeleton'
   import { QueryClientProvider } from '@tanstack/svelte-query'
 
   import type { PageData } from './$types'
 
-  import '../app.css'
+  import Header from '$lib/components/layout/Header.svelte'
 
   export let data: PageData
 
@@ -25,18 +20,9 @@
 
   <AppShell>
     <svelte:fragment slot="header">
-      <AppBar>
-        <svelte:fragment slot="lead">(icon)</svelte:fragment>
-        <div class="flex justify-center">
-          <h1 class="text-6xl font-bold">ZotMeet</h1>
-        </div>
-        <svelte:fragment slot="trail">
-          <div>
-            <LightSwitch />
-          </div>
-        </svelte:fragment>
-      </AppBar>
+      <Header />
     </svelte:fragment>
+
     <slot />
   </AppShell>
 </QueryClientProvider>

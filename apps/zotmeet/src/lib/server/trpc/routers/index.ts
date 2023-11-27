@@ -8,7 +8,7 @@ import { data as scienceLibraryData } from '$lib/data/science-library'
 
 export const appRouter = router({
   hello: procedure.input(type({ text: 'string' }).assert).query(({ input }) => ({
-    greeting: `hello ${input.text}`,
+    greeting: `Hello, ${input.text}~`,
   })),
 
   csl: procedure.query(() => cslData),
