@@ -145,14 +145,14 @@ importers:
         version: 2.2.1
     devDependencies:
       '@aponia.js/adapter-prisma':
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.2.0
+        version: 0.2.0
       '@aponia.js/core':
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.2.0
+        version: 0.2.0
       '@aponia.js/sveltekit':
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.2.0
+        version: 0.2.0
       '@bevm0/trpc-svelte-query':
         specifier: ^0.10.0
         version: 0.10.0(@tanstack/svelte-query@5.8.7)(@trpc/client@10.44.1)(@trpc/server@10.44.1)(svelte@4.2.7)
@@ -259,15 +259,18 @@ packages:
     resolution: {integrity: sha512-pvFiLP2BeOKA/ZOS6jxx4XhKzdVLHDhGlFEaZ2flWWYf2xOqVniqpk38I04DFRyz+L0ASggl7SkItTc+ZLju4w==}
     dev: true
 
-  /@aponia.js/adapter-prisma@0.1.2:
-    resolution: {integrity: sha512-CPxMh8l+PGkJv6SG9Jx81/FuUi27d5ywnXwYxu+j7ilY0CHRECToMIM6RxLFZMGPEfR8ys9rLqclkz98fGyZ8Q==}
+  /@aponia.js/adapter-prisma@0.2.0:
+    resolution: {integrity: sha512-Yxkbyhct105mmfS1Yrl2BgEDqNoMl5wc1K5n+zPnuzmhXQo38xeiypnICWFv4bRp9MPRKG8c1pe0hiivsEbowQ==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
-      '@aponia.js/core': 0.1.2
+      '@aponia.js/core': 0.2.0
+      '@auth/core': 0.18.3
+    transitivePeerDependencies:
+      - nodemailer
     dev: true
 
-  /@aponia.js/core@0.1.2:
-    resolution: {integrity: sha512-ZjuENg+OAskbKEmEU5PlXa9Wol2XZajYsWw+uu26plmO16cmxDm5KEtzJ2Dsce4D3IFy+BkJMobXh16CrDhYRQ==}
+  /@aponia.js/core@0.2.0:
+    resolution: {integrity: sha512-I/0qVA22iGwdAGxI5Ky1nA8oDHl3ynunovRzeMkhmp2DsQ+t6/wcSUnWs/LuQm4GK5tjF2z/6aUmuMTq+bjD+w==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
       '@panva/hkdf': 1.1.1
@@ -277,11 +280,11 @@ packages:
       universal-cookie: 6.1.1
     dev: true
 
-  /@aponia.js/sveltekit@0.1.2:
-    resolution: {integrity: sha512-Uqa1/YzodPCLW1DGcAhd0rlNfjPvkOSHbpp7Jfsh56bv9toVEY4ibjaQHUc3zMzCSulAN6kCqu4ZZ56wUHV/Kg==}
+  /@aponia.js/sveltekit@0.2.0:
+    resolution: {integrity: sha512-2hbN35UFtVhbtD/72ddfjGwhLRoQSjXfI0UI6XtNC5OV3nGqH0qLQbKJPKH9/kyuld+S4nLGlpPjbqzkOLiHSw==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
-      '@aponia.js/core': 0.1.2
+      '@aponia.js/core': 0.2.0
       '@auth/core': 0.18.3
       cookie: 0.5.0
     transitivePeerDependencies:

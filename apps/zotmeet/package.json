@@ -29,9 +29,9 @@
     "superjson": "^2.2.1"
   },
   "devDependencies": {
-    "@aponia.js/adapter-prisma": "^0.1.2",
-    "@aponia.js/core": "^0.1.2",
-    "@aponia.js/sveltekit": "^0.1.2",
+    "@aponia.js/adapter-prisma": "^0.2.0",
+    "@aponia.js/core": "^0.2.0",
+    "@aponia.js/sveltekit": "^0.2.0",
     "@bevm0/trpc-svelte-query": "^0.10.0",
     "@bevm0/trpc-sveltekit": "^0.9.22",
     "@iconify/json": "^2.2.147",
