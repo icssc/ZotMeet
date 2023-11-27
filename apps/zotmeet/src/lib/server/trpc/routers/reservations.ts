@@ -52,7 +52,7 @@ export const reservationsRouter = router({
 
       // Create the new timeslots.
       const timeslots = await prisma.$transaction(
-        input.events.map(async (event) =>
+        input.events.map((event) =>
           prisma.timeSlot.create({
             data: {
               user_id: input.id,
