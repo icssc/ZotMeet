@@ -3,7 +3,7 @@
 
   import { page } from '$app/stores'
   import logo from '$lib/assets/logo.png'
-  import BookIcon from '~icons/material-symbols/book'
+  import AccountCircleIcon from '~icons/material-symbols/account-circle'
   import LoginIcon from '~icons/material-symbols/login'
   import LogoutIcon from '~icons/material-symbols/logout'
 
@@ -51,7 +51,7 @@
         </button>
       </div>
     {:else}
-      <a href="/auth/login" class="btn variant-filled">
+      <a href="/auth/login" class="btn hover:variant-filled">
         <LoginIcon class="w-6 h-6" />
         <span>Login</span>
       </a>
@@ -60,7 +60,7 @@
   </svelte:fragment>
 </AppBar>
 
-<div class="card p-4" data-popup={popupTarget}>
+<div class="card p-4 min-w-max w-64" data-popup={popupTarget}>
   <nav class="list-nav space-y-4">
     <div>
       <h2 class="text-xl font-semibold truncate">
@@ -73,9 +73,9 @@
     <ul>
       <li>
         <a href="/profile/{$page.data.session?.user?.id}" class="w-full flex justify-between">
-          <span>Reservations</span>
+          <span>Profile</span>
           <span class="badge bg-primary-500">
-            <BookIcon class="w-6 h-6" />
+            <AccountCircleIcon class="w-6 h-6" />
           </span>
         </a>
       </li>
