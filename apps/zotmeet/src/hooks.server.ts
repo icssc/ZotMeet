@@ -1,10 +1,8 @@
-import { error } from 'console'
-
 import adapterPrisma from '@aponia.js/adapter-prisma'
 import { SvelteKitAuth } from '@aponia.js/sveltekit'
 import GitHub from '@auth/core/providers/github'
 import Google from '@auth/core/providers/google'
-import type { Handle } from '@sveltejs/kit'
+import { error, type Handle } from '@sveltejs/kit'
 import { sequence } from '@sveltejs/kit/hooks'
 
 import { GITHUB_ID, GITHUB_SECRET, GOOGLE_ID, GOOGLE_SECRET } from '$env/static/private'
