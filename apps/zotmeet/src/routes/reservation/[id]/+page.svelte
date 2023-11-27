@@ -66,28 +66,35 @@
   }
 </script>
 
-<div>
-  <p class="text-4xl text-center font-semibold px-8 py-16">
-    Reservation ID: {data.id}
-  </p>
+<div class="p-8">
+  <div class="px-4 py-8 space-y-4">
+    <p class="text-4xl text-center font-semibold">
+      Reservation ID: {data.id}
+    </p>
 
-  <div class="flex gap-4">
     <div>
-      <Calendar {reservation} {backgroundEvents} {myEvents} onSelect={updateTimeSlots} />
+      <p class="opacity-50 text-lg text-center">Click and drag to select a time range.</p>
+      <p class="opacity-50 text-lg text-center">Click on an existing event to remove it.</p>
+    </div>
+  </div>
+
+  <div class="space-y-8">
+    <div class="mx-auto max-w-4xl">
+      <label class="label text-4xl font-semibold">
+        <span>Select CSL Room</span>
+
+        <select class="select" on:change|preventDefault={handleChange}>
+          {#each $cslQuery.data?.roomEntries ?? [] as room}
+            <option value={room[0]}>{room[1]}</option>
+          {/each}
+        </select>
+      </label>
     </div>
 
-    <div>
-      <div>
-        <label class="label text-4xl font-semibold">
-          <span>Select CSL Room</span>
+    <hr class="!border-t-4 !border-dotted" />
 
-          <select class="select" on:change|preventDefault={handleChange}>
-            {#each $cslQuery.data?.roomEntries ?? [] as room}
-              <option value={room[0]}>{room[1]}</option>
-            {/each}
-          </select>
-        </label>
-      </div>
+    <div>
+      <Calendar {reservation} {backgroundEvents} {myEvents} onSelect={updateTimeSlots} />
     </div>
   </div>
 </div>

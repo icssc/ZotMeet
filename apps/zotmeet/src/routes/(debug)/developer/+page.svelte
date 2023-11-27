@@ -29,7 +29,7 @@
 
       <div class="flex flex-col gap-4">
         <button on:click={handleClick} class="w-full btn variant-filled-error">
-          DELETE EVERYTHING
+          Delete All Timeslots
         </button>
       </div>
     </div>

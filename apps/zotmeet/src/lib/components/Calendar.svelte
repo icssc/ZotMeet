@@ -140,14 +140,12 @@
 </script>
 
 <div class="p-4 flex flex-col gap-8">
-  <div class="max-w-5xl">
-    <div class="w-full">
-      <h3 class="text-2xl text-center font-semibold">Calendar Time Range</h3>
-      <RangeSlider min={0} max={24} pips float all="label" bind:values={startEndHours} />
-    </div>
+  <div class="w-full">
+    <h3 class="text-2xl text-center font-semibold">Calendar Time Range</h3>
+    <RangeSlider min={0} max={24} pips float all="label" bind:values={startEndHours} />
+  </div>
 
-    <div>
-      <div bind:this={element}></div>
-    </div>
+  <div>
+    <div bind:this={element}></div>
   </div>
 </div>
