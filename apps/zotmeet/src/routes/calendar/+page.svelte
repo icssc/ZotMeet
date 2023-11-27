@@ -5,13 +5,32 @@
   import listPlugin from '@fullcalendar/list'
   import timeGridPlugin from '@fullcalendar/timegrid'
   import { onMount } from 'svelte'
+  import { writable } from 'svelte/store'
 
   import { handleSelect, handleSelection } from '$lib/calendar'
+  import { trpc } from '$lib/client/trpc'
   import type { Reservation } from '$lib/reservation'
+
+  let shouldLoadData = false
+
+  export let currentRoomId = writable<number>()
+
+  const byIdquery = trpc.cslById.createQuery(currentRoomId)
+
+  const roomIdQuery = trpc.cslRoomIds.createQuery()
 
   let element: HTMLElement
 
   let calendar: Calendar
+
+  $: {
+    if (shouldLoadData && $byIdquery.data != null && $byIdquery.data.length > 0) {
+      $byIdquery.data?.forEach((room) => {
+        calendar.addEvent(room)
+      })
+      shouldLoadData = false
+    }
+  }
 
   export let startHour = 9
 
@@ -78,6 +97,11 @@
     endHour = +e.currentTarget.value
     calendar.setOption('slotMaxTime', `${endHour}:00:00`)
   }
+
+  function handleSelectRoom(e: SvelteInputEvent<Event, HTMLSelectElement>): void {
+    currentRoomId.set(+e.currentTarget.value)
+    shouldLoadData = true
+  }
 </script>
 
 <div class="p-4 flex flex-col gap-8">
@@ -114,7 +138,18 @@
   {#if currentEvent}
     <div>
       <p>You're hovering over:</p>
-      <pre>{JSON.stringify(currentEvent, null, 2)}</pre>
+      <pre>{JSON.stringify(currentEvent, undefined, 2)}</pre>
     </div>
   {/if}
+
+  <div>
+    <select class="select" on:change={handleSelectRoom} value={currentRoomId}>
+      {#each $roomIdQuery.data ?? [] as roomId}
+        <option value={roomId}>{roomId}</option>
+      {/each}
+    </select>
+  </div>
+  <div>
+    <pre>{JSON.stringify($byIdquery.data, undefined, 2)}</pre>
+  </div>
 </div>
