@@ -62,7 +62,7 @@ model ReservationParticipant {
 model TimeSlot {
   id            String      @id @default(cuid())
   reservationId String
-  userId        String
+  userId        String?
   start         DateTime
   end           DateTime
   reservation   Reservation @relation(references: [id], fields: [reservationId], onDelete: Cascade)

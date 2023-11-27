@@ -54,7 +54,7 @@ export const reservationsRouter = router({
   }),
 
   updateTimeSlots: procedure
-    .input(type({ id: 'string', reservationId: 'string', events: arrayOf(EventSchema) }).assert)
+    .input(type({ 'id?': 'string', reservationId: 'string', events: arrayOf(EventSchema) }).assert)
     .mutation(async ({ input }) => {
       // Reset all of the user's timeslots.
       await prisma.timeSlot.deleteMany({
