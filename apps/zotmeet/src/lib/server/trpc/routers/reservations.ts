@@ -27,6 +27,23 @@ export const reservationsRouter = router({
   }),
 
   /**
+   * Get all the reservations made by a user.
+   */
+  getByUserId: procedure.input(type('string').assert).query(async ({ input }) => {
+    const reservation = await prisma.reservation.findMany({
+      where: {
+        userId: input,
+      },
+      include: {
+        participants: true,
+        timeSlots: true,
+      },
+    })
+
+    return reservation
+  }),
+
+  /**
    * Get a single reservation by its unique ID.
    */
   byId: procedure.input(type('string').assert).query(async ({ input }) => {
