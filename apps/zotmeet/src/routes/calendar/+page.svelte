@@ -17,7 +17,10 @@
 
   export let endHour = 21
 
-  export let reservation: Reservation = {}
+  export let reservation: Reservation = {
+    id: '',
+    events: {},
+  }
 
   let currentEvent: EventImpl | undefined
 
