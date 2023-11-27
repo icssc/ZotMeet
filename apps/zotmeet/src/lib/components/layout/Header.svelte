@@ -72,7 +72,7 @@
 
     <ul>
       <li>
-        <a href="/user/id/reservations" class="w-full flex justify-between">
+        <a href="/profile/{$page.data.session?.user?.id}" class="w-full flex justify-between">
           <span>Reservations</span>
           <span class="badge bg-primary-500">
             <BookIcon class="w-6 h-6" />
