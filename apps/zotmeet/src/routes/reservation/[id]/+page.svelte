@@ -18,8 +18,6 @@
 
   const utils = trpc.getContext()
 
-  const deleteEverythingMutation = trpc.reservations.deleteAllTimeSlots.createMutation()
-
   function updateTimeSlots(events: EventImpl[]): void {
     const myEvents = events
       .filter((event) => event.id === 'FINALIZED')
@@ -72,11 +70,6 @@
         startEditable: false,
       })) ?? [],
   )
-
-  async function DELETEEVERYTHING(): Promise<void> {
-    await $deleteEverythingMutation.mutateAsync(data.id)
-    await utils.reservations.invalidate()
-  }
 </script>
 
 <div>
@@ -86,9 +79,5 @@
 
   <div>
     <Calendar {reservation} {backgroundEvents} {myEvents} onSelect={updateTimeSlots} />
-  </div>
-
-  <div>
-    <button on:click={DELETEEVERYTHING} class="btn variant-filled">DELETE EVERYTHING</button>
   </div>
 </div>
