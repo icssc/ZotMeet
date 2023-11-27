@@ -4,6 +4,7 @@ import { join } from 'node:path'
 
 import { skeleton } from '@skeletonlabs/tw-plugin'
 import forms from '@tailwindcss/forms'
+import typography from '@tailwindcss/typography'
 
 import { zotmeetTheme } from './src/theme'
 
@@ -24,6 +25,7 @@ const config = {
       },
     }),
     forms(),
+    typography(),
   ],
 }
 

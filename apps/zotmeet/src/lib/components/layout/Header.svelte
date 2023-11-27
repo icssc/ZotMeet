@@ -4,6 +4,7 @@
   import { page } from '$app/stores'
   import logo from '$lib/assets/logo.png'
   import BookIcon from '~icons/material-symbols/book'
+  import LoginIcon from '~icons/material-symbols/login'
   import LogoutIcon from '~icons/material-symbols/logout'
 
   const popupTarget = 'profile-popup'
@@ -36,17 +37,28 @@
         </button>
       </div>
     {:else}
-      <a href="/login" class="btn btn-primary"> Login </a>
+      <a href="/auth/login" class="btn variant-filled">
+        <LoginIcon class="w-6 h-6" />
+        <span>Login</span>
+      </a>
       <LightSwitch />
     {/if}
   </svelte:fragment>
 </AppBar>
 
-<div class="card p-2" data-popup={popupTarget}>
-  <nav class="list-nav">
+<div class="card p-4" data-popup={popupTarget}>
+  <nav class="list-nav space-y-4">
+    <div>
+      <h2 class="text-xl font-semibold truncate">
+        {$page.data.session?.user?.name}
+      </h2>
+    </div>
+
+    <hr class="!border-t-4" />
+
     <ul>
       <li>
-        <a href="/elements/lists" class="w-full flex justify-between">
+        <a href="/user/id/reservations" class="w-full flex justify-between">
           <span>Reservations</span>
           <span class="badge bg-primary-500">
             <BookIcon class="w-6 h-6" />
