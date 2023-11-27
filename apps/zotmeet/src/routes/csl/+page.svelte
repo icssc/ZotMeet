@@ -5,6 +5,10 @@
 </script>
 
 <div class="flex flex-col gap-4">
+  {#if $query.data == null}
+    <p>Loading data...</p>
+  {/if}
+
   {#each $query.data ?? [] as slot}
     <div class="border-4 border-red-400">
       <div class="flex w-full justify-center items-center gap-4">
