@@ -19,7 +19,7 @@ export const reservationsRouter = router({
   create: procedure.input(type('string').assert).mutation(async ({ input }) => {
     const reservation = await prisma.reservation.create({
       data: {
-        user_id: input,
+        userId: input,
       },
     })
 
@@ -33,8 +33,8 @@ export const reservationsRouter = router({
     const reservation = await prisma.reservation.findUnique({
       where: { id: input },
       include: {
-        ReservationParticipant: true,
-        TimeSlot: true,
+        participants: true,
+        timeSlot: true,
       },
     })
     return reservation
@@ -46,7 +46,7 @@ export const reservationsRouter = router({
   getTimeSlots: procedure.input(type('string').assert).query(async ({ input }) => {
     const timeslots = await prisma.timeSlot.findMany({
       where: {
-        reservation_id: input,
+        reservationId: input,
       },
     })
 
@@ -59,7 +59,7 @@ export const reservationsRouter = router({
       // Reset all of the user's timeslots.
       await prisma.timeSlot.deleteMany({
         where: {
-          user_id: input.id,
+          userId: input.id,
         },
       })
 
@@ -68,8 +68,8 @@ export const reservationsRouter = router({
         input.events.map((event) =>
           prisma.timeSlot.create({
             data: {
-              user_id: input.id,
-              reservation_id: input.reservationId,
+              userId: input.id,
+              reservationId: input.reservationId,
               start: event.start,
               end: event.end,
             },

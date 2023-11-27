@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { getModalStore } from '@skeletonlabs/skeleton'
+
   import { goto } from '$app/navigation'
   import { page } from '$app/stores'
   import { trpc } from '$lib/client/trpc'
@@ -6,13 +8,21 @@
 
   const mutation = trpc.reservations.create.createMutation()
 
-  const DEFAULT_USERNAME = 'Anonymous'
+  const modalStore = getModalStore()
 
   async function handleClick(event: Event): Promise<void> {
     event.preventDefault()
-    const reservation = await $mutation.mutateAsync(
-      $page.data.session?.user?.name ?? DEFAULT_USERNAME,
-    )
+
+    if ($page.data.session?.user?.name == null) {
+      modalStore.trigger({
+        title: 'Login Required',
+        type: 'alert',
+        body: 'You must be logged in to create a reservation.',
+      })
+      return
+    }
+
+    const reservation = await $mutation.mutateAsync($page.data.session?.user?.name)
     await goto(`/reservation/${reservation.id}`)
   }
 </script>
@@ -23,23 +33,24 @@
       Coordinating meetings and so much more!
     </header>
 
-    <section class="p-4 flex justify-center gap-8">
-      <a href="/auth/login" class="btn variant-filled-primary">
-        <ArrowCircleRightIcon class="w-6 h-6" />
-        <span>Login with Oauth</span>
-      </a>
-    </section>
-
-    <footer class="card-footer">
-      <div class="p-8">
-        <p class="text-4xl text-center font-semibold">Create a Reservation</p>
-        <p class="opacity-50 text-lg text-center">Creating a reservation without logging in.</p>
-      </div>
-      <div>
-        <button type="submit" class="w-full btn variant-filled-secondary" on:click={handleClick}>
-          Create Reservation
-        </button>
-      </div>
-    </footer>
+    {#if $page.data.session?.user?.name == null}
+      <section class="p-4 flex justify-center gap-8">
+        <a href="/auth/login" class="btn variant-filled-primary">
+          <ArrowCircleRightIcon class="w-6 h-6" />
+          <span>Login with Oauth</span>
+        </a>
+      </section>
+    {:else}
+      <footer class="card-footer">
+        <div class="p-8">
+          <p class="text-4xl text-center font-semibold">Create a Reservation</p>
+        </div>
+        <div>
+          <button type="submit" class="w-full btn variant-filled-secondary" on:click={handleClick}>
+            Create Reservation
+          </button>
+        </div>
+      </footer>
+    {/if}
   </div>
 </div>
