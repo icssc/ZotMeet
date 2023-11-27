@@ -14,8 +14,11 @@ model User {
   email String? @unique
   image String?
 
-  session Session[]
-  account Account[]
+  session                Session[]
+  account                Account[]
+  Reservation            Reservation[]
+  ReservationParticipant ReservationParticipant[]
+  TimeSlot               TimeSlot[]
 }
 
 model Account {
@@ -35,4 +38,60 @@ model Session {
   expires DateTime
 
   user User @relation(references: [id], fields: [user_id], onDelete: Cascade)
+}
+
+// High level overview.
+// A user can create a reservation.
+// Other users can join the reservation as participants by referencing its unique ID.
+// Each participant adds their own availability timeslots to the reservation.
+// A meeting is coordinated by finding the timeslots in that reservation 
+// that overlap between as many participants as possible.
+
+// A reservation is like a When2Meet event.
+model Reservation {
+  // Unique ID for the reservation.
+  id String @id @default(cuid())
+
+  // A reservation is created by a single person.
+  user_id String
+
+  user                   User                     @relation(references: [id], fields: [user_id], onDelete: Cascade)
+  ReservationParticipant ReservationParticipant[]
+  TimeSlot               TimeSlot[]
+}
+
+// Reservations can have participants that are trying to agree on a meeting date.
+// Each participant is uniquely identified by their user ID and reservation ID
+model ReservationParticipant {
+  user_id        String
+  reservation_id String
+
+  user        User        @relation(references: [id], fields: [user_id], onDelete: Cascade)
+  reservation Reservation @relation(references: [id], fields: [reservation_id], onDelete: Cascade)
+
+  @@unique([user_id, reservation_id])
+}
+
+// A timeslot represents a time range when a participant is available.
+model TimeSlot {
+  // Unique ID for the timeslot.
+  id String @id @default(cuid())
+
+  // The reservation that this timeslot is for.
+  reservation_id String
+
+  // The user that this timeslot is for.
+  user_id String
+
+  // The start time of the timeslot.
+  start DateTime
+
+  // The end time of the timeslot.
+  end DateTime
+
+  // The user that this timeslot is for.
+  user User @relation(references: [id], fields: [user_id], onDelete: Cascade)
+
+  // The reservation that this timeslot is for.
+  reservation Reservation @relation(references: [id], fields: [reservation_id], onDelete: Cascade)
 }
