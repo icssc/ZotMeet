@@ -18,6 +18,7 @@
   const byIdquery = trpc.cslById.createQuery(currentRoomId)
 
   const roomIdQuery = trpc.cslRoomIds.createQuery()
+  const q = trpc.reservations.byId.createQuery()
 
   let element: HTMLElement
 
