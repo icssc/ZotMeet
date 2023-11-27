@@ -47,6 +47,7 @@ const config = [
       'no-undef': 'off',
       'import/no-mutable-exports': 'off',
       'import/no-extraneous-dependencies': 'off',
+      'import/prefer-default-export': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -71,6 +72,9 @@ const config = [
         parser: 'svelte-eslint-parser',
         parserOptions: {
           parser: '@typescript-eslint/parser',
+        },
+        rules: {
+          '@typescript-eslint/no-unused-vars': 'off',
         },
       },
     ],

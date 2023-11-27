@@ -21,14 +21,22 @@
     "@fullcalendar/list": "^6.1.9",
     "@fullcalendar/timegrid": "^6.1.9",
     "@prisma/client": "5.6.0",
-    "dayjs": "^1.11.10"
+    "@tanstack/svelte-query": "^5.8.7",
+    "arktype": "1.0.28-alpha",
+    "dayjs": "^1.11.10",
+    "devalue": "^4.3.2",
+    "superjson": "^2.2.1"
   },
   "devDependencies": {
+    "@bevm0/trpc-svelte-query": "^0.10.0",
+    "@bevm0/trpc-sveltekit": "^0.9.22",
     "@skeletonlabs/skeleton": "^2.5.1",
     "@skeletonlabs/tw-plugin": "^0.2.4",
     "@svelte.kit/adapter-aws": "^0.2.1",
     "@sveltejs/kit": "1.27.6",
     "@tailwindcss/forms": "^0.5.7",
+    "@trpc/client": "^10.44.1",
+    "@trpc/server": "^10.44.1",
     "@types/eslint__eslintrc": "^2.1.1",
     "@types/node": "^20.10.0",
     "autoprefixer": "^10.4.14",
