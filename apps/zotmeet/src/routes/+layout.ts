@@ -23,5 +23,8 @@ export const load: LayoutLoad = async (event) => {
     { svelteQueryContext: queryClient },
   )
 
-  return { trpc }
+  return {
+    trpc,
+    user: event.data.user,
+  }
 }

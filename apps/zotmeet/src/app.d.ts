@@ -1,4 +1,24 @@
+import 'unplugin-icons/types/svelte'
+
+import type { User } from '@auth/core/types'
+
 declare global {
+  namespace App {
+    interface Locals {
+      /**
+       * Helper function to get the user for the current request.
+       */
+      getUser: () => Promise<User | null>
+    }
+
+    interface PageData {
+      /**
+       * User parsed from session / cookies.
+       */
+      user?: User
+    }
+  }
+
   /**
    * Utility type for Svelte event handlers.
    *
@@ -20,5 +40,3 @@ declare global {
     currentTarget: EventTarget & Element
   }
 }
-
-export {}
