@@ -23,8 +23,6 @@
 
   const reservationQuery = trpc.reservations.byId.createQuery(data.id)
 
-  $: console.log($reservationQuery.data)
-
   const mutation = trpc.reservations.updateTimeSlots.createMutation()
 
   const utils = trpc.getContext()
@@ -40,6 +38,8 @@
     const end = dayjs(start).add(1, 'hour').toDate()
     return { start, end }
   }
+
+  $: console.log($reservationQuery.data)
 
   $: if ($cslQuery.data !== null && $cslQuery.data !== undefined) {
     backgroundEvents.set(
@@ -67,7 +67,7 @@
       },
       {
         onSuccess: () => {
-          void utils.reservations.getTimeSlots.invalidate(data.id)
+          void utils.reservations.invalidate()
 
           void utils.reservations.getTimeSlots.fetch(data.id).then((result) => {
             reservation.set({
