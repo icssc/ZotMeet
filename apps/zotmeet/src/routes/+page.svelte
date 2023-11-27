@@ -1,11 +1,5 @@
 <script lang="ts">
-  import { page } from '$app/stores'
-  import { trpc } from '$lib/client/trpc'
   import ArrowCircleRightIcon from '~icons/material-symbols/arrow-circle-right'
-
-  const query = trpc.hello.createQuery({ text: 'Elysia' })
-
-  $: console.log($page.data.session)
 </script>
 
 <div class="px-8 py-16 max-w-4xl mx-auto">
