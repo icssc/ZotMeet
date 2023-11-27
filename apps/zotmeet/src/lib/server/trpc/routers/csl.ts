@@ -18,6 +18,8 @@ const cslRoomIds = Object.keys(cslRooms)
 
 const cslRoomNames = Object.values(cslRooms)
 
+const cslRoomEntries = Object.entries(cslRooms)
+
 /**
  * The CSL router handles requests for CSL data.
  */
@@ -29,12 +31,13 @@ export const cslRouter = router({
     rooms: cslRooms,
     roomIds: cslRoomIds,
     roomNames: cslRoomNames,
+    roomEntries: cslRoomEntries,
   })),
 
   /**
    * Returns all the available timeslots for a specified room at CSL.
    */
-  byId: procedure.input(type('number | undefined').assert).query(({ input }) => {
+  getById: procedure.input(type('number | undefined').assert).query(({ input }) => {
     if (input == null) {
       return []
     }

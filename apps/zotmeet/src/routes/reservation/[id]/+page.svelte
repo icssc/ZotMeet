@@ -1,6 +1,7 @@
 <script lang="ts">
+  import type { EventInput } from '@fullcalendar/core/index.js'
   import type { EventImpl } from '@fullcalendar/core/internal'
-  import { derived } from 'svelte/store'
+  import { derived, writable } from 'svelte/store'
 
   import type { PageData } from './$types'
 
@@ -10,7 +11,7 @@
 
   export let data: PageData
 
-  const cslQuery = trpc.csl.byId.createQuery(406)
+  const cslQuery = trpc.csl.rooms.createQuery()
 
   const reservationQuery = trpc.reservations.byId.createQuery(data.id)
 
@@ -56,20 +57,13 @@
     }
   })
 
-  const backgroundEvents = derived(
-    cslQuery,
-    ($cslQuery) =>
-      $cslQuery.data?.map((room) => ({
-        start: room.start,
-        end: room.end,
-        display: 'background',
-        overlap: false,
-        backgroundColor: 'pink',
-        editable: false,
-        durationEditable: false,
-        startEditable: false,
-      })) ?? [],
-  )
+  const backgroundEvents = writable<EventInput[]>([])
+
+  async function handleChange(e: SvelteInputEvent<Event, HTMLSelectElement>): Promise<void> {
+    const { value } = e.currentTarget
+    const newRoomSlots = await utils.csl.getById.fetch(+value)
+    backgroundEvents.set(newRoomSlots)
+  }
 </script>
 
 <div>
@@ -77,7 +71,23 @@
     Reservation ID: {data.id}
   </p>
 
-  <div>
-    <Calendar {reservation} {backgroundEvents} {myEvents} onSelect={updateTimeSlots} />
+  <div class="flex gap-4">
+    <div>
+      <Calendar {reservation} {backgroundEvents} {myEvents} onSelect={updateTimeSlots} />
+    </div>
+
+    <div>
+      <div>
+        <label class="label text-4xl font-semibold">
+          <span>Select CSL Room</span>
+
+          <select class="select" on:change|preventDefault={handleChange}>
+            {#each $cslQuery.data?.roomEntries ?? [] as room}
+              <option value={room[0]}>{room[1]}</option>
+            {/each}
+          </select>
+        </label>
+      </div>
+    </div>
   </div>
 </div>
