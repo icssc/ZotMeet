@@ -20,7 +20,7 @@ const config = {
   plugins: [
     skeleton({
       themes: {
-        preset: ['modern'],
+        preset: ['modern', 'wintry'],
         custom: [zotmeetTheme],
       },
     }),
