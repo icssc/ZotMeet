@@ -40,22 +40,18 @@ export const reservationsRouter = router({
     return reservation
   }),
 
-  getUserTimeslots: procedure
-    .input(type({ 'userId?': 'string', reservationId: 'string' }).assert)
-    .query(async ({ input }) => {
-      if (input.userId == null) {
-        return []
-      }
+  /**
+   * Returns all of a reservation's timeslots.
+   */
+  getTimeSlots: procedure.input(type('string').assert).query(async ({ input }) => {
+    const timeslots = await prisma.timeSlot.findMany({
+      where: {
+        reservation_id: input,
+      },
+    })
 
-      const timeslots = await prisma.timeSlot.findMany({
-        where: {
-          user_id: input.userId,
-          reservation_id: input.reservationId,
-        },
-      })
-
-      return timeslots
-    }),
+    return timeslots
+  }),
 
   updateTimeSlots: procedure
     .input(type({ id: 'string', reservationId: 'string', events: arrayOf(EventSchema) }).assert)
