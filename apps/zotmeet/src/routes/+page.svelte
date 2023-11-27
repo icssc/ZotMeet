@@ -1,26 +1,19 @@
 <script lang="ts">
-  import { getModalStore } from '@skeletonlabs/skeleton'
-
   import { goto } from '$app/navigation'
+  import { page } from '$app/stores'
+  import { trpc } from '$lib/client/trpc'
   import ArrowCircleRightIcon from '~icons/material-symbols/arrow-circle-right'
 
-  let reservationId = ''
+  const mutation = trpc.reservations.create.createMutation()
 
-  const modalStore = getModalStore()
+  const DEFAULT_USERNAME = 'Anonymous'
 
-  async function handleSubmit(event: Event): Promise<void> {
+  async function handleClick(event: Event): Promise<void> {
     event.preventDefault()
-
-    if (reservationId !== '') {
-      await goto(`/reservation/${reservationId}`)
-      return
-    }
-
-    modalStore.trigger({
-      title: 'Error',
-      type: 'alert',
-      body: 'Please enter a reservation ID',
-    })
+    const reservation = await $mutation.mutateAsync(
+      $page.data.session?.user?.name ?? DEFAULT_USERNAME,
+    )
+    await goto(`/reservation/${reservation.id}`)
   }
 </script>
 
@@ -42,21 +35,11 @@
         <p class="text-4xl text-center font-semibold">Create a Reservation</p>
         <p class="opacity-50 text-lg text-center">Try creating a reservation without logging in.</p>
       </div>
-
-      <form class="space-y-4" on:submit={handleSubmit}>
-        <div>
-          <label class="label text-2xl font-semibold">
-            <span>Reservation ID</span>
-            <input type="text" class="input" bind:value={reservationId} />
-          </label>
-        </div>
-
-        <div>
-          <button type="submit" class="w-full btn variant-filled-secondary"
-            >Create Reservation</button
-          >
-        </div>
-      </form>
+      <div>
+        <button type="submit" class="w-full btn variant-filled-secondary" on:click={handleClick}>
+          Create Reservation
+        </button>
+      </div>
     </footer>
   </div>
 </div>
