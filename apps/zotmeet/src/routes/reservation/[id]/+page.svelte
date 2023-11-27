@@ -1,11 +1,24 @@
 <script lang="ts">
+  import type { EventInput } from '@fullcalendar/core/index.js'
   import dayjs from 'dayjs'
+  import { writable } from 'svelte/store'
 
   import type { PageData } from './$types'
 
   import { trpc } from '$lib/client/trpc'
+  import Calendar from '$lib/components/Calendar.svelte'
+  import type { Reservation } from '$lib/reservation'
 
   export let data: PageData
+
+  const reservation = writable<Reservation>({
+    id: data.id,
+    events: [],
+  })
+
+  const cslQuery = trpc.csl.byId.createQuery(405)
+
+  const backgroundEvents = writable<EventInput[]>([])
 
   const query = trpc.reservations.getTimeSlots.createQuery(data.id)
 
@@ -15,21 +28,50 @@
 
   let participantId = ''
 
+  function randomTimeSlotThisWeek(): { start: Date; end: Date } {
+    const start = dayjs()
+      .startOf('week')
+      .add(Math.random() * 3, 'day')
+      .hour(10 + Math.random() * 10)
+      .toDate()
+    const end = dayjs(start).add(1, 'hour').toDate()
+    return { start, end }
+  }
+
+  $: if ($cslQuery.data !== null && $cslQuery.data !== undefined) {
+    backgroundEvents.set(
+      $cslQuery.data.map((room) => ({
+        start: room.start,
+        end: room.end,
+        display: 'background',
+        overlap: false,
+        backgroundColor: 'pink',
+        editable: false,
+        durationEditable: false,
+        startEditable: false,
+      })),
+    )
+  }
+
   function updateTimeSlots(): void {
+    const { start, end } = randomTimeSlotThisWeek()
+
     $mutation.mutate(
       {
         id: 'Anonymous',
         reservationId: data.id,
-        events: [
-          {
-            start: dayjs().add(1, 'day').toDate(),
-            end: dayjs().add(1, 'day').add(1, 'hour').toDate(),
-          },
-        ],
+        events: [{ start, end }],
       },
       {
         onSuccess: () => {
           void utils.reservations.getTimeSlots.invalidate(data.id)
+
+          void utils.reservations.getTimeSlots.fetch(data.id).then((result) => {
+            reservation.set({
+              id: data.id,
+              events: result,
+            })
+          })
         },
       },
     )
@@ -45,6 +87,8 @@
     <p>Time slots</p>
     <pre>{JSON.stringify($query.data, undefined, 2)}</pre>
   </div>
+
+  <Calendar {reservation} {backgroundEvents} />
 
   <div>
     <button class="btn variant-filled-primary" on:click={updateTimeSlots}>Update timeslot</button>

@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { Calendar } from '@fullcalendar/core'
+  import { Calendar, type EventInput } from '@fullcalendar/core'
   import type { EventImpl } from '@fullcalendar/core/internal'
   import interactionPlugin from '@fullcalendar/interaction'
   import listPlugin from '@fullcalendar/list'
   import timeGridPlugin from '@fullcalendar/timegrid'
   import { onMount } from 'svelte'
+  import { get, writable } from 'svelte/store'
 
   import { handleSelect, handleSelection } from '$lib/calendar'
   import type { Reservation } from '$lib/reservation'
@@ -17,9 +18,57 @@
 
   export let endHour = 21
 
-  export let reservation: Reservation = {
+  export let reservation = writable<Reservation>({
     id: '',
-    events: {},
+    events: [],
+  })
+
+  export let backgroundEvents = writable<EventInput[]>([])
+
+  $: if (calendar != null) {
+    calendar
+      .getEvents()
+      .filter((event) => event.id === 'ROOM_SLOT')
+      .forEach((event) => {
+        event.remove()
+      })
+
+    $backgroundEvents.forEach((event) => {
+      calendar.addEvent({
+        id: 'ROOM_SLOT',
+        start: event.start,
+        end: event.end,
+        display: 'background',
+        overlap: false,
+        backgroundColor: 'orange',
+        editable: false,
+        durationEditable: false,
+        startEditable: false,
+      })
+    })
+  }
+
+  $: if (calendar != null) {
+    calendar
+      .getEvents()
+      .filter((event) => event.id === 'RESERVATION')
+      .forEach((event) => {
+        event.remove()
+      })
+
+    $reservation.events.forEach((event) => {
+      calendar.addEvent({
+        id: 'RESERVATION',
+        start: event.start,
+        end: event.end,
+        display: 'background',
+        overlap: false,
+        backgroundColor: 'pink',
+        editable: false,
+        durationEditable: false,
+        startEditable: false,
+      })
+    })
   }
 
   let currentEvent: EventImpl | undefined
@@ -33,9 +82,9 @@
       slotMinTime: `${startHour}:00:00`,
       slotMaxTime: `${endHour}:00:00`,
       select: (arg) => {
-        handleSelect(arg, calendar, reservation)
+        handleSelect(arg, calendar, get(reservation))
       },
-      selectAllow: (arg) => handleSelection(arg, calendar, reservation),
+      selectAllow: (arg) => handleSelection(arg, calendar, get(reservation)),
       eventClick: (arg) => {
         if (!arg.event.startEditable || !arg.event.durationEditable) {
           return

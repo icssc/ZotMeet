@@ -25,5 +25,5 @@ export interface Reservation {
   /**
    * Each user that fills out the form will have their own collection of events.
    */
-  events: Record<string, ReservationEvent[]>
+  events: ReservationEvent[]
 }
