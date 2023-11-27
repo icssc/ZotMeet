@@ -48,6 +48,7 @@ const config = [
       'import/no-mutable-exports': 'off',
       'import/no-extraneous-dependencies': 'off',
       'import/prefer-default-export': 'off',
+      'prefer-const': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         {

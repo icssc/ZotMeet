@@ -1,5 +1,27 @@
 <script lang="ts">
+  import { getModalStore } from '@skeletonlabs/skeleton'
+
+  import { goto } from '$app/navigation'
   import ArrowCircleRightIcon from '~icons/material-symbols/arrow-circle-right'
+
+  let reservationId = ''
+
+  const modalStore = getModalStore()
+
+  async function handleSubmit(event: Event): Promise<void> {
+    event.preventDefault()
+
+    if (reservationId !== '') {
+      await goto(`/reservation/${reservationId}`)
+      return
+    }
+
+    modalStore.trigger({
+      title: 'Error',
+      type: 'alert',
+      body: 'Please enter a reservation ID',
+    })
+  }
 </script>
 
 <div class="px-8 py-16 max-w-4xl mx-auto">
@@ -21,16 +43,18 @@
         <p class="opacity-50 text-lg text-center">Try creating a reservation without logging in.</p>
       </div>
 
-      <form class="space-y-4">
+      <form class="space-y-4" on:submit={handleSubmit}>
         <div>
           <label class="label text-2xl font-semibold">
             <span>Reservation ID</span>
-            <input type="text" class="input" />
+            <input type="text" class="input" bind:value={reservationId} />
           </label>
         </div>
 
         <div>
-          <button class="w-full btn variant-filled-secondary"> Create Reservation </button>
+          <button type="submit" class="w-full btn variant-filled-secondary"
+            >Create Reservation</button
+          >
         </div>
       </form>
     </footer>

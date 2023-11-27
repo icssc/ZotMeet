@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css'
 
-  import { AppShell, Drawer, Toast, initializeStores } from '@skeletonlabs/skeleton'
+  import { AppShell, Drawer, Modal, Toast, initializeStores } from '@skeletonlabs/skeleton'
   import { QueryClientProvider } from '@tanstack/svelte-query'
 
   import type { PageData } from './$types'
@@ -16,6 +16,7 @@
 
 <QueryClientProvider client={data.trpc.queryClient}>
   <Drawer />
+  <Modal />
   <Toast />
 
   <AppShell>
