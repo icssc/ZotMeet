@@ -178,11 +178,11 @@ importers:
         specifier: ^0.2.4
         version: 0.2.4(tailwindcss@3.3.5)
       '@svelte.kit/adapter-aws':
-        specifier: ^0.2.2
-        version: 0.2.2(svelte@4.2.7)(vite@4.5.0)
+        specifier: ^0.2.3
+        version: 0.2.3(svelte@4.2.7)(vite@4.5.0)
       '@svelte.kit/cdk':
-        specifier: ^0.2.2
-        version: 0.2.2(svelte@4.2.7)(vite@4.5.0)
+        specifier: ^0.2.3
+        version: 0.2.3(svelte@4.2.7)(vite@4.5.0)
       '@sveltejs/kit':
         specifier: 1.27.6
         version: 1.27.6(svelte@4.2.7)(vite@4.5.0)
@@ -2268,8 +2268,8 @@ packages:
       tslib: 2.6.2
     dev: true
 
-  /@svelte.kit/adapter-aws@0.2.2(svelte@4.2.7)(vite@4.5.0):
-    resolution: {integrity: sha512-MFRAwbrk36f9W0Bj/jdGGya/j5PZgxQY9S0zgbZYqU6j6AbpYrdgvAPfmGANcC4iRohzIGhynynevRc9pYog9w==}
+  /@svelte.kit/adapter-aws@0.2.3(svelte@4.2.7)(vite@4.5.0):
+    resolution: {integrity: sha512-sDhjDY/Mo2sR4px+bwQSjk6uND846FD0u2rDoedKI3g6kwyAYjo+T611yT9ihSpnmJSQUo8DYZci/RXoEMzM7A==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
       '@aws-sdk/client-s3': 3.456.0
@@ -2282,8 +2282,8 @@ packages:
       - vite
     dev: true
 
-  /@svelte.kit/cdk@0.2.2(svelte@4.2.7)(vite@4.5.0):
-    resolution: {integrity: sha512-vf79x/YDy1VBr+TEyQ4yHKu7D0kv3rISqlrqykdDXoSnRzxjVCuWqpcpqzyHRUsNOGkoBxPGsikfjDSk96pI8A==}
+  /@svelte.kit/cdk@0.2.3(svelte@4.2.7)(vite@4.5.0):
+    resolution: {integrity: sha512-XTkqtB3z1r2yCOGQTQDPLeXMzBuNNzfs3zrMg+7aelGmqoiNBtY+I9Mfpt62ZmhmgAUHVj6kEl40OMoSnhJrKg==}
     dependencies:
       '@aws-cdk/aws-apigatewayv2-alpha': 2.109.0-alpha.0(aws-cdk-lib@2.110.1)(constructs@10.3.0)
       '@aws-cdk/aws-apigatewayv2-integrations-alpha': 2.109.0-alpha.0(@aws-cdk/aws-apigatewayv2-alpha@2.109.0-alpha.0)(aws-cdk-lib@2.110.1)(constructs@10.3.0)
