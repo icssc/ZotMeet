@@ -15,6 +15,7 @@ const envSchema = type(
     GITHUB_SECRET: 'string',
     GOOGLE_ID: 'string',
     GOOGLE_SECRET: 'string',
+    POSTGRES_PRISMA_URL: 'string',
   },
   { keys: 'distilled' },
 )
