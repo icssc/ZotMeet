@@ -24,6 +24,10 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
   DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  GITHUB_ID: ${{ secrets.GITHUB_ID }}
+  GITHUB_SECRET: ${{ secrets.GITHUB_SECRET }}
+  GOOGLE_ID: ${{ secrets.GOOGLE_ID }}
+  GOOGLE_SECRET: ${{ secrets.GOOGLE_SECRET }}
   PR_NUM: ${{ github.event.pull_request.number }}
 
 jobs:
@@ -47,4 +51,4 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Deploy ZotMeet to staging
-        run: pnpm sst deploy --stage staging-$PR_NUM
+        run: pnpm --filter zotmeet cdk deploy

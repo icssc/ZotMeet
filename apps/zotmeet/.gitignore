@@ -4,3 +4,6 @@
 
 ## Local SQLite database.
 prisma/dev.db
+
+## CDK output.
+cdk.out/
