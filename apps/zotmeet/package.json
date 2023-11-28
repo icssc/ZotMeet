@@ -6,6 +6,8 @@
   "scripts": {
     "build": "vite build",
     "check": "svelte-check",
+    "dep": "cdk --app 'npx tsx tools/cdk/index.ts' deploy",
+    "des": "cdk --app 'npx tsx tools/cdk/index.ts' destroy",
     "dev": "vite",
     "format": "prettier --write .",
     "postinstall": "prisma generate && svelte-kit sync",
