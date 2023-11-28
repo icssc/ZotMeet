@@ -1,13 +1,10 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-arm64-openssl-1.0.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  // provider = "sqlite"
-  // url      = "file:./dev.db"
-  provider = "postgresql"
-  url      = env("POSTGRES_PRISMA_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
