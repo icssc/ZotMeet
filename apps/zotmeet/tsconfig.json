@@ -12,5 +12,6 @@
         "name": "typescript-svelte-plugin"
       }
     ]
-  }
+  },
+  "include": ["src", "tools"]
 }

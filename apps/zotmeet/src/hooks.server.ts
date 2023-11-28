@@ -28,7 +28,7 @@ const authorizationHandle: Handle = async ({ event, resolve }) => {
     const session = await event.locals.getSession()
 
     if (session?.user?.id == null) {
-      // eslint-disable-next-line @typescript-eslint/no-throw-literal, @typescript-eslint/no-confusing-void-expression
+      // eslint-disable-next-line @typescript-eslint/no-throw-literal
       throw error(401, {
         message: 'Unauthorized',
       })

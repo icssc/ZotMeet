@@ -178,8 +178,11 @@ importers:
         specifier: ^0.2.4
         version: 0.2.4(tailwindcss@3.3.5)
       '@svelte.kit/adapter-aws':
-        specifier: ^0.2.1
-        version: 0.2.1(svelte@4.2.7)(vite@4.5.0)
+        specifier: ^0.2.2
+        version: 0.2.2(svelte@4.2.7)(vite@4.5.0)
+      '@svelte.kit/cdk':
+        specifier: ^0.2.2
+        version: 0.2.2(svelte@4.2.7)(vite@4.5.0)
       '@sveltejs/kit':
         specifier: 1.27.6
         version: 1.27.6(svelte@4.2.7)(vite@4.5.0)
@@ -328,6 +331,30 @@ packages:
 
   /@aws-cdk/asset-node-proxy-agent-v6@2.0.1:
     resolution: {integrity: sha512-DDt4SLdLOwWCjGtltH4VCST7hpOI5DzieuhGZsBpZ+AgJdSI2GCjklCXm0GCTwJG/SolkL5dtQXyUKgg9luBDg==}
+    dev: true
+
+  /@aws-cdk/aws-apigatewayv2-alpha@2.109.0-alpha.0(aws-cdk-lib@2.110.1)(constructs@10.3.0):
+    resolution: {integrity: sha512-hT6BHr2r3AJCooWeuh2coUixyXnM8LCppoggE8jgciGLJeQB5tqBHJswWOfKVHy862rrl+ciWIzekqax1HVzpQ==}
+    engines: {node: '>= 14.15.0'}
+    peerDependencies:
+      aws-cdk-lib: ^2.109.0
+      constructs: ^10.0.0
+    dependencies:
+      aws-cdk-lib: 2.110.1(constructs@10.3.0)
+      constructs: 10.3.0
+    dev: true
+
+  /@aws-cdk/aws-apigatewayv2-integrations-alpha@2.109.0-alpha.0(@aws-cdk/aws-apigatewayv2-alpha@2.109.0-alpha.0)(aws-cdk-lib@2.110.1)(constructs@10.3.0):
+    resolution: {integrity: sha512-1+Gw5QBsfkT/nf+muizzAU0bh2YffqAHsJasevk/XIDr0msQGNerIJQSrB93gRzT+5YLRCglCRskIFF7phFulg==}
+    engines: {node: '>= 14.15.0'}
+    peerDependencies:
+      '@aws-cdk/aws-apigatewayv2-alpha': 2.109.0-alpha.0
+      aws-cdk-lib: ^2.109.0
+      constructs: ^10.0.0
+    dependencies:
+      '@aws-cdk/aws-apigatewayv2-alpha': 2.109.0-alpha.0(aws-cdk-lib@2.110.1)(constructs@10.3.0)
+      aws-cdk-lib: 2.110.1(constructs@10.3.0)
+      constructs: 10.3.0
     dev: true
 
   /@aws-crypto/crc32@3.0.0:
@@ -2232,8 +2259,8 @@ packages:
       tslib: 2.6.2
     dev: true
 
-  /@svelte.kit/adapter-aws@0.2.1(svelte@4.2.7)(vite@4.5.0):
-    resolution: {integrity: sha512-IYdADzjinpstTw2vb6WP3Dw63fOT3Srz64hcST983h6ElG22P9n3B+qjtc9lXlJY8OT9CgMY7WjDFFHzp/MCxg==}
+  /@svelte.kit/adapter-aws@0.2.2(svelte@4.2.7)(vite@4.5.0):
+    resolution: {integrity: sha512-MFRAwbrk36f9W0Bj/jdGGya/j5PZgxQY9S0zgbZYqU6j6AbpYrdgvAPfmGANcC4iRohzIGhynynevRc9pYog9w==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
       '@aws-sdk/client-s3': 3.456.0
@@ -2241,6 +2268,21 @@ packages:
       esbuild: 0.19.7
     transitivePeerDependencies:
       - aws-crt
+      - supports-color
+      - svelte
+      - vite
+    dev: true
+
+  /@svelte.kit/cdk@0.2.2(svelte@4.2.7)(vite@4.5.0):
+    resolution: {integrity: sha512-vf79x/YDy1VBr+TEyQ4yHKu7D0kv3rISqlrqykdDXoSnRzxjVCuWqpcpqzyHRUsNOGkoBxPGsikfjDSk96pI8A==}
+    dependencies:
+      '@aws-cdk/aws-apigatewayv2-alpha': 2.109.0-alpha.0(aws-cdk-lib@2.110.1)(constructs@10.3.0)
+      '@aws-cdk/aws-apigatewayv2-integrations-alpha': 2.109.0-alpha.0(@aws-cdk/aws-apigatewayv2-alpha@2.109.0-alpha.0)(aws-cdk-lib@2.110.1)(constructs@10.3.0)
+      '@sveltejs/kit': 1.27.6(svelte@4.2.7)(vite@4.5.0)
+      aws-cdk-lib: 2.110.1(constructs@10.3.0)
+      constructs: 10.3.0
+      jiti: 1.21.0
+    transitivePeerDependencies:
       - supports-color
       - svelte
       - vite
