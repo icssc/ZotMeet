@@ -23,9 +23,7 @@ export const generateCalendarDays = (month: number, year: number): CalendarDay[]
     const generatedWeek: CalendarDay[] = [];
 
     for (let d = 0; d < CalendarConstants.MaxDaysPerWeek; d++) {
-      if (dayNumber > daysInMonth) {
-        break;
-      } else if (w === 0 && d < dayOfWeekOfFirst) {
+      if (dayNumber > daysInMonth || (w === 0 && d < dayOfWeekOfFirst)) {
         generatedWeek.push({
           day: -1,
           month: month,
