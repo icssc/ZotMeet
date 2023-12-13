@@ -2,6 +2,6 @@
   import { Calendar } from "$lib/components/Calendar";
 </script>
 
-<main class="flex items-center justify-center min-h-screen">
+<main class="w-full h-full min-h-screen bg-surface-100">
   <Calendar />
 </main>
