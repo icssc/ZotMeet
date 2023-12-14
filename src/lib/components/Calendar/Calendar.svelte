@@ -1,7 +1,7 @@
 <script lang="ts">
-  import type { CalendarDay } from "./Calendar";
-
   import CalendarBody from "$lib/components/Calendar/CalendarBody.svelte";
+  import type { CalendarDay } from "$lib/components/Calendar/CalendarDay";
+  import { selectedDays } from "$lib/stores/calendarStores";
   import { generateCalendarDays } from "$lib/utils/calendarUtils";
 
   const daysOfWeek: string[] = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
@@ -23,31 +23,37 @@
   let today: Date = new Date();
   let currentMonth: number = today.getMonth();
   let currentYear: number = today.getFullYear();
-  let calendarDays: CalendarDay[][] = generateCalendarDays(currentMonth, currentYear);
+  let calendarDays: CalendarDay[][] = generateCalendarDays(
+    currentMonth,
+    currentYear,
+    $selectedDays,
+  );
 
   $: monthName = months[currentMonth];
 
-  const decrementMonth = () => {
+  const decrementMonth = (): void => {
     currentMonth--;
     if (currentMonth < 0) {
       currentMonth = 11;
       currentYear--;
     }
 
-    calendarDays = generateCalendarDays(currentMonth, currentYear);
+    updateCalendar();
   };
 
-  const incrementMonth = () => {
+  const incrementMonth = (): void => {
     currentMonth++;
     if (currentMonth > 11) {
       currentMonth = 0;
       currentYear++;
     }
 
-    calendarDays = generateCalendarDays(currentMonth, currentYear);
+    updateCalendar();
   };
 
-  //   console.log(monthIndex, currentYear, calendarDays);
+  const updateCalendar = (): void => {
+    calendarDays = generateCalendarDays(currentMonth, currentYear, $selectedDays);
+  };
 </script>
 
 <div class="max-w-xl p-5 mx-auto bg-surface-50">
@@ -70,7 +76,7 @@
           {/each}
         </tr>
       </thead>
-      <CalendarBody {calendarDays} />
+      <CalendarBody {calendarDays} {updateCalendar} />
     </table>
     <button on:click={incrementMonth} class="p-3 pr-1">
       <span class="text-3xl text-gray-500">&rsaquo;</span>

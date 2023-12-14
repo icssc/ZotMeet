@@ -1,17 +1,17 @@
 <script lang="ts">
-  import type { CalendarDay } from "$lib/components/Calendar/Calendar";
   import CalendarBodyDay from "$lib/components/Calendar/CalendarBodyDay.svelte";
-  import { extractDayFromElement } from "$lib/utils/calendarUtils";
+  import type { CalendarDay } from "$lib/components/Calendar/CalendarDay";
+  import { selectedDays } from "$lib/stores/calendarStores";
+  import { extractDayFromElement, updateDayRange } from "$lib/utils/calendarUtils";
 
   export let calendarDays: CalendarDay[][];
+  export let updateCalendar: () => void = () => {};
 
   let startDaySelection: CalendarDay | null = null;
   let endDaySelection: CalendarDay | null = null;
 
-  const handleTouchStart = (touchedDay: CalendarDay): void => {
-    startDaySelection = touchedDay;
-    console.log("touch start", startDaySelection.day);
-  };
+  $: reversedSelection =
+    startDaySelection && endDaySelection && startDaySelection > endDaySelection;
 
   const handleTouchMove = (e: TouchEvent): void => {
     const touchingElement: Element | null = document.elementFromPoint(
@@ -21,16 +21,35 @@
 
     if (!touchingElement) return;
 
-    const touchingDay = touchingElement?.getAttribute("data-day");
+    const touchingDay = touchingElement.getAttribute("data-day");
 
     if (startDaySelection && touchingDay) {
       endDaySelection = extractDayFromElement(touchingElement);
-      console.log("touch move", startDaySelection, endDaySelection);
     }
   };
 
-  const handleTouchEnd = (): void => {
-    console.log("touch end");
+  const handleSelectEnd = (): void => {
+    if (startDaySelection && endDaySelection) {
+      const startIsSelected = startDaySelection.isSelected;
+
+      let lowerBound = startDaySelection;
+      let upperBound = endDaySelection;
+
+      // If the user selects backwards, swap the selections so the start is earlier than the end
+      if (startDaySelection > endDaySelection) {
+        lowerBound = endDaySelection;
+        upperBound = startDaySelection;
+      }
+
+      try {
+        const dateRange = updateDayRange(lowerBound, upperBound, $selectedDays, startIsSelected);
+        $selectedDays = dateRange;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    updateCalendar();
 
     startDaySelection = null;
     endDaySelection = null;
@@ -41,23 +60,49 @@
   {#each calendarDays as calendarWeek}
     <tr>
       {#each calendarWeek as calendarDay}
-        <td class="pt-6">
+        <td
+          class="py-3"
+          on:mouseup={() => {
+            if (startDaySelection) {
+              endDaySelection = calendarDay;
+              handleSelectEnd();
+            }
+          }}
+        >
           {#if calendarDay.day > 0}
             {@const isHighlighted =
               startDaySelection &&
               endDaySelection &&
-              calendarDay.day >= startDaySelection.day &&
-              calendarDay.day <= endDaySelection.day}
-            <div
-              on:touchstart={() => {
-                handleTouchStart(calendarDay);
+              (reversedSelection
+                ? calendarDay.day <= startDaySelection.day && calendarDay.day >= endDaySelection.day
+                : calendarDay.day >= startDaySelection.day &&
+                  calendarDay.day <= endDaySelection.day)}
+            <button
+              on:touchstart={(e) => {
+                e.preventDefault();
+                startDaySelection = calendarDay;
+              }}
+              on:mousedown={() => {
+                startDaySelection = calendarDay;
               }}
               on:touchmove={handleTouchMove}
-              on:touchend={handleTouchEnd}
+              on:mousemove={() => {
+                if (startDaySelection) {
+                  endDaySelection = calendarDay;
+                }
+              }}
+              on:touchend={(e) => {
+                e.preventDefault();
+                if (!endDaySelection) {
+                  endDaySelection = calendarDay;
+                }
+                handleSelectEnd();
+              }}
+              tabindex="0"
               class="relative flex justify-center w-full cursor-pointer select-none"
             >
               <CalendarBodyDay {isHighlighted} {calendarDay} />
-            </div>
+            </button>
           {:else}
             <div class="select-none">
               <p class="p-2">&nbsp;</p>
