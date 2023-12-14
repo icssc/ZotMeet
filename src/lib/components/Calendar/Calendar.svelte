@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { CalendarDay } from "./Calendar";
 
-  import { generateCalendarDays } from "$lib/calendar";
+  import { generateCalendarDays } from "$lib/utils/calendar";
 
   const daysOfWeek: string[] = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
   const months = [
