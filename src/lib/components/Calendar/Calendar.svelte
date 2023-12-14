@@ -1,7 +1,8 @@
 <script lang="ts">
   import type { CalendarDay } from "./Calendar";
 
-  import { generateCalendarDays } from "$lib/utils/calendar";
+  import CalendarBody from "$lib/components/Calendar/CalendarBody.svelte";
+  import { generateCalendarDays } from "$lib/utils/calendarUtils";
 
   const daysOfWeek: string[] = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
   const months = [
@@ -20,37 +21,37 @@
   ] as const;
 
   let today: Date = new Date();
-  let monthIndex: number = today.getMonth();
+  let currentMonth: number = today.getMonth();
   let currentYear: number = today.getFullYear();
-  let calendarDays: CalendarDay[][] = generateCalendarDays(monthIndex, currentYear);
+  let calendarDays: CalendarDay[][] = generateCalendarDays(currentMonth, currentYear);
 
-  $: currentMonth = months[monthIndex];
+  $: monthName = months[currentMonth];
 
   const decrementMonth = () => {
-    monthIndex--;
-    if (monthIndex < 0) {
-      monthIndex = 11;
+    currentMonth--;
+    if (currentMonth < 0) {
+      currentMonth = 11;
       currentYear--;
     }
 
-    calendarDays = generateCalendarDays(monthIndex, currentYear);
+    calendarDays = generateCalendarDays(currentMonth, currentYear);
   };
 
   const incrementMonth = () => {
-    monthIndex++;
-    if (monthIndex > 11) {
-      monthIndex = 0;
+    currentMonth++;
+    if (currentMonth > 11) {
+      currentMonth = 0;
       currentYear++;
     }
 
-    calendarDays = generateCalendarDays(monthIndex, currentYear);
+    calendarDays = generateCalendarDays(currentMonth, currentYear);
   };
 
   //   console.log(monthIndex, currentYear, calendarDays);
 </script>
 
 <div class="max-w-xl p-5 mx-auto bg-surface-50">
-  <p class="text-center h3">{currentMonth} {currentYear}</p>
+  <p class="text-center h3">{monthName} {currentYear}</p>
   <div class="flex items-center justify-between pt-5 overflow-x-auto">
     <button on:click={decrementMonth} class="p-3 pl-1">
       <span class="text-3xl text-gray-500">&lsaquo;</span>
@@ -69,27 +70,7 @@
           {/each}
         </tr>
       </thead>
-      <tbody>
-        {#each calendarDays as calendarWeek}
-          <tr>
-            {#each calendarWeek as calendarDay}
-              <td class="pt-6">
-                {#if calendarDay.day > 0}
-                  <div class="flex justify-center w-full p-2 cursor-pointer">
-                    <p class="text-base font-medium text-gray-500 select-none dark:text-gray-100">
-                      {calendarDay.day}
-                    </p>
-                  </div>
-                {:else}
-                  <div class="p-2">
-                    <p>&nbsp;</p>
-                  </div>
-                {/if}
-              </td>
-            {/each}
-          </tr>
-        {/each}
-      </tbody>
+      <CalendarBody {calendarDays} />
     </table>
     <button on:click={incrementMonth} class="p-3 pr-1">
       <span class="text-3xl text-gray-500">&rsaquo;</span>
