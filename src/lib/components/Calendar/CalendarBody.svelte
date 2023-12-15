@@ -79,7 +79,9 @@
                   calendarDay.day <= endDaySelection.day)}
             <button
               on:touchstart={(e) => {
-                e.preventDefault();
+                if (e.cancelable) {
+                  e.preventDefault();
+                }
                 startDaySelection = calendarDay;
               }}
               on:mousedown={() => {
@@ -92,7 +94,9 @@
                 }
               }}
               on:touchend={(e) => {
-                e.preventDefault();
+                if (e.cancelable) {
+                  e.preventDefault();
+                }
                 if (!endDaySelection) {
                   endDaySelection = calendarDay;
                 }
