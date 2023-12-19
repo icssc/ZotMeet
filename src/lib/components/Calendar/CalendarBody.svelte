@@ -9,7 +9,7 @@
   let startDaySelection: CalendarDay | null = null;
   let endDaySelection: CalendarDay | null = null;
 
-  $: reversedSelection =
+  $: selectionIsReversed =
     startDaySelection && endDaySelection && startDaySelection > endDaySelection;
 
   const handleTouchMove = (e: TouchEvent): void => {
@@ -66,13 +66,6 @@
           }}
         >
           {#if calendarDay.day > 0}
-            {@const isHighlighted =
-              startDaySelection &&
-              endDaySelection &&
-              (reversedSelection
-                ? calendarDay.day <= startDaySelection.day && calendarDay.day >= endDaySelection.day
-                : calendarDay.day >= startDaySelection.day &&
-                  calendarDay.day <= endDaySelection.day)}
             <button
               on:touchstart={(e) => {
                 if (e.cancelable) {
@@ -101,7 +94,20 @@
               tabindex="0"
               class="relative flex justify-center w-full cursor-pointer select-none"
             >
-              <CalendarBodyDay {isHighlighted} {calendarDay} />
+              {#if startDaySelection && endDaySelection}
+                {@const toHighlightIfReversed =
+                  endDaySelection.day <= calendarDay.day &&
+                  calendarDay.day <= startDaySelection.day}
+                {@const toHighlightIfNotReversed =
+                  startDaySelection.day <= calendarDay.day &&
+                  calendarDay.day <= endDaySelection.day}
+                {@const isHighlighted = selectionIsReversed
+                  ? toHighlightIfReversed
+                  : toHighlightIfNotReversed}
+                <CalendarBodyDay {isHighlighted} {calendarDay} />
+              {:else}
+                <CalendarBodyDay isHighlighted={false} {calendarDay} />
+              {/if}
             </button>
           {:else}
             <div class="select-none">
