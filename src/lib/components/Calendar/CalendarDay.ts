@@ -111,50 +111,6 @@ export class CalendarDay {
 
     return null;
   };
-
-  /**
-   * Updates a range of dates based on a user selection
-   * @param d1 the beginning day, such that d1 occurs before d2
-   * @param d2 the ending day, such that d2 occurs after d1
-   * @param selectedDays representing the user's selected days
-   * @param startIsSelected whether the starting day was already selected
-   * @returns an updated representation of the user's selected days
-   */
-  static updateDayRange = (
-    d1: CalendarDay,
-    d2: CalendarDay,
-    selectedDays: CalendarDay[],
-    startIsSelected: boolean,
-  ): CalendarDay[] => {
-    let newSelectedDays = [...selectedDays];
-
-    if (d1 > d2) {
-      throw "Bounds for date range are in the incorrect order.";
-    } else if (d1.month !== d2.month || d1.year != d2.year) {
-      throw "The selected range must be in the same month.";
-    }
-
-    let iDay = d1.day;
-    const iMonth = d1.month;
-    const iYear = d1.year;
-
-    while (iDay <= d2.day) {
-      const foundSelectedDay = selectedDays.find(
-        (d) => d.isSelected && d.equals(new CalendarDay(iDay, iMonth, iYear)),
-      );
-
-      if (startIsSelected && foundSelectedDay) {
-        // Remove selected day
-        newSelectedDays = newSelectedDays.filter((d) => !d.equals(foundSelectedDay));
-      } else if (!foundSelectedDay) {
-        // Add day to selected days
-        newSelectedDays.push(new CalendarDay(iDay, iMonth, iYear, true));
-      }
-
-      ++iDay;
-    }
-    return newSelectedDays;
-  };
 }
 
 /**
