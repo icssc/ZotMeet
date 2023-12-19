@@ -1,8 +1,7 @@
 <script lang="ts">
   import CalendarBodyDay from "$lib/components/Calendar/CalendarBodyDay.svelte";
-  import type { CalendarDay } from "$lib/components/Calendar/CalendarDay";
+  import { CalendarDay } from "$lib/components/Calendar/CalendarDay";
   import { selectedDays } from "$lib/stores/calendarStores";
-  import { extractDayFromElement, updateDayRange } from "$lib/utils/calendarUtils";
 
   export let calendarDays: CalendarDay[][];
   export let updateCalendar: () => void = () => {};
@@ -24,7 +23,7 @@
     const touchingDay = touchingElement.getAttribute("data-day");
 
     if (startDaySelection && touchingDay) {
-      endDaySelection = extractDayFromElement(touchingElement);
+      endDaySelection = CalendarDay.extractDayFromElement(touchingElement);
     }
   };
 
@@ -42,7 +41,12 @@
       }
 
       try {
-        const dateRange = updateDayRange(lowerBound, upperBound, $selectedDays, startIsSelected);
+        const dateRange = CalendarDay.updateDayRange(
+          lowerBound,
+          upperBound,
+          $selectedDays,
+          startIsSelected,
+        );
         $selectedDays = dateRange;
       } catch (err) {
         console.error(err);

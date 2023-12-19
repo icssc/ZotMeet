@@ -1,35 +1,18 @@
 <script lang="ts">
   import CalendarBody from "$lib/components/Calendar/CalendarBody.svelte";
-  import type { CalendarDay } from "$lib/components/Calendar/CalendarDay";
+  import { DAYS_OF_WEEK, MONTHS, CalendarDay } from "$lib/components/Calendar/CalendarDay";
   import { selectedDays } from "$lib/stores/calendarStores";
-  import { generateCalendarDays } from "$lib/utils/calendarUtils";
-
-  const daysOfWeek: string[] = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ] as const;
 
   let today: Date = new Date();
   let currentMonth: number = today.getMonth();
   let currentYear: number = today.getFullYear();
-  let calendarDays: CalendarDay[][] = generateCalendarDays(
+  let calendarDays: CalendarDay[][] = CalendarDay.generateCalendarDays(
     currentMonth,
     currentYear,
     $selectedDays,
   );
 
-  $: monthName = months[currentMonth];
+  $: monthName = MONTHS[currentMonth];
 
   const decrementMonth = (): void => {
     currentMonth--;
@@ -52,7 +35,7 @@
   };
 
   const updateCalendar = (): void => {
-    calendarDays = generateCalendarDays(currentMonth, currentYear, $selectedDays);
+    calendarDays = CalendarDay.generateCalendarDays(currentMonth, currentYear, $selectedDays);
   };
 </script>
 
@@ -65,7 +48,7 @@
     <table class="w-full">
       <thead>
         <tr>
-          {#each daysOfWeek as dayOfWeek}
+          {#each DAYS_OF_WEEK as dayOfWeek}
             <th>
               <div class="flex justify-center w-full">
                 <p class="text-base font-medium text-center text-gray-800 dark:text-gray-100">
