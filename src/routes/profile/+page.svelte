@@ -156,9 +156,9 @@
 
   <div class="flex flex-col gap-4">
     <TabGroup>
-      <div class="flex gap-x-10">
+      <div class="flex flex-col w-full gap-x-10 md:flex-row gap-y-2">
         <h1 class="text-4xl font-bold">Meetings</h1>
-        <div class="flex gap-5">
+        <div class="flex justify-center gap-5">
           <Tab bind:group={tabSet} name="scheduledTab" value={0}>Scheduled</Tab>
           <Tab bind:group={tabSet} name="unscheduledTab" value={1}>Unscheduled</Tab>
         </div>
