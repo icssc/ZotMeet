@@ -235,7 +235,7 @@
                   {#each groupedMeetingsByDate[date] as meeting}
                     <a href={meeting.link} target="_blank" referrerpolicy="no-referrer">
                       <div
-                        class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card variant-ghost"
+                        class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card variant-ghost hover:variant-filled-surface"
                       >
                         <div class="flex flex-wrap items-center justify-between w-full gap-2">
                           <div class="flex flex-col gap-y-1">
@@ -295,7 +295,7 @@
               {#each unscheduledMeetings as meeting}
                 <a href={meeting.link} target="_blank" referrerpolicy="no-referrer">
                   <div
-                    class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card variant-ghost"
+                    class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card variant-ghost hover:variant-filled-surface"
                   >
                     <div class="flex flex-wrap items-center justify-between w-full gap-2">
                       <div class="flex flex-col gap-y-1">
