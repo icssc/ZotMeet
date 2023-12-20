@@ -105,7 +105,7 @@
       name: "Meeting Dos",
       id: 2,
       link: "https://google.com",
-      startDate: "2023-12-08",
+      startDate: "2023-12-03",
       endDate: "2023-12-09",
       startTime: "8:00",
       endTime: "15:00",
@@ -126,7 +126,7 @@
       id: 4,
       link: "https://google.com",
       startDate: "2023-12-08",
-      endDate: "2023-12-09",
+      endDate: "2023-12-19",
       startTime: "8:00",
       endTime: "15:00",
       location: "CSL 8",
@@ -178,7 +178,7 @@
     };
 
     const date = new Date(isoDateString);
-    return date.toLocaleDateString("en-US", options);
+    return date.toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
   }
 
   function convertIsoToWeekdayDate(isoDateString: string): string {
@@ -189,7 +189,7 @@
     };
 
     const date = new Date(isoDateString);
-    return date.toLocaleDateString("en-US", options);
+    return date.toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
   }
 
   function convertTo12HourFormat(time: string): string {
