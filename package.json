@@ -20,9 +20,11 @@
     "test:unit": "vitest"
   },
   "dependencies": {
+    "@iconify/json": "^2.2.160",
     "@lucia-auth/adapter-prisma": "3.0.2",
     "@prisma/client": "5.6.0",
-    "lucia": "2.7.4"
+    "lucia": "2.7.4",
+    "unplugin-icons": "^0.18.1"
   },
   "devDependencies": {
     "@commitlint/cli": "18.4.3",
