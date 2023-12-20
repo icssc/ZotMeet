@@ -2,6 +2,8 @@
   import { LightSwitch, RadioItem, RadioGroup, TabGroup, Tab } from "@skeletonlabs/skeleton";
 
   import GroupList from "$lib/components/summary/GroupList.svelte";
+  import LocationIcon from "~icons/material-symbols/location-on";
+  import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
 
   let tabSet: number = 0;
 
@@ -184,27 +186,18 @@
                             </p>
 
                             <div class="flex flex-row flex-wrap gap-x-4">
-                              <p class="text-md md:text-lg">
-                                ✔{" "}
+                              <p class="flex items-center gap-1 text-md md:text-lg">
+                                <ClockIcon />
                                 {convertTo12HourFormat(meeting.startTime)} - {convertTo12HourFormat(
                                   meeting.endTime,
                                 )}
                               </p>
-                              <p class="text-md md:text-lg">
-                                ✔ {meeting.location}
+                              <p class="flex items-center gap-1 text-md md:text-lg">
+                                <LocationIcon />
+                                {meeting.location}
                               </p>
                             </div>
                           </div>
-
-                          <!-- <div class="flex items-center gap-2">
-                          <p>Organized by:</p>
-                          <Avatar
-                            src="https://images.unsplash.com/photo-1617296538902-887900d9b592?ixid=M3w0Njc5ODF8MHwxfGFsbHx8fHx8fHx8fDE2ODc5NzExMDB8&ixlib=rb-4.0.3&w=128&h=128&auto=format&fit=crop"
-                            width="w-6"
-                            rounded="rounded-full"
-                            border="border-2"
-                          />
-                        </div> -->
                         </div>
 
                         <RadioGroup
