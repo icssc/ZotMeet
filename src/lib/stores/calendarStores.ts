@@ -6,33 +6,40 @@ export const selectedDays = writable<CalendarDay[]>([]);
 
 /**
  * Updates a range of dates based on a user selection
- * @param startDate the beginning day, such that it occurs before endDatre
- * @param endDate the ending day, such that it occurs after startDate
+ * @param startDate the day that the user first initiated the date multiselect range
+ * @param endDate the day that the user ended the date multiselect range
  */
 export const updatedSelectedRange = (startDate: CalendarDay, endDate: CalendarDay): void => {
-  if (startDate > endDate) {
-    throw "Bounds for date range are in the incorrect order.";
-  } else if (startDate.month !== endDate.month || startDate.year != endDate.year) {
+  if (startDate.month !== endDate.month || startDate.year != endDate.year) {
     throw "The selected range must be in the same month.";
+  }
+
+  let lowerBound = startDate;
+  let upperBound = endDate;
+
+  // If the user selects backwards, swap the selections such that the date of lowerBound is before upperBound
+  if (startDate > endDate) {
+    lowerBound = endDate;
+    upperBound = startDate;
   }
 
   selectedDays.update((alreadySelectedDays: CalendarDay[]) => {
     let modifiedSelectedDays = [...alreadySelectedDays];
 
-    let iDay = startDate.day;
-    const iMonth = startDate.month;
-    const iYear = startDate.year;
+    let iDay = lowerBound.day;
+    const iMonth = lowerBound.month;
+    const iYear = lowerBound.year;
 
-    while (iDay <= endDate.day) {
+    while (iDay <= upperBound.day) {
       const foundSelectedDay = alreadySelectedDays.find(
         (d) => d.isSelected && d.equals(new CalendarDay(iDay, iMonth, iYear)),
       );
 
       if (startDate.isSelected && foundSelectedDay) {
-        // Remove selected day
+        // Remove any selected days if the multiselect initiated from an already selected day
         modifiedSelectedDays = modifiedSelectedDays.filter((d) => !d.equals(foundSelectedDay));
-      } else if (!foundSelectedDay) {
-        // Add day to selected days
+      } else if (!startDate.isSelected && !foundSelectedDay) {
+        // Add day to selected days if the multiselect did not initiate from an already selected day
         modifiedSelectedDays.push(new CalendarDay(iDay, iMonth, iYear, true));
       }
 

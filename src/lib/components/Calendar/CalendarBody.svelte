@@ -36,17 +36,8 @@
    */
   const handleEndSelection = (): void => {
     if (startDaySelection && endDaySelection) {
-      let lowerBound = startDaySelection;
-      let upperBound = endDaySelection;
-
-      // If the user selects backwards, swap the selections so the start is earlier than the end
-      if (startDaySelection > endDaySelection) {
-        lowerBound = endDaySelection;
-        upperBound = startDaySelection;
-      }
-
       try {
-        updatedSelectedRange(lowerBound, upperBound);
+        updatedSelectedRange(startDaySelection, endDaySelection);
       } catch (err) {
         console.error(err);
       }
