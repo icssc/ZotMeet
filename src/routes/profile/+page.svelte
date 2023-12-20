@@ -177,7 +177,7 @@
                   {#each groupedMeetingsByDate[date] as meeting}
                     <a href={meeting.link} target="_blank" referrerpolicy="no-referrer">
                       <div
-                        class="flex flex-col items-center justify-between w-full gap-4 p-3 align-middle bg-center bg-cover rounded-lg h-fit md:flex-row card variant-soft"
+                        class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card variant-soft"
                       >
                         <div class="flex flex-wrap items-center justify-between w-full gap-2">
                           <div class="flex flex-col">
@@ -233,8 +233,6 @@
           </div>
         {:else if tabSet === 1}
           (tab panel 2 contents)
-        {:else if tabSet === 2}
-          (tab panel 3 contents)
         {/if}
       </svelte:fragment>
     </TabGroup>
