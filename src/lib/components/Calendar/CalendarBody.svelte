@@ -12,6 +12,10 @@
   $: selectionIsReversed =
     startDaySelection && endDaySelection && startDaySelection > endDaySelection;
 
+  /**
+   * Updates the current highlight selection whenever a mobile user drags on the calendar
+   * @param e a TouchEvent object from a mobile user
+   */
   const handleTouchMove = (e: TouchEvent): void => {
     const touchingElement: Element | null = document.elementFromPoint(
       e.touches[0].clientX,
@@ -27,7 +31,10 @@
     }
   };
 
-  const handleSelectEnd = (): void => {
+  /**
+   * Creates the selection of highlighted days and updates the calendar accordingly
+   */
+  const handleEndSelection = (): void => {
     if (startDaySelection && endDaySelection) {
       let lowerBound = startDaySelection;
       let upperBound = endDaySelection;
@@ -61,7 +68,7 @@
           on:mouseup={() => {
             if (startDaySelection) {
               endDaySelection = calendarDay;
-              handleSelectEnd();
+              handleEndSelection();
             }
           }}
         >
@@ -89,7 +96,7 @@
                 if (!endDaySelection) {
                   endDaySelection = calendarDay;
                 }
-                handleSelectEnd();
+                handleEndSelection();
               }}
               tabindex="0"
               class="relative flex justify-center w-full cursor-pointer select-none"
