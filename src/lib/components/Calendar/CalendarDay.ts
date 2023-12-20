@@ -68,16 +68,17 @@ export class CalendarDay {
 
     const generatedCalendarDays: CalendarDay[][] = [];
 
-    let dayNumber = 1;
+    let day = 1;
 
-    for (let w = 0; w < CalendarConstants.MAX_WEEKS_PER_MONTH; w++) {
+    for (let weekIndex = 0; weekIndex < CalendarConstants.MAX_WEEKS_PER_MONTH; weekIndex++) {
       const generatedWeek: CalendarDay[] = [];
 
-      for (let d = 0; d < CalendarConstants.MAX_DAYS_PER_WEEK; d++) {
-        if (dayNumber > daysInMonth || (w === 0 && d < dayOfWeekOfFirst)) {
+      for (let dayIndex = 0; dayIndex < CalendarConstants.MAX_DAYS_PER_WEEK; dayIndex++) {
+        if (day > daysInMonth || (weekIndex === 0 && dayIndex < dayOfWeekOfFirst)) {
+          // Add a padding day if before the first day of month or after the last day of month
           generatedWeek.push(new CalendarDay(-1, month, year, false));
         } else {
-          const newCalendarDay = new CalendarDay(dayNumber, month, year, false);
+          const newCalendarDay = new CalendarDay(day, month, year, false);
 
           // Check if day is selected
           if (selectedDays && selectedDays.find((d) => d.equals(newCalendarDay))) {
@@ -85,7 +86,7 @@ export class CalendarDay {
           }
 
           generatedWeek.push(newCalendarDay);
-          dayNumber++;
+          day++;
         }
       }
       generatedCalendarDays.push(generatedWeek);
