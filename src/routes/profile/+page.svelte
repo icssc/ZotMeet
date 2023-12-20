@@ -2,6 +2,7 @@
   import { LightSwitch, RadioItem, RadioGroup, TabGroup, Tab } from "@skeletonlabs/skeleton";
 
   import GroupList from "$lib/components/summary/GroupList.svelte";
+  import CalendarIcon from "~icons/material-symbols/calendar-month";
   import LocationIcon from "~icons/material-symbols/location-on";
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
 
@@ -46,7 +47,7 @@
     },
   ];
 
-  let scheduledMeetings = [
+  let scheduledMeetings: ScheduledMeeting[] = [
     {
       name: "AntAlmanac",
       id: 1,
@@ -89,6 +90,49 @@
     },
   ];
 
+  let unscheduledMeetings: UnscheduledMeeting[] = [
+    {
+      name: "Unscheduled ZotMeet",
+      id: 1,
+      link: "https://google.com",
+      startDate: "2023-12-08",
+      endDate: "2023-12-09",
+      startTime: "11:00",
+      endTime: "13:30",
+      location: "CSL 8",
+    },
+    {
+      name: "Meeting Dos",
+      id: 2,
+      link: "https://google.com",
+      startDate: "2023-12-08",
+      endDate: "2023-12-09",
+      startTime: "8:00",
+      endTime: "15:00",
+      location: "CSL 8",
+    },
+    {
+      name: "Meeting Tres",
+      id: 3,
+      link: "https://google.com",
+      startDate: "2023-12-08",
+      endDate: "2023-12-09",
+      startTime: "8:00",
+      endTime: "15:00",
+      location: "CSL 8",
+    },
+    {
+      name: "Meeting Quatro",
+      id: 4,
+      link: "https://google.com",
+      startDate: "2023-12-08",
+      endDate: "2023-12-09",
+      startTime: "8:00",
+      endTime: "15:00",
+      location: "CSL 8",
+    },
+  ];
+
   type ScheduledMeeting = {
     name: string;
     id: number;
@@ -100,8 +144,22 @@
     location: string;
   };
 
+  type UnscheduledMeeting = {
+    name: string;
+    id: number;
+    link: string;
+    startDate: string;
+    endDate: string;
+    startTime: string;
+    endTime: string;
+    location: string;
+  };
+
   // Sort meetings by startDate
   scheduledMeetings.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  unscheduledMeetings.sort(
+    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+  );
 
   // Group meetings by startDate
   let groupedMeetingsByDate: Record<string, ScheduledMeeting[]> = {};
@@ -114,6 +172,16 @@
   });
 
   function convertIsoToDate(isoDateString: string): string {
+    const options: Intl.DateTimeFormatOptions = {
+      month: "short",
+      day: "numeric",
+    };
+
+    const date = new Date(isoDateString);
+    return date.toLocaleDateString("en-US", options);
+  }
+
+  function convertIsoToWeekdayDate(isoDateString: string): string {
     const options: Intl.DateTimeFormatOptions = {
       weekday: "short",
       month: "short",
@@ -161,7 +229,7 @@
           <div class="flex flex-col gap-4">
             {#each Object.keys(groupedMeetingsByDate) as date}
               <div class="p-2 card variant-ringed">
-                <h2 class="mb-2 text-xl font-bold md:text-2xl">{convertIsoToDate(date)}</h2>
+                <h2 class="mb-2 text-xl font-bold md:text-2xl">{convertIsoToWeekdayDate(date)}</h2>
 
                 <div class="flex flex-col gap-2">
                   {#each groupedMeetingsByDate[date] as meeting}
@@ -170,7 +238,7 @@
                         class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card variant-ghost"
                       >
                         <div class="flex flex-wrap items-center justify-between w-full gap-2">
-                          <div class="flex flex-col">
+                          <div class="flex flex-col gap-y-1">
                             <p class="text-xl font-bold md:text-2xl line-clamp-1 max-h-12">
                               {meeting.name}
                             </p>
@@ -222,7 +290,44 @@
             {/each}
           </div>
         {:else if tabSet === 1}
-          (tab panel 2 contents)
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-2">
+              {#each unscheduledMeetings as meeting}
+                <a href={meeting.link} target="_blank" referrerpolicy="no-referrer">
+                  <div
+                    class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card variant-ghost"
+                  >
+                    <div class="flex flex-wrap items-center justify-between w-full gap-2">
+                      <div class="flex flex-col gap-y-1">
+                        <p class="text-xl font-bold md:text-2xl line-clamp-1 max-h-12">
+                          {meeting.name}
+                        </p>
+
+                        <div class="flex flex-row flex-wrap gap-x-4">
+                          <p class="flex items-center gap-1 text-md md:text-lg">
+                            <CalendarIcon />
+                            {convertIsoToDate(meeting.startDate)} - {convertIsoToDate(
+                              meeting.endDate,
+                            )}
+                          </p>
+                          <p class="flex items-center gap-1 text-md md:text-lg">
+                            <ClockIcon />
+                            {convertTo12HourFormat(meeting.startTime)} - {convertTo12HourFormat(
+                              meeting.endTime,
+                            )}
+                          </p>
+                          <p class="flex items-center gap-1 text-md md:text-lg">
+                            <LocationIcon />
+                            {meeting.location}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              {/each}
+            </div>
+          </div>
         {/if}
       </svelte:fragment>
     </TabGroup>
