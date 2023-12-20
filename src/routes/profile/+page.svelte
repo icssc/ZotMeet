@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { LightSwitch, RadioItem, RadioGroup } from "@skeletonlabs/skeleton";
+  import { LightSwitch, RadioItem, RadioGroup, TabGroup, Tab } from "@skeletonlabs/skeleton";
 
   import GroupList from "$lib/components/summary/GroupList.svelte";
+
+  let tabSet: number = 0;
 
   let groups = [
     {
@@ -153,72 +155,95 @@
   <GroupList {groups} />
 
   <div class="flex flex-col gap-4">
-    <h1 class="text-4xl font-bold">Meetings</h1>
-    <div class="flex flex-col gap-4">
-      {#each Object.keys(groupedMeetingsByDate) as date}
-        <div class="p-2 card variant-ringed">
-          <h2 class="mb-2 text-xl font-bold md:text-2xl">{convertIsoToDate(date)}</h2>
+    <TabGroup>
+      <div class="flex gap-x-10">
+        <h1 class="text-4xl font-bold">Meetings</h1>
+        <div class="flex gap-5">
+          <Tab bind:group={tabSet} name="scheduledTab" value={0}>Scheduled</Tab>
+          <Tab bind:group={tabSet} name="unscheduledTab" value={1}>Unscheduled</Tab>
+        </div>
+      </div>
 
-          <div class="flex flex-col gap-2">
-            {#each groupedMeetingsByDate[date] as meeting}
-              <a href={meeting.link} target="_blank" referrerpolicy="no-referrer">
-                <div
-                  class="flex flex-col items-center justify-between w-full gap-4 p-3 align-middle bg-center bg-cover rounded-lg h-fit md:flex-row card variant-soft"
-                >
-                  <div class="flex flex-wrap items-center justify-between w-full gap-2">
-                    <div class="flex flex-col">
-                      <p class="text-xl font-bold md:text-2xl line-clamp-1 max-h-12">
-                        {meeting.name}
-                      </p>
+      <svelte:fragment slot="panel">
+        {#if tabSet === 0}
+          <div class="flex flex-col gap-4">
+            {#each Object.keys(groupedMeetingsByDate) as date}
+              <div class="p-2 card variant-ringed">
+                <h2 class="mb-2 text-xl font-bold md:text-2xl">{convertIsoToDate(date)}</h2>
 
-                      <div class="flex flex-row flex-wrap gap-x-4">
-                        <p class="text-md md:text-lg">
-                          ✔{" "}
-                          {convertTo12HourFormat(meeting.startTime)} - {convertTo12HourFormat(
-                            meeting.endTime,
-                          )}
-                        </p>
-                        <p class="text-md md:text-lg">
-                          ✔ {meeting.location}
-                        </p>
+                <div class="flex flex-col gap-2">
+                  {#each groupedMeetingsByDate[date] as meeting}
+                    <a href={meeting.link} target="_blank" referrerpolicy="no-referrer">
+                      <div
+                        class="flex flex-col items-center justify-between w-full gap-4 p-3 align-middle bg-center bg-cover rounded-lg h-fit md:flex-row card variant-soft"
+                      >
+                        <div class="flex flex-wrap items-center justify-between w-full gap-2">
+                          <div class="flex flex-col">
+                            <p class="text-xl font-bold md:text-2xl line-clamp-1 max-h-12">
+                              {meeting.name}
+                            </p>
+
+                            <div class="flex flex-row flex-wrap gap-x-4">
+                              <p class="text-md md:text-lg">
+                                ✔{" "}
+                                {convertTo12HourFormat(meeting.startTime)} - {convertTo12HourFormat(
+                                  meeting.endTime,
+                                )}
+                              </p>
+                              <p class="text-md md:text-lg">
+                                ✔ {meeting.location}
+                              </p>
+                            </div>
+                          </div>
+
+                          <!-- <div class="flex items-center gap-2">
+                          <p>Organized by:</p>
+                          <Avatar
+                            src="https://images.unsplash.com/photo-1617296538902-887900d9b592?ixid=M3w0Njc5ODF8MHwxfGFsbHx8fHx8fHx8fDE2ODc5NzExMDB8&ixlib=rb-4.0.3&w=128&h=128&auto=format&fit=crop"
+                            width="w-6"
+                            rounded="rounded-full"
+                            border="border-2"
+                          />
+                        </div> -->
+                        </div>
+
+                        <RadioGroup
+                          class="flex items-center h-fit w-fit"
+                          active="variant-filled-primary"
+                          hover="hover:variant-soft-primary"
+                        >
+                          <RadioItem
+                            bind:group={meeting.attending}
+                            name="justify"
+                            value={"Yes"}
+                            required>Yes</RadioItem
+                          >
+                          <RadioItem
+                            bind:group={meeting.attending}
+                            name="justify"
+                            value={"No"}
+                            required>No</RadioItem
+                          >
+                          <RadioItem
+                            bind:group={meeting.attending}
+                            name="justify"
+                            value={"Maybe"}
+                            required>Maybe</RadioItem
+                          >
+                        </RadioGroup>
                       </div>
-                    </div>
-
-                    <!-- <div class="flex items-center gap-2">
-                      <p>Organized by:</p>
-                      <Avatar
-                        src="https://images.unsplash.com/photo-1617296538902-887900d9b592?ixid=M3w0Njc5ODF8MHwxfGFsbHx8fHx8fHx8fDE2ODc5NzExMDB8&ixlib=rb-4.0.3&w=128&h=128&auto=format&fit=crop"
-                        width="w-6"
-                        rounded="rounded-full"
-                        border="border-2"
-                      />
-                    </div> -->
-                  </div>
-
-                  <RadioGroup
-                    class="flex items-center h-fit w-fit"
-                    active="variant-filled-primary"
-                    hover="hover:variant-soft-primary"
-                  >
-                    <RadioItem bind:group={meeting.attending} name="justify" value={"Yes"} required
-                      >Yes</RadioItem
-                    >
-                    <RadioItem bind:group={meeting.attending} name="justify" value={"No"} required
-                      >No</RadioItem
-                    >
-                    <RadioItem
-                      bind:group={meeting.attending}
-                      name="justify"
-                      value={"Maybe"}
-                      required>Maybe</RadioItem
-                    >
-                  </RadioGroup>
+                    </a>
+                  {/each}
                 </div>
-              </a>
+              </div>
             {/each}
           </div>
-        </div>
-      {/each}
-    </div>
+        {:else if tabSet === 1}
+          (tab panel 2 contents)
+        {:else if tabSet === 2}
+          (tab panel 3 contents)
+        {/if}
+      </svelte:fragment>
+    </TabGroup>
   </div>
 </div>
