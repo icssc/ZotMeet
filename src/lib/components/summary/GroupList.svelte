@@ -4,7 +4,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-  <h1 class="text-4xl font-bold">Groups</h1>
+  <h1 class="text-4xl font-bold border-b border-surface-400-500-token">Groups</h1>
   <div class="flex gap-2 overflow-x-auto md:gap-4 snap-x snap-mandatory scroll-smooth">
     {#each groups as group (group.id)}
       <a href={group.link} target="_blank" referrerpolicy="no-referrer">
