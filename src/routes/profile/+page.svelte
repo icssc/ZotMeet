@@ -46,14 +46,12 @@
     },
   ];
 
-  let meetings = [
+  let scheduledMeetings = [
     {
       name: "AntAlmanac",
       id: 1,
       link: "https://google.com",
-      scheduled: true,
-      startDate: "2023-12-08",
-      endDate: "2023-12-08",
+      date: "2023-12-08",
       startTime: "11:00",
       endTime: "13:30",
       attending: "Yes",
@@ -63,21 +61,17 @@
       name: "Meeting Two",
       id: 2,
       link: "https://google.com",
-      scheduled: false,
-      startDate: "2023-12-08",
-      endDate: "2023-12-09",
+      date: "2023-12-08",
       startTime: "8:00",
       endTime: "15:00",
-      attending: "Yes",
+      attending: "No",
       location: "CSL 8",
     },
     {
       name: "Meeting Three",
       id: 3,
       link: "https://google.com",
-      scheduled: false,
-      startDate: "2023-12-09",
-      endDate: "2023-12-09",
+      date: "2023-12-09",
       startTime: "8:00",
       endTime: "15:00",
       attending: "Yes",
@@ -87,40 +81,36 @@
       name: "Meeting Four",
       id: 4,
       link: "https://google.com",
-      scheduled: false,
-      startDate: "2023-12-09",
-      endDate: "2023-12-09",
+      date: "2023-12-09",
       startTime: "8:00",
       endTime: "15:00",
-      attending: "Yes",
+      attending: "Maybe",
       location: "CSL 8",
     },
   ];
 
-  interface Meeting {
+  type ScheduledMeeting = {
     name: string;
     id: number;
     link: string;
-    scheduled: boolean;
-    startDate: string;
-    endDate: string;
+    date: string;
     startTime: string;
     endTime: string;
     attending: string;
     location: string;
-  }
+  };
 
   // Sort meetings by startDate
-  meetings.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+  scheduledMeetings.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   // Group meetings by startDate
-  let groupedMeetingsByDate: Record<string, Meeting[]> = {};
-  meetings.forEach((meeting) => {
-    const startDate = meeting.startDate;
-    if (!groupedMeetingsByDate[startDate]) {
-      groupedMeetingsByDate[startDate] = [];
+  let groupedMeetingsByDate: Record<string, ScheduledMeeting[]> = {};
+  scheduledMeetings.forEach((meeting) => {
+    const date = meeting.date;
+    if (!groupedMeetingsByDate[date]) {
+      groupedMeetingsByDate[date] = [];
     }
-    groupedMeetingsByDate[startDate].push(meeting);
+    groupedMeetingsByDate[date].push(meeting);
   });
 
   function convertIsoToDate(isoDateString: string): string {
