@@ -228,14 +228,14 @@
         {#if tabSet === 0}
           <div class="flex flex-col gap-4">
             {#each Object.keys(groupedMeetingsByDate) as date}
-              <div class="p-2 card variant-ringed">
+              <div class="p-2 card variant-glass">
                 <h2 class="mb-2 text-xl font-bold md:text-2xl">{convertIsoToWeekdayDate(date)}</h2>
 
                 <div class="flex flex-col gap-2">
                   {#each groupedMeetingsByDate[date] as meeting}
                     <a href={meeting.link} target="_blank" referrerpolicy="no-referrer">
                       <div
-                        class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card variant-ghost hover:variant-filled-surface"
+                        class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card hover:variant-ghost"
                       >
                         <div class="flex flex-wrap items-center justify-between w-full gap-2">
                           <div class="flex flex-col gap-y-1">
