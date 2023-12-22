@@ -1,17 +1,19 @@
 <script lang="ts">
-  import { convertIsoToDate, convertTo12HourFormat } from "$lib/helpers";
   import { unscheduledMeetings } from "$lib/stores/summaryStores";
+  import {
+    convertIsoToDate,
+    convertTo12HourFormat,
+    sortUnscheduledMeetingsByDateAndTime,
+  } from "$lib/utils/summary-helpers";
   import CalendarIcon from "~icons/material-symbols/calendar-month";
   import LocationIcon from "~icons/material-symbols/location-on";
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
 
-  $unscheduledMeetings.sort(
-    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-  );
+  const sortedMeetings = sortUnscheduledMeetingsByDateAndTime($unscheduledMeetings);
 </script>
 
 <div class="flex flex-col gap-2">
-  {#each $unscheduledMeetings as meeting}
+  {#each sortedMeetings as meeting}
     <div
       class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card hover:variant-ghost"
     >

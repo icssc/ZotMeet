@@ -1,5 +1,7 @@
 export type Group = { name: string; id: number; img: string; link: string };
 
+export type Meeting = ScheduledMeeting | UnscheduledMeeting;
+
 export type ScheduledMeeting = {
   name: string;
   id: number;
