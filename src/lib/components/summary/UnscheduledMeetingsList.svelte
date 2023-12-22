@@ -1,19 +1,9 @@
 <script lang="ts">
   import { convertIsoToDate, convertTo12HourFormat } from "$lib/helpers";
+  import type { UnscheduledMeeting } from "$lib/types/meetings";
   import CalendarIcon from "~icons/material-symbols/calendar-month";
   import LocationIcon from "~icons/material-symbols/location-on";
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
-
-  type UnscheduledMeeting = {
-    name: string;
-    id: number;
-    link: string;
-    startDate: string;
-    endDate: string;
-    startTime: string;
-    endTime: string;
-    location: string;
-  };
 
   export let unscheduledMeetings: UnscheduledMeeting[];
 

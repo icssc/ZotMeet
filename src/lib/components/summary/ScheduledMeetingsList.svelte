@@ -2,19 +2,9 @@
   import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
 
   import { convertIsoToWeekdayDate, convertTo12HourFormat } from "$lib/helpers";
+  import type { ScheduledMeeting } from "$lib/types/meetings";
   import LocationIcon from "~icons/material-symbols/location-on";
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
-
-  type ScheduledMeeting = {
-    name: string;
-    id: number;
-    link: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    attending: string;
-    location: string;
-  };
 
   export let scheduledMeetings: ScheduledMeeting[];
 

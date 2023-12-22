@@ -1,5 +1,6 @@
 <script lang="ts">
-  type Group = { name: string; id: number; img: string; link: string };
+  import type { Group } from "$lib/types/meetings";
+
   export let groups: Group[];
 </script>
 
