@@ -3,7 +3,7 @@
   export let groups: Group[];
 </script>
 
-<div class="flex gap-2 overflow-x-auto md:gap-4 snap-x snap-mandatory scroll-smooth hide-scrollbar">
+<div class="flex gap-2 overflow-x-auto md:gap-4 snap-x snap-mandatory scroll-smooth">
   {#each groups as group (group.id)}
     <a href={group.link} target="_blank" referrerpolicy="no-referrer">
       <div
