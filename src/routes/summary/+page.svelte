@@ -1,7 +1,7 @@
 <script lang="ts">
   import { LightSwitch, RadioItem, RadioGroup, TabGroup, Tab } from "@skeletonlabs/skeleton";
 
-  import GroupList from "$lib/components/summary/GroupList.svelte";
+  import GroupList from "$lib/components/summary/GroupsCarousel.svelte";
   import CalendarIcon from "~icons/material-symbols/calendar-month";
   import LocationIcon from "~icons/material-symbols/location-on";
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
