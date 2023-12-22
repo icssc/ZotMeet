@@ -212,7 +212,10 @@
 <LightSwitch />
 
 <div class="flex flex-col gap-8 px-4 pt-8 md:px-32">
-  <GroupList {groups} />
+  <div class="flex flex-col gap-4">
+    <h1 class="text-4xl font-bold border-b border-surface-400-500-token">Groups</h1>
+    <GroupList {groups} />
+  </div>
 
   <div class="flex flex-col gap-4">
     <TabGroup>
