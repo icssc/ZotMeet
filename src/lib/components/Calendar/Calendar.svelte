@@ -1,7 +1,8 @@
 <script lang="ts">
   import CalendarBody from "$lib/components/Calendar/CalendarBody.svelte";
-  import { DAYS_OF_WEEK, MONTHS, CalendarDay } from "$lib/components/Calendar/CalendarDay";
+  import { CalendarDay } from "$lib/components/Calendar/CalendarDay";
   import { selectedDays } from "$lib/stores/calendarStores";
+  import { WEEKDAYS, MONTHS } from "$lib/types/chrono";
 
   let today: Date = new Date();
   let currentMonth: number = today.getMonth();
@@ -48,7 +49,7 @@
     <table class="w-full">
       <thead>
         <tr>
-          {#each DAYS_OF_WEEK as dayOfWeek}
+          {#each WEEKDAYS as dayOfWeek}
             <th>
               <div class="flex justify-center w-full">
                 <p class="text-base font-medium text-center text-gray-800 dark:text-gray-100">

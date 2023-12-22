@@ -3,22 +3,6 @@ enum CalendarConstants {
   MAX_DAYS_PER_WEEK = 7,
 }
 
-export const DAYS_OF_WEEK: string[] = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-export const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-] as const;
-
 export class CalendarDay {
   day: number;
   month: number;
