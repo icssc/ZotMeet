@@ -1,11 +1,9 @@
 <script lang="ts">
-  import type { Group } from "$lib/types/meetings";
-
-  export let groups: Group[];
+  import { groups } from "$lib/stores/summaryStores";
 </script>
 
 <div class="flex gap-2 overflow-x-auto md:gap-4 snap-x snap-mandatory scroll-smooth">
-  {#each groups as group (group.id)}
+  {#each $groups as group (group.id)}
     <a href={group.link} target="_blank" referrerpolicy="no-referrer">
       <div
         class="flex h-24 p-3 bg-center bg-cover rounded-lg md:h-36 snap-start w-36 md:w-64 card"

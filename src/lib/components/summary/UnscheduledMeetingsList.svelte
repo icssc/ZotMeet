@@ -1,19 +1,17 @@
 <script lang="ts">
   import { convertIsoToDate, convertTo12HourFormat } from "$lib/helpers";
-  import type { UnscheduledMeeting } from "$lib/types/meetings";
+  import { unscheduledMeetings } from "$lib/stores/summaryStores";
   import CalendarIcon from "~icons/material-symbols/calendar-month";
   import LocationIcon from "~icons/material-symbols/location-on";
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
 
-  export let unscheduledMeetings: UnscheduledMeeting[];
-
-  unscheduledMeetings.sort(
+  $unscheduledMeetings.sort(
     (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
   );
 </script>
 
 <div class="flex flex-col gap-2">
-  {#each unscheduledMeetings as meeting}
+  {#each $unscheduledMeetings as meeting}
     <div
       class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card hover:variant-ghost"
     >

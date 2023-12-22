@@ -2,15 +2,14 @@
   import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
 
   import { convertIsoToWeekdayDate, convertTo12HourFormat } from "$lib/helpers";
+  import { scheduledMeetings } from "$lib/stores/summaryStores";
   import type { ScheduledMeeting } from "$lib/types/meetings";
   import LocationIcon from "~icons/material-symbols/location-on";
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
 
-  export let scheduledMeetings: ScheduledMeeting[];
-
   // Group meetings by startDate
   let groupedMeetingsByDate: Record<string, ScheduledMeeting[]> = {};
-  scheduledMeetings.forEach((meeting) => {
+  $scheduledMeetings.forEach((meeting) => {
     const date = meeting.date;
     if (!groupedMeetingsByDate[date]) {
       groupedMeetingsByDate[date] = [];
