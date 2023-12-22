@@ -45,21 +45,23 @@
             </div>
           </div>
 
-          <RadioGroup
-            class="flex items-center h-fit w-fit"
-            active="variant-filled-primary"
-            hover="hover:variant-soft-primary"
-          >
-            <RadioItem bind:group={meeting.attending} name="justify" value={"Yes"} required
-              >Yes</RadioItem
+          <div class="flex justify-center w-full md:w-fit">
+            <RadioGroup
+              class="flex items-center h-fit w-fit"
+              active="variant-filled-primary"
+              hover="hover:variant-soft-primary"
             >
-            <RadioItem bind:group={meeting.attending} name="justify" value={"No"} required
-              >No</RadioItem
-            >
-            <RadioItem bind:group={meeting.attending} name="justify" value={"Maybe"} required
-              >Maybe</RadioItem
-            >
-          </RadioGroup>
+              <RadioItem bind:group={meeting.attending} name="justify" value={"Yes"} required
+                >Yes</RadioItem
+              >
+              <RadioItem bind:group={meeting.attending} name="justify" value={"No"} required
+                >No</RadioItem
+              >
+              <RadioItem bind:group={meeting.attending} name="justify" value={"Maybe"} required
+                >Maybe</RadioItem
+              >
+            </RadioGroup>
+          </div>
         </div>
       {/each}
     </div>
