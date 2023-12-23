@@ -1,8 +1,16 @@
 <script>
   import "../app.pcss";
+  import Header from "$lib/components/Header";
+  import SideBar from "$lib/components/SideBar";
 </script>
 
-<slot />
+<div id="app-container">
+  <Header />
+  <aside id="sidebar-container">
+    <SideBar />
+  </aside>
+  <slot />
+</div>
 
 <!-- Global styles -->
 <style lang="postcss">
