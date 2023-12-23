@@ -1,4 +1,14 @@
-<script>
+<script lang="ts">
+  import { getDrawerStore } from "@skeletonlabs/skeleton";
+
+  let hamburger: boolean = true;
+
+  const drawerStore = getDrawerStore();
+
+  const openDrawer = () => {
+    drawerStore.open();
+    console.log("open");
+  };
 </script>
 
 <!-- Header for the app -->
@@ -13,5 +23,15 @@
         <div class="text-2xl font-bold">ZotMeet</div>
       </div>
     </div>
+    <!-- Hamburger -->
+    {#if hamburger}
+      <button on:click={openDrawer}>
+        <img
+          src="https://via.placeholder.com/50"
+          alt="Hamburger icon"
+          class="h-10 w-10 mr-1 mt-auto mb-auto"
+        />
+      </button>
+    {/if}
   </div>
 </header>
