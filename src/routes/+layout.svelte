@@ -1,7 +1,9 @@
 <script>
+  import { LightSwitch } from "@skeletonlabs/skeleton";
   import "../app.pcss";
 </script>
 
+<LightSwitch />
 <slot />
 
 <!-- Global styles -->
