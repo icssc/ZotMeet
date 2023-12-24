@@ -10,7 +10,7 @@
 <div class="flex flex-col gap-8 mt-24">
   <a href="/auth/google">
     <div
-      class="flex flex-row items-center justify-center gap-2 p-2 text-xl font-semibold border-2 rounded-md"
+      class="flex flex-row items-center justify-center gap-2 p-2 text-xl font-semibold border-2 rounded-md hover:shadow-md"
     >
       <img
         src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png"
@@ -52,7 +52,7 @@
 
     <button
       type="submit"
-      class="w-full px-5 py-2 mx-auto font-medium border-2 rounded-md bg-primary border-primary"
+      class="w-full px-5 py-2 mx-auto font-medium border-2 rounded-md bg-primary border-primary hover:shadow-md"
       >Sign In</button
     >
   </form>
