@@ -1,6 +1,8 @@
 <script lang="ts">
   import { getDrawerStore } from "@skeletonlabs/skeleton";
 
+  import HamburgerMenu from "~icons/material-symbols/menu-rounded";
+
   let hamburger: boolean = true;
 
   const drawerStore = getDrawerStore();
@@ -26,11 +28,7 @@
     <!-- Hamburger -->
     {#if hamburger}
       <button on:click={openDrawer}>
-        <img
-          src="https://via.placeholder.com/50"
-          alt="Hamburger icon"
-          class="h-10 w-10 mr-1 mt-auto mb-auto"
-        />
+        <HamburgerMenu class="h-12 w-12" />
       </button>
     {/if}
   </div>
