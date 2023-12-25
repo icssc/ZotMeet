@@ -1,6 +1,9 @@
 <script lang="ts">
   import SideBarFooter from "./SideBarFooter.svelte";
   import SideBarLink from "./SideBarLink.svelte";
+
+  import CalendarIcon from "~icons/material-symbols/calendar-clock";
+  import SettingsIcon from "~icons/material-symbols/settings-rounded";
 </script>
 
 <div
@@ -15,8 +18,8 @@
   </div>
 
   <div id="sidebar-links" class="flex flex-col">
-    <SideBarLink icon="https://via.placeholder.com/50" label="Summary" href="/summary" />
-    <SideBarLink icon="https://via.placeholder.com/50" label="Settings" href="/settings" />
+    <SideBarLink Icon={CalendarIcon} label="Summary" href="/summary" />
+    <SideBarLink Icon={SettingsIcon} label="Settings" href="/settings" />
   </div>
 
   <div id="sidebar-footer-container" class="mt-auto m-2">
