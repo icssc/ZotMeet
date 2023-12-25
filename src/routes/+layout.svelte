@@ -14,7 +14,6 @@
       // Only listen to the app container
       const entry = entries[0];
       activateHamburger = entry.contentRect.width < 768;
-      console.log("activateHamburger: ", activateHamburger);
     });
 
     reiszeObserver.observe(appContainer);
