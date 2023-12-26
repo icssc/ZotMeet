@@ -9,7 +9,9 @@
 </script>
 
 <a id="sidebar-link-{label}" {href}>
-  <div class="flex flex-row whitespace-nowrap hover:bg-secondary-500 w-full gap-4 pl-5 p-3 rounded">
+  <div
+    class="flex flex-row whitespace-nowrap hover:bg-secondary-500 w-full gap-4 pl-5 p-3 rounded-lg"
+  >
     <Icon class="w-8 h-8" />
     <span class="text-lg">{label}</span>
   </div>
