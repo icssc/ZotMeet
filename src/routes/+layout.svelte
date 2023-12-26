@@ -33,7 +33,7 @@
 {/if}
 
 <div id="app-container" bind:this={appContainer} class="h-screen w-screen">
-  <AppShell slotSidebarLeft="w-64 h-full" class="h-screen">
+  <AppShell slotSidebarLeft={activateHamburger ? "" : "w-64 h-full"} class="h-screen">
     <svelte:fragment slot="header">
       <Header hamburger={activateHamburger} />
     </svelte:fragment>
