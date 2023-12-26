@@ -10,9 +10,9 @@
 
 <a id="sidebar-link-{label}" {href}>
   <div
-    class="flex flex-row whitespace-nowrap hover:bg-secondary-500 w-full gap-4 pl-5 p-3 rounded-lg"
+    class="flex flex-row whitespace-nowrap hover:bg-secondary-500 w-full gap-4 p-5 lg:p-3 rounded-lg"
   >
-    <Icon class="w-8 h-8" />
-    <span class="text-lg">{label}</span>
+    <Icon class="w-14 h-14 lg:w-10 lg:h-10 ml-3" />
+    <span class="text-2xl lg:text-xl mt-auto mb-auto">{label}</span>
   </div>
 </a>
