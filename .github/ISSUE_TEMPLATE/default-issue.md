@@ -1,10 +1,9 @@
 ---
 name: Default Issue
 about: Default template for issues
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
 
 ## Description
@@ -12,5 +11,6 @@ assignees: ''
 <! -- ### Deadline-->
 
 ## TODOs
+
 - [ ] First
 - [ ] Second
