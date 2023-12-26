@@ -48,18 +48,6 @@
   </AppShell>
 </div>
 
-<!-- <div id="app-container" bind:this={appContainer} class="h-screen w-screen">
-  <Header />
-
-  {#if !activateHamburger}
-    <aside id="sidebar-container" class="absolute right-0 top-0 w-64 h-screen">
-      <SideBar />
-    </aside>
-  {/if}
-
-  <slot />
-</div> -->
-
 <!-- Global styles -->
 <style lang="postcss">
   :global(html) {
