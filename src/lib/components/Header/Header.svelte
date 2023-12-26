@@ -14,7 +14,7 @@
 
 <!-- Header for the app -->
 
-<header class="h-16 bg-white">
+<header class="h-16 bg-primary-600">
   <div class="flex flex-row justify-between h-full">
     <img src="/icon.png" class="h-10 w-10 rounded-full" alt="ZotMeet icon" />
     <div class="text-4xl font-bold ml-10 mt-auto mb-auto">ZotMeet</div>
