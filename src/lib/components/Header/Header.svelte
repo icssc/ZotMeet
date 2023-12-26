@@ -15,20 +15,16 @@
 <!-- Header for the app -->
 
 <header class="h-16 bg-white">
-  <div class="flex flex-row justify-between">
+  <div class="flex flex-row justify-between h-full">
     <div class="flex flex-row">
-      <div class="flex flex-col justify-center">
-        <img src="/icon.png" class="h-10 w-10 rounded-full" alt="" />
-      </div>
-      <div class="flex flex-col justify-center">
-        <div class="text-2xl font-bold">ZotMeet</div>
-      </div>
+      <img src="/icon.png" class="h-10 w-10 rounded-full" alt="ZotMeet icon" />
+      <div class="text-4xl font-bold ml-10 mt-auto mb-auto">ZotMeet</div>
+      <!-- Hamburger -->
+      {#if hamburger}
+        <button on:click={openDrawer}>
+          <HamburgerMenu class="h-12 w-12" />
+        </button>
+      {/if}
     </div>
-    <!-- Hamburger -->
-    {#if hamburger}
-      <button on:click={openDrawer}>
-        <HamburgerMenu class="h-12 w-12" />
-      </button>
-    {/if}
   </div>
 </header>
