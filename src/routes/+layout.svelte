@@ -28,7 +28,7 @@
 
 {#if activateHamburger}
   <Drawer position="right">
-    <SideBar />
+    <SideBar displayCloseButton={true} />
   </Drawer>
 {/if}
 
