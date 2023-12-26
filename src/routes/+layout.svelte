@@ -1,6 +1,6 @@
 <script lang="ts">
   import "../app.pcss";
-  import { Drawer, initializeStores } from "@skeletonlabs/skeleton";
+  import { AppShell, Drawer, initializeStores } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
 
   import Header from "$lib/components/Header";
@@ -33,6 +33,22 @@
 {/if}
 
 <div id="app-container" bind:this={appContainer} class="h-screen w-screen">
+  <AppShell slotSidebarRight="w-52 h-full" class="h-screen">
+    <svelte:fragment slot="header">
+      <Header hamburger={activateHamburger} />
+    </svelte:fragment>
+
+    <svelte:fragment slot="sidebarRight">
+      {#if !activateHamburger}
+        <SideBar />
+      {/if}
+    </svelte:fragment>
+
+    <slot />
+  </AppShell>
+</div>
+
+<!-- <div id="app-container" bind:this={appContainer} class="h-screen w-screen">
   <Header />
 
   {#if !activateHamburger}
@@ -42,7 +58,7 @@
   {/if}
 
   <slot />
-</div>
+</div> -->
 
 <!-- Global styles -->
 <style lang="postcss">

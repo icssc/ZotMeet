@@ -8,7 +8,7 @@
 
 <div
   id="sidebar"
-  class="flex flex-col bg-secondary-400 outline-secondary-800 rounded-lg card outline-5 h-full w-full"
+  class="flex flex-col bg-secondary-400 outline-secondary-800 rounded-l-lg rounded-r-none card outline-5 h-full w-full"
 >
   <div class="user-info flex justify-left gap-2 m-3 ml-4">
     <img src="user-icon.png" alt="User Icon" class="user-icon rounded-full w-1/5" />

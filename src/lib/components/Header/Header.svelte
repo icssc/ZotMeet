@@ -3,19 +3,18 @@
 
   import HamburgerMenu from "~icons/material-symbols/menu-rounded";
 
-  let hamburger: boolean = true;
+  export let hamburger: boolean;
 
   const drawerStore = getDrawerStore();
 
   const openDrawer = () => {
     drawerStore.open();
-    console.log("open");
   };
 </script>
 
 <!-- Header for the app -->
 
-<header>
+<header class="h-16 bg-white">
   <div class="flex flex-row justify-between">
     <div class="flex flex-row">
       <div class="flex flex-col justify-center">
