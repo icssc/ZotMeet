@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { CalendarDay } from "$lib/components/Calendar/CalendarDay";
+  import type { Day } from "$lib/components/Calendar/CalendarDay";
 
   export let isHighlighted: boolean | null;
-  export let calendarDay: CalendarDay;
+  export let calendarDay: Day;
 </script>
 
 {#if isHighlighted}

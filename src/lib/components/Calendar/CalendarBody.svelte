@@ -1,13 +1,13 @@
 <script lang="ts">
   import CalendarBodyDay from "$lib/components/Calendar/CalendarBodyDay.svelte";
-  import { CalendarDay } from "$lib/components/Calendar/CalendarDay";
+  import { Day } from "$lib/components/Calendar/CalendarDay";
   import { updatedSelectedRange } from "$lib/stores/calendarStores";
 
-  export let calendarDays: CalendarDay[][];
+  export let calendarDays: Day[][];
   export let updateCalendar: () => void = () => {};
 
-  let startDaySelection: CalendarDay | null = null;
-  let endDaySelection: CalendarDay | null = null;
+  let startDaySelection: Day | null = null;
+  let endDaySelection: Day | null = null;
 
   /**
    * Updates the current highlight selection whenever a mobile user drags on the calendar
@@ -24,7 +24,7 @@
     const touchingDay = touchingElement.getAttribute("data-day");
 
     if (startDaySelection && touchingDay) {
-      endDaySelection = CalendarDay.extractDayFromElement(touchingElement);
+      endDaySelection = Day.extractDayFromElement(touchingElement);
     }
   };
 
@@ -64,7 +64,7 @@
             {@const isHighlighted =
               startDaySelection &&
               endDaySelection &&
-              calendarDay.determineDateWithinBounds(startDaySelection, endDaySelection)}
+              calendarDay.determineDayWithinBounds(startDaySelection, endDaySelection)}
             <button
               on:touchstart={(e) => {
                 if (e.cancelable) {

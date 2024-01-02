@@ -1,15 +1,15 @@
 import { writable } from "svelte/store";
 
-import { CalendarDay } from "$lib/components/Calendar/CalendarDay";
+import { Day } from "$lib/components/Calendar/CalendarDay";
 
-export const selectedDays = writable<CalendarDay[]>([]);
+export const selectedDays = writable<Day[]>([]);
 
 /**
  * Updates a range of dates based on a user selection
  * @param startDate the day that the user first initiated the date multiselect range
  * @param endDate the day that the user ended the date multiselect range
  */
-export const updatedSelectedRange = (startDate: CalendarDay, endDate: CalendarDay): void => {
+export const updatedSelectedRange = (startDate: Day, endDate: Day): void => {
   if (startDate.month !== endDate.month || startDate.year != endDate.year) {
     throw "The selected range must be in the same month.";
   }
@@ -23,7 +23,7 @@ export const updatedSelectedRange = (startDate: CalendarDay, endDate: CalendarDa
     upperBound = startDate;
   }
 
-  selectedDays.update((alreadySelectedDays: CalendarDay[]) => {
+  selectedDays.update((alreadySelectedDays: Day[]) => {
     let modifiedSelectedDays = [...alreadySelectedDays];
 
     let iDay = lowerBound.day;
@@ -32,7 +32,7 @@ export const updatedSelectedRange = (startDate: CalendarDay, endDate: CalendarDa
 
     while (iDay <= upperBound.day) {
       const foundSelectedDay = alreadySelectedDays.find(
-        (d) => d.isSelected && d.equals(new CalendarDay(iDay, iMonth, iYear)),
+        (d) => d.isSelected && d.equals(new Day(iDay, iMonth, iYear)),
       );
 
       if (startDate.isSelected && foundSelectedDay) {
@@ -40,7 +40,7 @@ export const updatedSelectedRange = (startDate: CalendarDay, endDate: CalendarDa
         modifiedSelectedDays = modifiedSelectedDays.filter((d) => !d.equals(foundSelectedDay));
       } else if (!startDate.isSelected && !foundSelectedDay) {
         // Add day to selected days if the multiselect did not initiate from an already selected day
-        modifiedSelectedDays.push(new CalendarDay(iDay, iMonth, iYear, true));
+        modifiedSelectedDays.push(new Day(iDay, iMonth, iYear, true));
       }
 
       iDay++;

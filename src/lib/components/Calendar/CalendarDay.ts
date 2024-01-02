@@ -3,7 +3,7 @@ enum CalendarConstants {
   MAX_DAYS_PER_WEEK = 7,
 }
 
-export class CalendarDay {
+export class Day {
   day: number;
   month: number;
   year: number;
@@ -16,7 +16,7 @@ export class CalendarDay {
     this.isSelected = isSelected;
   }
 
-  equals(otherDay: CalendarDay): boolean {
+  equals(otherDay: Day): boolean {
     return (
       this.day === otherDay.day && this.month === otherDay.month && this.year === otherDay.year
     );
@@ -41,7 +41,7 @@ export class CalendarDay {
    * @param date2 a date representing a boundary of the date range
    * @returns a boolean of whether the date is selected within the start and end dates
    */
-  determineDateWithinBounds = (date1: CalendarDay, date2: CalendarDay): boolean => {
+  determineDayWithinBounds = (date1: Day, date2: Day): boolean => {
     if (date1 > date2) {
       return date2 <= this && this <= date1;
     } else {
@@ -56,27 +56,23 @@ export class CalendarDay {
    * @param [selectedDays] an array of selected days to render in the calendar
    * @returns a nested array of formatted days per week
    */
-  static generateCalendarDays = (
-    month: number,
-    year: number,
-    selectedDays?: CalendarDay[],
-  ): CalendarDay[][] => {
+  static generateCalendarDays = (month: number, year: number, selectedDays?: Day[]): Day[][] => {
     const dayOfWeekOfFirst: number = new Date(year, month).getDay();
     const daysInMonth: number = getDaysInMonth(month, year);
 
-    const generatedCalendarDays: CalendarDay[][] = [];
+    const generatedCalendarDays: Day[][] = [];
 
     let day = 1;
 
     for (let weekIndex = 0; weekIndex < CalendarConstants.MAX_WEEKS_PER_MONTH; weekIndex++) {
-      const generatedWeek: CalendarDay[] = [];
+      const generatedWeek: Day[] = [];
 
       for (let dayIndex = 0; dayIndex < CalendarConstants.MAX_DAYS_PER_WEEK; dayIndex++) {
         if (day > daysInMonth || (weekIndex === 0 && dayIndex < dayOfWeekOfFirst)) {
           // Add a padding day if before the first day of month or after the last day of month
-          generatedWeek.push(new CalendarDay(-1, month, year, false));
+          generatedWeek.push(new Day(-1, month, year, false));
         } else {
-          const newCalendarDay = new CalendarDay(day, month, year, false);
+          const newCalendarDay = new Day(day, month, year, false);
 
           // Check if day is selected
           if (selectedDays && selectedDays.find((d) => d.equals(newCalendarDay))) {
@@ -98,14 +94,14 @@ export class CalendarDay {
    * @param element a DOM element in the calendar that represents a day
    * @returns a CalendarDay object that is represented by the DOM element
    */
-  static extractDayFromElement = (element: Element): CalendarDay | null => {
+  static extractDayFromElement = (element: Element): Day | null => {
     const day = parseInt(element.getAttribute("data-day") ?? "");
     const month = parseInt(element.getAttribute("data-month") ?? "");
     const year = parseInt(element.getAttribute("data-year") ?? "");
     const isSelected = element.getAttribute("data-selected") === "true" ? true : false;
 
     if ([day, month, year, isSelected].every((attr) => !Number.isNaN(attr) && attr !== null)) {
-      return new CalendarDay(day, month, year, isSelected);
+      return new Day(day, month, year, isSelected);
     }
 
     return null;

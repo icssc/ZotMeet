@@ -1,17 +1,13 @@
 <script lang="ts">
   import CalendarBody from "$lib/components/Calendar/CalendarBody.svelte";
-  import { CalendarDay } from "$lib/components/Calendar/CalendarDay";
+  import { Day } from "$lib/components/Calendar/CalendarDay";
   import { selectedDays } from "$lib/stores/calendarStores";
   import { WEEKDAYS, MONTHS } from "$lib/types/chrono";
 
   let today: Date = new Date();
   let currentMonth: number = today.getMonth();
   let currentYear: number = today.getFullYear();
-  let calendarDays: CalendarDay[][] = CalendarDay.generateCalendarDays(
-    currentMonth,
-    currentYear,
-    $selectedDays,
-  );
+  let calendarDays: Day[][] = Day.generateCalendarDays(currentMonth, currentYear, $selectedDays);
 
   $: monthName = MONTHS[currentMonth];
 
@@ -36,7 +32,7 @@
   };
 
   const updateCalendar = (): void => {
-    calendarDays = CalendarDay.generateCalendarDays(currentMonth, currentYear, $selectedDays);
+    calendarDays = Day.generateCalendarDays(currentMonth, currentYear, $selectedDays);
   };
 </script>
 
