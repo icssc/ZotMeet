@@ -36,6 +36,20 @@ export class CalendarDay {
   }
 
   /**
+   * Given two dates, determines whether the date falls within range of those dates
+   * @param date1 a date representing a boundary of the date range
+   * @param date2 a date representing a boundary of the date range
+   * @returns a boolean of whether the date is selected within the start and end dates
+   */
+  determineDateWithinBounds = (date1: CalendarDay, date2: CalendarDay): boolean => {
+    if (date1 > date2) {
+      return date2 <= this && this <= date1;
+    } else {
+      return date1 <= this && this <= date2;
+    }
+  };
+
+  /**
    * Given a zero-indexed month and year, returns formatted days per week with appropriate padding
    * @param month zero-indexed month of the year
    * @param year number representing the year

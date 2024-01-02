@@ -9,9 +9,6 @@
   let startDaySelection: CalendarDay | null = null;
   let endDaySelection: CalendarDay | null = null;
 
-  $: selectionIsReversed =
-    startDaySelection && endDaySelection && startDaySelection > endDaySelection;
-
   /**
    * Updates the current highlight selection whenever a mobile user drags on the calendar
    * @param e a TouchEvent object from a mobile user
@@ -64,6 +61,10 @@
           }}
         >
           {#if calendarDay.day > 0}
+            {@const isHighlighted =
+              startDaySelection &&
+              endDaySelection &&
+              calendarDay.determineDateWithinBounds(startDaySelection, endDaySelection)}
             <button
               on:touchstart={(e) => {
                 if (e.cancelable) {
@@ -92,20 +93,7 @@
               tabindex="0"
               class="relative flex justify-center w-full cursor-pointer select-none"
             >
-              {#if startDaySelection && endDaySelection}
-                {@const toHighlightIfReversed =
-                  endDaySelection.day <= calendarDay.day &&
-                  calendarDay.day <= startDaySelection.day}
-                {@const toHighlightIfNotReversed =
-                  startDaySelection.day <= calendarDay.day &&
-                  calendarDay.day <= endDaySelection.day}
-                {@const isHighlighted = selectionIsReversed
-                  ? toHighlightIfReversed
-                  : toHighlightIfNotReversed}
-                <CalendarBodyDay {isHighlighted} {calendarDay} />
-              {:else}
-                <CalendarBodyDay isHighlighted={false} {calendarDay} />
-              {/if}
+              <CalendarBodyDay {isHighlighted} {calendarDay} />
             </button>
           {:else}
             <div class="select-none">
