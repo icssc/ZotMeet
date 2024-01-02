@@ -1,7 +1,7 @@
 <script lang="ts">
   import CalendarBodyDay from "$lib/components/Calendar/CalendarBodyDay.svelte";
   import { Day } from "$lib/components/Calendar/CalendarDay";
-  import { updatedSelectedRange } from "$lib/stores/calendarStores";
+  import { updateSelectedRange } from "$lib/stores/calendarStores";
 
   export let calendarDays: Day[][];
   export let updateCalendar: () => void = () => {};
@@ -29,12 +29,11 @@
   };
 
   /**
-   * Creates the selection of highlighted days and updates the calendar accordingly
-   */
+   * Creates the selectionupdateSelectedRange */
   const handleEndSelection = (): void => {
     if (startDaySelection && endDaySelection) {
       try {
-        updatedSelectedRange(startDaySelection, endDaySelection);
+        updateSelectedRange(startDaySelection, endDaySelection);
       } catch (err) {
         console.error(err);
       }
