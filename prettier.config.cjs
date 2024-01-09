@@ -7,7 +7,12 @@
  */
 const config = {
   printWidth: 100,
-  plugins: ["prettier-plugin-packagejson", "prettier-plugin-prisma", "prettier-plugin-svelte"],
+  plugins: [
+    "prettier-plugin-packagejson",
+    "prettier-plugin-prisma",
+    "prettier-plugin-svelte",
+    "prettier-plugin-tailwindcss",
+  ],
   overrides: [{ files: "*.svelte", options: { parser: "svelte" } }],
 };
 

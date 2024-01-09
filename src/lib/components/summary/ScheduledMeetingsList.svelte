@@ -14,30 +14,30 @@
 </script>
 
 {#each Object.keys(sortedMeetings) as date}
-  <div class="p-2 card variant-glass">
+  <div class="card variant-glass p-2">
     <h2 class="mb-2 text-xl font-bold md:text-2xl">{convertIsoToWeekdayDate(date)}</h2>
 
     <div class="flex flex-col gap-2">
       {#each sortedMeetings[date] as meeting}
         <div
-          class="flex flex-col justify-between gap-4 p-3 bg-center bg-cover rounded-lg md:items-center h-fit md:flex-row card hover:variant-ghost"
+          class="card flex h-fit flex-col justify-between gap-4 rounded-lg bg-cover bg-center p-3 hover:variant-ghost md:flex-row md:items-center"
         >
-          <div class="flex flex-wrap items-center justify-between w-full gap-2">
+          <div class="flex w-full flex-wrap items-center justify-between gap-2">
             <div class="flex flex-col gap-y-1">
               <a href={meeting.link} target="_blank" referrerpolicy="no-referrer">
-                <p class="text-xl font-bold md:text-2xl line-clamp-1 max-h-12">
+                <p class="line-clamp-1 max-h-12 text-xl font-bold md:text-2xl">
                   {meeting.name}
                 </p>
               </a>
 
               <div class="flex flex-row flex-wrap gap-x-4">
-                <p class="flex items-center gap-1 text-md md:text-lg">
+                <p class="text-md flex items-center gap-1 md:text-lg">
                   <ClockIcon />
                   {convertTo12HourFormat(meeting.startTime)} - {convertTo12HourFormat(
                     meeting.endTime,
                   )}
                 </p>
-                <p class="flex items-center gap-1 text-md md:text-lg">
+                <p class="text-md flex items-center gap-1 md:text-lg">
                   <LocationIcon />
                   {meeting.location}
                 </p>
@@ -45,9 +45,9 @@
             </div>
           </div>
 
-          <div class="flex justify-center w-full md:w-fit">
+          <div class="flex w-full justify-center md:w-fit">
             <RadioGroup
-              class="flex items-center h-fit w-fit"
+              class="flex h-fit w-fit items-center"
               active="variant-filled-primary"
               hover="hover:variant-soft-primary"
             >
