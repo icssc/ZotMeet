@@ -14,6 +14,7 @@ export class Availability {
   startTime: string;
   endTime: string;
   blockLength: number;
+  totalBlocks: number;
   availableTimes: boolean[];
 
   constructor(
@@ -31,8 +32,21 @@ export class Availability {
     const endMS = new Date(`${selectedDay}T${startTime}`).valueOf();
     const startMS = new Date(`${selectedDay}T${endTime}`).valueOf();
     const totalLength = Math.round(Math.abs(endMS - startMS) / 60000);
-    const totalBlocks = totalLength / blockLength;
 
-    this.availableTimes = new Array(totalBlocks).fill(false);
+    this.totalBlocks = totalLength / blockLength;
+    this.availableTimes = new Array(this.totalBlocks).fill(false);
+  }
+
+  getBlock(time: string): number {
+    const startMS = new Date(`${this.selectedDay}T${this.startTime}`).valueOf();
+    const timeMS = new Date(`${this.selectedDay}T${time}`).valueOf();
+    const currentLength = Math.round(Math.abs(timeMS - startMS) / 60000);
+    return currentLength / this.blockLength;
+  }
+
+  setAvailabilityFromTime(started: string, ended: string): void {
+    const startBlock = this.getBlock(started);
+    const endBlock = this.getBlock(ended);
+    this.availableTimes = this.availableTimes.map((_, idx) => idx >= startBlock && idx <= endBlock);
   }
 }
