@@ -19,8 +19,8 @@ export class Availability {
 
   constructor(
     selectedDay: string,
-    startTime = "08:00:00",
-    endTime = "17:00:00",
+    startTime = "08:00",
+    endTime = "17:00",
     blockLength: number = 30,
   ) {
     this.selectedDay = selectedDay;
@@ -30,6 +30,7 @@ export class Availability {
 
     // Converts length from length of time block
     const endMS = new Date(`${selectedDay}T${startTime}`).valueOf();
+    console.log(`${selectedDay}T${startTime}`);
     const startMS = new Date(`${selectedDay}T${endTime}`).valueOf();
     const totalLength = Math.round(Math.abs(endMS - startMS) / 60000);
 
@@ -44,9 +45,20 @@ export class Availability {
     return currentLength / this.blockLength;
   }
 
-  setAvailabilityFromTime(started: string, ended: string): void {
+  getAvailability(time: string): boolean {
+    const block = this.getBlock(time);
+    return this.availableTimes[block];
+  }
+
+  getAvailabilities(): boolean[] {
+    return this.availableTimes;
+  }
+
+  setAvailabilityFromTime(started: string, ended: string, newAvailability: boolean): void {
     const startBlock = this.getBlock(started);
     const endBlock = this.getBlock(ended);
-    this.availableTimes = this.availableTimes.map((_, idx) => idx >= startBlock && idx <= endBlock);
+    this.availableTimes = this.availableTimes.map((val, idx) =>
+      idx >= startBlock && idx <= endBlock ? newAvailability : val,
+    );
   }
 }

@@ -8,18 +8,32 @@
    *  initial block selected -> unselects everything
    *  initial block not selected -> selects everything
    */
+  import { selectedAvailability } from "$lib/stores/availabilityStores";
 
-  let givenDays: string[] = ["January 11", "January 12", "January 13", "January 15", "January 16"];
-  // let startTime : string  = "8:00:00"
-  // let endTime : string = "12:00:00"
+  let givenDays: string[] = ["2024-01-10", "2024-01-11", "2024-01-13", "2024-01-15", "2024-01-17"];
+  $: selectedAvailability;
+  selectedAvailability.initialize(givenDays);
+
+  // const constructAvailability = (): boolean[][] => {
+  //   return $selectedAvailability.map((av) => av.getAvailabilities())
+  // }
 </script>
 
-<table class="w-full">
-  <thead>
-    <tr>
-      {#each givenDays as day}
-        <th>{day}</th>
-      {/each}
-    </tr>
-  </thead>
-</table>
+<!--<table class="w-full">-->
+<!--  <thead>-->
+<!--    <tr>-->
+<!--      <th>Time</th>-->
+<!--      {#each givenDays as day,i (i)}-->
+<!--        <th scope="col">{day}</th>-->
+<!--      {/each}-->
+<!--    </tr>-->
+<!--    {#each  c}-->
+<!--      <tr>-->
+<!--        <th scope="row">{av}</th>-->
+<!--      </tr>-->
+<!--      {#each av.getAvailabilities() as block}-->
+<!--        block-->
+<!--      {/each}-->
+<!--    {/each}-->
+<!--  </thead>-->
+<!--</table>-->
