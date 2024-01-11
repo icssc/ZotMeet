@@ -1,1 +1,5 @@
-// TODO: create store so availabilities can be shared
+import { writable } from "svelte/store";
+
+import type { Availability } from "$lib/components/availability/Availability";
+
+export const selectedAvailability = writable<Availability[]>([]);
