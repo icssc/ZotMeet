@@ -1,7 +1,7 @@
 <script lang="ts">
   import CalendarBody from "$lib/components/Calendar/CalendarBody.svelte";
   import { Day } from "$lib/components/Calendar/CalendarDay";
-  import { selectedDays } from "$lib/stores/calendarStores";
+  import { selectedDays } from "$lib/stores/meetingSetupStores";
   import { WEEKDAYS, MONTHS } from "$lib/types/chrono";
 
   let today: Date = new Date();
@@ -36,9 +36,9 @@
   };
 </script>
 
-<div class="max-w-xl p-5 mx-auto bg-surface-50">
-  <p class="text-center h3">{monthName} {currentYear}</p>
-  <div class="flex items-center justify-between pt-5 overflow-x-auto">
+<div class="mx-auto max-w-xl bg-surface-50 p-5">
+  <p class="h3 text-center">{monthName} {currentYear}</p>
+  <div class="flex items-center justify-between overflow-x-auto pt-5">
     <button on:click={decrementMonth} class="p-3 pl-1">
       <span class="text-3xl text-gray-500">&lsaquo;</span>
     </button>
@@ -47,8 +47,8 @@
         <tr>
           {#each WEEKDAYS as dayOfWeek}
             <th>
-              <div class="flex justify-center w-full">
-                <p class="text-base font-medium text-center text-gray-800 dark:text-gray-100">
+              <div class="flex w-full justify-center">
+                <p class="text-center text-base font-medium text-gray-800 dark:text-gray-100">
                   {dayOfWeek}
                 </p>
               </div>

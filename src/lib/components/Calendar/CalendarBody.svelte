@@ -1,7 +1,7 @@
 <script lang="ts">
   import CalendarBodyDay from "$lib/components/Calendar/CalendarBodyDay.svelte";
   import { Day } from "$lib/components/Calendar/CalendarDay";
-  import { updateSelectedRange } from "$lib/stores/calendarStores";
+  import { updateSelectedRange } from "$lib/stores/meetingSetupStores";
 
   export let calendarDays: Day[][];
   export let updateCalendar: () => void = () => {};
@@ -90,7 +90,7 @@
                 handleEndSelection();
               }}
               tabindex="0"
-              class="relative flex justify-center w-full cursor-pointer select-none"
+              class="relative flex w-full cursor-pointer select-none justify-center"
             >
               <CalendarBodyDay {isHighlighted} {calendarDay} />
             </button>
