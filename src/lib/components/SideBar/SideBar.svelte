@@ -17,7 +17,7 @@
 
 <div
   id="sidebar"
-  class="flex flex-col bg-secondary-400 outline-secondary-800 rounded-l-lg rounded-r-none card outline-5 h-full w-full"
+  class="flex flex-col w-full h-full rounded-r-none rounded-left-lg md:rounded-r-lg md:rounded-l-none bg-secondary-400 outline-secondary-800 card outline-5"
 >
   <div id="sidebar-links" class="flex flex-col">
     {#if displayCloseButton}
