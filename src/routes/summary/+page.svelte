@@ -12,13 +12,13 @@
 
 <div class="flex flex-col gap-8 px-4 pt-8 md:px-32">
   <div class="flex flex-col gap-4">
-    <h1 class="text-4xl font-bold border-b border-surface-400-500-token">Groups</h1>
+    <h1 class="border-surface-400-500-token border-b text-4xl font-bold">Groups</h1>
     <GroupList />
   </div>
 
   <div class="flex flex-col gap-4">
     <TabGroup>
-      <div class="flex flex-col w-full gap-x-10 gap-y-2">
+      <div class="flex w-full flex-col gap-x-10 gap-y-2">
         <h1 class="text-4xl font-bold">Meetings</h1>
         <div class="flex justify-center gap-5">
           <Tab bind:group={tabSet} name="scheduledTab" value={0}>Scheduled</Tab>
