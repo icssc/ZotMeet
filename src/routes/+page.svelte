@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { Calendar } from "$lib/components/Calendar";
+  import { Calendar } from "$lib/components/meetingSetup/Calendar";
 </script>
 
-<main class="w-full h-full min-h-screen bg-surface-100">
+<main class="h-full min-h-screen w-full bg-surface-100">
   <Calendar />
 </main>

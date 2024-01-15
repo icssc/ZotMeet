@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
 
-import { Day } from "$lib/components/Calendar/CalendarDay";
+import { Day } from "$lib/components/meetingSetup/Calendar/CalendarDay";
 
 export const selectedDays = writable<Day[]>([]);
 

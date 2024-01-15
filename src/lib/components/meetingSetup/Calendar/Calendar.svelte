@@ -1,6 +1,7 @@
 <script lang="ts">
-  import CalendarBody from "$lib/components/Calendar/CalendarBody.svelte";
-  import { Day } from "$lib/components/Calendar/CalendarDay";
+  import CalendarBody from "./CalendarBody.svelte";
+  import { Day } from "./CalendarDay";
+
   import { selectedDays } from "$lib/stores/meetingSetupStores";
   import { WEEKDAYS, MONTHS } from "$lib/types/chrono";
 

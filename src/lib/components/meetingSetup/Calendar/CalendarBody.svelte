@@ -1,6 +1,7 @@
 <script lang="ts">
-  import CalendarBodyDay from "$lib/components/Calendar/CalendarBodyDay.svelte";
-  import { Day } from "$lib/components/Calendar/CalendarDay";
+  import CalendarBodyDay from "./CalendarBodyDay.svelte";
+  import { Day } from "./CalendarDay";
+
   import { updateSelectedRange } from "$lib/stores/meetingSetupStores";
 
   export let calendarDays: Day[][];

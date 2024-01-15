@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Day } from "$lib/components/Calendar/CalendarDay";
+  import type { Day } from "./CalendarDay";
 
   export let isHighlighted: boolean | null;
   export let calendarDay: Day;
@@ -7,11 +7,11 @@
 
 {#if isHighlighted}
   <div
-    class="absolute w-10 h-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-200 top-1/2 left-1/2"
+    class="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-200"
   ></div>
 {:else if calendarDay.isSelected}
   <div
-    class="absolute w-10 h-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-400 top-1/2 left-1/2"
+    class="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-400"
   ></div>
 {/if}
 <p
