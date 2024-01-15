@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { Calendar } from "$lib/components/meetingSetup/Calendar";
+  import MeetingSetupPage from "$lib/components/meetingSetup/MeetingSetupPage.svelte";
 </script>
 
 <main class="h-full min-h-screen w-full bg-surface-100">
-  <Calendar />
+  <MeetingSetupPage />
 </main>
