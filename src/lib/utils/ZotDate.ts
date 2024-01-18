@@ -148,11 +148,11 @@ export class ZotDate {
    * @param [selectedDays] an array of selected days to render in the calendar
    * @returns a nested array of formatted days per week
    */
-  static generateCalendarDays(month: number, year: number, selectedDays?: ZotDate[]): ZotDate[][] {
+  static generateZotDates(month: number, year: number, selectedDays?: ZotDate[]): ZotDate[][] {
     const dayOfWeekOfFirst: number = new Date(year, month).getDay();
     const daysInMonth: number = ZotDate.getDaysInMonth(month, year);
 
-    const generatedCalendarDays: ZotDate[][] = [];
+    const generatedZotDates: ZotDate[][] = [];
 
     let day = 1;
 
@@ -182,10 +182,10 @@ export class ZotDate {
           day++;
         }
       }
-      generatedCalendarDays.push(generatedWeek);
+      generatedZotDates.push(generatedWeek);
     }
 
-    return generatedCalendarDays;
+    return generatedZotDates;
   }
 
   /**
