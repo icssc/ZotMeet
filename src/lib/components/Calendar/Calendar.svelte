@@ -7,7 +7,7 @@
   let today: Date = new Date();
   let currentMonth: number = today.getMonth();
   let currentYear: number = today.getFullYear();
-  let calendarDays: ZotDate[][] = ZotDate.generateCalendarDays(
+  let calendarDays: ZotDate[][] = ZotDate.generateZotDates(
     currentMonth,
     currentYear,
     $selectedDays,
@@ -36,7 +36,7 @@
   };
 
   const updateCalendar = (): void => {
-    calendarDays = ZotDate.generateCalendarDays(currentMonth, currentYear, $selectedDays);
+    calendarDays = ZotDate.generateZotDates(currentMonth, currentYear, $selectedDays);
   };
 </script>
 
