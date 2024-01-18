@@ -46,7 +46,7 @@ export class ZotDate {
    * @return The day value of the current day
    */
   getDay(): number {
-    return this.day.getDay();
+    return this.day.getDate();
   }
 
   /** Getter for Month attribute of day
@@ -61,6 +61,13 @@ export class ZotDate {
    */
   getYear(): number {
     return this.day.getFullYear();
+  }
+
+  /**
+   * Used for comparing dates with < and >
+   */
+  valueOf() {
+    return this.day.getDate() + this.day.getMonth() * 31 + this.day.getFullYear() * 366;
   }
 
   /**
@@ -133,11 +140,11 @@ export class ZotDate {
    * @param date2 a date representing a boundary of the date range
    * @returns a boolean of whether the date is selected within the start and end dates
    */
-  determineDayWithinBounds(date1: Date, date2: Date): boolean {
-    if (date2 > date1) {
-      return this.day >= date1 && this.day <= date2;
+  determineDayWithinBounds(date1: ZotDate, date2: ZotDate): boolean {
+    if (date1 > date2) {
+      return date2 <= this && this <= date1;
     } else {
-      return this.day <= date1 && this.day >= date1;
+      return date1 <= this && this <= date2;
     }
   }
 
@@ -155,32 +162,35 @@ export class ZotDate {
     const generatedCalendarDays: ZotDate[][] = [];
 
     let day = 1;
+    let nextMonthDay = 1;
 
     for (let weekIndex = 0; weekIndex < CalendarConstants.MAX_WEEKS_PER_MONTH; weekIndex++) {
       const generatedWeek: ZotDate[] = [];
 
-      //TODO: May have edge case with new year
       for (let dayIndex = 0; dayIndex < CalendarConstants.MAX_DAYS_PER_WEEK; dayIndex++) {
-        if (day > daysInMonth) {
-          // Add a padding day if before the first day of month or after the last day of month
-          const newDate = new Date(`${month + 1}-${1}-${year}`);
-          generatedWeek.push(new ZotDate(newDate, false));
-        } else if (weekIndex === 0 && dayIndex < dayOfWeekOfFirst) {
-          const prevMonthDay = ZotDate.getDaysInMonth(month - 1, year);
-          const newDate = new Date(`${month - 1}-${prevMonthDay}-${year}`);
-          generatedWeek.push(new ZotDate(newDate, false));
+        let newDate: Date;
+        let isSelected: boolean = false;
+
+        if (weekIndex === 0 && dayIndex < dayOfWeekOfFirst) {
+          newDate = this.getPreviousMonthPadding(month, year, dayOfWeekOfFirst, dayIndex);
+        } else if (day > daysInMonth) {
+          newDate = this.getNextMonthPadding(month, year, nextMonthDay);
+          nextMonthDay++;
         } else {
-          const newDate = new Date(`${month}-${day}-${year}`);
-          const newZotDate = new ZotDate(newDate, false);
+          newDate = new Date(`${month + 1}-${day}-${year}`);
 
           // Check if day is selected
-          if (selectedDays && selectedDays.find((d: ZotDate) => d.dateEquals(newZotDate))) {
-            newZotDate.isSelected = true;
+          if (
+            selectedDays &&
+            selectedDays.find((d: ZotDate) => d.dateEquals(new ZotDate(newDate)))
+          ) {
+            isSelected = true;
           }
 
-          generatedWeek.push(newZotDate);
           day++;
         }
+        const newZotDate = new ZotDate(newDate, isSelected);
+        generatedWeek.push(newZotDate);
       }
       generatedCalendarDays.push(generatedWeek);
     }
@@ -215,5 +225,41 @@ export class ZotDate {
    */
   static getDaysInMonth(month: number, year: number): number {
     return new Date(year, month + 1, 0).getDate();
+  }
+
+  static getPreviousMonthPadding(
+    month: number,
+    year: number,
+    dayOfWeekOfFirst: number,
+    dayIndex: number,
+  ): Date {
+    let previousMonth = month - 1;
+    let yearOfPreviousMonth = year;
+
+    // Calculate month before January as December of last year
+    if (previousMonth < 0) {
+      previousMonth += 12;
+      yearOfPreviousMonth = year - 1;
+    }
+
+    const daysInPreviousMonth = ZotDate.getDaysInMonth(previousMonth, yearOfPreviousMonth);
+    const dayWithOffset = daysInPreviousMonth - dayOfWeekOfFirst + dayIndex + 1;
+
+    // Add 1 to previous month for 1-indexed month in Date constructor
+    return new Date(`${previousMonth + 1}-${dayWithOffset}-${yearOfPreviousMonth}`);
+  }
+
+  static getNextMonthPadding(month: number, year: number, nextMonthDay: number): Date {
+    let nextMonth = month + 1;
+    let yearOfNextMonth = year;
+
+    // Calculate month after December as January of next year
+    if (nextMonth == 12) {
+      nextMonth = 0;
+      yearOfNextMonth = year + 1;
+    }
+
+    // Add 1 to next month for 1-indexed month in Date constructor
+    return new Date(`${nextMonth + 1}-${nextMonthDay}-${yearOfNextMonth}`);
   }
 }

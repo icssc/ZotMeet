@@ -1,13 +1,17 @@
 <script lang="ts">
   import CalendarBody from "$lib/components/Calendar/CalendarBody.svelte";
-  import { Day } from "$lib/components/Calendar/CalendarDay";
   import { selectedDays } from "$lib/stores/calendarStores";
   import { WEEKDAYS, MONTHS } from "$lib/types/chrono";
+  import { ZotDate } from "$lib/utils/ZotDate";
 
   let today: Date = new Date();
   let currentMonth: number = today.getMonth();
   let currentYear: number = today.getFullYear();
-  let calendarDays: Day[][] = Day.generateCalendarDays(currentMonth, currentYear, $selectedDays);
+  let calendarDays: ZotDate[][] = ZotDate.generateCalendarDays(
+    currentMonth,
+    currentYear,
+    $selectedDays,
+  );
 
   $: monthName = MONTHS[currentMonth];
 
@@ -32,13 +36,13 @@
   };
 
   const updateCalendar = (): void => {
-    calendarDays = Day.generateCalendarDays(currentMonth, currentYear, $selectedDays);
+    calendarDays = ZotDate.generateCalendarDays(currentMonth, currentYear, $selectedDays);
   };
 </script>
 
-<div class="max-w-xl p-5 mx-auto bg-surface-50">
-  <p class="text-center h3">{monthName} {currentYear}</p>
-  <div class="flex items-center justify-between pt-5 overflow-x-auto">
+<div class="mx-auto max-w-xl bg-surface-50 p-5">
+  <p class="h3 text-center">{monthName} {currentYear}</p>
+  <div class="flex items-center justify-between overflow-x-auto pt-5">
     <button on:click={decrementMonth} class="p-3 pl-1">
       <span class="text-3xl text-gray-500">&lsaquo;</span>
     </button>
@@ -47,8 +51,8 @@
         <tr>
           {#each WEEKDAYS as dayOfWeek}
             <th>
-              <div class="flex justify-center w-full">
-                <p class="text-base font-medium text-center text-gray-800 dark:text-gray-100">
+              <div class="flex w-full justify-center">
+                <p class="text-center text-base font-medium text-gray-800 dark:text-gray-100">
                   {dayOfWeek}
                 </p>
               </div>
@@ -56,7 +60,7 @@
           {/each}
         </tr>
       </thead>
-      <CalendarBody {calendarDays} {updateCalendar} />
+      <CalendarBody {calendarDays} {updateCalendar} {currentMonth} />
     </table>
     <button on:click={incrementMonth} class="p-3 pr-1">
       <span class="text-3xl text-gray-500">&rsaquo;</span>
