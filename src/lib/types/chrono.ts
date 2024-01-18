@@ -26,3 +26,8 @@ export enum Months {
 }
 
 export const MONTHS = Object.values(Months);
+
+export enum CalendarConstants {
+  MAX_WEEKS_PER_MONTH = 6,
+  MAX_DAYS_PER_WEEK = 7,
+}
