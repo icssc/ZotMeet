@@ -29,7 +29,7 @@
   // $: termsValue = $form.terms as Writable<boolean>;
 </script>
 
-<form method="POST" action="/auth/sign-up" use:enhance>
+<form method="POST" action="/auth/register" use:enhance>
   <!--<SuperDebug data={$form} />-->
   <div class="mt-6">
     <label class="label">
@@ -50,6 +50,7 @@
       {/if}
     </label>
   </div>
+
   <div class="mt-6">
     <label class="label">
       <span class="sr-only">Last Name</span>

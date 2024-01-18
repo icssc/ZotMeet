@@ -4,15 +4,30 @@ generator client {
   binaryTargets   = ["native"]
 }
 
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 // Do not modify anything above this line unless you know what you are doing.
 
 model User {
   id String @id @unique
+
+  email        String   @unique
+  firstName    String
+  lastName     String
+  verified     Boolean  @default(false)
+  receiveEmail Boolean  @default(true)
+  token        String?  @unique
+  // createdAt    DateTime @default(now()) @db.Timestamp(6)
+  // updatedAt    DateTime @updatedAt @db.Timestamp(6)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   auth_session Session[]
   key          Key[]

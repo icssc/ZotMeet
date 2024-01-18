@@ -13,13 +13,14 @@
     validators: loginSchema,
     delayMs: 0,
   });
+
   const conicStops: ConicStop[] = [
     { color: "transparent", start: 0, end: 25 },
     { color: "rgb(var(--color-primary-900))", start: 75, end: 100 },
   ];
 </script>
 
-<form method="POST" action="/auth/sign-in" use:enhance>
+<form method="POST" action="/auth/login" use:enhance>
   {#if $errors._errors}
     <aside class="alert variant-filled-error mt-6">
       <!-- Icon -->
