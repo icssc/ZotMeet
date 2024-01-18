@@ -2,6 +2,7 @@
 import { join } from "path";
 
 import { skeleton } from "@skeletonlabs/tw-plugin";
+import forms from "@tailwindcss/forms";
 
 import { zotmeetTheme } from "./theme";
 
@@ -18,6 +19,7 @@ export default {
     extend: {},
   },
   plugins: [
+    forms,
     skeleton({
       themes: { custom: [zotmeetTheme] },
     }),
