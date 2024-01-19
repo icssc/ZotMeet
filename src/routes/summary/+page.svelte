@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { LightSwitch, TabGroup, Tab } from "@skeletonlabs/skeleton";
+  import { TabGroup, Tab } from "@skeletonlabs/skeleton";
 
   import GroupList from "$lib/components/summary/GroupsCarousel.svelte";
   import ScheduledMeetingsList from "$lib/components/summary/ScheduledMeetingsList.svelte";
@@ -7,8 +7,6 @@
 
   let tabSet: number = 0;
 </script>
-
-<LightSwitch />
 
 <div class="flex flex-col gap-8 px-4 pt-8 md:px-32">
   <div class="flex flex-col gap-4">
