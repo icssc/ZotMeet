@@ -21,13 +21,17 @@ export class ZotDate {
     if (startTime instanceof Date) {
       this.startTime = startTime;
     } else {
-      this.startTime = new Date(`${this.day}T${startTime}`);
+      this.startTime = new Date(
+        `${this.day.getMonth()}-${this.day.getDate()}-${this.day.getFullYear()}T${startTime}`,
+      );
     }
 
     if (endTime instanceof Date) {
       this.endTime = endTime;
     } else {
-      this.endTime = new Date(`${this.day}T${endTime}`);
+      this.endTime = new Date(
+        `${this.day.getMonth()}-${this.day.getDate()}-${this.day.getFullYear()}T${endTime}`,
+      );
     }
 
     this.blockLength = blockLength;
