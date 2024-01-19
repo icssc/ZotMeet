@@ -46,3 +46,6 @@ export const updateSelectedRange = (startDate: Day, endDate: Day): void => {
     return modifiedSelectedDays;
   });
 };
+
+export const DEFAULT_MEETING_NAME = "Meeting Name";
+export const meetingName = writable<string>(DEFAULT_MEETING_NAME);
