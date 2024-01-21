@@ -21,22 +21,25 @@ export class ZotDate {
     if (startTime instanceof Date) {
       this.startTime = startTime;
     } else {
+      console.log(
+        `${this.day.getFullYear()}-${this.day.getMonth() + 1}-${this.day.getDate()}T${startTime}`,
+      );
       this.startTime = new Date(
-        `${this.day.getMonth()}-${this.day.getDate()}-${this.day.getFullYear()}T${startTime}`,
+        `${this.day.getFullYear()}-${this.day.getMonth() + 1}-${this.day.getDate()}T${startTime}`,
       );
     }
-
     if (endTime instanceof Date) {
       this.endTime = endTime;
     } else {
       this.endTime = new Date(
-        `${this.day.getMonth()}-${this.day.getDate()}-${this.day.getFullYear()}T${endTime}`,
+        `${this.day.getFullYear()}-${this.day.getMonth() + 1}-${this.day.getDate()}T${endTime}:00`,
       );
     }
 
     this.blockLength = blockLength;
     this.isSelected = isSelected;
 
+    console.log(this.endTime, this.startTime);
     // Converts the difference in time from endTime to startTime into minutes
     const totalLength = Math.round(
       Math.abs(this.endTime.valueOf() - this.startTime.valueOf()) / 60000,
@@ -181,8 +184,8 @@ export class ZotDate {
           newDate = this.getNextMonthPadding(month, year, nextMonthDay);
           nextMonthDay++;
         } else {
-          newDate = new Date(`${month + 1}-${day}-${year}`);
-
+          newDate = new Date(year, month + 1, day);
+          console.log(year, month + 1, day);
           // Check if day is selected
           if (
             selectedDays &&
@@ -193,6 +196,9 @@ export class ZotDate {
 
           day++;
         }
+
+        console.log(newDate);
+
         const newZotDate = new ZotDate(newDate, isSelected);
         generatedWeek.push(newZotDate);
       }
