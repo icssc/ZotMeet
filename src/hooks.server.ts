@@ -34,8 +34,8 @@ export const handle: Handle = async ({ event, resolve }) => {
       event.locals.user = user;
     }
     if (event.route.id?.startsWith("/(protected)")) {
-      if (!user) throw redirect(302, "/auth/sign-in");
-      if (!user.verified) throw redirect(302, "/auth/verify/email");
+      if (!user) throw redirect(302, "/auth");
+      // if (!user.verified) throw redirect(302, "/auth/verify/email");
     }
   }
 

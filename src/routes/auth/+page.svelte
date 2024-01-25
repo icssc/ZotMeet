@@ -1,6 +1,7 @@
 <script lang="ts">
   import { TabGroup, Tab } from "@skeletonlabs/skeleton";
 
+  import { enhance } from "$app/forms";
   import Login from "$lib/components/auth/login.svelte";
   import Register from "$lib/components/auth/register.svelte";
 
@@ -11,7 +12,17 @@
 
 <div class="mt-48 flex min-h-[100vh] justify-center">
   <div class="mx-2 w-[450px] md:mx-16">
-    <p>{data.user.firstName} {data.user.lastName}</p>
+    {#if data.user}
+      <p>{data.user.firstName} {data.user.lastName} {data.user.token}</p>
+
+      <div>
+        <form use:enhance action="/auth/logout" method="post">
+          <button type="submit" class="btn">
+            <span>Logout</span>
+          </button>
+        </form>
+      </div>
+    {/if}
 
     <TabGroup justify="justify-center">
       <Tab bind:group={tabSet} name="signInTab" value={"signIn"}>Sign In</Tab>
