@@ -1,50 +1,38 @@
 import { CalendarConstants } from "$lib/types/chrono";
 
 export class ZotDate {
+  readonly day: Date;
   availability: boolean[];
-  day: Date;
   startTime: Date;
   endTime: Date;
   blockLength: number;
   isSelected: boolean;
 
+  /**
+   * Description
+   * @param day a Date object representing a calendar day
+   * @param isSelected whether the day is selected from the calendar
+   * @param startMinutes minutes since midnight that marks the start boundary of possible meeting times
+   * @param endMinutes minutes since midnight that marks the end boundary of possible meeting times
+   * @param blockLength minutes per availability block
+   */
   constructor(
     day: Date = new Date(),
     isSelected: boolean = false,
-    startTime: string | Date = "08:00",
-    endTime: string | Date = "17:00",
+    startMinutes: number = 0,
+    endMinutes: number = 0,
     blockLength: number = 15,
   ) {
     this.day = day;
-
-    // TypeScript does not provide multiple constructor support, so this is my implementation
-    if (startTime instanceof Date) {
-      this.startTime = startTime;
-    } else {
-      console.log(
-        `${this.day.getFullYear()}-${this.day.getMonth() + 1}-${this.day.getDate()}T${startTime}`,
-      );
-      this.startTime = new Date(
-        `${this.day.getFullYear()}-${this.day.getMonth() + 1}-${this.day.getDate()}T${startTime}`,
-      );
-    }
-    if (endTime instanceof Date) {
-      this.endTime = endTime;
-    } else {
-      this.endTime = new Date(
-        `${this.day.getFullYear()}-${this.day.getMonth() + 1}-${this.day.getDate()}T${endTime}:00`,
-      );
-    }
-
-    this.blockLength = blockLength;
     this.isSelected = isSelected;
+    this.blockLength = blockLength;
 
-    console.log(this.endTime, this.startTime);
-    // Converts the difference in time from endTime to startTime into minutes
-    const totalLength = Math.round(
-      Math.abs(this.endTime.valueOf() - this.startTime.valueOf()) / 60000,
-    );
-    const totalBlocks = totalLength / this.blockLength;
+    this.startTime = new Date(day.getTime() + startMinutes * 60000);
+    this.endTime = new Date(day.getTime() + endMinutes * 60000);
+
+    const totalMinutes = Math.abs(endMinutes - startMinutes);
+    const totalBlocks = Math.floor(totalMinutes / this.blockLength);
+
     this.availability = new Array(totalBlocks).fill(false);
   }
 
@@ -72,9 +60,38 @@ export class ZotDate {
 
   /**
    * Used for comparing dates with < and >
+   * @return a number proportional to the amount of days elapsed since 0 AD, although not exact due to leap years
    */
-  valueOf() {
+  valueOf(): number {
     return this.day.getDate() + this.day.getMonth() * 31 + this.day.getFullYear() * 366;
+  }
+
+  /**
+   * Determines whether the current ZotDate occurs before or after another ZotDate
+   * @param otherDate another ZotDate to compare to
+   * @returns a number, -1 indicating the date occurs before, 1 indicating the date occurs after, and 0 indicating the dates are the same
+   */
+  compareTo(otherDate: ZotDate): number {
+    if (this < otherDate) {
+      return -1;
+    } else if (this > otherDate) {
+      return 1;
+    }
+    return 0;
+  }
+
+  /**
+   * Given two dates, determines whether the date falls within range of those dates
+   * @param date1 a date representing a boundary of the date range
+   * @param date2 a date representing a boundary of the date range
+   * @returns a boolean of whether the date is selected within the start and end dates
+   */
+  determineDayWithinBounds(date1: ZotDate, date2: ZotDate): boolean {
+    if (date1 > date2) {
+      return date2 <= this && this <= date1;
+    } else {
+      return date1 <= this && this <= date2;
+    }
   }
 
   /**
@@ -133,30 +150,8 @@ export class ZotDate {
     );
   }
 
-  dateEquals(otherDate: ZotDate): boolean {
-    return (
-      this.getDay() === otherDate.getDay() &&
-      this.getMonth() === otherDate.getMonth() &&
-      otherDate.getYear() === otherDate.getYear()
-    );
-  }
-
   /**
-   * Given two dates, determines whether the date falls within range of those dates
-   * @param date1 a date representing a boundary of the date range
-   * @param date2 a date representing a boundary of the date range
-   * @returns a boolean of whether the date is selected within the start and end dates
-   */
-  determineDayWithinBounds(date1: ZotDate, date2: ZotDate): boolean {
-    if (date1 > date2) {
-      return date2 <= this && this <= date1;
-    } else {
-      return date1 <= this && this <= date2;
-    }
-  }
-
-  /**
-   * Given a zero-indexed month and year, returns formatted days per week with appropriate padding
+   * Given a zero-indexed month and a year, returns formatted days per week with appropriate padding
    * @param month zero-indexed month of the year
    * @param year number representing the year
    * @param [selectedDays] an array of selected days to render in the calendar
@@ -179,25 +174,22 @@ export class ZotDate {
         let isSelected: boolean = false;
 
         if (weekIndex === 0 && dayIndex < dayOfWeekOfFirst) {
-          newDate = this.getPreviousMonthPadding(month, year, dayOfWeekOfFirst, dayIndex);
+          newDate = ZotDate.calculatePreviousMonthDate(month, year, dayOfWeekOfFirst, dayIndex);
         } else if (day > daysInMonth) {
-          newDate = this.getNextMonthPadding(month, year, nextMonthDay);
+          newDate = ZotDate.calculateNextMonthDate(month, year, nextMonthDay);
           nextMonthDay++;
         } else {
-          newDate = new Date(year, month + 1, day);
-          console.log(year, month + 1, day);
+          newDate = new Date(year, month, day);
           // Check if day is selected
           if (
             selectedDays &&
-            selectedDays.find((d: ZotDate) => d.dateEquals(new ZotDate(newDate)))
+            selectedDays.find((d: ZotDate) => d.compareTo(new ZotDate(newDate)) === 0)
           ) {
             isSelected = true;
           }
 
           day++;
         }
-
-        console.log(newDate);
 
         const newZotDate = new ZotDate(newDate, isSelected);
         generatedWeek.push(newZotDate);
@@ -228,16 +220,21 @@ export class ZotDate {
   }
 
   /**
-   * Given a zero-indexed month and year, returns the number of days in the month and year
-   * @param month zero-indexed month of the year
-   * @param year number representing the year
-   * @returns the amount of days in the given month and year
+   * Calculates a Date object from the previous month, given a current month, year, and day offsets
+   *
+   * e.g. To generate the first week of January 2025, we need to find the last days the previous month
+   *    - Calculates the previous month as December 2024.
+   *      [12/??/24 , 12/??/24 , 12/??/24 , 1/1/25 , 1/2/25 , 1/3/25 , 1/4/25]
+   *    - dayOfWeekOfFirst = 3 since 1/1/25 is at index 3.
+   *    - dayIndex = 0 gives 12/29/24, 1 gives 12/30/24, and 2 gives 12/31/24, ...
+   *
+   * @param month 0-indexed month
+   * @param year current year
+   * @param dayOfWeekOfFirst day of the week of the current month
+   * @param dayIndex offset number of days to add to the previous month
+   * @returns a Date object from the previous month with appropriate day offset
    */
-  static getDaysInMonth(month: number, year: number): number {
-    return new Date(year, month + 1, 0).getDate();
-  }
-
-  static getPreviousMonthPadding(
+  static calculatePreviousMonthDate(
     month: number,
     year: number,
     dayOfWeekOfFirst: number,
@@ -255,11 +252,23 @@ export class ZotDate {
     const daysInPreviousMonth = ZotDate.getDaysInMonth(previousMonth, yearOfPreviousMonth);
     const dayWithOffset = daysInPreviousMonth - dayOfWeekOfFirst + dayIndex + 1;
 
-    // Add 1 to previous month for 1-indexed month in Date constructor
-    return new Date(`${previousMonth + 1}-${dayWithOffset}-${yearOfPreviousMonth}`);
+    return new Date(yearOfPreviousMonth, previousMonth, dayWithOffset);
   }
 
-  static getNextMonthPadding(month: number, year: number, nextMonthDay: number): Date {
+  /**
+   * Calculates a Date object for the next month, given a current month, year, and day
+   *
+   * e.g. When we finish generating 12/31/2024, we need to find the first days of the next month.
+   *    - Calculates the next month to be January 2024.
+   *      [12/29/24 , 12/30/24 , 12/31/24 , 1/??/24, 1/??/24, 1/??/24 , 1/??/24]
+   *    - nextMonthDay = 1 gives 1/1/25, 2 gives 1/2/25, ...
+   *
+   * @param month 0-indexed month
+   * @param year current year
+   * @param nextMonthDay the day for the next month
+   * @returns a Date object from the next month with appropriate day offset
+   */
+  static calculateNextMonthDate(month: number, year: number, nextMonthDay: number): Date {
     let nextMonth = month + 1;
     let yearOfNextMonth = year;
 
@@ -269,7 +278,16 @@ export class ZotDate {
       yearOfNextMonth = year + 1;
     }
 
-    // Add 1 to next month for 1-indexed month in Date constructor
-    return new Date(`${nextMonth + 1}-${nextMonthDay}-${yearOfNextMonth}`);
+    return new Date(yearOfNextMonth, nextMonth, nextMonthDay);
+  }
+
+  /**
+   * Given a zero-indexed month and year, returns the number of days in the month and year
+   * @param month zero-indexed month of the year
+   * @param year number representing the year
+   * @returns the amount of days in the given month and year
+   */
+  static getDaysInMonth(month: number, year: number): number {
+    return new Date(year, month + 1, 0).getDate();
   }
 }

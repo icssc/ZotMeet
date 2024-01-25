@@ -33,12 +33,14 @@ export const updateSelectedRange = (startDate: ZotDate, endDate: ZotDate): void 
       const dateToCheck = new Date(year, month, day);
 
       const foundSelectedDay = alreadySelectedDays.find(
-        (d) => d.isSelected && d.dateEquals(new ZotDate(dateToCheck)),
+        (d) => d.isSelected && d.compareTo(new ZotDate(dateToCheck)) === 0,
       );
 
       if (startDate.isSelected && foundSelectedDay) {
         // Remove any selected days if the multiselect initiated from an already selected day
-        modifiedSelectedDays = modifiedSelectedDays.filter((d) => !d.dateEquals(foundSelectedDay));
+        modifiedSelectedDays = modifiedSelectedDays.filter(
+          (d) => d.compareTo(foundSelectedDay) !== 0,
+        );
       } else if (!startDate.isSelected && !foundSelectedDay) {
         // Add day to selected days if the multiselect did not initiate from an already selected day
         modifiedSelectedDays.push(new ZotDate(dateToCheck, true));
