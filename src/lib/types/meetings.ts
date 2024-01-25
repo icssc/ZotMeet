@@ -23,3 +23,8 @@ export type UnscheduledMeeting = {
   endTime: string;
   location: string;
 };
+
+export type MeetingTime = {
+  startTime: string;
+  endTime: string;
+};

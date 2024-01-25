@@ -1,6 +1,7 @@
 import { writable } from "svelte/store";
 
 import { Day } from "$lib/components/meetingSetup/Calendar/CalendarDay";
+import type { MeetingTime } from "$lib/types/meetings";
 
 export const selectedDays = writable<Day[]>([]);
 
@@ -49,3 +50,13 @@ export const updateSelectedRange = (startDate: Day, endDate: Day): void => {
 
 export const DEFAULT_MEETING_NAME = "Meeting Name";
 export const meetingName = writable<string>(DEFAULT_MEETING_NAME);
+
+// TODO: Convert to ZotDate
+
+export const DEFAULT_MEETING_TIMES: MeetingTime = {
+  startTime: "08:00",
+  endTime: "17:00",
+};
+
+export const startTime = writable<string>(DEFAULT_MEETING_TIMES.startTime);
+export const endTime = writable<string>(DEFAULT_MEETING_TIMES.endTime);
