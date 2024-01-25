@@ -60,7 +60,7 @@ export const actions = {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const session = await auth.createSession({ userId: user.userId, attributes: {} });
-      // event.locals.auth.setSession(session);
+      event.locals.auth.setSession(session);
     } catch (e) {
       console.error(e);
       // email already in use
