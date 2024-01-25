@@ -11,7 +11,7 @@
 </script>
 
 <!--TODO: make custom step -->
-<div id="meeting-time-input-container" class="mx-auto mb-3 flex h-12 w-10/12 justify-around gap-10">
+<div id="meeting-time-input-container" class="mx-auto mb-3 flex h-12 w-10/12 justify-around gap-5">
   <input
     type="time"
     alt="meeting start time input"
