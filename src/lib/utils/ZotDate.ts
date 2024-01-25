@@ -289,6 +289,16 @@ export class ZotDate {
     return this.availability[index];
   }
 
+  setBlockAvailabilities(
+    earlierBlockIndex: number,
+    laterBlockIndex: number,
+    selection: boolean,
+  ): void {
+    for (let blockIndex = earlierBlockIndex; blockIndex <= laterBlockIndex; blockIndex++) {
+      this.availability[blockIndex] = selection;
+    }
+  }
+
   // /**
   //  * Gets the Block in the array of availability based on provided time
   //  * @param time represented as a string or Date object

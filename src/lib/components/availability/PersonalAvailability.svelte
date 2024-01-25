@@ -8,15 +8,6 @@
    *  initial block selected -> unselects everything
    *  initial block not selected -> selects everything
    */
-  // import { selectedAvailability } from "$lib/stores/availabilityStores";
-
-  // let givenDays: string[] = ["2024-01-10", "2024-01-11", "2024-01-13", "2024-01-15", "2024-01-17"];
-  // $: selectedAvailability;
-  // selectedAvailability.initialize(givenDays);
-
-  // const constructAvailability = (): boolean[][] => {
-  //   return $selectedAvailability.map((av) => av.getAvailabilities())
-  // }
   import AvailabilityBlock from "$lib/components/availability/AvailabilityBlock.svelte";
   import type { AvailabilityType, SelectionStateType } from "$lib/types/availability";
   import { TimeConstants } from "$lib/types/chrono";
@@ -64,9 +55,32 @@
     }
   }
 
-  // const updateAvailabilities = (startBlock: AvailabilityType, endBlock: AvailabilityType): void => {
-  //   // If  user selects to the left (previous column) or up (previous row), want to ensure early index is <= late index
-  // };
+  const setAvailabilities = (startBlock: AvailabilityType): void => {
+    console.log("setting availabilities");
+
+    if (selectionState) {
+      const { earlierDateIndex, laterDateIndex, earlierBlockIndex, laterBlockIndex } =
+        selectionState;
+      const { zotDateIndex: selectionStartDateIndex, blockIndex: selectionStartBlockIndex } =
+        startBlock;
+
+      // Determine behavior of the selection (starting on selected = unselect all, start on unselected = select all)
+      const startSelectionZotDate = selectedZotDates[selectionStartDateIndex];
+      const selectionValue: boolean =
+        !startSelectionZotDate.getBlockAvailability(selectionStartBlockIndex);
+
+      for (let dateIndex = earlierDateIndex; dateIndex <= laterDateIndex; dateIndex++) {
+        const currentDate = selectedZotDates[dateIndex];
+        currentDate.setBlockAvailabilities(earlierBlockIndex, laterBlockIndex, selectionValue);
+      }
+
+      // Update Svelte states
+      selectedZotDates = selectedZotDates;
+      startBlockSelection = null;
+      endBlockSelection = null;
+      selectionState = null;
+    }
+  };
 </script>
 
 <div class="bg-surface-50 p-5">
@@ -110,10 +124,7 @@
                 on:mouseup={() => {
                   if (startBlockSelection) {
                     endBlockSelection = availabilitySelection;
-                    console.log("end", startBlockSelection, endBlockSelection);
-                    startBlockSelection = null;
-                    endBlockSelection = null;
-                    selectionState = null;
+                    setAvailabilities(startBlockSelection);
                   }
                 }}
                 class="px-0 py-0"
@@ -126,13 +137,13 @@
                   }}
                   on:mousedown={() => {
                     startBlockSelection = availabilitySelection;
+                    endBlockSelection = availabilitySelection;
                   }}
                   on:touchmove={() => {}}
                   on:mousemove={() => {
                     if (startBlockSelection) {
                       // console.log("move", startBlockSelection, endBlockSelection);
                       endBlockSelection = availabilitySelection;
-                      // updateAvailabilities(startBlockSelection, endBlockSelection);
                     }
                   }}
                   on:touchend={(e) => {
@@ -157,10 +168,4 @@
       <span class="text-3xl text-gray-500">&rsaquo;</span>
     </button>
   </div>
-  <!-- <div>
-    <p>early date: {selectionState?.earlierDateIndex}</p>
-    <p>late date: {selectionState?.laterDateIndex}</p>
-    <p>early block: {selectionState?.earlierBlockIndex}</p>
-    <p>late block: {selectionState?.laterBlockIndex}</p>
-  </div> -->
 </div>
