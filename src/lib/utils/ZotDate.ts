@@ -2,38 +2,26 @@ import { CalendarConstants } from "$lib/types/chrono";
 
 export class ZotDate {
   readonly day: Date;
-  availability: boolean[];
-  startTime: Date;
-  endTime: Date;
-  blockLength: number;
   isSelected: boolean;
+  availability: boolean[];
+  blockLength: number;
+
+  // Times represented as minutes past midnight
+  earliestTime: number;
+  latestTime: number;
 
   /**
    * Description
    * @param day a Date object representing a calendar day
    * @param isSelected whether the day is selected from the calendar
-   * @param startMinutes minutes since midnight that marks the start boundary of possible meeting times
-   * @param endMinutes minutes since midnight that marks the end boundary of possible meeting times
-   * @param blockLength minutes per availability block
    */
-  constructor(
-    day: Date = new Date(),
-    isSelected: boolean = false,
-    startMinutes: number = 0,
-    endMinutes: number = 0,
-    blockLength: number = 15,
-  ) {
+  constructor(day: Date = new Date(), isSelected: boolean = false) {
     this.day = day;
     this.isSelected = isSelected;
-    this.blockLength = blockLength;
-
-    this.startTime = new Date(day.getTime() + startMinutes * 60000);
-    this.endTime = new Date(day.getTime() + endMinutes * 60000);
-
-    const totalMinutes = Math.abs(endMinutes - startMinutes);
-    const totalBlocks = Math.floor(totalMinutes / this.blockLength);
-
-    this.availability = new Array(totalBlocks).fill(false);
+    this.blockLength = 15;
+    this.earliestTime = 0;
+    this.latestTime = 0;
+    this.availability = [];
   }
 
   /**
@@ -92,62 +80,6 @@ export class ZotDate {
     } else {
       return date1 <= this && this <= date2;
     }
-  }
-
-  /**
-   * Gets the Block in the array of availability based on provided time
-   * @param time represented as a string or Date object
-   * @return the current block number (within the array) of the time
-   */
-  getBlock(time: string | Date): number {
-    let curMS: number;
-
-    if (time instanceof Date) {
-      curMS = time.valueOf();
-    } else {
-      curMS = new Date(`${this.day}${time}`).valueOf();
-    }
-
-    const startMS: number = this.startTime.valueOf();
-    const totalLength = Math.round(Math.abs(curMS - startMS) / 60000);
-    return totalLength / this.blockLength;
-  }
-
-  /**
-   * Gets the current availability based on the provided time
-   * @param time represented as a string or Date object
-   * @return the current availability of the block corresponding to the given time
-   */
-  getAvailability(time: string | Date): boolean {
-    const block = this.getBlock(time);
-    return this.availability[block];
-  }
-
-  /**
-   * Returns all availabilities
-   * @return a list of availabilities for every time block
-   */
-  getAvailabilities(): boolean[] {
-    return this.availability;
-  }
-
-  /**
-   * Marks availability from the first selected to final selected time
-   * If currently available, becomes unavailable and vice versa
-   * @param startedTime string or Date object representing first time selected
-   * @param endedTime string or Date object representing final time selected
-   * @param selectedAvailability the current state of the first selected block of overall selection
-   */
-  setAvailabilities(
-    startedTime: string | Date,
-    endedTime: string | Date,
-    selectedAvailability: boolean,
-  ): void {
-    const startBlock = this.getBlock(startedTime);
-    const endBlock = this.getBlock(endedTime);
-    this.availability = this.availability.map((val, idx) =>
-      idx >= startBlock && idx <= endBlock ? !selectedAvailability : val,
-    );
   }
 
   /**
@@ -290,4 +222,89 @@ export class ZotDate {
   static getDaysInMonth(month: number, year: number): number {
     return new Date(year, month + 1, 0).getDate();
   }
+
+  static toTimeBlockString(minutesFromStart: number): string {
+    let isAM = true;
+
+    let hour = Math.floor(minutesFromStart / 60);
+    if (hour >= 12) {
+      isAM = false;
+
+      if (hour > 12) {
+        hour %= 12;
+      }
+    }
+
+    const formattedMinutes = (minutesFromStart % 60).toString().padStart(2, "0");
+
+    return `${hour}:${formattedMinutes} ${isAM ? "AM" : "PM"}`;
+  }
+
+  /**
+   * Returns all availabilities
+   * @return a list of availabilities for every time block
+   */
+  getAvailabilities(): boolean[] {
+    return this.availability;
+  }
+
+  /**
+   * Initializes availability range from the first selected to final selected time of an array of ZotDates
+   * @param selectedDates array of ZotDates to initialize availability
+   * @param earliestTime minutes since midnight that marks the earliest boundary of possible meeting times
+   * @param latestTime minutes since midnight that marks the latest boundary of possible meeting times
+   * @param blockLength optional minutes per availability block, default is 15
+   * @return an array of numbers, each representing minutes from the earliest time
+   */
+  static initializeAvailabilities(
+    selectedDates: ZotDate[],
+    earliestTime: number,
+    latestTime: number,
+    blockLength: number = 15,
+  ): number[] {
+    const minuteRange = Math.abs(latestTime - earliestTime);
+    const totalBlocks = Math.floor(minuteRange / blockLength);
+
+    selectedDates.forEach((selectedDate: ZotDate) => {
+      selectedDate.earliestTime = earliestTime;
+      selectedDate.latestTime = latestTime;
+      selectedDate.blockLength = blockLength;
+      selectedDate.availability = new Array(totalBlocks).fill(false);
+    });
+
+    const timeBlocks = [];
+    for (let blockIndex = 0; blockIndex < totalBlocks; blockIndex++) {
+      timeBlocks.push(earliestTime + blockIndex * blockLength);
+    }
+
+    return timeBlocks;
+  }
+
+  /**
+   * Gets the current availability based on the block index
+   * @param index index of the availability block
+   * @return the current availability of the block corresponding to the given index
+   */
+  getBlockAvailability(index: number): boolean {
+    return this.availability[index];
+  }
+
+  // /**
+  //  * Gets the Block in the array of availability based on provided time
+  //  * @param time represented as a string or Date object
+  //  * @return the current block number (within the array) of the time
+  //  */
+  // getBlock(time: string | Date): number {
+  //   let curMS: number;
+
+  //   if (time instanceof Date) {
+  //     curMS = time.valueOf();
+  //   } else {
+  //     curMS = new Date(`${this.day}${time}`).valueOf();
+  //   }
+
+  //   const startMS: number = this.startTime.valueOf();
+  //   const totalLength = Math.round(Math.abs(curMS - startMS) / 60000);
+  //   return totalLength / this.blockLength;
+  // }
 }
