@@ -8,8 +8,11 @@
     $meetingName = DEFAULT_MEETING_NAME;
   });
 
-  const onSelect = () => {
-    // TODO: Select all text in field
+  const onFocus = (e: Event) => {
+    (e.target as HTMLInputElement).select();
+  };
+  const onSelect = (e: Event) => {
+    (e.target as HTMLInputElement).select();
   };
 </script>
 
@@ -19,6 +22,7 @@
     alt="meeting name input"
     id="meeting-name-input"
     class="input h-full w-full rounded-lg text-center text-2xl text-zinc-500"
+    on:focus={onFocus}
     on:select={onSelect}
     bind:value={$meetingName}
   />
