@@ -12,6 +12,7 @@ const loginSchema = userSchema.pick({
 export const load = async (event) => {
   const session = await event.locals.auth.validate();
   if (session) throw redirect(302, "/dashboard");
+
   const form = await superValidate(event, loginSchema);
   return {
     form,
@@ -21,7 +22,7 @@ export const load = async (event) => {
 export const actions = {
   default: async (event) => {
     const form = await superValidate(event, loginSchema);
-    console.log(form);
+    // console.log(form);
 
     if (!form.valid) {
       return fail(400, {
@@ -31,10 +32,8 @@ export const actions = {
 
     //add user to db
     try {
-      console.log("sign in user");
       const key = await auth.useKey("email", form.data.email.toLowerCase(), form.data.password);
 
-      console.log("after key");
       const session = await auth.createSession({
         userId: key.userId,
         attributes: {},
