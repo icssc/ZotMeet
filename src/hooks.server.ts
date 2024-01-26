@@ -1,7 +1,6 @@
 import { redirect, type Handle } from "@sveltejs/kit";
 import type { HandleServerError } from "@sveltejs/kit";
 
-// import log from '$lib/server/log';
 import { auth } from "$lib/server/lucia";
 
 export const handleError: HandleServerError = async ({ error, event }) => {
@@ -13,8 +12,7 @@ export const handleError: HandleServerError = async ({ error, event }) => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   event.locals.errorStackTrace = error?.stack || undefined;
-  //   event.locals.errorId = errorId;
-  // log(500, event);
+  event.locals.errorId = errorId;
 
   return {
     message: "An unexpected error occurred.",
@@ -42,6 +40,6 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   const response = await resolve(event);
-  //   log(response.status, event);
+
   return response;
 };
