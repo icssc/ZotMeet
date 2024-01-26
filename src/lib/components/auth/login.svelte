@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { ConicGradient } from "@skeletonlabs/skeleton";
-  import type { ConicStop } from "@skeletonlabs/skeleton";
   import { superForm } from "sveltekit-superforms/client";
 
   import { userSchema } from "$lib/config/zod-schemas";
   import BrightnessAlert from "~icons/material-symbols/brightness-alert-outline-rounded";
+  import Loader from "~icons/mdi/loading";
 
   export let data;
   const loginSchema = userSchema.pick({ email: true, password: true });
@@ -13,17 +12,11 @@
     validators: loginSchema,
     delayMs: 0,
   });
-
-  const conicStops: ConicStop[] = [
-    { color: "transparent", start: 0, end: 25 },
-    { color: "rgb(var(--color-primary-900))", start: 75, end: 100 },
-  ];
 </script>
 
 <form method="POST" action="/auth/login" use:enhance>
   {#if $errors._errors}
     <aside class="alert variant-filled-error mt-6">
-      <!-- Icon -->
       <div><BrightnessAlert /></div>
 
       <!-- Message -->
@@ -72,9 +65,9 @@
   </div>
 
   <div class="mt-6">
-    <button type="submit" class="variant-filled-primary btn w-full">
+    <button type="submit" class="variant-filled-primary btn h-10 w-full">
       {#if $delayed}
-        <ConicGradient stops={conicStops} spin width="w-6" />
+        <Loader class="animate-spin" />
       {:else}
         Login
       {/if}

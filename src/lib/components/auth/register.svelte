@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { ConicGradient } from "@skeletonlabs/skeleton";
-  import type { ConicStop } from "@skeletonlabs/skeleton";
   import { superForm } from "sveltekit-superforms/client";
 
   import { userSchema } from "$lib/config/zod-schemas";
+  import Loader from "~icons/mdi/loading";
 
   export let data;
 
@@ -20,13 +19,7 @@
     delayMs: 0,
   });
 
-  const conicStops: ConicStop[] = [
-    { color: "transparent", start: 0, end: 25 },
-    { color: "rgb(var(--color-primary-900))", start: 75, end: 100 },
-  ];
-
   let termsAccept = false;
-  // $: termsValue = $form.terms as Writable<boolean>;
 </script>
 
 <form method="POST" action="/auth/register" use:enhance>
@@ -125,9 +118,9 @@
   </div>
 
   <div class="mt-6">
-    <button type="submit" disabled={!termsAccept} class="variant-filled-primary btn w-full">
+    <button type="submit" disabled={!termsAccept} class="variant-filled-primary btn h-10 w-full">
       {#if $delayed}
-        <ConicGradient stops={conicStops} spin width="w-6" />
+        <Loader class="animate-spin" />
       {:else}
         Register
       {/if}</button
