@@ -2,7 +2,7 @@
   import { goto } from "$app/navigation";
 
   const onClick = () => {
-    goto("/availability");
+    goto("/availability-sample");
   };
 </script>
 
