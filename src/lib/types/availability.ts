@@ -1,4 +1,4 @@
-export type AvailabilityType = {
+export type AvailabilityBlockType = {
   zotDateIndex: number;
   blockIndex: number;
 };

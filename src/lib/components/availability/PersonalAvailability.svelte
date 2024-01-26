@@ -9,18 +9,19 @@
    *  initial block not selected -> selects everything
    */
   import AvailabilityBlock from "$lib/components/availability/AvailabilityBlock.svelte";
-  import type { AvailabilityType, SelectionStateType } from "$lib/types/availability";
+  import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { TimeConstants } from "$lib/types/chrono";
   import { ZotDate } from "$lib/utils/ZotDate";
 
   // SET UP SAMPLE DATES
   let selectedZotDates = [
-    new ZotDate(new Date("1 3 24")),
-    new ZotDate(new Date("1 2 24")),
     new ZotDate(new Date("1 1 24")),
+    new ZotDate(new Date("1 2 24")),
+    new ZotDate(new Date("1 3 24")),
+    new ZotDate(new Date("1 4 24")),
   ];
   const earliestTime = TimeConstants.MINUTES_PER_HOUR * 11;
-  const latestTime = TimeConstants.MINUTES_PER_HOUR * 14;
+  const latestTime = TimeConstants.MINUTES_PER_HOUR * 16.5;
 
   const sampleBlockLength = 15;
 
@@ -31,14 +32,13 @@
     sampleBlockLength,
   );
 
-  // 11:00 am -> 2:00pm, 15 min blocks
   console.log(selectedZotDates);
   console.log(timeBlocks.map((block) => ZotDate.toTimeBlockString(block)));
 
-  let startBlockSelection: AvailabilityType | null = null;
-  let endBlockSelection: AvailabilityType | null = null;
+  let startBlockSelection: AvailabilityBlockType | null = null;
+  let endBlockSelection: AvailabilityBlockType | null = null;
 
-  // Because a user can select in two dimensions, need separate state to store the min and max selection indices
+  // Because a user can select in two dimensions, need separate state to "maintain the correct orientation" of the min and max selection indices
   let selectionState: SelectionStateType | null = null;
 
   $: {
@@ -55,10 +55,36 @@
     }
   }
 
-  const setAvailabilities = (startBlock: AvailabilityType): void => {
-    console.log("setting availabilities");
+  /**
+   * Updates the current selection whenever a mobile user drags over a block
+   * @param e a TouchEvent object from a mobile user
+   */
+  const handleTouchMove = (e: TouchEvent): void => {
+    const touchingElement: Element | null = document.elementFromPoint(
+      e.touches[0].clientX,
+      e.touches[0].clientY,
+    );
 
+    if (!touchingElement) return;
+
+    const touchingDateIndex = parseInt(touchingElement.getAttribute("data-date-index") ?? "");
+    const touchingBlockIndex = parseInt(touchingElement.getAttribute("data-block-index") ?? "");
+
+    if (
+      !Number.isNaN(touchingDateIndex) &&
+      !Number.isNaN(touchingBlockIndex) &&
+      startBlockSelection
+    ) {
+      endBlockSelection = {
+        zotDateIndex: touchingDateIndex,
+        blockIndex: touchingBlockIndex,
+      };
+    }
+  };
+
+  const setAvailabilities = (startBlock: AvailabilityBlockType): void => {
     if (selectionState) {
+      console.log("setting availabilities");
       const { earlierDateIndex, laterDateIndex, earlierBlockIndex, laterBlockIndex } =
         selectionState;
       const { zotDateIndex: selectionStartDateIndex, blockIndex: selectionStartBlockIndex } =
@@ -83,17 +109,17 @@
   };
 </script>
 
-<div class="bg-surface-50 p-5">
+<div class="p-5">
   <div class="flex items-center justify-between overflow-x-auto pt-5">
     <button class="p-3 pl-1">
       <span class="text-3xl text-gray-500">&lsaquo;</span>
     </button>
-    <table class="w-full">
+    <table class="w-full table-fixed">
       <thead>
         <tr>
           <th><span class="sr-only">Time</span></th>
           {#each selectedZotDates as { day }}
-            <th>
+            <th class="text-sm font-normal">
               {day.toLocaleDateString("en-US", {
                 weekday: "short",
                 month: "numeric",
@@ -106,10 +132,12 @@
       <tbody>
         {#each timeBlocks as timeBlock, blockIndex (`block-${timeBlock}`)}
           {@const isTopOfHour = timeBlock % 60 === 0}
+          {@const isHalfHour = timeBlock % 60 === 30}
+          {@const isLastRow = blockIndex === timeBlocks.length - 1}
           <tr>
             <td class="py-0 pr-1 align-top">
               {#if isTopOfHour}
-                <span class="float-right text-xs">
+                <span class="float-right whitespace-nowrap text-xs">
                   {ZotDate.toTimeBlockString(timeBlock)}
                 </span>
               {/if}
@@ -134,15 +162,16 @@
                     if (e.cancelable) {
                       e.preventDefault();
                     }
+                    startBlockSelection = availabilitySelection;
+                    endBlockSelection = availabilitySelection;
                   }}
                   on:mousedown={() => {
                     startBlockSelection = availabilitySelection;
                     endBlockSelection = availabilitySelection;
                   }}
-                  on:touchmove={() => {}}
+                  on:touchmove={handleTouchMove}
                   on:mousemove={() => {
                     if (startBlockSelection) {
-                      // console.log("move", startBlockSelection, endBlockSelection);
                       endBlockSelection = availabilitySelection;
                     }
                   }}
@@ -150,11 +179,17 @@
                     if (e.cancelable) {
                       e.preventDefault();
                     }
+                    if (startBlockSelection) {
+                      endBlockSelection = availabilitySelection;
+                      setAvailabilities(startBlockSelection);
+                    }
                   }}
                   tabindex="0"
-                  class={`block h-full w-full ${
-                    isTopOfHour && "border-t-neutral-800"
-                  } border-2 border-b-0 border-neutral-500 `}
+                  class={`block h-full w-full ${isTopOfHour && "border-t-2 border-t-neutral-800"} ${
+                    isHalfHour && "border-t-[1px] border-t-neutral-600"
+                  } ${zotDateIndex === 0 && "border-l-2"} ${
+                    isLastRow && "border-b-2"
+                  } cursor-row-resize border-r-2 border-neutral-600`}
                 >
                   <AvailabilityBlock {isAvailable} {zotDateIndex} {blockIndex} {selectionState} />
                 </button>

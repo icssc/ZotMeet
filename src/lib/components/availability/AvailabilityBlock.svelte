@@ -13,15 +13,15 @@
     if (selectionState) {
       const { earlierDateIndex, laterDateIndex, earlierBlockIndex, laterBlockIndex } =
         selectionState;
-      const dateIsSelected = earlierDateIndex <= zotDateIndex && zotDateIndex <= laterDateIndex;
-      const timeIsSelected = earlierBlockIndex <= blockIndex && blockIndex <= laterBlockIndex;
+      const dateInRange = earlierDateIndex <= zotDateIndex && zotDateIndex <= laterDateIndex;
+      const timeInRange = earlierBlockIndex <= blockIndex && blockIndex <= laterBlockIndex;
 
-      if (dateIsSelected && timeIsSelected) {
-        backgroundColor = "bg-success-100";
+      if (dateInRange && timeInRange) {
+        backgroundColor = "bg-success-200";
         return;
       }
     }
-    backgroundColor = isAvailable ? "bg-success-400" : "bg-error-400";
+    backgroundColor = isAvailable ? "bg-success-400" : "bg-neutral-200";
   };
 
   $: {
@@ -29,4 +29,8 @@
   }
 </script>
 
-<div class={`${backgroundColor} block h-full w-full py-2`}></div>
+<div
+  data-date-index={zotDateIndex}
+  data-block-index={blockIndex}
+  class={`${backgroundColor} block h-full w-full py-2`}
+></div>

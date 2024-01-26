@@ -298,23 +298,4 @@ export class ZotDate {
       this.availability[blockIndex] = selection;
     }
   }
-
-  // /**
-  //  * Gets the Block in the array of availability based on provided time
-  //  * @param time represented as a string or Date object
-  //  * @return the current block number (within the array) of the time
-  //  */
-  // getBlock(time: string | Date): number {
-  //   let curMS: number;
-
-  //   if (time instanceof Date) {
-  //     curMS = time.valueOf();
-  //   } else {
-  //     curMS = new Date(`${this.day}${time}`).valueOf();
-  //   }
-
-  //   const startMS: number = this.startTime.valueOf();
-  //   const totalLength = Math.round(Math.abs(curMS - startMS) / 60000);
-  //   return totalLength / this.blockLength;
-  // }
 }
