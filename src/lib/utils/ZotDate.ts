@@ -223,10 +223,15 @@ export class ZotDate {
     return new Date(year, month + 1, 0).getDate();
   }
 
-  static toTimeBlockString(minutesFromStart: number): string {
+  /**
+   * Returns a formatted time string given the number of minutes past midnight
+   * @param minutesFromMidnight number of minutes from midnight
+   * @returns a "HH:MM AM|PM" formatted string
+   */
+  static toTimeBlockString(minutesFromMidnight: number): string {
     let isAM = true;
 
-    let hour = Math.floor(minutesFromStart / 60);
+    let hour = Math.floor(minutesFromMidnight / 60);
 
     if (hour === 0) {
       hour = 12;
@@ -238,17 +243,9 @@ export class ZotDate {
       }
     }
 
-    const formattedMinutes = (minutesFromStart % 60).toString().padStart(2, "0");
+    const formattedMinutes = (minutesFromMidnight % 60).toString().padStart(2, "0");
 
     return `${hour}:${formattedMinutes} ${isAM ? "AM" : "PM"}`;
-  }
-
-  /**
-   * Returns all availabilities
-   * @return a list of availabilities for every time block
-   */
-  getAvailabilities(): boolean[] {
-    return this.availability;
   }
 
   /**
@@ -284,6 +281,14 @@ export class ZotDate {
   }
 
   /**
+   * Returns all availabilities
+   * @return a list of availabilities for every time block
+   */
+  getAvailabilities(): boolean[] {
+    return this.availability;
+  }
+
+  /**
    * Gets the current availability based on the block index
    * @param index index of the availability block
    * @return the current availability of the block corresponding to the given index
@@ -292,6 +297,12 @@ export class ZotDate {
     return this.availability[index];
   }
 
+  /**
+   * Updates a range of availabilities in the availability array
+   * @param earlierBlockIndex the 0-indexed starting index of the availability array
+   * @param laterBlockIndex the inclusive ending index of the availability array
+   * @param selection a boolean value to set for each availability in the range
+   */
   setBlockAvailabilities(
     earlierBlockIndex: number,
     laterBlockIndex: number,

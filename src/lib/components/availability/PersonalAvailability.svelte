@@ -82,6 +82,10 @@
     }
   };
 
+  /**
+   * Modifies the selected meeting date availabilities according to the current selection
+   * @param startBlock the time block that the user originated the selection
+   */
   const setAvailabilities = (startBlock: AvailabilityBlockType): void => {
     if (selectionState) {
       console.log("setting availabilities");

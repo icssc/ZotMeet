@@ -8,7 +8,11 @@
 
   let backgroundColor: string = "";
 
-  const getBlockColor = (selectionState: SelectionStateType | null): void => {
+  /**
+   * Updates the background color of a single time block cell
+   * @param selectionState the current boundaries describing the user's selection
+   */
+  const updateBlockColor = (selectionState: SelectionStateType | null): void => {
     // Render different background color if user is in middle of making a selection and is in range
     if (selectionState) {
       const { earlierDateIndex, laterDateIndex, earlierBlockIndex, laterBlockIndex } =
@@ -25,7 +29,7 @@
   };
 
   $: {
-    getBlockColor(selectionState);
+    updateBlockColor(selectionState);
   }
 </script>
 

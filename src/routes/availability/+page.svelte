@@ -9,18 +9,6 @@
 <main class="h-full min-h-screen w-full bg-surface-100">
   <section class="mx-auto max-w-xl bg-surface-50 p-5">
     <div class="flex justify-center gap-2 pb-2">
-      <!-- <button
-        class="variant-ringed-primary btn"
-        on:click={() => {
-          currentTab = "personal";
-        }}>My Availability</button
-      >
-      <button
-        class="variant-ringed-primary btn"
-        on:click={() => {
-          currentTab = "group";
-        }}>Group Availability</button
-      > -->
       <TabGroup justify="justify-center">
         <Tab bind:group={currentTab} name="tab1" value={0}>My Availability</Tab>
         <Tab bind:group={currentTab} name="tab2" value={1}>Group Availability</Tab>
