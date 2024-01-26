@@ -1,20 +1,11 @@
 <script lang="ts">
-  /**
-   *
-   * array of selectedDays makes a table, which is array of availability
-   * Intended behavior:
-   * 1. can set beginning and end time, each row is 30 minutes ? or 1 hr
-   * 2. Drag behavior depends on initial block selection -
-   *  initial block selected -> unselects everything
-   *  initial block not selected -> selects everything
-   */
   import AvailabilityBlock from "$lib/components/availability/AvailabilityBlock.svelte";
   import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { TimeConstants } from "$lib/types/chrono";
   import { ZotDate } from "$lib/utils/ZotDate";
 
   // SET UP SAMPLE DATES
-  let selectedZotDates = [
+  const selectedZotDates = [
     new ZotDate(new Date("1 1 24")),
     new ZotDate(new Date("1 2 24")),
     new ZotDate(new Date("1 3 24")),
@@ -32,11 +23,23 @@
     sampleBlockLength,
   );
 
-  console.log(selectedZotDates);
-  console.log(timeBlocks.map((block) => ZotDate.toTimeBlockString(block)));
-
   let startBlockSelection: AvailabilityBlockType | null = null;
   let endBlockSelection: AvailabilityBlockType | null = null;
+
+  /**
+   * Returns an updated pagination respective of the current states
+   * @returns an array of the new page's ZotDates
+   */
+  const calculateNewPagination = (): ZotDate[] => {
+    const firstItemOffset = currentPage * itemsPerPage;
+    const lastItemOffset = firstItemOffset + itemsPerPage;
+    return selectedZotDates.slice(firstItemOffset, lastItemOffset);
+  };
+
+  // Mobile Pagination
+  const itemsPerPage = 3;
+  let currentPage = 0;
+  let currentPageZotDates: ZotDate[] = calculateNewPagination();
 
   // Because a user can select in two dimensions, need separate state to "maintain the correct orientation" of the min and max selection indices
   let selectionState: SelectionStateType | null = null;
@@ -105,7 +108,7 @@
       }
 
       // Update Svelte states
-      selectedZotDates = selectedZotDates;
+      currentPageZotDates = currentPageZotDates;
       startBlockSelection = null;
       endBlockSelection = null;
       selectionState = null;
@@ -115,14 +118,22 @@
 
 <div class="p-5">
   <div class="flex items-center justify-between overflow-x-auto pt-5">
-    <button class="p-3 pl-1">
+    <button
+      on:click={() => {
+        if (currentPage > 0) {
+          currentPage = currentPage - 1;
+          currentPageZotDates = calculateNewPagination();
+        }
+      }}
+      class="p-3 pl-1"
+    >
       <span class="text-3xl text-gray-500">&lsaquo;</span>
     </button>
     <table class="w-full table-fixed">
       <thead>
         <tr>
           <th><span class="sr-only">Time</span></th>
-          {#each selectedZotDates as { day }}
+          {#each currentPageZotDates as { day }}
             <th class="text-sm font-normal">
               {day.toLocaleDateString("en-US", {
                 weekday: "short",
@@ -139,14 +150,15 @@
           {@const isHalfHour = timeBlock % 60 === 30}
           {@const isLastRow = blockIndex === timeBlocks.length - 1}
           <tr>
-            <td class="py-0 pr-1 align-top">
+            <td class="border-r-2 border-r-neutral-800 py-0 pr-1 align-top">
               {#if isTopOfHour}
                 <span class="float-right whitespace-nowrap text-xs">
                   {ZotDate.toTimeBlockString(timeBlock)}
                 </span>
               {/if}
             </td>
-            {#each selectedZotDates as selectedDate, zotDateIndex (`date-${selectedDate.valueOf()}-${timeBlock}`)}
+            {#each currentPageZotDates as selectedDate, pageDateIndex (`date-${selectedDate.valueOf()}-${timeBlock}`)}
+              {@const zotDateIndex = pageDateIndex + currentPage * itemsPerPage}
               {@const availabilitySelection = {
                 zotDateIndex: zotDateIndex,
                 blockIndex: blockIndex,
@@ -191,9 +203,7 @@
                   tabindex="0"
                   class={`block h-full w-full ${isTopOfHour && "border-t-2 border-t-neutral-800"} ${
                     isHalfHour && "border-t-[1px] border-t-neutral-600"
-                  } ${zotDateIndex === 0 && "border-l-2"} ${
-                    isLastRow && "border-b-2"
-                  } cursor-row-resize border-r-2 border-neutral-600`}
+                  } ${isLastRow && "border-b-2"} cursor-row-resize border-r-2 border-neutral-600`}
                 >
                   <AvailabilityBlock {isAvailable} {zotDateIndex} {blockIndex} {selectionState} />
                 </button>
@@ -203,7 +213,16 @@
         {/each}
       </tbody>
     </table>
-    <button class="p-3 pr-1">
+    <button
+      class="p-3 pr-1"
+      on:click={() => {
+        const lastPage = Math.floor((selectedZotDates.length - 1) / itemsPerPage);
+        if (currentPage < lastPage) {
+          currentPage = currentPage + 1;
+          currentPageZotDates = calculateNewPagination();
+        }
+      }}
+    >
       <span class="text-3xl text-gray-500">&rsaquo;</span>
     </button>
   </div>
