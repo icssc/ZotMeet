@@ -227,7 +227,10 @@ export class ZotDate {
     let isAM = true;
 
     let hour = Math.floor(minutesFromStart / 60);
-    if (hour >= 12) {
+
+    if (hour === 0) {
+      hour = 12;
+    } else if (hour >= 12) {
       isAM = false;
 
       if (hour > 12) {

@@ -20,8 +20,8 @@
     new ZotDate(new Date("1 3 24")),
     new ZotDate(new Date("1 4 24")),
   ];
-  const earliestTime = TimeConstants.MINUTES_PER_HOUR * 11;
-  const latestTime = TimeConstants.MINUTES_PER_HOUR * 16.5;
+  const earliestTime = TimeConstants.MINUTES_PER_HOUR * 9;
+  const latestTime = TimeConstants.MINUTES_PER_HOUR * 17.5;
 
   const sampleBlockLength = 15;
 
