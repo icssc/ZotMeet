@@ -58,7 +58,6 @@ export const actions = {
 
       //   await sendVerificationEmail(form.data.email, token);
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const session = await auth.createSession({ userId: user.userId, attributes: {} });
       event.locals.auth.setSession(session);
     } catch (e) {
