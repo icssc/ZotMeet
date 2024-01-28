@@ -14,6 +14,9 @@ const generateSampleDates = (): ZotDate[] => {
     new ZotDate(new Date("1 2 2024")),
     new ZotDate(new Date("1 3 2024")),
     new ZotDate(new Date("1 4 2024")),
+    new ZotDate(new Date("1 5 2024")),
+    new ZotDate(new Date("1 6 2024")),
+    new ZotDate(new Date("1 7 2024")),
   ];
 
   ZotDate.initializeAvailabilities(selectedCalendarDates, earliestTime, latestTime, BLOCK_LENGTH);
