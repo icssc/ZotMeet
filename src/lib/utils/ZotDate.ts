@@ -261,7 +261,7 @@ export class ZotDate {
     earliestTime: number,
     latestTime: number,
     blockLength: number = 15,
-  ): number[] {
+  ): void {
     const minuteRange = Math.abs(latestTime - earliestTime);
     const totalBlocks = Math.floor(minuteRange / blockLength);
 
@@ -271,21 +271,6 @@ export class ZotDate {
       selectedDate.blockLength = blockLength;
       selectedDate.availability = new Array(totalBlocks).fill(false);
     });
-
-    const timeBlocks = [];
-    for (let blockIndex = 0; blockIndex < totalBlocks; blockIndex++) {
-      timeBlocks.push(earliestTime + blockIndex * blockLength);
-    }
-
-    return timeBlocks;
-  }
-
-  /**
-   * Returns all availabilities
-   * @return a list of availabilities for every time block
-   */
-  getAvailabilities(): boolean[] {
-    return this.availability;
   }
 
   /**
@@ -309,7 +294,6 @@ export class ZotDate {
     selection: boolean,
   ): void {
     for (let blockIndex = earlierBlockIndex; blockIndex <= laterBlockIndex; blockIndex++) {
-      console.log(blockIndex, selection);
       this.availability[blockIndex] = selection;
     }
   }

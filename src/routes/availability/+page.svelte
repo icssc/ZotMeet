@@ -2,9 +2,6 @@
   import { Tab, TabGroup } from "@skeletonlabs/skeleton";
 
   import { PersonalAvailability } from "$lib/components/availability";
-  import { availabilityDates } from "$lib/stores/availabilityStores";
-
-  const dates = $availabilityDates;
 
   let currentTab: number = 0;
 </script>
@@ -19,7 +16,7 @@
           {#if currentTab === 0}
             <PersonalAvailability />
           {:else if currentTab === 1}
-            <div><p>{dates.map((d) => d.availability)}</p></div>
+            <div><p>Group Availability</p></div>
           {/if}
         </svelte:fragment>
       </TabGroup>

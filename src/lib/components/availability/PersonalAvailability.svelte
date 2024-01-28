@@ -1,49 +1,24 @@
 <script lang="ts">
   import AvailabilityBlock from "$lib/components/availability/AvailabilityBlock.svelte";
+  import { availabilityDates, availabilityTimeBlocks } from "$lib/stores/availabilityStores";
   import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
-  import { TimeConstants } from "$lib/types/chrono";
   import { ZotDate } from "$lib/utils/ZotDate";
 
-  // SET UP SAMPLE DATES
-  const selectedZotDates = [
-    new ZotDate(new Date("1 1 24")),
-    new ZotDate(new Date("1 2 24")),
-    new ZotDate(new Date("1 3 24")),
-    new ZotDate(new Date("1 4 24")),
-  ];
-  const earliestTime = TimeConstants.MINUTES_PER_HOUR * 9;
-  const latestTime = TimeConstants.MINUTES_PER_HOUR * 17.5;
-
-  const sampleBlockLength = 15;
-
-  const timeBlocks = ZotDate.initializeAvailabilities(
-    selectedZotDates,
-    earliestTime,
-    latestTime,
-    sampleBlockLength,
-  );
+  const itemsPerPage = 3;
 
   let startBlockSelection: AvailabilityBlockType | null = null;
   let endBlockSelection: AvailabilityBlockType | null = null;
 
-  /**
-   * Returns an updated pagination respective of the current states
-   * @returns an array of the new page's ZotDates
-   */
-  const calculateNewPagination = (): ZotDate[] => {
-    const firstItemOffset = currentPage * itemsPerPage;
-    const lastItemOffset = firstItemOffset + itemsPerPage;
-    return selectedZotDates.slice(firstItemOffset, lastItemOffset);
-  };
-
-  // Mobile Pagination
-  const itemsPerPage = 3;
   let currentPage = 0;
-  let currentPageZotDates: ZotDate[] = calculateNewPagination();
+  let currentPageAvailability: ZotDate[];
+  $: {
+    const datesToOffset = currentPage * itemsPerPage;
+    currentPageAvailability = $availabilityDates.slice(datesToOffset, datesToOffset + itemsPerPage);
+  }
 
-  // Because a user can select in two dimensions, need separate state to "maintain the correct orientation" of the min and max selection indices
+  // Because a user can select in two dimensions, need separate state to keep track of the
+  // "correct orientation" of the min and max selection indices
   let selectionState: SelectionStateType | null = null;
-
   $: {
     if (startBlockSelection && endBlockSelection) {
       selectionState = {
@@ -91,24 +66,27 @@
    */
   const setAvailabilities = (startBlock: AvailabilityBlockType): void => {
     if (selectionState) {
-      console.log("setting availabilities");
+      // Destructure current user's selection state
       const { earlierDateIndex, laterDateIndex, earlierBlockIndex, laterBlockIndex } =
         selectionState;
       const { zotDateIndex: selectionStartDateIndex, blockIndex: selectionStartBlockIndex } =
         startBlock;
 
-      // Determine behavior of the selection (starting on selected = unselect all, start on unselected = select all)
-      const startSelectionZotDate = selectedZotDates[selectionStartDateIndex];
+      // Determine behavior of the selection
+      // starting on selected = unselect all, start on unselected = select all
+      const startSelectionZotDate = $availabilityDates[selectionStartDateIndex];
       const selectionValue: boolean =
         !startSelectionZotDate.getBlockAvailability(selectionStartBlockIndex);
 
-      for (let dateIndex = earlierDateIndex; dateIndex <= laterDateIndex; dateIndex++) {
-        const currentDate = selectedZotDates[dateIndex];
-        currentDate.setBlockAvailabilities(earlierBlockIndex, laterBlockIndex, selectionValue);
-      }
+      availabilityDates.update((currentAvailabilityDates: ZotDate[]) => {
+        for (let dateIndex = earlierDateIndex; dateIndex <= laterDateIndex; dateIndex++) {
+          const currentDate = currentAvailabilityDates[dateIndex];
+          currentDate.setBlockAvailabilities(earlierBlockIndex, laterBlockIndex, selectionValue);
+        }
 
-      // Update Svelte states
-      currentPageZotDates = currentPageZotDates;
+        return currentAvailabilityDates;
+      });
+
       startBlockSelection = null;
       endBlockSelection = null;
       selectionState = null;
@@ -122,7 +100,6 @@
       on:click={() => {
         if (currentPage > 0) {
           currentPage = currentPage - 1;
-          currentPageZotDates = calculateNewPagination();
         }
       }}
       class="p-3 pl-1"
@@ -133,7 +110,7 @@
       <thead>
         <tr>
           <th><span class="sr-only">Time</span></th>
-          {#each currentPageZotDates as { day }}
+          {#each currentPageAvailability as { day }}
             <th class="text-sm font-normal">
               {day.toLocaleDateString("en-US", {
                 weekday: "short",
@@ -145,10 +122,10 @@
         </tr>
       </thead>
       <tbody>
-        {#each timeBlocks as timeBlock, blockIndex (`block-${timeBlock}`)}
+        {#each $availabilityTimeBlocks as timeBlock, blockIndex (`block-${timeBlock}`)}
           {@const isTopOfHour = timeBlock % 60 === 0}
           {@const isHalfHour = timeBlock % 60 === 30}
-          {@const isLastRow = blockIndex === timeBlocks.length - 1}
+          {@const isLastRow = blockIndex === $availabilityTimeBlocks.length - 1}
           <tr>
             <td class="border-r-2 border-r-neutral-800 py-0 pr-1 align-top">
               {#if isTopOfHour}
@@ -157,7 +134,7 @@
                 </span>
               {/if}
             </td>
-            {#each currentPageZotDates as selectedDate, pageDateIndex (`date-${selectedDate.valueOf()}-${timeBlock}`)}
+            {#each currentPageAvailability as selectedDate, pageDateIndex (`date-${selectedDate.valueOf()}-${timeBlock}`)}
               {@const zotDateIndex = pageDateIndex + currentPage * itemsPerPage}
               {@const availabilitySelection = {
                 zotDateIndex: zotDateIndex,
@@ -216,10 +193,10 @@
     <button
       class="p-3 pr-1"
       on:click={() => {
-        const lastPage = Math.floor((selectedZotDates.length - 1) / itemsPerPage);
+        const lastPage = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
+
         if (currentPage < lastPage) {
           currentPage = currentPage + 1;
-          currentPageZotDates = calculateNewPagination();
         }
       }}
     >
