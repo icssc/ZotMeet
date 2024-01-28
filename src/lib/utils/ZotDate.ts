@@ -309,6 +309,7 @@ export class ZotDate {
     selection: boolean,
   ): void {
     for (let blockIndex = earlierBlockIndex; blockIndex <= laterBlockIndex; blockIndex++) {
+      console.log(blockIndex, selection);
       this.availability[blockIndex] = selection;
     }
   }
