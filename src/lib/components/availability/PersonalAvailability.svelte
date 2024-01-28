@@ -4,9 +4,9 @@
   import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
 
-  const itemsPerPage = 3;
-  const lastPage = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
-  const numPaddingDates =
+  const itemsPerPage: number = 3;
+  const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
+  const numPaddingDates: number =
     $availabilityDates.length % itemsPerPage === 0
       ? 0
       : itemsPerPage - ($availabilityDates.length % itemsPerPage);
