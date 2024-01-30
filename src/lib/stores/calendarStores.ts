@@ -1,16 +1,16 @@
 import { writable } from "svelte/store";
 
-import { Day } from "$lib/components/Calendar/CalendarDay";
+import { ZotDate } from "$lib/utils/ZotDate";
 
-export const selectedDays = writable<Day[]>([]);
+export const selectedDays = writable<ZotDate[]>([]);
 
 /**
  * Updates a range of dates based on a user selection
  * @param startDate the day that the user first initiated the date multiselect range
  * @param endDate the day that the user ended the date multiselect range
  */
-export const updateSelectedRange = (startDate: Day, endDate: Day): void => {
-  if (startDate.month !== endDate.month || startDate.year != endDate.year) {
+export const updateSelectedRange = (startDate: ZotDate, endDate: ZotDate): void => {
+  if (startDate.getMonth() !== endDate.getMonth() || startDate.getYear() != endDate.getYear()) {
     throw "The selected range must be in the same month.";
   }
 
@@ -23,23 +23,27 @@ export const updateSelectedRange = (startDate: Day, endDate: Day): void => {
     upperBound = startDate;
   }
 
-  selectedDays.update((alreadySelectedDays: Day[]) => {
+  selectedDays.update((alreadySelectedDays: ZotDate[]) => {
     let modifiedSelectedDays = [...alreadySelectedDays];
 
-    const month = lowerBound.month;
-    const year = lowerBound.year;
+    const month = lowerBound.getMonth();
+    const year = lowerBound.getYear();
 
-    for (let day = lowerBound.day; day <= upperBound.day; day++) {
+    for (let day = lowerBound.getDay(); day <= upperBound.getDay(); day++) {
+      const dateToCheck = new Date(year, month, day);
+
       const foundSelectedDay = alreadySelectedDays.find(
-        (d) => d.isSelected && d.equals(new Day(day, month, year)),
+        (d) => d.isSelected && d.compareTo(new ZotDate(dateToCheck)) === 0,
       );
 
       if (startDate.isSelected && foundSelectedDay) {
         // Remove any selected days if the multiselect initiated from an already selected day
-        modifiedSelectedDays = modifiedSelectedDays.filter((d) => !d.equals(foundSelectedDay));
+        modifiedSelectedDays = modifiedSelectedDays.filter(
+          (d) => d.compareTo(foundSelectedDay) !== 0,
+        );
       } else if (!startDate.isSelected && !foundSelectedDay) {
         // Add day to selected days if the multiselect did not initiate from an already selected day
-        modifiedSelectedDays.push(new Day(day, month, year, true));
+        modifiedSelectedDays.push(new ZotDate(dateToCheck, true));
       }
     }
 

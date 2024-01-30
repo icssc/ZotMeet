@@ -1,13 +1,14 @@
 <script lang="ts">
   import CalendarBodyDay from "$lib/components/Calendar/CalendarBodyDay.svelte";
-  import { Day } from "$lib/components/Calendar/CalendarDay";
   import { updateSelectedRange } from "$lib/stores/calendarStores";
+  import { ZotDate } from "$lib/utils/ZotDate";
 
-  export let calendarDays: Day[][];
+  export let calendarDays: ZotDate[][];
   export let updateCalendar: () => void = () => {};
+  export let currentMonth: number;
 
-  let startDaySelection: Day | null = null;
-  let endDaySelection: Day | null = null;
+  let startDaySelection: ZotDate | null = null;
+  let endDaySelection: ZotDate | null = null;
 
   /**
    * Updates the current highlight selection whenever a mobile user drags on the calendar
@@ -24,7 +25,7 @@
     const touchingDay = touchingElement.getAttribute("data-day");
 
     if (startDaySelection && touchingDay) {
-      endDaySelection = Day.extractDayFromElement(touchingElement);
+      endDaySelection = ZotDate.extractDayFromElement(touchingElement);
     }
   };
 
@@ -59,7 +60,7 @@
             }
           }}
         >
-          {#if calendarDay.day > 0}
+          {#if calendarDay.getMonth() === currentMonth}
             {@const isHighlighted =
               startDaySelection &&
               endDaySelection &&
@@ -90,13 +91,13 @@
                 handleEndSelection();
               }}
               tabindex="0"
-              class="relative flex justify-center w-full cursor-pointer select-none"
+              class="relative flex w-full cursor-pointer select-none justify-center"
             >
               <CalendarBodyDay {isHighlighted} {calendarDay} />
             </button>
           {:else}
-            <div class="select-none">
-              <p class="p-2">&nbsp;</p>
+            <div class="flex w-full select-none justify-center">
+              <p class="p-2 text-surface-400">{calendarDay.getDay()}</p>
             </div>
           {/if}
         </td>
