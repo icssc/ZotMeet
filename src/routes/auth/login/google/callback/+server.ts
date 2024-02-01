@@ -1,6 +1,43 @@
 import { OAuthRequestError } from "@lucia-auth/oauth";
+import type { GoogleUser } from "@lucia-auth/oauth/providers";
 
 import { auth, googleAuth } from "$lib/server/lucia";
+
+const getUser = async (googleUser: GoogleUser) => {
+  if (!googleUser.email) {
+    return null;
+  }
+
+  try {
+    const dbUser = await auth.getUser(googleUser.sub);
+    if (dbUser) {
+      return dbUser;
+    }
+  } catch (error) {
+    /* If a user cannot be found, an error is raised and caught here. */
+  }
+
+  const token = crypto.randomUUID();
+  const user = await auth.createUser({
+    userId: googleUser.sub,
+    key: {
+      providerId: "google",
+      providerUserId: googleUser.email.toLowerCase(),
+      password: null,
+    },
+    attributes: {
+      email: googleUser.email.toLowerCase(),
+      firstName: googleUser.given_name,
+      lastName: googleUser.family_name,
+      //   role: "USER",
+      verified: false,
+      receiveEmail: true,
+      token: token,
+    },
+  });
+
+  return user;
+};
 
 export const GET = async ({ url, cookies, locals }) => {
   /**
@@ -31,45 +68,7 @@ export const GET = async ({ url, cookies, locals }) => {
 
   try {
     const { googleUser } = await googleAuth.validateCallback(code);
-
-    const getUser = async () => {
-      if (!googleUser.email) {
-        return null;
-      }
-
-      try {
-        const dbUser = await auth.getUser(googleUser.email);
-
-        if (dbUser) {
-          return dbUser.userId;
-        }
-      } catch (error) {
-        console.log(error);
-      }
-
-      const token = crypto.randomUUID();
-      const user = await auth.createUser({
-        userId: googleUser.email,
-        key: {
-          providerId: "google",
-          providerUserId: googleUser.email.toLowerCase(),
-          password: null,
-        },
-        attributes: {
-          email: googleUser.email.toLowerCase(),
-          firstName: googleUser.given_name,
-          lastName: googleUser.family_name,
-          //   role: "USER",
-          verified: false,
-          receiveEmail: true,
-          token: token,
-        },
-      });
-
-      return user;
-    };
-
-    const user = await getUser();
+    const user = await getUser(googleUser);
 
     if (!user) {
       /**
