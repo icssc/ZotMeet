@@ -1,11 +1,16 @@
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 import "unplugin-icons/types/svelte";
+import "lucia-auth";
+
+import type { AuthRequest } from "lucia";
+
+import type { Auth as CustomAuth } from "$lib/server/lucia";
 
 declare global {
   namespace App {
     interface Locals {
-      auth: import("lucia").AuthRequest;
+      auth: AuthRequest;
       user: Lucia.UserAttributes;
       startTimer: number;
       error: string;
@@ -19,13 +24,11 @@ declare global {
       errorId?: string;
     }
   }
-}
-
-/// <reference types="lucia-auth" />
-declare global {
   namespace Lucia {
-    type Auth = import("$lib/server/lucia").Auth;
+    type Auth = CustomAuth;
+
     type UserAttributes = {
+      userId: string;
       email: string;
       firstName: string;
       lastName: string;

@@ -1,5 +1,3 @@
-import type { User } from "@prisma/client";
-
-export const load = async (event: { locals: { user: User } }) => {
+export const load = async (event) => {
   return { user: event.locals.user };
 };

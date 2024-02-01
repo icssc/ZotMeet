@@ -13,7 +13,7 @@
 <div class="mt-48 flex min-h-[100vh] justify-center">
   <div class="mx-2 w-[450px] md:mx-16">
     {#if data.user}
-      <p>{data.user.firstName} {data.user.lastName} {data.user.token}</p>
+      <p>{data.user.firstName} {data.user.lastName} {data.user.userId}</p>
 
       <div>
         <form use:enhance action="/auth/logout" method="post">
