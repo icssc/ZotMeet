@@ -55,8 +55,6 @@ export const updateSelectedRange = (startDate: ZotDate, endDate: ZotDate): void 
 export const DEFAULT_MEETING_NAME = "Meeting Name";
 export const meetingName = writable<string>(DEFAULT_MEETING_NAME);
 
-// TODO: Convert to ZotDate
-
 export const DEFAULT_MEETING_TIMES: MeetingTime = {
   startTime: "08:00",
   endTime: "17:00",
