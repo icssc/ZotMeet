@@ -1,17 +1,24 @@
 <script lang="ts">
   import CalendarBody from "./CalendarBody.svelte";
-  import { Day } from "./CalendarDay";
 
   import { selectedDays } from "$lib/stores/meetingSetupStores";
   import { WEEKDAYS, MONTHS } from "$lib/types/chrono";
+  import { ZotDate } from "$lib/utils/ZotDate";
 
   let today: Date = new Date();
   let currentMonth: number = today.getMonth();
   let currentYear: number = today.getFullYear();
-  let calendarDays: Day[][] = Day.generateCalendarDays(currentMonth, currentYear, $selectedDays);
+  let calendarDays: ZotDate[][] = ZotDate.generateZotDates(
+    currentMonth,
+    currentYear,
+    $selectedDays,
+  );
 
   $: monthName = MONTHS[currentMonth];
 
+  const updateCalendar = (): void => {
+    calendarDays = ZotDate.generateZotDates(currentMonth, currentYear, $selectedDays);
+  };
   const decrementMonth = (): void => {
     currentMonth--;
     if (currentMonth < 0) {
@@ -30,10 +37,6 @@
     }
 
     updateCalendar();
-  };
-
-  const updateCalendar = (): void => {
-    calendarDays = Day.generateCalendarDays(currentMonth, currentYear, $selectedDays);
   };
 </script>
 
@@ -56,7 +59,7 @@
         {/each}
       </tr>
     </thead>
-    <CalendarBody {calendarDays} {updateCalendar} />
+    <CalendarBody {calendarDays} {updateCalendar} {currentMonth} />
   </table>
   <button on:click={incrementMonth} class="p-3 pr-1">
     <span class="text-3xl text-gray-500">&rsaquo;</span>
