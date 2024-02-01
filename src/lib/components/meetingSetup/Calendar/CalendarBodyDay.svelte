@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { Day } from "./CalendarDay";
+  import type { ZotDate } from "$lib/utils/ZotDate";
 
   export let isHighlighted: boolean | null;
-  export let calendarDay: Day;
+  export let calendarDay: ZotDate;
 </script>
 
 {#if isHighlighted}
@@ -14,12 +14,13 @@
     class="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-400"
   ></div>
 {/if}
+
 <p
   class="relative p-2 text-base font-medium text-gray-500"
-  data-day={calendarDay.day}
-  data-month={calendarDay.month}
-  data-year={calendarDay.year}
+  data-day={calendarDay.getDay()}
+  data-month={calendarDay.getMonth()}
+  data-year={calendarDay.getYear()}
   data-selected={calendarDay.isSelected}
 >
-  {calendarDay.day}
+  {calendarDay.getDay()}
 </p>
