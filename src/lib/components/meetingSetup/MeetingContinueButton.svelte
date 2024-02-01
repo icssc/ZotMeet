@@ -16,9 +16,10 @@
 
     availabilityDates.set($selectedDays);
     availabilityTimeBlocks.set(timeBlocks);
-
-    ZotDate.initializeAvailabilities($availabilityDates, earliest, latest);
-    goto("/availability");
+    if ($availabilityDates.length > 0) {
+      ZotDate.initializeAvailabilities($availabilityDates, earliest, latest);
+      goto("/availability");
+    }
   };
 </script>
 
