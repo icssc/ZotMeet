@@ -1,8 +1,8 @@
 <script lang="ts">
   import { TabGroup, Tab } from "@skeletonlabs/skeleton";
 
+  import GroupScheduledMeetingsList from "$lib/components/groups/GroupScheduledMeetingList.svelte";
   import MembersList from "$lib/components/groups/MembersCarousel.svelte";
-  import ScheduledMeetingsList from "$lib/components/summary/ScheduledMeetingsList.svelte";
   import UnscheduledMeetingsList from "$lib/components/summary/UnscheduledMeetingsList.svelte";
 
   let tabSet: number = 0;
@@ -26,7 +26,7 @@
 
       <svelte:fragment slot="panel">
         {#if tabSet === 0}
-          <div class="flex flex-col gap-4"><ScheduledMeetingsList /></div>
+          <div class="flex flex-col gap-4"><GroupScheduledMeetingsList /></div>
         {:else if tabSet === 1}
           <div class="flex flex-col gap-2">
             <UnscheduledMeetingsList />
