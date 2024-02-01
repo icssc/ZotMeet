@@ -27,10 +27,6 @@
     </aside>
   {/if}
 
-  <div class="mb-4">
-    <a href="/auth/login/google" class="rounded-md bg-blue-500 p-2">Sign in with Google</a>
-  </div>
-
   <div class="flex flex-col gap-y-4">
     <label class="label">
       <span class="sr-only">Email</span>
