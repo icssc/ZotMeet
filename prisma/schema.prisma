@@ -29,6 +29,9 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  google_id Int    @unique
+  username  String
+
   auth_session Session[]
   key          Key[]
 }
