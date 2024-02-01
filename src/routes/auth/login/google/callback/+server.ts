@@ -27,8 +27,8 @@ const getUser = async (googleUser: GoogleUser) => {
     },
     attributes: {
       email: googleUser.email.toLowerCase(),
-      firstName: googleUser.given_name,
-      lastName: googleUser.family_name,
+      firstName: googleUser.given_name ?? "",
+      lastName: googleUser.family_name ?? "",
       //   role: "USER",
       verified: false,
       receiveEmail: true,
