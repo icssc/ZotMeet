@@ -1,9 +1,6 @@
 import { OAuthRequestError } from "@lucia-auth/oauth";
 
-// import { UserStatus, getDefaultPreferences } from "$lib/models/User";
-// import { dbConnection, getNewUsernameIfInvalid } from "$lib/server/db";
 import { auth, googleAuth } from "$lib/server/lucia";
-// import { generateUserId } from "$lib/utils/id.js";
 
 export const GET = async ({ url, cookies, locals }) => {
   /**
@@ -20,7 +17,6 @@ export const GET = async ({ url, cookies, locals }) => {
     });
   }
 
-  console.log("no session");
   /**
    * Validate state of the request.
    */
@@ -33,29 +29,13 @@ export const GET = async ({ url, cookies, locals }) => {
     });
   }
 
-  console.log("after state stuff");
-  /**
-   * Here we go...
-   */
   try {
     const { googleUser } = await googleAuth.validateCallback(code);
 
-    console.log("after googleUser");
-
     const getUser = async () => {
-      //   if (existingUser) return existingUser;
-
-      /// Probably will never happen but just to be sure.
       if (!googleUser.email) {
         return null;
       }
-
-      // Query for the user with the same email.
-      //   const executedQuery = await dbConnection.execute(
-      //     // prettier-ignore
-      //     'SELECT (id) FROM users WHERE email = (?)',
-      //     [googleUser.email],
-      //   );
 
       try {
         const dbUser = await auth.getUser(googleUser.email);
@@ -67,18 +47,11 @@ export const GET = async ({ url, cookies, locals }) => {
         console.log(error);
       }
 
-      //   // User with the same email found.
-      //   if (dbUser) {
-      //     return dbUser.userId;
-      //   }
-
-      console.log("after dbUser stuff");
-
       const token = crypto.randomUUID();
       const user = await auth.createUser({
         userId: googleUser.email,
         key: {
-          providerId: "email",
+          providerId: "google",
           providerUserId: googleUser.email.toLowerCase(),
           password: null,
         },
@@ -98,9 +71,6 @@ export const GET = async ({ url, cookies, locals }) => {
 
     const user = await getUser();
 
-    console.log("try get user");
-    console.log(user);
-
     if (!user) {
       /**
        * You should probably redirect the user to a page and show a
@@ -114,16 +84,12 @@ export const GET = async ({ url, cookies, locals }) => {
     }
 
     const session = await auth.createSession({
-      userId: user,
+      userId: user.userId,
       attributes: {},
     });
 
     locals.auth.setSession(session);
 
-    /**
-     * Home run!
-     */
-    // Redirect the page of choice.
     return new Response(null, {
       status: 302,
       headers: {
@@ -131,7 +97,6 @@ export const GET = async ({ url, cookies, locals }) => {
       },
     });
   } catch (e) {
-    // TODO: Log error into system.
     console.log(e);
 
     // Invalid code.
