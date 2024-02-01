@@ -22,7 +22,6 @@ export const load = async (event) => {
 export const actions = {
   default: async (event) => {
     const form = await superValidate(event, loginSchema);
-    // console.log(form);
 
     if (!form.valid) {
       return fail(400, {
@@ -30,7 +29,6 @@ export const actions = {
       });
     }
 
-    //add user to db
     try {
       const key = await auth.useKey("email", form.data.email.toLowerCase(), form.data.password);
 
@@ -41,10 +39,9 @@ export const actions = {
 
       event.locals.auth.setSession(session);
     } catch (e) {
-      //TODO: need to return error message to client
       console.error(e);
       // email already in use
-      //const { fieldErrors: errors } = e.flatten();
+      // might be other type of error but this is most common and this is how lucia docs sets the error to duplicate user
       return setError(form, "", "The email or password is incorrect.");
     }
 

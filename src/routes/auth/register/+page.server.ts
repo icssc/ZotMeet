@@ -26,7 +26,6 @@ export const load = async (event) => {
 export const actions = {
   default: async (event) => {
     const form = await superValidate(event, signUpSchema);
-    //console.log(form);
 
     if (!form.valid) {
       return fail(400, {
@@ -34,9 +33,7 @@ export const actions = {
       });
     }
 
-    //add user to db
     try {
-      console.log("creating user");
       const token = crypto.randomUUID();
 
       const user = await auth.createUser({
@@ -63,7 +60,7 @@ export const actions = {
     } catch (e) {
       console.error(e);
       // email already in use
-      //might be other type of error but this is most common and this is how lucia docs sets the error to duplicate user
+      // might be other type of error but this is most common and this is how lucia docs sets the error to duplicate user
       return setError(form, "email", "A user with that email already exists.");
     }
 
