@@ -14,9 +14,9 @@
 
 <a id="sidebar-link-{label}" {href} on:click={closeDrawer}>
   <div
-    class="flex flex-row items-center whitespace-nowrap hover:bg-secondary-500 w-full gap-4 p-5 md:p-3 rounded-lg"
+    class="flex w-full flex-row items-center gap-4 whitespace-nowrap rounded-lg p-5 hover:bg-secondary-500 md:p-3"
   >
-    <Icon class="w-14 h-14 md:w-10 md:h-10 ml-3" />
+    <Icon class="ml-3 h-14 w-14 md:h-10 md:w-10" />
     <span class="text-2xl md:text-xl">{label}</span>
   </div>
 </a>

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import CalendarBodyDay from "$lib/components/Calendar/CalendarBodyDay.svelte";
-  import { updateSelectedRange } from "$lib/stores/calendarStores";
+  import CalendarBodyDay from "$lib/components/meetingSetup/Calendar/CalendarBodyDay.svelte";
+  import { updateSelectedRange } from "$lib/stores/meetingSetupStores";
   import { ZotDate } from "$lib/utils/ZotDate";
 
   export let calendarDays: ZotDate[][];

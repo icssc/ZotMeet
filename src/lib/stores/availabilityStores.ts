@@ -1,11 +1,21 @@
-import { writable, readable } from "svelte/store";
+import { writable } from "svelte/store";
 
 import { TimeConstants } from "$lib/types/chrono";
 import { ZotDate } from "$lib/utils/ZotDate";
 
-const BLOCK_LENGTH: number = 15;
-const earliestTime: number = TimeConstants.MINUTES_PER_HOUR * 9;
-const latestTime: number = TimeConstants.MINUTES_PER_HOUR * 17.5;
+export const BLOCK_LENGTH: number = 15;
+export const getTimeFromHoursAndMinutes = (hours: number, minutes: number = 0): number => {
+  return hours * TimeConstants.MINUTES_PER_HOUR + minutes;
+};
+export const getTimeFromString = (timeString: string): number => {
+  const [hourString, minuteString] = timeString.split(":");
+  const hours = parseInt(hourString, 10);
+  const minutes = parseInt(minuteString, 10);
+  return getTimeFromHoursAndMinutes(hours, minutes);
+};
+
+const earliestTime: number = getTimeFromHoursAndMinutes(8);
+const latestTime: number = getTimeFromHoursAndMinutes(17, 30);
 
 const generateSampleDates = (): ZotDate[] => {
   // Placeholder date array from Calendar component
@@ -24,17 +34,17 @@ const generateSampleDates = (): ZotDate[] => {
   return selectedCalendarDates;
 };
 
-const generateTimeBlocks = (): number[] => {
+export const generateTimeBlocks = (startTime: number, endTime: number): number[] => {
   const timeBlocks: number[] = [];
-
-  const minuteRange = Math.abs(latestTime - earliestTime);
+  const minuteRange = Math.abs(endTime - startTime);
   const totalBlocks = Math.floor(minuteRange / BLOCK_LENGTH);
 
   for (let blockIndex = 0; blockIndex < totalBlocks; blockIndex++) {
-    timeBlocks.push(earliestTime + blockIndex * BLOCK_LENGTH);
+    timeBlocks.push(startTime + blockIndex * BLOCK_LENGTH);
   }
   return timeBlocks;
 };
 
+const defaultTimeBlocks = generateTimeBlocks(earliestTime, latestTime);
 export const availabilityDates = writable<ZotDate[]>(generateSampleDates());
-export const availabilityTimeBlocks = readable<number[]>(generateTimeBlocks());
+export const availabilityTimeBlocks = writable<number[]>(defaultTimeBlocks);
