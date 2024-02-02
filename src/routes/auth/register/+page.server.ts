@@ -40,6 +40,7 @@ export const actions = {
       const token = crypto.randomUUID();
 
       const user = await auth.createUser({
+        userId: form.data.email.toLowerCase(),
         key: {
           providerId: "email",
           providerUserId: form.data.email.toLowerCase(),

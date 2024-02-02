@@ -9,7 +9,7 @@ const getUser = async (googleUser: GoogleUser) => {
   }
 
   try {
-    const dbUser = await auth.getUser(googleUser.sub);
+    const dbUser = await auth.getUser(googleUser.email);
     if (dbUser) {
       return dbUser;
     }
@@ -19,7 +19,7 @@ const getUser = async (googleUser: GoogleUser) => {
 
   const token = crypto.randomUUID();
   const user = await auth.createUser({
-    userId: googleUser.sub,
+    userId: googleUser.email.toLowerCase(),
     key: {
       providerId: "google",
       providerUserId: googleUser.email.toLowerCase(),
