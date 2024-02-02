@@ -2,13 +2,13 @@ import { redirect } from "@sveltejs/kit";
 
 import { auth } from "$lib/server/lucia";
 
-interface LogoutInterface {
-  locals: App.Locals;
-}
-
 export const actions = {
   default: logout,
 };
+
+interface LogoutInterface {
+  locals: App.Locals;
+}
 
 async function logout({ locals }: LogoutInterface) {
   const session = await locals.auth.validate();
