@@ -1,7 +1,9 @@
-import { fail, redirect } from "@sveltejs/kit";
+import { fail, redirect, type RequestEvent } from "@sveltejs/kit";
 import { setError, superValidate } from "sveltekit-superforms/server";
 
 // import { sendVerificationEmail } from "$lib/config/email-messages";
+
+import type { RouteParams } from "../$types";
 
 import { userSchema } from "$lib/config/zod-schemas";
 import { auth } from "$lib/server/lucia";
@@ -24,46 +26,48 @@ export const load = async (event) => {
 };
 
 export const actions = {
-  default: async (event) => {
-    const form = await superValidate(event, signUpSchema);
-
-    if (!form.valid) {
-      return fail(400, {
-        form,
-      });
-    }
-
-    try {
-      const token = crypto.randomUUID();
-
-      const user = await auth.createUser({
-        key: {
-          providerId: "email",
-          providerUserId: form.data.email.toLowerCase(),
-          password: form.data.password,
-        },
-        attributes: {
-          email: form.data.email.toLowerCase(),
-          firstName: form.data.firstName,
-          lastName: form.data.lastName,
-          //   role: "USER",
-          verified: false,
-          receiveEmail: true,
-          token: token,
-        },
-      });
-
-      //   await sendVerificationEmail(form.data.email, token);
-
-      const session = await auth.createSession({ userId: user.userId, attributes: {} });
-      event.locals.auth.setSession(session);
-    } catch (e) {
-      console.error(e);
-      // email already in use
-      // might be other type of error but this is most common and this is how lucia docs sets the error to duplicate user
-      return setError(form, "email", "A user with that email already exists.");
-    }
-
-    return { form };
-  },
+  default: register,
 };
+
+async function register(event: RequestEvent<RouteParams, "/auth/register">) {
+  const form = await superValidate(event, signUpSchema);
+
+  if (!form.valid) {
+    return fail(400, {
+      form,
+    });
+  }
+
+  try {
+    const token = crypto.randomUUID();
+
+    const user = await auth.createUser({
+      key: {
+        providerId: "email",
+        providerUserId: form.data.email.toLowerCase(),
+        password: form.data.password,
+      },
+      attributes: {
+        email: form.data.email.toLowerCase(),
+        firstName: form.data.firstName,
+        lastName: form.data.lastName,
+        //   role: "USER",
+        verified: false,
+        receiveEmail: true,
+        token: token,
+      },
+    });
+
+    //   await sendVerificationEmail(form.data.email, token);
+
+    const session = await auth.createSession({ userId: user.userId, attributes: {} });
+    event.locals.auth.setSession(session);
+  } catch (e) {
+    console.error(e);
+    // email already in use
+    // might be other type of error but this is most common and this is how lucia docs sets the error to duplicate user
+    return setError(form, "email", "A user with that email already exists.");
+  }
+
+  return { form };
+}

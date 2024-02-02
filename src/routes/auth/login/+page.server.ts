@@ -1,5 +1,7 @@
-import { fail, redirect } from "@sveltejs/kit";
+import { fail, redirect, type RequestEvent } from "@sveltejs/kit";
 import { setError, superValidate } from "sveltekit-superforms/server";
+
+import type { RouteParams } from "../$types";
 
 import { userSchema } from "$lib/config/zod-schemas";
 import { auth } from "$lib/server/lucia";
@@ -20,31 +22,30 @@ export const load = async (event) => {
 };
 
 export const actions = {
-  default: async (event) => {
-    const form = await superValidate(event, loginSchema);
-
-    if (!form.valid) {
-      return fail(400, {
-        form,
-      });
-    }
-
-    try {
-      const key = await auth.useKey("email", form.data.email.toLowerCase(), form.data.password);
-
-      const session = await auth.createSession({
-        userId: key.userId,
-        attributes: {},
-      });
-
-      event.locals.auth.setSession(session);
-    } catch (e) {
-      console.error(e);
-      // email already in use
-      // might be other type of error but this is most common and this is how lucia docs sets the error to duplicate user
-      return setError(form, "", "The email or password is incorrect.");
-    }
-
-    return { form };
-  },
+  default: login,
 };
+
+async function login(event: RequestEvent<RouteParams, "/auth/login">) {
+  const form = await superValidate(event, loginSchema);
+
+  if (!form.valid) {
+    return fail(400, { form });
+  }
+
+  try {
+    const key = await auth.useKey("email", form.data.email.toLowerCase(), form.data.password);
+
+    const session = await auth.createSession({
+      userId: key.userId,
+      attributes: {},
+    });
+
+    event.locals.auth.setSession(session);
+  } catch (e) {
+    console.error(e);
+    // Handle the error, assume it's an incorrect email or password for simplicity
+    return setError(form, "", "The email or password is incorrect.");
+  }
+
+  return { form };
+}
