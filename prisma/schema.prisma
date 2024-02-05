@@ -25,6 +25,13 @@ model User {
   receiveEmail Boolean @default(true)
   token        String? @unique
 
+  meetingsHosted              Meeting[]                     @relation("hostId")
+  groups                      GroupMembers[]
+  notifications               UserNotifications[]
+  generalAvailability         GeneralAvailability[]
+  meetingSpecificAvailability MeetingSpecificAvailability[]
+  meetingParticipants         MeetingParticipants[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -49,4 +56,94 @@ model Session {
   user           User   @relation(references: [id], fields: [user_id], onDelete: Cascade)
 
   @@index([user_id])
+}
+
+model Meeting {
+  id                          String                        @id @default(uuid())
+  title                       String
+  description                 String?
+  startTime                   Int
+  endTime                     Int
+  location                    String?
+  hostId                      String
+  created_at                  Int
+  host                        User                          @relation("hostId", fields: [hostId], references: [id])
+  participants                MeetingParticipants[]
+  groups                      MeetingGroups[]
+  agendaItems                 MeetingAgendaItems[]
+  MeetingSpecificAvailability MeetingSpecificAvailability[]
+}
+
+model Groups {
+  id          String          @id @default(uuid())
+  name        String
+  description String?
+  created_at  Int
+  members     GroupMembers[]
+  meetings    MeetingGroups[]
+}
+
+model GroupMembers {
+  userId  String
+  groupId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group   Groups @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([userId, groupId])
+}
+
+model MeetingParticipants {
+  meetingId String
+  userId    String
+  status    String
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([meetingId, userId])
+}
+
+model MeetingGroups {
+  meetingId String
+  groupId   String
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  group     Groups  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([meetingId, groupId])
+}
+
+model MeetingAgendaItems {
+  id          String  @id @default(uuid())
+  meetingId   String
+  title       String
+  description String?
+  duration    Int?
+  meeting     Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+}
+
+model UserNotifications {
+  id        String @id @default(uuid())
+  userId    String
+  message   String
+  timestamp Int
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GeneralAvailability {
+  id        String @id @default(uuid())
+  userId    String
+  dayOfWeek Int
+  startTime Int
+  endTime   Int
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model MeetingSpecificAvailability {
+  id        String  @id @default(uuid())
+  userId    String
+  meetingId String
+  date      Int
+  startTime Int
+  endTime   Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
 }
