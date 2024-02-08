@@ -51,6 +51,7 @@ const dummyScheduledMeetings: ScheduledMeeting[] = [
     endTime: "13:30",
     attending: "Yes",
     location: "CSL 8",
+    groupID: 1,
   },
   {
     name: "Meeting Two",
@@ -61,6 +62,7 @@ const dummyScheduledMeetings: ScheduledMeeting[] = [
     endTime: "15:00",
     attending: "No",
     location: "CSL 8",
+    groupID: 2,
   },
   {
     name: "Meeting Three",
@@ -71,6 +73,7 @@ const dummyScheduledMeetings: ScheduledMeeting[] = [
     endTime: "15:00",
     attending: "Yes",
     location: "CSL 8",
+    groupID: 3,
   },
   {
     name: "Meeting Four",
@@ -81,6 +84,7 @@ const dummyScheduledMeetings: ScheduledMeeting[] = [
     endTime: "15:00",
     attending: "Maybe",
     location: "CSL 8",
+    groupID: 4,
   },
 ];
 
@@ -94,6 +98,7 @@ const dummyUnscheduledMeetings: UnscheduledMeeting[] = [
     startTime: "11:00",
     endTime: "13:30",
     location: "CSL 8",
+    groupID: 2,
   },
   {
     name: "Meeting Dos",
@@ -104,6 +109,7 @@ const dummyUnscheduledMeetings: UnscheduledMeeting[] = [
     startTime: "8:00",
     endTime: "15:00",
     location: "CSL 8",
+    groupID: 1,
   },
   {
     name: "Meeting Tres",
@@ -114,6 +120,7 @@ const dummyUnscheduledMeetings: UnscheduledMeeting[] = [
     startTime: "8:00",
     endTime: "15:00",
     location: "CSL 8",
+    groupID: 4,
   },
   {
     name: "Meeting Quatro",
@@ -124,6 +131,7 @@ const dummyUnscheduledMeetings: UnscheduledMeeting[] = [
     startTime: "8:00",
     endTime: "15:00",
     location: "CSL 8",
+    groupID: 3,
   },
 ];
 

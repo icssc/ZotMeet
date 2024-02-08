@@ -11,6 +11,7 @@ export type ScheduledMeeting = {
   endTime: string;
   attending: string;
   location: string;
+  groupID?: number;
 };
 
 export type UnscheduledMeeting = {
@@ -22,4 +23,5 @@ export type UnscheduledMeeting = {
   startTime: string;
   endTime: string;
   location: string;
+  groupID?: number;
 };

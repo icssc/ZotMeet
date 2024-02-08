@@ -1,15 +1,21 @@
 <script lang="ts">
   import { unscheduledMeetings } from "$lib/stores/summaryStores";
+  import type { UnscheduledMeeting } from "$lib/types/meetings";
   import {
     convertIsoToDate,
     convertTo12HourFormat,
+    filterMeetingsByGroupID,
     sortUnscheduledMeetingsByDateAndTime,
   } from "$lib/utils/summary-helpers";
   import CalendarIcon from "~icons/material-symbols/calendar-month";
   import LocationIcon from "~icons/material-symbols/location-on";
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
 
-  const sortedMeetings = sortUnscheduledMeetingsByDateAndTime($unscheduledMeetings);
+  export let groupID: number | undefined;
+  const filtered = groupID
+    ? filterMeetingsByGroupID($unscheduledMeetings, groupID)
+    : $unscheduledMeetings;
+  const sortedMeetings = sortUnscheduledMeetingsByDateAndTime(filtered as UnscheduledMeeting[]);
 </script>
 
 <div class="flex flex-col gap-2">

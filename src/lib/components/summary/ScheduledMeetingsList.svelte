@@ -2,15 +2,22 @@
   import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
 
   import { scheduledMeetings } from "$lib/stores/summaryStores";
+  import type { ScheduledMeeting } from "$lib/types/meetings";
   import {
     convertIsoToWeekdayDate,
     convertTo12HourFormat,
+    filterMeetingsByGroupID,
     groupAndSortScheduledMeetings,
   } from "$lib/utils/summary-helpers";
   import LocationIcon from "~icons/material-symbols/location-on";
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
 
-  const sortedMeetings = groupAndSortScheduledMeetings($scheduledMeetings);
+  export let groupID: number | undefined;
+
+  const filtered = groupID
+    ? filterMeetingsByGroupID($scheduledMeetings, groupID)
+    : $scheduledMeetings;
+  const sortedMeetings = groupAndSortScheduledMeetings(filtered as ScheduledMeeting[]);
 </script>
 
 {#each Object.keys(sortedMeetings) as date}

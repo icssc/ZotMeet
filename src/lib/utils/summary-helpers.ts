@@ -57,6 +57,12 @@ export function groupAndSortScheduledMeetings(scheduledMeetings: ScheduledMeetin
   return groupedMeetings;
 }
 
+export function filterMeetingsByGroupID(
+  meetings: UnscheduledMeeting[] | ScheduledMeeting[],
+  groupID: number,
+) {
+  return meetings.filter((s) => s.groupID == groupID);
+}
 export function sortScheduledMeetingsByDateAndTime(scheduledMeetings: ScheduledMeeting[]) {
   return scheduledMeetings.sort((a, b) => {
     const dateComparison = a.date.localeCompare(b.date);
