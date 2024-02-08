@@ -27,6 +27,7 @@
         <form action="?/deleteGroup&id={group.id}" method="POST">
           <button type="submit" class="secondary outline">Delete Group</button>
         </form>
+        <a href="/groups/{group.id}" role="button">Edit Group</a>
       </div>
     {/each}
   </div>
