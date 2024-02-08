@@ -4,7 +4,12 @@
 
 <div class="flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth md:gap-4">
   {#each $members as member (member.id)}
-    <a href={member.profile_page} target="_blank" referrerpolicy="no-referrer">
+    <a
+      class="grid align-middle"
+      href={member.profile_page}
+      target="_blank"
+      referrerpolicy="no-referrer"
+    >
       <div
         class="card flex h-24 w-24 snap-start rounded-lg bg-cover bg-center px-2 md:h-40 md:w-40"
         style="background-image:url({member.profile_picture})"

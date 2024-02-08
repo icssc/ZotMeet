@@ -4,7 +4,7 @@
 
 <div class="flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth md:gap-4">
   {#each $groups as group (group.id)}
-    <a href={group.link} target="_blank" referrerpolicy="no-referrer">
+    <a href="groups/{group.id}" target="_blank" referrerpolicy="no-referrer">
       <div
         class="card flex h-24 w-36 snap-start rounded-lg bg-cover bg-center p-3 md:h-36 md:w-64"
         style="background-image:url({group.img})"

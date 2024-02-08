@@ -4,13 +4,25 @@
   import MembersList from "$lib/components/groups/MembersCarousel.svelte";
   import ScheduledMeetingsList from "$lib/components/summary/ScheduledMeetingsList.svelte";
   import UnscheduledMeetingsList from "$lib/components/summary/UnscheduledMeetingsList.svelte";
+  import { groups } from "$lib/stores/summaryStores";
 
   export let data;
   const groupID = data.groupID;
+  const group = $groups.find((g) => g.id === groupID)!;
+
   let tabSet: number = 0;
 </script>
 
-<div class="flex flex-col gap-8 px-4 pt-8 md:px-32">
+<div class="flex flex-col gap-8 px-4 pt-6 md:px-32">
+  <div class="grid grid-cols-2 grid-rows-[50px_minmax(0,1fr)] content-start gap-6">
+    <h1 class="col-span-2 row-span-1 text-6xl font-bold">{group.name}</h1>
+    <img
+      src={group.img}
+      alt="A cute dog"
+      class="col-span-1 row-span-1 h-24 w-24 object-cover object-center md:h-40 md:w-40 lg:h-64 lg:w-64"
+    />
+  </div>
+
   <div class="flex flex-col gap-4">
     <h1 class="border-surface-400-500-token border-b text-4xl font-bold">Members</h1>
     <MembersList />

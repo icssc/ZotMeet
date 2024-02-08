@@ -6,7 +6,6 @@
 
   import CalendarIcon from "~icons/material-symbols/calendar-clock";
   import CloseIcon from "~icons/material-symbols/close-rounded";
-  import GroupsIcon from "~icons/material-symbols/groups";
   import SettingsIcon from "~icons/material-symbols/settings-rounded";
 
   export let displayCloseButton = false;
@@ -29,7 +28,6 @@
       </div>
     {/if}
     <SideBarLink Icon={CalendarIcon} label="Summary" href="/summary" />
-    <SideBarLink Icon={GroupsIcon} label="Groups" href="/groups" />
     <SideBarLink Icon={SettingsIcon} label="Settings" href="/settings" />
   </div>
 
