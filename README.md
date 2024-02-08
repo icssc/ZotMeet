@@ -37,3 +37,9 @@ TBA
 - Keep commits and PRs atomic.
   - A PR should be a single feature or bug fix.
   - A commit should be a single logical change.
+
+### Environment Variables
+
+If you need credentials for the `.env` file, contact the project lead ([Minh](https://github.com/minhxNguyen7/)).
+
+After changes to the .env file, run `pnpm run check` to update SvelteKit's auto-generated environment variable types. 
