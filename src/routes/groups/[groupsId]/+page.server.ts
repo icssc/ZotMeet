@@ -50,7 +50,7 @@ async function updateGroup({
     });
   } catch (err) {
     console.error(err);
-    return fail(500, { message: "Could not update article" });
+    return fail(500, { message: "Could not update group" });
   }
 
   return {
