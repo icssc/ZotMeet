@@ -15,6 +15,7 @@ const getUser = async (googleUser: GoogleUser) => {
     }
   } catch (error) {
     /* If a user cannot be found, an error is raised and caught here. */
+    console.log("User not found in database", error);
   }
 
   const token = crypto.randomUUID();
