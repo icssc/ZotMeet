@@ -14,7 +14,9 @@
         class="card flex h-24 w-24 snap-start rounded-lg bg-cover bg-center px-2 md:h-40 md:w-40"
         style="background-image:url({member.profile_picture})"
       ></div>
-      <p class="mt-auto line-clamp-2 max-h-12 text-left text-lg font-bold text-black md:text-xl">
+      <p
+        class=" mt-auto line-clamp-2 max-h-12 text-left text-lg font-bold text-black hover:text-blue-500 md:text-xl"
+      >
         @{member.username}
       </p>
     </a>

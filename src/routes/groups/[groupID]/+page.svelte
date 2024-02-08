@@ -14,13 +14,19 @@
 </script>
 
 <div class="flex flex-col gap-8 px-4 pt-6 md:px-32">
-  <div class="grid grid-cols-2 grid-rows-[50px_minmax(0,1fr)] content-start gap-6">
-    <h1 class="col-span-2 row-span-1 text-6xl font-bold">{group.name}</h1>
+  <div
+    class="grid-rows-[100px_minmax(0, 1fr)] grid grid-cols-[120px_minmax(0,1fr)] content-start md:grid-cols-2 md:gap-4"
+  >
     <img
       src={group.img}
       alt="A cute dog"
-      class="col-span-1 row-span-1 h-24 w-24 object-cover object-center md:h-40 md:w-40 lg:h-64 lg:w-64"
+      class="row-start-1 row-end-2 h-24 w-24 object-cover object-center md:row-start-2 md:row-end-3 md:h-40 md:w-40 lg:h-64 lg:w-64"
     />
+    <h1
+      class="self-center overflow-visible text-3xl font-bold sm:col-start-2 sm:col-end-3 md:col-span-2 md:text-5xl lg:text-6xl"
+    >
+      {group.name}
+    </h1>
   </div>
 
   <div class="flex flex-col gap-4">
