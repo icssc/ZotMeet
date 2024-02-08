@@ -59,14 +59,17 @@ model Session {
 }
 
 model Meeting {
-  id                          String                        @id @default(uuid())
-  title                       String
-  description                 String?
-  startTime                   Int
-  endTime                     Int
-  location                    String?
-  hostId                      String
-  created_at                  Int
+  id          String  @id @default(uuid())
+  title       String
+  description String?
+  startTime   Int
+  endTime     Int
+  location    String?
+  hostId      String
+
+  created_at DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
   host                        User                          @relation("hostId", fields: [hostId], references: [id])
   participants                MeetingParticipants[]
   groups                      MeetingGroups[]
@@ -75,12 +78,15 @@ model Meeting {
 }
 
 model Groups {
-  id          String          @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   description String?
-  created_at  Int
-  members     GroupMembers[]
-  meetings    MeetingGroups[]
+
+  created_at DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  members  GroupMembers[]
+  meetings MeetingGroups[]
 }
 
 model GroupMembers {

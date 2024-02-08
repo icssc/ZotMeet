@@ -15,7 +15,6 @@ export async function POST({ request }: { request: Request }) {
         endTime: body.endTime,
         location: body.location,
         hostId: body.hostId,
-        created_at: Math.floor(Date.now() / 1000),
       },
     });
     return new Response(
