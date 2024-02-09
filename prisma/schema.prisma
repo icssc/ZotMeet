@@ -18,12 +18,18 @@ datasource db {
 model User {
   id String @id @unique @default(cuid())
 
-  email        String  @unique
-  firstName    String
-  lastName     String
-  verified     Boolean @default(false)
-  receiveEmail Boolean @default(true)
-  token        String? @unique
+  email                       String                        @unique
+  firstName                   String
+  lastName                    String
+  verified                    Boolean                       @default(false)
+  receiveEmail                Boolean                       @default(true)
+  token                       String?                       @unique
+  created_at                  DateTime?
+  groups                      Group[]
+  meetings                    Meeting[]
+  generalAvailability         Availability?                 @relation(fields: [availabilityId], references: [id])
+  availabilityId              String?
+  MeetingSpecificAvailability MeetingSpecificAvailability[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -49,4 +55,50 @@ model Session {
   user           User   @relation(references: [id], fields: [user_id], onDelete: Cascade)
 
   @@index([user_id])
+}
+
+model Meeting {
+  id          String   @id @unique @default(uuid())
+  title       String
+  description String?
+  date        DateTime
+  location    String?
+  Invitees    User[]
+  host_id     String
+  group       Group?   @relation(fields: [groupId], references: [id])
+  from_time   DateTime
+  to_time     DateTime
+  groupId     String?
+}
+
+model Group {
+  id          String    @id @unique @default(uuid())
+  name        String
+  description String?
+  created_at  DateTime?
+  members     User[]
+  Meeting     Meeting[]
+}
+
+model MeetingSpecificAvailability {
+  id           String         @id @unique @default(uuid())
+  user_id      String?
+  meeting_id   String?
+  date         DateTime?
+  startTime    DateTime?
+  endTime      DateTime?
+  user         User?          @relation(fields: [userId], references: [id])
+  Availability Availability[]
+  userId       String?
+}
+
+model Availability {
+  id                            String                       @id @unique @default(cuid())
+  from_time                     String
+  to_time                       String
+  from_date                     String
+  to_date                       String
+  User                          User[]
+  MeetingSpecificAvailability   MeetingSpecificAvailability? @relation(fields: [meetingSpecificAvailabilityId], references: [id])
+  meetingSpecificAvailabilityId String?
 }
