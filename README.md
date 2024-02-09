@@ -42,4 +42,4 @@ TBA
 
 If you need credentials for the `.env` file, contact the project lead ([Minh](https://github.com/minhxNguyen7/)).
 
-After changes to the .env file, run `pnpm run check` to update SvelteKit's auto-generated environment variable types. 
+After changes to the .env file, run `pnpm run check` to update SvelteKit's auto-generated environment variable types.

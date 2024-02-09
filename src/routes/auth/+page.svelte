@@ -24,6 +24,15 @@
       </div>
     {/if}
 
+    <div class="mb-4">
+      <a
+        href="/auth/login/google"
+        class="mx-auto flex w-fit rounded-md bg-blue-500 p-2 font-semibold text-white"
+      >
+        Continue with Google
+      </a>
+    </div>
+
     <TabGroup justify="justify-center">
       <Tab bind:group={tabSet} name="signInTab" value={"signIn"}>Sign In</Tab>
       <Tab bind:group={tabSet} name="signUpTab" value={"signUp"}>Sign Up</Tab>
