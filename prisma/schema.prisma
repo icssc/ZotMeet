@@ -26,6 +26,7 @@ model User {
   availabilityId          String?
   MeetingUserAvailability MeetingUserAvailability[]
   Key                     Key[]
+  Session                 Session[]
 }
 
 model Key {
@@ -38,11 +39,13 @@ model Key {
 }
 
 model Session {
-  id             String  @id @unique @default(cuid())
-  user_id        String? @unique @default(uuid())
-  active_expires Int?
-  idle_expires   Int?
-  last_accessed  Int?
+  id             String @id @unique
+  user_id        String
+  active_expires BigInt
+  idle_expires   BigInt
+  user           User   @relation(references: [id], fields: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
 }
 
 model Meeting {
