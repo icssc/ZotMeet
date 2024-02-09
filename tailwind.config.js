@@ -3,6 +3,7 @@ import { join } from "path";
 
 import { skeleton } from "@skeletonlabs/tw-plugin";
 import forms from "@tailwindcss/forms";
+import daisyui from "daisyui";
 
 import { zotmeetTheme } from "./theme";
 
@@ -19,6 +20,7 @@ export default {
     extend: {},
   },
   plugins: [
+    daisyui,
     forms,
     skeleton({
       themes: { custom: [zotmeetTheme] },
