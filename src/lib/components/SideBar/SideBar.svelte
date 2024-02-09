@@ -17,12 +17,12 @@
 
 <div
   id="sidebar"
-  class="flex flex-col w-full h-full rounded-r-none rounded-left-lg md:rounded-r-lg md:rounded-l-none bg-secondary-400 outline-secondary-800 card outline-5"
+  class="rounded-left-lg outline-5 card flex h-full w-full flex-col rounded-r-none bg-secondary-400 outline-secondary-800 md:rounded-l-none md:rounded-r-lg"
 >
   <div id="sidebar-links" class="flex flex-col">
     {#if displayCloseButton}
-      <div class="w-full flex flex-row justify-end">
-        <button class="p-2 ml-auto" on:click={closeDrawer}>
+      <div class="flex w-full flex-row justify-end">
+        <button class="ml-auto p-2" on:click={closeDrawer}>
           <CloseIcon class="h-12 w-12" />
         </button>
       </div>
@@ -31,7 +31,7 @@
     <SideBarLink Icon={SettingsIcon} label="Settings" href="/settings" />
   </div>
 
-  <div id="sidebar-footer-container" class="mt-auto m-2">
+  <div id="sidebar-footer-container" class="m-2 mt-auto">
     <SideBarFooter />
   </div>
 </div>

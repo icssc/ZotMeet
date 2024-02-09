@@ -6,12 +6,10 @@ import { auth } from "$lib/server/lucia";
 export const handleError: HandleServerError = async ({ error, event }) => {
   const errorId = crypto.randomUUID();
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  event.locals.error = error?.toString() || undefined;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  event.locals.errorStackTrace = error?.stack || undefined;
+  event.locals.error = error?.toString() ?? "";
+
+  // @ts-expect-error stack property should exist on error
+  event.locals.errorStackTrace = error?.stack ?? "";
   event.locals.errorId = errorId;
 
   return {
