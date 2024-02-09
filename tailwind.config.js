@@ -18,7 +18,20 @@ export default {
     join(require.resolve("@skeletonlabs/skeleton"), "../**/*.{html,js,svelte,ts}"),
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {},
+    },
+    default: "daisy",
+  },
+  daisyui: {
+    themes: [
+      "emerald",
+      {
+        emerald: {
+          ...emerald["emerald"],
+        },
+      },
+    ],
   },
   plugins: [
     daisyui,
@@ -27,13 +40,4 @@ export default {
     //   themes: { custom: [zotmeetTheme] },
     // }),
   ],
-  daisyui: {
-    themes: [
-      {
-        light: {
-          emerald,
-        },
-      },
-    ],
-  },
 };
