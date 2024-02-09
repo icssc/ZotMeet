@@ -40,6 +40,24 @@ model User {
   generalAvailability     Availability?             @relation(fields: [availabilityId], references: [id])
   availabilityId          String?
   MeetingUserAvailability MeetingUserAvailability[]
+  Key                     Key[]
+}
+
+model Key {
+  id              String  @id @unique
+  hashed_password String?
+  user_id         String
+  user            User    @relation(references: [id], fields: [user_id], onDelete: Cascade)
+
+  @@index([user_id])
+}
+
+model Session {
+  id             String  @id @unique @default(cuid())
+  user_id        String? @unique @default(uuid())
+  active_expires Int?
+  idle_expires   Int?
+  last_accessed  Int?
 }
 
 model Group {
@@ -49,14 +67,6 @@ model Group {
   created_at  DateTime?
   members     User[]
   Meeting     Meeting[]
-}
-
-model Session {
-  id             String  @id @unique @default(cuid())
-  user_id        String? @unique @default(uuid())
-  active_expires Int?
-  idle_expires   Int?
-  last_accessed  Int?
 }
 
 model MeetingUserAvailability {
