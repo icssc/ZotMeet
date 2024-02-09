@@ -1,3 +1,20 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
+  binaryTargets   = ["native"]
+}
+
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Do not modify anything above this line unless you know what you are doing.
+
 model Meeting {
   id                      String                    @id @unique @default(uuid())
   title                   String
