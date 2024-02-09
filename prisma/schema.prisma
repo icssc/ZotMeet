@@ -15,21 +15,6 @@ datasource db {
 
 // Do not modify anything above this line unless you know what you are doing.
 
-model Meeting {
-  id                      String                    @id @unique @default(uuid())
-  title                   String
-  description             String?
-  date                    DateTime
-  location                String?
-  Invitees                User[]
-  host_id                 String
-  group                   Group?                    @relation(fields: [groupId], references: [id])
-  from_time               DateTime
-  to_time                 DateTime
-  groupId                 String?
-  MeetingUserAvailability MeetingUserAvailability[]
-}
-
 model User {
   id                      String                    @id @unique @default(uuid())
   username                String                    @unique
@@ -58,6 +43,21 @@ model Session {
   active_expires Int?
   idle_expires   Int?
   last_accessed  Int?
+}
+
+model Meeting {
+  id                      String                    @id @unique @default(uuid())
+  title                   String
+  description             String?
+  date                    DateTime
+  location                String?
+  Invitees                User[]
+  host_id                 String
+  group                   Group?                    @relation(fields: [groupId], references: [id])
+  from_time               DateTime
+  to_time                 DateTime
+  groupId                 String?
+  MeetingUserAvailability MeetingUserAvailability[]
 }
 
 model Group {
