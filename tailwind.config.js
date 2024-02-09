@@ -19,7 +19,17 @@ export default {
   ],
   theme: {
     extend: {
-      colors: {},
+      colors: {
+        gray: {
+          light: "#F3F4F6" /* maps to gray-100 */,
+          base: "#D1D5DB" /* gray-300 */,
+          medium: "#9CA3AF" /* gray-400 */,
+          dark: "#1F2937" /* gray-800 */,
+        },
+        slate: {
+          base: "#CBD5E1" /* slate-300 */,
+        },
+      },
     },
     default: "daisy",
   },
