@@ -1,24 +1,14 @@
 <script lang="ts">
   import "../app.pcss";
-  import {
-    AppShell,
-    Drawer,
-    initializeStores,
-    Modal,
-    type ModalComponent,
-  } from "@skeletonlabs/skeleton";
+  import { AppShell, Drawer, initializeStores } from "@skeletonlabs/skeleton";
   import { onMount } from "svelte";
 
   import Header from "$lib/components/Header";
   import SideBar from "$lib/components/SideBar";
-  import ModalMeetingUsers from "$lib/components/summary/ModalMeetingUsers.svelte";
 
   $: activateHamburger = true;
   let appContainer: HTMLElement; // To listen to resize events
 
-  const modalRegistry: Record<string, ModalComponent> = {
-    meetingUsers: { ref: ModalMeetingUsers },
-  };
   onMount(() => {
     const reiszeObserver = new ResizeObserver((entries) => {
       // Only listen to the app container
@@ -35,8 +25,6 @@
 
   initializeStores(); // Should be called only once
 </script>
-
-<Modal components={modalRegistry} />
 
 {#if activateHamburger}
   <Drawer position="right">

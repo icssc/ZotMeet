@@ -13,7 +13,7 @@
   let tabSet: number = 0;
 </script>
 
-<div class="flex flex-col gap-8 px-4 pt-6 md:px-32">
+<div class="flex flex-col gap-8 px-4 pb-2 pt-6 md:px-32">
   <div
     class="grid-rows-[100px_minmax(0, 1fr)] grid grid-cols-[120px_minmax(0,1fr)] content-start md:grid-cols-2 md:gap-4"
   >

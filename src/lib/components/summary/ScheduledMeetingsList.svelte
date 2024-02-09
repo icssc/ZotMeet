@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getModalStore, type ModalSettings, RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
+  import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
 
   import { scheduledMeetings } from "$lib/stores/summaryStores";
   import type { ScheduledMeeting } from "$lib/types/meetings";
@@ -13,21 +13,21 @@
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
 
   export let groupID: number | undefined;
-  const modalStore = getModalStore();
+  // const modalStore = getModalStore();
 
   const filtered = groupID
     ? filterMeetingsByGroupID($scheduledMeetings, groupID)
     : $scheduledMeetings;
   const sortedMeetings = groupAndSortScheduledMeetings(filtered as ScheduledMeeting[]);
 
-  function modalComponentList(): void {
-    const modal: ModalSettings = {
-      type: "component",
-      component: "meetingUsers",
-      title: "Users Attending Meeting",
-    };
-    modalStore.trigger(modal);
-  }
+  // function modalComponentList(): void {
+  //   const modal: ModalSettings = {
+  //     type: "component",
+  //     component: "meetingUsers",
+  //     title: "Users Attending Meeting",
+  //   };
+  //   modalStore.trigger(modal);
+  // }
 </script>
 
 {#each Object.keys(sortedMeetings) as date}
@@ -37,20 +37,11 @@
     <div class="flex flex-col gap-2">
       {#each sortedMeetings[date] as meeting}
         <div
-          on:keydown={modalComponentList}
-          on:click={modalComponentList}
-          tabindex="0"
-          role="button"
           class="card flex h-fit flex-col justify-between gap-4 rounded-lg bg-cover bg-center p-3 hover:variant-ghost md:flex-row md:items-center"
         >
           <div class="flex w-full flex-wrap items-center justify-between gap-2">
             <div class="flex flex-col gap-y-1">
-              <a
-                href={meeting.link}
-                target="_blank"
-                referrerpolicy="no-referrer"
-                on:click|stopPropagation
-              >
+              <a href={meeting.link} target="_blank" referrerpolicy="no-referrer">
                 <p class="line-clamp-1 max-h-12 text-xl font-bold md:text-2xl">
                   {meeting.name}
                 </p>
@@ -71,38 +62,20 @@
             </div>
           </div>
 
-          <div
-            class="flex w-full justify-center md:w-fit"
-            on:keyup={(e) => e.stopPropagation()}
-            on:click={(e) => e.stopPropagation()}
-            role="radiogroup"
-            tabindex="0"
-          >
+          <div class="flex w-full justify-center md:w-fit" role="radiogroup" tabindex="0">
             <RadioGroup
               class="flex h-fit w-fit items-center"
               active="variant-filled-primary"
               hover="hover:variant-soft-primary"
             >
-              <RadioItem
-                bind:group={meeting.attending}
-                name="justify"
-                value={"Yes"}
-                required
-                on:click={(e) => e.stopPropagation()}>Yes</RadioItem
+              <RadioItem bind:group={meeting.attending} name="justify" value={"Yes"} required
+                >Yes</RadioItem
               >
-              <RadioItem
-                bind:group={meeting.attending}
-                name="justify"
-                value={"No"}
-                required
-                on:click={(e) => e.stopPropagation()}>No</RadioItem
+              <RadioItem bind:group={meeting.attending} name="justify" value={"No"} required }
+                >No</RadioItem
               >
-              <RadioItem
-                bind:group={meeting.attending}
-                name="justify"
-                value={"Maybe"}
-                required
-                on:click={(e) => e.stopPropagation()}>Maybe</RadioItem
+              <RadioItem bind:group={meeting.attending} name="justify" value={"Maybe"} required
+                >Maybe</RadioItem
               >
             </RadioGroup>
           </div>
