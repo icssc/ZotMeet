@@ -1,11 +1,12 @@
 // @ts-check
 import { join } from "path";
 
-import { skeleton } from "@skeletonlabs/tw-plugin";
+// import { skeleton } from "@skeletonlabs/tw-plugin";
 import forms from "@tailwindcss/forms";
 import daisyui from "daisyui";
+import emerald from "daisyui/src/theming/themes";
 
-import { zotmeetTheme } from "./theme";
+// import { zotmeetTheme } from "./theme";
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -22,8 +23,17 @@ export default {
   plugins: [
     daisyui,
     forms,
-    skeleton({
-      themes: { custom: [zotmeetTheme] },
-    }),
+    // skeleton({
+    //   themes: { custom: [zotmeetTheme] },
+    // }),
   ],
+  daisyui: {
+    themes: [
+      {
+        light: {
+          emerald,
+        },
+      },
+    ],
+  },
 };
