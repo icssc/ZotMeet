@@ -16,27 +16,17 @@ datasource db {
 // Do not modify anything above this line unless you know what you are doing.
 
 model User {
-  id String @id @unique @default(cuid())
-
-  email        String  @unique
-  firstName    String
-  lastName     String
-  verified     Boolean @default(false)
-  receiveEmail Boolean @default(true)
-  token        String? @unique
-
-  meetingsHosted              Meeting[]                     @relation("hostId")
-  groups                      GroupMembers[]
-  notifications               UserNotifications[]
-  generalAvailability         GeneralAvailability[]
-  meetingSpecificAvailability MeetingSpecificAvailability[]
-  meetingParticipants         MeetingParticipants[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  auth_session Session[]
-  key          Key[]
+  id                      String                    @id @unique @default(uuid())
+  username                String                    @unique
+  email                   String                    @unique
+  created_at              DateTime?
+  groups                  Group[]
+  meetings                Meeting[]
+  generalAvailability     Availability?             @relation(fields: [availabilityId], references: [id])
+  availabilityId          String?
+  MeetingUserAvailability MeetingUserAvailability[]
+  Key                     Key[]
+  Session                 Session[]
 }
 
 model Key {
@@ -59,97 +49,45 @@ model Session {
 }
 
 model Meeting {
-  id          String  @id @default(uuid())
-  title       String
-  description String?
-  startTime   Int
-  endTime     Int
-  location    String?
-  hostId      String
-
-  created_at DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  host                        User                          @relation("hostId", fields: [hostId], references: [id])
-  participants                MeetingParticipants[]
-  groups                      MeetingGroups[]
-  agendaItems                 MeetingAgendaItems[]
-  MeetingSpecificAvailability MeetingSpecificAvailability[]
+  id                      String                    @id @unique @default(uuid())
+  title                   String
+  description             String?
+  date                    DateTime
+  location                String?
+  Invitees                User[]
+  host_id                 String
+  group                   Group?                    @relation(fields: [groupId], references: [id])
+  from_time               DateTime
+  to_time                 DateTime
+  groupId                 String?
+  MeetingUserAvailability MeetingUserAvailability[]
 }
 
-model Groups {
-  id          String  @id @default(uuid())
+model Group {
+  id          String    @id @unique @default(uuid())
   name        String
   description String?
-
-  created_at DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  members  GroupMembers[]
-  meetings MeetingGroups[]
+  created_at  DateTime?
+  members     User[]
+  Meeting     Meeting[]
 }
 
-model GroupMembers {
-  userId  String
-  groupId String
-  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  group   Groups @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  @@id([userId, groupId])
+model MeetingUserAvailability {
+  id             String        @id @unique @default(uuid())
+  meeting        Meeting       @relation(fields: [meetingId], references: [id])
+  user           User?         @relation(fields: [userId], references: [id])
+  Availability   Availability? @relation(fields: [availabilityId], references: [id])
+  meetingId      String
+  userId         String?
+  availabilityId String?
 }
 
-model MeetingParticipants {
-  meetingId String
-  userId    String
-  status    String
-  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@id([meetingId, userId])
-}
-
-model MeetingGroups {
-  meetingId String
-  groupId   String
-  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
-  group     Groups  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  @@id([meetingId, groupId])
-}
-
-model MeetingAgendaItems {
-  id          String  @id @default(uuid())
-  meetingId   String
-  title       String
-  description String?
-  duration    Int?
-  meeting     Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
-}
-
-model UserNotifications {
-  id        String @id @default(uuid())
-  userId    String
-  message   String
-  timestamp Int
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model GeneralAvailability {
-  id        String @id @default(uuid())
-  userId    String
-  dayOfWeek Int
-  startTime Int
-  endTime   Int
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model MeetingSpecificAvailability {
-  id        String  @id @default(uuid())
-  userId    String
-  meetingId String
-  date      Int
-  startTime Int
-  endTime   Int
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  meeting   Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+model Availability {
+  id                      String                    @id @unique @default(cuid())
+  from_time               String
+  to_time                 String
+  from_date               String
+  to_date                 String
+  User                    User[]
+  MeetingUserAvailability MeetingUserAvailability[]
 }
