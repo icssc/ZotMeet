@@ -39,6 +39,8 @@ export default {
       {
         emerald: {
           ...emerald["emerald"],
+          primary: "#367BFB",
+          secondary: "#65CC8A",
         },
       },
     ],
