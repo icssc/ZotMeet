@@ -1,5 +1,6 @@
 <script lang="ts">
   import AddBoxOutlineRounded from "~icons/material-symbols/add-box-outline-rounded";
+  import SettingsOutline from "~icons/material-symbols/settings-outline";
 </script>
 
 <div class="flex min-h-full w-[300px] flex-col pb-6 pr-3">
@@ -11,26 +12,32 @@
   <div class="divider my-2" />
 
   <div class="space-y-2 px-2">
-    <button
-      class="btn h-12 w-full justify-start space-x-3 bg-white text-lg font-normal shadow-none"
-    >
-      <AddBoxOutlineRounded class="h-7 w-7" />
-      <p>New Meeting</p>
-    </button>
+    <a href="/">
+      <button
+        class="btn h-12 w-full justify-start space-x-3 bg-white text-lg font-normal shadow-none"
+      >
+        <AddBoxOutlineRounded class="h-7 w-7" />
+        <p>New Meeting</p>
+      </button>
+    </a>
 
-    <button
-      class="btn h-12 w-full justify-start space-x-3 border-none bg-transparent text-lg font-normal shadow-none"
-    >
-      <AddBoxOutlineRounded class="h-7 w-7" />
-      <p>New Meeting</p>
-    </button>
+    <a href="/summary">
+      <button
+        class="btn h-12 w-full justify-start space-x-3 border-none bg-transparent text-lg font-normal shadow-none"
+      >
+        <AddBoxOutlineRounded class="h-7 w-7" />
+        <p>Summary</p>
+      </button>
+    </a>
 
-    <button
-      class="btn h-12 w-full justify-start space-x-3 border-none bg-transparent text-lg font-normal shadow-none"
-    >
-      <AddBoxOutlineRounded class="h-7 w-7" />
-      <p>New Meeting</p>
-    </button>
+    <a href="/settings">
+      <button
+        class="btn h-12 w-full justify-start space-x-3 border-none bg-transparent text-lg font-normal shadow-none"
+      >
+        <SettingsOutline class="h-7 w-7" />
+        <p>Settings</p>
+      </button>
+    </a>
   </div>
 
   <div class="h-18 card mt-auto rounded-lg border bg-white">
