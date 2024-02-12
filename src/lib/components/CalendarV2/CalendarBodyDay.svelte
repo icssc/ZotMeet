@@ -10,7 +10,7 @@
   class={cn(
     "flex-center relative aspect-square h-12 w-12 text-xl font-medium text-gray-dark",
     calendarDay.isSelected &&
-      "rounded-xl bg-primary text-gray-light drop-shadow-[0_0px_16px_rgba(55,124,251,0.6)]",
+      "rounded-xl bg-primary text-gray-light drop-shadow-[0_0px_16px_rgba(55,124,251,0.4)]",
     isHighlighted && "rounded-xl bg-slate-base text-gray-dark drop-shadow-none",
   )}
   data-day={calendarDay.getDay()}
