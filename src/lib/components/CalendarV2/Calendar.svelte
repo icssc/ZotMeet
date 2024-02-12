@@ -47,7 +47,7 @@
     <span class="text-3xl text-gray-500">&lsaquo;</span>
   </button>
 
-  <div>
+  <div class="px-4">
     <div class="flex flex-col pb-6">
       <p class="h3 text-left font-montserrat text-3xl font-semibold">{monthName} {currentYear}</p>
       <div class="divider m-0 h-[2px] w-16 bg-accent" />
