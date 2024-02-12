@@ -30,6 +30,11 @@ export default {
           base: "#CBD5E1" /* slate-300 */,
         },
       },
+      fontFamily: {
+        montserrat: ["Montserrat", "sans-serif"],
+        "dm-sans": ["DM Sans", "sans-serif"],
+        default: ["DM Sans", "sans-serif"],
+      },
     },
     default: "daisy",
   },

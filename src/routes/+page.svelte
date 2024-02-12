@@ -1,7 +1,9 @@
 <script lang="ts">
-  import MeetingSetupPage from "$lib/components/meetingSetup/MeetingSetupPage.svelte";
+  import SideBar from "$lib/components/SidebarV2/SideBar.svelte";
 </script>
 
-<main class="h-full min-h-screen w-full bg-surface-100">
-  <MeetingSetupPage />
+<main
+  class="flex h-full min-h-screen w-full flex-row bg-gradient-to-l from-[#EEEEEE] to-[#EAEFF2] p-6"
+>
+  <SideBar />
 </main>
