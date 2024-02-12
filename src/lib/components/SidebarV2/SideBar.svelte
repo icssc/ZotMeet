@@ -3,7 +3,7 @@
   import SettingsOutline from "~icons/material-symbols/settings-outline";
 </script>
 
-<div class="flex min-h-full w-[300px] flex-col pb-6 pr-3">
+<div class="flex min-h-full min-w-[300px] max-w-[300px] flex-col pb-6 pr-3">
   <div class="flex items-center space-x-4">
     <div class="h-10 w-10 rounded-lg border-4 border-black bg-primary" />
     <h1 class="font-montserrat text-4xl font-semibold text-gray-dark">ZotMeet</h1>
@@ -11,7 +11,7 @@
 
   <div class="divider my-2" />
 
-  <div class="space-y-2 px-2">
+  <div class="flex flex-col gap-y-2 px-2">
     <a href="/">
       <button
         class="btn h-12 w-full justify-start space-x-3 bg-white text-lg font-normal shadow-none"
@@ -52,8 +52,10 @@
       </div>
 
       <div class="gap-y-0">
-        <h2 class="card-title text-base font-medium text-gray-dark">Catherine Sullivan</h2>
-        <p class="text-gray-medium">email123@uci.edu</p>
+        <h2 class="card-title line-clamp-1 text-base font-medium text-gray-dark">
+          Catherine Sullivan
+        </h2>
+        <p class="line-clamp-1 text-gray-medium">email123@uci.edu</p>
       </div>
     </div>
   </div>
