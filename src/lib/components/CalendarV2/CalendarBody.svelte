@@ -1,5 +1,6 @@
 <script lang="ts">
-  import CalendarBodyDay from "$lib/components/meetingSetup/Calendar/CalendarBodyDay.svelte";
+  import CalendarBodyDay from "./CalendarBodyDay.svelte";
+
   import { updateSelectedRange } from "$lib/stores/meetingSetupStores";
   import { ZotDate } from "$lib/utils/ZotDate";
 
@@ -64,6 +65,7 @@
               startDaySelection &&
               endDaySelection &&
               calendarDay.determineDayWithinBounds(startDaySelection, endDaySelection)}
+
             <button
               on:touchstart={(e) => {
                 if (e.cancelable) {
@@ -90,7 +92,7 @@
                 handleEndSelection();
               }}
               tabindex="0"
-              class="relative flex w-full cursor-pointer select-none justify-center py-4"
+              class="relative flex w-full cursor-pointer select-none justify-center py-2"
             >
               <CalendarBodyDay {isHighlighted} {calendarDay} />
             </button>

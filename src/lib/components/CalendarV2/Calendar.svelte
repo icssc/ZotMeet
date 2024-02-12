@@ -40,8 +40,6 @@
   };
 </script>
 
-<p class="h3 hidden text-center">{monthName} {currentYear}</p>
-
 <div
   class="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] p-5"
 >
@@ -49,24 +47,31 @@
     <span class="text-3xl text-gray-500">&lsaquo;</span>
   </button>
 
-  <table class="w-full table-fixed p-3">
-    <thead>
-      <tr>
-        {#each WEEKDAYS as dayOfWeek}
-          <th class="px-0">
-            <div>
-              <p class="w-full text-center text-sm font-bold uppercase text-slate-medium">
-                {dayOfWeek}
-              </p>
-            </div>
-            <div class="divider mt-0" />
-          </th>
-        {/each}
-      </tr>
-    </thead>
+  <div>
+    <div class="flex flex-col pb-6">
+      <p class="h3 text-left font-montserrat text-3xl font-semibold">{monthName} {currentYear}</p>
+      <div class="divider m-0 h-[2px] w-16 bg-accent" />
+    </div>
 
-    <CalendarBody {calendarDays} {updateCalendar} {currentMonth} />
-  </table>
+    <table class="w-full table-fixed p-3">
+      <thead>
+        <tr>
+          {#each WEEKDAYS as dayOfWeek}
+            <th class="px-0">
+              <div>
+                <p class="w-full text-center text-sm font-bold uppercase text-slate-medium">
+                  {dayOfWeek}
+                </p>
+              </div>
+              <div class="divider mt-0" />
+            </th>
+          {/each}
+        </tr>
+      </thead>
+
+      <CalendarBody {calendarDays} {updateCalendar} {currentMonth} />
+    </table>
+  </div>
 
   <button on:click={incrementMonth} class="p-3 pr-1">
     <span class="text-3xl text-gray-500">&rsaquo;</span>
