@@ -1,11 +1,11 @@
 export enum Weekday {
-  Sunday = "Su",
-  Monday = "Mo",
-  Tuesday = "Tu",
-  Wednesday = "We",
-  Thursday = "Th",
-  Friday = "Fr",
-  Saturday = "Sa",
+  Sunday = "Sun",
+  Monday = "Mon",
+  Tuesday = "Tue",
+  Wednesday = "Wed",
+  Thursday = "Thu",
+  Friday = "Fri",
+  Saturday = "Sat",
 }
 
 export const WEEKDAYS = Object.values(Weekday);

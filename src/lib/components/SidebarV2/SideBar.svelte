@@ -2,7 +2,7 @@
   import AddBoxOutlineRounded from "~icons/material-symbols/add-box-outline-rounded";
 </script>
 
-<div class="flex min-h-full w-[300px] flex-col px-3">
+<div class="flex min-h-full w-[300px] flex-col px-3 pb-6">
   <div class="flex items-center space-x-4">
     <div class="h-10 w-10 rounded-lg border-4 border-black bg-primary" />
     <h1 class="font-montserrat text-4xl font-semibold text-gray-dark">ZotMeet</h1>
