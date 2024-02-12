@@ -8,7 +8,7 @@
 >
   <SideBar />
 
-  <div class="flex min-h-full w-full gap-y-6 rounded-tl-xl border-2 bg-white px-4 pb-6">
+  <div class="flex min-h-full w-full flex-col gap-y-6 rounded-tl-xl border-2 bg-white px-4 pb-6">
     <div class="pt-6">
       <h1 class="font-montserrat text-2xl font-medium">Let's start planning your next meeting.</h1>
       <h2 class="text-base text-gray-medium">

@@ -28,6 +28,7 @@ export default {
         },
         slate: {
           base: "#CBD5E1" /* slate-300 */,
+          medium: "#94A3B8" /* slate-400 */,
         },
       },
       fontFamily: {

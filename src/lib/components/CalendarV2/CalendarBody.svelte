@@ -52,7 +52,6 @@
     <tr>
       {#each calendarWeek as calendarDay}
         <td
-          class="py-3"
           on:mouseup={() => {
             if (startDaySelection) {
               endDaySelection = calendarDay;
@@ -91,13 +90,13 @@
                 handleEndSelection();
               }}
               tabindex="0"
-              class="relative flex w-full cursor-pointer select-none justify-center"
+              class="relative flex w-full cursor-pointer select-none justify-center py-4"
             >
               <CalendarBodyDay {isHighlighted} {calendarDay} />
             </button>
           {:else}
-            <div class="flex w-full select-none justify-center">
-              <p class="text-surface-400 p-2">{calendarDay.getDay()}</p>
+            <div class="flex w-full select-none justify-center py-4">
+              <p class="text-gray-base">{calendarDay.getDay()}</p>
             </div>
           {/if}
         </td>

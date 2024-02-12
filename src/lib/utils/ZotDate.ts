@@ -126,7 +126,10 @@ export class ZotDate {
         const newZotDate = new ZotDate(newDate, isSelected);
         generatedWeek.push(newZotDate);
       }
-      generatedZotDates.push(generatedWeek);
+
+      if (generatedZotDates.length < 5) {
+        generatedZotDates.push(generatedWeek);
+      }
     }
 
     return generatedZotDates;

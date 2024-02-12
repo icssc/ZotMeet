@@ -16,7 +16,7 @@
 {/if}
 
 <p
-  class="relative p-2 text-base font-medium text-gray-500"
+  class="relative text-base font-medium text-gray-500"
   data-day={calendarDay.getDay()}
   data-month={calendarDay.getMonth()}
   data-year={calendarDay.getYear()}
