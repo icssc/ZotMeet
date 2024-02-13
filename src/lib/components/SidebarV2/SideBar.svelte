@@ -4,7 +4,7 @@
   import SettingsOutline from "~icons/material-symbols/settings-outline";
 </script>
 
-<div class="hidden min-h-full min-w-[250px] flex-col pb-6 pr-3 md:flex xl:min-w-[300px]">
+<div class="hidden min-h-full min-w-[250px] flex-col pr-3 md:flex xl:min-w-[300px]">
   <a href="/" class="flex items-center space-x-4">
     <div class="flex items-center space-x-4">
       <div class="h-10 w-10 rounded-lg border-4 border-black bg-primary" />
@@ -14,10 +14,10 @@
 
   <div class="divider my-2" />
 
-  <div class="flex flex-col gap-y-2 px-2">
+  <div class="flex flex-col gap-y-2 px-2 text-gray-600">
     <a href="/">
       <button
-        class="btn h-12 w-full justify-start space-x-3 bg-white text-lg font-normal shadow-none"
+        class="btn h-12 w-full justify-start space-x-3 border-none bg-transparent text-lg font-normal shadow-none"
       >
         <AddBoxOutlineRounded class="h-7 w-7" />
         <p>New Meeting</p>
@@ -43,7 +43,7 @@
     </a>
   </div>
 
-  <div class="h-18 card mt-auto rounded-lg border bg-white">
+  <div class="h-18 card mb-6 mt-auto rounded-lg border bg-white">
     <div class="card-body flex flex-row gap-x-3 px-4 py-3">
       <div class="avatar">
         <div class="w-12 rounded-full">
