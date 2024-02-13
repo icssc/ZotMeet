@@ -11,7 +11,7 @@
 <main
   class="flex max-h-[calc(100vh-1.5rem)] w-full flex-col gap-y-5 overflow-x-clip border-t-2 bg-white px-2 pb-6 md:gap-y-6 md:overflow-y-auto md:rounded-tl-xl md:px-4"
 >
-  <div class="px-2 pt-8 md:pl-[60px] md:pt-10">
+  <div class="px-2 pt-8 md:px-4 md:pt-10 lg:pl-[60px]">
     <h1 class="font-montserrat text-xl font-medium md:text-2xl">
       Let's start planning your next meeting.
     </h1>
