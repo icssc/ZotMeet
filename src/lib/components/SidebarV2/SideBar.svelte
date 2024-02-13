@@ -5,10 +5,12 @@
 </script>
 
 <div class="hidden min-h-full min-w-[250px] flex-col pb-6 pr-3 md:flex xl:min-w-[300px]">
-  <div class="flex items-center space-x-4">
-    <div class="h-10 w-10 rounded-lg border-4 border-black bg-primary" />
-    <h1 class="font-montserrat text-4xl font-semibold text-gray-dark">ZotMeet</h1>
-  </div>
+  <a href="/" class="flex items-center space-x-4">
+    <div class="flex items-center space-x-4">
+      <div class="h-10 w-10 rounded-lg border-4 border-black bg-primary" />
+      <h1 class="font-montserrat text-4xl font-semibold text-gray-dark">ZotMeet</h1>
+    </div>
+  </a>
 
   <div class="divider my-2" />
 
