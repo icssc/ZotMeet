@@ -97,7 +97,7 @@
               <CalendarBodyDay {isHighlighted} {calendarDay} />
             </button>
           {:else}
-            <div class="flex w-full select-none justify-center py-4">
+            <div class="flex w-full select-none justify-center py-2">
               <p class="text-base text-gray-base md:text-xl">{calendarDay.getDay()}</p>
             </div>
           {/if}

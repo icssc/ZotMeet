@@ -36,7 +36,7 @@
   </div>
 
   <div
-    class="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-2 bg-gray-light bg-opacity-50 p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0"
+    class="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white bg-opacity-70 p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0"
   >
     <p class="text-sm font-bold uppercase text-slate-medium">
       {$selectedDays.length} days selected
