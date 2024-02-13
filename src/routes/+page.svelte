@@ -2,6 +2,10 @@
   import Calendar from "$lib/components/CalendarV2/Calendar.svelte";
   import MeetingNameField from "$lib/components/MeetingV2/MeetingNameField.svelte";
   import MeetingTimeField from "$lib/components/MeetingV2/MeetingTimeField.svelte";
+  import { selectedDays } from "$lib/stores/meetingSetupStores";
+  import { startTime, endTime } from "$lib/stores/meetingSetupStores";
+  import { meetingName } from "$lib/stores/meetingSetupStores";
+  import { cn } from "$lib/utils/utils";
 </script>
 
 <main
@@ -27,5 +31,19 @@
         <MeetingNameField />
       </div>
     </div>
+  </div>
+
+  <div class="flex flex-row items-center justify-end gap-x-4">
+    <p class="text-sm font-bold uppercase text-slate-medium">
+      {$selectedDays.length} days selected
+    </p>
+    <button
+      class={cn(
+        "btn btn-wide border-none bg-success font-montserrat text-xl font-medium text-gray-light",
+      )}
+      disabled={$selectedDays.length > 0 && $startTime && $endTime && $meetingName ? false : true}
+    >
+      Continue →
+    </button>
   </div>
 </main>
