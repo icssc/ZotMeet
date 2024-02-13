@@ -1,6 +1,6 @@
 # About
 
-TBA
+Simple, clean, and efficient meeting scheduling app.
 
 ## Tech Stack
 
