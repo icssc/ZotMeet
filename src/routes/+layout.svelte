@@ -1,13 +1,13 @@
 <script lang="ts">
   import Navbar from "$lib/components/NavBar/Navbar.svelte";
-  // import SideBar from "$lib/components/SidebarV2/SideBar.svelte";
+  import SideBar from "$lib/components/SidebarV2/SideBar.svelte";
   import "../app.pcss";
 </script>
 
 <div
   class="relative flex h-full min-h-screen w-full flex-col bg-gradient-to-l from-[#EEEEEE] to-[#EAEFF2] md:flex-row md:pl-6 md:pt-6"
 >
-  <!-- <SideBar /> -->
+  <SideBar />
   <Navbar />
 
   <slot />
