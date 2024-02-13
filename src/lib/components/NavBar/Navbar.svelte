@@ -28,7 +28,7 @@
   <div class="drawer-side z-50">
     <label for="my-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
 
-    <div class="flex h-full w-[80%] flex-col bg-slate-100">
+    <div class="flex h-full w-[80%] flex-col bg-slate-100 sm:w-[60%]">
       <div class="flex h-20 items-center justify-end px-5 py-4">
         <label class="btn btn-square btn-ghost" for="my-drawer">
           <CloseIcon class="h-8 w-8" />
