@@ -7,7 +7,7 @@
 </script>
 
 <div class="drawer drawer-end md:hidden">
-  <input id="my-drawer" type="checkbox" class="drawer-toggle" checked={true} />
+  <input id="my-drawer" type="checkbox" class="drawer-toggle" />
   <div class="drawer-content flex flex-col">
     <div class="navbar bg-gray-light px-5 py-4 md:hidden">
       <div class="flex flex-grow">
