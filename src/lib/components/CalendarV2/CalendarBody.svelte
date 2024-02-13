@@ -98,7 +98,7 @@
             </button>
           {:else}
             <div class="flex w-full select-none justify-center py-4">
-              <p class="text-gray-base">{calendarDay.getDay()}</p>
+              <p class="text-base text-gray-base md:text-xl">{calendarDay.getDay()}</p>
             </div>
           {/if}
         </td>

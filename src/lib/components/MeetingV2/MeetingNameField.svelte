@@ -20,7 +20,7 @@
 <div>
   <div class="flex flex-row gap-x-1 pb-1 text-slate-medium">
     <EditNoteIcon />
-    <p class="text-sm font-bold uppercase">Meeting Name</p>
+    <p class="text-sm font-light uppercase md:font-bold">Meeting Name</p>
   </div>
 
   <div class="flex w-[80%] flex-row items-center gap-x-4 text-lg text-gray-500">

@@ -41,16 +41,19 @@
 </script>
 
 <div
-  class="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] p-5"
+  class="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:p-5"
 >
-  <button on:click={decrementMonth} class="p-3 pl-1">
+  <button on:click={decrementMonth} class="p-3 md:pl-1">
     <span class="text-3xl text-gray-500">&lsaquo;</span>
   </button>
 
-  <div class="px-4">
-    <div class="flex flex-col pb-6">
-      <p class="h3 text-left font-montserrat text-3xl font-semibold">{monthName} {currentYear}</p>
-      <div class="divider m-0 h-[2px] w-16 bg-accent" />
+  <div class="md:px-4">
+    <div class="flex flex-col pb-5 md:pb-6">
+      <p class="h3 text-left font-montserrat text-2xl font-semibold md:text-3xl">
+        {monthName}
+        {currentYear}
+      </p>
+      <div class="divider m-0 h-[2px] w-12 bg-accent md:w-16" />
     </div>
 
     <table class="w-full table-fixed p-3">
@@ -59,7 +62,9 @@
           {#each WEEKDAYS as dayOfWeek}
             <th class="px-0">
               <div>
-                <p class="w-full text-center text-sm font-bold uppercase text-slate-medium">
+                <p
+                  class="w-full text-center text-sm font-light uppercase text-slate-medium md:font-bold"
+                >
                   {dayOfWeek}
                 </p>
               </div>
@@ -73,7 +78,7 @@
     </table>
   </div>
 
-  <button on:click={incrementMonth} class="p-3 pr-1">
+  <button on:click={incrementMonth} class="p-3 md:pr-1">
     <span class="text-3xl text-gray-500">&rsaquo;</span>
   </button>
 </div>

@@ -16,13 +16,13 @@
 <div>
   <div class="flex flex-row gap-x-1 pb-1 text-slate-medium">
     <ClockIcon />
-    <p class="text-sm font-bold uppercase">Meet no earlier / No later than</p>
+    <p class="text-sm font-light uppercase md:font-bold">Meet no earlier / No later than</p>
   </div>
 
   <!--TODO: make custom step -->
   <div
     id="meeting-time-input-container"
-    class="flex flex-row items-center gap-x-4 text-sm text-gray-500"
+    class="flex flex-row items-center gap-x-2 text-sm text-gray-500 md:gap-x-4"
   >
     <SveltyPicker
       inputId="meeting-start-time-input"
@@ -47,6 +47,6 @@
       bind:value={$endTime}
       autocommit={true}
     />
-    PST
+    <p class="hidden sm:flex">PST</p>
   </div>
 </div>
