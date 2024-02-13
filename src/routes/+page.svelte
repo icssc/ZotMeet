@@ -1,7 +1,7 @@
 <script lang="ts">
   import Calendar from "$lib/components/CalendarV2/Calendar.svelte";
-  import MeetingTimeField from "$lib/components/meetingSetup/MeetingTimeField.svelte";
-  import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
+  import MeetingNameField from "$lib/components/MeetingV2/MeetingNameField.svelte";
+  import MeetingTimeField from "$lib/components/MeetingV2/MeetingTimeField.svelte";
 </script>
 
 <main
@@ -22,17 +22,10 @@
         Meeting Details
       </h2>
 
-      <div class="flex flex-row gap-x-1 text-slate-medium">
-        <ClockIcon />
-        <p class="text-sm font-bold uppercase">Meet no earlier / No later than</p>
+      <div class="flex flex-col gap-8">
+        <MeetingTimeField />
+        <MeetingNameField />
       </div>
-
-      <MeetingTimeField />
-
-      <div class="card-actions justify-end">
-        <button class="btn btn-primary">Buy Now</button>
-      </div>
-      <input type="text" placeholder="Type here" class="input w-full max-w-xs" />
     </div>
   </div>
 </main>

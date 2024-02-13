@@ -52,7 +52,7 @@ export const updateSelectedRange = (startDate: ZotDate, endDate: ZotDate): void 
   });
 };
 
-export const DEFAULT_MEETING_NAME = "Meeting Name";
+export const DEFAULT_MEETING_NAME = "";
 export const meetingName = writable<string>(DEFAULT_MEETING_NAME);
 
 export const DEFAULT_MEETING_TIMES: MeetingTime = {
