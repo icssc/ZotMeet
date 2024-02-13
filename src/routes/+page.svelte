@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Calendar from "$lib/components/CalendarV2/Calendar.svelte";
-  import MeetingNameField from "$lib/components/MeetingV2/MeetingNameField.svelte";
-  import MeetingTimeField from "$lib/components/MeetingV2/MeetingTimeField.svelte";
+  import Calendar from "$lib/components/creation/CalendarV2/Calendar.svelte";
+  import MeetingNameField from "$lib/components/creation/MeetingV2/MeetingNameField.svelte";
+  import MeetingTimeField from "$lib/components/creation/MeetingV2/MeetingTimeField.svelte";
   import { selectedDays } from "$lib/stores/meetingSetupStores";
   import { startTime, endTime } from "$lib/stores/meetingSetupStores";
   import { meetingName } from "$lib/stores/meetingSetupStores";
