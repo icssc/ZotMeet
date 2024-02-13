@@ -1,5 +1,6 @@
 <script lang="ts">
   import AddBoxOutlineRounded from "~icons/material-symbols/add-box-outline-rounded";
+  import CalendarIcon from "~icons/material-symbols/calendar-clock";
   import SettingsOutline from "~icons/material-symbols/settings-outline";
 </script>
 
@@ -25,7 +26,7 @@
       <button
         class="btn h-12 w-full justify-start space-x-3 border-none bg-transparent text-lg font-normal shadow-none"
       >
-        <AddBoxOutlineRounded class="h-7 w-7" />
+        <CalendarIcon class="h-7 w-7" />
         <p>Summary</p>
       </button>
     </a>
