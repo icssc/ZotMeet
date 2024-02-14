@@ -1,6 +1,6 @@
 <script lang="ts">
   import Navbar from "$lib/components/navigation/Navbar.svelte";
-  import SideBar from "$lib/components/navigation/SideBar.svelte";
+  import SideBar from "$lib/components/navigation/Sidebar.svelte";
   import "../app.pcss";
 </script>
 
