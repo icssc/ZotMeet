@@ -9,11 +9,9 @@
 </script>
 
 <div class="px-2 pt-8 md:px-4 md:pt-10 lg:pl-[60px]">
-  <h1 class="font-montserrat text-xl font-semibold md:text-2xl">
-    Let's start planning your next meeting.
-  </h1>
+  <h1 class="font-montserrat text-xl font-semibold md:text-2xl">Let's plan your next meeting.</h1>
   <h2 class="text-sm font-light text-gray-medium md:text-base">
-    Select any dates and a time range that could work for you and your team.
+    Select dates and times for you and your team.
   </h2>
 </div>
 
