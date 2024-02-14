@@ -14,9 +14,9 @@
 </script>
 
 <div>
-  <div class="flex flex-row gap-x-1 pb-1 text-slate-medium">
+  <div class="flex flex-row items-center gap-x-1 pb-1 text-slate-medium">
     <ClockIcon />
-    <p class="text-sm font-light uppercase md:font-bold">Meet no earlier / No later than</p>
+    <p class="text-sm font-bold uppercase tracking-wide">Meet no earlier / No later than</p>
   </div>
 
   <!--TODO: make custom step -->

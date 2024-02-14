@@ -9,7 +9,7 @@
 </script>
 
 <div class="px-2 pt-8 md:px-4 md:pt-10 lg:pl-[60px]">
-  <h1 class="font-montserrat text-xl font-medium md:text-2xl">
+  <h1 class="font-montserrat text-xl font-semibold md:text-2xl">
     Let's start planning your next meeting.
   </h1>
   <h2 class="text-sm font-light text-gray-medium md:text-base">
@@ -21,7 +21,7 @@
 
 <div class="card w-full rounded-xl border p-8 md:px-10">
   <div class="card-body gap-0 p-0 md:p-5">
-    <h2 class="card-title pb-5 font-montserrat text-xl font-medium text-gray-600 md:text-2xl">
+    <h2 class="card-title pb-5 font-montserrat text-xl font-semibold text-gray-600 md:text-2xl">
       Meeting Details
     </h2>
 
@@ -33,7 +33,7 @@
 </div>
 
 <div
-  class="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white bg-opacity-70 p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0"
+  class="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0"
 >
   <p class="text-sm font-bold uppercase text-slate-medium">
     {$selectedDays.length} days selected
