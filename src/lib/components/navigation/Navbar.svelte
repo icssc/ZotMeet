@@ -20,7 +20,7 @@
     </div>
   </div>
 
-  <div class="drawer-side z-50">
+  <div class="drawer-side z-50 overflow-x-clip">
     <label for="nav-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
 
     <div class="flex h-full w-[80%] flex-col bg-slate-100 sm:w-[60%]">
