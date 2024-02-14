@@ -33,8 +33,8 @@ export default {
       },
       fontFamily: {
         montserrat: ["Montserrat", "sans-serif"],
-        "dm-sans": ["DM Sans", "sans-serif"],
-        default: ["DM Sans", "sans-serif"],
+        "dm-sans": ["'DM Sans'", "sans-serif"],
+        default: ["'DM Sans'", "sans-serif"],
       },
     },
     default: "daisy",
