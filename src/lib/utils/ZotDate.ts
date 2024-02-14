@@ -127,9 +127,7 @@ export class ZotDate {
         generatedWeek.push(newZotDate);
       }
 
-      if (generatedZotDates.length < 5) {
-        generatedZotDates.push(generatedWeek);
-      }
+      generatedZotDates.push(generatedWeek);
     }
 
     return generatedZotDates;
