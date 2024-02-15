@@ -40,28 +40,45 @@
   };
 </script>
 
-<p class="h3 text-center">{monthName} {currentYear}</p>
-<div class="flex items-center justify-between overflow-x-auto pt-5">
-  <button on:click={decrementMonth} class="p-3 pl-1">
+<div
+  class="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:p-5"
+>
+  <button on:click={decrementMonth} class="p-3 md:pl-1">
     <span class="text-3xl text-gray-500">&lsaquo;</span>
   </button>
-  <table class="w-full">
-    <thead>
-      <tr>
-        {#each WEEKDAYS as dayOfWeek}
-          <th>
-            <div class="flex w-full justify-center">
-              <p class="text-center text-base font-medium text-gray-800 dark:text-gray-100">
-                {dayOfWeek}
-              </p>
-            </div>
-          </th>
-        {/each}
-      </tr>
-    </thead>
-    <CalendarBody {calendarDays} {updateCalendar} {currentMonth} />
-  </table>
-  <button on:click={incrementMonth} class="p-3 pr-1">
+
+  <div class="md:px-4">
+    <div class="flex flex-col pb-5 md:pb-6">
+      <p class="h3 text-left font-montserrat text-2xl font-semibold md:text-3xl">
+        {monthName}
+        {currentYear}
+      </p>
+      <div class="divider m-0 h-[2px] w-12 bg-accent md:w-16" />
+    </div>
+
+    <table class="w-full table-fixed p-3">
+      <thead>
+        <tr>
+          {#each WEEKDAYS as dayOfWeek}
+            <th class="px-0">
+              <div>
+                <p
+                  class="w-full text-center text-sm font-light uppercase text-slate-medium md:font-bold"
+                >
+                  {dayOfWeek}
+                </p>
+              </div>
+              <div class="divider mt-0" />
+            </th>
+          {/each}
+        </tr>
+      </thead>
+
+      <CalendarBody {calendarDays} {updateCalendar} {currentMonth} />
+    </table>
+  </div>
+
+  <button on:click={incrementMonth} class="p-3 md:pr-1">
     <span class="text-3xl text-gray-500">&rsaquo;</span>
   </button>
 </div>

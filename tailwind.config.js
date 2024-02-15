@@ -28,7 +28,13 @@ export default {
         },
         slate: {
           base: "#CBD5E1" /* slate-300 */,
+          medium: "#94A3B8" /* slate-400 */,
         },
+      },
+      fontFamily: {
+        montserrat: ["Montserrat", "sans-serif"],
+        "dm-sans": ["'DM Sans'", "sans-serif"],
+        default: ["'DM Sans'", "sans-serif"],
       },
     },
     default: "daisy",

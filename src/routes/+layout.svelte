@@ -1,57 +1,28 @@
 <script lang="ts">
+  import Navbar from "$lib/components/navigation/Navbar.svelte";
+  import SideBar from "$lib/components/navigation/Sidebar.svelte";
   import "../app.pcss";
-  import { AppShell, Drawer, initializeStores } from "@skeletonlabs/skeleton";
-  import { onMount } from "svelte";
-
-  import Header from "$lib/components/Header";
-  import SideBar from "$lib/components/SideBar";
-
-  $: activateHamburger = true;
-  let appContainer: HTMLElement; // To listen to resize events
-
-  onMount(() => {
-    const reiszeObserver = new ResizeObserver((entries) => {
-      // Only listen to the app container
-      const entry = entries[0];
-      activateHamburger = entry.contentRect.width < 768;
-    });
-
-    reiszeObserver.observe(appContainer);
-
-    return () => {
-      reiszeObserver.disconnect();
-    };
-  });
-
-  initializeStores(); // Should be called only once
 </script>
 
-{#if activateHamburger}
-  <Drawer position="right">
-    <SideBar displayCloseButton={true} />
-  </Drawer>
-{/if}
+<div
+  class="relative flex h-full min-h-screen w-full flex-col bg-gradient-to-l from-[#EEEEEE] to-[#EAEFF2] md:flex-row md:pl-6 md:pt-6"
+>
+  <SideBar />
+  <Navbar />
 
-<div id="app-container" bind:this={appContainer} class="h-screen w-screen">
-  <AppShell slotSidebarLeft={activateHamburger ? "" : "w-64 h-full"} class="h-screen">
-    <svelte:fragment slot="header">
-      <Header hamburger={activateHamburger} />
-    </svelte:fragment>
-
-    <svelte:fragment slot="sidebarLeft">
-      {#if !activateHamburger}
-        <SideBar />
-      {/if}
-    </svelte:fragment>
-
-    <slot />
-  </AppShell>
+  <slot />
 </div>
 
 <!-- Global styles -->
 <style lang="postcss">
+  @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap");
+  @import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap");
+
   :global(html) {
-    font-family: sans-serif;
+    font-family:
+      DM Sans,
+      Montserrat,
+      sans-serif;
     font-size: 16px;
     line-height: 1.5;
     color: #333;

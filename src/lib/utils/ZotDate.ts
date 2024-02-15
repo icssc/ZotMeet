@@ -126,6 +126,7 @@ export class ZotDate {
         const newZotDate = new ZotDate(newDate, isSelected);
         generatedWeek.push(newZotDate);
       }
+
       generatedZotDates.push(generatedWeek);
     }
 

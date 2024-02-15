@@ -1,5 +1,6 @@
 <script lang="ts">
-  import CalendarBodyDay from "$lib/components/meetingSetup/Calendar/CalendarBodyDay.svelte";
+  import CalendarBodyDay from "./CalendarBodyDay.svelte";
+
   import { updateSelectedRange } from "$lib/stores/meetingSetupStores";
   import { ZotDate } from "$lib/utils/ZotDate";
 
@@ -52,7 +53,6 @@
     <tr>
       {#each calendarWeek as calendarDay}
         <td
-          class="py-3"
           on:mouseup={() => {
             if (startDaySelection) {
               endDaySelection = calendarDay;
@@ -65,6 +65,7 @@
               startDaySelection &&
               endDaySelection &&
               calendarDay.determineDayWithinBounds(startDaySelection, endDaySelection)}
+
             <button
               on:touchstart={(e) => {
                 if (e.cancelable) {
@@ -91,13 +92,13 @@
                 handleEndSelection();
               }}
               tabindex="0"
-              class="relative flex w-full cursor-pointer select-none justify-center"
+              class="relative flex w-full cursor-pointer select-none justify-center py-2"
             >
               <CalendarBodyDay {isHighlighted} {calendarDay} />
             </button>
           {:else}
-            <div class="flex w-full select-none justify-center">
-              <p class="p-2 text-surface-400">{calendarDay.getDay()}</p>
+            <div class="flex w-full select-none justify-center py-2">
+              <p class="text-base text-gray-base md:text-xl">{calendarDay.getDay()}</p>
             </div>
           {/if}
         </td>
