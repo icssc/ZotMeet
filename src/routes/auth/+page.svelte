@@ -13,7 +13,7 @@
 <div class="mt-48 flex min-h-[100vh] justify-center">
   <div class="mx-2 w-[450px] md:mx-16">
     {#if data.user}
-      <p>{data.user.firstName} {data.user.lastName} {data.user.userId}</p>
+      <p>{data.user.username} {data.user.userId}</p>
 
       <div>
         <form use:enhance action="/auth/logout" method="post">
@@ -23,6 +23,15 @@
         </form>
       </div>
     {/if}
+
+    <div class="mb-4">
+      <a
+        href="/auth/login/google"
+        class="mx-auto flex w-fit rounded-md bg-blue-500 p-2 font-semibold text-white"
+      >
+        Continue with Google
+      </a>
+    </div>
 
     <TabGroup justify="justify-center">
       <Tab bind:group={tabSet} name="signInTab" value={"signIn"}>Sign In</Tab>
