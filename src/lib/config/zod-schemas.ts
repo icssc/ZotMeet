@@ -1,13 +1,9 @@
 import { z } from "zod";
 
 export const userSchema = z.object({
-  firstName: z
-    .string({ required_error: "First Name is required" })
-    .min(1, { message: "First Name is required" })
-    .trim(),
-  lastName: z
-    .string({ required_error: "Last Name is required" })
-    .min(1, { message: "Last Name is required" })
+  username: z
+    .string({ required_error: "Username is required" })
+    .min(1, { message: "Username is required" })
     .trim(),
   email: z
     .string({ required_error: "Email is required" })

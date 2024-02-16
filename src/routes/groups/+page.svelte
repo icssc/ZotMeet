@@ -4,6 +4,8 @@
   export let data: PageData;
 
   $: ({ groups } = data);
+
+  console.log(groups);
 </script>
 
 <main>

@@ -30,11 +30,7 @@ declare global {
     type UserAttributes = {
       userId: string;
       email: string;
-      firstName: string;
-      lastName: string;
-      // role: string;
-      verified: boolean;
-      receiveEmail: boolean;
+      username: string;
       token: string;
     };
   }

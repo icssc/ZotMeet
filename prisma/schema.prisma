@@ -16,10 +16,12 @@ datasource db {
 // Do not modify anything above this line unless you know what you are doing.
 
 model User {
-  id                      String                    @id @unique @default(uuid())
-  username                String                    @unique
-  email                   String                    @unique
-  created_at              DateTime?
+  id       String  @id @unique @default(uuid())
+  username String  @unique
+  email    String  @unique
+  token    String? @unique
+
+  created_at              DateTime?                 @default(now())
   groups                  Group[]
   meetings                Meeting[]
   generalAvailability     Availability?             @relation(fields: [availabilityId], references: [id])
