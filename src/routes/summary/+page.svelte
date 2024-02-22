@@ -7,14 +7,14 @@
 </script>
 
 <main
-  class="flex max-h-[calc(100vh-1.5rem)] w-full flex-col gap-5 overflow-x-clip border-t-[1px] border-gray-300 bg-gray-100 px-2 pt-6 md:overflow-y-auto md:rounded-tl-xl lg:px-6"
+  class="flex max-h-[calc(100vh-1.5rem)] w-full flex-col gap-5 overflow-x-clip border-t-[1px] border-gray-300 bg-gray-100 px-2 pt-6 md:overflow-y-auto md:rounded-tl-xl lg:px-4"
 >
-  <div class="flex flex-col gap-2 px-4 lg:px-8">
+  <div class="flex flex-col gap-2 px-4 lg:px-16">
     <h2 class="font-montserrat text-xl font-semibold text-gray-800 lg:text-3xl">Groups</h2>
     <GroupCarousel />
   </div>
   <div
-    class="flex flex-col gap-4 rounded-xl border-[1px] border-gray-300 bg-gradient-to-tr from-[rgba(55,124,251,0.05)] to-[rgba(246,128,103,0.05)] p-2 pt-4 lg:px-6"
+    class="flex flex-col gap-4 rounded-xl border-[1px] border-gray-300 bg-gradient-to-tr from-[rgba(55,124,251,0.05)] to-[rgba(246,128,103,0.05)] p-2 pt-4 lg:px-14"
   >
     <div class="flex w-full flex-col gap-2 pl-2">
       <h2 class="font-montserrat text-xl font-semibold text-gray-800 lg:text-3xl">Meetings</h2>
