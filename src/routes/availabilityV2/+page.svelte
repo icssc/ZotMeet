@@ -29,13 +29,16 @@
     role="tab"
     class={cn(
       "tab flex-auto appearance-none whitespace-nowrap font-montserrat text-xl text-gray-medium after:px-2",
-      "checked:text-gray-dark checked:ring-0 checked:ring-transparent active:ring-0 active:ring-transparent",
+      "from-[#377CFB0D] to-[#377CFB0D] checked:bg-gradient-to-l checked:text-gray-dark checked:ring-0 checked:ring-transparent active:ring-0 active:ring-transparent",
     )}
     aria-label="My Availability"
     checked
   />
 
-  <div role="tabpanel" class="tab-content w-full rounded-box border-base-300 bg-base-100 p-6">
+  <div
+    role="tabpanel"
+    class="tab-content w-full rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] p-6"
+  >
     <PersonalAvailability />
   </div>
 
@@ -45,12 +48,15 @@
     role="tab"
     class={cn(
       "tab flex-auto appearance-none whitespace-nowrap font-montserrat text-xl text-gray-medium after:px-2",
-      "checked:text-gray-dark checked:ring-0 checked:ring-transparent active:ring-0 active:ring-transparent",
+      "from-[#377CFB0D] to-[#377CFB0D] checked:bg-gradient-to-l checked:text-gray-dark checked:ring-0 checked:ring-transparent active:ring-0 active:ring-transparent",
     )}
     aria-label="Group Availability"
   />
 
-  <div role="tabpanel" class="tab-content rounded-box border-base-300 bg-base-100 p-6">
+  <div
+    role="tabpanel"
+    class="tab-content rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] p-6"
+  >
     Tab content 2
   </div>
 </div>

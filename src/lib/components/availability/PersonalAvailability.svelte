@@ -3,6 +3,7 @@
   import { availabilityDates, availabilityTimeBlocks } from "$lib/stores/availabilityStores";
   import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
+  import { cn } from "$lib/utils/utils";
 
   const itemsPerPage: number = 3;
   const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
@@ -117,7 +118,7 @@
   };
 </script>
 
-<div class="flex items-center justify-between overflow-x-auto">
+<div class="flex items-center justify-between overflow-x-auto font-dm-sans">
   <button
     on:click={() => {
       if (currentPage > 0) {
@@ -129,36 +130,50 @@
   >
     <span class="text-3xl text-gray-500">&lsaquo;</span>
   </button>
+
   <table class="w-full table-fixed">
     <thead>
       <tr>
-        <th style="width: 4rem"><span class="sr-only">Time</span></th>
+        <th class="w-16"><span class="sr-only">Time</span></th>
         {#each currentPageAvailability as dateHeader}
           <th class="text-sm font-normal">
             {#if dateHeader}
-              {dateHeader.day.toLocaleDateString("en-US", {
-                weekday: "short",
-                month: "numeric",
-                day: "numeric",
-              })}
+              <div class="flex flex-col">
+                <span class="text-xs font-bold uppercase text-gray-500">
+                  {dateHeader.day.toLocaleDateString("en-US", {
+                    weekday: "short",
+                  })}
+                </span>
+
+                <span class="text-center text-base uppercase text-gray-medium">
+                  {dateHeader.day.toLocaleDateString("en-US", {
+                    month: "numeric",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
             {/if}
           </th>
         {/each}
       </tr>
     </thead>
+
+    <tr class="h-2" />
+
     <tbody>
       {#each $availabilityTimeBlocks as timeBlock, blockIndex (`block-${timeBlock}`)}
         {@const isTopOfHour = timeBlock % 60 === 0}
         {@const isHalfHour = timeBlock % 60 === 30}
         {@const isLastRow = blockIndex === $availabilityTimeBlocks.length - 1}
         <tr>
-          <td class="border-r-2 border-r-neutral-800 py-0 pr-1 align-top">
+          <td class="rounded-xl border-r-2 border-r-neutral-800 py-0 pr-3 align-top">
             {#if isTopOfHour}
-              <span class="float-right whitespace-nowrap text-xs">
+              <span class="float-right whitespace-nowrap text-xs font-bold text-gray-medium">
                 {ZotDate.toTimeBlockString(timeBlock)}
               </span>
             {/if}
           </td>
+
           {#each currentPageAvailability as selectedDate, pageDateIndex (generateDateKey(selectedDate, timeBlock, pageDateIndex))}
             {#if selectedDate}
               {@const zotDateIndex = pageDateIndex + currentPage * itemsPerPage}
@@ -167,6 +182,7 @@
                 blockIndex: blockIndex,
               }}
               {@const isAvailable = selectedDate.getBlockAvailability(blockIndex)}
+
               <td
                 on:mouseup={() => {
                   if (startBlockSelection) {
@@ -204,9 +220,12 @@
                     }
                   }}
                   tabindex="0"
-                  class={`block h-full w-full ${isTopOfHour && "border-t-2 border-t-neutral-800"} ${
-                    isHalfHour && "border-t-[1px] border-t-neutral-600"
-                  } ${isLastRow && "border-b-2"} cursor-row-resize border-r-2 border-neutral-600`}
+                  class={cn(
+                    "block h-full w-full cursor-row-resize border-r-2 border-neutral-600",
+                    isTopOfHour && "border-t-2 border-t-neutral-800",
+                    isHalfHour && "border-t-[1px] border-t-neutral-600",
+                    isLastRow && "border-b-2",
+                  )}
                 >
                   <AvailabilityBlock {isAvailable} {zotDateIndex} {blockIndex} {selectionState} />
                 </button>
@@ -219,6 +238,7 @@
       {/each}
     </tbody>
   </table>
+
   <button
     on:click={() => {
       if (currentPage < lastPage) {

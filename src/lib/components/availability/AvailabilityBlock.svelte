@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { SelectionStateType } from "$lib/types/availability";
+  import { cn } from "$lib/utils/utils";
 
   export let isAvailable: boolean;
   export let zotDateIndex: number;
@@ -25,7 +26,7 @@
         return;
       }
     }
-    backgroundColor = isAvailable ? "bg-success-400" : "bg-neutral-200";
+    backgroundColor = isAvailable ? "bg-primary" : "bg-transparent";
   };
 
   $: {
@@ -36,5 +37,5 @@
 <div
   data-date-index={zotDateIndex}
   data-block-index={blockIndex}
-  class={`${backgroundColor} block h-full w-full py-2`}
-></div>
+  class={cn("block h-full w-full py-2", backgroundColor)}
+/>
