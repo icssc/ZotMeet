@@ -7,7 +7,7 @@
 </script>
 
 <main
-  class="flex max-h-[calc(100vh-1.5rem)] w-full flex-col gap-5 overflow-y-auto overflow-x-clip border-t-[1px] border-gray-300 bg-gray-100 px-2 pt-6 md:rounded-tl-xl lg:px-6"
+  class="flex max-h-[calc(100vh-1.5rem)] w-full flex-col gap-5 overflow-x-clip border-t-[1px] border-gray-300 bg-gray-100 px-2 pt-6 md:overflow-y-auto md:rounded-tl-xl lg:px-6"
 >
   <div class="flex flex-col gap-2 px-4 lg:px-8">
     <h2 class="font-montserrat text-xl font-semibold text-gray-800 lg:text-3xl">Groups</h2>
