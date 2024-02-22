@@ -1,6 +1,6 @@
 <script lang="ts">
   import GroupCarousel from "$lib/components/summary/GroupsCarousel.svelte";
-  import ScheduledMeetingsList from "$lib/components/summary/ScheduledMeetingsList.svelte";
+  import ScheduledMeetingsList from "$lib/components/summary/ScheduledMeetings/ScheduledMeetingsList.svelte";
   import UnscheduledMeetingsList from "$lib/components/summary/UnscheduledMeetingsList.svelte";
 
   let currentTab: number = 0;

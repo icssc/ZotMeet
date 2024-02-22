@@ -13,12 +13,12 @@ export function getWeekdayFromIso(isoDateString: string): string {
 
 export function convertTo12HourFormat(time: string): string {
   const [hours, minutes] = time.split(":");
-  let period = "am";
+  let period = "AM";
 
   let hours12 = parseInt(hours, 10);
 
   if (hours12 >= 12) {
-    period = "pm";
+    period = "PM";
     if (hours12 > 12) {
       hours12 -= 12;
     }

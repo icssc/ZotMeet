@@ -2,6 +2,8 @@ export type Group = { name: string; id: number; img: string; link: string };
 
 export type Meeting = ScheduledMeeting | UnscheduledMeeting;
 
+export type Attendance = "accepted" | "maybe" | "declined" | undefined;
+
 export type ScheduledMeeting = {
   name: string;
   id: number;
@@ -9,7 +11,7 @@ export type ScheduledMeeting = {
   date: string;
   startTime: string;
   endTime: string;
-  attending: string;
+  attendance: Attendance;
   location: string;
 };
 
