@@ -1,5 +1,6 @@
 <script lang="ts">
   import { PersonalAvailability } from "$lib/components/availability";
+  import { cn } from "$lib/utils/utils";
   import PencilOutlineIcon from "~icons/mdi/pencil-outline";
 
   // let currentTab: number = 0;
@@ -26,7 +27,10 @@
     type="radio"
     name="my_tabs_2"
     role="tab"
-    class="tab flex-auto appearance-none whitespace-nowrap checked:ring-0 checked:ring-transparent active:ring-0 active:ring-transparent"
+    class={cn(
+      "tab flex-auto appearance-none whitespace-nowrap font-montserrat text-xl text-gray-medium after:px-2",
+      "checked:text-gray-dark checked:ring-0 checked:ring-transparent active:ring-0 active:ring-transparent",
+    )}
     aria-label="My Availability"
     checked
   />
@@ -39,7 +43,10 @@
     type="radio"
     name="my_tabs_2"
     role="tab"
-    class="tab appearance-none whitespace-nowrap checked:ring-0 checked:ring-transparent active:ring-0 active:ring-transparent"
+    class={cn(
+      "tab flex-auto appearance-none whitespace-nowrap font-montserrat text-xl text-gray-medium after:px-2",
+      "checked:text-gray-dark checked:ring-0 checked:ring-transparent active:ring-0 active:ring-transparent",
+    )}
     aria-label="Group Availability"
   />
 
