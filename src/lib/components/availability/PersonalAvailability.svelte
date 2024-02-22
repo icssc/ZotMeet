@@ -5,7 +5,7 @@
   import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
 
-  const itemsPerPage: number = 3;
+  const itemsPerPage: number = 5;
   const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   const numPaddingDates: number =
     $availabilityDates.length % itemsPerPage === 0
@@ -164,10 +164,9 @@
       {#each $availabilityTimeBlocks as timeBlock, blockIndex (`block-${timeBlock}`)}
         {@const isTopOfHour = timeBlock % 60 === 0}
         {@const isHalfHour = timeBlock % 60 === 30}
-        {@const isFirstRow = blockIndex === 0}
         {@const isLastRow = blockIndex === $availabilityTimeBlocks.length - 1}
         <tr>
-          <td class="rounded-xl border-r-[1px] border-r-gray-medium py-0 pr-3 align-top">
+          <td class="border-r-[1px] border-r-gray-medium py-0 pr-3 align-top">
             {#if isTopOfHour}
               <span class="float-right whitespace-nowrap text-xs font-bold text-gray-medium">
                 {ZotDate.toTimeBlockString(timeBlock)}
@@ -225,7 +224,6 @@
                     "block h-full w-full cursor-row-resize border-r-[1px] border-gray-medium",
                     isTopOfHour && "border-t-[1px] border-t-gray-medium",
                     isHalfHour && "border-t-[1px] border-t-gray-base",
-                    isFirstRow && "rounded-tl-lg",
                     isLastRow && "border-b-[1px]",
                   )}
                 >
