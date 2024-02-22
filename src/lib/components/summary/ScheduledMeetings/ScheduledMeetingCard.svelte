@@ -10,19 +10,19 @@
 </script>
 
 <div
-  class="flex items-center gap-4 rounded-lg border-[1px] border-gray-300 bg-gray-50 bg-opacity-50 p-4"
+  class="flex items-center gap-4 rounded-lg border-[1px] border-gray-300 bg-gray-50 bg-opacity-50 p-4 lg:p-6"
 >
   <div class="rounded-full border-[1px] border-gray-300 bg-slate-100 p-3 text-xl text-gray-500">
     <MaterialSymbolsGroupsOutline />
   </div>
-  <div class="flex flex-col">
+  <div class="flex flex-grow flex-col lg:flex-row lg:items-center lg:justify-between lg:gap-2">
     <div>
       <a href={meeting.link} target="_blank" referrerpolicy="no-referrer">
-        <p class="line-clamp-1 text-lg font-semibold">
+        <p class="line-clamp-1 text-lg font-semibold lg:mb-0.5 lg:text-xl">
           {meeting.name}
         </p>
       </a>
-      <div class="flex flex-col gap-0.5 text-slate-400">
+      <div class="flex flex-col gap-0.5 text-slate-400 lg:flex-row lg:gap-4">
         <p class="flex items-center gap-1 text-xs font-semibold">
           <MdiClockOutline />
           {convertTo12HourFormat(meeting.startTime)} - {convertTo12HourFormat(meeting.endTime)}
@@ -32,7 +32,7 @@
           {meeting.location}
         </p>
       </div>
-      <AvailabilityIndicator {meeting} />
     </div>
+    <AvailabilityIndicator {meeting} />
   </div>
 </div>
