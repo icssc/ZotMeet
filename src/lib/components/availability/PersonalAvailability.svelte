@@ -5,7 +5,7 @@
   import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
 
-  const itemsPerPage: number = 5;
+  const itemsPerPage: number = 4;
   const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   const numPaddingDates: number =
     $availabilityDates.length % itemsPerPage === 0
@@ -125,7 +125,7 @@
         currentPage = currentPage - 1;
       }
     }}
-    class="p-3 pl-1 disabled:opacity-0"
+    class="p-3 disabled:opacity-0 md:pl-1"
     disabled={currentPage === 0}
   >
     <span class="text-3xl text-gray-500">&lsaquo;</span>
@@ -134,18 +134,18 @@
   <table class="w-full table-fixed">
     <thead>
       <tr>
-        <th class="w-16"><span class="sr-only">Time</span></th>
+        <th class="w-10 md:w-16"><span class="sr-only">Time</span></th>
         {#each currentPageAvailability as dateHeader}
           <th class="text-sm font-normal">
             {#if dateHeader}
               <div class="flex flex-col">
-                <span class="text-xs font-bold uppercase text-gray-500">
+                <span class="text-[10px] font-bold uppercase text-gray-500 md:text-xs">
                   {dateHeader.day.toLocaleDateString("en-US", {
                     weekday: "short",
                   })}
                 </span>
 
-                <span class="text-center text-base uppercase text-gray-medium">
+                <span class="text-center text-[12px] uppercase text-gray-medium md:text-base">
                   {dateHeader.day.toLocaleDateString("en-US", {
                     month: "numeric",
                     day: "numeric",
@@ -166,10 +166,17 @@
         {@const isHalfHour = timeBlock % 60 === 30}
         {@const isLastRow = blockIndex === $availabilityTimeBlocks.length - 1}
         <tr>
-          <td class="border-r-[1px] border-r-gray-medium py-0 pr-3 align-top">
+          <td class="w-2 border-r-[1px] border-r-gray-medium py-0 pr-3 align-top">
             {#if isTopOfHour}
-              <span class="float-right whitespace-nowrap text-xs font-bold text-gray-medium">
-                {ZotDate.toTimeBlockString(timeBlock)}
+              <span
+                class="float-right hidden whitespace-nowrap text-[10px] font-bold text-gray-medium md:flex md:text-xs"
+              >
+                {ZotDate.toTimeBlockString(timeBlock, false)}
+              </span>
+              <span
+                class="float-right flex whitespace-nowrap text-[10px] font-bold text-gray-medium md:hidden md:text-xs"
+              >
+                {ZotDate.toTimeBlockString(timeBlock, true)}
               </span>
             {/if}
           </td>
@@ -245,7 +252,7 @@
         currentPage = currentPage + 1;
       }
     }}
-    class="p-3 pr-1 disabled:opacity-0"
+    class="p-3 disabled:opacity-0 md:pr-1"
     disabled={currentPage === lastPage}
   >
     <span class="text-3xl text-gray-500">&rsaquo;</span>
