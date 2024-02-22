@@ -1,24 +1,14 @@
+import { WEEKDAYS } from "$lib/types/chrono";
 import type { Meeting, ScheduledMeeting, UnscheduledMeeting } from "$lib/types/meetings";
 
 export function convertIsoToDate(isoDateString: string): string {
-  const options: Intl.DateTimeFormatOptions = {
-    month: "short",
-    day: "numeric",
-  };
-
   const date = new Date(isoDateString);
-  return date.toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
+  return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
-export function convertIsoToWeekdayDate(isoDateString: string): string {
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  };
-
+export function getWeekdayFromIso(isoDateString: string): string {
   const date = new Date(isoDateString);
-  return date.toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
+  return WEEKDAYS[date.getDay()];
 }
 
 export function convertTo12HourFormat(time: string): string {
