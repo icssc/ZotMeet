@@ -1,42 +1,55 @@
 <script lang="ts">
-  import { TabGroup } from "@skeletonlabs/skeleton";
-
   import GroupCarousel from "$lib/components/summary/GroupsCarousel.svelte";
   import ScheduledMeetingsList from "$lib/components/summary/ScheduledMeetingsList.svelte";
   import UnscheduledMeetingsList from "$lib/components/summary/UnscheduledMeetingsList.svelte";
 
-  let tabSet: number = 0;
+  let currentTab: number = 0;
 </script>
 
 <main
   class="flex w-full flex-col gap-5 overflow-x-clip border-t-[1px] border-gray-300 bg-gray-100 px-2 pt-6 md:rounded-tl-xl"
 >
   <div class="flex flex-col gap-2 px-4">
-    <h1 class="font-montserrat text-xl font-semibold">Groups</h1>
+    <h2 class="font-montserrat text-xl font-semibold text-gray-800">Groups</h2>
     <GroupCarousel />
   </div>
-
-  <div class="flex flex-col gap-4">
-    <TabGroup>
-      <div class="flex w-full flex-col gap-x-10 gap-y-2">
-        <h1 class="text-4xl font-bold">Meetings</h1>
-        <div class="flex justify-center gap-5">
-          <div role="tablist" class="tabs tabs-bordered">
-            <button role="tab" class="tab">Tab 1</button>
-            <button role="tab" class="tab tab-active">Tab 2</button>
-          </div>
+  <div
+    class="flex flex-col gap-4 rounded-xl border-[1px] border-gray-300 bg-gradient-to-tr from-[rgba(55,124,251,0.05)] to-[rgba(246,128,103,0.05)] p-2 pt-4"
+  >
+    <div class="flex w-full flex-col gap-2 pl-2">
+      <h2 class="font-montserrat text-xl font-semibold text-gray-800">Upcoming Meetings</h2>
+      <div class="flex justify-center gap-5">
+        <div role="tablist" class="tabs tabs-bordered w-full">
+          <button
+            role="tab"
+            class="tab font-montserrat font-medium text-gray-400"
+            class:tab-active={currentTab === 0}
+            class:text-gray-800={currentTab === 0}
+            style:border-color={currentTab === 0 ? "oklch(var(--a))" : undefined}
+            on:click={() => {
+              currentTab = 0;
+            }}>Scheduled</button
+          >
+          <button
+            role="tab"
+            class="tab font-montserrat font-medium text-gray-400"
+            class:tab-active={currentTab === 1}
+            class:text-gray-800={currentTab === 1}
+            style:border-color={currentTab === 1 ? "oklch(var(--a))" : undefined}
+            on:click={() => {
+              currentTab = 1;
+            }}>Unscheduled</button
+          >
         </div>
       </div>
+    </div>
 
-      <svelte:fragment slot="panel">
-        {#if tabSet === 0}
-          <div class="flex flex-col gap-4"><ScheduledMeetingsList /></div>
-        {:else if tabSet === 1}
-          <div class="flex flex-col gap-2">
-            <UnscheduledMeetingsList />
-          </div>
-        {/if}
-      </svelte:fragment>
-    </TabGroup>
+    <div>
+      {#if currentTab === 0}
+        <ScheduledMeetingsList />
+      {:else if currentTab === 1}
+        <UnscheduledMeetingsList />
+      {/if}
+    </div>
   </div>
 </main>

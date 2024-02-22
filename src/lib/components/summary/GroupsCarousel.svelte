@@ -14,7 +14,9 @@
           <img class="h-full w-full rounded-md object-cover" src={group.img} alt={group.name} />
         </div>
         <div class="flex flex-col justify-center">
-          <p class="whitespace-nowrap text-xl font-semibold leading-5">{group.name}</p>
+          <p class="whitespace-nowrap text-xl font-semibold leading-5 text-gray-800">
+            {group.name}
+          </p>
           <p class="text-xs font-medium text-gray-400">Bottom text</p>
         </div>
       </div>
