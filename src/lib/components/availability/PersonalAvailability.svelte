@@ -209,7 +209,7 @@
                       isTopOfHour && "border-t-2 border-t-neutral-800"
                     } ${isHalfHour && "border-t-[1px] border-t-neutral-600"} ${
                       isLastRow && "border-b-2"
-                    } cursor-row-resize border-r-2 border-neutral-600`}
+                    } cursor-row-resize touch-none border-r-2 border-neutral-600`}
                   >
                     <AvailabilityBlock {isAvailable} {zotDateIndex} {blockIndex} {selectionState} />
                   </button>
