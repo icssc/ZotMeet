@@ -1,17 +1,22 @@
 <script lang="ts">
   import { groups } from "$lib/stores/summaryStores";
+
+  console.log($groups);
 </script>
 
-<div class="flex snap-x snap-mandatory gap-2 overflow-x-auto scroll-smooth md:gap-4">
+<div class="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth md:gap-4">
   {#each $groups as group (group.id)}
-    <a href={group.link} target="_blank" referrerpolicy="no-referrer">
+    <a href={group.link}>
       <div
-        class="card flex h-24 w-36 snap-start rounded-lg bg-cover bg-center p-3 md:h-36 md:w-64"
-        style="background-image:url({group.img})"
+        class="flex h-24 snap-start gap-2 rounded-xl border-[1px] border-gray-300 bg-gray-50 p-2 pr-4"
       >
-        <p class="mt-auto line-clamp-2 max-h-12 text-lg font-bold text-white md:text-xl">
-          {group.name}
-        </p>
+        <div class="h-full min-w-[5rem]">
+          <img class="h-full w-full rounded-md object-cover" src={group.img} alt={group.name} />
+        </div>
+        <div class="flex flex-col justify-center">
+          <p class="whitespace-nowrap text-xl font-semibold leading-5">{group.name}</p>
+          <p class="text-xs font-medium text-gray-400">Bottom text</p>
+        </div>
       </div>
     </a>
   {/each}

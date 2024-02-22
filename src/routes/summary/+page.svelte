@@ -1,17 +1,19 @@
 <script lang="ts">
-  import { TabGroup, Tab } from "@skeletonlabs/skeleton";
+  import { TabGroup } from "@skeletonlabs/skeleton";
 
-  import GroupList from "$lib/components/summary/GroupsCarousel.svelte";
+  import GroupCarousel from "$lib/components/summary/GroupsCarousel.svelte";
   import ScheduledMeetingsList from "$lib/components/summary/ScheduledMeetingsList.svelte";
   import UnscheduledMeetingsList from "$lib/components/summary/UnscheduledMeetingsList.svelte";
 
   let tabSet: number = 0;
 </script>
 
-<div class="flex flex-col gap-8 px-4 pt-8 md:px-32">
-  <div class="flex flex-col gap-4">
-    <h1 class="border-surface-400-500-token border-b text-4xl font-bold">Groups</h1>
-    <GroupList />
+<main
+  class="flex w-full flex-col gap-5 overflow-x-clip border-t-[1px] border-gray-300 bg-gray-100 px-2 pt-6 md:rounded-tl-xl"
+>
+  <div class="flex flex-col gap-2 px-4">
+    <h1 class="font-montserrat text-xl font-semibold">Groups</h1>
+    <GroupCarousel />
   </div>
 
   <div class="flex flex-col gap-4">
@@ -19,8 +21,10 @@
       <div class="flex w-full flex-col gap-x-10 gap-y-2">
         <h1 class="text-4xl font-bold">Meetings</h1>
         <div class="flex justify-center gap-5">
-          <Tab bind:group={tabSet} name="scheduledTab" value={0}>Scheduled</Tab>
-          <Tab bind:group={tabSet} name="unscheduledTab" value={1}>Unscheduled</Tab>
+          <div role="tablist" class="tabs tabs-bordered">
+            <button role="tab" class="tab">Tab 1</button>
+            <button role="tab" class="tab tab-active">Tab 2</button>
+          </div>
         </div>
       </div>
 
@@ -35,4 +39,4 @@
       </svelte:fragment>
     </TabGroup>
   </div>
-</div>
+</main>
