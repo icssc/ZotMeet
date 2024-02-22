@@ -5,7 +5,9 @@
   import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
 
-  const itemsPerPage: number = 4;
+  export let columns: number;
+
+  const itemsPerPage: number = columns;
   const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   const numPaddingDates: number =
     $availabilityDates.length % itemsPerPage === 0

@@ -42,7 +42,15 @@
     role="tabpanel"
     class="tab-content w-full rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#F680670D] to-[#377CFB0D] p-2 pt-4 md:p-6"
   >
-    <PersonalAvailability />
+    <!-- Desktop -->
+    <div class="hidden md:flex">
+      <PersonalAvailability columns={5} />
+    </div>
+
+    <!-- Mobile -->
+    <div class="flex md:hidden">
+      <PersonalAvailability columns={4} />
+    </div>
   </div>
 
   <input
