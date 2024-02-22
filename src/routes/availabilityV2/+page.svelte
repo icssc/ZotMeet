@@ -37,7 +37,7 @@
 
   <div
     role="tabpanel"
-    class="tab-content w-full rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] p-6"
+    class="tab-content w-full rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#F680670D] to-[#377CFB0D] p-6"
   >
     <PersonalAvailability />
   </div>

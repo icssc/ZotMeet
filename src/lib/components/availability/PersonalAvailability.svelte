@@ -164,9 +164,10 @@
       {#each $availabilityTimeBlocks as timeBlock, blockIndex (`block-${timeBlock}`)}
         {@const isTopOfHour = timeBlock % 60 === 0}
         {@const isHalfHour = timeBlock % 60 === 30}
+        {@const isFirstRow = blockIndex === 0}
         {@const isLastRow = blockIndex === $availabilityTimeBlocks.length - 1}
         <tr>
-          <td class="rounded-xl border-r-2 border-r-neutral-800 py-0 pr-3 align-top">
+          <td class="rounded-xl border-r-[1px] border-r-gray-medium py-0 pr-3 align-top">
             {#if isTopOfHour}
               <span class="float-right whitespace-nowrap text-xs font-bold text-gray-medium">
                 {ZotDate.toTimeBlockString(timeBlock)}
@@ -221,10 +222,11 @@
                   }}
                   tabindex="0"
                   class={cn(
-                    "block h-full w-full cursor-row-resize border-r-2 border-neutral-600",
-                    isTopOfHour && "border-t-2 border-t-neutral-800",
-                    isHalfHour && "border-t-[1px] border-t-neutral-600",
-                    isLastRow && "border-b-2",
+                    "block h-full w-full cursor-row-resize border-r-[1px] border-gray-medium",
+                    isTopOfHour && "border-t-[1px] border-t-gray-medium",
+                    isHalfHour && "border-t-[1px] border-t-gray-base",
+                    isFirstRow && "rounded-tl-lg",
+                    isLastRow && "border-b-[1px]",
                   )}
                 >
                   <AvailabilityBlock {isAvailable} {zotDateIndex} {blockIndex} {selectionState} />

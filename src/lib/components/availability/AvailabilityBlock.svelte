@@ -22,7 +22,7 @@
       const timeInRange = earlierBlockIndex <= blockIndex && blockIndex <= laterBlockIndex;
 
       if (dateInRange && timeInRange) {
-        backgroundColor = "bg-success-200";
+        backgroundColor = "bg-[#BFD1F5]";
         return;
       }
     }
