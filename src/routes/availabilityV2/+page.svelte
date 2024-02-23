@@ -1,7 +1,8 @@
 <script lang="ts">
   import { PersonalAvailability } from "$lib/components/availability";
-  import { cn } from "$lib/utils/utils";
   import PencilOutlineIcon from "~icons/mdi/pencil-outline";
+
+  let currentTab: number = 0;
 </script>
 
 <div class="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
@@ -17,57 +18,47 @@
   </button>
 </div>
 
-<div role="tablist" class="tabs tabs-lifted w-full px-0 md:px-2">
-  <input
-    type="radio"
-    name="availabilityTabs"
+<div role="tablist" class="tabs tabs-bordered w-full px-2 md:px-4 lg:max-w-md lg:pl-[60px]">
+  <button
     role="tab"
-    class="tab disabled invisible max-w-[10px] overflow-clip whitespace-nowrap md:max-w-[60px]"
-    aria-label="SPACERSPACERSPACER"
-  />
-
-  <input
-    type="radio"
-    name="availabilityTabs"
-    role="tab"
-    class={cn(
-      "tab flex-auto appearance-none whitespace-nowrap font-montserrat text-sm text-gray-medium after:px-2 md:text-xl",
-      "from-[#377CFB0D] to-[#377CFB0D] checked:bg-gradient-to-l checked:text-gray-dark checked:ring-0 checked:ring-transparent active:ring-0 active:ring-transparent",
-    )}
-    aria-label="My Availability"
-    checked
-  />
-
-  <div
-    role="tabpanel"
-    class="tab-content w-full rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#F680670D] to-[#377CFB0D] p-2 pt-4 md:p-6"
+    class="tab font-montserrat font-medium text-gray-400 lg:text-lg"
+    class:tab-active={currentTab === 0}
+    class:text-gray-800={currentTab === 0}
+    style:border-color={currentTab === 0 ? "oklch(var(--a))" : undefined}
+    on:click={() => {
+      currentTab = 0;
+    }}>My Availability</button
   >
-    <!-- Desktop -->
-    <div class="hidden md:flex">
-      <PersonalAvailability columns={5} />
-    </div>
-
-    <!-- Mobile -->
-    <div class="flex md:hidden">
-      <PersonalAvailability columns={4} />
-    </div>
-  </div>
-
-  <input
-    type="radio"
-    name="availabilityTabs"
+  <button
     role="tab"
-    class={cn(
-      "tab flex-auto appearance-none whitespace-nowrap font-montserrat text-sm text-gray-medium after:px-2 md:text-xl",
-      "from-[#377CFB0D] to-[#377CFB0D] checked:bg-gradient-to-l checked:text-gray-dark checked:ring-0 checked:ring-transparent active:ring-0 active:ring-transparent",
-    )}
-    aria-label="Group Availability"
-  />
-
-  <div
-    role="tabpanel"
-    class="tab-content rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] p-6"
+    class="tab font-montserrat font-medium text-gray-400 lg:text-lg"
+    class:tab-active={currentTab === 1}
+    class:text-gray-800={currentTab === 1}
+    style:border-color={currentTab === 1 ? "oklch(var(--a))" : undefined}
+    on:click={() => {
+      currentTab = 1;
+    }}>Group Availability</button
   >
-    Tab content 2
-  </div>
+</div>
+
+<div>
+  {#if currentTab === 0}
+    <div
+      class="w-full rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#F680670D] to-[#377CFB0D] p-2 pt-4 md:p-6"
+    >
+      <div class="hidden md:flex">
+        <PersonalAvailability columns={5} />
+      </div>
+
+      <div class="flex md:hidden">
+        <PersonalAvailability columns={4} />
+      </div>
+    </div>
+  {:else if currentTab === 1}
+    <div
+      class="rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] p-6"
+    >
+      Tab content 2
+    </div>
+  {/if}
 </div>
