@@ -94,6 +94,7 @@ const dummyUnscheduledMeetings: UnscheduledMeeting[] = [
     startTime: "11:00",
     endTime: "13:30",
     location: "CSL 8",
+    hasIndicated: false,
   },
   {
     name: "Meeting Dos",
@@ -104,6 +105,7 @@ const dummyUnscheduledMeetings: UnscheduledMeeting[] = [
     startTime: "8:00",
     endTime: "15:00",
     location: "CSL 8",
+    hasIndicated: true,
   },
   {
     name: "Meeting Tres",
@@ -114,6 +116,7 @@ const dummyUnscheduledMeetings: UnscheduledMeeting[] = [
     startTime: "8:00",
     endTime: "15:00",
     location: "CSL 8",
+    hasIndicated: true,
   },
   {
     name: "Meeting Quatro",
@@ -124,6 +127,7 @@ const dummyUnscheduledMeetings: UnscheduledMeeting[] = [
     startTime: "8:00",
     endTime: "15:00",
     location: "CSL 8",
+    hasIndicated: false,
   },
 ];
 

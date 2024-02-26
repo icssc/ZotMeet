@@ -16,7 +16,7 @@
       class:bg-slate-400={!meeting.attendance}
       class="h-2 w-2 rounded-full"
     />
-    <span class="whitespace-nowrap text-xs font-semibold uppercase text-slate-400">
+    <span class="whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-slate-400">
       {#if meeting.attendance}
         {meeting.attendance}
       {:else}

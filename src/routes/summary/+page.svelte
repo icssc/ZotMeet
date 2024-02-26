@@ -1,13 +1,13 @@
 <script lang="ts">
   import GroupCarousel from "$lib/components/summary/GroupsCarousel.svelte";
   import ScheduledMeetingsList from "$lib/components/summary/ScheduledMeetings/ScheduledMeetingsList.svelte";
-  import UnscheduledMeetingsList from "$lib/components/summary/UnscheduledMeetingsList.svelte";
+  import UnscheduledMeetingsList from "$lib/components/summary/UnscheduledMeetings/UnscheduledMeetingsList.svelte";
 
   let currentTab: number = 0;
 </script>
 
 <main
-  class="flex max-h-[calc(100vh-1.5rem)] w-full flex-col gap-5 overflow-x-clip border-t-[1px] border-gray-300 bg-gray-100 px-2 pt-6 md:overflow-y-auto md:rounded-tl-xl lg:px-4"
+  class="flex min-h-screen w-full flex-col gap-5 overflow-x-clip border-t-[1px] border-gray-300 bg-gray-100 px-2 pb-20 pt-6 md:max-h-[calc(100vh-1.5rem)] md:min-h-0 md:overflow-y-auto md:rounded-tl-xl lg:px-4"
 >
   <div class="flex flex-col gap-2 px-4 lg:px-16">
     <h2 class="font-montserrat text-xl font-semibold text-gray-800 lg:text-3xl">Groups</h2>

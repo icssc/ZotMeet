@@ -11,6 +11,7 @@
 
 <div
   class="flex items-center gap-4 rounded-lg border-[1px] border-gray-300 bg-gray-50 bg-opacity-50 p-4 lg:max-w-7xl lg:p-6"
+  class:not-indicated={!meeting.attendance}
 >
   <div class="rounded-full border-[1px] border-gray-300 bg-slate-100 p-3 text-xl text-gray-500">
     <MaterialSymbolsGroupsOutline />
@@ -36,3 +37,9 @@
     <AvailabilityIndicator {meeting} />
   </div>
 </div>
+
+<style>
+  .not-indicated {
+    @apply border-2 border-dashed border-primary border-opacity-30;
+  }
+</style>

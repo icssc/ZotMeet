@@ -24,6 +24,7 @@ export type UnscheduledMeeting = {
   startTime: string;
   endTime: string;
   location: string;
+  hasIndicated: boolean;
 };
 
 export type MeetingTime = {
