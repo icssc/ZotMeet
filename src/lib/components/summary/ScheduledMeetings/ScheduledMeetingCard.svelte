@@ -38,7 +38,7 @@
   </div>
 </div>
 
-<style>
+<style lang="postcss">
   .not-indicated {
     @apply border-2 border-dashed border-primary border-opacity-30;
   }
