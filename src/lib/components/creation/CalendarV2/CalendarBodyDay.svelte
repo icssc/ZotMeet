@@ -14,7 +14,7 @@
     isHighlighted && "rounded-lg bg-slate-base text-gray-dark drop-shadow-none md:rounded-xl",
   )}
   data-day={calendarDay.getDay()}
-  data-month={calendarDay.getMonth()}
+  data-month={calendarDay.getMonth() + 1}
   data-year={calendarDay.getYear()}
   data-selected={calendarDay.isSelected}
 >
