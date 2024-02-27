@@ -10,7 +10,7 @@
   class:day-selected={calendarDay.isSelected}
   class:day-highlighted={isHighlighted}
   data-day={calendarDay.getDay()}
-  data-month={calendarDay.getMonth() + 1}
+  data-month={calendarDay.getMonth()}
   data-year={calendarDay.getYear()}
   data-selected={calendarDay.isSelected}
 >
