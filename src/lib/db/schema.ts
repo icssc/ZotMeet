@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   text,
   uuid,
@@ -8,9 +9,8 @@ import {
   smallint,
   date,
   numeric,
+  primaryKey,
 } from "drizzle-orm/pg-core";
-
-// import { relations } from 'drizzle-orm';
 
 export const zotMeet = pgSchema("zotmeet");
 
@@ -79,3 +79,61 @@ export const sessions = zotMeet.table(
     };
   },
 );
+
+export const userGroupMembers = zotMeet.table(
+  "users_in_group",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    groupId: uuid("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.groupId, table.userId] }),
+  }),
+);
+
+export const userRelations = relations(users, ({ many }) => ({
+  usersInGroups: many(userGroupMembers),
+  keys: many(keys),
+  sessions: many(sessions),
+}));
+
+export const groupsRelations = relations(groups, ({ many }) => ({
+  usersInGroups: many(userGroupMembers),
+  meetings: many(meetings),
+}));
+
+export const userGroupMemberRelations = relations(userGroupMembers, ({ one }) => ({
+  group: one(groups, {
+    fields: [userGroupMembers.groupId],
+    references: [groups.id],
+  }),
+  user: one(users, {
+    fields: [userGroupMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const meetingsRelations = relations(meetings, ({ one }) => ({
+  group: one(groups, {
+    fields: [meetings.group_id],
+    references: [groups.id],
+  }),
+}));
+
+export const keysRelations = relations(keys, ({ one }) => ({
+  users: one(users, {
+    fields: [keys.user_id],
+    references: [users.id],
+  }),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  users: one(users, {
+    fields: [sessions.user_id],
+    references: [users.id],
+  }),
+}));
