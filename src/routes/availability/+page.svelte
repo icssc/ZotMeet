@@ -1,8 +1,22 @@
 <script lang="ts">
   import { PersonalAvailability } from "$lib/components/availability";
+  import { editingAvailability, unsavedState } from "$lib/stores/availabilityStores";
+  import { cn } from "$lib/utils/utils";
+  import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
+  import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
   import PencilOutlineIcon from "~icons/mdi/pencil-outline";
 
   let currentTab: number = 0;
+
+  const handleSave = () => {
+    $editingAvailability = !$editingAvailability;
+    $unsavedState = false;
+  };
+
+  const handleCancel = () => {
+    $editingAvailability = !$editingAvailability;
+    $unsavedState = false;
+  };
 </script>
 
 <div class="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
@@ -10,12 +24,41 @@
     Sample Meeting Winter 2024
   </h1>
 
-  <button
-    class="flex-center btn btn-outline h-8 min-h-fit px-2 uppercase text-slate-medium md:w-24 md:p-0"
-  >
-    <span class="hidden md:flex">Edit</span>
-    <PencilOutlineIcon />
-  </button>
+  {#if $editingAvailability}
+    <div class="flex space-x-2 md:space-x-4">
+      <button
+        class={cn(
+          "flex-center btn btn-outline h-8 min-h-fit border-warning px-2 uppercase text-warning md:w-28 md:p-0",
+          "hover:border-warning hover:bg-warning hover:text-white",
+        )}
+        on:click={handleCancel}
+      >
+        <span class="hidden md:flex">Cancel</span>
+        <CancelCircleOutline />
+      </button>
+      <button
+        class={cn(
+          "flex-center btn btn-outline h-8 min-h-fit border-secondary px-2 uppercase text-secondary md:w-24 md:p-0",
+          "hover:border-secondary hover:bg-secondary hover:text-white",
+        )}
+        on:click={handleSave}
+      >
+        <span class="hidden md:flex">Save</span>
+        <CheckboxMarkerdCircleOutlineIcon />
+      </button>
+    </div>
+  {:else}
+    <button
+      class={cn(
+        "flex-center btn btn-outline h-8 min-h-fit border-slate-medium px-2 uppercase text-slate-medium md:w-24 md:p-0",
+        "hover:border-primary hover:bg-primary hover:text-white",
+      )}
+      on:click={() => ($editingAvailability = !$editingAvailability)}
+    >
+      <span class="hidden md:flex">Edit</span>
+      <PencilOutlineIcon />
+    </button>
+  {/if}
 </div>
 
 <div role="tablist" class="tabs tabs-bordered w-full px-2 md:px-4 lg:max-w-md lg:pl-[60px]">

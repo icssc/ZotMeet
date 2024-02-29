@@ -1,6 +1,11 @@
 <script lang="ts">
   import AvailabilityBlock from "$lib/components/availability/AvailabilityBlock.svelte";
-  import { availabilityDates, availabilityTimeBlocks } from "$lib/stores/availabilityStores";
+  import {
+    availabilityDates,
+    availabilityTimeBlocks,
+    editingAvailability,
+    unsavedState,
+  } from "$lib/stores/availabilityStores";
   import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
@@ -65,6 +70,8 @@
    * @param e a TouchEvent object from a mobile user
    */
   const handleTouchMove = (e: TouchEvent): void => {
+    if (!$editingAvailability) return;
+
     const touchingElement: Element | null = document.elementFromPoint(
       e.touches[0].clientX,
       e.touches[0].clientY,
@@ -92,6 +99,8 @@
    * @param startBlock the time block that the user originated the selection
    */
   const setAvailabilities = (startBlock: AvailabilityBlockType): void => {
+    if (!$editingAvailability) return;
+
     if (selectionState) {
       // Destructure user's selection state
       const { earlierDateIndex, laterDateIndex, earlierBlockIndex, laterBlockIndex } =
@@ -116,8 +125,18 @@
       startBlockSelection = null;
       endBlockSelection = null;
       selectionState = null;
+
+      $unsavedState = true;
     }
   };
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("beforeunload", (event) => {
+      if ($unsavedState) {
+        event.returnValue = `Are you sure you want to leave? You have unsaved changes!`;
+      }
+    });
+  }
 </script>
 
 <div class="flex items-center justify-between overflow-x-auto font-dm-sans">
@@ -203,13 +222,18 @@
               >
                 <button
                   on:touchstart={(e) => {
+                    if (!$editingAvailability) return;
+
                     if (e.cancelable) {
                       e.preventDefault();
                     }
+
                     startBlockSelection = availabilitySelection;
                     endBlockSelection = availabilitySelection;
                   }}
                   on:mousedown={() => {
+                    if (!$editingAvailability) return;
+
                     startBlockSelection = availabilitySelection;
                     endBlockSelection = availabilitySelection;
                   }}
@@ -234,6 +258,7 @@
                     isTopOfHour && "border-t-[1px] border-t-gray-medium",
                     isHalfHour && "border-t-[1px] border-t-gray-base",
                     isLastRow && "border-b-[1px]",
+                    !$editingAvailability && "disabled cursor-pointer",
                   )}
                 >
                   <AvailabilityBlock {isAvailable} {zotDateIndex} {blockIndex} {selectionState} />
