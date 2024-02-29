@@ -39,13 +39,23 @@ export const groups = zotMeet.table("groups", {
   created_at: timestamp("created_at"),
 });
 
-export const availabilities = zotMeet.table("availabilities", {
-  block_length: smallint("block_length").notNull().default(15),
-  day: date("day").notNull(),
-  earliest_time: numeric("earliest_time"),
-  latest_time: numeric("latest_time"),
-  availability_string: text("availability_string").notNull(),
-});
+export const availabilities = zotMeet.table(
+  "availabilities",
+  {
+    block_length: smallint("block_length").notNull().default(15),
+    day: date("day").notNull(),
+    user_id: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    group_id: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
+    earliest_time: numeric("earliest_time"),
+    latest_time: numeric("latest_time"),
+    availability_string: text("availability_string").notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.user_id, table.day] }),
+  }),
+);
 
 export const keys = zotMeet.table(
   "keys",
