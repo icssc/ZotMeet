@@ -61,6 +61,7 @@ model Meeting {
   to_time                 DateTime
   groupId                 String?
   MeetingUserAvailability MeetingUserAvailability[]
+  Guest                   Guest[]
 }
 
 model Group {
@@ -80,6 +81,7 @@ model MeetingUserAvailability {
   meetingId      String
   userId         String?
   availabilityId String?
+  Guest          Guest[]
 }
 
 model Availability {
@@ -90,4 +92,13 @@ model Availability {
   to_date                 String
   User                    User[]
   MeetingUserAvailability MeetingUserAvailability[]
+}
+
+model Guest {
+  id                        String                   @id @unique @default(cuid())
+  username                  String
+  meeting                   Meeting?                 @relation(fields: [meetingId], references: [id])
+  meetingUserAvailibility   MeetingUserAvailability? @relation(fields: [meetingUserAvailabilityId], references: [id])
+  meetingId                 String?
+  meetingUserAvailabilityId String?
 }
