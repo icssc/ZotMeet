@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { enhance } from "$app/forms";
   import { PersonalAvailability } from "$lib/components/availability";
   import { editingAvailability, unsavedState } from "$lib/stores/availabilityStores";
   import { cn } from "$lib/utils/utils";
@@ -6,9 +7,17 @@
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
   import PencilOutlineIcon from "~icons/mdi/pencil-outline";
 
+  export let data;
+
   let currentTab: number = 0;
 
   const handleSave = () => {
+    if (!data.user) {
+      console.log("no user");
+    } else {
+      console.log("saved");
+    }
+
     $editingAvailability = !$editingAvailability;
     $unsavedState = false;
   };
@@ -23,6 +32,19 @@
   <h1 class="line-clamp-1 font-montserrat text-xl font-medium md:text-3xl">
     Sample Meeting Winter 2024
   </h1>
+
+  <!-- Here for testing -->
+  {#if data.user}
+    <p>{data.user.firstName} {data.user.lastName} {data.user.userId}</p>
+
+    <div>
+      <form use:enhance action="/auth/logout" method="post">
+        <button type="submit" class="btn">
+          <span>Logout</span>
+        </button>
+      </form>
+    </div>
+  {/if}
 
   {#if $editingAvailability}
     <div class="flex space-x-2 md:space-x-4">
