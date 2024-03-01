@@ -42,18 +42,21 @@ export const groups = zotMeet.table("groups", {
 export const availabilities = zotMeet.table(
   "availabilities",
   {
-    block_length: smallint("block_length").notNull().default(15),
     day: date("day").notNull(),
     user_id: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    group_id: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
+    block_length: smallint("block_length").notNull().default(15),
+    meeting_id: uuid("meeting_id")
+      .references(() => meetings.id, { onDelete: "cascade" })
+      .notNull()
+      .default("0"),
     earliest_time: numeric("earliest_time"),
     latest_time: numeric("latest_time"),
     availability_string: text("availability_string").notNull(),
   },
   (table) => ({
-    pk: primaryKey({ columns: [table.user_id, table.day] }),
+    pk: primaryKey({ columns: [table.user_id, table.day, table.meeting_id] }),
   }),
 );
 
@@ -109,6 +112,7 @@ export const userRelations = relations(users, ({ many }) => ({
   usersInGroups: many(userGroupMembers),
   keys: many(keys),
   sessions: many(sessions),
+  availabilities: many(availabilities),
 }));
 
 export const groupsRelations = relations(groups, ({ many }) => ({
@@ -127,11 +131,12 @@ export const userGroupMemberRelations = relations(userGroupMembers, ({ one }) =>
   }),
 }));
 
-export const meetingsRelations = relations(meetings, ({ one }) => ({
+export const meetingsRelations = relations(meetings, ({ one, many }) => ({
   group: one(groups, {
     fields: [meetings.group_id],
     references: [groups.id],
   }),
+  availabilities: many(availabilities),
 }));
 
 export const keysRelations = relations(keys, ({ one }) => ({
@@ -144,6 +149,17 @@ export const keysRelations = relations(keys, ({ one }) => ({
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   users: one(users, {
     fields: [sessions.user_id],
+    references: [users.id],
+  }),
+}));
+
+export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
+  meetings: one(meetings, {
+    fields: [availabilities.meeting_id],
+    references: [meetings.id],
+  }),
+  users: one(users, {
+    fields: [availabilities.user_id],
     references: [users.id],
   }),
 }));
