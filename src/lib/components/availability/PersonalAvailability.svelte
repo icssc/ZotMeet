@@ -3,8 +3,11 @@
   import { availabilityDates, availabilityTimeBlocks } from "$lib/stores/availabilityStores";
   import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
+  import { cn } from "$lib/utils/utils";
 
-  const itemsPerPage: number = 3;
+  export let columns: number;
+
+  const itemsPerPage: number = columns;
   const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   const numPaddingDates: number =
     $availabilityDates.length % itemsPerPage === 0
@@ -117,121 +120,143 @@
   };
 </script>
 
-<div class="p-5">
-  <div class="flex items-center justify-between overflow-x-auto pt-5">
-    <button
-      on:click={() => {
-        if (currentPage > 0) {
-          currentPage = currentPage - 1;
-        }
-      }}
-      class="p-3 pl-1 disabled:opacity-0"
-      disabled={currentPage === 0}
-    >
-      <span class="text-3xl text-gray-500">&lsaquo;</span>
-    </button>
-    <table class="w-full table-fixed">
-      <thead>
-        <tr>
-          <th style="width: 4rem"><span class="sr-only">Time</span></th>
-          {#each currentPageAvailability as dateHeader}
-            <th class="text-sm font-normal">
-              {#if dateHeader}
-                {dateHeader.day.toLocaleDateString("en-US", {
-                  weekday: "short",
-                  month: "numeric",
-                  day: "numeric",
-                })}
-              {/if}
-            </th>
-          {/each}
-        </tr>
-      </thead>
-      <tbody>
-        {#each $availabilityTimeBlocks as timeBlock, blockIndex (`block-${timeBlock}`)}
-          {@const isTopOfHour = timeBlock % 60 === 0}
-          {@const isHalfHour = timeBlock % 60 === 30}
-          {@const isLastRow = blockIndex === $availabilityTimeBlocks.length - 1}
-          <tr>
-            <td class="border-r-2 border-r-neutral-800 py-0 pr-1 align-top">
-              {#if isTopOfHour}
-                <span class="float-right whitespace-nowrap text-xs">
-                  {ZotDate.toTimeBlockString(timeBlock)}
+<div class="flex items-center justify-between overflow-x-auto font-dm-sans">
+  <button
+    on:click={() => {
+      if (currentPage > 0) {
+        currentPage = currentPage - 1;
+      }
+    }}
+    class="p-3 disabled:opacity-0 md:pl-1"
+    disabled={currentPage === 0}
+  >
+    <span class="text-3xl text-gray-500">&lsaquo;</span>
+  </button>
+
+  <table class="w-full table-fixed">
+    <thead>
+      <tr>
+        <th class="w-10 md:w-16"><span class="sr-only">Time</span></th>
+        {#each currentPageAvailability as dateHeader}
+          <th class="text-sm font-normal">
+            {#if dateHeader}
+              <div class="flex flex-col">
+                <span class="text-[10px] font-bold uppercase text-gray-500 md:text-xs">
+                  {dateHeader.day.toLocaleDateString("en-US", {
+                    weekday: "short",
+                  })}
                 </span>
-              {/if}
-            </td>
-            {#each currentPageAvailability as selectedDate, pageDateIndex (generateDateKey(selectedDate, timeBlock, pageDateIndex))}
-              {#if selectedDate}
-                {@const zotDateIndex = pageDateIndex + currentPage * itemsPerPage}
-                {@const availabilitySelection = {
-                  zotDateIndex: zotDateIndex,
-                  blockIndex: blockIndex,
+
+                <span class="text-center text-[12px] uppercase text-gray-medium md:text-base">
+                  {dateHeader.day.toLocaleDateString("en-US", {
+                    month: "numeric",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+            {/if}
+          </th>
+        {/each}
+      </tr>
+    </thead>
+
+    <tr class="h-2" />
+
+    <tbody>
+      {#each $availabilityTimeBlocks as timeBlock, blockIndex (`block-${timeBlock}`)}
+        {@const isTopOfHour = timeBlock % 60 === 0}
+        {@const isHalfHour = timeBlock % 60 === 30}
+        {@const isLastRow = blockIndex === $availabilityTimeBlocks.length - 1}
+        <tr>
+          <td class="w-2 border-r-[1px] border-r-gray-medium py-0 pr-3 align-top">
+            {#if isTopOfHour}
+              <span
+                class="float-right hidden whitespace-nowrap text-[10px] font-bold text-gray-medium md:flex md:text-xs"
+              >
+                {ZotDate.toTimeBlockString(timeBlock, false)}
+              </span>
+              <span
+                class="float-right flex whitespace-nowrap text-[10px] font-bold text-gray-medium md:hidden md:text-xs"
+              >
+                {ZotDate.toTimeBlockString(timeBlock, true)}
+              </span>
+            {/if}
+          </td>
+
+          {#each currentPageAvailability as selectedDate, pageDateIndex (generateDateKey(selectedDate, timeBlock, pageDateIndex))}
+            {#if selectedDate}
+              {@const zotDateIndex = pageDateIndex + currentPage * itemsPerPage}
+              {@const availabilitySelection = {
+                zotDateIndex: zotDateIndex,
+                blockIndex: blockIndex,
+              }}
+              {@const isAvailable = selectedDate.getBlockAvailability(blockIndex)}
+
+              <td
+                on:mouseup={() => {
+                  if (startBlockSelection) {
+                    endBlockSelection = availabilitySelection;
+                    setAvailabilities(startBlockSelection);
+                  }
                 }}
-                {@const isAvailable = selectedDate.getBlockAvailability(blockIndex)}
-                <td
-                  on:mouseup={() => {
+                class="px-0 py-0"
+              >
+                <button
+                  on:touchstart={(e) => {
+                    if (e.cancelable) {
+                      e.preventDefault();
+                    }
+                    startBlockSelection = availabilitySelection;
+                    endBlockSelection = availabilitySelection;
+                  }}
+                  on:mousedown={() => {
+                    startBlockSelection = availabilitySelection;
+                    endBlockSelection = availabilitySelection;
+                  }}
+                  on:touchmove={handleTouchMove}
+                  on:mousemove={() => {
+                    if (startBlockSelection) {
+                      endBlockSelection = availabilitySelection;
+                    }
+                  }}
+                  on:touchend={(e) => {
+                    if (e.cancelable) {
+                      e.preventDefault();
+                    }
                     if (startBlockSelection) {
                       endBlockSelection = availabilitySelection;
                       setAvailabilities(startBlockSelection);
                     }
                   }}
-                  class="px-0 py-0"
+                  tabindex="0"
+                  class={cn(
+                    "block h-full w-full cursor-row-resize border-r-[1px] border-gray-medium",
+                    isTopOfHour && "border-t-[1px] border-t-gray-medium",
+                    isHalfHour && "border-t-[1px] border-t-gray-base",
+                    isLastRow && "border-b-[1px]",
+                  )}
                 >
-                  <button
-                    on:touchstart={(e) => {
-                      if (e.cancelable) {
-                        e.preventDefault();
-                      }
-                      startBlockSelection = availabilitySelection;
-                      endBlockSelection = availabilitySelection;
-                    }}
-                    on:mousedown={() => {
-                      startBlockSelection = availabilitySelection;
-                      endBlockSelection = availabilitySelection;
-                    }}
-                    on:touchmove={handleTouchMove}
-                    on:mousemove={() => {
-                      if (startBlockSelection) {
-                        endBlockSelection = availabilitySelection;
-                      }
-                    }}
-                    on:touchend={(e) => {
-                      if (e.cancelable) {
-                        e.preventDefault();
-                      }
-                      if (startBlockSelection) {
-                        endBlockSelection = availabilitySelection;
-                        setAvailabilities(startBlockSelection);
-                      }
-                    }}
-                    tabindex="0"
-                    class={`block h-full w-full ${
-                      isTopOfHour && "border-t-2 border-t-neutral-800"
-                    } ${isHalfHour && "border-t-[1px] border-t-neutral-600"} ${
-                      isLastRow && "border-b-2"
-                    } cursor-row-resize border-r-2 border-neutral-600`}
-                  >
-                    <AvailabilityBlock {isAvailable} {zotDateIndex} {blockIndex} {selectionState} />
-                  </button>
-                </td>
-              {:else}
-                <td></td>
-              {/if}
-            {/each}
-          </tr>
-        {/each}
-      </tbody>
-    </table>
-    <button
-      on:click={() => {
-        if (currentPage < lastPage) {
-          currentPage = currentPage + 1;
-        }
-      }}
-      class="p-3 pr-1 disabled:opacity-0"
-      disabled={currentPage === lastPage}
-    >
-      <span class="text-3xl text-gray-500">&rsaquo;</span>
-    </button>
-  </div>
+                  <AvailabilityBlock {isAvailable} {zotDateIndex} {blockIndex} {selectionState} />
+                </button>
+              </td>
+            {:else}
+              <td></td>
+            {/if}
+          {/each}
+        </tr>
+      {/each}
+    </tbody>
+  </table>
+
+  <button
+    on:click={() => {
+      if (currentPage < lastPage) {
+        currentPage = currentPage + 1;
+      }
+    }}
+    class="p-3 disabled:opacity-0 md:pr-1"
+    disabled={currentPage === lastPage}
+  >
+    <span class="text-3xl text-gray-500">&rsaquo;</span>
+  </button>
 </div>

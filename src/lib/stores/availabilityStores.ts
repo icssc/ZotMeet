@@ -20,13 +20,13 @@ const latestTime: number = getTimeFromHoursAndMinutes(17, 30);
 const generateSampleDates = (): ZotDate[] => {
   // Placeholder date array from Calendar component
   const selectedCalendarDates: ZotDate[] = [
-    new ZotDate(new Date("1 1 2024")),
-    new ZotDate(new Date("1 2 2024")),
-    new ZotDate(new Date("1 3 2024")),
-    new ZotDate(new Date("1 4 2024")),
-    new ZotDate(new Date("1 5 2024")),
-    new ZotDate(new Date("1 6 2024")),
-    new ZotDate(new Date("1 7 2024")),
+    new ZotDate(new Date(2024, 1, 1)),
+    new ZotDate(new Date(2024, 1, 2)),
+    new ZotDate(new Date(2024, 1, 3)),
+    new ZotDate(new Date(2024, 1, 4)),
+    new ZotDate(new Date(2024, 1, 5)),
+    new ZotDate(new Date(2024, 1, 6)),
+    new ZotDate(new Date(2024, 1, 7)),
   ];
 
   ZotDate.initializeAvailabilities(selectedCalendarDates, earliestTime, latestTime, BLOCK_LENGTH);

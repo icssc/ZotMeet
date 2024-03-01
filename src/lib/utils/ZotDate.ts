@@ -229,7 +229,7 @@ export class ZotDate {
    * @param minutesFromMidnight number of minutes from midnight
    * @returns a "HH:MM AM|PM" formatted string
    */
-  static toTimeBlockString(minutesFromMidnight: number): string {
+  static toTimeBlockString(minutesFromMidnight: number, abbreviated: boolean): string {
     let isAM = true;
 
     let hour = Math.floor(minutesFromMidnight / 60);
@@ -246,7 +246,7 @@ export class ZotDate {
 
     const formattedMinutes = (minutesFromMidnight % 60).toString().padStart(2, "0");
 
-    return `${hour}:${formattedMinutes} ${isAM ? "AM" : "PM"}`;
+    return `${hour}${abbreviated ? "" : ":" + formattedMinutes} ${isAM ? "AM" : "PM"}`;
   }
 
   /**
