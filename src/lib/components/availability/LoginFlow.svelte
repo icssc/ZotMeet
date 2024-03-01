@@ -5,8 +5,8 @@
   import BrightnessAlert from "~icons/material-symbols/brightness-alert-outline-rounded";
   import EmailIcon from "~icons/mdi/email";
   import KeyIcon from "~icons/mdi/key";
-  import UserIcon from "~icons/mdi/user";
   import Loader from "~icons/mdi/loading";
+  import UserIcon from "~icons/mdi/user";
 
   export let data;
 
@@ -20,12 +20,21 @@
 
 <dialog id="auth_modal" class="modal">
   <div class="modal-box min-w-fit">
+    <form method="dialog">
+      <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
+    </form>
+
     <div class="flex h-full w-full">
-      <div class="card grid min-h-full w-[50%] rounded-box align-top">
+      <div class="card grid w-[50%] rounded-box align-top">
         <div class="modal-action mt-0 flex flex-col justify-start gap-y-6">
           <h3 class="h-fit px-2 text-left text-xl font-bold">Login</h3>
 
-          <form method="POST" action="/auth/login" use:enhance>
+          <form
+            method="POST"
+            action="/auth/login"
+            use:enhance
+            class="flex-center grow items-center"
+          >
             {#if $errors._errors}
               <aside class="variant-filled-error alert mt-6">
                 <div><BrightnessAlert /></div>
@@ -72,22 +81,22 @@
                 {/if}
               </button>
             </div>
-
-            <!-- <form method="dialog">
-              if there is a button in form, it will close the modal
-              <button class="btn">Close</button>
-            </form> -->
           </form>
         </div>
       </div>
 
       <div class="divider divider-horizontal">OR</div>
 
-      <div class="card grid min-h-full w-[50%] rounded-box align-top">
-        <div class="modal-action mt-0 flex h-full flex-col justify-start gap-y-6">
+      <div class="card grid w-[50%] rounded-box align-top">
+        <div class="modal-action mt-0 flex flex-col justify-start gap-y-6">
           <h3 class="h-fit px-2 text-left text-xl font-bold">Save as Guest</h3>
 
-          <form method="POST" action="/auth/login" use:enhance class="min-h-full">
+          <form
+            method="POST"
+            action="/auth/login"
+            use:enhance
+            class="flex-center grow items-center"
+          >
             {#if $errors._errors}
               <aside class="variant-filled-error alert mt-6">
                 <div><BrightnessAlert /></div>
@@ -100,7 +109,7 @@
               </aside>
             {/if}
 
-            <div class="mt-auto flex flex-col gap-y-4">
+            <div class="flex flex-col gap-y-4">
               <label class="input input-bordered flex items-center gap-2">
                 <UserIcon class="text-slate-medium" />
                 <input
@@ -118,14 +127,14 @@
                 {/if}
               </button>
             </div>
-
-            <!-- <form method="dialog">
-            if there is a button in form, it will close the modal
-            <button class="btn">Close</button>
-          </form> -->
           </form>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Closes the modal -->
+  <form method="dialog" class="modal-backdrop">
+    <button />
+  </form>
 </dialog>
