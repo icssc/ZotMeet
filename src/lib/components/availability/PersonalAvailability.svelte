@@ -9,8 +9,10 @@
   import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
+  import LoginFlow from "./LoginFlow.svelte";
 
   export let columns: number;
+  export let data: { user: Lucia.UserAttributes };
 
   const itemsPerPage: number = columns;
   const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
@@ -285,3 +287,5 @@
     <span class="text-3xl text-gray-500">&rsaquo;</span>
   </button>
 </div>
+
+<LoginFlow {data} />

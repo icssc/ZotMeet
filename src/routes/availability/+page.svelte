@@ -11,14 +11,26 @@
 
   let currentTab: number = 0;
 
+  const handlEdit = () => {
+    $editingAvailability = true;
+
+    const authModal = document.getElementById("auth_modal") as HTMLDialogElement;
+    if (authModal) {
+      authModal.showModal();
+    }
+  };
+
   const handleSave = () => {
     if (!data.user) {
-      console.log("no user");
+      const authModal = document.getElementById("auth_modal") as HTMLDialogElement;
+      if (authModal) {
+        authModal.showModal();
+      }
     } else {
       console.log("saved");
     }
 
-    $editingAvailability = !$editingAvailability;
+    $editingAvailability = false;
     $unsavedState = false;
   };
 
@@ -75,7 +87,7 @@
         "flex-center btn btn-outline h-8 min-h-fit border-slate-medium px-2 uppercase text-slate-medium md:w-24 md:p-0",
         "hover:border-primary hover:bg-primary hover:text-white",
       )}
-      on:click={() => ($editingAvailability = !$editingAvailability)}
+      on:click={handlEdit}
     >
       <span class="hidden md:flex">Edit</span>
       <PencilOutlineIcon />
@@ -112,11 +124,11 @@
       class="w-full rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#F680670D] to-[#377CFB0D] p-2 pt-4 md:p-6"
     >
       <div class="hidden md:flex">
-        <PersonalAvailability columns={5} />
+        <PersonalAvailability columns={5} {data} />
       </div>
 
       <div class="flex md:hidden">
-        <PersonalAvailability columns={4} />
+        <PersonalAvailability columns={4} {data} />
       </div>
     </div>
   {:else if currentTab === 1}
