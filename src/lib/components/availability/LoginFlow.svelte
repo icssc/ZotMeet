@@ -8,13 +8,29 @@
   import Loader from "~icons/mdi/loading";
   import UserIcon from "~icons/mdi/user";
 
-  export let data;
+  import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
+  import type { AnyZodObject } from "zod";
+
+  export let data: {
+    user: Lucia.UserAttributes;
+    form: SuperValidated<ZodValidation<AnyZodObject>>;
+  };
 
   const loginSchema = userSchema.pick({ email: true, password: true });
   const { form, errors, enhance, delayed } = superForm(data.form, {
     taintedMessage: null,
     validators: loginSchema,
     delayMs: 0,
+    onUpdated({ form }) {
+      if (form.valid && data.user) {
+        const authModal = document.getElementById("auth_modal") as HTMLDialogElement;
+        if (authModal) {
+          authModal.close();
+        }
+
+        // TODO: Update DB with data
+      }
+    },
   });
 </script>
 
@@ -51,7 +67,9 @@
               <label class="input input-bordered flex items-center gap-2">
                 <EmailIcon class="text-slate-medium" />
                 <input
-                  type="text"
+                  id="email"
+                  name="email"
+                  type="email"
                   class="grow appearance-none border-none focus:border-none focus:outline-none focus:ring-0"
                   placeholder="email"
                   autocomplete="email"
@@ -60,10 +78,15 @@
                   class:input-error={$errors.email}
                 />
               </label>
+              {#if $errors.email}
+                <small>{$errors.email}</small>
+              {/if}
 
               <label class="input input-bordered flex items-center gap-2">
                 <KeyIcon class="text-slate-medium" />
                 <input
+                  id="password"
+                  name="password"
                   type="password"
                   class="grow appearance-none border-none focus:border-none focus:outline-none focus:ring-0"
                   placeholder="password"
@@ -72,6 +95,9 @@
                   class:input-error={$errors.password}
                 />
               </label>
+              {#if $errors.password}
+                <small>{$errors.password}</small>
+              {/if}
 
               <button type="submit" class="variant-filled-primary btn h-10 w-full">
                 {#if $delayed}
@@ -91,12 +117,7 @@
         <div class="modal-action mt-0 flex flex-col justify-start gap-y-6">
           <h3 class="h-fit px-2 text-left text-xl font-bold">Save as Guest</h3>
 
-          <form
-            method="POST"
-            action="/auth/login"
-            use:enhance
-            class="flex-center grow items-center"
-          >
+          <form method="POST" action="TODO" use:enhance class="flex-center grow items-center">
             {#if $errors._errors}
               <aside class="variant-filled-error alert mt-6">
                 <div><BrightnessAlert /></div>

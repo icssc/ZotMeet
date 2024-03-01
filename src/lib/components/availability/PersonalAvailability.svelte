@@ -11,8 +11,14 @@
   import { cn } from "$lib/utils/utils";
   import LoginFlow from "./LoginFlow.svelte";
 
+  import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
+  import type { AnyZodObject } from "zod";
+
   export let columns: number;
-  export let data: { user: Lucia.UserAttributes };
+  export let data: {
+    user: Lucia.UserAttributes;
+    form: SuperValidated<ZodValidation<AnyZodObject>>;
+  };
 
   const itemsPerPage: number = columns;
   const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
@@ -72,8 +78,6 @@
    * @param e a TouchEvent object from a mobile user
    */
   const handleTouchMove = (e: TouchEvent): void => {
-    if (!$editingAvailability) return;
-
     const touchingElement: Element | null = document.elementFromPoint(
       e.touches[0].clientX,
       e.touches[0].clientY,
@@ -101,7 +105,9 @@
    * @param startBlock the time block that the user originated the selection
    */
   const setAvailabilities = (startBlock: AvailabilityBlockType): void => {
-    if (!$editingAvailability) return;
+    if (!$editingAvailability) {
+      $editingAvailability = true;
+    }
 
     if (selectionState) {
       // Destructure user's selection state
@@ -224,8 +230,6 @@
               >
                 <button
                   on:touchstart={(e) => {
-                    if (!$editingAvailability) return;
-
                     if (e.cancelable) {
                       e.preventDefault();
                     }
@@ -234,8 +238,6 @@
                     endBlockSelection = availabilitySelection;
                   }}
                   on:mousedown={() => {
-                    if (!$editingAvailability) return;
-
                     startBlockSelection = availabilitySelection;
                     endBlockSelection = availabilitySelection;
                   }}
@@ -260,7 +262,6 @@
                     isTopOfHour && "border-t-[1px] border-t-gray-medium",
                     isHalfHour && "border-t-[1px] border-t-gray-base",
                     isLastRow && "border-b-[1px]",
-                    !$editingAvailability && "disabled cursor-pointer",
                   )}
                 >
                   <AvailabilityBlock {isAvailable} {zotDateIndex} {blockIndex} {selectionState} />

@@ -5,20 +5,16 @@
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
-  import PencilOutlineIcon from "~icons/mdi/pencil-outline";
 
-  export let data;
+  import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
+  import type { AnyZodObject } from "zod";
+
+  export let data: {
+    user: Lucia.UserAttributes;
+    form: SuperValidated<ZodValidation<AnyZodObject>>;
+  };
 
   let currentTab: number = 0;
-
-  const handlEdit = () => {
-    $editingAvailability = true;
-
-    const authModal = document.getElementById("auth_modal") as HTMLDialogElement;
-    if (authModal) {
-      authModal.showModal();
-    }
-  };
 
   const handleSave = () => {
     if (!data.user) {
@@ -35,6 +31,8 @@
   };
 
   const handleCancel = () => {
+    // TODO: Repopulate prior state from DB
+
     $editingAvailability = !$editingAvailability;
     $unsavedState = false;
   };
@@ -82,16 +80,16 @@
       </button>
     </div>
   {:else}
-    <button
+    <!-- <button
       class={cn(
         "flex-center btn btn-outline h-8 min-h-fit border-slate-medium px-2 uppercase text-slate-medium md:w-24 md:p-0",
         "hover:border-primary hover:bg-primary hover:text-white",
       )}
-      on:click={handlEdit}
+      on:click={handleEdit}
     >
       <span class="hidden md:flex">Edit</span>
       <PencilOutlineIcon />
-    </button>
+    </button> -->
   {/if}
 </div>
 
