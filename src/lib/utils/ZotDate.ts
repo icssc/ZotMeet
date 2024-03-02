@@ -145,7 +145,7 @@ export class ZotDate {
     const isSelected = element.getAttribute("data-selected") === "true";
 
     if ([day, month, year, isSelected].every((attr) => !Number.isNaN(attr) && attr !== null)) {
-      const newDay = new Date(`${month}-${day}-${year}`);
+      const newDay = new Date(year, month, day);
       return new ZotDate(newDay, isSelected);
     }
 
