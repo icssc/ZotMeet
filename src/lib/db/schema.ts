@@ -30,6 +30,7 @@ export const meetings = zotMeet.table("meetings", {
   from_time: timestamp("from_time").notNull(),
   to_time: timestamp("to_time").notNull(),
   group_id: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
+  host_id: uuid("host_id").references(() => users.id),
 });
 
 export const groups = zotMeet.table("groups", {
@@ -121,20 +122,24 @@ export const groupsRelations = relations(groups, ({ many }) => ({
 }));
 
 export const userGroupMemberRelations = relations(userGroupMembers, ({ one }) => ({
-  group: one(groups, {
+  groups: one(groups, {
     fields: [userGroupMembers.groupId],
     references: [groups.id],
   }),
-  user: one(users, {
+  users: one(users, {
     fields: [userGroupMembers.userId],
     references: [users.id],
   }),
 }));
 
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
-  group: one(groups, {
+  groups: one(groups, {
     fields: [meetings.group_id],
     references: [groups.id],
+  }),
+  users: one(users, {
+    fields: [meetings.host_id],
+    references: [users.id],
   }),
   availabilities: many(availabilities),
 }));
