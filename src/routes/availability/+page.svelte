@@ -24,10 +24,10 @@
       }
     } else {
       console.log("saved");
-    }
 
-    $editingAvailability = false;
-    $unsavedState = false;
+      $editingAvailability = false;
+      $unsavedState = false;
+    }
   };
 
   const handleCancel = () => {
