@@ -15,9 +15,11 @@
   export let data: {
     user: Lucia.UserAttributes;
     form: SuperValidated<ZodValidation<AnyZodObject>>;
+    guestForm: SuperValidated<ZodValidation<AnyZodObject>>;
   };
 
   const loginSchema = userSchema.pick({ email: true, password: true });
+  const guestSchema = userSchema.pick({ firstName: true });
   const { form, errors, enhance, delayed } = superForm(data.form, {
     taintedMessage: null,
     validators: loginSchema,
@@ -32,6 +34,30 @@
         $editingAvailability = false;
         $unsavedState = false;
         // TODO: Update DB with data
+      }
+    },
+  });
+
+  const {
+    form: guestForm,
+    errors: guestErrors,
+    enhance: guestEnhance,
+    delayed: guestDelayed,
+  } = superForm(data.guestForm, {
+    taintedMessage: null,
+    validators: loginSchema,
+    delayMs: 0,
+    onUpdated({ form }) {
+      if (form.valid) {
+        const authModal = document.getElementById("auth_modal") as HTMLDialogElement;
+        if (authModal) {
+          authModal.close();
+        }
+
+        $editingAvailability = false;
+        $unsavedState = false;
+
+        // TODO: Update DB with guest data
       }
     },
   });
@@ -52,10 +78,10 @@
             method="POST"
             action="/auth/login"
             use:enhance
-            class="flex-center grow items-center"
+            class="flex-center w-[250px] grow flex-col items-center space-y-4"
           >
             {#if $errors._errors}
-              <aside class="variant-filled-error alert mt-6">
+              <aside class="variant-filled-error alert">
                 <div><BrightnessAlert /></div>
 
                 <!-- Message -->
@@ -120,15 +146,20 @@
         <div class="modal-action mt-0 flex flex-col justify-start gap-y-6">
           <h3 class="h-fit px-2 text-left text-xl font-bold">Save as Guest</h3>
 
-          <form method="POST" action="TODO" use:enhance class="flex-center grow items-center">
-            {#if $errors._errors}
-              <aside class="variant-filled-error alert mt-6">
+          <form
+            method="POST"
+            action="TODO"
+            use:guestEnhance
+            class="flex-center w-[250px] grow flex-col items-center space-y-4"
+          >
+            {#if $guestErrors._errors}
+              <aside class="variant-filled-error alert">
                 <div><BrightnessAlert /></div>
 
                 <!-- Message -->
                 <div class="alert-message">
                   <h3 class="h3">Login Problem</h3>
-                  <p>{$errors._errors}</p>
+                  <p>{$guestErrors._errors}</p>
                 </div>
               </aside>
             {/if}
@@ -140,11 +171,12 @@
                   type="text"
                   class="grow appearance-none border-none focus:border-none focus:outline-none focus:ring-0"
                   placeholder="username"
+                  bind:value={$guestForm.firstName}
                 />
               </label>
 
               <button type="submit" class="variant-filled-primary btn h-10 w-full">
-                {#if $delayed}
+                {#if $guestDelayed}
                   <Loader class="animate-spin" />
                 {:else}
                   Save

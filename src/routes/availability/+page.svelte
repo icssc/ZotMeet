@@ -12,6 +12,7 @@
   export let data: {
     user: Lucia.UserAttributes;
     form: SuperValidated<ZodValidation<AnyZodObject>>;
+    guestForm: SuperValidated<ZodValidation<AnyZodObject>>;
   };
 
   let currentTab: number = 0;

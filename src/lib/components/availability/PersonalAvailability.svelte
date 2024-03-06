@@ -18,6 +18,7 @@
   export let data: {
     user: Lucia.UserAttributes;
     form: SuperValidated<ZodValidation<AnyZodObject>>;
+    guestForm: SuperValidated<ZodValidation<AnyZodObject>>;
   };
 
   const itemsPerPage: number = columns;
