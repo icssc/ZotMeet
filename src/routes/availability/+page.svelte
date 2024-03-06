@@ -40,7 +40,7 @@
 </script>
 
 <div class="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
-  <h1 class="line-clamp-1 font-montserrat text-xl font-medium md:text-3xl">
+  <h1 class="line-clamp-1 h-8 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
     Sample Meeting Winter 2024
   </h1>
 
