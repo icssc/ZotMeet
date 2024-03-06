@@ -1,7 +1,7 @@
 <script lang="ts">
   import { superForm } from "sveltekit-superforms/client";
 
-  import { userSchema } from "$lib/config/zod-schemas";
+  import { guestSchema, userSchema } from "$lib/config/zod-schemas";
   import BrightnessAlert from "~icons/material-symbols/brightness-alert-outline-rounded";
   import EmailIcon from "~icons/mdi/email";
   import KeyIcon from "~icons/mdi/key";
@@ -19,7 +19,7 @@
   };
 
   const loginSchema = userSchema.pick({ email: true, password: true });
-  const guestSchema = userSchema.pick({ firstName: true });
+  const guestLoginSchema = guestSchema.pick({ username: true });
   const { form, errors, enhance, delayed } = superForm(data.form, {
     taintedMessage: null,
     validators: loginSchema,
@@ -45,7 +45,7 @@
     delayed: guestDelayed,
   } = superForm(data.guestForm, {
     taintedMessage: null,
-    validators: loginSchema,
+    validators: guestLoginSchema,
     delayMs: 0,
     onUpdated({ form }) {
       if (form.valid) {
