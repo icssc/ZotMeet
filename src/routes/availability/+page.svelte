@@ -79,17 +79,6 @@
         <CheckboxMarkerdCircleOutlineIcon />
       </button>
     </div>
-  {:else}
-    <!-- <button
-      class={cn(
-        "flex-center btn btn-outline h-8 min-h-fit border-slate-medium px-2 uppercase text-slate-medium md:w-24 md:p-0",
-        "hover:border-primary hover:bg-primary hover:text-white",
-      )}
-      on:click={handleEdit}
-    >
-      <span class="hidden md:flex">Edit</span>
-      <PencilOutlineIcon />
-    </button> -->
   {/if}
 </div>
 
