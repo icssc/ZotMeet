@@ -1,5 +1,11 @@
 CREATE SCHEMA "zotmeet";
 --> statement-breakpoint
+DO $$ BEGIN
+ CREATE TYPE "attendance" AS ENUM('accepted', 'maybe', 'declined');
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "zotmeet"."availabilities" (
 	"day" date NOT NULL,
 	"user_id" uuid NOT NULL,
@@ -47,6 +53,13 @@ CREATE TABLE IF NOT EXISTS "zotmeet"."users_in_group" (
 	"user_id" uuid NOT NULL,
 	"group_id" uuid NOT NULL,
 	CONSTRAINT "users_in_group_group_id_user_id_pk" PRIMARY KEY("group_id","user_id")
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "zotmeet"."users_in_meeting" (
+	"user_id" uuid NOT NULL,
+	"meeting_id" uuid NOT NULL,
+	"attendance" "attendance",
+	CONSTRAINT "users_in_meeting_user_id_meeting_id_pk" PRIMARY KEY("user_id","meeting_id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "zotmeet"."user" (
@@ -104,6 +117,18 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "zotmeet"."users_in_group" ADD CONSTRAINT "users_in_group_group_id_groups_id_fk" FOREIGN KEY ("group_id") REFERENCES "zotmeet"."groups"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "zotmeet"."users_in_meeting" ADD CONSTRAINT "users_in_meeting_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "zotmeet"."user"("id") ON DELETE cascade ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "zotmeet"."users_in_meeting" ADD CONSTRAINT "users_in_meeting_meeting_id_meetings_id_fk" FOREIGN KEY ("meeting_id") REFERENCES "zotmeet"."meetings"("id") ON DELETE cascade ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

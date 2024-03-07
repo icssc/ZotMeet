@@ -1,5 +1,5 @@
 {
-  "id": "5fe6d955-278a-4df0-9366-49a90d2d32c8",
+  "id": "7886a02b-fc60-4c07-9b59-98e5990eb77a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -349,6 +349,60 @@
       },
       "uniqueConstraints": {}
     },
+    "users_in_meeting": {
+      "name": "users_in_meeting",
+      "schema": "zotmeet",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meeting_id": {
+          "name": "meeting_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attendance": {
+          "name": "attendance",
+          "type": "attendance",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "users_in_meeting_user_id_user_id_fk": {
+          "name": "users_in_meeting_user_id_user_id_fk",
+          "tableFrom": "users_in_meeting",
+          "tableTo": "user",
+          "schemaTo": "zotmeet",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "users_in_meeting_meeting_id_meetings_id_fk": {
+          "name": "users_in_meeting_meeting_id_meetings_id_fk",
+          "tableFrom": "users_in_meeting",
+          "tableTo": "meetings",
+          "schemaTo": "zotmeet",
+          "columnsFrom": ["meeting_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "users_in_meeting_user_id_meeting_id_pk": {
+          "name": "users_in_meeting_user_id_meeting_id_pk",
+          "columns": ["user_id", "meeting_id"]
+        }
+      },
+      "uniqueConstraints": {}
+    },
     "user": {
       "name": "user",
       "schema": "zotmeet",
@@ -396,7 +450,16 @@
       }
     }
   },
-  "enums": {},
+  "enums": {
+    "attendance": {
+      "name": "attendance",
+      "values": {
+        "accepted": "accepted",
+        "maybe": "maybe",
+        "declined": "declined"
+      }
+    }
+  },
   "schemas": {
     "zotmeet": "zotmeet"
   },

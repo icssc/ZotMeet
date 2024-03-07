@@ -10,9 +10,13 @@ import {
   date,
   numeric,
   primaryKey,
+  pgEnum,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const zotMeet = pgSchema("zotmeet");
+
+export const attendanceEnum = pgEnum("attendance", ["accepted", "maybe", "declined"]);
 
 export const users = zotMeet.table("user", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -27,6 +31,7 @@ export const meetings = zotMeet.table("meetings", {
   date: timestamp("date").notNull(),
   description: text("description"),
   location: text("location"),
+  scheduled: boolean("scheduled"),
   from_time: timestamp("from_time").notNull(),
   to_time: timestamp("to_time").notNull(),
   group_id: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
@@ -109,11 +114,28 @@ export const userGroupMembers = zotMeet.table(
   }),
 );
 
+export const userMeetingMembers = zotMeet.table(
+  "users_in_meeting",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    meetingId: uuid("meeting_id")
+      .notNull()
+      .references(() => meetings.id, { onDelete: "cascade" }),
+    attending: attendanceEnum("attendance"),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.meetingId] }),
+  }),
+);
+
 export const userRelations = relations(users, ({ many }) => ({
   usersInGroups: many(userGroupMembers),
   keys: many(keys),
   sessions: many(sessions),
   availabilities: many(availabilities),
+  userMeetingMembers: many(userMeetingMembers),
 }));
 
 export const groupsRelations = relations(groups, ({ many }) => ({
@@ -132,6 +154,17 @@ export const userGroupMemberRelations = relations(userGroupMembers, ({ one }) =>
   }),
 }));
 
+export const userMeetingMemberRelations = relations(userMeetingMembers, ({ one }) => ({
+  groups: one(meetings, {
+    fields: [userMeetingMembers.meetingId],
+    references: [meetings.id],
+  }),
+  users: one(users, {
+    fields: [userMeetingMembers.userId],
+    references: [users.id],
+  }),
+}));
+
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
   groups: one(groups, {
     fields: [meetings.group_id],
@@ -142,6 +175,7 @@ export const meetingsRelations = relations(meetings, ({ one, many }) => ({
     references: [users.id],
   }),
   availabilities: many(availabilities),
+  userMeetingMembers: many(userMeetingMembers),
 }));
 
 export const keysRelations = relations(keys, ({ one }) => ({
