@@ -1,7 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-
-  import { enhance } from "$app/forms";
   import { PersonalAvailability } from "$lib/components/availability";
   import { editingAvailability, unsavedState } from "$lib/stores/availabilityStores";
   import { cn } from "$lib/utils/utils";
@@ -50,19 +47,6 @@
   <h1 class="line-clamp-1 h-8 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
     Sample Meeting Winter 2024
   </h1>
-
-  <!-- Here for testing -->
-  {#if data.user}
-    <p>{data.user.firstName} {data.user.lastName} {data.user.userId}</p>
-
-    <div>
-      <form use:enhance action="/auth/logout" method="post">
-        <button type="submit" class="btn">
-          <span>Logout</span>
-        </button>
-      </form>
-    </div>
-  {/if}
 
   {#if $editingAvailability}
     <div class="flex space-x-2 md:space-x-4">
