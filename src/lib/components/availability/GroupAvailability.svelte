@@ -24,6 +24,7 @@
   let selectedBlockIndex: number | null = null;
   let availableMembersOfSelection: string[] = [];
   let notAvailableMembersOfSelection: string[] = [];
+  let selectionIsLocked: boolean = false;
 
   // Triggers on every pagination change and selection confirmation
   $: {
@@ -79,7 +80,7 @@
     selectedBlockIndex = blockIndex;
   };
 
-  const closeMobileDrawer = () => {
+  const resetSelection = () => {
     isMobileDrawerOpen = false;
     selectedZotDateIndex = null;
     selectedBlockIndex = null;
@@ -153,18 +154,53 @@
               {@const availableMemberIndices = selectedDate.getGroupAvailabilityBlock(blockIndex)}
               {@const isSelected =
                 selectedZotDateIndex === zotDateIndex && selectedBlockIndex === blockIndex}
+              {@const cellClass = cn(
+                isTopOfHour && "border-t-[1px] border-t-gray-medium",
+                isHalfHour && "border-t-[1px] border-t-gray-base",
+                isLastRow && "border-b-[1px]",
+                isSelected && "outline-dashed outline-2 outline-slate-500",
+              )}
 
               <td class="px-0 py-0">
                 <button
                   tabindex="0"
                   class={cn(
-                    "block h-full w-full border-r-[1px] border-gray-medium",
-                    isTopOfHour && "border-t-[1px] border-t-gray-medium",
-                    isHalfHour && "border-t-[1px] border-t-gray-base",
-                    isLastRow && "border-b-[1px]",
-                    isSelected && "outline-dashed outline-2 outline-slate-500",
+                    "hidden h-full w-full border-r-[1px] border-gray-medium lg:block",
+                    cellClass,
                   )}
-                  on:click={() => updateSelection(zotDateIndex, blockIndex)}
+                  on:click={() => {
+                    if (selectionIsLocked && isSelected) {
+                      selectionIsLocked = false;
+                    } else {
+                      selectionIsLocked = true;
+                      updateSelection(zotDateIndex, blockIndex);
+                    }
+                  }}
+                  on:mouseenter={() => {
+                    if (!selectionIsLocked) {
+                      updateSelection(zotDateIndex, blockIndex);
+                    }
+                  }}
+                >
+                  <div
+                    class="block h-full w-full py-2"
+                    style:background-color={getGroupBlockColor(availableMemberIndices)}
+                  ></div>
+                </button>
+                <button
+                  tabindex="0"
+                  class={cn(
+                    "block h-full w-full border-r-[1px] border-gray-medium lg:hidden",
+                    cellClass,
+                  )}
+                  on:click={() => {
+                    if (selectionIsLocked && isSelected) {
+                      selectionIsLocked = false;
+                    } else {
+                      selectionIsLocked = true;
+                      updateSelection(zotDateIndex, blockIndex);
+                    }
+                  }}
                 >
                   <div
                     class="block h-full w-full py-2"
@@ -198,7 +234,7 @@
   {isMobileDrawerOpen}
   {selectedZotDateIndex}
   {selectedBlockIndex}
-  {closeMobileDrawer}
+  closeMobileDrawer={resetSelection}
   {availableMembersOfSelection}
   {notAvailableMembersOfSelection}
 />
