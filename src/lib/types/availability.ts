@@ -9,3 +9,8 @@ export type SelectionStateType = {
   earlierBlockIndex: number;
   laterBlockIndex: number;
 };
+
+export interface MemberAvailability {
+  name: string;
+  availableBlocks: number[][];
+}
