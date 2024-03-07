@@ -171,7 +171,7 @@
                   type="text"
                   class="grow appearance-none border-none focus:border-none focus:outline-none focus:ring-0"
                   placeholder="username"
-                  bind:value={$guestForm.firstName}
+                  bind:value={$guestForm.username}
                 />
               </label>
 
