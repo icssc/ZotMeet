@@ -69,8 +69,8 @@
       <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
     </form>
 
-    <div class="flex h-full w-full">
-      <div class="card grid w-[50%] rounded-box align-top">
+    <div class="flex h-full w-full flex-col md:flex-row">
+      <div class="card grid rounded-box align-top md:w-[50%]">
         <div class="modal-action mt-0 flex flex-col justify-start gap-y-6">
           <h3 class="h-fit px-2 text-left text-xl font-bold">Login</h3>
 
@@ -78,7 +78,7 @@
             method="POST"
             action="/auth/login"
             use:enhance
-            class="flex-center w-[250px] grow flex-col items-center space-y-4"
+            class="flex-center w-full grow flex-col items-center space-y-4 md:w-[250px]"
           >
             {#if $errors._errors}
               <aside class="variant-filled-error alert">
@@ -92,7 +92,7 @@
               </aside>
             {/if}
 
-            <div class="flex flex-col gap-y-4">
+            <div class="flex w-full flex-col gap-y-4">
               <label class="input input-bordered flex items-center gap-2">
                 <EmailIcon class="text-slate-medium" />
                 <input
@@ -140,9 +140,9 @@
         </div>
       </div>
 
-      <div class="divider divider-horizontal">OR</div>
+      <div class="divider md:divider-horizontal">OR</div>
 
-      <div class="card grid w-[50%] rounded-box align-top">
+      <div class="card grid rounded-box align-top md:w-[50%]">
         <div class="modal-action mt-0 flex flex-col justify-start gap-y-6">
           <h3 class="h-fit px-2 text-left text-xl font-bold">Save as Guest</h3>
 
@@ -150,7 +150,7 @@
             method="POST"
             action="TODO"
             use:guestEnhance
-            class="flex-center w-[250px] grow flex-col items-center space-y-4"
+            class="flex-center w-full grow flex-col items-center space-y-4 md:w-[250px]"
           >
             {#if $guestErrors._errors}
               <aside class="variant-filled-error alert">
@@ -164,7 +164,7 @@
               </aside>
             {/if}
 
-            <div class="flex flex-col gap-y-4">
+            <div class="flex w-full flex-col gap-y-4">
               <label class="input input-bordered flex items-center gap-2">
                 <UserIcon class="text-slate-medium" />
                 <input
