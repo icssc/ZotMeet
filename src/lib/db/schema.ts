@@ -51,7 +51,7 @@ export const availabilities = zotMeet.table(
     meeting_id: uuid("meeting_id")
       .references(() => meetings.id, { onDelete: "cascade" })
       .notNull()
-      .default("0"),
+      .default("00000000-0000-0000-0000-000000000000"),
     earliest_time: numeric("earliest_time"),
     latest_time: numeric("latest_time"),
     availability_string: text("availability_string").notNull(),
@@ -72,7 +72,7 @@ export const keys = zotMeet.table(
   },
   (table) => {
     return {
-      userIdx: index("user_idx").on(table.user_id),
+      userIdxKeys: index("user_idx_keys").on(table.user_id),
     };
   },
 );
@@ -89,7 +89,7 @@ export const sessions = zotMeet.table(
   },
   (table) => {
     return {
-      userIdx: index("user_idx").on(table.user_id),
+      userIdxSessions: index("user_idx_sessions").on(table.user_id),
     };
   },
 );
