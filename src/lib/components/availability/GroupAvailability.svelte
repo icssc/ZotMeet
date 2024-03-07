@@ -194,6 +194,7 @@
   </button>
 </div>
 
+<div class:h-96={isMobileDrawerOpen} class="md:hidden" />
 <div
   class={cn(
     "fixed bottom-0 left-0 h-96 w-full translate-y-full rounded-t-xl border-[1px] border-gray-400 bg-gray-100 bg-opacity-90 backdrop-blur-sm transition-transform duration-500 ease-in-out md:hidden",
@@ -203,9 +204,28 @@
   <div class="flex items-center justify-between px-8 py-4">
     <div>
       <h3 class="font-montserrat font-medium">Responders</h3>
-      <p class="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
-        The date goes here
-      </p>
+      {#if selectedZotDateIndex !== null && selectedBlockIndex !== null}
+        {@const formattedDate = $availabilityDates[selectedZotDateIndex].day.toLocaleDateString(
+          "en-US",
+          {
+            month: "short",
+            day: "numeric",
+          },
+        )}
+        {@const earliestTime = $availabilityDates[selectedZotDateIndex].earliestTime}
+        {@const blockLength = $availabilityDates[selectedZotDateIndex].blockLength}
+        {@const startTime = ZotDate.toTimeBlockString(
+          earliestTime + selectedBlockIndex * blockLength,
+          false,
+        )}
+        {@const endTime = ZotDate.toTimeBlockString(
+          earliestTime + selectedBlockIndex * blockLength + blockLength,
+          false,
+        )}
+        <p class="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
+          {formattedDate}, {startTime} - {endTime}
+        </p>
+      {/if}
     </div>
     <button class="rounded-lg border-[1px] border-slate-400 p-0.5" on:click={closeMobileDrawer}>
       <MdiClose class="text-lg text-slate-400" />
