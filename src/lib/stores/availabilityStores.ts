@@ -28,6 +28,18 @@ const sampleMembers: MemberAvailability[] = [
     name: "Joe Biden",
     availableBlocks: [[], [1, 2], [4, 5, 6], [], [], [], []],
   },
+  {
+    name: "Avail Able",
+    availableBlocks: [
+      [4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 23, 24],
+      [3, 4, 5, 6, 7],
+      [4, 5, 6],
+      [],
+      [],
+      [],
+      [],
+    ],
+  },
 ];
 
 const generateSampleDates = (
