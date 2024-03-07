@@ -21,7 +21,11 @@
     guestForm: SuperValidated<ZodValidation<AnyZodObject>>;
   };
 
-  const itemsPerPage: number = columns;
+  let itemsPerPage: number = columns;
+  $: {
+    itemsPerPage = columns;
+  }
+
   const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   const numPaddingDates: number =
     $availabilityDates.length % itemsPerPage === 0

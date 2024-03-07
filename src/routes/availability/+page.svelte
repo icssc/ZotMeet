@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
   import { enhance } from "$app/forms";
   import { PersonalAvailability } from "$lib/components/availability";
   import { editingAvailability, unsavedState } from "$lib/stores/availabilityStores";
@@ -37,7 +39,12 @@
     $editingAvailability = !$editingAvailability;
     $unsavedState = false;
   };
+
+  let innerWidth = 0;
+  $: mobileView = innerWidth < 768;
 </script>
+
+<svelte:window bind:innerWidth />
 
 <div class="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
   <h1 class="line-clamp-1 h-8 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
@@ -111,13 +118,7 @@
     <div
       class="w-full rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#F680670D] to-[#377CFB0D] p-2 pt-4 md:p-6"
     >
-      <div class="hidden md:flex">
-        <PersonalAvailability columns={5} {data} />
-      </div>
-
-      <div class="flex md:hidden">
-        <PersonalAvailability columns={4} {data} />
-      </div>
+      <PersonalAvailability columns={mobileView ? 4 : 5} {data} />
     </div>
   {:else if currentTab === 1}
     <div
