@@ -9,7 +9,7 @@
   import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
-  import LoginFlow from "./LoginFlow.svelte";
+  import LoginFlow from "./LoginModal.svelte";
 
   import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
   import type { AnyZodObject } from "zod";
