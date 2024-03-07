@@ -57,9 +57,14 @@
     </div>
   {:else if currentTab === 1}
     <div
-      class="rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] p-2 pt-4 md:p-6"
+      class="rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] p-2 pt-4 md:p-6 lg:pr-0"
     >
-      <GroupAvailability columns={4} />
+      <div class="hidden md:flex md:items-start">
+        <GroupAvailability columns={5} />
+      </div>
+      <div class="block md:hidden">
+        <GroupAvailability columns={4} />
+      </div>
     </div>
   {/if}
 </div>
