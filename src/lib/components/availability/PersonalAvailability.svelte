@@ -159,7 +159,7 @@
         currentPage = currentPage - 1;
       }
     }}
-    class="p-3 disabled:opacity-0 md:pl-1"
+    class="p-3 pl-0 disabled:opacity-0 md:pl-1"
     disabled={currentPage === 0}
   >
     <span class="text-3xl text-gray-500">&lsaquo;</span>
@@ -287,7 +287,7 @@
         currentPage = currentPage + 1;
       }
     }}
-    class="p-3 disabled:opacity-0 md:pr-1"
+    class="p-3 pr-0 disabled:opacity-0 md:pr-1"
     disabled={currentPage === lastPage}
   >
     <span class="text-3xl text-gray-500">&rsaquo;</span>
