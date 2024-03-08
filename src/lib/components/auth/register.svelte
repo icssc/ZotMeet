@@ -7,7 +7,7 @@
   export let data;
 
   const registerSchema = userSchema.pick({
-    username: true,
+    displayName: true,
     email: true,
     password: true,
   });
@@ -25,19 +25,19 @@
   <!--<SuperDebug data={$form} />-->
   <div class="mt-6">
     <label class="label">
-      <span class="sr-only">Username</span>
+      <span class="sr-only">Display Name</span>
       <input
-        id="username"
-        name="username"
+        id="displayName"
+        name="displayName"
         type="text"
-        placeholder="username"
-        data-invalid={$errors.username}
-        bind:value={$form.username}
+        placeholder="display name"
+        data-invalid={$errors.displayName}
+        bind:value={$form.displayName}
         class="input"
-        class:input-error={$errors.username}
+        class:input-error={$errors.displayName}
       />
-      {#if $errors.username}
-        <small>{$errors.username}</small>
+      {#if $errors.displayName}
+        <small>{$errors.displayName}</small>
       {/if}
     </label>
   </div>

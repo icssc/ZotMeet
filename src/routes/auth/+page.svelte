@@ -13,7 +13,7 @@
 <div class="flex grow justify-center bg-blue-200 pt-48">
   <div class="mx-2 w-[450px] md:mx-16">
     {#if data.user}
-      <p>{data.user.username} {data.user.userId}</p>
+      <p>{data.user.displayName} {data.user.userId}</p>
 
       <div>
         <form use:enhance action="/auth/logout" method="post">

@@ -30,7 +30,7 @@ declare global {
     type UserAttributes = {
       userId: string;
       email: string;
-      username: string;
+      displayName: string;
     };
   }
 }

@@ -23,15 +23,9 @@ export const auth = lucia({
     return {
       userId: data.id,
       email: data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      // role: data.role,
-      verified: data.verified,
-      receiveEmail: data.receiveEmail,
-      token: data.token,
+      displayName: data.displayName,
 
       googleId: data.google_id,
-      username: data.username,
     };
   },
 });
