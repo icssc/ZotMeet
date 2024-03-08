@@ -39,8 +39,6 @@ async function register(event: RequestEvent<RouteParams, "/auth/register">) {
   }
 
   try {
-    const token = crypto.randomUUID();
-
     const user = await auth.createUser({
       key: {
         providerId: "email",
@@ -49,16 +47,9 @@ async function register(event: RequestEvent<RouteParams, "/auth/register">) {
       },
       attributes: {
         email: form.data.email.toLowerCase(),
-        firstName: form.data.firstName,
-        lastName: form.data.lastName,
-        //   role: "USER",
-        verified: false,
-        receiveEmail: true,
-        token: token,
+        username: (form.data.firstName + form.data.lastName).toLowerCase(),
       },
     });
-
-    //   await sendVerificationEmail(form.data.email, token);
 
     const session = await auth.createSession({ userId: user.userId, attributes: {} });
     event.locals.auth.setSession(session);
