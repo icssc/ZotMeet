@@ -7,8 +7,7 @@
   export let data;
 
   const registerSchema = userSchema.pick({
-    firstName: true,
-    lastName: true,
+    username: true,
     email: true,
     password: true,
   });
@@ -26,43 +25,23 @@
   <!--<SuperDebug data={$form} />-->
   <div class="mt-6">
     <label class="label">
-      <span class="sr-only">First Name</span>
+      <span class="sr-only">Username</span>
       <input
-        id="firstName"
-        name="firstName"
+        id="username"
+        name="username"
         type="text"
-        placeholder="first name"
-        autocomplete="given-name"
-        data-invalid={$errors.firstName}
-        bind:value={$form.firstName}
+        placeholder="username"
+        data-invalid={$errors.username}
+        bind:value={$form.username}
         class="input"
-        class:input-error={$errors.firstName}
+        class:input-error={$errors.username}
       />
-      {#if $errors.firstName}
-        <small>{$errors.firstName}</small>
+      {#if $errors.username}
+        <small>{$errors.username}</small>
       {/if}
     </label>
   </div>
 
-  <div class="mt-6">
-    <label class="label">
-      <span class="sr-only">Last Name</span>
-      <input
-        id="lastName"
-        name="lastName"
-        type="text"
-        placeholder="last name"
-        autocomplete="family-name"
-        data-invalid={$errors.lastName}
-        bind:value={$form.lastName}
-        class="input"
-        class:input-error={$errors.lastName}
-      />
-      {#if $errors.lastName}
-        <small>{$errors.lastName}</small>
-      {/if}
-    </label>
-  </div>
   <div class="mt-6">
     <label class="label">
       <span class="sr-only">Email</span>

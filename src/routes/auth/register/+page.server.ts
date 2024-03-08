@@ -9,8 +9,7 @@ import { userSchema } from "$lib/config/zod-schemas";
 import { auth } from "$lib/server/lucia";
 
 const signUpSchema = userSchema.pick({
-  firstName: true,
-  lastName: true,
+  username: true,
   email: true,
   password: true,
   terms: true,
@@ -46,8 +45,8 @@ async function register(event: RequestEvent<RouteParams, "/auth/register">) {
         password: form.data.password,
       },
       attributes: {
+        username: form.data.username.toLowerCase(),
         email: form.data.email.toLowerCase(),
-        username: (form.data.firstName + form.data.lastName).toLowerCase(),
       },
     });
 
