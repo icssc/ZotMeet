@@ -1,4 +1,5 @@
 <script lang="ts">
+  import GroupAvailabilityBlock from "$lib/components/availability/GroupAvailabilityBlock.svelte";
   import GroupResponses from "$lib/components/availability/GroupResponses.svelte";
   import {
     availabilityDates,
@@ -30,8 +31,6 @@
   $: {
     const datesToOffset = currentPage * itemsPerPage;
     currentPageAvailability = $availabilityDates.slice(datesToOffset, datesToOffset + itemsPerPage);
-
-    console.log(currentPageAvailability);
 
     if (currentPage === lastPage) {
       currentPageAvailability = currentPageAvailability.concat(
@@ -67,13 +66,6 @@
       : `padding-${pageDateIndex}`;
   };
 
-  const getGroupBlockColor = (availableMemberIndices: number[] | null): string => {
-    if (availableMemberIndices) {
-      return `rgba(55, 124, 251, ${availableMemberIndices.length / $groupMembers.length})`;
-    }
-    return "transparent";
-  };
-
   const updateSelection = (zotDateIndex: number, blockIndex: number): void => {
     isMobileDrawerOpen = true;
     selectedZotDateIndex = zotDateIndex;
@@ -84,6 +76,21 @@
     isMobileDrawerOpen = false;
     selectedZotDateIndex = null;
     selectedBlockIndex = null;
+  };
+
+  const handleCellClick = (isSelected: boolean, zotDateIndex: number, blockIndex: number) => {
+    if (selectionIsLocked && isSelected) {
+      selectionIsLocked = false;
+    } else {
+      selectionIsLocked = true;
+      updateSelection(zotDateIndex, blockIndex);
+    }
+  };
+
+  const handleCellHover = (zotDateIndex: number, blockIndex: number) => {
+    if (!selectionIsLocked) {
+      updateSelection(zotDateIndex, blockIndex);
+    }
   };
 </script>
 
@@ -154,7 +161,7 @@
               {@const availableMemberIndices = selectedDate.getGroupAvailabilityBlock(blockIndex)}
               {@const isSelected =
                 selectedZotDateIndex === zotDateIndex && selectedBlockIndex === blockIndex}
-              {@const cellClass = cn(
+              {@const tableCellStyles = cn(
                 isTopOfHour && "border-t-[1px] border-t-gray-medium",
                 isHalfHour && "border-t-[1px] border-t-gray-base",
                 isLastRow && "border-b-[1px]",
@@ -162,51 +169,26 @@
               )}
 
               <td class="px-0 py-0">
-                <button
-                  tabindex="0"
-                  class={cn(
-                    "hidden h-full w-full border-r-[1px] border-gray-medium lg:block",
-                    cellClass,
-                  )}
-                  on:click={() => {
-                    if (selectionIsLocked && isSelected) {
-                      selectionIsLocked = false;
-                    } else {
-                      selectionIsLocked = true;
-                      updateSelection(zotDateIndex, blockIndex);
-                    }
+                <GroupAvailabilityBlock
+                  class="hidden lg:block"
+                  onClick={() => {
+                    handleCellClick(isSelected, zotDateIndex, blockIndex);
                   }}
-                  on:mouseenter={() => {
-                    if (!selectionIsLocked) {
-                      updateSelection(zotDateIndex, blockIndex);
-                    }
+                  onHover={() => {
+                    // Enable cell hover behavior on large screens to prevent drawer triggers
+                    handleCellHover(zotDateIndex, blockIndex);
                   }}
-                >
-                  <div
-                    class="block h-full w-full py-2"
-                    style:background-color={getGroupBlockColor(availableMemberIndices)}
-                  ></div>
-                </button>
-                <button
-                  tabindex="0"
-                  class={cn(
-                    "block h-full w-full border-r-[1px] border-gray-medium lg:hidden",
-                    cellClass,
-                  )}
-                  on:click={() => {
-                    if (selectionIsLocked && isSelected) {
-                      selectionIsLocked = false;
-                    } else {
-                      selectionIsLocked = true;
-                      updateSelection(zotDateIndex, blockIndex);
-                    }
+                  {availableMemberIndices}
+                  {tableCellStyles}
+                />
+                <GroupAvailabilityBlock
+                  class="block lg:hidden"
+                  onClick={() => {
+                    handleCellClick(isSelected, zotDateIndex, blockIndex);
                   }}
-                >
-                  <div
-                    class="block h-full w-full py-2"
-                    style:background-color={getGroupBlockColor(availableMemberIndices)}
-                  ></div>
-                </button>
+                  {availableMemberIndices}
+                  {tableCellStyles}
+                />
               </td>
             {:else}
               <td></td>
@@ -234,8 +216,8 @@
   {isMobileDrawerOpen}
   {selectedZotDateIndex}
   {selectedBlockIndex}
-  closeMobileDrawer={resetSelection}
   {availableMembersOfSelection}
   {notAvailableMembersOfSelection}
+  closeMobileDrawer={resetSelection}
 />
 <div class:h-96={isMobileDrawerOpen} class="lg:hidden" />

@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { PersonalAvailability } from "$lib/components/availability";
-  import GroupAvailability from "$lib/components/availability/GroupAvailability.svelte";
+  import { GroupAvailability, PersonalAvailability } from "$lib/components/availability";
   import PencilOutlineIcon from "~icons/mdi/pencil-outline";
 
   let currentTab: number = 0;
