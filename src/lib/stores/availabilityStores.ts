@@ -26,10 +26,10 @@ const sampleMembers: MemberAvailability[] = [
   },
   {
     name: "Joe Biden",
-    availableBlocks: [[], [1, 2], [4, 5, 6], [], [], [], []],
+    availableBlocks: [[], [1, 2], [4, 5, 6, 22, 23, 24, 25, 26, 27, 28], [], [], [], []],
   },
   {
-    name: "Avail Able",
+    name: "Chuck Norris",
     availableBlocks: [
       [4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 23, 24],
       [3, 4, 5, 6, 7],
@@ -39,6 +39,14 @@ const sampleMembers: MemberAvailability[] = [
       [],
       [],
     ],
+  },
+  {
+    name: "Dwayne the Rock",
+    availableBlocks: [[], [1, 2, 3, 4, 5], [4, 5, 6, 25, 26, 27, 28], [], [], [], []],
+  },
+  {
+    name: "Kevin Hart",
+    availableBlocks: [[], [1, 2], [26, 27, 28, 29, 30, 31], [], [], [], []],
   },
 ];
 
