@@ -37,6 +37,7 @@ Simple, clean, and efficient meeting scheduling app.
 3. Once connected to the Postgres Server, Right click on databases -> create -> database, and name it `zotmeet`.
 4. In the ZotMeet project root directory,`drizzle kit generate:pg` will generate a migrations folder which contain scripts you can run to update your database schema.
 5. Create a .env file, and set `DATABASE_URL=postgres://yourusername:yourpassword@localhost:5432/zotmeet`
+6. Using pgAdmin, run all the migration files in order. This can be done using the query tool.
 
 ### Committing Changes
 
