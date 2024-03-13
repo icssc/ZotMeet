@@ -72,7 +72,7 @@ export const keys = zotMeet.table(
   },
   (table) => {
     return {
-      userIdx: index("user_idx").on(table.user_id),
+      userIdx: index("user_idx_keys").on(table.user_id),
     };
   },
 );
@@ -89,7 +89,7 @@ export const sessions = zotMeet.table(
   },
   (table) => {
     return {
-      userIdx: index("user_idx").on(table.user_id),
+      userIdx: index("user_idx_sessions").on(table.user_id),
     };
   },
 );
