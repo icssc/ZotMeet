@@ -2,30 +2,24 @@
   import { superForm } from "sveltekit-superforms/client";
 
   import { guestSchema, userSchema } from "$lib/config/zod-schemas";
+  import { isEditingAvailability, isStateUnsaved } from "$lib/stores/availabilityStores";
+  import type { LoginModalProps } from "$lib/types/availability";
   import BrightnessAlert from "~icons/material-symbols/brightness-alert-outline-rounded";
   import EmailIcon from "~icons/mdi/email";
   import KeyIcon from "~icons/mdi/key";
   import Loader from "~icons/mdi/loading";
   import UserIcon from "~icons/mdi/user";
 
-  import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
-  import type { AnyZodObject } from "zod";
-  import { isEditingAvailability, isStateUnsaved } from "$lib/stores/availabilityStores";
-
-  export let data: {
-    user: Lucia.UserAttributes;
-    form: SuperValidated<ZodValidation<AnyZodObject>>;
-    guestForm: SuperValidated<ZodValidation<AnyZodObject>>;
-  };
+  export let loginModalData: LoginModalProps;
 
   const loginSchema = userSchema.pick({ email: true, password: true });
   const guestLoginSchema = guestSchema.pick({ username: true });
-  const { form, errors, enhance, delayed } = superForm(data.form, {
+  const { form, errors, enhance, delayed } = superForm(loginModalData.form, {
     taintedMessage: null,
     validators: loginSchema,
     delayMs: 0,
     onUpdated({ form }) {
-      if (form.valid && data.user) {
+      if (form.valid && loginModalData.user) {
         const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
         if (authModal) {
           authModal.close();
@@ -43,7 +37,7 @@
     errors: guestErrors,
     enhance: guestEnhance,
     delayed: guestDelayed,
-  } = superForm(data.guestForm, {
+  } = superForm(loginModalData.guestForm, {
     taintedMessage: null,
     validators: guestLoginSchema,
     delayMs: 0,

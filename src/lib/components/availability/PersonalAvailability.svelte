@@ -1,4 +1,6 @@
 <script lang="ts">
+  import LoginFlow from "./LoginModal.svelte";
+
   import AvailabilityBlock from "$lib/components/availability/AvailabilityBlock.svelte";
   import {
     availabilityDates,
@@ -6,20 +8,16 @@
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
-  import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
+  import type {
+    AvailabilityBlockType,
+    LoginModalProps,
+    SelectionStateType,
+  } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
-  import LoginFlow from "./LoginModal.svelte";
-
-  import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
-  import type { AnyZodObject } from "zod";
 
   export let columns: number;
-  export let data: {
-    user: Lucia.UserAttributes;
-    form: SuperValidated<ZodValidation<AnyZodObject>>;
-    guestForm: SuperValidated<ZodValidation<AnyZodObject>>;
-  };
+  export let data: LoginModalProps;
 
   let itemsPerPage: number = columns;
   $: {
@@ -294,4 +292,4 @@
   </button>
 </div>
 
-<LoginFlow {data} />
+<LoginFlow loginModalData={data} />

@@ -1,23 +1,17 @@
 <script lang="ts">
   import { PersonalAvailability } from "$lib/components/availability";
   import { isEditingAvailability, isStateUnsaved } from "$lib/stores/availabilityStores";
+  import type { LoginModalProps } from "$lib/types/availability";
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
 
-  import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
-  import type { AnyZodObject } from "zod";
-
-  export let data: {
-    user: Lucia.UserAttributes;
-    form: SuperValidated<ZodValidation<AnyZodObject>>;
-    guestForm: SuperValidated<ZodValidation<AnyZodObject>>;
-  };
+  export let loginModalProps: LoginModalProps;
 
   let currentTab: number = 0;
 
   const handleSave = () => {
-    if (!data.user) {
+    if (!loginModalProps.user) {
       const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
       if (authModal) {
         authModal.showModal();
@@ -102,7 +96,7 @@
     <div
       class="w-full rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#F680670D] to-[#377CFB0D] p-2 pt-4 md:p-6"
     >
-      <PersonalAvailability columns={mobileView ? 4 : 5} {data} />
+      <PersonalAvailability columns={mobileView ? 4 : 5} data={loginModalProps} />
     </div>
   {:else if currentTab === 1}
     <div
