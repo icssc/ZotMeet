@@ -8,6 +8,9 @@ dependencies:
   '@iconify/json':
     specifier: ^2.2.160
     version: 2.2.160
+  '@lucia-auth/adapter-drizzle':
+    specifier: ^1.0.3
+    version: 1.0.3(lucia@3.1.1)
   '@lucia-auth/adapter-postgresql':
     specifier: ^3.1.1
     version: 3.1.1(lucia@3.1.1)(pg@8.11.3)(postgres@3.4.3)
@@ -2765,6 +2768,14 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.1
       '@jridgewell/sourcemap-codec': 1.4.15
+
+  /@lucia-auth/adapter-drizzle@1.0.3(lucia@3.1.1):
+    resolution: {integrity: sha512-5C3O5PGV9IpGTM8cr5trE9+Pr3FM8LXOUPusQWD3svGW/S7vNebQit7uEfDUxFAuUhutoLoXTr7SQ1jZWjaBoA==}
+    peerDependencies:
+      lucia: 3.x
+    dependencies:
+      lucia: 3.1.1
+    dev: false
 
   /@lucia-auth/adapter-postgresql@3.1.1(lucia@3.1.1)(pg@8.11.3)(postgres@3.4.3):
     resolution: {integrity: sha512-FxAi/Uq42YqBNVBLKXmqu3SImUPZChnQiBNUU2DSknO5eT0Ma0j5aj9g9WXRO+1hd3qESUA7D4BTYpnwEbOkkQ==}

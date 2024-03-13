@@ -4,7 +4,6 @@ import {
   uuid,
   pgSchema,
   timestamp,
-  bigint,
   index,
   smallint,
   date,
@@ -61,35 +60,21 @@ export const availabilities = zotMeet.table(
   }),
 );
 
-export const keys = zotMeet.table(
-  "keys",
-  {
-    id: text("id").primaryKey(),
-    hashed_password: text("hashed_password"),
-    user_id: uuid("user_id")
-      .references(() => users.id, { onDelete: "cascade" })
-      .notNull(),
-  },
-  (table) => {
-    return {
-      userIdx: index("user_idx_keys").on(table.user_id),
-    };
-  },
-);
-
 export const sessions = zotMeet.table(
   "sessions",
   {
     id: text("id").primaryKey(),
-    active_expires: bigint("active_expires", { mode: "bigint" }).notNull(),
-    idle_expires: bigint("idle_expires", { mode: "bigint" }).notNull(),
-    user_id: uuid("user_id")
+    expiresAt: timestamp("expires_at", {
+      withTimezone: true,
+      mode: "date",
+    }).notNull(),
+    userId: uuid("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
   },
   (table) => {
     return {
-      userIdx: index("user_idx_sessions").on(table.user_id),
+      userIdx: index("user_idx_sessions").on(table.userId),
     };
   },
 );
@@ -111,7 +96,6 @@ export const userGroupMembers = zotMeet.table(
 
 export const userRelations = relations(users, ({ many }) => ({
   usersInGroups: many(userGroupMembers),
-  keys: many(keys),
   sessions: many(sessions),
   availabilities: many(availabilities),
 }));
@@ -144,16 +128,9 @@ export const meetingsRelations = relations(meetings, ({ one, many }) => ({
   availabilities: many(availabilities),
 }));
 
-export const keysRelations = relations(keys, ({ one }) => ({
-  users: one(users, {
-    fields: [keys.user_id],
-    references: [users.id],
-  }),
-}));
-
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   users: one(users, {
-    fields: [sessions.user_id],
+    fields: [sessions.userId],
     references: [users.id],
   }),
 }));

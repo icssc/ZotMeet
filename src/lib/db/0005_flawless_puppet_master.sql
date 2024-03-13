@@ -1,0 +1,1 @@
+ALTER TABLE "zotmeet"."sessions" ADD COLUMN "expires_at" timestamp with time zone NOT NULL;

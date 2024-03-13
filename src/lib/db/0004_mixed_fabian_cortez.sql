@@ -1,0 +1,1 @@
+ALTER TABLE "zotmeet"."sessions" DROP COLUMN IF EXISTS "expires_at";
