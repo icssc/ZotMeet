@@ -11,9 +11,6 @@ dependencies:
   '@lucia-auth/adapter-drizzle':
     specifier: ^1.0.3
     version: 1.0.3(lucia@3.1.1)
-  '@lucia-auth/adapter-postgresql':
-    specifier: ^3.1.1
-    version: 3.1.1(lucia@3.1.1)(pg@8.11.3)(postgres@3.4.3)
   '@lucia-auth/adapter-prisma':
     specifier: 3.0.2
     version: 3.0.2(@prisma/client@5.6.0)(lucia@3.1.1)
@@ -2775,26 +2772,6 @@ packages:
       lucia: 3.x
     dependencies:
       lucia: 3.1.1
-    dev: false
-
-  /@lucia-auth/adapter-postgresql@3.1.1(lucia@3.1.1)(pg@8.11.3)(postgres@3.4.3):
-    resolution: {integrity: sha512-FxAi/Uq42YqBNVBLKXmqu3SImUPZChnQiBNUU2DSknO5eT0Ma0j5aj9g9WXRO+1hd3qESUA7D4BTYpnwEbOkkQ==}
-    peerDependencies:
-      '@neondatabase/serverless': 0.7.x
-      lucia: 3.x
-      pg: ^8.8.0
-      postgres: ^3.3.0
-    peerDependenciesMeta:
-      '@neondatabase/serverless':
-        optional: true
-      pg:
-        optional: true
-      postgres:
-        optional: true
-    dependencies:
-      lucia: 3.1.1
-      pg: 8.11.3
-      postgres: 3.4.3
     dev: false
 
   /@lucia-auth/adapter-prisma@3.0.2(@prisma/client@5.6.0)(lucia@3.1.1):

@@ -22,7 +22,6 @@
   "dependencies": {
     "@iconify/json": "^2.2.160",
     "@lucia-auth/adapter-drizzle": "^1.0.3",
-    "@lucia-auth/adapter-postgresql": "^3.1.1",
     "@lucia-auth/adapter-prisma": "3.0.2",
     "@lucia-auth/oauth": "^3.5.3",
     "@prisma/client": "5.6.0",
