@@ -3,8 +3,8 @@
   import {
     availabilityDates,
     availabilityTimeBlocks,
-    editingAvailability,
-    unsavedState,
+    isEditingAvailability,
+    isStateUnsaved,
   } from "$lib/stores/availabilityStores";
   import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
@@ -110,8 +110,8 @@
    * @param startBlock the time block that the user originated the selection
    */
   const setAvailabilities = (startBlock: AvailabilityBlockType): void => {
-    if (!$editingAvailability) {
-      $editingAvailability = true;
+    if (!$isEditingAvailability) {
+      $isEditingAvailability = true;
     }
 
     if (selectionState) {
@@ -139,13 +139,13 @@
       endBlockSelection = null;
       selectionState = null;
 
-      $unsavedState = true;
+      $isStateUnsaved = true;
     }
   };
 
   if (typeof window !== "undefined") {
     window.addEventListener("beforeunload", (event) => {
-      if ($unsavedState) {
+      if ($isStateUnsaved) {
         event.returnValue = `Are you sure you want to leave? You have unsaved changes!`;
       }
     });

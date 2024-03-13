@@ -1,6 +1,6 @@
 <script lang="ts">
   import { PersonalAvailability } from "$lib/components/availability";
-  import { editingAvailability, unsavedState } from "$lib/stores/availabilityStores";
+  import { isEditingAvailability, isStateUnsaved } from "$lib/stores/availabilityStores";
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
@@ -25,16 +25,16 @@
     } else {
       console.log("saved");
 
-      $editingAvailability = false;
-      $unsavedState = false;
+      $isEditingAvailability = false;
+      $isStateUnsaved = false;
     }
   };
 
   const handleCancel = () => {
     // TODO: Repopulate prior state from DB
 
-    $editingAvailability = !$editingAvailability;
-    $unsavedState = false;
+    $isEditingAvailability = !$isEditingAvailability;
+    $isStateUnsaved = false;
   };
 
   let innerWidth = 0;
@@ -48,7 +48,7 @@
     Sample Meeting Winter 2024
   </h1>
 
-  {#if $editingAvailability}
+  {#if $isEditingAvailability}
     <div class="flex space-x-2 md:space-x-4">
       <button
         class={cn(

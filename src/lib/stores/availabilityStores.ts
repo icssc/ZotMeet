@@ -49,5 +49,5 @@ const defaultTimeBlocks = generateTimeBlocks(earliestTime, latestTime);
 export const availabilityDates = writable<ZotDate[]>(generateSampleDates());
 export const availabilityTimeBlocks = writable<number[]>(defaultTimeBlocks);
 
-export const editingAvailability = writable<boolean>(false);
-export const unsavedState = writable<boolean>(false);
+export const isEditingAvailability = writable<boolean>(false);
+export const isStateUnsaved = writable<boolean>(false);

@@ -10,7 +10,7 @@
 
   import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
   import type { AnyZodObject } from "zod";
-  import { editingAvailability, unsavedState } from "$lib/stores/availabilityStores";
+  import { isEditingAvailability, isStateUnsaved } from "$lib/stores/availabilityStores";
 
   export let data: {
     user: Lucia.UserAttributes;
@@ -31,8 +31,8 @@
           authModal.close();
         }
 
-        $editingAvailability = false;
-        $unsavedState = false;
+        $isEditingAvailability = false;
+        $isStateUnsaved = false;
         // TODO: Update DB with data
       }
     },
@@ -54,8 +54,8 @@
           authModal.close();
         }
 
-        $editingAvailability = false;
-        $unsavedState = false;
+        $isEditingAvailability = false;
+        $isStateUnsaved = false;
 
         // TODO: Update DB with guest data
       }
