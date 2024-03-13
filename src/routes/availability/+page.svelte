@@ -18,7 +18,7 @@
 
   const handleSave = () => {
     if (!data.user) {
-      const authModal = document.getElementById("auth_modal") as HTMLDialogElement;
+      const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
       if (authModal) {
         authModal.showModal();
       }

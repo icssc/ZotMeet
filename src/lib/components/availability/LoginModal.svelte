@@ -26,7 +26,7 @@
     delayMs: 0,
     onUpdated({ form }) {
       if (form.valid && data.user) {
-        const authModal = document.getElementById("auth_modal") as HTMLDialogElement;
+        const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
         if (authModal) {
           authModal.close();
         }
@@ -49,7 +49,7 @@
     delayMs: 0,
     onUpdated({ form }) {
       if (form.valid) {
-        const authModal = document.getElementById("auth_modal") as HTMLDialogElement;
+        const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
         if (authModal) {
           authModal.close();
         }
@@ -63,7 +63,7 @@
   });
 </script>
 
-<dialog id="auth_modal" class="modal">
+<dialog id="auth-modal" class="modal">
   <div class="modal-box min-w-fit">
     <form method="dialog">
       <button class="btn btn-circle btn-ghost btn-sm absolute right-2 top-2">✕</button>
