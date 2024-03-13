@@ -16,7 +16,7 @@ export const zotMeet = pgSchema("zotmeet");
 
 export const users = zotMeet.table("user", {
   id: uuid("id").defaultRandom().primaryKey(),
-  username: text("username").unique().notNull(),
+  displayName: text("displayName").unique().notNull(),
   email: text("email").unique().notNull(),
   created_at: timestamp("created_at"),
 });
