@@ -1,5 +1,5 @@
 {
-  "id": "dbecc365-ae3f-48ea-97e1-35d95aeaf415",
+  "id": "f7fa64bc-fff0-4f56-a202-f35c37a9d61e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "5",
   "dialect": "pg",
@@ -14,9 +14,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
+        "member_id": {
+          "name": "member_id",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -34,18 +34,6 @@
           "notNull": true,
           "default": "'00000000-0000-0000-0000-000000000000'"
         },
-        "earliest_time": {
-          "name": "earliest_time",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "latest_time": {
-          "name": "latest_time",
-          "type": "numeric",
-          "primaryKey": false,
-          "notNull": false
-        },
         "availability_string": {
           "name": "availability_string",
           "type": "text",
@@ -55,12 +43,12 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "availabilities_user_id_user_id_fk": {
-          "name": "availabilities_user_id_user_id_fk",
+        "availabilities_member_id_members_id_fk": {
+          "name": "availabilities_member_id_members_id_fk",
           "tableFrom": "availabilities",
-          "tableTo": "user",
+          "tableTo": "members",
           "schemaTo": "zotmeet",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": ["member_id"],
           "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -77,9 +65,9 @@
         }
       },
       "compositePrimaryKeys": {
-        "availabilities_user_id_day_meeting_id_pk": {
-          "name": "availabilities_user_id_day_meeting_id_pk",
-          "columns": ["user_id", "day", "meeting_id"]
+        "availabilities_member_id_day_meeting_id_pk": {
+          "name": "availabilities_member_id_day_meeting_id_pk",
+          "columns": ["member_id", "day", "meeting_id"]
         }
       },
       "uniqueConstraints": {}
@@ -112,57 +100,130 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
-    },
-    "keys": {
-      "name": "keys",
-      "schema": "zotmeet",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "hashed_password": {
-          "name": "hashed_password",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "user_id": {
           "name": "user_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         }
       },
-      "indexes": {
-        "user_idx_keys": {
-          "name": "user_idx_keys",
-          "columns": ["user_id"],
-          "isUnique": false
-        }
-      },
+      "indexes": {},
       "foreignKeys": {
-        "keys_user_id_user_id_fk": {
-          "name": "keys_user_id_user_id_fk",
-          "tableFrom": "keys",
-          "tableTo": "user",
+        "groups_user_id_users_id_fk": {
+          "name": "groups_user_id_users_id_fk",
+          "tableFrom": "groups",
+          "tableTo": "users",
           "schemaTo": "zotmeet",
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
-          "onDelete": "cascade",
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
+    },
+    "guests": {
+      "name": "guests",
+      "schema": "zotmeet",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "username": {
+          "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meeting_id": {
+          "name": "meeting_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "guests_meeting_id_meetings_id_fk": {
+          "name": "guests_meeting_id_meetings_id_fk",
+          "tableFrom": "guests",
+          "tableTo": "meetings",
+          "schemaTo": "zotmeet",
+          "columnsFrom": ["meeting_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "guests_username_meeting_id_pk": {
+          "name": "guests_username_meeting_id_pk",
+          "columns": ["username", "meeting_id"]
+        }
+      },
+      "uniqueConstraints": {
+        "guests_id_unique": {
+          "name": "guests_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["id"]
+        }
+      }
+    },
+    "meeting_dates": {
+      "name": "meeting_dates",
+      "schema": "zotmeet",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "gen_random_uuid()"
+        },
+        "meeting_id": {
+          "name": "meeting_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "date": {
+          "name": "date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "meeting_dates_meeting_id_meetings_id_fk": {
+          "name": "meeting_dates_meeting_id_meetings_id_fk",
+          "tableFrom": "meeting_dates",
+          "tableTo": "meetings",
+          "schemaTo": "zotmeet",
+          "columnsFrom": ["meeting_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "meeting_dates_id_date_pk": {
+          "name": "meeting_dates_id_date_pk",
+          "columns": ["id", "date"]
+        }
+      },
+      "uniqueConstraints": {
+        "meeting_dates_id_unique": {
+          "name": "meeting_dates_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["id"]
+        }
+      }
     },
     "meetings": {
       "name": "meetings",
@@ -178,12 +239,6 @@
         "title": {
           "name": "title",
           "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "date": {
-          "name": "date",
-          "type": "timestamp",
           "primaryKey": false,
           "notNull": true
         },
@@ -225,7 +280,7 @@
         },
         "host_id": {
           "name": "host_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         }
@@ -242,10 +297,10 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "meetings_host_id_user_id_fk": {
-          "name": "meetings_host_id_user_id_fk",
+        "meetings_host_id_members_id_fk": {
+          "name": "meetings_host_id_members_id_fk",
           "tableFrom": "meetings",
-          "tableTo": "user",
+          "tableTo": "members",
           "schemaTo": "zotmeet",
           "columnsFrom": ["host_id"],
           "columnsTo": ["id"],
@@ -254,6 +309,127 @@
         }
       },
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "members": {
+      "name": "members",
+      "schema": "zotmeet",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "member_type",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'guest'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "members_in_meeting": {
+      "name": "members_in_meeting",
+      "schema": "zotmeet",
+      "columns": {
+        "member_id": {
+          "name": "member_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meeting_id": {
+          "name": "meeting_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attendance": {
+          "name": "attendance",
+          "type": "attendance",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "members_in_meeting_member_id_users_id_fk": {
+          "name": "members_in_meeting_member_id_users_id_fk",
+          "tableFrom": "members_in_meeting",
+          "tableTo": "users",
+          "schemaTo": "zotmeet",
+          "columnsFrom": ["member_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "members_in_meeting_meeting_id_meetings_id_fk": {
+          "name": "members_in_meeting_meeting_id_meetings_id_fk",
+          "tableFrom": "members_in_meeting",
+          "tableTo": "meetings",
+          "schemaTo": "zotmeet",
+          "columnsFrom": ["meeting_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "members_in_meeting_member_id_meeting_id_pk": {
+          "name": "members_in_meeting_member_id_meeting_id_pk",
+          "columns": ["member_id", "meeting_id"]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "oauth_accounts": {
+      "name": "oauth_accounts",
+      "schema": "zotmeet",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider_id": {
+          "name": "provider_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider_user_id": {
+          "name": "provider_user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "oauth_accounts_user_id_users_id_fk": {
+          "name": "oauth_accounts_user_id_users_id_fk",
+          "tableFrom": "oauth_accounts",
+          "tableTo": "users",
+          "schemaTo": "zotmeet",
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "oauth_accounts_provider_id_provider_user_id_pk": {
+          "name": "oauth_accounts_provider_id_provider_user_id_pk",
+          "columns": ["provider_id", "provider_user_id"]
+        }
+      },
       "uniqueConstraints": {}
     },
     "sessions": {
@@ -266,21 +442,15 @@
           "primaryKey": true,
           "notNull": true
         },
-        "active_expires": {
-          "name": "active_expires",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "idle_expires": {
-          "name": "idle_expires",
-          "type": "bigint",
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
         },
         "user_id": {
           "name": "user_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         }
@@ -293,10 +463,10 @@
         }
       },
       "foreignKeys": {
-        "sessions_user_id_user_id_fk": {
-          "name": "sessions_user_id_user_id_fk",
+        "sessions_user_id_users_id_fk": {
+          "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
-          "tableTo": "user",
+          "tableTo": "users",
           "schemaTo": "zotmeet",
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
@@ -307,19 +477,18 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "user": {
-      "name": "user",
+    "users": {
+      "name": "users",
       "schema": "zotmeet",
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "notNull": true
         },
-        "username": {
-          "name": "username",
+        "displayName": {
+          "name": "displayName",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -330,24 +499,47 @@
           "primaryKey": false,
           "notNull": true
         },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
+        },
+        "auth_methods": {
+          "name": "auth_methods",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "users_id_members_id_fk": {
+          "name": "users_id_members_id_fk",
+          "tableFrom": "users",
+          "tableTo": "members",
+          "schemaTo": "zotmeet",
+          "columnsFrom": ["id"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "user_username_unique": {
-          "name": "user_username_unique",
+        "users_displayName_unique": {
+          "name": "users_displayName_unique",
           "nullsNotDistinct": false,
-          "columns": ["username"]
+          "columns": ["displayName"]
         },
-        "user_email_unique": {
-          "name": "user_email_unique",
+        "users_email_unique": {
+          "name": "users_email_unique",
           "nullsNotDistinct": false,
           "columns": ["email"]
         }
@@ -359,7 +551,7 @@
       "columns": {
         "user_id": {
           "name": "user_id",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -372,10 +564,10 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "users_in_group_user_id_user_id_fk": {
-          "name": "users_in_group_user_id_user_id_fk",
+        "users_in_group_user_id_users_id_fk": {
+          "name": "users_in_group_user_id_users_id_fk",
           "tableFrom": "users_in_group",
-          "tableTo": "user",
+          "tableTo": "users",
           "schemaTo": "zotmeet",
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
@@ -400,60 +592,6 @@
         }
       },
       "uniqueConstraints": {}
-    },
-    "users_in_meeting": {
-      "name": "users_in_meeting",
-      "schema": "zotmeet",
-      "columns": {
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "meeting_id": {
-          "name": "meeting_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "attendance": {
-          "name": "attendance",
-          "type": "attendance",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "users_in_meeting_user_id_user_id_fk": {
-          "name": "users_in_meeting_user_id_user_id_fk",
-          "tableFrom": "users_in_meeting",
-          "tableTo": "user",
-          "schemaTo": "zotmeet",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "users_in_meeting_meeting_id_meetings_id_fk": {
-          "name": "users_in_meeting_meeting_id_meetings_id_fk",
-          "tableFrom": "users_in_meeting",
-          "tableTo": "meetings",
-          "schemaTo": "zotmeet",
-          "columnsFrom": ["meeting_id"],
-          "columnsTo": ["id"],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "users_in_meeting_user_id_meeting_id_pk": {
-          "name": "users_in_meeting_user_id_meeting_id_pk",
-          "columns": ["user_id", "meeting_id"]
-        }
-      },
-      "uniqueConstraints": {}
     }
   },
   "enums": {
@@ -463,6 +601,13 @@
         "accepted": "accepted",
         "maybe": "maybe",
         "declined": "declined"
+      }
+    },
+    "member_type": {
+      "name": "member_type",
+      "values": {
+        "guest": "guest",
+        "user": "user"
       }
     }
   },

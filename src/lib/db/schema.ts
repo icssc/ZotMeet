@@ -35,7 +35,7 @@ export const users = zotMeet.table("users", {
 export const guests = zotMeet.table(
   "guests",
   {
-    id: text("id").primaryKey(),
+    id: text("id").unique().notNull(),
     username: text("username").notNull(),
     meeting_id: uuid("meeting_id").references(() => meetings.id, { onDelete: "cascade" }),
   },
