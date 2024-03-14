@@ -3,6 +3,17 @@ import { eq } from "drizzle-orm";
 import { db } from "./drizzle";
 import { users, type UserInsertSchema } from "./schema";
 
+export const checkIfIdExists = async (id: string) => {
+  const queryResult = await db
+    .select({
+      id: users.id,
+    })
+    .from(users)
+    .where(eq(users.id, id));
+
+  return queryResult.length > 0;
+};
+
 export const checkIfEmailExists = async (email: string) => {
   const queryResult = await db
     .select({

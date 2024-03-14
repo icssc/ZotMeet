@@ -39,7 +39,7 @@ async function login({ request, cookies }: { request: Request; cookies: Cookies 
       id: users.id,
       email: users.email,
       password: users.password,
-      authMethods: users.authMethods,
+      // authMethods: users.authMethods,
     })
     .from(users)
     .where(eq(users.email, form.data.email));
@@ -48,19 +48,23 @@ async function login({ request, cookies }: { request: Request; cookies: Cookies 
     return setError(form, "", "Email not registered");
   }
 
-  let isPasswordValid = false;
+  const isPasswordValid =
+    existingUser.password &&
+    (await new Argon2id().verify(existingUser.password, form.data.password));
+
+  // let isPasswordValid = false;
 
   // If the user has a password, it means they registered with email
-  if (existingUser.authMethods.includes("email") && existingUser.password) {
-    isPasswordValid = await new Argon2id().verify(existingUser.password, form.data.password);
-  } else {
-    // If the user doesn't have a password, it means they registered with OAuth
-    return setError(
-      form,
-      "",
-      "You registered with an OAuth provider. Please use the appropriate login method.",
-    );
-  }
+  // if (existingUser.authMethods.includes("email") && existingUser.password) {
+  //   isPasswordValid = await new Argon2id().verify(existingUser.password, form.data.password);
+  // } else {
+  //   // If the user doesn't have a password, it means they registered with OAuth
+  //   return setError(
+  //     form,
+  //     "",
+  //     "You registered with an OAuth provider. Please use the appropriate login method.",
+  //   );
+  // }
 
   if (!isPasswordValid) {
     return setError(form, "password", "Incorrect password");

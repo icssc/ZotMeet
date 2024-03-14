@@ -9,7 +9,7 @@ import {
   date,
   numeric,
   primaryKey,
-  json,
+  // json,
   pgEnum,
   boolean,
 } from "drizzle-orm/pg-core";
@@ -20,11 +20,10 @@ export const attendanceEnum = pgEnum("attendance", ["accepted", "maybe", "declin
 
 export const users = zotMeet.table("user", {
   id: text("id").primaryKey(),
-  displayName: text("displayName").unique().notNull(),
+  displayName: text("displayName").notNull(),
   email: text("email").unique().notNull(),
   password: text("password"),
   created_at: timestamp("created_at"),
-  authMethods: json("auth_methods").$type<string[]>().notNull(),
 });
 
 export const oauthAccountsTable = zotMeet.table(
@@ -122,7 +121,7 @@ export const usersInGroup = zotMeet.table(
 export const usersInMeeting = zotMeet.table(
   "users_in_meeting",
   {
-    userId: uuid("user_id")
+    userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     meetingId: uuid("meeting_id")
@@ -137,7 +136,6 @@ export const usersInMeeting = zotMeet.table(
 
 export const userRelations = relations(users, ({ many }) => ({
   usersInGroups: many(usersInGroup),
-  keys: many(keys),
   sessions: many(sessions),
   availabilities: many(availabilities),
   usersInMeeting: many(usersInMeeting),
