@@ -14,7 +14,7 @@ import {
 export const zotMeet = pgSchema("zotmeet");
 
 export const users = zotMeet.table("user", {
-  id: uuid("id").defaultRandom().primaryKey(),
+  id: text("id").primaryKey(),
   displayName: text("displayName").unique().notNull(),
   email: text("email").unique().notNull(),
   password: text("password").notNull(),
@@ -30,7 +30,7 @@ export const meetings = zotMeet.table("meetings", {
   from_time: timestamp("from_time").notNull(),
   to_time: timestamp("to_time").notNull(),
   group_id: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
-  host_id: uuid("host_id").references(() => users.id),
+  host_id: text("host_id").references(() => users.id),
 });
 
 export const groups = zotMeet.table("groups", {
@@ -44,7 +44,7 @@ export const availabilities = zotMeet.table(
   "availabilities",
   {
     day: date("day").notNull(),
-    user_id: uuid("user_id")
+    user_id: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     block_length: smallint("block_length").notNull().default(15),
@@ -69,7 +69,7 @@ export const sessions = zotMeet.table(
       withTimezone: true,
       mode: "date",
     }).notNull(),
-    userId: uuid("user_id")
+    userId: text("user_id")
       .references(() => users.id, { onDelete: "cascade" })
       .notNull(),
   },
@@ -83,7 +83,7 @@ export const sessions = zotMeet.table(
 export const userGroupMembers = zotMeet.table(
   "users_in_group",
   {
-    userId: uuid("user_id")
+    userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     groupId: uuid("group_id")

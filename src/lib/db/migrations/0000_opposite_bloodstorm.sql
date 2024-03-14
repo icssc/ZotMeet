@@ -2,7 +2,7 @@ CREATE SCHEMA "zotmeet";
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "zotmeet"."availabilities" (
 	"day" date NOT NULL,
-	"user_id" uuid NOT NULL,
+	"user_id" text NOT NULL,
 	"block_length" smallint DEFAULT 15 NOT NULL,
 	"meeting_id" uuid DEFAULT '00000000-0000-0000-0000-000000000000' NOT NULL,
 	"earliest_time" numeric,
@@ -27,23 +27,23 @@ CREATE TABLE IF NOT EXISTS "zotmeet"."meetings" (
 	"from_time" timestamp NOT NULL,
 	"to_time" timestamp NOT NULL,
 	"group_id" uuid,
-	"host_id" uuid
+	"host_id" text
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "zotmeet"."sessions" (
 	"id" text PRIMARY KEY NOT NULL,
 	"expires_at" timestamp with time zone NOT NULL,
-	"user_id" uuid NOT NULL
+	"user_id" text NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "zotmeet"."users_in_group" (
-	"user_id" uuid NOT NULL,
+	"user_id" text NOT NULL,
 	"group_id" uuid NOT NULL,
 	CONSTRAINT "users_in_group_group_id_user_id_pk" PRIMARY KEY("group_id","user_id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "zotmeet"."user" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" text PRIMARY KEY NOT NULL,
 	"displayName" text NOT NULL,
 	"email" text NOT NULL,
 	"password" text NOT NULL,
