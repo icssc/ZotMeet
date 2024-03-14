@@ -11,9 +11,6 @@ dependencies:
   '@lucia-auth/adapter-drizzle':
     specifier: ^1.0.3
     version: 1.0.4(lucia@3.1.1)
-  '@lucia-auth/oauth':
-    specifier: ^3.5.3
-    version: 3.5.3(lucia@3.1.1)
   '@prisma/client':
     specifier: 5.6.0
     version: 5.6.0(prisma@5.6.0)
@@ -25,11 +22,7 @@ dependencies:
     version: 2.1.0
   drizzle-orm:
     specifier: 0.29.4
-<<<<<<< Updated upstream
-    version: 0.29.4(@aws-sdk/client-rds-data@3.454.0)(@types/pg@8.11.2)(kysely@0.25.0)(pg@8.11.3)(postgres@3.4.3)(react@18.2.0
-=======
     version: 0.29.4(@aws-sdk/client-rds-data@3.533.0)(@types/pg@8.11.2)(kysely@0.25.0)(pg@8.11.3)(postgres@3.4.3)(react@18.2.0)
->>>>>>> Stashed changes
   lucia:
     specifier: ^3.1.1
     version: 3.1.1
@@ -137,9 +130,6 @@ devDependencies:
   lint-staged:
     specifier: 15.1.0
     version: 15.1.0
-  pg:
-    specifier: ^8.11.3
-    version: 8.11.3
   postcss:
     specifier: ^8.4.24
     version: 8.4.35
@@ -1686,7 +1676,6 @@ packages:
   /@babel/highlight@7.23.4:
     resolution: {integrity: sha512-acGdbYSfp2WheJoJm/EBBBLh/ID8KDc64ISZ9DYtBmC8/Q204PZJLHyzeB5qMzJ5trcOkybd78M4x2KWsUq++A==}
     engines: {node: '>=6.9.0'}
-    requiresBuild: true
     dependencies:
       '@babel/helper-validator-identifier': 7.22.20
       chalk: 2.4.2
@@ -2898,14 +2887,6 @@ packages:
     resolution: {integrity: sha512-eF0DyebhgG8SLBpEG0BiDLm9DLCCYJj3EFN4TvU/oaJ7expEuY5nPZj4mvUpxX8I9DYwC7ROhMWC9WyjY1pQ9Q==}
     peerDependencies:
       lucia: 3.x
-    dependencies:
-      lucia: 3.1.1
-    dev: false
-
-  /@lucia-auth/oauth@3.5.3(lucia@3.1.1):
-    resolution: {integrity: sha512-3blBldenf2zXsSJTZUwzB+NxI+0KJljfMHT0WR7hyLNwi4Ijss7F2cQqk2xW1lGH3lzdmsV93ZsY9Yv8ekBRUw==}
-    peerDependencies:
-      lucia: ^2.0.0
     dependencies:
       lucia: 3.1.1
     dev: false
@@ -4488,16 +4469,6 @@ packages:
     resolution: {integrity: sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==}
     dev: true
 
-<<<<<<< Updated upstream
-  /@types/node@18.18.12:
-    resolution: {integrity: sha512-G7slVfkwOm7g8VqcEF1/5SXiMjP3Tbt+pXDU3r/qhlM2KkGm786DUD4xyMA2QzEElFrv/KZV9gjygv4LnkpbMQ==}
-    requiresBuild: true
-    dependencies:
-      undici-types: 5.26.5
-    dev: true
-
-=======
->>>>>>> Stashed changes
   /@types/node@20.10.0:
     resolution: {integrity: sha512-D0WfRmU9TQ8I9PFx9Yc+EBHw+vSpIub4IDvQivcp26PtPrdMGAq5SDcpXEo/epqa/DXotVpekHiLNTg3iaKXBQ==}
     dependencies:
@@ -8046,7 +8017,6 @@ packages:
 
   /json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
-    requiresBuild: true
     dev: true
 
   /json-schema-typed@7.0.3:
@@ -9139,6 +9109,7 @@ packages:
   /pg-numeric@1.0.2:
     resolution: {integrity: sha512-BM/Thnrw5jm2kKLE5uJkXqqExRUY/toLHda65XgFTBTFYZyopbKjBe29Ii3RbkvlsMoFwD+tHeGaCjjv0gHlyw==}
     engines: {node: '>=4'}
+
   /pg-pool@3.6.1(pg@8.11.3):
     resolution: {integrity: sha512-jizsIzhkIitxCGfPRzJn1ZdcosIt3pz9Sh3V01fm1vZnbnCMgmGl5wvGGdNN2EL9Rmb0EcFoCkixH4Pu+sP9Og==}
     peerDependencies:
@@ -9170,7 +9141,7 @@ packages:
       postgres-date: 2.1.0
       postgres-interval: 3.0.0
       postgres-range: 1.1.4
-      
+
   /pg@8.11.3:
     resolution: {integrity: sha512-+9iuvG8QfaaUrrph+kpF24cXkH1YOOUeArRNYIxq1viYHZagBxrTno7cecY1Fa44tJeZvaoG+Djpkc3JwehN5g==}
     engines: {node: '>= 8.0.0'}
@@ -9732,7 +9703,6 @@ packages:
   /require-from-string@2.0.2:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
     engines: {node: '>=0.10.0'}
-    requiresBuild: true
     dev: true
 
   /resolve-dir@1.0.1:
