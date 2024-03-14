@@ -1,7 +1,9 @@
-import { fail, redirect, type Cookies } from "@sveltejs/kit";
+import { fail, type Cookies } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import { Argon2id } from "oslo/password";
 import { setError, superValidate } from "sveltekit-superforms/server";
+
+import type { PageServerLoad } from "./$types";
 
 import { userSchema } from "$lib/config/zod-schemas";
 import { createAndSetSession } from "$lib/db/authUtils.server";
@@ -15,15 +17,11 @@ const loginSchema = userSchema.pick({
   password: true,
 });
 
-export const load = async (event) => {
-  const session = await event.locals.auth.validate();
-  if (!session) throw redirect(302, "/auth");
-
-  const form = await superValidate(event, loginSchema);
+export const load = (async () => {
   return {
-    form,
+    userLoginFormData: await superValidate(loginSchema),
   };
-};
+}) satisfies PageServerLoad;
 
 export const actions = {
   default: login,
