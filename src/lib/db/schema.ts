@@ -99,7 +99,7 @@ export const sessions = zotMeet.table(
   },
 );
 
-export const userGroupMembers = zotMeet.table(
+export const usersInGroup = zotMeet.table(
   "users_in_group",
   {
     userId: uuid("user_id")
@@ -114,7 +114,7 @@ export const userGroupMembers = zotMeet.table(
   }),
 );
 
-export const userMeetingMembers = zotMeet.table(
+export const usersInMeeting = zotMeet.table(
   "users_in_meeting",
   {
     userId: uuid("user_id")
@@ -131,36 +131,36 @@ export const userMeetingMembers = zotMeet.table(
 );
 
 export const userRelations = relations(users, ({ many }) => ({
-  usersInGroups: many(userGroupMembers),
+  usersInGroups: many(usersInGroup),
   keys: many(keys),
   sessions: many(sessions),
   availabilities: many(availabilities),
-  userMeetingMembers: many(userMeetingMembers),
+  usersInMeeting: many(usersInMeeting),
 }));
 
 export const groupsRelations = relations(groups, ({ many }) => ({
-  usersInGroups: many(userGroupMembers),
+  usersInGroups: many(usersInGroup),
   meetings: many(meetings),
 }));
 
-export const userGroupMemberRelations = relations(userGroupMembers, ({ one }) => ({
+export const userGroupMemberRelations = relations(usersInGroup, ({ one }) => ({
   groups: one(groups, {
-    fields: [userGroupMembers.groupId],
+    fields: [usersInGroup.groupId],
     references: [groups.id],
   }),
   users: one(users, {
-    fields: [userGroupMembers.userId],
+    fields: [usersInGroup.userId],
     references: [users.id],
   }),
 }));
 
-export const userMeetingMemberRelations = relations(userMeetingMembers, ({ one }) => ({
+export const userMeetingMemberRelations = relations(usersInMeeting, ({ one }) => ({
   groups: one(meetings, {
-    fields: [userMeetingMembers.meetingId],
+    fields: [usersInMeeting.meetingId],
     references: [meetings.id],
   }),
   users: one(users, {
-    fields: [userMeetingMembers.userId],
+    fields: [usersInMeeting.userId],
     references: [users.id],
   }),
 }));
@@ -175,7 +175,7 @@ export const meetingsRelations = relations(meetings, ({ one, many }) => ({
     references: [users.id],
   }),
   availabilities: many(availabilities),
-  userMeetingMembers: many(userMeetingMembers),
+  usersInMeeting: many(usersInMeeting),
 }));
 
 export const keysRelations = relations(keys, ({ one }) => ({
