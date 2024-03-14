@@ -1,12 +1,12 @@
 import { DrizzlePostgreSQLAdapter } from "@lucia-auth/adapter-drizzle";
-import { Google } from "arctic";
+// import { Google } from "arctic";
 import { Lucia, TimeSpan } from "lucia";
 
-import {
-  GOOGLE_OAUTH_CLIENT_ID,
-  GOOGLE_OAUTH_CLIENT_SECRET,
-  GOOGLE_OAUTH_REDIRECT_URI,
-} from "$env/static/private";
+// import {
+//   GOOGLE_OAUTH_CLIENT_ID,
+//   GOOGLE_OAUTH_CLIENT_SECRET,
+//   GOOGLE_OAUTH_REDIRECT_URI,
+// } from "$env/static/private";
 import { db } from "$lib/db/drizzle";
 import { sessions, users } from "$lib/db/schema";
 
@@ -46,8 +46,8 @@ interface DatabaseUserAttributes {
   google_id: string;
 }
 
-export const google = new Google(
-  GOOGLE_OAUTH_CLIENT_ID,
-  GOOGLE_OAUTH_CLIENT_SECRET,
-  GOOGLE_OAUTH_REDIRECT_URI,
-);
+// export const google = new Google(
+//   GOOGLE_OAUTH_CLIENT_ID,
+//   GOOGLE_OAUTH_CLIENT_SECRET,
+//   GOOGLE_OAUTH_REDIRECT_URI,
+// );
