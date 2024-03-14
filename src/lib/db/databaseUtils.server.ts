@@ -4,14 +4,12 @@ import { db } from "./drizzle";
 import { users, type UserInsertSchema } from "./schema";
 
 export const checkIfEmailExists = async (email: string) => {
-  console.log("checking email");
   const queryResult = await db
     .select({
       email: users.email,
     })
     .from(users)
     .where(eq(users.email, email));
-  console.log(queryResult);
 
   return queryResult.length > 0;
 };
