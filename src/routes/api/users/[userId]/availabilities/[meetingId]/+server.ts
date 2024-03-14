@@ -1,6 +1,16 @@
 import { PrismaClient } from "@prisma/client";
+import type { RequestHandler } from "@sveltejs/kit";
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { db } from "$lib/db/drizzle";
 
 const prisma = new PrismaClient();
+
+// Below is a boilerplate template for defining Svelte route APIs
+export const GET: RequestHandler = async ({ request }) => {
+  const example = await request.json();
+  return new Response(example);
+};
 
 export async function POST({ request }: { request: Request }) {
   const data = await request.json();
@@ -36,3 +46,12 @@ export async function POST({ request }: { request: Request }) {
     });
   }
 }
+export const PUT: RequestHandler = async ({ request }) => {
+  const example = await request.json();
+  return new Response(example);
+};
+
+export const DELETE: RequestHandler = async ({ request }) => {
+  const example = await request.json();
+  return new Response(example);
+};

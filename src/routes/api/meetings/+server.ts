@@ -1,24 +1,47 @@
-import { PrismaClient } from "@prisma/client";
+import type { RequestHandler } from "@sveltejs/kit";
 
-const prisma = new PrismaClient();
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { db } from "$lib/db/drizzle";
+import { meetings, meetingDates } from "$lib/db/schema";
+// Below is a boilerplate template for defining Svelte route APIs
+export const GET: RequestHandler = async ({ request }) => {
+  const example = await request.json();
+
+  return new Response(example);
+};
 
 export async function POST({ request }: { request: Request }) {
-  const data = await request.json();
+  const { data } = await request.json();
 
   console.log(request);
 
   try {
-    await prisma.meeting.create({
-      data: {
+    const createdMeetings = await db
+      .insert(meetings)
+      .values({
         title: data.title,
-        description: data.description,
-        date: new Date(data.date),
-        from_time: new Date(data.from_time),
-        to_time: new Date(data.to_time),
+        description: data?.description,
+        location: data?.location,
+        scheduled: false,
+        from_time: data.from_time,
+        to_time: data.to_time,
+        group_id: data.group_id,
         host_id: data.host_id,
-        location: data.location,
-      },
-    });
+      })
+      .returning();
+    const createdMeeting = createdMeetings[0];
+
+    const newMeetingDates = data.dates.map((date: Date) => ({
+      meeting_id: createdMeeting.id,
+      date,
+    }));
+    const createdDates = await db
+      .insert(meetingDates)
+      .values(newMeetingDates)
+      .returning({ date: meetingDates.date });
+    const finalDates = createdDates.map(({ date }: { date: Date }) => date);
+    const resObject = JSON.stringify({ ...createdMeeting, dates: finalDates });
+    return new Response(JSON.stringify(resObject), { status: 201 });
   } catch (error) {
     console.error("error", error);
     return new Response(JSON.stringify({ error: error }), {
@@ -28,6 +51,13 @@ export async function POST({ request }: { request: Request }) {
       },
     });
   }
-
-  return new Response(JSON.stringify({ message: "Success" }), { status: 201 });
 }
+export const PUT: RequestHandler = async ({ request }) => {
+  const example = await request.json();
+  return new Response(example);
+};
+
+export const DELETE: RequestHandler = async ({ request }) => {
+  const example = await request.json();
+  return new Response(example);
+};
