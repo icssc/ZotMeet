@@ -2,6 +2,12 @@
 // import { googleAuth } from "$lib/server/lucia";
 
 // export const GET = async ({ cookies, locals }) => {
+// if (!event.locals.user) {
+// 	return new Response(null, {
+// 		status: 401
+// 	});
+// }
+
 //   const session = await locals.auth.validate();
 
 //   if (session) {

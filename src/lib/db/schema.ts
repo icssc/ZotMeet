@@ -17,6 +17,7 @@ export const users = zotMeet.table("user", {
   id: uuid("id").defaultRandom().primaryKey(),
   displayName: text("displayName").unique().notNull(),
   email: text("email").unique().notNull(),
+  password: text("password").notNull(),
   created_at: timestamp("created_at"),
 });
 
@@ -50,7 +51,7 @@ export const availabilities = zotMeet.table(
     meeting_id: uuid("meeting_id")
       .references(() => meetings.id, { onDelete: "cascade" })
       .notNull()
-      .default("0"),
+      .default("00000000-0000-0000-0000-000000000000"),
     earliest_time: numeric("earliest_time"),
     latest_time: numeric("latest_time"),
     availability_string: text("availability_string").notNull(),
@@ -145,3 +146,5 @@ export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export type UserInsertSchema = typeof users.$inferInsert;

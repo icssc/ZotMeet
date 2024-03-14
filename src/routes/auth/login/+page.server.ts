@@ -1,10 +1,14 @@
-import { fail, redirect, type RequestEvent } from "@sveltejs/kit";
+import { fail, redirect, type Cookies } from "@sveltejs/kit";
+import { eq } from "drizzle-orm";
+import { Argon2id } from "oslo/password";
 import { setError, superValidate } from "sveltekit-superforms/server";
 
-import type { RouteParams } from "../$types";
-
 import { userSchema } from "$lib/config/zod-schemas";
-import { auth } from "$lib/server/lucia";
+import { createAndSetSession } from "$lib/db/authUtils.server";
+import { db } from "$lib/db/drizzle";
+import { users } from "$lib/db/schema";
+import { lucia } from "$lib/server/lucia";
+import type { AlertMessageType } from "$lib/types/auth";
 
 const loginSchema = userSchema.pick({
   email: true,
@@ -13,7 +17,7 @@ const loginSchema = userSchema.pick({
 
 export const load = async (event) => {
   const session = await event.locals.auth.validate();
-  if (session) throw redirect(302, "/");
+  if (!session) throw redirect(302, "/auth");
 
   const form = await superValidate(event, loginSchema);
   return {
@@ -25,27 +29,33 @@ export const actions = {
   default: login,
 };
 
-async function login(event: RequestEvent<RouteParams, "/auth/login">) {
-  const form = await superValidate(event, loginSchema);
+async function login({ request, cookies }: { request: Request; cookies: Cookies }) {
+  console.log("yay");
+  const form = await superValidate<typeof loginSchema, AlertMessageType>(request, loginSchema);
 
   if (!form.valid) {
     return fail(400, { form });
   }
 
-  try {
-    const key = await auth.useKey("email", form.data.email.toLowerCase(), form.data.password);
+  const [existingUser] = await db
+    .select({
+      id: users.id,
+      password: users.password,
+    })
+    .from(users)
+    .where(eq(users.email, form.data.email));
 
-    const session = await auth.createSession({
-      userId: key.userId,
-      attributes: {},
-    });
-
-    event.locals.auth.setSession(session);
-  } catch (e) {
-    console.error(e);
-    // Handle the error, assume it's an incorrect email or password for simplicity
-    return setError(form, "", "The email or password is incorrect.");
+  if (!existingUser) {
+    return setError(form, "", "Email not registered");
   }
+
+  const validPassword = await new Argon2id().verify(existingUser.password, form.data.password);
+
+  if (!validPassword) {
+    return setError(form, "password", "Incorrect password");
+  }
+
+  await createAndSetSession(lucia, existingUser.id, cookies);
 
   return { form };
 }

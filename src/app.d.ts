@@ -5,33 +5,17 @@ import "lucia-auth";
 
 import type { AuthRequest } from "lucia";
 
-import type { Auth as CustomAuth } from "$lib/server/lucia";
-
 declare global {
   namespace App {
     interface Locals {
       auth: AuthRequest;
-      user: Lucia.UserAttributes;
-      startTimer: number;
-      error: string;
-      errorId: string;
-      errorStackTrace: string;
-      message: unknown;
-      track: unknown;
+      user: import("lucia").User | null;
+      session: import("lucia").Session | null;
     }
     interface Error {
       code?: string;
       errorId?: string;
     }
-  }
-  namespace Lucia {
-    type Auth = CustomAuth;
-
-    type UserAttributes = {
-      userId: string;
-      email: string;
-      displayName: string;
-    };
   }
 }
 

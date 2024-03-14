@@ -2,7 +2,7 @@ import type { Config } from "drizzle-kit";
 
 export default {
   schema: "./src/lib/db/schema.ts",
-  out: "./src/lib/db",
+  out: "./src/lib/db/migrations",
   driver: "pg",
   dbCredentials: {
     // @ts-expect-error DATABASE_URL should be in the .env
