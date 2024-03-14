@@ -7,6 +7,7 @@ import { Lucia, TimeSpan } from "lucia";
 //   GOOGLE_OAUTH_CLIENT_SECRET,
 //   GOOGLE_OAUTH_REDIRECT_URI,
 // } from "$env/static/private";
+import { dev } from "$app/environment";
 import { db } from "$lib/db/drizzle";
 import { sessions, users } from "$lib/db/schema";
 
@@ -18,7 +19,7 @@ export const lucia = new Lucia(adapter, {
     name: "session",
     expires: false,
     attributes: {
-      secure: process.env.NODE_ENV === "PRODUCTION",
+      secure: !dev,
     },
   },
   getUserAttributes: (attributes) => {
@@ -27,7 +28,7 @@ export const lucia = new Lucia(adapter, {
       email: attributes.email,
       displayName: attributes.displayName,
 
-      googleId: attributes.google_id,
+      // googleId: attributes.google_id,
     };
   },
 });
