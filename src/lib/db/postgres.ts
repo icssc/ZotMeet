@@ -8,4 +8,4 @@ import { DATABASE_URL } from "$env/static/private";
  *
  * In all other cases, you should probably not use this unless you know what you are doing.
  */
-export const client = postgres(DATABASE_URL, { max: 1, ssl: { rejectUnauthorized: false } });
+export const client = postgres(DATABASE_URL, { max: 1, ssl: "prefer" });

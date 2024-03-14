@@ -10,9 +10,13 @@ import {
   date,
   numeric,
   primaryKey,
+  pgEnum,
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const zotMeet = pgSchema("zotmeet");
+
+export const attendanceEnum = pgEnum("attendance", ["accepted", "maybe", "declined"]);
 
 export const users = zotMeet.table("user", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -27,6 +31,7 @@ export const meetings = zotMeet.table("meetings", {
   date: timestamp("date").notNull(),
   description: text("description"),
   location: text("location"),
+  scheduled: boolean("scheduled"),
   from_time: timestamp("from_time").notNull(),
   to_time: timestamp("to_time").notNull(),
   group_id: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
@@ -51,7 +56,7 @@ export const availabilities = zotMeet.table(
     meeting_id: uuid("meeting_id")
       .references(() => meetings.id, { onDelete: "cascade" })
       .notNull()
-      .default("0"),
+      .default("00000000-0000-0000-0000-000000000000"),
     earliest_time: numeric("earliest_time"),
     latest_time: numeric("latest_time"),
     availability_string: text("availability_string").notNull(),
@@ -72,7 +77,7 @@ export const keys = zotMeet.table(
   },
   (table) => {
     return {
-      userIdx: index("user_idx").on(table.user_id),
+      userIdxKeys: index("user_idx_keys").on(table.user_id),
     };
   },
 );
@@ -89,12 +94,12 @@ export const sessions = zotMeet.table(
   },
   (table) => {
     return {
-      userIdx: index("user_idx").on(table.user_id),
+      userIdxSessions: index("user_idx_sessions").on(table.user_id),
     };
   },
 );
 
-export const userGroupMembers = zotMeet.table(
+export const usersInGroup = zotMeet.table(
   "users_in_group",
   {
     userId: uuid("user_id")
@@ -109,25 +114,53 @@ export const userGroupMembers = zotMeet.table(
   }),
 );
 
+export const usersInMeeting = zotMeet.table(
+  "users_in_meeting",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    meetingId: uuid("meeting_id")
+      .notNull()
+      .references(() => meetings.id, { onDelete: "cascade" }),
+    attending: attendanceEnum("attendance"),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.meetingId] }),
+  }),
+);
+
 export const userRelations = relations(users, ({ many }) => ({
-  usersInGroups: many(userGroupMembers),
+  usersInGroups: many(usersInGroup),
   keys: many(keys),
   sessions: many(sessions),
   availabilities: many(availabilities),
+  usersInMeeting: many(usersInMeeting),
 }));
 
 export const groupsRelations = relations(groups, ({ many }) => ({
-  usersInGroups: many(userGroupMembers),
+  usersInGroups: many(usersInGroup),
   meetings: many(meetings),
 }));
 
-export const userGroupMemberRelations = relations(userGroupMembers, ({ one }) => ({
+export const userGroupMemberRelations = relations(usersInGroup, ({ one }) => ({
   groups: one(groups, {
-    fields: [userGroupMembers.groupId],
+    fields: [usersInGroup.groupId],
     references: [groups.id],
   }),
   users: one(users, {
-    fields: [userGroupMembers.userId],
+    fields: [usersInGroup.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userMeetingMemberRelations = relations(usersInMeeting, ({ one }) => ({
+  groups: one(meetings, {
+    fields: [usersInMeeting.meetingId],
+    references: [meetings.id],
+  }),
+  users: one(users, {
+    fields: [usersInMeeting.userId],
     references: [users.id],
   }),
 }));
@@ -142,6 +175,7 @@ export const meetingsRelations = relations(meetings, ({ one, many }) => ({
     references: [users.id],
   }),
   availabilities: many(availabilities),
+  usersInMeeting: many(usersInMeeting),
 }));
 
 export const keysRelations = relations(keys, ({ one }) => ({
