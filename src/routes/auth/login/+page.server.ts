@@ -28,7 +28,6 @@ export const actions = {
 };
 
 async function login({ request, cookies }: { request: Request; cookies: Cookies }) {
-  console.log("yay");
   const form = await superValidate<typeof loginSchema, AlertMessageType>(request, loginSchema);
 
   if (!form.valid) {
