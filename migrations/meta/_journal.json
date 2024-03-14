@@ -1,0 +1,20 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1709806964509,
+      "tag": "0000_worried_nightcrawler",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1710398557780,
+      "tag": "0001_vengeful_korg",
+      "breakpoints": true
+    }
+  ]
+}
