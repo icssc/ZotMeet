@@ -74,8 +74,4 @@
       {/if}
     </button>
   </div>
-
-  <div class="mt-10 flex flex-row items-center justify-center">
-    <a href="/auth/password/reset" class="font-semibold underline">{"Forgot Password?"}</a>
-  </div>
 </form>

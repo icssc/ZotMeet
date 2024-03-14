@@ -1,37 +1,46 @@
-// import { dev } from "$app/environment";
-// import { googleAuth } from "$lib/server/lucia";
+import type { Cookies, RequestHandler } from "@sveltejs/kit";
+import { generateCodeVerifier, generateState } from "arctic";
 
-// export const GET = async ({ cookies, locals }) => {
-// if (!event.locals.user) {
-// 	return new Response(null, {
-// 		status: 401
-// 	});
-// }
+import {
+  GOOGLE_OAUTH_CODE_VERIFIER_COOKIE_NAME,
+  GOOGLE_OAUTH_STATE_COOKIE_NAME,
+} from "$lib/db/authUtils.server";
+import { googleOauth } from "$lib/server/lucia";
 
-//   const session = await locals.auth.validate();
+export const GET: RequestHandler = async ({ cookies }: { cookies: Cookies }) => {
+  // Generate a unique state value for the OAuth  process
+  const state = generateState();
+  const codeVerifier = generateCodeVerifier();
 
-//   if (session) {
-//     return new Response(null, {
-//       status: 302,
-//       headers: {
-//         Location: "/",
-//       },
-//     });
-//   }
-//   const [url, state] = await googleAuth.getAuthorizationUrl();
+  // Create the Google OAuth authorization URL
+  const url = await googleOauth.createAuthorizationURL(state, codeVerifier, {
+    scopes: ["profile", "email"],
+  });
 
-//   // Store state.
-//   cookies.set("google_oauth_state", state, {
-//     httpOnly: true,
-//     secure: !dev,
-//     path: "/",
-//     maxAge: 30 * 24 * 60 * 60,
-//   });
+  // Set a cookie with the state value, to be used for CSRF protection
+  cookies.set(GOOGLE_OAUTH_STATE_COOKIE_NAME, state, {
+    path: "/", // The cookie will be accessible on all paths
+    secure: import.meta.env.PROD, // The cookie will be sent over HTTPS if in production
+    httpOnly: true, // The cookie cannot be accessed through client-side script
+    maxAge: 60 * 10, // The cookie will expire after 10 minutes
+    sameSite: "lax", // The cookie will only be sent with same-site requests or top-level navigations
+  });
 
-//   return new Response(null, {
-//     status: 302,
-//     headers: {
-//       Location: url.toString(),
-//     },
-//   });
-// };
+  // Set a cookie with the code verifier, to be used for PKCE
+  cookies.set(GOOGLE_OAUTH_CODE_VERIFIER_COOKIE_NAME, codeVerifier, {
+    path: "/",
+    secure: import.meta.env.PROD,
+    httpOnly: true,
+    maxAge: 60 * 10,
+    sameSite: "lax",
+  });
+
+  console.log("before redirect");
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: url.toString(),
+    },
+  });
+};

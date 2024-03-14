@@ -1,114 +1,146 @@
-// import { OAuthRequestError } from "@lucia-auth/oauth";
-// import type { GoogleUser } from "@lucia-auth/oauth/providers";
+import { OAuth2RequestError } from "arctic";
+import { and, eq } from "drizzle-orm";
+import { generateId } from "lucia";
 
-// import { auth, googleAuth } from "$lib/server/lucia";
+import type { RequestHandler } from "./$types";
 
-// const getUser = async (googleUser: GoogleUser) => {
-//   if (!googleUser.email) {
-//     return null;
-//   }
+import {
+  GOOGLE_OAUTH_CODE_VERIFIER_COOKIE_NAME,
+  GOOGLE_OAUTH_STATE_COOKIE_NAME,
+  createAndSetSession,
+} from "$lib/db/authUtils.server";
+import { db } from "$lib/db/drizzle";
+import { oauthAccountsTable, users } from "$lib/db/schema";
+import { googleOauth, lucia } from "$lib/server/lucia";
 
-//   try {
-//     const dbUser = await auth.getUser(googleUser.email);
-//     if (dbUser) {
-//       return dbUser;
-//     }
-//   } catch (error) {
-//     /* If a user cannot be found, an error is raised and caught here. */
-//     console.log("User not found in database", error);
-//   }
+type GoogleUser = {
+  sub: string;
+  name: string;
+  given_name: string;
+  family_name: string;
+  picture: string;
+  email: string;
+  email_verified: boolean;
+  locale: string;
+};
 
-//   const token = crypto.randomUUID();
-//   const user = await auth.createUser({
-//     userId: googleUser.email.toLowerCase(),
-//     key: {
-//       providerId: "google",
-//       providerUserId: googleUser.email.toLowerCase(),
-//       password: null,
-//     },
-//     attributes: {
-//       email: googleUser.email.toLowerCase(),
-//       firstName: googleUser.given_name ?? "",
-//       lastName: googleUser.family_name ?? "",
-//       //   role: "USER",
-//       verified: false,
-//       receiveEmail: true,
-//       token: token,
-//     },
-//   });
+export const GET: RequestHandler = async (event) => {
+  const code = event.url.searchParams.get("code");
+  const state = event.url.searchParams.get("state");
 
-//   return user;
-// };
+  const storedState = event.cookies.get(GOOGLE_OAUTH_STATE_COOKIE_NAME);
+  const storedCodeVerifier = event.cookies.get(GOOGLE_OAUTH_CODE_VERIFIER_COOKIE_NAME);
 
-// export const GET = async ({ url, cookies, locals }) => {
-//   /**
-//    * Check for a session. if it exists,
-//    * redirect to a page of your liking.
-//    */
-//   const session = await locals.auth.validate();
-//   if (session) {
-//     return new Response(null, {
-//       status: 302,
-//       headers: {
-//         Location: "/auth",
-//       },
-//     });
-//   }
+  // Validate OAuth state and code verifier
+  if (!code || !state || !storedState || !storedCodeVerifier || state !== storedState) {
+    return new Response("Invalid OAuth state or code verifier", {
+      status: 400,
+    });
+  }
 
-//   /**
-//    * Validate state of the request.
-//    */
-//   const storedState = cookies.get("google_oauth_state") ?? null;
-//   const state = url.searchParams.get("state");
-//   const code = url.searchParams.get("code");
-//   if (!storedState || !state || storedState !== state || !code) {
-//     return new Response(null, {
-//       status: 400,
-//     });
-//   }
+  try {
+    const tokens = await googleOauth.validateAuthorizationCode(code, storedCodeVerifier);
 
-//   try {
-//     const { googleUser } = await googleAuth.validateCallback(code);
-//     const user = await getUser(googleUser);
+    const googleUserResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
+      headers: {
+        Authorization: `Bearer ${tokens.accessToken}`,
+      },
+    });
 
-//     if (!user) {
-//       /**
-//        * You should probably redirect the user to a page and show a
-//        * message that the account could not be created.
-//        *
-//        * This is a very rare case, but it can happen.
-//        */
-//       return new Response(null, {
-//         status: 500,
-//       });
-//     }
+    const googleUser = (await googleUserResponse.json()) as GoogleUser;
 
-//     const session = await auth.createSession({
-//       userId: user.userId,
-//       attributes: {},
-//     });
+    if (!googleUser.email) {
+      return new Response("No primary email address", {
+        status: 400,
+      });
+    }
 
-//     locals.auth.setSession(session);
+    if (!googleUser.email_verified) {
+      return new Response("Unverified email", {
+        status: 400,
+      });
+    }
 
-//     return new Response(null, {
-//       status: 302,
-//       headers: {
-//         Location: "/auth",
-//       },
-//     });
-//   } catch (e) {
-//     console.log(e);
+    // Check if the user already exists
+    const [existingUser] = await db.select().from(users).where(eq(users.email, googleUser.email));
 
-//     // Invalid code.
-//     if (e instanceof OAuthRequestError) {
-//       return new Response(null, {
-//         status: 400,
-//       });
-//     }
+    if (existingUser) {
+      // Check if the user already has a Google OAuth account linked
+      const [existingOauthAccount] = await db
+        .select()
+        .from(oauthAccountsTable)
+        .where(
+          and(
+            eq(oauthAccountsTable.providerId, "google"),
+            eq(oauthAccountsTable.providerUserId, googleUser.sub),
+          ),
+        );
 
-//     // All other errors.
-//     return new Response(null, {
-//       status: 500,
-//     });
-//   }
-// };
+      if (!existingOauthAccount) {
+        // Add the 'google' auth provider to the user's authMethods list
+        const authMethods = existingUser.authMethods || [];
+        authMethods.push("google");
+
+        await db.transaction(async (trx) => {
+          // Link the Google OAuth account to the existing user
+          await trx.insert(oauthAccountsTable).values({
+            userId: existingUser.id,
+            providerId: "google",
+            providerUserId: googleUser.sub,
+          });
+
+          // Update the user's authMethods list
+          await trx
+            .update(users)
+            .set({
+              authMethods,
+            })
+            .where(eq(users.id, existingUser.id));
+        });
+      }
+
+      await createAndSetSession(lucia, existingUser.id, event.cookies);
+    } else {
+      // Create a new user and their OAuth account
+      const userId = generateId(15);
+
+      await db.transaction(async (trx) => {
+        await trx.insert(users).values({
+          id: userId,
+          displayName: googleUser.name,
+          email: googleUser.email,
+          authMethods: ["google"],
+        });
+
+        await trx.insert(oauthAccountsTable).values({
+          userId,
+          providerId: "google",
+          providerUserId: googleUser.sub,
+        });
+      });
+
+      await createAndSetSession(lucia, userId, event.cookies);
+    }
+
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: "/",
+      },
+    });
+  } catch (error) {
+    console.error(error);
+
+    // the specific error message depends on the provider
+    if (error instanceof OAuth2RequestError) {
+      // invalid code
+      return new Response(null, {
+        status: 400,
+      });
+    }
+
+    return new Response(null, {
+      status: 500,
+    });
+  }
+};

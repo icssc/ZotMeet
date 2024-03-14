@@ -9,6 +9,7 @@ import {
   date,
   numeric,
   primaryKey,
+  json,
 } from "drizzle-orm/pg-core";
 
 export const zotMeet = pgSchema("zotmeet");
@@ -17,9 +18,27 @@ export const users = zotMeet.table("user", {
   id: text("id").primaryKey(),
   displayName: text("displayName").unique().notNull(),
   email: text("email").unique().notNull(),
-  password: text("password").notNull(),
+  password: text("password"),
   created_at: timestamp("created_at"),
+  authMethods: json("auth_methods").$type<string[]>().notNull(),
 });
+
+export const oauthAccountsTable = zotMeet.table(
+  "oauth_accounts",
+  {
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, {
+        onDelete: "cascade",
+      }),
+
+    providerId: text("provider_id").notNull(),
+    providerUserId: text("provider_user_id").notNull(),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.providerId, table.providerUserId] }),
+  }),
+);
 
 export const meetings = zotMeet.table("meetings", {
   id: uuid("id").defaultRandom().primaryKey(),

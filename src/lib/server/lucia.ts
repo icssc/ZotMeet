@@ -1,17 +1,22 @@
 import { DrizzlePostgreSQLAdapter } from "@lucia-auth/adapter-drizzle";
-// import { Google } from "arctic";
+import { Google } from "arctic";
 import { Lucia, TimeSpan } from "lucia";
 
-// import {
-//   GOOGLE_OAUTH_CLIENT_ID,
-//   GOOGLE_OAUTH_CLIENT_SECRET,
-//   GOOGLE_OAUTH_REDIRECT_URI,
-// } from "$env/static/private";
 import { dev } from "$app/environment";
+import {
+  GOOGLE_OAUTH_CLIENT_ID,
+  GOOGLE_OAUTH_CLIENT_SECRET,
+  GOOGLE_OAUTH_REDIRECT_URI,
+} from "$env/static/private";
 import { db } from "$lib/db/drizzle";
 import { sessions, users } from "$lib/db/schema";
 
 const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);
+export const googleOauth = new Google(
+  GOOGLE_OAUTH_CLIENT_ID,
+  GOOGLE_OAUTH_CLIENT_SECRET,
+  GOOGLE_OAUTH_REDIRECT_URI,
+);
 
 export const lucia = new Lucia(adapter, {
   sessionExpiresIn: new TimeSpan(30, "d"),
