@@ -1,0 +1,1 @@
+ALTER TABLE "zotmeet"."meetings" ADD COLUMN "scheduled" boolean;

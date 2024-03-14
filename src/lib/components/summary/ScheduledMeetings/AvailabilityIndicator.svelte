@@ -1,7 +1,15 @@
 <script lang="ts">
-  import type { ScheduledMeeting } from "$lib/types/meetings";
+  import type { Attendance, ScheduledMeeting } from "$lib/types/meetings";
 
   export let meeting: ScheduledMeeting;
+
+  const setBehavior = (current: Attendance) => () => {
+    if (meeting.attendance !== current) {
+      meeting.attendance = current;
+    } else {
+      meeting.attendance = undefined;
+    }
+  };
 </script>
 
 <div class="dropdown h-fit">
@@ -31,6 +39,7 @@
       <button
         class="rounded-[4px] pl-3 pr-10 hover:bg-slate-300"
         class:bg-slate-100={meeting.attendance === "accepted"}
+        on:click={setBehavior("accepted")}
       >
         <div class="h-2 w-2 rounded-full bg-success" />
         <span class="text-xs font-semibold text-slate-400">ACCEPT</span></button
@@ -40,13 +49,18 @@
       <button
         class="rounded-[4px] pl-3 pr-10"
         class:bg-slate-100={meeting.attendance === "declined"}
+        on:click={setBehavior("declined")}
       >
         <div class="h-2 w-2 rounded-full bg-error" />
         <span class="text-xs font-semibold text-slate-400">DECLINE</span></button
       >
     </li>
     <li>
-      <button class="rounded-[4px] pl-3 pr-10" class:bg-slate-100={meeting.attendance === "maybe"}>
+      <button
+        class="rounded-[4px] pl-3 pr-10"
+        class:bg-slate-100={meeting.attendance === "maybe"}
+        on:click={setBehavior("maybe")}
+      >
         <div class="h-2 w-2 rounded-full bg-warning" />
         <span class="text-xs font-semibold text-slate-400">MAYBE</span></button
       >
