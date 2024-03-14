@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS "zotmeet"."meetings" (
 	"date" timestamp NOT NULL,
 	"description" text,
 	"location" text,
+	"scheduled" boolean,
 	"from_time" timestamp NOT NULL,
 	"to_time" timestamp NOT NULL,
 	"group_id" uuid,
@@ -49,6 +50,15 @@ CREATE TABLE IF NOT EXISTS "zotmeet"."sessions" (
 	"user_id" uuid NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "zotmeet"."user" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"username" text NOT NULL,
+	"email" text NOT NULL,
+	"created_at" timestamp,
+	CONSTRAINT "user_username_unique" UNIQUE("username"),
+	CONSTRAINT "user_email_unique" UNIQUE("email")
+);
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "zotmeet"."users_in_group" (
 	"user_id" uuid NOT NULL,
 	"group_id" uuid NOT NULL,
@@ -60,15 +70,6 @@ CREATE TABLE IF NOT EXISTS "zotmeet"."users_in_meeting" (
 	"meeting_id" uuid NOT NULL,
 	"attendance" "attendance",
 	CONSTRAINT "users_in_meeting_user_id_meeting_id_pk" PRIMARY KEY("user_id","meeting_id")
-);
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "zotmeet"."user" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"username" text NOT NULL,
-	"email" text NOT NULL,
-	"created_at" timestamp,
-	CONSTRAINT "user_username_unique" UNIQUE("username"),
-	CONSTRAINT "user_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "user_idx_keys" ON "zotmeet"."keys" ("user_id");--> statement-breakpoint
