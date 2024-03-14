@@ -5,7 +5,7 @@ dotenv.config();
 
 export default {
   schema: "./src/lib/db/schema.ts",
-  out: "./src/lib/db/migrations",
+  out: "./src/lib/db",
   driver: "pg",
   dbCredentials: {
     // @ts-expect-error DATABASE_URL should be in the .env
