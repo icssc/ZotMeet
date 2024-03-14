@@ -16,6 +16,7 @@
     taintedMessage: null,
     validators: registerSchema,
     delayMs: 0,
+    warnings: { noValidationAndConstraints: false },
   });
 
   let termsAccept = false;
