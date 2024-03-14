@@ -35,8 +35,6 @@ export const GET: RequestHandler = async ({ cookies }: { cookies: Cookies }) => 
     sameSite: "lax",
   });
 
-  console.log("before redirect");
-
   return new Response(null, {
     status: 302,
     headers: {
