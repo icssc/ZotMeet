@@ -1,3 +1,6 @@
+import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
+import type { AnyZodObject } from "zod";
+
 export type AvailabilityBlockType = {
   zotDateIndex: number;
   blockIndex: number;
@@ -9,3 +12,9 @@ export type SelectionStateType = {
   earlierBlockIndex: number;
   laterBlockIndex: number;
 };
+
+export interface LoginModalProps {
+  user: Lucia.UserAttributes;
+  form: SuperValidated<ZodValidation<AnyZodObject>>;
+  guestForm: SuperValidated<ZodValidation<AnyZodObject>>;
+}

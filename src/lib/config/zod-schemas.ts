@@ -37,3 +37,10 @@ export const userUpdatePasswordSchema = userSchema
       });
     }
   });
+
+export const guestSchema = z.object({
+  username: z
+    .string({ required_error: "Username is required" })
+    .min(1, { message: "Username is required" })
+    .trim(),
+});
