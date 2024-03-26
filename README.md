@@ -4,10 +4,10 @@ Simple, clean, and efficient meeting scheduling app.
 
 ## Tech Stack
 
-- [**S**ST](https://sst.dev)
-- [**P**risma](https://prisma.io)
-- [Svelte**K**it](https://kit.svelte.dev)
-- [**L**ucia](https://lucia-auth.com)
+- [SST](https://sst.dev)
+- [Drizle](https://orm.drizzle.team/)
+- [SvelteKit](https://kit.svelte.dev)
+- [Lucia](https://lucia-auth.com)
 
 # Contributing
 
