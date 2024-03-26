@@ -1,13 +1,29 @@
 <script lang="ts">
+  import LoginFlow from "./LoginModal.svelte";
+
   import AvailabilityBlock from "$lib/components/availability/AvailabilityBlock.svelte";
-  import { availabilityDates, availabilityTimeBlocks } from "$lib/stores/availabilityStores";
-  import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
+  import {
+    availabilityDates,
+    availabilityTimeBlocks,
+    isEditingAvailability,
+    isStateUnsaved,
+  } from "$lib/stores/availabilityStores";
+  import type {
+    AvailabilityBlockType,
+    LoginModalProps,
+    SelectionStateType,
+  } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
 
   export let columns: number;
+  export let data: LoginModalProps;
 
-  const itemsPerPage: number = columns;
+  let itemsPerPage: number = columns;
+  $: {
+    itemsPerPage = columns;
+  }
+
   const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   const numPaddingDates: number =
     $availabilityDates.length % itemsPerPage === 0
@@ -92,6 +108,10 @@
    * @param startBlock the time block that the user originated the selection
    */
   const setAvailabilities = (startBlock: AvailabilityBlockType): void => {
+    if (!$isEditingAvailability) {
+      $isEditingAvailability = true;
+    }
+
     if (selectionState) {
       // Destructure user's selection state
       const { earlierDateIndex, laterDateIndex, earlierBlockIndex, laterBlockIndex } =
@@ -116,8 +136,18 @@
       startBlockSelection = null;
       endBlockSelection = null;
       selectionState = null;
+
+      $isStateUnsaved = true;
     }
   };
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("beforeunload", (event) => {
+      if ($isStateUnsaved) {
+        event.returnValue = `Are you sure you want to leave? You have unsaved changes!`;
+      }
+    });
+  }
 </script>
 
 <div class="flex items-center justify-between overflow-x-auto font-dm-sans">
@@ -127,7 +157,7 @@
         currentPage = currentPage - 1;
       }
     }}
-    class="p-3 disabled:opacity-0 md:pl-1"
+    class="p-3 pl-0 disabled:opacity-0 md:pl-1"
     disabled={currentPage === 0}
   >
     <span class="text-3xl text-gray-500">&lsaquo;</span>
@@ -206,6 +236,7 @@
                     if (e.cancelable) {
                       e.preventDefault();
                     }
+
                     startBlockSelection = availabilitySelection;
                     endBlockSelection = availabilitySelection;
                   }}
@@ -254,9 +285,11 @@
         currentPage = currentPage + 1;
       }
     }}
-    class="p-3 disabled:opacity-0 md:pr-1"
+    class="p-3 pr-0 disabled:opacity-0 md:pr-1"
     disabled={currentPage === lastPage}
   >
     <span class="text-3xl text-gray-500">&rsaquo;</span>
   </button>
 </div>
+
+<LoginFlow loginModalData={data} />
