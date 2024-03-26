@@ -11,12 +11,13 @@
     taintedMessage: null,
     validators: loginSchema,
     delayMs: 0,
+    warnings: { noValidationAndConstraints: false },
   });
 </script>
 
 <form method="POST" action="/auth/login" use:enhance>
   {#if $errors._errors}
-    <aside class="alert variant-filled-error mt-6">
+    <aside class="variant-filled-error alert mt-6">
       <div><BrightnessAlert /></div>
 
       <!-- Message -->
@@ -72,9 +73,5 @@
         Login
       {/if}
     </button>
-  </div>
-
-  <div class="mt-10 flex flex-row items-center justify-center">
-    <a href="/auth/password/reset" class="font-semibold underline">{"Forgot Password?"}</a>
   </div>
 </form>

@@ -7,8 +7,7 @@
   export let data;
 
   const registerSchema = userSchema.pick({
-    firstName: true,
-    lastName: true,
+    displayName: true,
     email: true,
     password: true,
   });
@@ -17,6 +16,7 @@
     taintedMessage: null,
     validators: registerSchema,
     delayMs: 0,
+    warnings: { noValidationAndConstraints: false },
   });
 
   let termsAccept = false;
@@ -26,43 +26,23 @@
   <!--<SuperDebug data={$form} />-->
   <div class="mt-6">
     <label class="label">
-      <span class="sr-only">First Name</span>
+      <span class="sr-only">Display Name</span>
       <input
-        id="firstName"
-        name="firstName"
+        id="displayName"
+        name="displayName"
         type="text"
-        placeholder="first name"
-        autocomplete="given-name"
-        data-invalid={$errors.firstName}
-        bind:value={$form.firstName}
+        placeholder="display name"
+        data-invalid={$errors.displayName}
+        bind:value={$form.displayName}
         class="input"
-        class:input-error={$errors.firstName}
+        class:input-error={$errors.displayName}
       />
-      {#if $errors.firstName}
-        <small>{$errors.firstName}</small>
+      {#if $errors.displayName}
+        <small>{$errors.displayName}</small>
       {/if}
     </label>
   </div>
 
-  <div class="mt-6">
-    <label class="label">
-      <span class="sr-only">Last Name</span>
-      <input
-        id="lastName"
-        name="lastName"
-        type="text"
-        placeholder="last name"
-        autocomplete="family-name"
-        data-invalid={$errors.lastName}
-        bind:value={$form.lastName}
-        class="input"
-        class:input-error={$errors.lastName}
-      />
-      {#if $errors.lastName}
-        <small>{$errors.lastName}</small>
-      {/if}
-    </label>
-  </div>
   <div class="mt-6">
     <label class="label">
       <span class="sr-only">Email</span>
