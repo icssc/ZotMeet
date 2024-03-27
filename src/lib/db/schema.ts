@@ -83,18 +83,17 @@ export const availabilities = zotMeet.table(
     member_id: text("member_id")
       .notNull()
       .references(() => members.id, { onDelete: "cascade" }),
+    meeting_day: uuid("meeting_day")
+      .references(() => meetingDates.id, { onDelete: "cascade" })
+      .notNull(),
     block_length: smallint("block_length").notNull().default(15),
-    meeting_id: uuid("meeting_id")
-      .references(() => meetings.id, { onDelete: "cascade" })
-      .notNull()
-      .default("00000000-0000-0000-0000-000000000000"),
     availability_string: text("availability_string").notNull(),
-  },
+  }, // user and neeting
   (table) => ({
-    pk: primaryKey({ columns: [table.member_id, table.day, table.meeting_id] }),
+    pk: primaryKey({ columns: [table.member_id, table.meeting_day] }),
   }),
 );
-
+// meeting_day
 export const oauthAccountsTable = zotMeet.table(
   "oauth_accounts",
   {
@@ -234,9 +233,9 @@ export const oauthRelations = relations(oauthAccountsTable, ({ one }) => ({
   }),
 }));
 export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
-  meetings: one(meetings, {
-    fields: [availabilities.meeting_id],
-    references: [meetings.id],
+  meetingDates: one(meetingDates, {
+    fields: [availabilities.meeting_day],
+    references: [meetingDates.id],
   }),
   members: one(members, {
     fields: [availabilities.member_id],
