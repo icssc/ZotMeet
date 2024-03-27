@@ -15,8 +15,6 @@
   const loginSchema = userSchema.pick({ email: true, password: true });
   const guestLoginSchema = guestSchema.pick({ username: true });
 
-  console.log(data);
-
   const { form, errors, enhance, delayed } = superForm(data.form, {
     taintedMessage: null,
     validators: loginSchema,
