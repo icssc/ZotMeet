@@ -37,41 +37,44 @@
   {/if}
 
   <div class="flex flex-col gap-y-2">
-    <label class="input input-bordered flex items-center gap-2">
-      <EmailIcon />
-      <input
-        id="email"
-        name="email"
-        type="email"
-        placeholder="email"
-        autocomplete="email"
-        data-invalid={$errors.email}
-        bind:value={$form.email}
-        class="input w-full border-none focus:ring-0"
-        class:input-error={$errors.email}
-      />
-    </label>
-    {#if $errors.email}
-      <small>{$errors.email}</small>
-    {/if}
+    <div>
+      <label class="input input-bordered flex items-center gap-2">
+        <EmailIcon />
+        <input
+          id="email"
+          name="email"
+          type="email"
+          placeholder="email"
+          autocomplete="email"
+          data-invalid={$errors.email}
+          bind:value={$form.email}
+          class="input w-full border-none focus:ring-0"
+          class:input-error={$errors.email}
+        />
+      </label>
+      {#if $errors.email}
+        <small>{$errors.email}</small>
+      {/if}
+    </div>
 
-    <label class="input input-bordered flex items-center gap-2">
-      <PasswordIcon />
-      <input
-        id="password"
-        name="password"
-        type="password"
-        placeholder="password"
-        data-invalid={$errors.password}
-        bind:value={$form.password}
-        class="input w-full border-none focus:ring-0"
-        class:input-error={$errors.password}
-      />
-    </label>
-
-    {#if $errors.password}
-      <small>{$errors.password}</small>
-    {/if}
+    <div>
+      <label class="input input-bordered flex items-center gap-2">
+        <PasswordIcon />
+        <input
+          id="password"
+          name="password"
+          type="password"
+          placeholder="password"
+          data-invalid={$errors.password}
+          bind:value={$form.password}
+          class="input w-full border-none focus:ring-0"
+          class:input-error={$errors.password}
+        />
+      </label>
+      {#if $errors.password}
+        <small>{$errors.password}</small>
+      {/if}
+    </div>
   </div>
 
   <div class="mt-6">
