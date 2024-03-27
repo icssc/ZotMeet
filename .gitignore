@@ -17,4 +17,3 @@ cdk.context.json
 # db
 src/lib/db/meta
 src/lib/db/*.sql
-/prisma/dev.db
