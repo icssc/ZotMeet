@@ -292,4 +292,4 @@
   </button>
 </div>
 
-<LoginFlow loginModalData={data} />
+<LoginFlow {data} />

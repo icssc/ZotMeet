@@ -12,14 +12,14 @@ import { users } from "$lib/db/schema";
 import { lucia } from "$lib/server/lucia";
 import type { AlertMessageType } from "$lib/types/auth";
 
-const loginSchema = userSchema.pick({
+export const _loginSchema = userSchema.pick({
   email: true,
   password: true,
 });
 
 export const load = (async () => {
   return {
-    userLoginFormData: await superValidate(loginSchema),
+    userLoginFormData: await superValidate(_loginSchema),
   };
 }) satisfies PageServerLoad;
 
@@ -28,7 +28,7 @@ export const actions = {
 };
 
 async function login({ request, cookies }: { request: Request; cookies: Cookies }) {
-  const form = await superValidate<typeof loginSchema, AlertMessageType>(request, loginSchema);
+  const form = await superValidate<typeof _loginSchema, AlertMessageType>(request, _loginSchema);
 
   if (!form.valid) {
     return fail(400, { form });

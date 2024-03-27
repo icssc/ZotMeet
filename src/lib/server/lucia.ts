@@ -29,7 +29,7 @@ export const lucia = new Lucia(adapter, {
   },
   getUserAttributes: (attributes) => {
     return {
-      userId: attributes.id,
+      id: attributes.id,
       email: attributes.email,
       displayName: attributes.displayName,
 
