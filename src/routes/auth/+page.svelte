@@ -1,7 +1,6 @@
 <script lang="ts">
   import { TabGroup, Tab } from "@skeletonlabs/skeleton";
 
-  import { enhance } from "$app/forms";
   import Login from "$lib/components/auth/login.svelte";
   import Register from "$lib/components/auth/register.svelte";
 
@@ -12,18 +11,6 @@
 
 <div class="flex grow justify-center bg-blue-200 pt-48">
   <div class="mx-2 w-[450px] md:mx-16">
-    {#if data.user}
-      <p>{data.user.displayName} {data.user.id}</p>
-
-      <div>
-        <form use:enhance action="/auth/logout" method="post">
-          <button type="submit" class="btn">
-            <span>Logout</span>
-          </button>
-        </form>
-      </div>
-    {/if}
-
     <!-- <div class="mb-4">
       <a
         href="/auth/login/google"
