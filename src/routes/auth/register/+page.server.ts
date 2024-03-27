@@ -1,6 +1,5 @@
 import { fail, type Cookies } from "@sveltejs/kit";
-import { generateId } from "lucia";
-import { Argon2id } from "oslo/password";
+import { generateId, Scrypt } from "lucia";
 import { setError, superValidate } from "sveltekit-superforms/server";
 
 import type { Actions, PageServerLoad } from "./$types";
@@ -48,7 +47,7 @@ async function register({ request, cookies }: { request: Request; cookies: Cooki
     }
 
     const userId = generateId(15);
-    const hashedPassword = await new Argon2id().hash(form.data.password);
+    const hashedPassword = await new Scrypt().hash(form.data.password);
 
     await insertNewUser({
       id: userId,

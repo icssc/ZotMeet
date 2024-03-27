@@ -1,5 +1,5 @@
 import { fail, type Cookies } from "@sveltejs/kit";
-import { Argon2id } from "oslo/password";
+import { Scrypt } from "lucia";
 import { setError, superValidate } from "sveltekit-superforms/server";
 
 import type { PageServerLoad } from "./$types";
@@ -41,8 +41,7 @@ async function login({ request, cookies }: { request: Request; cookies: Cookies 
   }
 
   const isPasswordValid =
-    existingUser.password &&
-    (await new Argon2id().verify(existingUser.password, form.data.password));
+    existingUser.password && (await new Scrypt().verify(existingUser.password, form.data.password));
 
   // let isPasswordValid = false;
 
