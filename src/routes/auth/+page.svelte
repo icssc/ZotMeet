@@ -9,7 +9,7 @@
   let tabSet: string = "signIn";
 </script>
 
-<div class="flex grow justify-center bg-blue-200 pt-48">
+<div class="flex grow justify-center pt-48">
   <div class="mx-2 w-[450px] md:mx-16">
     <!-- <div class="mb-4">
       <a
