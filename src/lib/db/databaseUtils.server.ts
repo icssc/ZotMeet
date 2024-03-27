@@ -1,7 +1,11 @@
 import { eq } from "drizzle-orm";
+import type { SuperValidated } from "sveltekit-superforms";
+import type { ZodObject, ZodString } from "zod";
 
 import { db } from "./drizzle";
 import { users, type UserInsertSchema } from "./schema";
+
+import type { AlertMessageType } from "$lib/types/auth";
 
 export const checkIfIdExists = async (id: string) => {
   const queryResult = await db
@@ -39,4 +43,20 @@ export const getAllUsers = async () => {
     .from(users);
 
   return queryResult;
+};
+
+export const getExistingUser = async (
+  form: SuperValidated<ZodObject<{ email: ZodString }>, AlertMessageType>,
+) => {
+  const [existingUser] = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      password: users.password,
+      // authMethods: users.authMethods,
+    })
+    .from(users)
+    .where(eq(users.email, form.data.email as string));
+
+  return existingUser;
 };

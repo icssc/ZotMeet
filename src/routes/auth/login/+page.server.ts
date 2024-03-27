@@ -1,5 +1,4 @@
 import { fail, type Cookies } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
 import { Argon2id } from "oslo/password";
 import { setError, superValidate } from "sveltekit-superforms/server";
 
@@ -7,8 +6,7 @@ import type { PageServerLoad } from "./$types";
 
 import { userSchema } from "$lib/config/zod-schemas";
 import { createAndSetSession } from "$lib/db/authUtils.server";
-import { db } from "$lib/db/drizzle";
-import { users } from "$lib/db/schema";
+import { getExistingUser } from "$lib/db/databaseUtils.server";
 import { lucia } from "$lib/server/lucia";
 import type { AlertMessageType } from "$lib/types/auth";
 
@@ -34,15 +32,9 @@ async function login({ request, cookies }: { request: Request; cookies: Cookies 
     return fail(400, { form });
   }
 
-  const [existingUser] = await db
-    .select({
-      id: users.id,
-      email: users.email,
-      password: users.password,
-      // authMethods: users.authMethods,
-    })
-    .from(users)
-    .where(eq(users.email, form.data.email));
+  console.log();
+
+  const existingUser = await getExistingUser(form);
 
   if (!existingUser) {
     return setError(form, "", "Email not registered");
