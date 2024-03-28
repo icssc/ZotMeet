@@ -64,7 +64,7 @@ async function register({ request, cookies }: { request: Request; cookies: Cooki
     return setError(
       form,
       "email",
-      "An error occurred while processing your request. Please try again.",
+      `An error occurred while processing your request. Please try again. Error: ${error}`,
     );
   }
 
