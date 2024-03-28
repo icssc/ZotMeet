@@ -1,36 +1,37 @@
-import { fail, redirect, type RequestEvent } from "@sveltejs/kit";
+import { fail, type Cookies } from "@sveltejs/kit";
+import { generateId, Scrypt } from "lucia";
 import { setError, superValidate } from "sveltekit-superforms/server";
 
-// import { sendVerificationEmail } from "$lib/config/email-messages";
-
-import type { RouteParams } from "../$types";
+import type { Actions, PageServerLoad } from "./$types";
 
 import { userSchema } from "$lib/config/zod-schemas";
-import { auth } from "$lib/server/lucia";
+import { createAndSetSession } from "$lib/db/authUtils.server";
+import { checkIfEmailExists, insertNewUser } from "$lib/db/databaseUtils.server";
+import { lucia } from "$lib/server/lucia";
+import type { AlertMessageType } from "$lib/types/auth";
 
-const signUpSchema = userSchema.pick({
-  firstName: true,
-  lastName: true,
+const registerSchema = userSchema.pick({
+  displayName: true,
   email: true,
   password: true,
   terms: true,
 });
 
-export const load = async (event) => {
-  const session = await event.locals.auth.validate();
-  if (session) throw redirect(302, "/");
-  const form = await superValidate(event, signUpSchema);
+export const load = (async () => {
   return {
-    form,
+    form: await superValidate(registerSchema),
   };
-};
+}) satisfies PageServerLoad;
 
-export const actions = {
+export const actions: Actions = {
   default: register,
 };
 
-async function register(event: RequestEvent<RouteParams, "/auth/register">) {
-  const form = await superValidate(event, signUpSchema);
+async function register({ request, cookies }: { request: Request; cookies: Cookies }) {
+  const form = await superValidate<typeof registerSchema, AlertMessageType>(
+    request,
+    registerSchema,
+  );
 
   if (!form.valid) {
     return fail(400, {
@@ -39,34 +40,32 @@ async function register(event: RequestEvent<RouteParams, "/auth/register">) {
   }
 
   try {
-    const token = crypto.randomUUID();
+    const isEmailAlreadyRegistered = await checkIfEmailExists(form.data.email);
 
-    const user = await auth.createUser({
-      key: {
-        providerId: "email",
-        providerUserId: form.data.email.toLowerCase(),
-        password: form.data.password,
-      },
-      attributes: {
-        email: form.data.email.toLowerCase(),
-        firstName: form.data.firstName,
-        lastName: form.data.lastName,
-        //   role: "USER",
-        verified: false,
-        receiveEmail: true,
-        token: token,
-      },
+    if (isEmailAlreadyRegistered === true) {
+      return setError(form, "email", "Email already registered");
+    }
+
+    const userId = generateId(15);
+    const hashedPassword = await new Scrypt().hash(form.data.password);
+
+    await insertNewUser({
+      id: userId,
+      displayName: form.data.displayName,
+      email: form.data.email,
+      password: hashedPassword,
+      // authMethods: ["email"],
     });
 
-    //   await sendVerificationEmail(form.data.email, token);
+    await createAndSetSession(lucia, userId, cookies);
+  } catch (error) {
+    console.error(error);
 
-    const session = await auth.createSession({ userId: user.userId, attributes: {} });
-    event.locals.auth.setSession(session);
-  } catch (e) {
-    console.error(e);
-    // email already in use
-    // might be other type of error but this is most common and this is how lucia docs sets the error to duplicate user
-    return setError(form, "email", "A user with that email already exists.");
+    return setError(
+      form,
+      "email",
+      `An error occurred while processing your request. Please try again. Error: ${error}`,
+    );
   }
 
   return { form };

@@ -1,10 +1,14 @@
 <script lang="ts">
+  import type { PageData } from "../../../routes/$types";
+
   import LogoArea from "./shared/LogoArea.svelte";
   import NavButtons from "./shared/NavButtons.svelte";
   import ProfileCard from "./shared/ProfileCard.svelte";
 
   import CloseIcon from "~icons/material-symbols/close";
   import MenuIcon from "~icons/material-symbols/menu";
+
+  export let data: PageData;
 </script>
 
 <div class="drawer drawer-end md:hidden">
@@ -31,7 +35,7 @@
       </div>
 
       <NavButtons />
-      <ProfileCard />
+      <ProfileCard {data} />
     </div>
   </div>
 </div>

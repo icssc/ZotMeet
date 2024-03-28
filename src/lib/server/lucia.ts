@@ -1,7 +1,6 @@
-import { prisma } from "@lucia-auth/adapter-prisma";
-// import { google } from "@lucia-auth/oauth/providers";
-import { lucia } from "lucia";
-import { sveltekit } from "lucia/middleware";
+import { DrizzlePostgreSQLAdapter } from "@lucia-auth/adapter-drizzle";
+// import { Google } from "arctic";
+import { Lucia, TimeSpan } from "lucia";
 
 import { dev } from "$app/environment";
 // import {
@@ -9,41 +8,52 @@ import { dev } from "$app/environment";
 //   GOOGLE_OAUTH_CLIENT_SECRET,
 //   GOOGLE_OAUTH_REDIRECT_URI,
 // } from "$env/static/private";
-import { prisma as client } from "$lib/server/prisma";
+import { db } from "$lib/db/drizzle";
+import { sessions, users } from "$lib/db/schema";
 
-export const auth = lucia({
-  adapter: prisma(client, {
-    user: "user",
-    key: "key",
-    session: "session",
-  }),
-  env: dev ? "DEV" : "PROD",
-  middleware: sveltekit(),
-  getUserAttributes: (data) => {
+const adapter = new DrizzlePostgreSQLAdapter(db, sessions, users);
+// export const googleOauth = new Google(
+//   GOOGLE_OAUTH_CLIENT_ID,
+//   GOOGLE_OAUTH_CLIENT_SECRET,
+//   GOOGLE_OAUTH_REDIRECT_URI,
+// );
+
+export const lucia = new Lucia(adapter, {
+  sessionExpiresIn: new TimeSpan(30, "d"),
+  sessionCookie: {
+    name: "session",
+    expires: false,
+    attributes: {
+      secure: !dev,
+    },
+  },
+  getUserAttributes: (attributes) => {
     return {
-      userId: data.id,
-      email: data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      // role: data.role,
-      verified: data.verified,
-      receiveEmail: data.receiveEmail,
-      token: data.token,
+      id: attributes.id,
+      email: attributes.email,
+      displayName: attributes.displayName,
 
-      googleId: data.google_id,
-      username: data.username,
+      // googleId: attributes.google_id,
     };
   },
 });
 
-// export const googleAuth = google(auth, {
-//   clientId: GOOGLE_OAUTH_CLIENT_ID!,
-//   clientSecret: GOOGLE_OAUTH_CLIENT_SECRET!,
-//   redirectUri: GOOGLE_OAUTH_REDIRECT_URI!,
-//   scope: [
-//     "https://www.googleapis.com/auth/userinfo.profile",
-//     "https://www.googleapis.com/auth/userinfo.email",
-//   ],
-// });
+declare module "lucia" {
+  interface Register {
+    Lucia: typeof lucia;
+    DatabaseUserAttributes: DatabaseUserAttributes;
+  }
+}
 
-export type Auth = typeof auth;
+interface DatabaseUserAttributes {
+  id: string;
+  email: string;
+  displayName: string;
+  google_id: string;
+}
+
+// export const google = new Google(
+//   GOOGLE_OAUTH_CLIENT_ID,
+//   GOOGLE_OAUTH_CLIENT_SECRET,
+//   GOOGLE_OAUTH_REDIRECT_URI,
+// );

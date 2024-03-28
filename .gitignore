@@ -14,4 +14,6 @@ vite.config.ts.timestamp-*
 .sst
 cdk.context.json
 
-/prisma/dev.db
+# db
+src/lib/db/meta
+src/lib/db/*.sql
