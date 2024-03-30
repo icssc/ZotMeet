@@ -94,3 +94,6 @@ export const availabilityDates = writable<ZotDate[]>(
 );
 export const availabilityTimeBlocks = writable<number[]>(defaultTimeBlocks);
 export const groupMembers = readable<MemberAvailability[]>(sampleMembers);
+
+export const isEditingAvailability = writable<boolean>(false);
+export const isStateUnsaved = writable<boolean>(false);
