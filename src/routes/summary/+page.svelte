@@ -1,5 +1,5 @@
 <script lang="ts">
-  import GroupCarousel from "$lib/components/summary/GroupsCarousel.svelte";
+  // import GroupCarousel from "$lib/components/summary/GroupsCarousel.svelte";
   import ScheduledMeetingsList from "$lib/components/summary/ScheduledMeetings/ScheduledMeetingsList.svelte";
   import UnscheduledMeetingsList from "$lib/components/summary/UnscheduledMeetings/UnscheduledMeetingsList.svelte";
 
@@ -9,10 +9,10 @@
 <main
   class="flex min-h-screen w-full flex-col gap-5 overflow-x-clip border-t-[1px] border-gray-300 bg-gray-100 px-2 pb-20 pt-6 md:max-h-[calc(100vh-1.5rem)] md:min-h-0 md:overflow-y-auto md:rounded-tl-xl lg:px-4"
 >
-  <div class="flex flex-col gap-2 px-4 lg:px-16">
+  <!-- <div class="flex flex-col gap-2 px-4 lg:px-16">
     <h2 class="font-montserrat text-xl font-semibold text-gray-800 lg:text-3xl">Groups</h2>
     <GroupCarousel />
-  </div>
+  </div> -->
   <div
     class="flex flex-col gap-4 rounded-xl border-[1px] border-gray-300 bg-gradient-to-tr from-[rgba(55,124,251,0.05)] to-[rgba(246,128,103,0.05)] p-2 pt-4 lg:px-14"
   >
