@@ -6,7 +6,8 @@
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
 
-  export let loginModalProps: LoginModalProps;
+  let loginModalProps: LoginModalProps;
+  export { loginModalProps as data };
 
   let currentTab: number = 0;
 
