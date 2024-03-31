@@ -13,6 +13,11 @@ export type SelectionStateType = {
   laterBlockIndex: number;
 };
 
+export interface MemberAvailability {
+  name: string;
+  availableBlocks: number[][];
+}
+
 export interface LoginModalProps {
   user: Lucia.UserAttributes;
   form: SuperValidated<ZodValidation<AnyZodObject>>;
