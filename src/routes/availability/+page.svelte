@@ -6,13 +6,12 @@
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
 
-  let loginModalProps: LoginModalProps;
-  export { loginModalProps as data };
+  export let data: LoginModalProps;
 
   let currentTab: number = 0;
 
   const handleSave = () => {
-    if (!loginModalProps.user) {
+    if (!data.user) {
       const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
       if (authModal) {
         authModal.showModal();
@@ -97,7 +96,7 @@
     <div
       class="w-full rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#F680670D] to-[#377CFB0D] p-2 pt-4 md:p-6"
     >
-      <PersonalAvailability columns={mobileView ? 4 : 5} data={loginModalProps} />
+      <PersonalAvailability columns={mobileView ? 4 : 5} {data} />
     </div>
   {:else if currentTab === 1}
     <div

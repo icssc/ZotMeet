@@ -19,7 +19,7 @@ export interface MemberAvailability {
 }
 
 export interface LoginModalProps {
-  user: Lucia.UserAttributes;
+  user: App.Locals["user"];
   form: SuperValidated<ZodValidation<AnyZodObject>>;
   guestForm: SuperValidated<ZodValidation<AnyZodObject>>;
 }

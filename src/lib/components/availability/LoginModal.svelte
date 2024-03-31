@@ -10,16 +10,17 @@
   import Loader from "~icons/mdi/loading";
   import UserIcon from "~icons/mdi/user";
 
-  export let loginModalData: LoginModalProps;
+  export let data: LoginModalProps;
 
   const loginSchema = userSchema.pick({ email: true, password: true });
   const guestLoginSchema = guestSchema.pick({ username: true });
-  const { form, errors, enhance, delayed } = superForm(loginModalData.form, {
+
+  const { form, errors, enhance, delayed } = superForm(data.form, {
     taintedMessage: null,
     validators: loginSchema,
     delayMs: 0,
     onUpdated({ form }) {
-      if (form.valid && loginModalData.user) {
+      if (form.valid && data.user) {
         const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
         if (authModal) {
           authModal.close();
@@ -37,7 +38,7 @@
     errors: guestErrors,
     enhance: guestEnhance,
     delayed: guestDelayed,
-  } = superForm(loginModalData.guestForm, {
+  } = superForm(data.guestForm, {
     taintedMessage: null,
     validators: guestLoginSchema,
     delayMs: 0,
