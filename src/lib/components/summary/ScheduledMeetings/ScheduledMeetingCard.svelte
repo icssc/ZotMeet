@@ -1,5 +1,5 @@
 <script lang="ts">
-  import AvailabilityIndicator from "$lib/components/summary/ScheduledMeetings/AvailabilityIndicator.svelte";
+  // import AvailabilityIndicator from "$lib/components/summary/ScheduledMeetings/AvailabilityIndicator.svelte";
   import type { ScheduledMeeting } from "$lib/types/meetings";
   import { convertTo12HourFormat } from "$lib/utils/summary-helpers";
   import MaterialSymbolsGroupsOutline from "~icons/material-symbols/groups-outline";
@@ -34,7 +34,7 @@
         </p>
       </div>
     </div>
-    <AvailabilityIndicator {meeting} />
+    <!-- <AvailabilityIndicator {meeting} /> -->
   </div>
 </div>
 

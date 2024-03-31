@@ -4,6 +4,7 @@ export class ZotDate {
   readonly day: Date;
   isSelected: boolean;
   availability: boolean[];
+  groupAvailability: (number[] | null)[];
   blockLength: number;
 
   // Times represented as minutes past midnight
@@ -22,6 +23,7 @@ export class ZotDate {
     this.earliestTime = 0;
     this.latestTime = 0;
     this.availability = [];
+    this.groupAvailability = [];
   }
 
   /**
@@ -270,7 +272,8 @@ export class ZotDate {
       selectedDate.earliestTime = earliestTime;
       selectedDate.latestTime = latestTime;
       selectedDate.blockLength = blockLength;
-      selectedDate.availability = new Array(totalBlocks).fill(false);
+      selectedDate.availability = new Array<boolean>(totalBlocks).fill(false);
+      selectedDate.groupAvailability = new Array<null>(totalBlocks).fill(null);
     });
   }
 
@@ -297,5 +300,40 @@ export class ZotDate {
     for (let blockIndex = earlierBlockIndex; blockIndex <= laterBlockIndex; blockIndex++) {
       this.availability[blockIndex] = selection;
     }
+  }
+
+  /**
+   * Updates the ZotDate's group member availability array
+   *
+   * e.g. A group member array: `['Sean', 'Collan', 'Joe']`
+   *
+   *   `setGroupMemberAvailability(1, [3, 4, 5])` will update availability time blocks 3 - 5
+   *   to indicate Collan is available.
+   *   - if Sean was already available on block 3, block 3 will be changed from `[0]` to `[0, 1]`.
+   *   - if nobody was already available on block 4, block 4 will be changed from `null` to `[1]`.
+   *
+   * Because this.groupAvailability is by default a null array to save memory, an array will be
+   * instantiated if it is the first member to indicate availability of that block.
+   *
+   * @param memberIndex the index of a member in an array
+   * @param availableBlocks an array of availability blocks to set that member's availability
+   */
+  setGroupMemberAvailability(memberIndex: number, availableBlocks: number[]): void {
+    availableBlocks.forEach((blockIndex) => {
+      if (!this.groupAvailability[blockIndex]) {
+        this.groupAvailability[blockIndex] = [memberIndex];
+      } else {
+        this.groupAvailability[blockIndex]?.push(memberIndex);
+      }
+    });
+  }
+
+  /**
+   * Gets the group availability block based on the block index
+   * @param index index of the availability block
+   * @return the current availability of the block corresponding to the given index
+   */
+  getGroupAvailabilityBlock(index: number): number[] | null {
+    return this.groupAvailability[index];
   }
 }
