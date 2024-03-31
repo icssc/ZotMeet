@@ -11,30 +11,14 @@ export const selectedDays = writable<ZotDate[]>([]);
  * @param endDate the day that the user ended the date multiselect range
  */
 export const updateSelectedRange = (startDate: ZotDate, endDate: ZotDate): void => {
-  if (startDate.getMonth() !== endDate.getMonth() || startDate.getYear() != endDate.getYear()) {
-    throw "The selected range must be in the same month.";
-  }
-
-  let lowerBound = startDate;
-  let upperBound = endDate;
-
-  // If the user selects backwards, swap the selections such that the date of lowerBound is before upperBound
-  if (startDate > endDate) {
-    lowerBound = endDate;
-    upperBound = startDate;
-  }
+  const highlightedRange: Date[] = ZotDate.generateRange(startDate.day, endDate.day);
 
   selectedDays.update((alreadySelectedDays: ZotDate[]) => {
     let modifiedSelectedDays = [...alreadySelectedDays];
 
-    const month = lowerBound.getMonth();
-    const year = lowerBound.getYear();
-
-    for (let day = lowerBound.getDay(); day <= upperBound.getDay(); day++) {
-      const dateToCheck = new Date(year, month, day);
-
+    highlightedRange.forEach((highlightedZotDate: Date) => {
       const foundSelectedDay = alreadySelectedDays.find(
-        (d) => d.isSelected && d.compareTo(new ZotDate(dateToCheck)) === 0,
+        (d) => d.compareTo(new ZotDate(highlightedZotDate)) === 0,
       );
 
       if (startDate.isSelected && foundSelectedDay) {
@@ -44,9 +28,9 @@ export const updateSelectedRange = (startDate: ZotDate, endDate: ZotDate): void 
         );
       } else if (!startDate.isSelected && !foundSelectedDay) {
         // Add day to selected days if the multiselect did not initiate from an already selected day
-        modifiedSelectedDays.push(new ZotDate(dateToCheck, true));
+        modifiedSelectedDays.push(new ZotDate(highlightedZotDate, true));
       }
-    }
+    });
 
     return modifiedSelectedDays;
   });

@@ -85,6 +85,45 @@ export class ZotDate {
   }
 
   /**
+   * Given two Date bojects, generates a consecutive range of dates as an array of Date objects, regardless of their chronological order
+   * @param date1 a date representing a boundary of the date range
+   * @param date2 a date representing a boundary of the date range
+   * @returns an array of Dates representing the range of dates
+   */
+  static generateRange(date1: Date, date2: Date): Date[] {
+    if (date1 === date2) {
+      return [date1];
+    }
+
+    let earlierDate = date1;
+    let laterDate = date2;
+
+    if (date1 > date2) {
+      earlierDate = date2;
+      laterDate = date1;
+    }
+
+    const generatedRange: Date[] = [];
+
+    const maxRangeIterations =
+      CalendarConstants.MAX_DAYS_PER_WEEK * CalendarConstants.MAX_WEEKS_PER_MONTH;
+
+    const currentDate = earlierDate;
+
+    while (currentDate <= laterDate) {
+      if (generatedRange.length > maxRangeIterations) {
+        throw new Error(
+          `Maximum iterations for date selection range exceeded (${maxRangeIterations})`,
+        );
+      }
+
+      generatedRange.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return generatedRange;
+  }
+
+  /**
    * Given a zero-indexed month and a year, returns formatted days per week with appropriate padding
    * @param month zero-indexed month of the year
    * @param year number representing the year
@@ -114,15 +153,16 @@ export class ZotDate {
           nextMonthDay++;
         } else {
           newDate = new Date(year, month, day);
-          // Check if day is selected
-          if (
-            selectedDays &&
-            selectedDays.find((d: ZotDate) => d.compareTo(new ZotDate(newDate)) === 0)
-          ) {
-            isSelected = true;
-          }
 
           day++;
+        }
+
+        // Check if day is selected
+        if (
+          selectedDays &&
+          selectedDays.find((d: ZotDate) => d.compareTo(new ZotDate(newDate)) === 0)
+        ) {
+          isSelected = true;
         }
 
         const newZotDate = new ZotDate(newDate, isSelected);
@@ -300,6 +340,14 @@ export class ZotDate {
     for (let blockIndex = earlierBlockIndex; blockIndex <= laterBlockIndex; blockIndex++) {
       this.availability[blockIndex] = selection;
     }
+  }
+
+  /**
+   * Sets whether the day is selected or not
+   * @param isSelected a boolean representing whether the day is selected
+   */
+  setSelected(isSelected: boolean) {
+    this.isSelected = isSelected;
   }
 
   /**
