@@ -12,10 +12,14 @@
 <p
   class={cn(
     "flex-center relative aspect-square h-8 w-8 rounded-lg text-base font-medium text-gray-dark md:h-12 md:w-12 md:rounded-xl md:text-xl",
-    isSelected && "bg-primary text-gray-light drop-shadow-[0_0px_16px_rgba(55,124,251,0.4)]",
-    isHighlighted && "bg-slate-base text-gray-dark drop-shadow-none",
+    isSelected && "bg-primary text-gray-50",
+    isHighlighted && "bg-slate-base text-gray-dark",
     !isCurrentMonth &&
-      cn("text-gray-base", isHighlighted && "bg-opacity-30", isSelected && "bg-opacity-50"),
+      cn(
+        "text-gray-base",
+        isHighlighted && "bg-opacity-30",
+        isSelected && "bg-opacity-50 text-gray-100",
+      ),
   )}
   data-day={calendarDay.getDay()}
   data-month={calendarDay.getMonth()}
