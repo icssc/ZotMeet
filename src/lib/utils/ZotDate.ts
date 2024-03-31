@@ -112,15 +112,16 @@ export class ZotDate {
           nextMonthDay++;
         } else {
           newDate = new Date(year, month, day);
-          // Check if day is selected
-          if (
-            selectedDays &&
-            selectedDays.find((d: ZotDate) => d.compareTo(new ZotDate(newDate)) === 0)
-          ) {
-            isSelected = true;
-          }
 
           day++;
+        }
+
+        // Check if day is selected
+        if (
+          selectedDays &&
+          selectedDays.find((d: ZotDate) => d.compareTo(new ZotDate(newDate)) === 0)
+        ) {
+          isSelected = true;
         }
 
         const newZotDate = new ZotDate(newDate, isSelected);
