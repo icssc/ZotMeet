@@ -9,10 +9,16 @@
   import MenuIcon from "~icons/material-symbols/menu";
 
   export let data: PageData;
+
+  let checked = false;
+
+  const handleClick = () => {
+    checked = !checked;
+  };
 </script>
 
 <div class="drawer drawer-end md:hidden">
-  <input id="nav-drawer" type="checkbox" class="drawer-toggle" />
+  <input id="nav-drawer" type="checkbox" class="drawer-toggle" bind:checked />
 
   <div class="drawer-content flex flex-col">
     <div class="flex-between navbar bg-gray-light px-5 py-4 md:hidden">
@@ -34,7 +40,7 @@
         </label>
       </div>
 
-      <NavButtons />
+      <NavButtons {handleClick} />
       <ProfileCard {data} />
     </div>
   </div>
