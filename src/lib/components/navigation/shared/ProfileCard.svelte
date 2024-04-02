@@ -6,6 +6,7 @@
   import LogoutIcon from "~icons/mdi/logout";
 
   export let data: PageData;
+  export let handleClick: (() => void) | undefined = undefined;
 
   $: user = data.user;
 </script>
@@ -33,14 +34,22 @@
     </div>
 
     <form use:enhance action="/auth/logout" method="post" class="mt-1 w-full">
-      <button type="submit" class="flex-center btn btn-neutral h-10 min-h-0 w-full">
+      <button
+        type="submit"
+        class="flex-center btn btn-neutral h-10 min-h-0 w-full"
+        on:click={handleClick}
+      >
         <LogoutIcon />
         <p>Logout</p>
       </button>
     </form>
   {:else}
     <a href="/auth" class="mb-1 w-full">
-      <button type="submit" class="flex-center btn btn-primary h-10 min-h-0 w-full text-white">
+      <button
+        type="submit"
+        class="flex-center btn btn-primary h-10 min-h-0 w-full text-white"
+        on:click={handleClick}
+      >
         <LoginIcon />
         <p>Login</p>
       </button>

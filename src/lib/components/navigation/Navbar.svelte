@@ -41,7 +41,7 @@
       </div>
 
       <NavButtons {handleClick} />
-      <ProfileCard {data} />
+      <ProfileCard {data} {handleClick} />
     </div>
   </div>
 </div>
