@@ -5,7 +5,7 @@
 
   import AddBoxOutlineIcon from "~icons/material-symbols/add-box-outline";
   import CalendarSearchOutlineIcon from "~icons/mdi/calendar-search-outline";
-  // import SettingsOutline from "~icons/mdi/settings-outline";
+  // import SettingsOutlineIcon from "~icons/mdi/settings-outline";
 
   export let handleClick: (() => void) | undefined = undefined;
 
@@ -29,6 +29,12 @@
       href: "/summary",
       icon: CalendarSearchOutlineIcon,
     },
+    // {
+    //   id: 3,
+    //   text: "Settings",
+    //   href: "/settings",
+    //   icon: SettingsOutlineIcon,
+    // },
   ];
 </script>
 
@@ -38,8 +44,4 @@
       <button.icon class="h-7 w-7" />
     </NavButton>
   {/each}
-
-  <!-- <NavButton text="Settings" , href="/settings">
-    <SettingsOutline class="h-7 w-7" />
-  </NavButton> -->
 </div>
