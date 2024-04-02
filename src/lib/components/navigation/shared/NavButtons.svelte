@@ -41,7 +41,7 @@
 <div class="flex flex-col gap-y-2 border-t-2 px-6 pt-6 text-gray-600 sm:px-8 md:border-0 md:p-0">
   {#each NAV_BUTTONS as button}
     <NavButton text={button.text} href={button.href} {handleClick}>
-      <button.icon class="h-7 w-7" />
+      <svelte:component this={button.icon} class="h-7 w-7" />
     </NavButton>
   {/each}
 </div>
