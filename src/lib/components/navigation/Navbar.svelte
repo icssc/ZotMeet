@@ -15,7 +15,7 @@
   <input id="nav-drawer" type="checkbox" class="drawer-toggle" />
 
   <div class="drawer-content flex flex-col">
-    <div class="flex-between navbar bg-gray-light px-5 py-4 md:hidden">
+    <div class="flex-between navbar bg-gray-light px-5 pb-3 pt-4 md:hidden">
       <LogoArea />
 
       <label class="btn btn-square btn-ghost" for="nav-drawer">

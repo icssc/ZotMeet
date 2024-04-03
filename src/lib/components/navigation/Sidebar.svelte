@@ -8,7 +8,7 @@
   export let data: PageData;
 </script>
 
-<div class="hidden min-h-full min-w-[250px] flex-col pr-3 md:flex md:pt-4 xl:min-w-[300px]">
+<div class="hidden min-h-full min-w-[280px] flex-col pr-3 md:flex md:pt-4">
   <LogoArea />
 
   <div class="divider my-1" />
