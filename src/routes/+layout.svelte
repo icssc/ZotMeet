@@ -9,7 +9,7 @@
 </script>
 
 <div
-  class="relative flex h-full min-h-screen w-full flex-col bg-gradient-to-l from-[#EEEEEE] to-[#EAEFF2] md:flex-row md:pl-6 md:pt-6"
+  class="relative flex h-full min-h-screen w-full flex-col bg-gradient-to-l from-[#EEEEEE] to-[#EAEFF2] md:flex-row md:pl-3 md:pt-6"
 >
   <SideBar {data} />
   <Navbar {data} />
