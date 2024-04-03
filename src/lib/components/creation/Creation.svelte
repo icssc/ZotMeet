@@ -9,19 +9,19 @@
 </script>
 
 <div class="px-2 pt-8 md:px-4 md:pt-10 lg:pl-[60px]">
-  <h1 class="font-montserrat text-xl font-semibold md:text-2xl">Let's plan your next meeting.</h1>
-  <h2 class="text-sm font-light text-gray-medium md:text-base">
+  <h2 class="font-montserrat text-xl font-semibold md:text-2xl">Let's plan your next meeting.</h2>
+  <h3 class="text-sm font-light text-gray-medium md:text-base">
     Select potential dates and times for you and your team.
-  </h2>
+  </h3>
 </div>
 
 <Calendar />
 
 <div class="card w-full rounded-xl border p-8 md:px-10">
   <div class="card-body gap-0 p-0 md:p-5">
-    <h2 class="card-title pb-5 font-montserrat text-xl font-semibold text-gray-600 md:text-2xl">
+    <h3 class="card-title pb-5 font-montserrat text-xl font-semibold text-gray-600 md:text-2xl">
       Meeting Details
-    </h2>
+    </h3>
 
     <div class="flex flex-col gap-8">
       <MeetingTimeField />
