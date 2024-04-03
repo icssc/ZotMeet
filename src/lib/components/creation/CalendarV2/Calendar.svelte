@@ -49,10 +49,10 @@
 
   <div class="md:px-4">
     <div class="flex flex-col pb-5 md:pb-6">
-      <p class="h3 text-left font-montserrat text-2xl font-semibold md:text-3xl">
+      <h3 class="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
         {monthName}
         {currentYear}
-      </p>
+      </h3>
       <div class="divider m-0 h-[2px] w-12 bg-accent md:w-16" />
     </div>
 
