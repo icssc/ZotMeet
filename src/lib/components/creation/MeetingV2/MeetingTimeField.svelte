@@ -16,7 +16,7 @@
 <div>
   <div class="flex flex-row items-center gap-x-1 pb-1 text-slate-medium">
     <ClockIcon />
-    <p class="text-sm font-bold uppercase tracking-wide">Meet no earlier / No later than</p>
+    <p class="text-sm font-semibold uppercase tracking-wide">ANYTIME BETWEEN</p>
   </div>
 
   <!--TODO: make custom step -->
@@ -26,7 +26,7 @@
   >
     <SveltyPicker
       inputId="meeting-start-time-input"
-      inputClasses="w-24 flex-center p-1 appearance-none placeholder:text-gray-base border-t-0 border-x-0 rounded-none border-gray-base focus:outline-none focus:ring-0"
+      inputClasses="w-24 flex-center p-1 appearance-none placeholder:text-gray-base border-t-0 border-x-0 rounded-none border-gray-base focus:outline-none focus:ring-0 text-center"
       mode="time"
       format="hh:ii"
       displayFormat="HH:ii P"
@@ -35,10 +35,10 @@
       autocommit={true}
       bind:value={$startTime}
     />
-    and
+    <span> and </span>
     <SveltyPicker
       inputId="meeting-end-time-input"
-      inputClasses="w-24 flex-center p-1 appearance-none placeholder:text-gray-base border-t-0 border-x-0 rounded-none border-gray-base focus:outline-none focus:ring-0"
+      inputClasses="w-24 flex-center p-1 appearance-none placeholder:text-gray-base border-t-0 border-x-0 rounded-none border-gray-base focus:outline-none focus:ring-0 text-center"
       mode="time"
       format="hh:ii"
       displayFormat="HH:ii P"
@@ -47,6 +47,6 @@
       bind:value={$endTime}
       autocommit={true}
     />
-    <p class="hidden sm:flex">PST</p>
+    <span>PST</span>
   </div>
 </div>
