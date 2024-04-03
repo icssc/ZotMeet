@@ -16,7 +16,7 @@
 <div>
   <div class="flex flex-row items-center gap-x-1 pb-1 text-slate-medium">
     <ClockIcon />
-    <p class="text-sm font-semibold uppercase tracking-wide">ANYTIME BETWEEN</p>
+    <p class="text-sm font-semibold uppercase tracking-wide">ANY TIME BETWEEN</p>
   </div>
 
   <!--TODO: make custom step -->
