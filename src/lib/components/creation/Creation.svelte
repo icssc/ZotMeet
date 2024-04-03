@@ -17,7 +17,7 @@
   </h3>
 </div>
 
-<div class="w-full rounded-xl border p-6 md:px-14">
+<div class="w-full rounded-xl border bg-white px-8 py-6 md:px-14">
   <div class="flex flex-col gap-6">
     <MeetingNameField />
     <MeetingTimeField />
