@@ -4,6 +4,7 @@ export class ZotDate {
   readonly day: Date;
   isSelected: boolean;
   availability: boolean[];
+  groupAvailability: (number[] | null)[];
   blockLength: number;
 
   // Times represented as minutes past midnight
@@ -22,6 +23,7 @@ export class ZotDate {
     this.earliestTime = 0;
     this.latestTime = 0;
     this.availability = [];
+    this.groupAvailability = [];
   }
 
   /**
@@ -83,6 +85,45 @@ export class ZotDate {
   }
 
   /**
+   * Given two Date bojects, generates a consecutive range of dates as an array of Date objects, regardless of their chronological order
+   * @param date1 a date representing a boundary of the date range
+   * @param date2 a date representing a boundary of the date range
+   * @returns an array of Dates representing the range of dates
+   */
+  static generateRange(date1: Date, date2: Date): Date[] {
+    if (date1 === date2) {
+      return [date1];
+    }
+
+    let earlierDate = date1;
+    let laterDate = date2;
+
+    if (date1 > date2) {
+      earlierDate = date2;
+      laterDate = date1;
+    }
+
+    const generatedRange: Date[] = [];
+
+    const maxRangeIterations =
+      CalendarConstants.MAX_DAYS_PER_WEEK * CalendarConstants.MAX_WEEKS_PER_MONTH;
+
+    const currentDate = earlierDate;
+
+    while (currentDate <= laterDate) {
+      if (generatedRange.length > maxRangeIterations) {
+        throw new Error(
+          `Maximum iterations for date selection range exceeded (${maxRangeIterations})`,
+        );
+      }
+
+      generatedRange.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    return generatedRange;
+  }
+
+  /**
    * Given a zero-indexed month and a year, returns formatted days per week with appropriate padding
    * @param month zero-indexed month of the year
    * @param year number representing the year
@@ -112,15 +153,16 @@ export class ZotDate {
           nextMonthDay++;
         } else {
           newDate = new Date(year, month, day);
-          // Check if day is selected
-          if (
-            selectedDays &&
-            selectedDays.find((d: ZotDate) => d.compareTo(new ZotDate(newDate)) === 0)
-          ) {
-            isSelected = true;
-          }
 
           day++;
+        }
+
+        // Check if day is selected
+        if (
+          selectedDays &&
+          selectedDays.find((d: ZotDate) => d.compareTo(new ZotDate(newDate)) === 0)
+        ) {
+          isSelected = true;
         }
 
         const newZotDate = new ZotDate(newDate, isSelected);
@@ -270,7 +312,8 @@ export class ZotDate {
       selectedDate.earliestTime = earliestTime;
       selectedDate.latestTime = latestTime;
       selectedDate.blockLength = blockLength;
-      selectedDate.availability = new Array(totalBlocks).fill(false);
+      selectedDate.availability = new Array<boolean>(totalBlocks).fill(false);
+      selectedDate.groupAvailability = new Array<null>(totalBlocks).fill(null);
     });
   }
 
@@ -297,5 +340,48 @@ export class ZotDate {
     for (let blockIndex = earlierBlockIndex; blockIndex <= laterBlockIndex; blockIndex++) {
       this.availability[blockIndex] = selection;
     }
+  }
+
+  /**
+   * Sets whether the day is selected or not
+   * @param isSelected a boolean representing whether the day is selected
+   */
+  setSelected(isSelected: boolean) {
+    this.isSelected = isSelected;
+  }
+
+  /**
+   * Updates the ZotDate's group member availability array
+   *
+   * e.g. A group member array: `['Sean', 'Collan', 'Joe']`
+   *
+   *   `setGroupMemberAvailability(1, [3, 4, 5])` will update availability time blocks 3 - 5
+   *   to indicate Collan is available.
+   *   - if Sean was already available on block 3, block 3 will be changed from `[0]` to `[0, 1]`.
+   *   - if nobody was already available on block 4, block 4 will be changed from `null` to `[1]`.
+   *
+   * Because this.groupAvailability is by default a null array to save memory, an array will be
+   * instantiated if it is the first member to indicate availability of that block.
+   *
+   * @param memberIndex the index of a member in an array
+   * @param availableBlocks an array of availability blocks to set that member's availability
+   */
+  setGroupMemberAvailability(memberIndex: number, availableBlocks: number[]): void {
+    availableBlocks.forEach((blockIndex) => {
+      if (!this.groupAvailability[blockIndex]) {
+        this.groupAvailability[blockIndex] = [memberIndex];
+      } else {
+        this.groupAvailability[blockIndex]?.push(memberIndex);
+      }
+    });
+  }
+
+  /**
+   * Gets the group availability block based on the block index
+   * @param index index of the availability block
+   * @return the current availability of the block corresponding to the given index
+   */
+  getGroupAvailabilityBlock(index: number): number[] | null {
+    return this.groupAvailability[index];
   }
 }

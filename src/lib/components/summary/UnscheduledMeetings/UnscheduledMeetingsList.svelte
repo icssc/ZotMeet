@@ -46,7 +46,7 @@
             </p>
           </div>
         </div>
-        <div class="flex items-center gap-2 p-1">
+        <!-- <div class="flex items-center gap-2 p-1">
           <div
             class:bg-success={meeting.hasIndicated}
             class:bg-slate-400={!meeting.hasIndicated}
@@ -61,7 +61,7 @@
               NOT INDICATED
             {/if}
           </span>
-        </div>
+        </div> -->
       </div>
     </div>
   {/each}

@@ -8,27 +8,23 @@
   import { cn } from "$lib/utils/utils";
 </script>
 
-<div class="px-2 pt-8 md:px-4 md:pt-10 lg:pl-[60px]">
-  <h1 class="font-montserrat text-xl font-semibold md:text-2xl">Let's plan your next meeting.</h1>
-  <h2 class="text-sm font-light text-gray-medium md:text-base">
-    Select potential dates and times for you and your team.
+<div class="px-4 pt-8 md:pl-[60px] md:pt-10">
+  <h2 class="font-montserrat text-xl font-medium text-gray-dark md:text-2xl">
+    Let's plan your next meeting.
   </h2>
+  <h3 class="text-sm font-light text-gray-medium md:text-base">
+    Select potential dates and times for you and your team.
+  </h3>
+</div>
+
+<div class="w-full rounded-xl border bg-white px-8 py-6 md:px-14">
+  <div class="flex flex-col gap-6">
+    <MeetingNameField />
+    <MeetingTimeField />
+  </div>
 </div>
 
 <Calendar />
-
-<div class="card w-full rounded-xl border p-8 md:px-10">
-  <div class="card-body gap-0 p-0 md:p-5">
-    <h2 class="card-title pb-5 font-montserrat text-xl font-semibold text-gray-600 md:text-2xl">
-      Meeting Details
-    </h2>
-
-    <div class="flex flex-col gap-8">
-      <MeetingTimeField />
-      <MeetingNameField />
-    </div>
-  </div>
-</div>
 
 <div
   class="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0"
