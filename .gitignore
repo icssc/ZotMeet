@@ -14,6 +14,5 @@ vite.config.ts.timestamp-*
 .sst
 cdk.context.json
 
-# db
-src/lib/db/meta
-src/lib/db/*.sql
+# db, temporary until first release
+/src/lib/db/migrations/

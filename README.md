@@ -5,7 +5,7 @@ Simple, clean, and efficient meeting scheduling app.
 ## Tech Stack
 
 - [**S**ST](https://sst.dev)
-- [**P**risma](https://prisma.io)
+- [**D**rizzle](https://orm.drizzle.team/)
 - [Svelte**K**it](https://kit.svelte.dev)
 - [**L**ucia](https://lucia-auth.com)
 
@@ -29,6 +29,15 @@ Simple, clean, and efficient meeting scheduling app.
 3. Start the development server
    1. `pnpm start` (run `pnpm start --host` if you want to access the server from other devices on your network)
 4. The app should be viewable at `localhost:5173` by default. Changes to the code will automatically update the page. If you ran `pnpm start --host`, you can access the app from other devices on your network at `host-ip:5173`.
+
+### Local Database Setup
+
+1. Go to the [Postgres official website](https://www.postgresql.org/download/) and download the database for your specific OS. \([Here](https://www.postgresql.org/docs/16/tutorial-start.html) is more information, if you get stuck)
+2. While running the setup, ensure that pgAdmin is downloaded alongside Postgres itself
+3. Once connected to the Postgres Server, Right click on databases -> create -> database, and name it `zotmeet`.
+4. In the ZotMeet project root directory,`pnpm db:update` will generate a migrations folder which contain scripts you can run to update your database schema.
+5. Create a .env file, and set `DATABASE_URL=postgres://yourusername:yourpassword@localhost:5432/zotmeet`
+6. Using pgAdmin, run all the migration files in order. This can be done using the query tool.
 
 ### Committing Changes
 

@@ -13,7 +13,7 @@ if (!DATABASE_URL) {
 
 export default {
   schema: "./src/lib/db/schema.ts",
-  out: "./src/lib/db",
+  out: "./src/lib/db/migrations",
   driver: "pg",
   dbCredentials: {
     connectionString: DATABASE_URL,
