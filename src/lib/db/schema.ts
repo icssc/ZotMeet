@@ -18,10 +18,13 @@ export const zotMeet = pgSchema("zotmeet");
 export const attendanceEnum = pgEnum("attendance", ["accepted", "maybe", "declined"]);
 export const memberEnum = pgEnum("member_type", ["guest", "user"]);
 
+// Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = zotMeet.table("members", {
   id: text("id").primaryKey(),
   type: memberEnum("type").notNull().default("guest"),
 });
+
+// Users encompasses Members who have created an account.
 export const users = zotMeet.table("users", {
   id: text("id")
     .primaryKey()
@@ -32,6 +35,8 @@ export const users = zotMeet.table("users", {
   created_at: timestamp("created_at"),
   authMethods: json("auth_methods").$type<string[]>().notNull(),
 });
+
+// Guests are Members who do not have an account and are bound to one specific meeting.
 export const guests = zotMeet.table(
   "guests",
   {

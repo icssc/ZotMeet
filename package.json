@@ -12,7 +12,7 @@
     "db:update": "pnpm generate && pnpm migrate",
     "dev": "sst bind vite dev",
     "format": "prettier --write .",
-    "generate": "drizzle-kit generate:pg",
+    "generate": "drizzle-kit generate:pg --config=drizzle.config.ts",
     "postinstall": "husky install && prisma generate && pnpm generate && pnpm migrate && svelte-kit sync",
     "lint": "eslint --quiet --fix .",
     "migrate": "pnpm dlx tsx src/lib/db/migrate.ts",

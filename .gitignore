@@ -13,3 +13,6 @@ vite.config.ts.timestamp-*
 # sst
 .sst
 cdk.context.json
+
+# temporary until first release
+/src/lib/db/migrations/
