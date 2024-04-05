@@ -8,6 +8,7 @@ import {
   smallint,
   date,
   primaryKey,
+  // json,
   pgEnum,
   boolean,
   json,
@@ -29,7 +30,7 @@ export const users = zotMeet.table("users", {
   id: text("id")
     .primaryKey()
     .references(() => members.id, { onDelete: "cascade" }),
-  displayName: text("displayName").unique().notNull(),
+  displayName: text("displayName").notNull(),
   email: text("email").unique().notNull(),
   password: text("password"),
   created_at: timestamp("created_at"),
@@ -237,6 +238,7 @@ export const oauthRelations = relations(oauthAccountsTable, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
 export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
   meetingDates: one(meetingDates, {
     fields: [availabilities.meeting_day],
@@ -247,3 +249,5 @@ export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
     references: [members.id],
   }),
 }));
+
+export type UserInsertSchema = typeof users.$inferInsert;

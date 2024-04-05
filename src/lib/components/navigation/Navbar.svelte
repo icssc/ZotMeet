@@ -1,17 +1,27 @@
 <script lang="ts">
+  import type { PageData } from "../../../routes/$types";
+
   import LogoArea from "./shared/LogoArea.svelte";
   import NavButtons from "./shared/NavButtons.svelte";
   import ProfileCard from "./shared/ProfileCard.svelte";
 
   import CloseIcon from "~icons/material-symbols/close";
   import MenuIcon from "~icons/material-symbols/menu";
+
+  export let data: PageData;
+
+  let checked = false;
+
+  const handleClick = () => {
+    checked = !checked;
+  };
 </script>
 
 <div class="drawer drawer-end md:hidden">
-  <input id="nav-drawer" type="checkbox" class="drawer-toggle" />
+  <input id="nav-drawer" type="checkbox" class="drawer-toggle" bind:checked />
 
   <div class="drawer-content flex flex-col">
-    <div class="flex-between navbar bg-gray-light px-5 py-4 md:hidden">
+    <div class="flex-between navbar bg-gray-light px-5 pb-3 pt-4 md:hidden">
       <LogoArea />
 
       <label class="btn btn-square btn-ghost" for="nav-drawer">
@@ -30,8 +40,8 @@
         </label>
       </div>
 
-      <NavButtons />
-      <ProfileCard />
+      <NavButtons {handleClick} />
+      <ProfileCard {data} {handleClick} />
     </div>
   </div>
 </div>

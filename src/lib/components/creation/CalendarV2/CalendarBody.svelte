@@ -30,8 +30,7 @@
     }
   };
 
-  /**
-   * Creates the selectionupdateSelectedRange */
+  /* Confirms the current highlight selection and updates calendar accordingly */
   const handleEndSelection = (): void => {
     if (startDaySelection && endDaySelection) {
       try {
@@ -52,6 +51,11 @@
   {#each calendarDays as calendarWeek}
     <tr>
       {#each calendarWeek as calendarDay}
+        {@const isHighlighted =
+          startDaySelection &&
+          endDaySelection &&
+          calendarDay.determineDayWithinBounds(startDaySelection, endDaySelection)}
+        {@const isCurrentMonth = currentMonth === calendarDay.getMonth()}
         <td
           on:mouseup={() => {
             if (startDaySelection) {
@@ -60,47 +64,36 @@
             }
           }}
         >
-          {#if calendarDay.getMonth() === currentMonth}
-            {@const isHighlighted =
-              startDaySelection &&
-              endDaySelection &&
-              calendarDay.determineDayWithinBounds(startDaySelection, endDaySelection)}
-
-            <button
-              on:touchstart={(e) => {
-                if (e.cancelable) {
-                  e.preventDefault();
-                }
-                startDaySelection = calendarDay;
-              }}
-              on:mousedown={() => {
-                startDaySelection = calendarDay;
-              }}
-              on:touchmove={handleTouchMove}
-              on:mousemove={() => {
-                if (startDaySelection) {
-                  endDaySelection = calendarDay;
-                }
-              }}
-              on:touchend={(e) => {
-                if (e.cancelable) {
-                  e.preventDefault();
-                }
-                if (!endDaySelection) {
-                  endDaySelection = calendarDay;
-                }
-                handleEndSelection();
-              }}
-              tabindex="0"
-              class="relative flex w-full cursor-pointer select-none justify-center py-2"
-            >
-              <CalendarBodyDay {isHighlighted} {calendarDay} />
-            </button>
-          {:else}
-            <div class="flex w-full select-none justify-center py-2">
-              <p class="text-base text-gray-base md:text-xl">{calendarDay.getDay()}</p>
-            </div>
-          {/if}
+          <button
+            on:touchstart={(e) => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+              startDaySelection = calendarDay;
+            }}
+            on:mousedown={() => {
+              startDaySelection = calendarDay;
+            }}
+            on:touchmove={handleTouchMove}
+            on:mousemove={() => {
+              if (startDaySelection) {
+                endDaySelection = calendarDay;
+              }
+            }}
+            on:touchend={(e) => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+              if (!endDaySelection) {
+                endDaySelection = calendarDay;
+              }
+              handleEndSelection();
+            }}
+            tabindex="0"
+            class="relative flex w-full cursor-pointer select-none justify-center py-2"
+          >
+            <CalendarBodyDay {isHighlighted} {calendarDay} {isCurrentMonth} />
+          </button>
         </td>
       {/each}
     </tr>

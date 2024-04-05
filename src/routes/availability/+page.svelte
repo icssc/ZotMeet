@@ -1,21 +1,71 @@
 <script lang="ts">
-  import { PersonalAvailability } from "$lib/components/availability";
-  import PencilOutlineIcon from "~icons/mdi/pencil-outline";
+  import { GroupAvailability, PersonalAvailability } from "$lib/components/availability";
+  import { isEditingAvailability, isStateUnsaved } from "$lib/stores/availabilityStores";
+  import type { LoginModalProps } from "$lib/types/availability";
+  import { cn } from "$lib/utils/utils";
+  import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
+  import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
+
+  export let data: LoginModalProps;
 
   let currentTab: number = 0;
+
+  const handleSave = () => {
+    if (!data.user) {
+      const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
+      if (authModal) {
+        authModal.showModal();
+      }
+    } else {
+      console.log("saved");
+
+      $isEditingAvailability = false;
+      $isStateUnsaved = false;
+    }
+  };
+
+  const handleCancel = () => {
+    // TODO: Repopulate prior state from DB
+
+    $isEditingAvailability = !$isEditingAvailability;
+    $isStateUnsaved = false;
+  };
+
+  let innerWidth = 0;
+  $: mobileView = innerWidth < 768;
 </script>
 
+<svelte:window bind:innerWidth />
+
 <div class="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
-  <h1 class="line-clamp-1 font-montserrat text-xl font-medium md:text-3xl">
+  <h1 class="line-clamp-1 h-8 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
     Sample Meeting Winter 2024
   </h1>
 
-  <button
-    class="flex-center btn btn-outline h-8 min-h-fit px-2 uppercase text-slate-medium md:w-24 md:p-0"
-  >
-    <span class="hidden md:flex">Edit</span>
-    <PencilOutlineIcon />
-  </button>
+  {#if $isEditingAvailability}
+    <div class="flex space-x-2 md:space-x-4">
+      <button
+        class={cn(
+          "flex-center btn btn-outline h-8 min-h-fit border-warning px-2 uppercase text-warning md:w-28 md:p-0",
+          "hover:border-warning hover:bg-warning hover:text-white",
+        )}
+        on:click={handleCancel}
+      >
+        <span class="hidden md:flex">Cancel</span>
+        <CancelCircleOutline />
+      </button>
+      <button
+        class={cn(
+          "flex-center btn btn-outline h-8 min-h-fit border-secondary px-2 uppercase text-secondary md:w-24 md:p-0",
+          "hover:border-secondary hover:bg-secondary hover:text-white",
+        )}
+        on:click={handleSave}
+      >
+        <span class="hidden md:flex">Save</span>
+        <CheckboxMarkerdCircleOutlineIcon />
+      </button>
+    </div>
+  {/if}
 </div>
 
 <div role="tablist" class="tabs tabs-bordered w-full px-2 md:px-4 lg:max-w-md lg:pl-[60px]">
@@ -46,19 +96,18 @@
     <div
       class="w-full rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#F680670D] to-[#377CFB0D] p-2 pt-4 md:p-6"
     >
-      <div class="hidden md:flex">
-        <PersonalAvailability columns={5} />
-      </div>
-
-      <div class="flex md:hidden">
-        <PersonalAvailability columns={4} />
-      </div>
+      <PersonalAvailability columns={mobileView ? 4 : 5} {data} />
     </div>
   {:else if currentTab === 1}
     <div
-      class="rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] p-6"
+      class="rounded-box border-base-300 bg-base-100 bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] p-2 pt-4 md:p-6 lg:pr-0"
     >
-      Tab content 2
+      <div class="hidden md:flex md:items-start">
+        <GroupAvailability columns={5} />
+      </div>
+      <div class="block md:hidden">
+        <GroupAvailability columns={4} />
+      </div>
     </div>
   {/if}
 </div>
