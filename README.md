@@ -32,8 +32,8 @@ Simple, clean, and efficient meeting scheduling app.
 
 ### Local Database Setup
 
-1. Go to the [postgres official website](https://www.postgresql.org/download/) and download the database for your specific OS. \([Here](https://www.postgresql.org/docs/16/tutorial-start.html) is more information, if you get stuck)
-2. While running the setup, ensure that pgAdmin is downloaded alongside postgres itself
+1. Go to the [Postgres official website](https://www.postgresql.org/download/) and download the database for your specific OS. \([Here](https://www.postgresql.org/docs/16/tutorial-start.html) is more information, if you get stuck)
+2. While running the setup, ensure that pgAdmin is downloaded alongside Postgres itself
 3. Once connected to the Postgres Server, Right click on databases -> create -> database, and name it `zotmeet`.
 4. In the ZotMeet project root directory,`pnpm db:update` will generate a migrations folder which contain scripts you can run to update your database schema.
 5. Create a .env file, and set `DATABASE_URL=postgres://yourusername:yourpassword@localhost:5432/zotmeet`

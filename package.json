@@ -13,7 +13,7 @@
     "dev": "sst bind vite dev",
     "format": "prettier --write .",
     "generate": "drizzle-kit generate:pg --config=drizzle.config.ts",
-    "postinstall": "husky install && pnpm generate && pnpm migrate && svelte-kit sync",
+    "postinstall": "husky install && pnpm generate && svelte-kit sync && pnpm migrate",
     "lint": "eslint --quiet --fix .",
     "migrate": "pnpm dlx tsx src/lib/db/migrate.ts",
     "preview": "vite preview",
