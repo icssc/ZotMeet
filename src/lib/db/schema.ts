@@ -8,7 +8,6 @@ import {
   smallint,
   date,
   primaryKey,
-  // json,
   pgEnum,
   boolean,
   json,
