@@ -213,16 +213,16 @@ export const meetingsRelations = relations(meetings, ({ one, many }) => ({
     fields: [meetings.host_id],
     references: [members.id],
   }),
-  availabilities: many(availabilities),
   membersInMeeting: many(membersInMeeting),
   meetingDates: many(meetingDates),
 }));
 
-export const meetingDateRelations = relations(meetingDates, ({ one }) => ({
+export const meetingDatesRelations = relations(meetingDates, ({ one, many }) => ({
   meetings: one(meetings, {
     fields: [meetingDates.meeting_id],
     references: [meetings.id],
   }),
+  availabilities: many(availabilities),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
