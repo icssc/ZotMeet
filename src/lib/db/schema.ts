@@ -33,7 +33,7 @@ export const users = zotMeet.table("users", {
   email: text("email").unique().notNull(),
   password: text("password"),
   created_at: timestamp("created_at"),
-  authMethods: json("auth_methods").$type<string[]>().notNull(),
+  authMethods: json("auth_methods").$type<string[]>(),
 });
 
 // Guests are Members who do not have an account and are bound to one specific meeting.
@@ -98,6 +98,7 @@ export const availabilities = zotMeet.table(
     pk: primaryKey({ columns: [table.member_id, table.meeting_day] }),
   }),
 );
+
 // meeting_day
 export const oauthAccountsTable = zotMeet.table(
   "oauth_accounts",
@@ -249,4 +250,5 @@ export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
   }),
 }));
 
+export type MemberInsertSchema = typeof members.$inferInsert;
 export type UserInsertSchema = typeof users.$inferInsert;

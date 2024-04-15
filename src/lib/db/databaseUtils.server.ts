@@ -3,7 +3,8 @@ import type { SuperValidated } from "sveltekit-superforms";
 import type { ZodObject, ZodString } from "zod";
 
 import { db } from "./drizzle";
-import { users, type UserInsertSchema } from "./schema";
+import { members, users } from "./schema";
+import type { UserInsertSchema, MemberInsertSchema } from "./schema";
 
 import type { AlertMessageType } from "$lib/types/auth";
 
@@ -27,6 +28,10 @@ export const checkIfEmailExists = async (email: string) => {
     .where(eq(users.email, email));
 
   return queryResult.length > 0;
+};
+
+export const insertNewMember = async (member: MemberInsertSchema) => {
+  return await db.insert(members).values(member);
 };
 
 export const insertNewUser = async (user: UserInsertSchema) => {
