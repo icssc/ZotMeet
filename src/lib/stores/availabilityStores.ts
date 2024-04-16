@@ -50,20 +50,20 @@ const sampleMembers: MemberAvailability[] = [
   },
 ];
 
-const generateSampleDates = (
-  startTime: number,
-  endTime: number,
-  groupMembers: MemberAvailability[],
+export const generateSampleDates = (
+  startTime: number = earliestTime,
+  endTime: number = latestTime,
+  groupMembers: MemberAvailability[] = sampleMembers,
 ): ZotDate[] => {
   // Placeholder date array from Calendar component
   const selectedCalendarDates: ZotDate[] = [
+    new ZotDate(new Date(2024, 0, 30)),
+    new ZotDate(new Date(2024, 0, 31)),
     new ZotDate(new Date(2024, 1, 1)),
     new ZotDate(new Date(2024, 1, 2)),
     new ZotDate(new Date(2024, 1, 3)),
     new ZotDate(new Date(2024, 1, 4)),
     new ZotDate(new Date(2024, 1, 5)),
-    new ZotDate(new Date(2024, 1, 6)),
-    new ZotDate(new Date(2024, 1, 7)),
   ];
 
   ZotDate.initializeAvailabilities(selectedCalendarDates, startTime, endTime, BLOCK_LENGTH);

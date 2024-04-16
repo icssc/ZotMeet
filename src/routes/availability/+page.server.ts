@@ -37,7 +37,7 @@ const getAvailability = async (user: User) => {
     .from(availabilities)
     .where(eq(availabilities.member_id, user.id));
 
-  return availability;
+  return availability.sort((a, b) => (a.day < b.day ? -1 : 1));
 };
 
 export const actions: Actions = {
@@ -87,7 +87,9 @@ async function saveAvailabilities({ request, locals }: { request: Request; local
         .values(availability)
         .onConflictDoUpdate({
           target: [availabilities.member_id, availabilities.meeting_day],
-          set: { availability_string: availability.availability_string },
+          set: {
+            availability_string: availability.availability_string,
+          },
         });
     }
 
@@ -124,5 +126,5 @@ async function getMeetingDates(): Promise<MeetingDateSelectSchema[]> {
     .from(meetingDates)
     .where(eq(meetingDates.meeting_id, testMeeting.id));
 
-  return testMeetingDates;
+  return testMeetingDates.sort((a, b) => (a.date < b.date ? -1 : 1));
 }

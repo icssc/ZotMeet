@@ -7,6 +7,7 @@
   import {
     availabilityDates,
     availabilityTimeBlocks,
+    generateSampleDates,
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
@@ -46,7 +47,9 @@
     );
   };
 
-  $availabilityDates = getAvailability() ?? [];
+  const dbAvailability = getAvailability();
+  $availabilityDates =
+    !dbAvailability || dbAvailability.length == 0 ? generateSampleDates() : dbAvailability;
 
   let selectionState: SelectionStateType | null = null;
 
