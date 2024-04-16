@@ -35,6 +35,19 @@
 
   let currentPageAvailability: (ZotDate | null)[];
 
+  const getAvailability = () => {
+    return data.availability?.map(
+      (availability) =>
+        new ZotDate(
+          new Date(availability.day),
+          false,
+          JSON.parse("[" + availability.availability_string + "]"),
+        ),
+    );
+  };
+
+  $availabilityDates = getAvailability() ?? [];
+
   let selectionState: SelectionStateType | null = null;
 
   // Triggers on every pagination change and selection confirmation

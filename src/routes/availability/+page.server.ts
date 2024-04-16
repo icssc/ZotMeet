@@ -82,11 +82,13 @@ async function saveAvailabilities({ request, locals }: { request: Request; local
         availability_string: date.availability.toString(),
       };
 
-      await db.insert(availabilities).values(availability);
-      // .onConflictDoUpdate({
-      //   target: [availabilities.member_id, availabilities.meeting_day],
-      //   set: { availability_string: availability.availability_string },
-      // });
+      await db
+        .insert(availabilities)
+        .values(availability)
+        .onConflictDoUpdate({
+          target: [availabilities.member_id, availabilities.meeting_day],
+          set: { availability_string: availability.availability_string },
+        });
     }
 
     console.log("success!");

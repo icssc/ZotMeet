@@ -16,13 +16,13 @@ export class ZotDate {
    * @param day a Date object representing a calendar day
    * @param isSelected whether the day is selected from the calendar
    */
-  constructor(day: Date = new Date(), isSelected: boolean = false) {
+  constructor(day: Date = new Date(), isSelected: boolean = false, availability: boolean[] = []) {
     this.day = day;
     this.isSelected = isSelected;
     this.blockLength = 15;
     this.earliestTime = 0;
     this.latestTime = 0;
-    this.availability = [];
+    this.availability = availability;
     this.groupAvailability = [];
   }
 
