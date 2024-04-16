@@ -1,10 +1,15 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { SuperValidated } from "sveltekit-superforms";
 import type { ZodObject, ZodString } from "zod";
 
 import { db } from "./drizzle";
-import { members, users } from "./schema";
-import type { UserInsertSchema, MemberInsertSchema } from "./schema";
+import { members, users, guests } from "./schema";
+import type {
+  UserInsertSchema,
+  MemberInsertSchema,
+  MeetingSelectSchema,
+  GuestInsertSchema,
+} from "./schema";
 
 import type { AlertMessageType } from "$lib/types/auth";
 
@@ -30,12 +35,28 @@ export const checkIfEmailExists = async (email: string) => {
   return queryResult.length > 0;
 };
 
+export const checkIfGuestUsernameExists = async (
+  username: string,
+  meeting: MeetingSelectSchema,
+) => {
+  const result = await db
+    .select()
+    .from(guests)
+    .where(and(eq(guests.username, username), eq(guests.meeting_id, meeting.id)));
+
+  return result.length > 0;
+};
+
 export const insertNewMember = async (member: MemberInsertSchema) => {
   return await db.insert(members).values(member);
 };
 
 export const insertNewUser = async (user: UserInsertSchema) => {
   return await db.insert(users).values(user);
+};
+
+export const insertNewGuest = async (guest: GuestInsertSchema) => {
+  return await db.insert(guests).values(guest);
 };
 
 export const getAllUsers = async () => {
@@ -64,4 +85,15 @@ export const getExistingUser = async (
     .where(eq(users.email, form.data.email as string));
 
   return existingUser;
+};
+
+export const getExistingGuest = async (username: string, meeting: MeetingSelectSchema) => {
+  const [existingGuest] = await db
+    .select()
+    .from(guests)
+    .where(and(eq(guests.username, username), eq(guests.meeting_id, meeting.id)));
+
+  console.log("from db", existingGuest);
+
+  return existingGuest;
 };

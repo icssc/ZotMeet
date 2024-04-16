@@ -27,10 +27,16 @@
           authModal.close();
         }
 
+        const availabilitySaveForm: HTMLFormElement | null = document.getElementById(
+          "availabilitySaveForm",
+        ) as HTMLFormElement;
+
+        if (availabilitySaveForm) {
+          availabilitySaveForm.submit();
+        }
+
         $isEditingAvailability = false;
         $isStateUnsaved = false;
-
-        // TODO: Update DB with data
       }
     },
   });
@@ -51,10 +57,21 @@
           authModal.close();
         }
 
+        const availabilitySaveForm: HTMLFormElement | null = document?.getElementById(
+          "availabilitySaveForm",
+        ) as HTMLFormElement;
+
+        if (availabilitySaveForm) {
+          if ("username" in availabilitySaveForm.elements) {
+            const username = availabilitySaveForm.elements.username as HTMLInputElement;
+            username.value = form.data.username;
+          }
+
+          availabilitySaveForm.submit();
+        }
+
         $isEditingAvailability = false;
         $isStateUnsaved = false;
-
-        // TODO: Update DB with guest data
       }
     },
   });
@@ -145,7 +162,7 @@
 
           <form
             method="POST"
-            action="TODO"
+            action="/auth/guest"
             use:guestEnhance
             class="flex-center w-full grow flex-col items-center space-y-4 md:w-[250px]"
           >
@@ -168,6 +185,7 @@
                   type="text"
                   class="grow appearance-none border-none focus:border-none focus:outline-none focus:ring-0"
                   placeholder="username"
+                  name="username"
                   bind:value={$guestForm.username}
                 />
               </label>

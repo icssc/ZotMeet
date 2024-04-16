@@ -5,9 +5,11 @@
   import { GroupAvailability, PersonalAvailability } from "$lib/components/availability";
   import {
     availabilityDates,
+    generateSampleDates,
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
+  import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
@@ -16,27 +18,33 @@
 
   let currentTab: number = 0;
 
-  // const handleSave = async () => {
-  //   if (!data.user) {
-  //     const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
-  //     if (authModal) {
-  //       authModal.showModal();
-  //     }
-  //   } else {
-  //     console.log("saving:", $availabilityDates);
+  const handleSave = async (cancel: () => void) => {
+    if (!data.user) {
+      const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
+      if (authModal) {
+        authModal.showModal();
+      }
 
-  //     console.log("saved");
-
-  //     $isEditingAvailability = false;
-  //     $isStateUnsaved = false;
-  //   }
-  // };
+      cancel(); // Prevent the form action, handle with LoginModal instead
+    }
+  };
 
   const handleCancel = () => {
-    // TODO: Repopulate prior state from DB
+    $availabilityDates = getAvailability() ?? generateSampleDates();
 
     $isEditingAvailability = !$isEditingAvailability;
     $isStateUnsaved = false;
+  };
+
+  export const getAvailability = () => {
+    return data.availability?.map(
+      (availability) =>
+        new ZotDate(
+          new Date(availability.day),
+          false,
+          JSON.parse("[" + availability.availability_string + "]"),
+        ),
+    );
   };
 
   let innerWidth = 0;
@@ -64,15 +72,22 @@
       </button>
 
       <form
-        use:enhance={() => {
-          return async ({ result }) => {
-            console.log(result);
+        use:enhance={({ cancel }) => {
+          handleSave(cancel);
+
+          return async ({ update }) => {
+            update();
+
+            $isEditingAvailability = false;
+            $isStateUnsaved = false;
           };
         }}
         action="/availability?/saveAvailabilities"
         method="POST"
+        id="availabilitySaveForm"
       >
         <input type="hidden" name="availabilityDates" value={JSON.stringify($availabilityDates)} />
+        <input type="hidden" name="username" value={data.user} />
         <button
           class={cn(
             "flex-center btn btn-outline h-8 min-h-fit border-secondary px-2 uppercase text-secondary md:w-24 md:p-0",

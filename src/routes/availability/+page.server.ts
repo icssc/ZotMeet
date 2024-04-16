@@ -8,6 +8,7 @@ import { _loginSchema } from "../auth/login/+page.server";
 import type { PageServerLoad } from "./$types";
 
 import { guestSchema } from "$lib/config/zod-schemas";
+import { getExistingGuest } from "$lib/db/databaseUtils.server";
 import { db } from "$lib/db/drizzle";
 import {
   availabilities,
@@ -47,15 +48,6 @@ export const actions: Actions = {
 async function saveAvailabilities({ request, locals }: { request: Request; locals: App.Locals }) {
   const user: User | null = locals.user;
 
-  if (!user) {
-    return {
-      status: 403,
-      body: {
-        error: "Authentication required",
-      },
-    };
-  }
-
   const formData = await request.formData();
   const availabilityDates: ZotDate[] = JSON.parse(
     (formData.get("availabilityDates") as string) ?? "",
@@ -77,7 +69,9 @@ async function saveAvailabilities({ request, locals }: { request: Request; local
 
       const availability: AvailabilityInsertSchema = {
         day: new Date(date.day).toISOString(),
-        member_id: user.id,
+        member_id:
+          user?.id ??
+          (await getExistingGuest(formData.get("username") as string, await _getMeeting())).id,
         meeting_day: dbMeetingDates[i].id as string, // Type-cast since id is guaranteed if a meetingDate exists
         availability_string: date.availability.toString(),
       };
@@ -93,7 +87,6 @@ async function saveAvailabilities({ request, locals }: { request: Request; local
         });
     }
 
-    console.log("success!");
     return {
       status: 200,
       body: {
@@ -112,7 +105,7 @@ async function saveAvailabilities({ request, locals }: { request: Request; local
 }
 
 // Used to access test meeting
-async function getMeeting(): Promise<MeetingSelectSchema> {
+export async function _getMeeting(): Promise<MeetingSelectSchema> {
   const testMeeting = await db.select().from(meetings).where(eq(meetings.title, "default"));
 
   return testMeeting[0];
@@ -120,7 +113,7 @@ async function getMeeting(): Promise<MeetingSelectSchema> {
 
 // Used to access test meeting dates of test meeting
 async function getMeetingDates(): Promise<MeetingDateSelectSchema[]> {
-  const testMeeting = await getMeeting();
+  const testMeeting = await _getMeeting();
   const testMeetingDates = await db
     .select()
     .from(meetingDates)

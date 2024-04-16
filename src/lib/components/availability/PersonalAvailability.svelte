@@ -36,7 +36,7 @@
 
   let currentPageAvailability: (ZotDate | null)[];
 
-  const getAvailability = () => {
+  export const getAvailability = () => {
     return data.availability?.map(
       (availability) =>
         new ZotDate(
