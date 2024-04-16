@@ -1,16 +1,17 @@
 <script lang="ts">
   import { superForm } from "sveltekit-superforms/client";
 
+  import type { PageData } from "../../../routes/availability/$types";
+
   import { guestSchema, userSchema } from "$lib/config/zod-schemas";
   import { isEditingAvailability, isStateUnsaved } from "$lib/stores/availabilityStores";
-  import type { LoginModalProps } from "$lib/types/availability";
   import BrightnessAlert from "~icons/material-symbols/brightness-alert-outline-rounded";
   import EmailIcon from "~icons/mdi/email";
   import KeyIcon from "~icons/mdi/key";
   import Loader from "~icons/mdi/loading";
   import UserIcon from "~icons/mdi/user";
 
-  export let data: LoginModalProps;
+  export let data: PageData;
 
   const loginSchema = userSchema.pick({ email: true, password: true });
   const guestLoginSchema = guestSchema.pick({ username: true });
@@ -28,6 +29,7 @@
 
         $isEditingAvailability = false;
         $isStateUnsaved = false;
+
         // TODO: Update DB with data
       }
     },

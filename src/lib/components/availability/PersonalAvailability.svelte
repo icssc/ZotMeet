@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { PageData } from "../../../routes/availability/$types";
+
   import LoginFlow from "./LoginModal.svelte";
 
   import AvailabilityBlock from "$lib/components/availability/AvailabilityBlock.svelte";
@@ -8,16 +10,12 @@
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
-  import type {
-    AvailabilityBlockType,
-    LoginModalProps,
-    SelectionStateType,
-  } from "$lib/types/availability";
+  import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
 
   export let columns: number;
-  export let data: LoginModalProps;
+  export let data: PageData;
 
   let itemsPerPage: number = columns;
   $: {
@@ -34,6 +32,7 @@
   let endBlockSelection: AvailabilityBlockType | null = null;
 
   let currentPage = 0;
+
   let currentPageAvailability: (ZotDate | null)[];
 
   let selectionState: SelectionStateType | null = null;

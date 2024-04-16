@@ -252,3 +252,6 @@ export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
 
 export type MemberInsertSchema = typeof members.$inferInsert;
 export type UserInsertSchema = typeof users.$inferInsert;
+export type AvailabilityInsertSchema = typeof availabilities.$inferInsert;
+export type MeetingSelectSchema = typeof meetings.$inferSelect;
+export type MeetingDateSelectSchema = typeof meetingDates.$inferSelect;
