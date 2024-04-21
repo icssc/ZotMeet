@@ -15,6 +15,7 @@
     "generate": "drizzle-kit generate:pg --config=drizzle.config.ts",
     "postinstall": "husky install && pnpm generate && svelte-kit sync",
     "lint": "eslint --quiet --fix .",
+    "migrate": "pnpm tsx src/lib/db/migrate.ts",
     "migrate:dev": "pnpm dotenv -- pnpm tsx src/lib/db/migrate.ts",
     "preview": "vite preview",
     "sst:deploy": "sst deploy",
