@@ -33,7 +33,7 @@ export const users = zotMeet.table("users", {
   email: text("email").unique().notNull(),
   password: text("password"),
   created_at: timestamp("created_at"),
-  authMethods: json("auth_methods").$type<string[]>(),
+  authMethods: json("auth_methods").$type<string[]>().notNull(),
 });
 
 // Guests are Members who do not have an account and are bound to one specific meeting.
