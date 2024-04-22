@@ -59,7 +59,7 @@ async function register({ request, cookies }: { request: Request; cookies: Cooki
       displayName: form.data.displayName,
       email: form.data.email,
       password: hashedPassword,
-      authMethods: ["email"],
+      // authMethods: ["email"],
     });
 
     await createAndSetSession(lucia, userId, cookies);

@@ -60,7 +60,7 @@
     "daisyui": "^4.6.2",
     "devmoji": "2.3.0",
     "dotenv": "^16.4.5",
-    "drizzle-kit": "0.20.17",
+    "drizzle-kit": "0.20.14",
     "eslint": "8.54.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-plugin-import": "2.29.0",
