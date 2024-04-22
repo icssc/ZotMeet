@@ -21,12 +21,10 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  DATABASE_URL: ${{ secrets.PROD_DB_URL }}
 
 jobs:
   deploy:
-    if: (!contains(github.event.pull_request.labels.*.name, 'no deploy'))
-
     runs-on: ubuntu-latest
 
     environment:
@@ -44,4 +42,4 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Deploy ZotMeet to production
-        run: pnpm sst deploy --stage prod
+        run: pnpm migrate && pnpm sst deploy --stage prod

@@ -22,7 +22,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  DATABASE_URL: ${{ secrets.DEV_DB_URL }}
   PR_NUM: ${{ github.event.pull_request.number }}
 
 jobs:

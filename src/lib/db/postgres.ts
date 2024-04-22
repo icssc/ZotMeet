@@ -7,5 +7,7 @@ import { DATABASE_URL } from "$env/static/private";
  * so you will have to use this instead of the Drizzle client.
  *
  * In all other cases, you should probably not use this unless you know what you are doing.
+ *
+ * TODO: Check if this is still necessary considering our Lucia version
  */
 export const client = postgres(DATABASE_URL, { max: 1, ssl: "prefer" });
