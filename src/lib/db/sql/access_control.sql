@@ -15,6 +15,19 @@ GRANT ALL ON SCHEMA dev TO zotmeet_migrations;
 GRANT ALL ON SCHEMA public TO zotmeet_prod;
 GRANT ALL ON SCHEMA dev TO zotmeet_staging;
 
+GRANT ALL ON ALL TABLES IN SCHEMA public TO zotmeet_migrations;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO zotmeet_migrations;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO zotmeet_migrations;
+GRANT ALL ON ALL TABLES IN SCHEMA dev TO zotmeet_migrations;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA dev TO zotmeet_migrations;
+GRANT ALL ON ALL ROUTINES IN SCHEMA dev TO zotmeet_migrations;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO zotmeet_prod;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO zotmeet_prod;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO zotmeet_prod;
+GRANT ALL ON ALL TABLES IN SCHEMA dev TO zotmeet_staging;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA dev TO zotmeet_staging;
+GRANT ALL ON ALL ROUTINES IN SCHEMA dev TO zotmeet_staging;
+
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO zotmeet_prod;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO zotmeet_prod;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO zotmeet_prod;
