@@ -3,9 +3,8 @@ import { eq } from "drizzle-orm";
 import type { User } from "lucia";
 import { superValidate } from "sveltekit-superforms/server";
 
-import { _loginSchema } from "../auth/login/+page.server";
-
-import type { PageServerLoad } from "./$types";
+import type { PageServerLoad } from "../$types";
+import { _loginSchema } from "../../auth/login/+page.server";
 
 import { guestSchema } from "$lib/config/zod-schemas";
 import { getExistingGuest } from "$lib/db/databaseUtils.server";
@@ -22,13 +21,14 @@ import type { ZotDate } from "$lib/utils/ZotDate";
 
 const guestLoginSchema = guestSchema.pick({ username: true });
 
-export const load = (async ({ locals }) => {
+export const load: PageServerLoad = (async ({ locals, params }) => {
   const user = locals.user;
 
   return {
     form: await superValidate(_loginSchema),
     guestForm: await superValidate(guestLoginSchema),
     availability: user ? await getAvailability(user) : null,
+    meetingId: params?.slug,
   };
 }) satisfies PageServerLoad;
 
@@ -62,6 +62,8 @@ async function saveAvailabilities({ request, locals }: { request: Request; local
   }
 
   if (!dbMeetingDates || dbMeetingDates.length === 0) return;
+
+  console.log(formData.get("username"));
 
   try {
     for (let i = 0; i < availabilityDates.length; i++) {

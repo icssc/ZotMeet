@@ -4,7 +4,11 @@
   import type { PageData } from "../../../routes/availability/$types";
 
   import { guestSchema, userSchema } from "$lib/config/zod-schemas";
-  import { isEditingAvailability, isStateUnsaved } from "$lib/stores/availabilityStores";
+  import {
+    isEditingAvailability,
+    isStateUnsaved,
+    guestSession,
+  } from "$lib/stores/availabilityStores";
   import BrightnessAlert from "~icons/material-symbols/brightness-alert-outline-rounded";
   import EmailIcon from "~icons/mdi/email";
   import KeyIcon from "~icons/mdi/key";
@@ -44,7 +48,7 @@
   const {
     form: guestForm,
     errors: guestErrors,
-    enhance: guestEnhance,
+    // enhance: guestEnhance,
     delayed: guestDelayed,
   } = superForm(data.guestForm, {
     taintedMessage: null,
@@ -68,6 +72,7 @@
           }
 
           availabilitySaveForm.submit();
+          $guestSession = { guestName: form.data.username, meetingId: data.meetingId };
         }
 
         $isEditingAvailability = false;
@@ -77,6 +82,8 @@
       }
     },
   });
+
+  let f: HTMLFormElement;
 </script>
 
 <dialog id="auth-modal" class="modal">
@@ -163,10 +170,29 @@
           <h3 class="h-fit px-2 text-left text-xl font-bold">Save as Guest</h3>
 
           <form
-            method="POST"
-            action="/auth/guest"
-            use:guestEnhance
+            bind:this={f}
             class="flex-center w-full grow flex-col items-center space-y-4 md:w-[250px]"
+            on:submit|preventDefault={async () => {
+              const response = await fetch("/auth/guest", {
+                method: "POST",
+                body: new FormData(f),
+              });
+
+              const rawData = await response.json();
+              console.log({ rawData });
+              const data = JSON.parse(rawData.data);
+              console.log(data);
+
+              const authModal = document.getElementById("auth-modal");
+              if (authModal && authModal instanceof HTMLDialogElement) {
+                authModal.close();
+              }
+
+              $guestSession = {
+                guestName: data[1],
+                meetingId: "e3cf0163-e172-40c5-955a-ae9fa1090dc2",
+              };
+            }}
           >
             {#if $guestErrors.username}
               <aside class="variant-filled-error alert">
@@ -211,3 +237,12 @@
     <button />
   </form>
 </dialog>
+
+<!-- Login form fields
+
+<div>
+  <input name="username" />
+  <input name="password" />
+
+  <slot />
+</div> -->

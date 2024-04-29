@@ -8,6 +8,7 @@
     availabilityDates,
     availabilityTimeBlocks,
     generateSampleDates,
+    guestSession,
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
@@ -38,12 +39,8 @@
 
   export const getAvailability = () => {
     return data.availability?.map(
-      (availability) =>
-        new ZotDate(
-          new Date(availability.day),
-          false,
-          JSON.parse("[" + availability.availability_string + "]"),
-        ),
+      (item) =>
+        new ZotDate(new Date(item.day), false, JSON.parse("[" + item.availability_string + "]")),
     );
   };
 
@@ -164,6 +161,10 @@
     });
   }
 </script>
+
+guest: {$guestSession.guestName}
+<br />
+id: {$guestSession.meetingId}
 
 <div class="flex items-center justify-between overflow-x-auto font-dm-sans">
   <button

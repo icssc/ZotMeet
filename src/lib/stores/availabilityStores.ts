@@ -1,6 +1,6 @@
 import { readable, writable } from "svelte/store";
 
-import type { MemberAvailability } from "./../types/availability";
+import type { GuestSession, MemberAvailability } from "./../types/availability";
 
 import { TimeConstants } from "$lib/types/chrono";
 import { ZotDate } from "$lib/utils/ZotDate";
@@ -97,3 +97,10 @@ export const groupMembers = readable<MemberAvailability[]>(sampleMembers);
 
 export const isEditingAvailability = writable<boolean>(false);
 export const isStateUnsaved = writable<boolean>(false);
+
+export const guestSession = writable<GuestSession>({
+  // guestName: "chicken",
+  // meetingId: "e3cf0163-e172-40c5-955a-ae9fa1090dc2",
+  guestName: "PLEASEGOD",
+  meetingId: "e3cf0163-e172-40c5-955a-ae9fa1090dc2",
+});

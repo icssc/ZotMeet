@@ -2,7 +2,7 @@ import { fail } from "@sveltejs/kit";
 import { generateId } from "lucia";
 import { setError, superValidate } from "sveltekit-superforms/client";
 
-import { _getMeeting } from "../../availability/+page.server";
+import { _getMeeting } from "../../availability/[slug]/+page.server";
 
 import { guestSchema } from "$lib/config/zod-schemas";
 import {
@@ -39,11 +39,14 @@ async function createGuest({ request }: { request: Request }) {
 
     const id = generateId(15);
     await insertNewMember({ id: id });
-    await insertNewGuest({
+    console.log("after member", form.data);
+    const response = await insertNewGuest({
       username: form.data.username,
       id: id,
       meeting_id: "e3cf0163-e172-40c5-955a-ae9fa1090dc2", // TODO replace with actual meeting id
     });
+
+    console.log("supposed to add guest", response);
   } catch (error) {
     console.error(error);
 
@@ -54,5 +57,6 @@ async function createGuest({ request }: { request: Request }) {
     );
   }
 
-  return { form };
+  console.log("in auth/guest", form);
+  return form.data;
 }
