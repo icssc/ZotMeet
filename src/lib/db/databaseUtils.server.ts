@@ -3,7 +3,7 @@ import type { SuperValidated } from "sveltekit-superforms";
 import type { ZodObject, ZodString } from "zod";
 
 import { db } from "./drizzle";
-import { users, type UserInsertSchema } from "./schema";
+import { users, type UserInsertSchema, sessions } from "./schema";
 
 import type { AlertMessageType } from "$lib/types/auth";
 
@@ -59,4 +59,17 @@ export const getExistingUser = async (
     .where(eq(users.email, form.data.email as string));
 
   return existingUser;
+};
+
+export const getUserFromSession = async (sessionID: string | undefined) => {
+  if (sessionID === undefined) {
+    return "";
+  }
+  const { userId } = (
+    await db
+      .selectDistinct({ userId: sessions.userId })
+      .from(sessions)
+      .where(eq(sessions.id, sessionID))
+  )[0];
+  return userId;
 };

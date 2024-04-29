@@ -1,8 +1,11 @@
 <script lang="ts">
   // import GroupCarousel from "$lib/components/summary/GroupsCarousel.svelte";
+  // import type { PageData } from './$types';
+
   import ScheduledMeetingsList from "$lib/components/summary/ScheduledMeetings/ScheduledMeetingsList.svelte";
   import UnscheduledMeetingsList from "$lib/components/summary/UnscheduledMeetings/UnscheduledMeetingsList.svelte";
 
+  // export let data: PageData;
   let currentTab: number = 0;
 </script>
 

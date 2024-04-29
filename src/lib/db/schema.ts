@@ -5,7 +5,6 @@ import {
   timestamp,
   index,
   smallint,
-  date,
   primaryKey,
   pgEnum,
   boolean,
@@ -82,7 +81,6 @@ export const groups = pgTable("groups", {
 export const availabilities = pgTable(
   "availabilities",
   {
-    day: date("day").notNull(),
     member_id: text("member_id")
       .notNull()
       .references(() => members.id, { onDelete: "cascade" }),
@@ -96,6 +94,7 @@ export const availabilities = pgTable(
     pk: primaryKey({ columns: [table.member_id, table.meeting_day] }),
   }),
 );
+
 // meeting_day
 export const oauthAccountsTable = pgTable(
   "oauth_accounts",
@@ -210,16 +209,16 @@ export const meetingsRelations = relations(meetings, ({ one, many }) => ({
     fields: [meetings.host_id],
     references: [members.id],
   }),
-  availabilities: many(availabilities),
   membersInMeeting: many(membersInMeeting),
   meetingDates: many(meetingDates),
 }));
 
-export const meetingDateRelations = relations(meetingDates, ({ one }) => ({
+export const meetingDatesRelations = relations(meetingDates, ({ one, many }) => ({
   meetings: one(meetings, {
     fields: [meetingDates.meeting_id],
     references: [meetings.id],
   }),
+  availabilities: many(availabilities),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -247,4 +246,9 @@ export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
   }),
 }));
 
+export type MemberInsertSchema = typeof members.$inferInsert;
 export type UserInsertSchema = typeof users.$inferInsert;
+export type GuestInsertSchema = typeof guests.$inferInsert;
+export type AvailabilityInsertSchema = typeof availabilities.$inferInsert;
+export type MeetingSelectSchema = typeof meetings.$inferSelect;
+export type MeetingDateSelectSchema = typeof meetingDates.$inferSelect;
