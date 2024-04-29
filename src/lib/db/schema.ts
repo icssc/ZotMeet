@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import {
   text,
   uuid,
+  pgSchema,
   timestamp,
   index,
   smallint,
@@ -10,20 +11,21 @@ import {
   pgEnum,
   boolean,
   json,
-  pgTable,
 } from "drizzle-orm/pg-core";
+
+export const zotMeet = pgSchema("zotmeet");
 
 export const attendanceEnum = pgEnum("attendance", ["accepted", "maybe", "declined"]);
 export const memberEnum = pgEnum("member_type", ["guest", "user"]);
 
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
-export const members = pgTable("members", {
+export const members = zotMeet.table("members", {
   id: text("id").primaryKey(),
   type: memberEnum("type").notNull().default("guest"),
 });
 
 // Users encompasses Members who have created an account.
-export const users = pgTable("users", {
+export const users = zotMeet.table("users", {
   id: text("id")
     .primaryKey()
     .references(() => members.id, { onDelete: "cascade" }),
@@ -35,7 +37,8 @@ export const users = pgTable("users", {
 });
 
 // Guests are Members who do not have an account and are bound to one specific meeting.
-export const guests = pgTable(
+
+export const guests = zotMeet.table(
   "guests",
   {
     id: text("id").unique().notNull(),
@@ -47,7 +50,7 @@ export const guests = pgTable(
   }),
 );
 
-export const meetings = pgTable("meetings", {
+export const meetings = zotMeet.table("meetings", {
   id: uuid("id").defaultRandom().primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
@@ -59,7 +62,7 @@ export const meetings = pgTable("meetings", {
   host_id: text("host_id").references(() => members.id),
 });
 
-export const meetingDates = pgTable(
+export const meetingDates = zotMeet.table(
   "meeting_dates",
   {
     id: uuid("id").unique().defaultRandom(),
@@ -71,7 +74,7 @@ export const meetingDates = pgTable(
   }),
 );
 
-export const groups = pgTable("groups", {
+export const groups = zotMeet.table("groups", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
@@ -79,7 +82,7 @@ export const groups = pgTable("groups", {
   created_by: text("user_id").references(() => users.id),
 });
 
-export const availabilities = pgTable(
+export const availabilities = zotMeet.table(
   "availabilities",
   {
     day: date("day").notNull(),
@@ -98,7 +101,7 @@ export const availabilities = pgTable(
 );
 
 // meeting_day
-export const oauthAccountsTable = pgTable(
+export const oauthAccountsTable = zotMeet.table(
   "oauth_accounts",
   {
     userId: text("user_id")
@@ -106,7 +109,6 @@ export const oauthAccountsTable = pgTable(
       .references(() => users.id, {
         onDelete: "cascade",
       }),
-
     providerId: text("provider_id").notNull(),
     providerUserId: text("provider_user_id").notNull(),
   },
@@ -115,7 +117,7 @@ export const oauthAccountsTable = pgTable(
   }),
 );
 
-export const sessions = pgTable(
+export const sessions = zotMeet.table(
   "sessions",
   {
     id: text("id").primaryKey(),
@@ -133,7 +135,8 @@ export const sessions = pgTable(
     };
   },
 );
-export const usersInGroup = pgTable(
+
+export const usersInGroup = zotMeet.table(
   "users_in_group",
   {
     userId: text("user_id")
@@ -148,7 +151,7 @@ export const usersInGroup = pgTable(
   }),
 );
 
-export const membersInMeeting = pgTable(
+export const membersInMeeting = zotMeet.table(
   "members_in_meeting",
   {
     memberId: text("member_id")
