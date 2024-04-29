@@ -72,6 +72,8 @@
 
         $isEditingAvailability = false;
         $isStateUnsaved = false;
+      } else {
+        console.log("Failed. Guest name might already exist in this meeting.");
       }
     },
   });
@@ -166,14 +168,14 @@
             use:guestEnhance
             class="flex-center w-full grow flex-col items-center space-y-4 md:w-[250px]"
           >
-            {#if $guestErrors._errors}
+            {#if $guestErrors.username}
               <aside class="variant-filled-error alert">
                 <div><BrightnessAlert /></div>
 
                 <!-- Message -->
                 <div class="alert-message">
                   <h3 class="h3">Login Problem</h3>
-                  <p>{$guestErrors._errors}</p>
+                  <p>{$guestErrors.username}</p>
                 </div>
               </aside>
             {/if}
