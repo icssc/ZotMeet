@@ -37,6 +37,9 @@
         ) as HTMLFormElement;
 
         if (availabilitySaveForm) {
+          /**
+           * This triggers a regular form submission (no enhancement)
+           */
           availabilitySaveForm.submit();
         }
 
