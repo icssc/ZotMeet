@@ -1,11 +1,8 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-
   import type { PageData } from "./$types";
 
   import { enhance } from "$app/forms";
   import { GroupAvailability, PersonalAvailability } from "$lib/components/availability";
-  import type { AvailabilityInsertSchema } from "$lib/db/schema";
   import {
     availabilityDates,
     generateSampleDates,
@@ -13,7 +10,7 @@
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
-  import { ZotDate } from "$lib/utils/ZotDate";
+  import { getGeneralAvailability } from "$lib/utils/availability";
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
@@ -39,59 +36,9 @@
     cancel(); // Prevent the form action, handle with LoginModal instead
   };
 
-  async function getGuestAvailability() {
-    const response = await fetch("/api/availability", {
-      method: "POST",
-      body: JSON.stringify($guestSession),
-      headers: {
-        "content-type": "application/json",
-      },
-    });
-
-    const guestData: AvailabilityInsertSchema[] | null = await response.json();
-
-    return guestData?.map(
-      (availability) =>
-        new ZotDate(
-          new Date(availability.day),
-          false,
-          JSON.parse("[" + availability.availability_string + "]"),
-        ),
-    );
-  }
-
-  const getUserAvailability = () => {
-    if (data.availability) {
-      return data.availability?.map(
-        (availability) =>
-          new ZotDate(
-            new Date(availability.day),
-            false,
-            JSON.parse("[" + availability.availability_string + "]"),
-          ),
-      );
-    }
-    return null;
-  };
-
-  const getGeneralAvailability = async () => {
-    const userAvailability = getUserAvailability();
-
-    if (userAvailability) {
-      return userAvailability;
-    }
-
-    const guestAvailability = await getGuestAvailability();
-
-    if (guestAvailability) {
-      return guestAvailability;
-    }
-
-    return null;
-  };
-
   const handleCancel = async () => {
-    $availabilityDates = (await getGeneralAvailability()) ?? generateSampleDates();
+    $availabilityDates =
+      (await getGeneralAvailability(data, $guestSession)) ?? generateSampleDates();
 
     $isEditingAvailability = !$isEditingAvailability;
     $isStateUnsaved = false;
@@ -99,11 +46,6 @@
 
   let innerWidth = 0;
   $: mobileView = innerWidth < 768;
-
-  onMount(async () => {
-    const generalAvailability = await getGeneralAvailability();
-    $availabilityDates = generalAvailability ?? generateSampleDates();
-  });
 
   let form: HTMLFormElement;
 </script>
@@ -149,6 +91,7 @@
       >
         <input type="hidden" name="availabilityDates" value={JSON.stringify($availabilityDates)} />
         <input type="hidden" name="username" value={$guestSession.guestName} />
+        <input type="hidden" name="meetingId" value={data.meetingId ?? ""} />
         <button
           class={cn(
             "flex-center btn btn-outline h-8 min-h-fit border-secondary px-2 uppercase text-secondary md:w-24 md:p-0",

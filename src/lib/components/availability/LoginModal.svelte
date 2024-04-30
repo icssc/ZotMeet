@@ -58,10 +58,13 @@
    * This prevents the full page refresh of a non-enhanced form action,
    * which would lose the current guest session (which is in a Svelte store)
    */
-  const handleGuestSubmit = async () => {
+  const handleGuestSubmit = async (meetingId: string) => {
+    const formData = new FormData(guestForm);
+    formData.append("meetingId", meetingId);
+
     const response = await fetch("/auth/guest", {
       method: "POST",
-      body: new FormData(guestForm),
+      body: formData,
     });
 
     const guestData: ActionResult = deserialize(await response.text());
@@ -176,7 +179,7 @@
           <form
             bind:this={guestForm}
             class="flex-center w-full grow flex-col items-center space-y-4 md:w-[250px]"
-            on:submit|preventDefault={() => handleGuestSubmit()}
+            on:submit|preventDefault={() => handleGuestSubmit(data.meetingId)}
           >
             {#if formState === "failure"}
               <aside class="variant-filled-error alert">

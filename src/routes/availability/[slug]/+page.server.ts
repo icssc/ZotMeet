@@ -28,7 +28,7 @@ export const load: PageServerLoad = (async ({ locals, params }) => {
     form: await superValidate(_loginSchema),
     guestForm: await superValidate(guestLoginSchema),
     availability: user ? await getAvailability(user) : null,
-    meetingId: params?.slug,
+    meetingId: params?.slug as string | undefined,
   };
 }) satisfies PageServerLoad;
 
@@ -52,11 +52,12 @@ async function saveAvailabilities({ request, locals }: { request: Request; local
   const availabilityDates: ZotDate[] = JSON.parse(
     (formData.get("availabilityDates") as string) ?? "",
   );
+  const meetingId = (formData.get("meetingId") as string) ?? "";
 
   let dbMeetingDates: MeetingDateSelectSchema[] = [];
 
   try {
-    dbMeetingDates = await getMeetingDates();
+    dbMeetingDates = await getMeetingDates(meetingId);
   } catch (e) {
     console.log("Error getting meeting dates:", e);
   }
@@ -71,7 +72,8 @@ async function saveAvailabilities({ request, locals }: { request: Request; local
         day: new Date(date.day).toISOString(),
         member_id:
           user?.id ??
-          (await getExistingGuest(formData.get("username") as string, await _getMeeting())).id,
+          (await getExistingGuest(formData.get("username") as string, await _getMeeting(meetingId)))
+            .id,
         meeting_day: dbMeetingDates[i].id as string, // Type-cast since id is guaranteed if a meetingDate exists
         availability_string: date.availability.toString(),
       };
@@ -104,16 +106,14 @@ async function saveAvailabilities({ request, locals }: { request: Request; local
   }
 }
 
-// Used to access test meeting
-export async function _getMeeting(): Promise<MeetingSelectSchema> {
-  const testMeeting = await db.select().from(meetings).where(eq(meetings.title, "default"));
+export async function _getMeeting(meetingId: string): Promise<MeetingSelectSchema> {
+  const [testMeeting] = await db.select().from(meetings).where(eq(meetings.id, meetingId));
 
-  return testMeeting[0];
+  return testMeeting;
 }
 
-// Used to access test meeting dates of test meeting
-async function getMeetingDates(): Promise<MeetingDateSelectSchema[]> {
-  const testMeeting = await _getMeeting();
+async function getMeetingDates(meetingId: string): Promise<MeetingDateSelectSchema[]> {
+  const testMeeting = await _getMeeting(meetingId);
   const testMeetingDates = await db
     .select()
     .from(meetingDates)

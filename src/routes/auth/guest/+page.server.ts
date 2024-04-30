@@ -14,6 +14,7 @@ import type { AlertMessageType } from "$lib/types/auth";
 
 export const _guestSchema = guestSchema.pick({
   username: true,
+  meetingId: true,
 });
 
 export const actions = {
@@ -30,7 +31,7 @@ async function createGuest({ request }: { request: Request }) {
   try {
     const isGuestUsernameAlreadyRegistered = await checkIfGuestUsernameExists(
       form.data.username,
-      await _getMeeting(),
+      await _getMeeting(form.data.meetingId),
     );
 
     if (isGuestUsernameAlreadyRegistered === true) {

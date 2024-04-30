@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
   import type { PageData } from "../../../routes/availability/$types";
 
   import LoginFlow from "./LoginModal.svelte";
@@ -14,6 +16,7 @@
   } from "$lib/stores/availabilityStores";
   import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
+  import { getGeneralAvailability } from "$lib/utils/availability";
   import { cn } from "$lib/utils/utils";
 
   export let columns: number;
@@ -36,17 +39,6 @@
   let currentPage = 0;
 
   let currentPageAvailability: (ZotDate | null)[];
-
-  const getAvailability = () => {
-    return data.availability?.map(
-      (item) =>
-        new ZotDate(new Date(item.day), false, JSON.parse("[" + item.availability_string + "]")),
-    );
-  };
-
-  const dbAvailability = getAvailability();
-  $availabilityDates =
-    !dbAvailability || dbAvailability.length == 0 ? generateSampleDates() : dbAvailability;
 
   let selectionState: SelectionStateType | null = null;
 
@@ -160,6 +152,13 @@
       }
     });
   }
+
+  onMount(async () => {
+    $guestSession.meetingId = data.meetingId;
+
+    const generalAvailability = await getGeneralAvailability(data, $guestSession);
+    $availabilityDates = generalAvailability ?? generateSampleDates();
+  });
 </script>
 
 guest: {$guestSession.guestName}
