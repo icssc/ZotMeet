@@ -31,3 +31,9 @@ export type MeetingTime = {
   startTime: string;
   endTime: string;
 };
+
+export interface MeetingCreationPayload {
+  name: string;
+  startTime: string;
+  endTime: string;
+}
