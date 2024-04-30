@@ -75,7 +75,7 @@
         use:enhance={({ cancel }) => {
           handleSave(cancel);
 
-          console.log("saving");
+          console.log("Saving Availability");
 
           return async ({ update }) => {
             update();

@@ -161,10 +161,6 @@
   });
 </script>
 
-guest: {$guestSession.guestName}
-<br />
-id: {$guestSession.meetingId}
-
 <div class="flex items-center justify-between overflow-x-auto font-dm-sans">
   <button
     on:click={() => {
