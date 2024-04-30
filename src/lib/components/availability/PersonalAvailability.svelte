@@ -37,7 +37,7 @@
 
   let currentPageAvailability: (ZotDate | null)[];
 
-  export const getAvailability = () => {
+  const getAvailability = () => {
     return data.availability?.map(
       (item) =>
         new ZotDate(new Date(item.day), false, JSON.parse("[" + item.availability_string + "]")),

@@ -63,8 +63,6 @@ async function saveAvailabilities({ request, locals }: { request: Request; local
 
   if (!dbMeetingDates || dbMeetingDates.length === 0) return;
 
-  console.log(formData.get("username"));
-
   try {
     for (let i = 0; i < availabilityDates.length; i++) {
       const date = availabilityDates[i];

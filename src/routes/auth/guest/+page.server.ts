@@ -39,14 +39,11 @@ async function createGuest({ request }: { request: Request }) {
 
     const id = generateId(15);
     await insertNewMember({ id: id });
-    console.log("after member", form.data);
-    const response = await insertNewGuest({
+    await insertNewGuest({
       username: form.data.username,
       id: id,
       meeting_id: "e3cf0163-e172-40c5-955a-ae9fa1090dc2", // TODO replace with actual meeting id
     });
-
-    console.log("supposed to add guest", response);
   } catch (error) {
     console.error(error);
 
@@ -57,6 +54,5 @@ async function createGuest({ request }: { request: Request }) {
     );
   }
 
-  console.log("in auth/guest", form);
   return form.data;
 }

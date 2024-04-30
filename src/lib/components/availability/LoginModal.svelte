@@ -179,9 +179,7 @@
               });
 
               const rawData = await response.json();
-              console.log({ rawData });
               const data = JSON.parse(rawData.data);
-              console.log(data);
 
               const authModal = document.getElementById("auth-modal");
               if (authModal && authModal instanceof HTMLDialogElement) {
@@ -237,12 +235,3 @@
     <button />
   </form>
 </dialog>
-
-<!-- Login form fields
-
-<div>
-  <input name="username" />
-  <input name="password" />
-
-  <slot />
-</div> -->

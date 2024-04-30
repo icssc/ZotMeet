@@ -93,7 +93,5 @@ export const getExistingGuest = async (username: string, meeting: MeetingSelectS
     .from(guests)
     .where(and(eq(guests.username, username), eq(guests.meeting_id, meeting.id)));
 
-  console.log("from db", existingGuest);
-
   return existingGuest;
 };

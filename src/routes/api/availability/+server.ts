@@ -7,10 +7,7 @@ import { db } from "$lib/db/drizzle";
 import { availabilities, guests } from "$lib/db/schema";
 
 export const POST: RequestHandler = async ({ request }) => {
-  console.log("in server api call");
   const data = await request.json();
-
-  console.log(data);
 
   if (data.guestName === "" || data.meetingId === "") {
     return json(null);
@@ -29,8 +26,6 @@ export const POST: RequestHandler = async ({ request }) => {
     .select()
     .from(availabilities)
     .where(eq(availabilities.member_id, guest.id));
-
-  console.log("got availability from db", availability);
 
   if (availability.length == 0) {
     return json(null);
