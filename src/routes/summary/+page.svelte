@@ -1,11 +1,14 @@
 <script lang="ts">
   // import GroupCarousel from "$lib/components/summary/GroupsCarousel.svelte";
-  // import type { PageData } from './$types';
+  import type { PageData } from "./$types";
 
   import ScheduledMeetingsList from "$lib/components/summary/ScheduledMeetings/ScheduledMeetingsList.svelte";
   import UnscheduledMeetingsList from "$lib/components/summary/UnscheduledMeetings/UnscheduledMeetingsList.svelte";
+  import { scheduledMeetings, unscheduledMeetings } from "$lib/stores/summaryStores";
 
-  // export let data: PageData;
+  export let data: PageData;
+  scheduledMeetings.set(data.scheduled);
+  unscheduledMeetings.set(data.unscheduled);
   let currentTab: number = 0;
 </script>
 
