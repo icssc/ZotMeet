@@ -107,17 +107,17 @@ async function saveAvailabilities({ request, locals }: { request: Request; local
 }
 
 export async function _getMeeting(meetingId: string): Promise<MeetingSelectSchema> {
-  const [testMeeting] = await db.select().from(meetings).where(eq(meetings.id, meetingId));
+  const [meeting] = await db.select().from(meetings).where(eq(meetings.id, meetingId));
 
-  return testMeeting;
+  return meeting;
 }
 
 async function getMeetingDates(meetingId: string): Promise<MeetingDateSelectSchema[]> {
-  const testMeeting = await _getMeeting(meetingId);
-  const testMeetingDates = await db
+  const dbMeeting = await _getMeeting(meetingId);
+  const dbMeetingDates = await db
     .select()
     .from(meetingDates)
-    .where(eq(meetingDates.meeting_id, testMeeting.id));
+    .where(eq(meetingDates.meeting_id, dbMeeting.id));
 
-  return testMeetingDates.sort((a, b) => (a.date < b.date ? -1 : 1));
+  return dbMeetingDates.sort((a, b) => (a.date < b.date ? -1 : 1));
 }
