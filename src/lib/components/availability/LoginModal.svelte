@@ -3,7 +3,7 @@
 
   import type { PageData } from "../../../routes/availability/$types";
 
-  import { guestSchema, userSchema } from "$lib/config/zod-schemas";
+  import { userSchema } from "$lib/config/zod-schemas";
   import {
     isEditingAvailability,
     isStateUnsaved,
@@ -18,7 +18,6 @@
   export let data: PageData;
 
   const loginSchema = userSchema.pick({ email: true, password: true });
-  const guestLoginSchema = guestSchema.pick({ username: true });
 
   const { form, errors, enhance, delayed } = superForm(data.form, {
     taintedMessage: null,
@@ -45,45 +44,35 @@
     },
   });
 
-  const {
-    form: guestForm,
-    errors: guestErrors,
-    // enhance: guestEnhance,
-    delayed: guestDelayed,
-  } = superForm(data.guestForm, {
-    taintedMessage: null,
-    validators: guestLoginSchema,
-    delayMs: 0,
-    onUpdated({ form }) {
-      if (form.valid) {
-        const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
-        if (authModal) {
-          authModal.close();
-        }
+  let guestForm: HTMLFormElement;
 
-        const availabilitySaveForm: HTMLFormElement | null = document?.getElementById(
-          "availabilitySaveForm",
-        ) as HTMLFormElement;
+  /**
+   * Guest form submissions are handled through a standard API endpoint
+   * This prevents the full page refresh of a non-enhanced form action,
+   * which would lose the current guest session (which is in a Svelte store)
+   */
+  const handleGuestSubmit = async () => {
+    const response = await fetch("/auth/guest", {
+      method: "POST",
+      body: new FormData(guestForm),
+    });
 
-        if (availabilitySaveForm) {
-          if ("username" in availabilitySaveForm.elements) {
-            const username = availabilitySaveForm.elements.username as HTMLInputElement;
-            username.value = form.data.username;
-          }
+    const rawData = await response.json();
+    const data = JSON.parse(rawData.data);
 
-          availabilitySaveForm.submit();
-          $guestSession = { guestName: form.data.username, meetingId: data.meetingId };
-        }
+    const authModal = document.getElementById("auth-modal");
+    if (authModal && authModal instanceof HTMLDialogElement) {
+      authModal.close();
+    }
 
-        $isEditingAvailability = false;
-        $isStateUnsaved = false;
-      } else {
-        console.log("Failed. Guest name might already exist in this meeting.");
-      }
-    },
-  });
+    $guestSession = {
+      guestName: data[1],
+      meetingId: "e3cf0163-e172-40c5-955a-ae9fa1090dc2",
+    };
 
-  let f: HTMLFormElement;
+    $isEditingAvailability = false;
+    $isStateUnsaved = false;
+  };
 </script>
 
 <dialog id="auth-modal" class="modal">
@@ -170,40 +159,10 @@
           <h3 class="h-fit px-2 text-left text-xl font-bold">Save as Guest</h3>
 
           <form
-            bind:this={f}
+            bind:this={guestForm}
             class="flex-center w-full grow flex-col items-center space-y-4 md:w-[250px]"
-            on:submit|preventDefault={async () => {
-              const response = await fetch("/auth/guest", {
-                method: "POST",
-                body: new FormData(f),
-              });
-
-              const rawData = await response.json();
-              const data = JSON.parse(rawData.data);
-
-              const authModal = document.getElementById("auth-modal");
-              if (authModal && authModal instanceof HTMLDialogElement) {
-                authModal.close();
-              }
-
-              $guestSession = {
-                guestName: data[1],
-                meetingId: "e3cf0163-e172-40c5-955a-ae9fa1090dc2",
-              };
-            }}
+            on:submit|preventDefault={() => handleGuestSubmit()}
           >
-            {#if $guestErrors.username}
-              <aside class="variant-filled-error alert">
-                <div><BrightnessAlert /></div>
-
-                <!-- Message -->
-                <div class="alert-message">
-                  <h3 class="h3">Login Problem</h3>
-                  <p>{$guestErrors.username}</p>
-                </div>
-              </aside>
-            {/if}
-
             <div class="flex w-full flex-col gap-y-4">
               <label class="input input-bordered flex items-center gap-2">
                 <UserIcon class="text-slate-medium" />
@@ -212,17 +171,10 @@
                   class="grow appearance-none border-none focus:border-none focus:outline-none focus:ring-0"
                   placeholder="username"
                   name="username"
-                  bind:value={$guestForm.username}
                 />
               </label>
 
-              <button type="submit" class="variant-filled-primary btn h-10 w-full">
-                {#if $guestDelayed}
-                  <Loader class="animate-spin" />
-                {:else}
-                  Save
-                {/if}
-              </button>
+              <button type="submit" class="variant-filled-primary btn h-10 w-full">Save</button>
             </div>
           </form>
         </div>
