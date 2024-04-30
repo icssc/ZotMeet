@@ -3,12 +3,13 @@ import type { SuperValidated } from "sveltekit-superforms";
 import type { ZodObject, ZodString } from "zod";
 
 import { db } from "./drizzle";
-import { members, users, guests } from "./schema";
+import { members, users, guests, meetings } from "./schema";
 import type {
   UserInsertSchema,
   MemberInsertSchema,
   MeetingSelectSchema,
   GuestInsertSchema,
+  MeetingInsertSchema,
 } from "./schema";
 
 import type { AlertMessageType } from "$lib/types/auth";
@@ -94,4 +95,21 @@ export const getExistingGuest = async (username: string, meeting: MeetingSelectS
     .where(and(eq(guests.username, username), eq(guests.meeting_id, meeting.id)));
 
   return existingGuest;
+};
+
+/**
+ * To create a meeting, call this function with:
+ * 1. A title
+ * 2. A start time; I used: 2024-01-31T16:00:00.000Z
+ * 3. An end time: I used: 2024-02-06T16:00:00.000Z
+ *
+ * NOTE:
+ * `generateSampleDates()` is called whenever no availability is found
+ * If you use dates other than the ones above, generateSampleDates() will return dates
+ * other than the ones your meeting may *actually* be of
+ *
+ * @param meeting
+ */
+export const createMeeting = async (meeting: MeetingInsertSchema) => {
+  await db.insert(meetings).values(meeting);
 };
