@@ -1,8 +1,10 @@
 <script lang="ts">
+  import type { ActionResult } from "@sveltejs/kit";
   import { superForm } from "sveltekit-superforms/client";
 
   import type { PageData } from "../../../routes/availability/$types";
 
+  import { deserialize } from "$app/forms";
   import { userSchema } from "$lib/config/zod-schemas";
   import {
     isEditingAvailability,
@@ -44,10 +46,15 @@
     },
   });
 
+  /**
+   * Some bespoke state for the guest form
+   */
   let guestForm: HTMLFormElement;
+  let formState: "success" | "failure";
+  let formError: string;
 
   /**
-   * Guest form submissions are handled through a standard API endpoint
+   * Guest form submissions are handled through a standard fetch
    * This prevents the full page refresh of a non-enhanced form action,
    * which would lose the current guest session (which is in a Svelte store)
    */
@@ -57,21 +64,29 @@
       body: new FormData(guestForm),
     });
 
-    const rawData = await response.json();
-    const data = JSON.parse(rawData.data);
+    const guestData: ActionResult = deserialize(await response.text());
 
-    const authModal = document.getElementById("auth-modal");
-    if (authModal && authModal instanceof HTMLDialogElement) {
-      authModal.close();
+    if (guestData.type === "failure") {
+      formState = "failure";
+
+      // TODO: Handle cases other than duplicate username
+      formError = guestData.data?.form.errors.username[0];
     }
 
-    $guestSession = {
-      guestName: data[1],
-      meetingId: "e3cf0163-e172-40c5-955a-ae9fa1090dc2",
-    };
+    if (guestData.type === "success") {
+      const authModal = document.getElementById("auth-modal");
+      if (authModal && authModal instanceof HTMLDialogElement) {
+        authModal.close();
+      }
 
-    $isEditingAvailability = false;
-    $isStateUnsaved = false;
+      $guestSession = {
+        guestName: guestData.data?.username,
+        meetingId: data.meetingId,
+      };
+
+      $isEditingAvailability = false;
+      $isStateUnsaved = false;
+    }
   };
 </script>
 
@@ -163,6 +178,18 @@
             class="flex-center w-full grow flex-col items-center space-y-4 md:w-[250px]"
             on:submit|preventDefault={() => handleGuestSubmit()}
           >
+            {#if formState === "failure"}
+              <aside class="variant-filled-error alert">
+                <div><BrightnessAlert /></div>
+
+                <!-- Message -->
+                <div class="alert-message">
+                  <h3 class="h3">Login Problem</h3>
+                  <p>{formError ?? "An error has occurred..."}</p>
+                </div>
+              </aside>
+            {/if}
+
             <div class="flex w-full flex-col gap-y-4">
               <label class="input input-bordered flex items-center gap-2">
                 <UserIcon class="text-slate-medium" />
