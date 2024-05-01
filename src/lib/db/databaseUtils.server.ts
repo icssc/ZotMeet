@@ -3,13 +3,14 @@ import type { SuperValidated } from "sveltekit-superforms";
 import type { ZodObject, ZodString } from "zod";
 
 import { db } from "./drizzle";
-import { members, users, guests, meetings } from "./schema";
+import { members, users, guests, meetings, meetingDates } from "./schema";
 import type {
   UserInsertSchema,
   MemberInsertSchema,
   MeetingSelectSchema,
   GuestInsertSchema,
   MeetingInsertSchema,
+  MeetingDateInsertSchema,
 } from "./schema";
 
 import type { AlertMessageType } from "$lib/types/auth";
@@ -110,6 +111,34 @@ export const getExistingGuest = async (username: string, meeting: MeetingSelectS
  *
  * @param meeting
  */
-export const createMeeting = async (meeting: MeetingInsertSchema) => {
-  await db.insert(meetings).values(meeting);
+export const insertMeeting = async (meeting: MeetingInsertSchema) => {
+  const [dbMeeting] = await db.insert(meetings).values(meeting).returning();
+  await insertMeetingDates(dbMeeting);
+};
+
+export const getExistingMeeting = async (meetingId: string) => {
+  const [dbMeeting] = await db.select().from(meetings).where(eq(meetings.id, meetingId));
+
+  return dbMeeting;
+};
+
+export const insertMeetingDates = async (meeting: MeetingSelectSchema) => {
+  const currentDate = meeting.from_time;
+  currentDate.setDate(currentDate.getDate());
+
+  for (let i = 0; currentDate <= meeting.to_time; i++) {
+    const value: MeetingDateInsertSchema = { date: currentDate, meeting_id: meeting.id };
+    await db.insert(meetingDates).values(value);
+
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+};
+
+export const getExistingMeetingDates = async (meetingId: string) => {
+  const dbMeetingDates = await db
+    .select()
+    .from(meetingDates)
+    .where(eq(meetingDates.meeting_id, meetingId));
+
+  return dbMeetingDates;
 };

@@ -7,6 +7,7 @@ import { _getMeeting } from "../../availability/[slug]/+page.server";
 import { guestSchema } from "$lib/config/zod-schemas";
 import {
   checkIfGuestUsernameExists,
+  // insertMeeting,
   insertNewGuest,
   insertNewMember,
 } from "$lib/db/databaseUtils.server";
@@ -43,8 +44,14 @@ async function createGuest({ request }: { request: Request }) {
     await insertNewGuest({
       username: form.data.username,
       id: id,
-      meeting_id: "e3cf0163-e172-40c5-955a-ae9fa1090dc2", // TODO replace with actual meeting id
+      meeting_id: form.data.meetingId,
     });
+
+    // await insertMeeting({
+    //   title: "test",
+    //   from_time: new Date("2024-01-31T16:00:00.000Z"),
+    //   to_time: new Date("2024-02-06T16:00:00.000Z"),
+    // });
   } catch (error) {
     console.error(error);
 

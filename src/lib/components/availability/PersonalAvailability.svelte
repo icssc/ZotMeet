@@ -9,7 +9,6 @@
   import {
     availabilityDates,
     availabilityTimeBlocks,
-    generateSampleDates,
     guestSession,
     isEditingAvailability,
     isStateUnsaved,
@@ -45,6 +44,7 @@
   // Triggers on every pagination change and selection confirmation
   $: {
     const datesToOffset = currentPage * itemsPerPage;
+
     currentPageAvailability = $availabilityDates.slice(datesToOffset, datesToOffset + itemsPerPage);
 
     if (currentPage === lastPage) {
@@ -157,7 +157,15 @@
     $guestSession.meetingId = data.meetingId;
 
     const generalAvailability = await getGeneralAvailability(data, $guestSession);
-    $availabilityDates = generalAvailability ?? generateSampleDates();
+    const defaultMeetingDates = data.defaultDates.map((item) => new ZotDate(item.date, false, []));
+    ZotDate.initializeAvailabilities(defaultMeetingDates);
+
+    console.log(generalAvailability, defaultMeetingDates);
+
+    $availabilityDates =
+      generalAvailability && generalAvailability.length > 0
+        ? generalAvailability
+        : defaultMeetingDates;
   });
 </script>
 

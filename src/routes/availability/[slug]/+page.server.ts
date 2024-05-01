@@ -1,5 +1,5 @@
 import type { Actions } from "@sveltejs/kit";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { User } from "lucia";
 import { superValidate } from "sveltekit-superforms/server";
 
@@ -27,18 +27,22 @@ export const load: PageServerLoad = (async ({ locals, params }) => {
   return {
     form: await superValidate(_loginSchema),
     guestForm: await superValidate(guestLoginSchema),
-    availability: user ? await getAvailability(user) : null,
+    availability: user ? await getAvailability(user, params?.slug) : null,
     meetingId: params?.slug as string | undefined,
+    defaultDates: (await getMeetingDates(params?.slug)) ?? [],
   };
 }) satisfies PageServerLoad;
 
-const getAvailability = async (user: User) => {
+const getAvailability = async (user: User, meetingId: string | undefined) => {
   const availability = await db
     .select()
     .from(availabilities)
-    .where(eq(availabilities.member_id, user.id));
+    .innerJoin(meetingDates, eq(availabilities.meeting_day, meetingDates.id))
+    .where(
+      and(eq(availabilities.member_id, user.id), eq(meetingDates.meeting_id, meetingId ?? "")),
+    );
 
-  return availability.sort((a, b) => (a.day < b.day ? -1 : 1));
+  return availability.map((item) => item.availabilities).sort((a, b) => (a.day < b.day ? -1 : 1));
 };
 
 export const actions: Actions = {

@@ -301,8 +301,8 @@ export class ZotDate {
    */
   static initializeAvailabilities(
     selectedDates: ZotDate[],
-    earliestTime: number,
-    latestTime: number,
+    earliestTime: number = 480,
+    latestTime: number = 1050,
     blockLength: number = 15,
   ): void {
     const minuteRange = Math.abs(latestTime - earliestTime);

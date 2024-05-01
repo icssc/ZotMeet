@@ -257,4 +257,5 @@ export type GuestInsertSchema = typeof guests.$inferInsert;
 export type AvailabilityInsertSchema = typeof availabilities.$inferInsert;
 export type MeetingInsertSchema = typeof meetings.$inferInsert;
 export type MeetingSelectSchema = typeof meetings.$inferSelect;
+export type MeetingDateInsertSchema = typeof meetingDates.$inferInsert;
 export type MeetingDateSelectSchema = typeof meetingDates.$inferSelect;
