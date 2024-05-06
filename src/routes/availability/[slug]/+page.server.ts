@@ -82,15 +82,17 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
       })),
     );
 
-    await db
-      .insert(availabilities)
-      .values(insertDates)
-      .onConflictDoUpdate({
-        target: [availabilities.member_id, availabilities.meeting_day],
-        set: {
-          availability_string: sql.raw(`excluded.availability_string`), // `excluded` refers to the row currently in conflict
-        },
-      });
+    await db.transaction(async (tx) => {
+      await tx
+        .insert(availabilities)
+        .values(insertDates)
+        .onConflictDoUpdate({
+          target: [availabilities.member_id, availabilities.meeting_day],
+          set: {
+            availability_string: sql.raw(`excluded.availability_string`), // `excluded` refers to the row currently in conflict
+          },
+        });
+    });
 
     return {
       status: 200,
