@@ -1,5 +1,5 @@
 import type { Actions } from "@sveltejs/kit";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { User } from "lucia";
 import { superValidate } from "sveltekit-superforms/server";
 
@@ -69,29 +69,28 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
   if (!dbMeetingDates || dbMeetingDates.length === 0) return;
 
   try {
-    for (let i = 0; i < availabilityDates.length; i++) {
-      const date = availabilityDates[i];
+    const memberId =
+      user?.id ??
+      (await getExistingGuest(formData.get("username") as string, await _getMeeting(meetingId))).id;
 
-      const availability: AvailabilityInsertSchema = {
+    const insertDates: AvailabilityInsertSchema[] = await Promise.all(
+      availabilityDates.map(async (date, index) => ({
         day: new Date(date.day).toISOString(),
-        member_id:
-          user?.id ??
-          (await getExistingGuest(formData.get("username") as string, await _getMeeting(meetingId)))
-            .id,
-        meeting_day: dbMeetingDates[i].id as string, // Type-cast since id is guaranteed if a meetingDate exists
+        member_id: memberId,
+        meeting_day: dbMeetingDates[index].id as string, // Type-cast since id is guaranteed if a meetingDate exists
         availability_string: date.availability.toString(),
-      };
+      })),
+    );
 
-      await db
-        .insert(availabilities)
-        .values(availability)
-        .onConflictDoUpdate({
-          target: [availabilities.member_id, availabilities.meeting_day],
-          set: {
-            availability_string: availability.availability_string,
-          },
-        });
-    }
+    await db
+      .insert(availabilities)
+      .values(insertDates)
+      .onConflictDoUpdate({
+        target: [availabilities.member_id, availabilities.meeting_day],
+        set: {
+          availability_string: sql.raw(`excluded.availability_string`), // `excluded` refers to the row currently in conflict
+        },
+      });
 
     return {
       status: 200,
