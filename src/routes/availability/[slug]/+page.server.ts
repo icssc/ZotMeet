@@ -54,7 +54,7 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
 
   const formData = await request.formData();
   const availabilityDates: ZotDate[] = JSON.parse(
-    (formData.get("availabilityDates") as string) ?? "",
+    (formData.get("availabilityDates") as string) ?? "[]",
   );
   const meetingId = (formData.get("meetingId") as string) ?? "";
 
