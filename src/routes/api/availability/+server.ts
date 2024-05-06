@@ -10,7 +10,7 @@ export const POST: RequestHandler = async ({ request }) => {
   const data = await request.json();
 
   if (data.guestName === "" || data.meetingId === "") {
-    return json(null);
+    return json([]);
   }
 
   const [guest] = await db
@@ -19,7 +19,7 @@ export const POST: RequestHandler = async ({ request }) => {
     .where(and(eq(guests.username, data.guestName), eq(guests.meeting_id, data.meetingId)));
 
   if (!guest) {
-    return json(null);
+    return json([]);
   }
 
   const availability = await db
@@ -28,7 +28,7 @@ export const POST: RequestHandler = async ({ request }) => {
     .where(eq(availabilities.member_id, guest.id));
 
   if (availability.length == 0) {
-    return json(null);
+    return json([]);
   }
 
   return json(availability.sort((a, b) => (a.day < b.day ? -1 : 1)));

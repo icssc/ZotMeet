@@ -14,7 +14,7 @@ export async function getGuestAvailability(guestSession: GuestSession) {
     },
   });
 
-  const guestData: AvailabilityInsertSchema[] | null = await response.json();
+  const guestData: AvailabilityInsertSchema[] = await response.json();
 
   return guestData?.map(
     (availability) =>
