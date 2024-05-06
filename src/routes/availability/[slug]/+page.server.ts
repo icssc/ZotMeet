@@ -46,10 +46,10 @@ const getAvailability = async (user: User, meetingId: string | undefined) => {
 };
 
 export const actions: Actions = {
-  saveAvailabilities: saveAvailabilities,
+  save: save,
 };
 
-async function saveAvailabilities({ request, locals }: { request: Request; locals: App.Locals }) {
+async function save({ request, locals }: { request: Request; locals: App.Locals }) {
   const user: User | null = locals.user;
 
   const formData = await request.formData();

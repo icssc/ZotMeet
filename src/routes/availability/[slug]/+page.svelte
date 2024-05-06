@@ -84,9 +84,9 @@
             $isStateUnsaved = false;
           };
         }}
-        action={`/availability/${data.meetingId}?/saveAvailabilities`}
+        action={`/availability/${data.meetingId}?/save`}
         method="POST"
-        id="availabilitySaveForm"
+        id="availability-save-form"
         on:submit|preventDefault
       >
         <input type="hidden" name="availabilityDates" value={JSON.stringify($availabilityDates)} />

@@ -160,8 +160,6 @@
     const defaultMeetingDates = data.defaultDates.map((item) => new ZotDate(item.date, false, []));
     ZotDate.initializeAvailabilities(defaultMeetingDates);
 
-    console.log(generalAvailability, defaultMeetingDates);
-
     $availabilityDates =
       generalAvailability && generalAvailability.length > 0
         ? generalAvailability

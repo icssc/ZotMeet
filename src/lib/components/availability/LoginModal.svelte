@@ -33,7 +33,7 @@
         }
 
         const availabilitySaveForm: HTMLFormElement | null = document.getElementById(
-          "availabilitySaveForm",
+          "availability-save-form",
         ) as HTMLFormElement;
 
         if (availabilitySaveForm) {
