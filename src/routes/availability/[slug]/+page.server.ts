@@ -73,14 +73,12 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
       user?.id ??
       (await getExistingGuest(formData.get("username") as string, await _getMeeting(meetingId))).id;
 
-    const insertDates: AvailabilityInsertSchema[] = await Promise.all(
-      availabilityDates.map(async (date, index) => ({
-        day: new Date(date.day).toISOString(),
-        member_id: memberId,
-        meeting_day: dbMeetingDates[index].id as string, // Type-cast since id is guaranteed if a meetingDate exists
-        availability_string: date.availability.toString(),
-      })),
-    );
+    const insertDates: AvailabilityInsertSchema[] = availabilityDates.map((date, index) => ({
+      day: new Date(date.day).toISOString(),
+      member_id: memberId,
+      meeting_day: dbMeetingDates[index].id as string, // Type-cast since id is guaranteed if a meetingDate exists
+      availability_string: date.availability.toString(),
+    }));
 
     await db.transaction(async (tx) => {
       await tx
