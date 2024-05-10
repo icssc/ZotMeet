@@ -1,9 +1,17 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { SuperValidated } from "sveltekit-superforms";
 import type { ZodObject, ZodString } from "zod";
 
 import { db } from "./drizzle";
-import { users, type UserInsertSchema } from "./schema";
+import { members, users, guests, meetings, meetingDates } from "./schema";
+import type {
+  UserInsertSchema,
+  MemberInsertSchema,
+  MeetingSelectSchema,
+  GuestInsertSchema,
+  MeetingInsertSchema,
+  MeetingDateInsertSchema,
+} from "./schema";
 
 import type { AlertMessageType } from "$lib/types/auth";
 
@@ -29,8 +37,28 @@ export const checkIfEmailExists = async (email: string) => {
   return queryResult.length > 0;
 };
 
+export const checkIfGuestUsernameExists = async (
+  username: string,
+  meeting: MeetingSelectSchema,
+) => {
+  const result = await db
+    .select()
+    .from(guests)
+    .where(and(eq(guests.username, username), eq(guests.meeting_id, meeting.id)));
+
+  return result.length > 0;
+};
+
+export const insertNewMember = async (member: MemberInsertSchema) => {
+  return await db.insert(members).values(member);
+};
+
 export const insertNewUser = async (user: UserInsertSchema) => {
   return await db.insert(users).values(user);
+};
+
+export const insertNewGuest = async (guest: GuestInsertSchema) => {
+  return await db.insert(guests).values(guest);
 };
 
 export const getAllUsers = async () => {
@@ -59,4 +87,58 @@ export const getExistingUser = async (
     .where(eq(users.email, form.data.email as string));
 
   return existingUser;
+};
+
+export const getExistingGuest = async (username: string, meeting: MeetingSelectSchema) => {
+  const [existingGuest] = await db
+    .select()
+    .from(guests)
+    .where(and(eq(guests.username, username), eq(guests.meeting_id, meeting.id)));
+
+  return existingGuest;
+};
+
+/**
+ * To create a meeting, call this function with:
+ * 1. A title
+ * 2. A start time; I used: 2024-01-31T16:00:00.000Z
+ * 3. An end time: I used: 2024-02-06T16:00:00.000Z
+ *
+ * NOTE:
+ * `generateSampleDates()` is called whenever no availability is found
+ * If you use dates other than the ones above, generateSampleDates() will return dates
+ * other than the ones your meeting may *actually* be of
+ *
+ * @param meeting
+ */
+export const insertMeeting = async (meeting: MeetingInsertSchema) => {
+  const [dbMeeting] = await db.insert(meetings).values(meeting).returning();
+  await insertMeetingDates(dbMeeting);
+};
+
+export const getExistingMeeting = async (meetingId: string) => {
+  const [dbMeeting] = await db.select().from(meetings).where(eq(meetings.id, meetingId));
+
+  return dbMeeting;
+};
+
+export const insertMeetingDates = async (meeting: MeetingSelectSchema) => {
+  const currentDate = meeting.from_time;
+  currentDate.setDate(currentDate.getDate());
+
+  for (let i = 0; currentDate <= meeting.to_time; i++) {
+    const value: MeetingDateInsertSchema = { date: currentDate, meeting_id: meeting.id };
+    await db.insert(meetingDates).values(value);
+
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+};
+
+export const getExistingMeetingDates = async (meetingId: string) => {
+  const dbMeetingDates = await db
+    .select()
+    .from(meetingDates)
+    .where(eq(meetingDates.meeting_id, meetingId));
+
+  return dbMeetingDates;
 };

@@ -1,31 +1,44 @@
 <script lang="ts">
+  import type { PageData } from "./$types";
+
+  import { enhance } from "$app/forms";
   import { GroupAvailability, PersonalAvailability } from "$lib/components/availability";
-  import { isEditingAvailability, isStateUnsaved } from "$lib/stores/availabilityStores";
-  import type { LoginModalProps } from "$lib/types/availability";
+  import {
+    availabilityDates,
+    generateSampleDates,
+    guestSession,
+    isEditingAvailability,
+    isStateUnsaved,
+  } from "$lib/stores/availabilityStores";
+  import { getGeneralAvailability } from "$lib/utils/availability";
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
 
-  export let data: LoginModalProps;
+  export let data: PageData;
 
   let currentTab: number = 0;
 
-  const handleSave = () => {
-    if (!data.user) {
-      const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
-      if (authModal) {
-        authModal.showModal();
-      }
-    } else {
-      console.log("saved");
-
-      $isEditingAvailability = false;
-      $isStateUnsaved = false;
+  const handleSave = async (cancel: () => void) => {
+    if (data.user) {
+      return;
     }
+
+    if ($guestSession.guestName && $guestSession.meetingId) {
+      return;
+    }
+
+    const authModal = document.getElementById("auth-modal") as HTMLDialogElement;
+    if (authModal) {
+      authModal.showModal();
+    }
+
+    cancel(); // Prevent the form action, handle with LoginModal instead
   };
 
-  const handleCancel = () => {
-    // TODO: Repopulate prior state from DB
+  const handleCancel = async () => {
+    $availabilityDates =
+      (await getGeneralAvailability(data, $guestSession)) ?? generateSampleDates();
 
     $isEditingAvailability = !$isEditingAvailability;
     $isStateUnsaved = false;
@@ -33,12 +46,14 @@
 
   let innerWidth = 0;
   $: mobileView = innerWidth < 768;
+
+  let form: HTMLFormElement;
 </script>
 
 <svelte:window bind:innerWidth />
 
 <div class="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
-  <h1 class="line-clamp-1 h-8 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
+  <h1 class="line-clamp-1 h-8 pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
     Sample Meeting Winter 2024
   </h1>
 
@@ -54,16 +69,40 @@
         <span class="hidden md:flex">Cancel</span>
         <CancelCircleOutline />
       </button>
-      <button
-        class={cn(
-          "flex-center btn btn-outline h-8 min-h-fit border-secondary px-2 uppercase text-secondary md:w-24 md:p-0",
-          "hover:border-secondary hover:bg-secondary hover:text-white",
-        )}
-        on:click={handleSave}
+
+      <form
+        bind:this={form}
+        use:enhance={({ cancel }) => {
+          handleSave(cancel);
+
+          console.log("Saving Availability");
+
+          return async ({ update }) => {
+            update();
+
+            $isEditingAvailability = false;
+            $isStateUnsaved = false;
+          };
+        }}
+        action={`/availability/${data.meetingId}?/save`}
+        method="POST"
+        id="availability-save-form"
+        on:submit|preventDefault
       >
-        <span class="hidden md:flex">Save</span>
-        <CheckboxMarkerdCircleOutlineIcon />
-      </button>
+        <input type="hidden" name="availabilityDates" value={JSON.stringify($availabilityDates)} />
+        <input type="hidden" name="username" value={$guestSession.guestName} />
+        <input type="hidden" name="meetingId" value={data.meetingId ?? ""} />
+        <button
+          class={cn(
+            "flex-center btn btn-outline h-8 min-h-fit border-secondary px-2 uppercase text-secondary md:w-24 md:p-0",
+            "hover:border-secondary hover:bg-secondary hover:text-white",
+          )}
+          type="submit"
+        >
+          <span class="hidden md:flex">Save</span>
+          <CheckboxMarkerdCircleOutlineIcon />
+        </button>
+      </form>
     </div>
   {/if}
 </div>

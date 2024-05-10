@@ -31,6 +31,7 @@
 
   $: {
     updateBlockColor(selectionState);
+    isAvailable;
   }
 </script>
 

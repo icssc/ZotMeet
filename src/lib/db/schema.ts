@@ -35,6 +35,7 @@ export const users = pgTable("users", {
 });
 
 // Guests are Members who do not have an account and are bound to one specific meeting.
+
 export const guests = pgTable(
   "guests",
   {
@@ -96,6 +97,7 @@ export const availabilities = pgTable(
     pk: primaryKey({ columns: [table.member_id, table.meeting_day] }),
   }),
 );
+
 // meeting_day
 export const oauthAccountsTable = pgTable(
   "oauth_accounts",
@@ -105,7 +107,6 @@ export const oauthAccountsTable = pgTable(
       .references(() => users.id, {
         onDelete: "cascade",
       }),
-
     providerId: text("provider_id").notNull(),
     providerUserId: text("provider_user_id").notNull(),
   },
@@ -132,6 +133,7 @@ export const sessions = pgTable(
     };
   },
 );
+
 export const usersInGroup = pgTable(
   "users_in_group",
   {
@@ -210,16 +212,16 @@ export const meetingsRelations = relations(meetings, ({ one, many }) => ({
     fields: [meetings.host_id],
     references: [members.id],
   }),
-  availabilities: many(availabilities),
   membersInMeeting: many(membersInMeeting),
   meetingDates: many(meetingDates),
 }));
 
-export const meetingDateRelations = relations(meetingDates, ({ one }) => ({
+export const meetingDatesRelations = relations(meetingDates, ({ one, many }) => ({
   meetings: one(meetings, {
     fields: [meetingDates.meeting_id],
     references: [meetings.id],
   }),
+  availabilities: many(availabilities),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -247,4 +249,11 @@ export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
   }),
 }));
 
+export type MemberInsertSchema = typeof members.$inferInsert;
 export type UserInsertSchema = typeof users.$inferInsert;
+export type GuestInsertSchema = typeof guests.$inferInsert;
+export type AvailabilityInsertSchema = typeof availabilities.$inferInsert;
+export type MeetingInsertSchema = typeof meetings.$inferInsert;
+export type MeetingSelectSchema = typeof meetings.$inferSelect;
+export type MeetingDateInsertSchema = typeof meetingDates.$inferInsert;
+export type MeetingDateSelectSchema = typeof meetingDates.$inferSelect;

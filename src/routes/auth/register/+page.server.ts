@@ -6,7 +6,7 @@ import type { Actions, PageServerLoad } from "./$types";
 
 import { userSchema } from "$lib/config/zod-schemas";
 import { createAndSetSession } from "$lib/db/authUtils.server";
-import { checkIfEmailExists, insertNewUser } from "$lib/db/databaseUtils.server";
+import { checkIfEmailExists, insertNewMember, insertNewUser } from "$lib/db/databaseUtils.server";
 import { lucia } from "$lib/server/lucia";
 import type { AlertMessageType } from "$lib/types/auth";
 
@@ -49,12 +49,17 @@ async function register({ request, cookies }: { request: Request; cookies: Cooki
     const userId = generateId(15);
     const hashedPassword = await new Scrypt().hash(form.data.password);
 
+    await insertNewMember({
+      id: userId,
+      type: "user",
+    });
+
     await insertNewUser({
       id: userId,
       displayName: form.data.displayName,
       email: form.data.email,
       password: hashedPassword,
-      // authMethods: ["email"],
+      authMethods: ["email"],
     });
 
     await createAndSetSession(lucia, userId, cookies);

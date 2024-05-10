@@ -23,3 +23,8 @@ export interface LoginModalProps {
   form: SuperValidated<ZodValidation<AnyZodObject>>;
   guestForm: SuperValidated<ZodValidation<AnyZodObject>>;
 }
+
+export interface GuestSession {
+  guestName: string;
+  meetingId: string;
+}

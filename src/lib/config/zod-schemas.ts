@@ -43,4 +43,5 @@ export const guestSchema = z.object({
     .string({ required_error: "Username is required" })
     .min(1, { message: "Username is required" })
     .trim(),
+  meetingId: z.string().min(1, { message: "Username is required" }).trim(),
 });

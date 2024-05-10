@@ -1,23 +1,25 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
+  import type { PageData } from "../../../routes/availability/$types";
+
   import LoginFlow from "./LoginModal.svelte";
 
   import AvailabilityBlock from "$lib/components/availability/AvailabilityBlock.svelte";
   import {
     availabilityDates,
     availabilityTimeBlocks,
+    guestSession,
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
-  import type {
-    AvailabilityBlockType,
-    LoginModalProps,
-    SelectionStateType,
-  } from "$lib/types/availability";
+  import type { AvailabilityBlockType, SelectionStateType } from "$lib/types/availability";
   import { ZotDate } from "$lib/utils/ZotDate";
+  import { getGeneralAvailability } from "$lib/utils/availability";
   import { cn } from "$lib/utils/utils";
 
   export let columns: number;
-  export let data: LoginModalProps;
+  export let data: PageData;
 
   let itemsPerPage: number = columns;
   $: {
@@ -34,6 +36,7 @@
   let endBlockSelection: AvailabilityBlockType | null = null;
 
   let currentPage = 0;
+
   let currentPageAvailability: (ZotDate | null)[];
 
   let selectionState: SelectionStateType | null = null;
@@ -41,6 +44,7 @@
   // Triggers on every pagination change and selection confirmation
   $: {
     const datesToOffset = currentPage * itemsPerPage;
+
     currentPageAvailability = $availabilityDates.slice(datesToOffset, datesToOffset + itemsPerPage);
 
     if (currentPage === lastPage) {
@@ -148,6 +152,19 @@
       }
     });
   }
+
+  onMount(async () => {
+    $guestSession.meetingId = data.meetingId;
+
+    const generalAvailability = await getGeneralAvailability(data, $guestSession);
+    const defaultMeetingDates = data.defaultDates.map((item) => new ZotDate(item.date, false, []));
+    ZotDate.initializeAvailabilities(defaultMeetingDates);
+
+    $availabilityDates =
+      generalAvailability && generalAvailability.length > 0
+        ? generalAvailability
+        : defaultMeetingDates;
+  });
 </script>
 
 <div class="flex items-center justify-between overflow-x-auto font-dm-sans">
