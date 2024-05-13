@@ -30,14 +30,14 @@ export const load: PageServerLoad = (async ({ locals, params }) => {
   return {
     form: await superValidate(_loginSchema),
     guestForm: await superValidate(guestLoginSchema),
-    availability: user ? await getAvailability(user, meeting_id) : null,
-    groupAvailabilities: await getAvailabilities(meeting_id),
+    availability: user ? await getUserSpecificAvailability(user, meeting_id) : null,
+    groupAvailabilities: await getMeetingMemeberAvailabilities(meeting_id),
     meetingId: meeting_id as string | undefined,
     defaultDates: (await getMeetingDates(meeting_id)) ?? [],
   };
 }) satisfies PageServerLoad;
 
-const getAvailability = async (user: User, meetingId: string | undefined) => {
+const getUserSpecificAvailability = async (user: User, meetingId: string | undefined) => {
   const availability = await db
     .select()
     .from(availabilities)
@@ -55,7 +55,7 @@ const getAvailability = async (user: User, meetingId: string | undefined) => {
  * @param meetingId
  * @returns a record of the member name to their availabilities, each sorted by date
  */
-async function getAvailabilities(meetingId: string) {
+async function getMeetingMemeberAvailabilities(meetingId: string) {
   const raw_availabilities = await db
     .select({
       username: users.displayName,
