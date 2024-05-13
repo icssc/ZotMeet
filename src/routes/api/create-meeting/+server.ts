@@ -2,37 +2,27 @@ import { json } from "@sveltejs/kit";
 
 import type { RequestHandler } from "./$types";
 
-import { db } from "$lib/db/drizzle";
-import { meetings } from "$lib/db/schema";
+import { insertMeeting } from "$lib/db/databaseUtils.server";
 import type { MeetingCreationPayload } from "$lib/types/meetings";
 
-type NewMeeting = typeof meetings.$inferInsert;
-
+/**
+ * Create a new meeting
+ *
+ * NOTE: MeetingCreationPayload currently only contains the start and end times,
+ * so we add all dates between the start and end dates.
+ *
+ * TODO: Add specific dates to the payload and implement the logic to add them to the database
+ */
 export const POST: RequestHandler = async ({ request }) => {
   const meetingCreationPayload: MeetingCreationPayload = await request.json();
-
-  await insertNewMeeting(meetingCreationPayload);
-
-  return json("hellos");
-};
-
-const insertNewMeeting = async (meetingCreationPayload: MeetingCreationPayload) => {
   const { name, startTime, endTime } = meetingCreationPayload;
 
-  // TODO: remove yy/mm/dd from starttime and endtime
-
-  const newMeeting: NewMeeting = {
+  const meeting_id = await insertMeeting({
     title: name,
-    from_time: new Date(),
-    to_time: new Date(),
+    from_time: new Date(startTime),
+    to_time: new Date(endTime),
     scheduled: false,
-  };
+  });
 
-  const newMeetingID = await insertNewMeetingEntry(newMeeting);
-
-  console.log(startTime, endTime, newMeetingID);
-};
-
-const insertNewMeetingEntry = async (newMeeting: NewMeeting) => {
-  return await db.insert(meetings).values(newMeeting).returning({ insertedID: meetings.id });
+  return json({ meeting_id });
 };

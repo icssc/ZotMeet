@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
   import Calendar from "$lib/components/creation/CalendarV2/Calendar.svelte";
   import MeetingNameField from "$lib/components/creation/MeetingV2/MeetingNameField.svelte";
   import MeetingTimeField from "$lib/components/creation/MeetingV2/MeetingTimeField.svelte";
@@ -6,18 +7,41 @@
   import type { MeetingCreationPayload } from "$lib/types/meetings";
   import { cn } from "$lib/utils/utils";
 
+  /**
+   * Create a meeting with the selected days and times
+   *
+   * NOTE: This currently adds all the dates between the first and last day because the backend
+   * currently only takes a start and end date.
+   *
+   * TODO: Update the backend to take an array of dates instead of a start and end date
+   */
   const createMeeting = async () => {
-    await fetch("/api/create-meeting", {
+    const $startingDateString = $selectedDays[0].day.toISOString();
+    const $endingDateString = $selectedDays[$selectedDays.length - 1].day.toISOString();
+
+    const res = await fetch("/api/create-meeting", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         name: $meetingName,
-        startTime: $startTime,
-        endTime: $endTime,
+        startTime: $startingDateString,
+        endTime: $endingDateString,
       } satisfies MeetingCreationPayload),
     });
+
+    if (!res.ok) {
+      console.error("Failed to create meeting");
+      return;
+    }
+
+    const { meeting_id }: { meeting_id: string } = await res.json();
+
+    console.log("Meeting created with ID: ", meeting_id);
+
+    // Redirect to the meeting page
+    goto(`/availability/${meeting_id}`);
   };
 </script>
 
