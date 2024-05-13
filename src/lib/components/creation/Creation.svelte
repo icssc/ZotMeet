@@ -2,10 +2,23 @@
   import Calendar from "$lib/components/creation/CalendarV2/Calendar.svelte";
   import MeetingNameField from "$lib/components/creation/MeetingV2/MeetingNameField.svelte";
   import MeetingTimeField from "$lib/components/creation/MeetingV2/MeetingTimeField.svelte";
-  import { selectedDays } from "$lib/stores/meetingSetupStores";
-  import { startTime, endTime } from "$lib/stores/meetingSetupStores";
-  import { meetingName } from "$lib/stores/meetingSetupStores";
+  import { endTime, meetingName, selectedDays, startTime } from "$lib/stores/meetingSetupStores";
+  import type { MeetingCreationPayload } from "$lib/types/meetings";
   import { cn } from "$lib/utils/utils";
+
+  const createMeeting = async () => {
+    await fetch("/api/create-meeting", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: $meetingName,
+        startTime: $startTime,
+        endTime: $endTime,
+      } satisfies MeetingCreationPayload),
+    });
+  };
 </script>
 
 <div class="px-4 pt-8 md:pl-[60px] md:pt-10">
@@ -37,6 +50,7 @@
       "btn w-48 border-none bg-success font-montserrat text-xl font-medium text-gray-light sm:btn-wide",
     )}
     disabled={$selectedDays.length > 0 && $startTime && $endTime && $meetingName ? false : true}
+    on:click={createMeeting}
   >
     Continue →
   </button>
