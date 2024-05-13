@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
   import type { PageData } from "./$types";
 
   import { enhance } from "$app/forms";
@@ -6,11 +8,12 @@
   import {
     availabilityDates,
     generateSampleDates,
+    groupAvailabilities,
     guestSession,
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
-  import { getGeneralAvailability } from "$lib/utils/availability";
+  import { avialabilityDatesToBlocks, getGeneralAvailability } from "$lib/utils/availability";
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
@@ -18,6 +21,12 @@
   export let data: PageData;
 
   let currentTab: number = 0;
+
+  onMount(() => {
+    // Set the group availability blocks from data loaded from the server
+    const groupAvailabilitiesBlocks = avialabilityDatesToBlocks(data.groupAvailabilities);
+    groupAvailabilities.set(groupAvailabilitiesBlocks);
+  });
 
   const handleSave = async (cancel: () => void) => {
     if (data.user) {

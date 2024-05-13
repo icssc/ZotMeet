@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
   import GroupAvailabilityBlock from "$lib/components/availability/GroupAvailabilityBlock.svelte";
   import GroupResponses from "$lib/components/availability/GroupResponses.svelte";
   import {
     availabilityDates,
     availabilityTimeBlocks,
-    groupMembers,
+    groupAvailabilities,
   } from "$lib/stores/availabilityStores";
   import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
@@ -27,6 +29,9 @@
   let notAvailableMembersOfSelection: string[] = [];
   let selectionIsLocked: boolean = false;
 
+  // TODO: Delete when done debugging
+  onMount(() => console.log("groupAvailabilties", $groupAvailabilities));
+
   // Triggers on every pagination change and selection confirmation
   $: {
     const datesToOffset = currentPage * itemsPerPage;
@@ -47,10 +52,10 @@
         [];
 
       availableMembersOfSelection = availableMemberIndices.map(
-        (availableMemberIndex) => $groupMembers[availableMemberIndex].name,
+        (availableMemberIndex) => $groupAvailabilities[availableMemberIndex].name,
       );
 
-      notAvailableMembersOfSelection = $groupMembers
+      notAvailableMembersOfSelection = $groupAvailabilities
         .filter((_, index) => !availableMemberIndices.includes(index))
         .map((notAvailableMember) => notAvailableMember.name);
     }

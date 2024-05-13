@@ -3,7 +3,7 @@ import type { PageData } from "../../routes/availability/[slug]/$types";
 import { ZotDate } from "./ZotDate";
 
 import type { AvailabilityInsertSchema } from "$lib/db/schema";
-import type { GuestSession } from "$lib/types/availability";
+import type { GuestSession, MemberAvailability } from "$lib/types/availability";
 
 export async function getGuestAvailability(guestSession: GuestSession) {
   const response = await fetch("/api/availability", {
@@ -55,3 +55,16 @@ export const getGeneralAvailability = async (data: PageData, guestSession: Guest
 
   return null;
 };
+
+export function avialabilityDatesToBlocks(
+  memberAvailabilities: Record<string, { day: Date; availability_string: string }[]>,
+): MemberAvailability[] {
+  return Object.entries(memberAvailabilities).map(([name, availabilities]) => {
+    return {
+      name,
+      availableBlocks: availabilities.map((availability) =>
+        JSON.parse("[" + availability.availability_string + "]"),
+      ),
+    };
+  });
+}
