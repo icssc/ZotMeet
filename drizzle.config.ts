@@ -4,7 +4,7 @@ import type { Config } from "drizzle-kit";
 dotenv.config();
 
 const { DATABASE_URL } = process.env;
-  
+
 if (!DATABASE_URL) {
   throw new Error(
     "DATABASE_URL not found. Please ensure you have the DATABASE_URL variable defined inside of your environment configuration.",
@@ -14,8 +14,8 @@ if (!DATABASE_URL) {
 export default {
   schema: "./src/lib/db/schema.ts",
   out: "./src/lib/db/migrations",
-  driver: "pg",
+  dialect: "postgresql",
   dbCredentials: {
-    connectionString: DATABASE_URL,
+    url: DATABASE_URL,
   },
 } satisfies Config;
