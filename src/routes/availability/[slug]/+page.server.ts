@@ -16,6 +16,7 @@ import {
   type AvailabilityInsertSchema,
   type MeetingDateSelectSchema,
   users,
+  meetings,
 } from "$lib/db/schema";
 import type { ZotDate } from "$lib/utils/ZotDate";
 
