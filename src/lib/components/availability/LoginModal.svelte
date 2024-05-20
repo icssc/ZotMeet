@@ -2,7 +2,7 @@
   import type { ActionResult } from "@sveltejs/kit";
   import { superForm } from "sveltekit-superforms/client";
 
-  import type { PageData } from "../../../routes/availability/$types";
+  import type { PageData } from "../../../routes/availability/[slug]/$types";
 
   import { deserialize } from "$app/forms";
   import { userSchema } from "$lib/config/zod-schemas";
@@ -87,7 +87,7 @@
 
       $guestSession = {
         guestName: guestData.data?.username,
-        meetingId: data.meetingId,
+        meetingId: data.meetingId ?? "",
       };
 
       $isEditingAvailability = false;
@@ -182,7 +182,7 @@
           <form
             bind:this={guestForm}
             class="flex-center w-full grow flex-col items-center space-y-4 md:w-[250px]"
-            on:submit|preventDefault={() => handleGuestSubmit(data.meetingId)}
+            on:submit|preventDefault={() => handleGuestSubmit(data.meetingId ?? "")}
           >
             {#if formState === "failure"}
               <aside class="variant-filled-error alert">

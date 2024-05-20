@@ -6,7 +6,6 @@ import { superValidate } from "sveltekit-superforms/server";
 import type { PageServerLoad } from "../$types";
 import { _loginSchema } from "../../auth/login/+page.server";
 
-import { guestSchema } from "$lib/config/zod-schemas";
 import { getExistingGuest, getExistingMeeting } from "$lib/db/databaseUtils.server";
 import { db } from "$lib/db/drizzle";
 import {
@@ -18,14 +17,13 @@ import {
 } from "$lib/db/schema";
 import type { ZotDate } from "$lib/utils/ZotDate";
 
-const guestLoginSchema = guestSchema.pick({ username: true });
-
 export const load: PageServerLoad = (async ({ locals, params }) => {
   const user = locals.user;
 
+  // TODO: If no slug is in the URL (i.e. no meeting ID), we should redirect to an error page
+
   return {
     form: await superValidate(_loginSchema),
-    guestForm: await superValidate(guestLoginSchema),
     availability: user ? await getAvailability(user, params?.slug) : null,
     meetingId: params?.slug as string | undefined,
     defaultDates: (await getMeetingDates(params?.slug)) ?? [],
