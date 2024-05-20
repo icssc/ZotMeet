@@ -31,7 +31,7 @@
           style:border-color={currentTab === 0 ? "oklch(var(--a))" : undefined}
           on:click={() => {
             currentTab = 0;
-          }}>Scheduled</button
+          }}>Unscheduled</button
         >
         <button
           role="tab"
@@ -41,7 +41,7 @@
           style:border-color={currentTab === 1 ? "oklch(var(--a))" : undefined}
           on:click={() => {
             currentTab = 1;
-          }}>Unscheduled</button
+          }}>Scheduled</button
         >
       </div>
       <div class="hidden w-full border-b-2 border-gray-300 lg:block" />
@@ -50,9 +50,9 @@
 
   <div>
     {#if currentTab === 0}
-      <ScheduledMeetingsList />
-    {:else if currentTab === 1}
       <UnscheduledMeetingsList />
+    {:else if currentTab === 1}
+      <ScheduledMeetingsList />
     {/if}
   </div>
 </div>

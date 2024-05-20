@@ -48,7 +48,7 @@ export const load: PageServerLoad = async ({ cookies }) => {
     } as unknown as ScheduledMeeting;
   });
 
-  const unscheduledMeetings = meetingList.filter((meeting) => meeting.scheduled === false);
+  const unscheduledMeetings = meetingList.filter((meeting) => !meeting.scheduled);
 
   const unscheduled: UnscheduledMeeting[] = unscheduledMeetings.map((meeting) => {
     const startDate = meeting.startDate?.toLocaleDateString();
