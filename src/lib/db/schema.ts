@@ -11,6 +11,7 @@ import {
   boolean,
   json,
   pgTable,
+  char,
 } from "drizzle-orm/pg-core";
 
 export const attendanceEnum = pgEnum("attendance", ["accepted", "maybe", "declined"]);
@@ -54,8 +55,8 @@ export const meetings = pgTable("meetings", {
   description: text("description"),
   location: text("location"),
   scheduled: boolean("scheduled"),
-  from_time: timestamp("from_time").notNull(),
-  to_time: timestamp("to_time").notNull(),
+  from_time: char("from_time", { length: 5 }).notNull(),
+  to_time: char("to_time", { length: 5 }).notNull(),
   group_id: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
   host_id: text("host_id").references(() => members.id),
 });

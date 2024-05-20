@@ -2,7 +2,6 @@ import { error, json } from "@sveltejs/kit";
 
 import { insertMeeting } from "$lib/db/databaseUtils.server";
 import type { MeetingInsertSchema } from "$lib/db/schema";
-import type { HourMinuteString } from "$lib/types/chrono.js";
 import type { CreateMeetingPostParams } from "$lib/types/meetings";
 
 export async function POST({ request }) {
@@ -28,14 +27,11 @@ export async function POST({ request }) {
     .map((dateString) => new Date(dateString))
     .sort((a, b) => a.getUTCMilliseconds() - b.getUTCMilliseconds());
 
-  const firstDate = sortedDates[0];
-  const lastDate = sortedDates[sortedDates.length - 1];
-
   const meeting: MeetingInsertSchema = {
     title,
     description: description || "",
-    from_time: dateWithHourMinute(firstDate, fromTime),
-    to_time: dateWithHourMinute(lastDate, toTime),
+    from_time: fromTime,
+    to_time: toTime,
   };
 
   try {
@@ -45,11 +41,4 @@ export async function POST({ request }) {
     console.log("Error creating meeting:", err);
     error(500, "Error creating meeting");
   }
-}
-
-function dateWithHourMinute(date: Date, time: HourMinuteString) {
-  const [hour, minute] = time.split(":").map((t) => parseInt(t, 10));
-  const newDate = new Date(date);
-  date.setHours(hour, minute, 0, 0);
-  return newDate;
 }
