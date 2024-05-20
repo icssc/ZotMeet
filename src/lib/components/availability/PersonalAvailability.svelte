@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
 
-  import type { PageData } from "../../../routes/availability/$types";
+  import type { PageData } from "../../../routes/availability/[slug]/$types";
 
   import LoginFlow from "./LoginModal.svelte";
 
@@ -154,7 +154,7 @@
   }
 
   onMount(async () => {
-    $guestSession.meetingId = data.meetingId;
+    $guestSession.meetingId = data.meetingId ?? "";
 
     const generalAvailability = await getGeneralAvailability(data, $guestSession);
     const defaultMeetingDates = data.defaultDates.map((item) => new ZotDate(item.date, false, []));
