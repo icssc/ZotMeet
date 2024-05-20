@@ -93,7 +93,7 @@ export const availabilityDates = writable<ZotDate[]>(
   generateSampleDates(earliestTime, latestTime, sampleMembers),
 );
 export const availabilityTimeBlocks = writable<number[]>(defaultTimeBlocks);
-export const groupMembers = readable<MemberAvailability[]>(sampleMembers);
+export const groupAvailabilities = readable<MemberAvailability[]>(sampleMembers);
 
 export const isEditingAvailability = writable<boolean>(false);
 export const isStateUnsaved = writable<boolean>(false);
