@@ -17,6 +17,7 @@ import {
   type MeetingDateSelectSchema,
   users,
   meetings,
+  members,
 } from "$lib/db/schema";
 import type { ZotDate } from "$lib/utils/ZotDate";
 
@@ -65,7 +66,8 @@ async function getMeetingMemeberAvailabilities(meetingId: string) {
     .from(availabilities)
     .innerJoin(meetingDates, eq(availabilities.meeting_day, meetingDates.id))
     .innerJoin(meetings, eq(meetingDates.meeting_id, meetings.id))
-    .innerJoin(users, eq(availabilities.member_id, users.id))
+    .innerJoin(members, eq(availabilities.member_id, members.id))
+    .innerJoin(users, eq(members.id, users.id))
     .where(eq(meetings.id, meetingId));
 
   // Group availabilities by user

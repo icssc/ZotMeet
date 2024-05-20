@@ -23,6 +23,7 @@
   let currentTab: number = 0;
 
   onMount(() => {
+    console.log(data);
     // Set the group availability blocks from data loaded from the server
     const groupAvailabilitiesBlocks = avialabilityDatesToBlocks(data.groupAvailabilities);
     groupAvailabilities.set(groupAvailabilitiesBlocks);
