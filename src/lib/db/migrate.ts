@@ -9,10 +9,12 @@ if (!MIGRATION_DB_URL) {
     "MIGRATION_DB_URL not found. Please ensure you have the MIGRATION_DB_URL variable defined inside of your environment configuration.",
   );
 }
-const migrationClient = postgres(
-  `${MIGRATION_DB_URL}${process.env["STAGE"] === "prod" ? "" : "?search_path=dev"}`,
-  { max: 1, ssl: "prefer" },
-);
+
+const isProd = process.env["STAGE"] === "prod";
+console.log(`Running migrations in ${isProd ? "production" : "development"} mode.`);
+
+const migrationConnectionString = `${MIGRATION_DB_URL}${isProd ? "" : "?search_path=dev"}`;
+const migrationClient = postgres(migrationConnectionString, { max: 1, ssl: "prefer" });
 const db = drizzle(migrationClient);
 
 await migrate(db, {
