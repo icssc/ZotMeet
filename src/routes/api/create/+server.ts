@@ -1,11 +1,11 @@
 import { error, json } from "@sveltejs/kit";
 
-import { insertMeeting } from "$lib/db/databaseUtils.server";
+import { getUserIdFromSession, insertMeeting } from "$lib/db/databaseUtils.server";
 import type { MeetingInsertSchema } from "$lib/db/schema";
 import type { CreateMeetingPostParams } from "$lib/types/meetings";
 
 export async function POST({ request }) {
-  const { title, description, fromTime, toTime, meetingDates }: CreateMeetingPostParams =
+  const { title, description, fromTime, toTime, meetingDates, sessionId }: CreateMeetingPostParams =
     await request.json();
 
   console.log("Creating meeting:", title, description, fromTime, toTime, meetingDates);
@@ -27,11 +27,14 @@ export async function POST({ request }) {
     .map((dateString) => new Date(dateString))
     .sort((a, b) => a.getUTCMilliseconds() - b.getUTCMilliseconds());
 
+  const host_id = sessionId ? await getUserIdFromSession(sessionId) : undefined;
+
   const meeting: MeetingInsertSchema = {
     title,
     description: description || "",
     from_time: fromTime,
     to_time: toTime,
+    host_id,
   };
 
   try {

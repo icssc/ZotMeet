@@ -40,4 +40,5 @@ export interface CreateMeetingPostParams {
   fromTime: HourMinuteString;
   toTime: HourMinuteString;
   meetingDates: string[]; // ISO date strings
+  sessionId?: string;
 }

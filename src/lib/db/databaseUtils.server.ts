@@ -3,7 +3,7 @@ import type { SuperValidated } from "sveltekit-superforms";
 import type { ZodObject, ZodString } from "zod";
 
 import { db } from "./drizzle";
-import { members, users, guests, meetings, meetingDates } from "./schema";
+import { members, users, guests, meetings, meetingDates, sessions } from "./schema";
 import type {
   UserInsertSchema,
   MemberInsertSchema,
@@ -88,6 +88,15 @@ export const getExistingUser = async (
 
   return existingUser;
 };
+
+export async function getUserIdFromSession(sessionId: string): Promise<string> {
+  const [{ userId }] = await db
+    .select({ userId: sessions.userId })
+    .from(sessions)
+    .where(eq(sessions.id, sessionId));
+
+  return userId;
+}
 
 export const getExistingGuest = async (username: string, meeting: MeetingSelectSchema) => {
   const [existingGuest] = await db
