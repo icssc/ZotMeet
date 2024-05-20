@@ -1,17 +1,16 @@
-import { eq } from "drizzle-orm";
+import { eq, min, max } from "drizzle-orm";
 
 import type { PageServerLoad } from "./$types";
 
-import { getUserFromSession } from "$lib/db/databaseUtils.server";
+import { getUserIdFromSession } from "$lib/db/databaseUtils.server";
 import { db } from "$lib/db/drizzle";
 import { availabilities, meetingDates, meetings } from "$lib/db/schema";
 import type { ScheduledMeeting, UnscheduledMeeting } from "$lib/types/meetings";
 
 export const load: PageServerLoad = async ({ cookies }) => {
   // get user id from session
-  const sessionID = cookies.get("session");
-
-  const user_id = await getUserFromSession(sessionID);
+  const sessionID = cookies.get("session")!;
+  const user_id = await getUserIdFromSession(sessionID);
 
   const meetingList = await db
     .select({
@@ -21,6 +20,8 @@ export const load: PageServerLoad = async ({ cookies }) => {
       endTime: meetings.to_time,
       location: meetings.location,
       scheduled: meetings.scheduled,
+      startDate: min(meetingDates.date),
+      endDate: max(meetingDates.date),
     })
     .from(availabilities)
     .leftJoin(meetingDates, eq(availabilities.meeting_day, meetingDates.id))
@@ -28,11 +29,13 @@ export const load: PageServerLoad = async ({ cookies }) => {
     .groupBy(meetings.id)
     .where(eq(availabilities.member_id, user_id));
 
+  console.log(meetingList);
+
   const scheduledMeetings = meetingList.filter((meeting) => meeting.scheduled === true);
   const scheduled: ScheduledMeeting[] = scheduledMeetings.map((meeting) => {
-    const meetingDate = meeting.startTime?.toLocaleDateString();
-    const start = meeting.startTime?.toLocaleTimeString();
-    const end = meeting.endTime?.toLocaleTimeString();
+    const meetingDate = meeting.startDate?.toLocaleDateString();
+    const start = meeting.startTime;
+    const end = meeting.endTime;
     return {
       name: meeting.name,
       id: meeting.id,
@@ -48,10 +51,10 @@ export const load: PageServerLoad = async ({ cookies }) => {
   const unscheduledMeetings = meetingList.filter((meeting) => meeting.scheduled === false);
 
   const unscheduled: UnscheduledMeeting[] = unscheduledMeetings.map((meeting) => {
-    const startDate = meeting.startTime?.toLocaleDateString();
-    const endDate = meeting.endTime?.toLocaleDateString();
-    const startTime = meeting.startTime?.toLocaleTimeString();
-    const endTime = meeting.endTime?.toLocaleTimeString();
+    const startDate = meeting.startDate?.toLocaleDateString();
+    const endDate = meeting.endDate?.toLocaleDateString();
+    const startTime = meeting.startTime;
+    const endTime = meeting.endTime;
     return {
       name: meeting.name,
       id: meeting.id,

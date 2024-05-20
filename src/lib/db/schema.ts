@@ -16,13 +16,11 @@ import {
 export const attendanceValues = ["accepted", "maybe", "declined"] as const;
 export type AttendanceValue = (typeof attendanceValues)[number];
 
-export const attendanceEnum = pgEnum("attendance", attendanceValues);
-export const memberEnum = pgEnum("member_type", ["guest", "user"]);
+export const attendanceEnum = pgEnum("attendance", ["accepted", "maybe", "declined"]);
 
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = pgTable("members", {
   id: text("id").primaryKey(),
-  type: memberEnum("type").notNull().default("guest"),
 });
 
 // Users encompasses Members who have created an account.
@@ -160,7 +158,7 @@ export const membersInMeeting = pgTable(
     meetingId: uuid("meeting_id")
       .notNull()
       .references(() => meetings.id, { onDelete: "cascade" }),
-    attending: attendanceEnum("attendance"),
+    attending: attendanceEnum("maybe"),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.memberId, table.meetingId] }),
