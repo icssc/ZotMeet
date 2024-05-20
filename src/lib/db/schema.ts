@@ -158,7 +158,7 @@ export const membersInMeeting = pgTable(
     meetingId: uuid("meeting_id")
       .notNull()
       .references(() => meetings.id, { onDelete: "cascade" }),
-    attending: attendanceEnum("maybe"),
+    attending: attendanceEnum("availability"),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.memberId, table.meetingId] }),
