@@ -4,7 +4,7 @@
   import {
     availabilityDates,
     availabilityTimeBlocks,
-    groupMembers,
+    groupAvailabilities,
   } from "$lib/stores/availabilityStores";
   import { ZotDate } from "$lib/utils/ZotDate";
   import { cn } from "$lib/utils/utils";
@@ -47,10 +47,10 @@
         [];
 
       availableMembersOfSelection = availableMemberIndices.map(
-        (availableMemberIndex) => $groupMembers[availableMemberIndex].name,
+        (availableMemberIndex) => $groupAvailabilities[availableMemberIndex].name,
       );
 
-      notAvailableMembersOfSelection = $groupMembers
+      notAvailableMembersOfSelection = $groupAvailabilities
         .filter((_, index) => !availableMemberIndices.includes(index))
         .map((notAvailableMember) => notAvailableMember.name);
     }

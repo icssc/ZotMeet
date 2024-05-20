@@ -11,9 +11,13 @@ import {
   boolean,
   json,
   pgTable,
+  char,
 } from "drizzle-orm/pg-core";
 
-export const attendanceEnum = pgEnum("attendance", ["accepted", "maybe", "declined"]);
+export const attendanceValues = ["accepted", "maybe", "declined"] as const;
+export type AttendanceValue = (typeof attendanceValues)[number];
+
+export const attendanceEnum = pgEnum("attendance", attendanceValues);
 export const memberEnum = pgEnum("member_type", ["guest", "user"]);
 
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
@@ -54,8 +58,8 @@ export const meetings = pgTable("meetings", {
   description: text("description"),
   location: text("location"),
   scheduled: boolean("scheduled"),
-  from_time: timestamp("from_time").notNull(),
-  to_time: timestamp("to_time").notNull(),
+  from_time: char("from_time", { length: 5 }).notNull(),
+  to_time: char("to_time", { length: 5 }).notNull(),
   group_id: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
   host_id: text("host_id").references(() => members.id),
 });

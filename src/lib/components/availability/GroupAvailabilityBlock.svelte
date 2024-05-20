@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { groupMembers } from "$lib/stores/availabilityStores";
+  import { groupAvailabilities } from "$lib/stores/availabilityStores";
   import { cn } from "$lib/utils/utils";
 
   export let availableMemberIndices: number[] | null;
@@ -9,7 +9,7 @@
 
   const calculateGroupBlockColor = (availableMemberIndices: number[] | null): string => {
     if (availableMemberIndices) {
-      const opacity = availableMemberIndices.length / $groupMembers.length;
+      const opacity = availableMemberIndices.length / $groupAvailabilities.length;
       return `rgba(55, 124, 251, ${opacity})`;
     }
     return "transparent";

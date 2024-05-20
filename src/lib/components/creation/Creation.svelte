@@ -1,11 +1,45 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
   import Calendar from "$lib/components/creation/CalendarV2/Calendar.svelte";
   import MeetingNameField from "$lib/components/creation/MeetingV2/MeetingNameField.svelte";
   import MeetingTimeField from "$lib/components/creation/MeetingV2/MeetingTimeField.svelte";
   import { selectedDays } from "$lib/stores/meetingSetupStores";
   import { startTime, endTime } from "$lib/stores/meetingSetupStores";
   import { meetingName } from "$lib/stores/meetingSetupStores";
+  import type { CreateMeetingPostParams } from "$lib/types/meetings";
   import { cn } from "$lib/utils/utils";
+
+  const handleCreation = async () => {
+    const body: CreateMeetingPostParams = {
+      title: $meetingName,
+      fromTime: $startTime,
+      toTime: $endTime,
+      meetingDates: $selectedDays.map((zotDate) => zotDate.day.toISOString()),
+      description: "",
+    };
+
+    const response: Response = await fetch("/api/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      console.error("Failed to create meeting: ", response.statusText);
+      return;
+    }
+
+    const { meetingId } = await response.json();
+
+    if (!meetingId) {
+      console.error("Failed to create meeting. Meeting ID not found.");
+      return;
+    }
+
+    goto(`/availability/${meetingId}`);
+  };
 </script>
 
 <div class="px-4 pt-8 md:pl-[60px] md:pt-10">
@@ -37,6 +71,7 @@
       "btn w-48 border-none bg-success font-montserrat text-xl font-medium text-gray-light sm:btn-wide",
     )}
     disabled={$selectedDays.length > 0 && $startTime && $endTime && $meetingName ? false : true}
+    on:click={handleCreation}
   >
     Continue →
   </button>

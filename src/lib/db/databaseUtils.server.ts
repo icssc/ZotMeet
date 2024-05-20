@@ -3,7 +3,7 @@ import type { SuperValidated } from "sveltekit-superforms";
 import type { ZodObject, ZodString } from "zod";
 
 import { db } from "./drizzle";
-import { members, users, guests, meetings, meetingDates } from "./schema";
+import { members, users, guests, meetings, meetingDates, sessions } from "./schema";
 import type {
   UserInsertSchema,
   MemberInsertSchema,
@@ -89,6 +89,15 @@ export const getExistingUser = async (
   return existingUser;
 };
 
+export async function getUserIdFromSession(sessionId: string): Promise<string> {
+  const [{ userId }] = await db
+    .select({ userId: sessions.userId })
+    .from(sessions)
+    .where(eq(sessions.id, sessionId));
+
+  return userId;
+}
+
 export const getExistingGuest = async (username: string, meeting: MeetingSelectSchema) => {
   const [existingGuest] = await db
     .select()
@@ -99,21 +108,15 @@ export const getExistingGuest = async (username: string, meeting: MeetingSelectS
 };
 
 /**
- * To create a meeting, call this function with:
- * 1. A title
- * 2. A start time; I used: 2024-01-31T16:00:00.000Z
- * 3. An end time: I used: 2024-02-06T16:00:00.000Z
- *
- * NOTE:
- * `generateSampleDates()` is called whenever no availability is found
- * If you use dates other than the ones above, generateSampleDates() will return dates
- * other than the ones your meeting may *actually* be of
- *
- * @param meeting
+ * @param meeting The meeting object to insert. `from_time` and `to_time` represent the start and end times
+ * and are only used for the times of day.
+ * @param meetingDates The dates to insert for the meeting. Only the date portion of the date object is used.
+ * @returns The id of the inserted meeting.
  */
-export const insertMeeting = async (meeting: MeetingInsertSchema) => {
+export const insertMeeting = async (meeting: MeetingInsertSchema, meetingDates: Date[]) => {
   const [dbMeeting] = await db.insert(meetings).values(meeting).returning();
-  await insertMeetingDates(dbMeeting);
+  await insertMeetingDates(meetingDates, dbMeeting.id);
+  return dbMeeting.id;
 };
 
 export const getExistingMeeting = async (meetingId: string) => {
@@ -122,16 +125,14 @@ export const getExistingMeeting = async (meetingId: string) => {
   return dbMeeting;
 };
 
-export const insertMeetingDates = async (meeting: MeetingSelectSchema) => {
-  const currentDate = meeting.from_time;
-  currentDate.setDate(currentDate.getDate());
+export const insertMeetingDates = async (dates: Date[], meeting_id: string) => {
+  const dbMeetingDates: MeetingDateInsertSchema[] = dates.map((date) => {
+    // Get the start of the date to better standardize
+    const startOfDay = new Date(date.toDateString());
+    return { meeting_id, date: startOfDay };
+  });
 
-  for (let i = 0; currentDate <= meeting.to_time; i++) {
-    const value: MeetingDateInsertSchema = { date: currentDate, meeting_id: meeting.id };
-    await db.insert(meetingDates).values(value);
-
-    currentDate.setDate(currentDate.getDate() + 1);
-  }
+  await db.insert(meetingDates).values(dbMeetingDates);
 };
 
 export const getExistingMeetingDates = async (meetingId: string) => {
