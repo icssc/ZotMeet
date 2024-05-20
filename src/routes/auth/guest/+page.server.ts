@@ -2,11 +2,10 @@ import { fail } from "@sveltejs/kit";
 import { generateId } from "lucia";
 import { setError, superValidate } from "sveltekit-superforms/client";
 
-import { _getMeeting } from "../../availability/[slug]/+page.server";
-
 import { guestSchema } from "$lib/config/zod-schemas";
 import {
   checkIfGuestUsernameExists,
+  getExistingMeeting,
   // insertMeeting,
   insertNewGuest,
   insertNewMember,
@@ -32,7 +31,7 @@ async function createGuest({ request }: { request: Request }) {
   try {
     const isGuestUsernameAlreadyRegistered = await checkIfGuestUsernameExists(
       form.data.username,
-      await _getMeeting(form.data.meetingId),
+      await getExistingMeeting(form.data.meetingId),
     );
 
     if (isGuestUsernameAlreadyRegistered === true) {

@@ -10,7 +10,6 @@ if (!DATABASE_URL) {
     "DATABASE_URL not found. Please ensure you have the DATABASE_URL variable defined inside of your environment configuration.",
   );
 }
-
 export default {
   schema: "./src/lib/db/schema.ts",
   out: "./src/lib/db/migrations",

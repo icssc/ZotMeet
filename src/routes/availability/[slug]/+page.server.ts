@@ -7,14 +7,13 @@ import type { PageServerLoad } from "../$types";
 import { _loginSchema } from "../../auth/login/+page.server";
 
 import { guestSchema } from "$lib/config/zod-schemas";
-import { getExistingGuest } from "$lib/db/databaseUtils.server";
+import { getExistingGuest, getExistingMeeting } from "$lib/db/databaseUtils.server";
 import { db } from "$lib/db/drizzle";
 import {
   availabilities,
-  meetings,
   meetingDates,
+  membersInMeeting,
   type AvailabilityInsertSchema,
-  type MeetingSelectSchema,
   type MeetingDateSelectSchema,
   users,
 } from "$lib/db/schema";
@@ -116,7 +115,12 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
   try {
     const memberId =
       user?.id ??
-      (await getExistingGuest(formData.get("username") as string, await _getMeeting(meetingId))).id;
+      (
+        await getExistingGuest(
+          formData.get("username") as string,
+          await getExistingMeeting(meetingId),
+        )
+      ).id;
 
     const insertDates: AvailabilityInsertSchema[] = availabilityDates.map((date, index) => ({
       day: new Date(date.day).toISOString(),
@@ -126,15 +130,22 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
     }));
 
     await db.transaction(async (tx) => {
-      await tx
-        .insert(availabilities)
-        .values(insertDates)
-        .onConflictDoUpdate({
-          target: [availabilities.member_id, availabilities.meeting_day],
-          set: {
-            availability_string: sql.raw(`excluded.availability_string`), // `excluded` refers to the row currently in conflict
-          },
-        });
+      await Promise.all([
+        tx
+          .insert(availabilities)
+          .values(insertDates)
+          .onConflictDoUpdate({
+            target: [availabilities.member_id, availabilities.meeting_day],
+            set: {
+              // `excluded` refers to the row currently in conflict
+              availability_string: sql.raw(`excluded.availability_string`),
+            },
+          }),
+        tx
+          .insert(membersInMeeting)
+          .values({ memberId, meetingId, attending: "maybe" })
+          .onConflictDoNothing(),
+      ]);
     });
 
     return {
@@ -154,14 +165,8 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
   }
 }
 
-export async function _getMeeting(meetingId: string): Promise<MeetingSelectSchema> {
-  const [meeting] = await db.select().from(meetings).where(eq(meetings.id, meetingId));
-
-  return meeting;
-}
-
 async function getMeetingDates(meetingId: string): Promise<MeetingDateSelectSchema[]> {
-  const dbMeeting = await _getMeeting(meetingId);
+  const dbMeeting = await getExistingMeeting(meetingId);
   const dbMeetingDates = await db
     .select()
     .from(meetingDates)
