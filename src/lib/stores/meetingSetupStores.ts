@@ -1,5 +1,6 @@
 import { writable } from "svelte/store";
 
+import type { HourMinuteString } from "$lib/types/chrono";
 import type { MeetingTime } from "$lib/types/meetings";
 import { ZotDate } from "$lib/utils/ZotDate";
 
@@ -40,9 +41,9 @@ export const DEFAULT_MEETING_NAME = "";
 export const meetingName = writable<string>(DEFAULT_MEETING_NAME);
 
 export const DEFAULT_MEETING_TIMES: MeetingTime = {
-  startTime: "08:00",
-  endTime: "17:00",
+  startTime: "09:00",
+  endTime: "16:00",
 };
 
-export const startTime = writable<string>(DEFAULT_MEETING_TIMES.startTime);
-export const endTime = writable<string>(DEFAULT_MEETING_TIMES.endTime);
+export const startTime = writable<HourMinuteString>(DEFAULT_MEETING_TIMES.startTime);
+export const endTime = writable<HourMinuteString>(DEFAULT_MEETING_TIMES.endTime);

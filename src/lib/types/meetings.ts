@@ -1,3 +1,5 @@
+import type { HourMinuteString } from "./chrono";
+
 export type Group = { name: string; id: number; img: string; link: string };
 
 export type Meeting = ScheduledMeeting | UnscheduledMeeting;
@@ -28,15 +30,14 @@ export type UnscheduledMeeting = {
 };
 
 export type MeetingTime = {
-  startTime: string;
-  endTime: string;
+  startTime: HourMinuteString;
+  endTime: HourMinuteString;
 };
 
-/** All time strings are ISO */
 export interface CreateMeetingPostParams {
   title: string;
   description: string;
-  fromTime: string;
-  toTime: string;
-  meetingDates: string[];
+  fromTime: HourMinuteString;
+  toTime: HourMinuteString;
+  meetingDates: string[]; // ISO date strings
 }
