@@ -10,9 +10,13 @@ import {
   boolean,
   json,
   pgTable,
+  char,
 } from "drizzle-orm/pg-core";
 
-export const attendanceEnum = pgEnum("attendance", ["accepted", "maybe", "declined"]);
+export const attendanceValues = ["accepted", "maybe", "declined"] as const;
+export type AttendanceValue = (typeof attendanceValues)[number];
+
+export const attendanceEnum = pgEnum("attendance", attendanceValues);
 export const memberEnum = pgEnum("member_type", ["guest", "user"]);
 
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
@@ -34,6 +38,7 @@ export const users = pgTable("users", {
 });
 
 // Guests are Members who do not have an account and are bound to one specific meeting.
+
 export const guests = pgTable(
   "guests",
   {
@@ -52,8 +57,8 @@ export const meetings = pgTable("meetings", {
   description: text("description"),
   location: text("location"),
   scheduled: boolean("scheduled"),
-  from_time: timestamp("from_time").notNull(),
-  to_time: timestamp("to_time").notNull(),
+  from_time: char("from_time", { length: 5 }).notNull(),
+  to_time: char("to_time", { length: 5 }).notNull(),
   group_id: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
   host_id: text("host_id").references(() => members.id),
 });
@@ -104,7 +109,6 @@ export const oauthAccountsTable = pgTable(
       .references(() => users.id, {
         onDelete: "cascade",
       }),
-
     providerId: text("provider_id").notNull(),
     providerUserId: text("provider_user_id").notNull(),
   },
@@ -131,6 +135,7 @@ export const sessions = pgTable(
     };
   },
 );
+
 export const usersInGroup = pgTable(
   "users_in_group",
   {
@@ -250,5 +255,7 @@ export type MemberInsertSchema = typeof members.$inferInsert;
 export type UserInsertSchema = typeof users.$inferInsert;
 export type GuestInsertSchema = typeof guests.$inferInsert;
 export type AvailabilityInsertSchema = typeof availabilities.$inferInsert;
+export type MeetingInsertSchema = typeof meetings.$inferInsert;
 export type MeetingSelectSchema = typeof meetings.$inferSelect;
+export type MeetingDateInsertSchema = typeof meetingDates.$inferInsert;
 export type MeetingDateSelectSchema = typeof meetingDates.$inferSelect;

@@ -32,8 +32,6 @@ async function login({ request, cookies }: { request: Request; cookies: Cookies 
     return fail(400, { form });
   }
 
-  console.log();
-
   const existingUser = await getExistingUser(form);
 
   if (!existingUser) {

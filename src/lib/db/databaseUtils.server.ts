@@ -1,9 +1,17 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { SuperValidated } from "sveltekit-superforms";
 import type { ZodObject, ZodString } from "zod";
 
 import { db } from "./drizzle";
-import { users, type UserInsertSchema, sessions } from "./schema";
+import { members, users, guests, meetings, meetingDates, sessions } from "./schema";
+import type {
+  UserInsertSchema,
+  MemberInsertSchema,
+  MeetingSelectSchema,
+  GuestInsertSchema,
+  MeetingInsertSchema,
+  MeetingDateInsertSchema,
+} from "./schema";
 
 import type { AlertMessageType } from "$lib/types/auth";
 
@@ -29,8 +37,28 @@ export const checkIfEmailExists = async (email: string) => {
   return queryResult.length > 0;
 };
 
+export const checkIfGuestUsernameExists = async (
+  username: string,
+  meeting: MeetingSelectSchema,
+) => {
+  const result = await db
+    .select()
+    .from(guests)
+    .where(and(eq(guests.username, username), eq(guests.meeting_id, meeting.id)));
+
+  return result.length > 0;
+};
+
+export const insertNewMember = async (member: MemberInsertSchema) => {
+  return await db.insert(members).values(member);
+};
+
 export const insertNewUser = async (user: UserInsertSchema) => {
   return await db.insert(users).values(user);
+};
+
+export const insertNewGuest = async (guest: GuestInsertSchema) => {
+  return await db.insert(guests).values(guest);
 };
 
 export const getAllUsers = async () => {
@@ -61,15 +89,57 @@ export const getExistingUser = async (
   return existingUser;
 };
 
-export const getUserFromSession = async (sessionID: string | undefined) => {
-  if (sessionID === undefined) {
-    return "";
-  }
-  const { userId } = (
-    await db
-      .selectDistinct({ userId: sessions.userId })
-      .from(sessions)
-      .where(eq(sessions.id, sessionID))
-  )[0];
+export async function getUserIdFromSession(sessionId: string): Promise<string> {
+  const [{ userId }] = await db
+    .select({ userId: sessions.userId })
+    .from(sessions)
+    .where(eq(sessions.id, sessionId));
+
   return userId;
+}
+
+export const getExistingGuest = async (username: string, meeting: MeetingSelectSchema) => {
+  const [existingGuest] = await db
+    .select()
+    .from(guests)
+    .where(and(eq(guests.username, username), eq(guests.meeting_id, meeting.id)));
+
+  return existingGuest;
+};
+
+/**
+ * @param meeting The meeting object to insert. `from_time` and `to_time` represent the start and end times
+ * and are only used for the times of day.
+ * @param meetingDates The dates to insert for the meeting. Only the date portion of the date object is used.
+ * @returns The id of the inserted meeting.
+ */
+export const insertMeeting = async (meeting: MeetingInsertSchema, meetingDates: Date[]) => {
+  const [dbMeeting] = await db.insert(meetings).values(meeting).returning();
+  await insertMeetingDates(meetingDates, dbMeeting.id);
+  return dbMeeting.id;
+};
+
+export const getExistingMeeting = async (meetingId: string) => {
+  const [dbMeeting] = await db.select().from(meetings).where(eq(meetings.id, meetingId));
+
+  return dbMeeting;
+};
+
+export const insertMeetingDates = async (dates: Date[], meeting_id: string) => {
+  const dbMeetingDates: MeetingDateInsertSchema[] = dates.map((date) => {
+    // Get the start of the date to better standardize
+    const startOfDay = new Date(date.toDateString());
+    return { meeting_id, date: startOfDay };
+  });
+
+  await db.insert(meetingDates).values(dbMeetingDates);
+};
+
+export const getExistingMeetingDates = async (meetingId: string) => {
+  const dbMeetingDates = await db
+    .select()
+    .from(meetingDates)
+    .where(eq(meetingDates.meeting_id, meetingId));
+
+  return dbMeetingDates;
 };
