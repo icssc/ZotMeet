@@ -77,7 +77,7 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
       day: new Date(date.day).toISOString(),
       member_id: memberId,
       meeting_day: dbMeetingDates[index].id as string, // Type-cast since id is guaranteed if a meetingDate exists
-      availability_string: date.availability.toString(),
+      availability_string: date.availability.map((bool) => (bool ? "1" : "0")).join(""),
     }));
 
     await db.transaction(async (tx) => {
