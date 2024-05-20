@@ -21,7 +21,7 @@ export async function getGuestAvailability(guestSession: GuestSession) {
       new ZotDate(
         new Date(availability.day),
         false,
-        JSON.parse("[" + availability.availability_string + "]"),
+        Array.from(availability.availability_string).map((char) => char === "1"),
       ),
   );
 }
@@ -33,7 +33,7 @@ export const getUserAvailability = (data: PageData) => {
         new ZotDate(
           new Date(availability.day),
           false,
-          JSON.parse("[" + availability.availability_string + "]"),
+          Array.from(availability.availability_string).map((char) => char === "1"),
         ),
     );
   }
