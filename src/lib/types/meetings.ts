@@ -31,3 +31,12 @@ export type MeetingTime = {
   startTime: string;
   endTime: string;
 };
+
+/** All time strings are ISO */
+export interface CreateMeetingPostParams {
+  title: string;
+  description: string;
+  fromTime: string;
+  toTime: string;
+  meetingDates: string[];
+}
