@@ -9,23 +9,11 @@
   import type { CreateMeetingPostParams } from "$lib/types/meetings";
   import { cn } from "$lib/utils/utils";
 
-  /**
-   * Converts a time string in the format "HH:MM" to an ISO string.
-   * @param time
-   */
-  function timeStringToIso(time: string): string {
-    const [hours, minutes] = time.split(":").map(Number);
-    const date = new Date();
-    date.setHours(hours);
-    date.setMinutes(minutes);
-    return date.toISOString();
-  }
-
   const handleCreation = async () => {
     const body: CreateMeetingPostParams = {
       title: $meetingName,
-      fromTime: timeStringToIso($startTime),
-      toTime: timeStringToIso($endTime),
+      fromTime: $startTime,
+      toTime: $endTime,
       meetingDates: $selectedDays.map((zotDate) => zotDate.day.toISOString()),
       description: "",
     };
