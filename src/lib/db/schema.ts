@@ -14,7 +14,10 @@ import {
   char,
 } from "drizzle-orm/pg-core";
 
-export const attendanceEnum = pgEnum("attendance", ["accepted", "maybe", "declined"]);
+export const attendanceValues = ["accepted", "maybe", "declined"] as const;
+export type AttendanceValue = (typeof attendanceValues)[number];
+
+export const attendanceEnum = pgEnum("attendance", attendanceValues);
 export const memberEnum = pgEnum("member_type", ["guest", "user"]);
 
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.

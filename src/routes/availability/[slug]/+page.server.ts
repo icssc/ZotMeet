@@ -12,6 +12,7 @@ import { db } from "$lib/db/drizzle";
 import {
   availabilities,
   meetingDates,
+  membersInMeeting,
   type AvailabilityInsertSchema,
   type MeetingDateSelectSchema,
 } from "$lib/db/schema";
@@ -84,15 +85,22 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
     }));
 
     await db.transaction(async (tx) => {
-      await tx
-        .insert(availabilities)
-        .values(insertDates)
-        .onConflictDoUpdate({
-          target: [availabilities.member_id, availabilities.meeting_day],
-          set: {
-            availability_string: sql.raw(`excluded.availability_string`), // `excluded` refers to the row currently in conflict
-          },
-        });
+      await Promise.all([
+        tx
+          .insert(availabilities)
+          .values(insertDates)
+          .onConflictDoUpdate({
+            target: [availabilities.member_id, availabilities.meeting_day],
+            set: {
+              // `excluded` refers to the row currently in conflict
+              availability_string: sql.raw(`excluded.availability_string`),
+            },
+          }),
+        tx
+          .insert(membersInMeeting)
+          .values({ memberId, meetingId, attending: "maybe" })
+          .onConflictDoNothing(),
+      ]);
     });
 
     return {
