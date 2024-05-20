@@ -27,6 +27,8 @@ export const load: PageServerLoad = (async ({ locals, params }) => {
     availability: user ? await getAvailability(user, params?.slug) : null,
     meetingId: params?.slug as string | undefined,
     defaultDates: (await getMeetingDates(params?.slug)) ?? [],
+    startTime: (await getExistingMeeting(params?.slug)).from_time,
+    endTime: (await getExistingMeeting(params?.slug)).to_time,
   };
 }) satisfies PageServerLoad;
 

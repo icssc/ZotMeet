@@ -26,7 +26,7 @@
     itemsPerPage = columns;
   }
 
-  const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
+  let lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   const numPaddingDates: number =
     $availabilityDates.length % itemsPerPage === 0
       ? 0
@@ -37,6 +37,7 @@
 
   let currentPage = 0;
 
+  console.log(currentPage, lastPage);
   let currentPageAvailability: (ZotDate | null)[];
 
   let selectionState: SelectionStateType | null = null;
@@ -164,6 +165,8 @@
       generalAvailability && generalAvailability.length > 0
         ? generalAvailability
         : defaultMeetingDates;
+
+    lastPage = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   });
 </script>
 

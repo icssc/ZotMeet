@@ -8,7 +8,7 @@ import { ZotDate } from "$lib/utils/ZotDate";
 
 export const BLOCK_LENGTH: number = 15;
 
-const getTimeFromHourMinuteString = (hourMinuteString: HourMinuteString): number => {
+export const getTimeFromHourMinuteString = (hourMinuteString: HourMinuteString): number => {
   const [hours, minutes] = hourMinuteString.split(":");
 
   return Number(hours) * TimeConstants.MINUTES_PER_HOUR + Number(minutes);

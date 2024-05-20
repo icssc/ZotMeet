@@ -1,15 +1,22 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
   import type { PageData } from "./$types";
 
   import { enhance } from "$app/forms";
   import { GroupAvailability, PersonalAvailability } from "$lib/components/availability";
   import {
     availabilityDates,
+    availabilityTimeBlocks,
     generateSampleDates,
+    generateTimeBlocks,
+    getTimeFromHourMinuteString,
     guestSession,
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
+  import { endTime, startTime } from "$lib/stores/meetingSetupStores";
+  import type { HourMinuteString } from "$lib/types/chrono";
   import { getGeneralAvailability } from "$lib/utils/availability";
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
@@ -48,6 +55,18 @@
   $: mobileView = innerWidth < 768;
 
   let form: HTMLFormElement;
+
+  onMount(async () => {
+    $startTime = data.startTime as HourMinuteString;
+    $endTime = data.endTime as HourMinuteString;
+  });
+
+  $: availabilityTimeBlocks.set(
+    generateTimeBlocks(
+      getTimeFromHourMinuteString($startTime),
+      getTimeFromHourMinuteString($endTime),
+    ),
+  );
 </script>
 
 <svelte:window bind:innerWidth />
