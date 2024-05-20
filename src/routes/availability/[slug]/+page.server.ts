@@ -7,14 +7,12 @@ import type { PageServerLoad } from "../$types";
 import { _loginSchema } from "../../auth/login/+page.server";
 
 import { guestSchema } from "$lib/config/zod-schemas";
-import { getExistingGuest } from "$lib/db/databaseUtils.server";
+import { getExistingGuest, getExistingMeeting } from "$lib/db/databaseUtils.server";
 import { db } from "$lib/db/drizzle";
 import {
   availabilities,
-  meetings,
   meetingDates,
   type AvailabilityInsertSchema,
-  type MeetingSelectSchema,
   type MeetingDateSelectSchema,
 } from "$lib/db/schema";
 import type { ZotDate } from "$lib/utils/ZotDate";
@@ -71,7 +69,12 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
   try {
     const memberId =
       user?.id ??
-      (await getExistingGuest(formData.get("username") as string, await _getMeeting(meetingId))).id;
+      (
+        await getExistingGuest(
+          formData.get("username") as string,
+          await getExistingMeeting(meetingId),
+        )
+      ).id;
 
     const insertDates: AvailabilityInsertSchema[] = availabilityDates.map((date, index) => ({
       day: new Date(date.day).toISOString(),
@@ -109,14 +112,8 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
   }
 }
 
-export async function _getMeeting(meetingId: string): Promise<MeetingSelectSchema> {
-  const [meeting] = await db.select().from(meetings).where(eq(meetings.id, meetingId));
-
-  return meeting;
-}
-
 async function getMeetingDates(meetingId: string): Promise<MeetingDateSelectSchema[]> {
-  const dbMeeting = await _getMeeting(meetingId);
+  const dbMeeting = await getExistingMeeting(meetingId);
   const dbMeetingDates = await db
     .select()
     .from(meetingDates)
