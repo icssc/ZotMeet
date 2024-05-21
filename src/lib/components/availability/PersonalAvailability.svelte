@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
 
-  import type { PageData } from "../../../routes/availability/$types";
+  import type { PageData } from "../../../routes/availability/[slug]/$types";
 
   import LoginFlow from "./LoginModal.svelte";
 
@@ -26,7 +26,7 @@
     itemsPerPage = columns;
   }
 
-  const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
+  let lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   const numPaddingDates: number =
     $availabilityDates.length % itemsPerPage === 0
       ? 0
@@ -37,6 +37,7 @@
 
   let currentPage = 0;
 
+  console.log(currentPage, lastPage);
   let currentPageAvailability: (ZotDate | null)[];
 
   let selectionState: SelectionStateType | null = null;
@@ -154,7 +155,7 @@
   }
 
   onMount(async () => {
-    $guestSession.meetingId = data.meetingId;
+    $guestSession.meetingId = data.meetingId ?? "";
 
     const generalAvailability = await getGeneralAvailability(data, $guestSession);
     const defaultMeetingDates = data.defaultDates.map((item) => new ZotDate(item.date, false, []));
@@ -164,6 +165,8 @@
       generalAvailability && generalAvailability.length > 0
         ? generalAvailability
         : defaultMeetingDates;
+
+    lastPage = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   });
 </script>
 

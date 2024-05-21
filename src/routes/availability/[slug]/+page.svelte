@@ -1,15 +1,22 @@
 <script lang="ts">
+  import { onMount } from "svelte";
+
   import type { PageData } from "./$types";
 
   import { enhance } from "$app/forms";
   import { GroupAvailability, PersonalAvailability } from "$lib/components/availability";
   import {
     availabilityDates,
+    availabilityTimeBlocks,
     generateSampleDates,
+    generateTimeBlocks,
+    getTimeFromHourMinuteString,
     guestSession,
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
+  import { endTime, startTime } from "$lib/stores/meetingSetupStores";
+  import type { HourMinuteString } from "$lib/types/chrono";
   import { getGeneralAvailability } from "$lib/utils/availability";
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
@@ -48,13 +55,25 @@
   $: mobileView = innerWidth < 768;
 
   let form: HTMLFormElement;
+
+  onMount(async () => {
+    $startTime = data.meetingData.from_time as HourMinuteString;
+    $endTime = data.meetingData.to_time as HourMinuteString;
+  });
+
+  $: availabilityTimeBlocks.set(
+    generateTimeBlocks(
+      getTimeFromHourMinuteString($startTime),
+      getTimeFromHourMinuteString($endTime),
+    ),
+  );
 </script>
 
 <svelte:window bind:innerWidth />
 
 <div class="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
   <h1 class="line-clamp-1 h-8 pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
-    Sample Meeting Winter 2024
+    {data.meetingData.title}
   </h1>
 
   {#if $isEditingAvailability}
