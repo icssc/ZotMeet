@@ -57,8 +57,8 @@
   let form: HTMLFormElement;
 
   onMount(async () => {
-    $startTime = data.startTime as HourMinuteString;
-    $endTime = data.endTime as HourMinuteString;
+    $startTime = data.meetingData.from_time as HourMinuteString;
+    $endTime = data.meetingData.to_time as HourMinuteString;
   });
 
   $: availabilityTimeBlocks.set(
@@ -73,7 +73,7 @@
 
 <div class="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
   <h1 class="line-clamp-1 h-8 pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
-    Sample Meeting Winter 2024
+    {data.meetingData.title}
   </h1>
 
   {#if $isEditingAvailability}

@@ -26,9 +26,8 @@ export const load: PageServerLoad = (async ({ locals, params }) => {
     form: await superValidate(_loginSchema),
     availability: user ? await getAvailability(user, params?.slug) : null,
     meetingId: params?.slug as string | undefined,
+    meetingData: await getExistingMeeting(params?.slug),
     defaultDates: (await getMeetingDates(params?.slug)) ?? [],
-    startTime: (await getExistingMeeting(params?.slug)).from_time,
-    endTime: (await getExistingMeeting(params?.slug)).to_time,
   };
 }) satisfies PageServerLoad;
 
