@@ -13,7 +13,8 @@
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
-  import { avialabilityDatesToBlocks, getGeneralAvailability } from "$lib/utils/availability";
+  import { ZotDate } from "$lib/utils/ZotDate";
+  import { availabilityDatesToBlocks, getGeneralAvailability } from "$lib/utils/availability";
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
@@ -22,11 +23,34 @@
 
   let currentTab: number = 0;
 
-  onMount(() => {
-    console.log(data);
-    // Set the group availability blocks from data loaded from the server
-    const groupAvailabilitiesBlocks = avialabilityDatesToBlocks(data.groupAvailabilities);
-    groupAvailabilities.set(groupAvailabilitiesBlocks);
+  onMount(async () => {
+    console.log("on mount");
+    if (data.meetingId) {
+      $guestSession.meetingId = data.meetingId;
+    }
+
+    const generalAvailability = await getGeneralAvailability(data, $guestSession);
+    const defaultMeetingDates = data.defaultDates.map((item) => new ZotDate(item.date, false, []));
+    ZotDate.initializeAvailabilities(defaultMeetingDates);
+    const groupAvailabilitiesBlocks = availabilityDatesToBlocks(data.groupAvailabilities);
+
+    // Update stores
+    $availabilityDates =
+      generalAvailability && generalAvailability.length > 0
+        ? generalAvailability
+        : defaultMeetingDates;
+    $groupAvailabilities = groupAvailabilitiesBlocks;
+
+    console.log("before", $availabilityDates);
+
+    // Combine every member's availability blocks into each ZotDate
+    $groupAvailabilities.forEach(({ availableBlocks }, memberIndex) => {
+      availableBlocks.forEach((blocks, dateIndex) => {
+        $availabilityDates[dateIndex].setGroupMemberAvailability(memberIndex, blocks);
+      });
+    });
+
+    console.log("after", $availabilityDates);
   });
 
   const handleSave = async (cancel: () => void) => {

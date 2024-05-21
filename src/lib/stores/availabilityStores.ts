@@ -19,41 +19,9 @@ export const getTimeFromString = (timeString: string): number => {
 const earliestTime: number = getTimeFromHoursAndMinutes(8);
 const latestTime: number = getTimeFromHoursAndMinutes(17, 30);
 
-const sampleMembers: MemberAvailability[] = [
-  {
-    name: "Sean Fong",
-    availableBlocks: [[1], [2], [3, 4, 5], [], [], [], []],
-  },
-  {
-    name: "Joe Biden",
-    availableBlocks: [[], [1, 2], [4, 5, 6, 22, 23, 24, 25, 26, 27, 28], [], [], [], []],
-  },
-  {
-    name: "Chuck Norris",
-    availableBlocks: [
-      [4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 23, 24],
-      [3, 4, 5, 6, 7],
-      [4, 5, 6],
-      [],
-      [],
-      [],
-      [],
-    ],
-  },
-  {
-    name: "Dwayne the Rock",
-    availableBlocks: [[], [1, 2, 3, 4, 5], [4, 5, 6, 25, 26, 27, 28], [], [], [], []],
-  },
-  {
-    name: "Kevin Hart",
-    availableBlocks: [[], [1, 2], [26, 27, 28, 29, 30, 31], [], [], [], []],
-  },
-];
-
 export const generateSampleDates = (
   startTime: number = earliestTime,
   endTime: number = latestTime,
-  groupMembers: MemberAvailability[] = sampleMembers,
 ): ZotDate[] => {
   // Placeholder date array from Calendar component
   const selectedCalendarDates: ZotDate[] = [
@@ -67,12 +35,6 @@ export const generateSampleDates = (
   ];
 
   ZotDate.initializeAvailabilities(selectedCalendarDates, startTime, endTime, BLOCK_LENGTH);
-
-  groupMembers.forEach(({ availableBlocks }, memberIndex) => {
-    availableBlocks.forEach((availableBlocks, dateIndex) => {
-      selectedCalendarDates[dateIndex].setGroupMemberAvailability(memberIndex, availableBlocks);
-    });
-  });
 
   return selectedCalendarDates;
 };
@@ -89,11 +51,9 @@ export const generateTimeBlocks = (startTime: number, endTime: number): number[]
 };
 
 const defaultTimeBlocks = generateTimeBlocks(earliestTime, latestTime);
-export const availabilityDates = writable<ZotDate[]>(
-  generateSampleDates(earliestTime, latestTime, sampleMembers),
-);
+export const availabilityDates = writable<ZotDate[]>(generateSampleDates(earliestTime, latestTime));
 export const availabilityTimeBlocks = writable<number[]>(defaultTimeBlocks);
-export const groupAvailabilities = writable<MemberAvailability[]>(sampleMembers);
+export const groupAvailabilities = writable<MemberAvailability[]>([]);
 
 export const isEditingAvailability = writable<boolean>(false);
 export const isStateUnsaved = writable<boolean>(false);

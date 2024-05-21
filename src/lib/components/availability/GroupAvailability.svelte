@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-
   import GroupAvailabilityBlock from "$lib/components/availability/GroupAvailabilityBlock.svelte";
   import GroupResponses from "$lib/components/availability/GroupResponses.svelte";
   import {
@@ -28,9 +26,6 @@
   let availableMembersOfSelection: string[] = [];
   let notAvailableMembersOfSelection: string[] = [];
   let selectionIsLocked: boolean = false;
-
-  // TODO: Delete when done debugging
-  onMount(() => console.log("groupAvailabilties", $groupAvailabilities));
 
   // Triggers on every pagination change and selection confirmation
   $: {

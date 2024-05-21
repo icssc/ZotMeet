@@ -56,7 +56,7 @@ export const getGeneralAvailability = async (data: PageData, guestSession: Guest
   return null;
 };
 
-export function avialabilityDatesToBlocks(
+export function availabilityDatesToBlocks(
   memberAvailabilities: Record<string, { day: Date; availability_string: string }[]>,
 ): MemberAvailability[] {
   return Object.entries(memberAvailabilities).map(([name, availabilities]) => {

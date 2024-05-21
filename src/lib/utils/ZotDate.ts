@@ -355,7 +355,7 @@ export class ZotDate {
    *
    * e.g. A group member array: `['Sean', 'Collan', 'Joe']`
    *
-   *   `setGroupMemberAvailability(1, [3, 4, 5])` will update availability time blocks 3 - 5
+   *   `setGroupMemberAvailability(1, [false, false, true, true, true])` will update availability time blocks 3 - 5
    *   to indicate Collan is available.
    *   - if Sean was already available on block 3, block 3 will be changed from `[0]` to `[0, 1]`.
    *   - if nobody was already available on block 4, block 4 will be changed from `null` to `[1]`.
@@ -366,8 +366,10 @@ export class ZotDate {
    * @param memberIndex the index of a member in an array
    * @param availableBlocks an array of availability blocks to set that member's availability
    */
-  setGroupMemberAvailability(memberIndex: number, availableBlocks: number[]): void {
-    availableBlocks.forEach((blockIndex) => {
+  setGroupMemberAvailability(memberIndex: number, availableBlocks: boolean[]): void {
+    availableBlocks.forEach((isAvailable, blockIndex) => {
+      if (!isAvailable) return;
+
       if (!this.groupAvailability[blockIndex]) {
         this.groupAvailability[blockIndex] = [memberIndex];
       } else {
