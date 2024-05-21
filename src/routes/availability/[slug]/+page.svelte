@@ -24,33 +24,31 @@
   let currentTab: number = 0;
 
   onMount(async () => {
-    console.log("on mount");
     if (data.meetingId) {
       $guestSession.meetingId = data.meetingId;
     }
 
+    // Parse personal availability data
     const generalAvailability = await getGeneralAvailability(data, $guestSession);
+
     const defaultMeetingDates = data.defaultDates.map((item) => new ZotDate(item.date, false, []));
     ZotDate.initializeAvailabilities(defaultMeetingDates);
-    const groupAvailabilitiesBlocks = availabilityDatesToBlocks(data.groupAvailabilities);
 
-    // Update stores
     $availabilityDates =
       generalAvailability && generalAvailability.length > 0
         ? generalAvailability
         : defaultMeetingDates;
-    $groupAvailabilities = groupAvailabilitiesBlocks;
 
-    console.log("before", $availabilityDates);
+    // Parse group availability data
+    const groupAvailabilitiesBlocks = availabilityDatesToBlocks(data.groupAvailabilities);
 
-    // Combine every member's availability blocks into each ZotDate
-    $groupAvailabilities.forEach(({ availableBlocks }, memberIndex) => {
+    groupAvailabilitiesBlocks.forEach(({ availableBlocks }, memberIndex) => {
       availableBlocks.forEach((blocks, dateIndex) => {
         $availabilityDates[dateIndex].setGroupMemberAvailability(memberIndex, blocks);
       });
     });
 
-    console.log("after", $availabilityDates);
+    $groupAvailabilities = groupAvailabilitiesBlocks;
   });
 
   const handleSave = async (cancel: () => void) => {
