@@ -29,5 +29,15 @@ export default {
       });
       stack.addOutputs({ url: site.url });
     });
+
+    // Reference: https://docs.sst.dev/advanced/source-maps
+    app.setDefaultFunctionProps({
+      environment: {
+        NODE_OPTIONS: "--enable-source-maps",
+      },
+      nodejs: {
+        sourcemap: true,
+      },
+    });
   },
 } satisfies SSTConfig;
