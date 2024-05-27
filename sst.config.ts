@@ -19,7 +19,6 @@ export default {
           domainName: `${stack.stage === "prod" ? "" : `${stack.stage}.`}zotmeet.com`,
           hostedZone: "zotmeet.com",
           cdk: {
-            // @ts-expect-error Constructs types are broken, see https://github.com/sst/sst/issues/3483
             certificate: Certificate.fromCertificateArn(
               stack,
               "MyCert",
