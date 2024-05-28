@@ -27,7 +27,7 @@ export const load: PageServerLoad = (async ({ locals, params }) => {
     availability: user ? await getAvailability(user, params?.slug) : null,
     meetingId: params?.slug as string | undefined,
     meetingData: await getExistingMeeting(params?.slug),
-    defaultDates: (await getMeetingDates(params?.slug)) ?? [],
+    defaultDates: (await _getMeetingDates(params?.slug)) ?? [],
   };
 }) satisfies PageServerLoad;
 
@@ -59,7 +59,7 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
   let dbMeetingDates: MeetingDateSelectSchema[] = [];
 
   try {
-    dbMeetingDates = await getMeetingDates(meetingId);
+    dbMeetingDates = await _getMeetingDates(meetingId);
   } catch (e) {
     console.log("Error getting meeting dates:", e);
   }
@@ -80,7 +80,7 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
       day: new Date(date.day).toISOString(),
       member_id: memberId,
       meeting_day: dbMeetingDates[index].id as string, // Type-cast since id is guaranteed if a meetingDate exists
-      availability_string: date.availability.toString(),
+      availability_string: date.availability.map((bool) => (bool ? "1" : "0")).join(""),
     }));
 
     await db.transaction(async (tx) => {
@@ -119,7 +119,7 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
   }
 }
 
-async function getMeetingDates(meetingId: string): Promise<MeetingDateSelectSchema[]> {
+export async function _getMeetingDates(meetingId: string): Promise<MeetingDateSelectSchema[]> {
   const dbMeeting = await getExistingMeeting(meetingId);
   const dbMeetingDates = await db
     .select()

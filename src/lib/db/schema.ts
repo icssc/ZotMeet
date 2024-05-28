@@ -158,7 +158,7 @@ export const membersInMeeting = pgTable(
   {
     memberId: text("member_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => members.id, { onDelete: "cascade" }),
     meetingId: uuid("meeting_id")
       .notNull()
       .references(() => meetings.id, { onDelete: "cascade" }),
