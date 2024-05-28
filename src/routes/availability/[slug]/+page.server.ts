@@ -40,7 +40,7 @@ const getAvailability = async (user: User, meetingId: string | undefined) => {
       and(eq(availabilities.member_id, user.id), eq(meetingDates.meeting_id, meetingId ?? "")),
     );
 
-  return availability.map((item) => item.availabilities).sort((a, b) => (a.day < b.day ? -1 : 1));
+  return availability.map((item) => item.meeting_dates).sort((a, b) => (a.date < b.date ? -1 : 1));
 };
 
 export const actions: Actions = {

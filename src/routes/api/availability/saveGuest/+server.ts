@@ -15,13 +15,10 @@ import type { ZotDate } from "$lib/utils/ZotDate";
 export async function POST({ request }: { request: Request }) {
   const formData = await request.formData();
 
-  console.log(formData.get("availabilityDates"));
   const availabilityDates: ZotDate[] = JSON.parse(
     (formData.get("availabilityDates") as string) ?? "[]",
   );
   const meetingId = (formData.get("meetingId") as string) ?? "";
-
-  console.log(availabilityDates, meetingId);
 
   let dbMeetingDates: MeetingDateSelectSchema[] = [];
 
