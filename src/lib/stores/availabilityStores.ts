@@ -105,6 +105,6 @@ export const isEditingAvailability = writable<boolean>(false);
 export const isStateUnsaved = writable<boolean>(false);
 
 export const guestSession = writable<GuestSession>({
-  guestName: "awaw",
+  guestName: "",
   meetingId: "",
 });
