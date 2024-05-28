@@ -2,7 +2,7 @@ import type { PageData } from "../../routes/availability/[slug]/$types";
 
 import { ZotDate } from "./ZotDate";
 
-import type { AvailabilityInsertSchema } from "$lib/db/schema";
+import type { AvailabilityMeetingDateJoinSchema } from "$lib/db/schema";
 import type { GuestSession } from "$lib/types/availability";
 
 export async function getGuestAvailability(guestSession: GuestSession) {
@@ -14,14 +14,14 @@ export async function getGuestAvailability(guestSession: GuestSession) {
     },
   });
 
-  const guestData: AvailabilityInsertSchema[] = await response.json();
+  const guestData: AvailabilityMeetingDateJoinSchema[] = await response.json();
 
   return guestData?.map(
     (availability) =>
       new ZotDate(
-        new Date(availability.day),
+        new Date(availability.meeting_dates.date),
         false,
-        Array.from(availability.availability_string).map((char) => char === "1"),
+        Array.from(availability.availabilities.availability_string).map((char) => char === "1"),
       ),
   );
 }
@@ -31,9 +31,9 @@ export const getUserAvailability = (data: PageData) => {
     return data.availability?.map(
       (availability) =>
         new ZotDate(
-          new Date(availability.day),
+          new Date(availability.meeting_dates.date),
           false,
-          Array.from(availability.availability_string).map((char) => char === "1"),
+          Array.from(availability.availabilities.availability_string).map((char) => char === "1"),
         ),
     );
   }

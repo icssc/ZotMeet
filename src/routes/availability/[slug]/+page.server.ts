@@ -13,6 +13,7 @@ import {
   meetingDates,
   membersInMeeting,
   type AvailabilityInsertSchema,
+  type AvailabilityMeetingDateJoinSchema,
   type MeetingDateSelectSchema,
 } from "$lib/db/schema";
 import type { ZotDate } from "$lib/utils/ZotDate";
@@ -31,7 +32,10 @@ export const load: PageServerLoad = (async ({ locals, params }) => {
   };
 }) satisfies PageServerLoad;
 
-const getAvailability = async (user: User, meetingId: string | undefined) => {
+const getAvailability = async (
+  user: User,
+  meetingId: string | undefined,
+): Promise<AvailabilityMeetingDateJoinSchema[]> => {
   const availability = await db
     .select()
     .from(availabilities)
@@ -40,7 +44,7 @@ const getAvailability = async (user: User, meetingId: string | undefined) => {
       and(eq(availabilities.member_id, user.id), eq(meetingDates.meeting_id, meetingId ?? "")),
     );
 
-  return availability.map((item) => item.meeting_dates).sort((a, b) => (a.date < b.date ? -1 : 1));
+  return availability.sort((a, b) => (a.meeting_dates.date > b.meeting_dates.date ? 1 : -1));
 };
 
 export const actions: Actions = {
