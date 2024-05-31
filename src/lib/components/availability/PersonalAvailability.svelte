@@ -9,7 +9,6 @@
   import {
     availabilityDates,
     availabilityTimeBlocks,
-    guestSession,
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
@@ -153,8 +152,6 @@
   }
 
   onMount(async () => {
-    $guestSession.meetingId = data.meetingId ?? "";
-
     lastPage = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   });
 </script>
