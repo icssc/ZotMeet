@@ -1,5 +1,7 @@
 <script lang="ts">
-  import type { PageData } from "../../../routes/availability/$types";
+  import { onMount } from "svelte";
+
+  import type { PageData } from "../../../routes/availability/[slug]/$types";
 
   import LoginFlow from "./LoginModal.svelte";
 
@@ -7,6 +9,7 @@
   import {
     availabilityDates,
     availabilityTimeBlocks,
+    guestSession,
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
@@ -22,7 +25,7 @@
     itemsPerPage = columns;
   }
 
-  const lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
+  let lastPage: number = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
   const numPaddingDates: number =
     $availabilityDates.length % itemsPerPage === 0
       ? 0
@@ -148,6 +151,12 @@
       }
     });
   }
+
+  onMount(async () => {
+    $guestSession.meetingId = data.meetingId ?? "";
+
+    lastPage = Math.floor(($availabilityDates.length - 1) / itemsPerPage);
+  });
 </script>
 
 <div class="flex items-center justify-between overflow-x-auto font-dm-sans">

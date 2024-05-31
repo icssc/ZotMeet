@@ -2,22 +2,28 @@ import { writable } from "svelte/store";
 
 import type { GuestSession, MemberAvailability } from "./../types/availability";
 
-import { TimeConstants } from "$lib/types/chrono";
+import { startTime, endTime } from "$lib/stores/meetingSetupStores";
+import { TimeConstants, type HourMinuteString } from "$lib/types/chrono";
 import { ZotDate } from "$lib/utils/ZotDate";
 
 export const BLOCK_LENGTH: number = 15;
-export const getTimeFromHoursAndMinutes = (hours: number, minutes: number = 0): number => {
-  return hours * TimeConstants.MINUTES_PER_HOUR + minutes;
-};
-export const getTimeFromString = (timeString: string): number => {
-  const [hourString, minuteString] = timeString.split(":");
-  const hours = parseInt(hourString, 10);
-  const minutes = parseInt(minuteString, 10);
-  return getTimeFromHoursAndMinutes(hours, minutes);
+
+export const getTimeFromHourMinuteString = (hourMinuteString: HourMinuteString): number => {
+  const [hours, minutes] = hourMinuteString.split(":");
+
+  return Number(hours) * TimeConstants.MINUTES_PER_HOUR + Number(minutes);
 };
 
-const earliestTime: number = getTimeFromHoursAndMinutes(8);
-const latestTime: number = getTimeFromHoursAndMinutes(17, 30);
+let earliestTime: number = getTimeFromHourMinuteString("08:00");
+let latestTime: number = getTimeFromHourMinuteString("17:30");
+
+startTime.subscribe((value) => {
+  earliestTime = getTimeFromHourMinuteString(value ?? "08:00");
+});
+
+endTime.subscribe((value) => {
+  latestTime = getTimeFromHourMinuteString(value ?? "17:30");
+});
 
 export const generateSampleDates = (
   startTime: number = earliestTime,

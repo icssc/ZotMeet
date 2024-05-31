@@ -5,7 +5,6 @@ import {
   timestamp,
   index,
   smallint,
-  date,
   primaryKey,
   pgEnum,
   boolean,
@@ -85,7 +84,6 @@ export const groups = pgTable("groups", {
 export const availabilities = pgTable(
   "availabilities",
   {
-    day: date("day").notNull(),
     member_id: text("member_id")
       .notNull()
       .references(() => members.id, { onDelete: "cascade" }),
@@ -160,7 +158,7 @@ export const membersInMeeting = pgTable(
     meetingId: uuid("meeting_id")
       .notNull()
       .references(() => meetings.id, { onDelete: "cascade" }),
-    attending: attendanceEnum("attendance"),
+    attending: attendanceEnum("availability"),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.memberId, table.meetingId] }),
@@ -259,3 +257,8 @@ export type MeetingInsertSchema = typeof meetings.$inferInsert;
 export type MeetingSelectSchema = typeof meetings.$inferSelect;
 export type MeetingDateInsertSchema = typeof meetingDates.$inferInsert;
 export type MeetingDateSelectSchema = typeof meetingDates.$inferSelect;
+
+export type AvailabilityMeetingDateJoinSchema = {
+  availabilities: typeof availabilities.$inferSelect;
+  meeting_dates: typeof meetingDates.$inferSelect;
+};

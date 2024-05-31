@@ -4,7 +4,7 @@ import { and, eq } from "drizzle-orm";
 import type { RequestHandler } from "./$types";
 
 import { db } from "$lib/db/drizzle";
-import { availabilities, guests } from "$lib/db/schema";
+import { availabilities, guests, meetingDates } from "$lib/db/schema";
 
 export const POST: RequestHandler = async ({ request }) => {
   const data = await request.json();
@@ -25,11 +25,17 @@ export const POST: RequestHandler = async ({ request }) => {
   const availability = await db
     .select()
     .from(availabilities)
-    .where(eq(availabilities.member_id, guest.id));
+    .innerJoin(meetingDates, eq(availabilities.meeting_day, meetingDates.id))
+    .where(
+      and(
+        eq(availabilities.member_id, guest.id),
+        eq(meetingDates.meeting_id, data.meetingId ?? ""),
+      ),
+    );
 
   if (availability.length == 0) {
     return json([]);
   }
 
-  return json(availability.sort((a, b) => (a.day < b.day ? -1 : 1)));
+  return json(availability.sort((a, b) => (a.meeting_dates.date > b.meeting_dates.date ? 1 : -1)));
 };

@@ -2,7 +2,7 @@
   import type { ActionResult } from "@sveltejs/kit";
   import { superForm } from "sveltekit-superforms/client";
 
-  import type { PageData } from "../../../routes/availability/$types";
+  import type { PageData } from "../../../routes/availability/[slug]/$types";
 
   import { deserialize } from "$app/forms";
   import { userSchema } from "$lib/config/zod-schemas";
@@ -10,6 +10,7 @@
     isEditingAvailability,
     isStateUnsaved,
     guestSession,
+    availabilityDates,
   } from "$lib/stores/availabilityStores";
   import BrightnessAlert from "~icons/material-symbols/brightness-alert-outline-rounded";
   import EmailIcon from "~icons/mdi/email";
@@ -85,9 +86,19 @@
         authModal.close();
       }
 
+      // encodes availabilityDates for formData
+      const availabilityDatesStrings = $availabilityDates.map((date) => JSON.stringify(date));
+      const availabilityDatesString = `[${availabilityDatesStrings.join(",")}]`;
+
+      formData.append("availabilityDates", availabilityDatesString);
+      await fetch("/api/availability/saveGuest", {
+        method: "POST",
+        body: formData,
+      });
+
       $guestSession = {
         guestName: guestData.data?.username,
-        meetingId: data.meetingId,
+        meetingId: data.meetingId ?? "",
       };
 
       $isEditingAvailability = false;
@@ -182,7 +193,7 @@
           <form
             bind:this={guestForm}
             class="flex-center w-full grow flex-col items-center space-y-4 md:w-[250px]"
-            on:submit|preventDefault={() => handleGuestSubmit(data.meetingId)}
+            on:submit|preventDefault={() => handleGuestSubmit(data.meetingId ?? "")}
           >
             {#if formState === "failure"}
               <aside class="variant-filled-error alert">

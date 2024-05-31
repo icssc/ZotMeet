@@ -6,7 +6,6 @@ import { superValidate } from "sveltekit-superforms/server";
 import type { PageServerLoad } from "../$types";
 import { _loginSchema } from "../../auth/login/+page.server";
 
-import { guestSchema } from "$lib/config/zod-schemas";
 import { getExistingGuest, getExistingMeeting } from "$lib/db/databaseUtils.server";
 import { db } from "$lib/db/drizzle";
 import {
@@ -14,6 +13,7 @@ import {
   meetingDates,
   membersInMeeting,
   type AvailabilityInsertSchema,
+  type AvailabilityMeetingDateJoinSchema,
   type MeetingDateSelectSchema,
   users,
   meetings,
@@ -21,24 +21,27 @@ import {
 } from "$lib/db/schema";
 import type { ZotDate } from "$lib/utils/ZotDate";
 
-const guestLoginSchema = guestSchema.pick({ username: true });
-
 export const load: PageServerLoad = (async ({ locals, params }) => {
   const user = locals.user;
   // @ts-expect-error slug is defined in the route
   const meeting_id: string = params?.slug;
 
+  // TODO: If no slug is in the URL (i.e. no meeting ID), we should redirect to an error page
+
   return {
     form: await superValidate(_loginSchema),
-    guestForm: await superValidate(guestLoginSchema),
     availability: user ? await getUserSpecificAvailability(user, meeting_id) : null,
     groupAvailabilities: await getMeetingMemeberAvailabilities(meeting_id),
     meetingId: meeting_id as string | undefined,
-    defaultDates: (await getMeetingDates(meeting_id)) ?? [],
+    meetingData: await getExistingMeeting(meeting_id),
+    defaultDates: (await _getMeetingDates(meeting_id)) ?? [],
   };
 }) satisfies PageServerLoad;
 
-const getUserSpecificAvailability = async (user: User, meetingId: string | undefined) => {
+const getUserSpecificAvailability = async (
+  user: User,
+  meetingId: string | undefined,
+): Promise<AvailabilityMeetingDateJoinSchema[]> => {
   const availability = await db
     .select()
     .from(availabilities)
@@ -47,7 +50,7 @@ const getUserSpecificAvailability = async (user: User, meetingId: string | undef
       and(eq(availabilities.member_id, user.id), eq(meetingDates.meeting_id, meetingId ?? "")),
     );
 
-  return availability.map((item) => item.availabilities).sort((a, b) => (a.day < b.day ? -1 : 1));
+  return availability.sort((a, b) => (a.meeting_dates.date > b.meeting_dates.date ? 1 : -1));
 };
 
 /**
@@ -108,7 +111,7 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
   let dbMeetingDates: MeetingDateSelectSchema[] = [];
 
   try {
-    dbMeetingDates = await getMeetingDates(meetingId);
+    dbMeetingDates = await _getMeetingDates(meetingId);
   } catch (e) {
     console.log("Error getting meeting dates:", e);
   }
@@ -129,7 +132,7 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
       day: new Date(date.day).toISOString(),
       member_id: memberId,
       meeting_day: dbMeetingDates[index].id as string, // Type-cast since id is guaranteed if a meetingDate exists
-      availability_string: date.availability.toString(),
+      availability_string: date.availability.map((bool) => (bool ? "1" : "0")).join(""),
     }));
 
     await db.transaction(async (tx) => {
@@ -168,7 +171,7 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
   }
 }
 
-async function getMeetingDates(meetingId: string): Promise<MeetingDateSelectSchema[]> {
+export async function _getMeetingDates(meetingId: string): Promise<MeetingDateSelectSchema[]> {
   const dbMeeting = await getExistingMeeting(meetingId);
   const dbMeetingDates = await db
     .select()
