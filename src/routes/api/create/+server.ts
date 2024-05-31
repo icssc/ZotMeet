@@ -11,16 +11,16 @@ export async function POST({ request }) {
   console.log("Creating meeting:", title, description, fromTime, toTime, meetingDates);
 
   if (fromTime >= toTime) {
-    error(400, "From time must be before to time");
+    throw error(400, "From time must be before to time");
   }
 
   if (meetingDates.length === 0) {
-    error(400, "At least one date must be provided");
+    throw error(400, "At least one date must be provided");
   }
 
   // Just so we don't get flooded too easily
   if (meetingDates.length > 100) {
-    error(400, "Too many dates provided");
+    throw error(400, "Too many dates provided");
   }
 
   const sortedDates = meetingDates
@@ -42,6 +42,6 @@ export async function POST({ request }) {
     return json({ meetingId });
   } catch (err) {
     console.log("Error creating meeting:", err);
-    error(500, "Error creating meeting");
+    throw error(500, "Error creating meeting");
   }
 }
