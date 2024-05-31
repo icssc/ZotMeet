@@ -28,7 +28,7 @@
 
   let currentTab: number = 0;
 
-  onMount(async () => {
+  const loadData = async () => {
     if (data.meetingId) {
       $guestSession.meetingId = data.meetingId;
     }
@@ -54,7 +54,7 @@
     });
 
     $groupAvailabilities = groupAvailabilitiesBlocks;
-  });
+  };
 
   const handleSave = async (cancel: () => void) => {
     if (data.user) {
@@ -83,6 +83,9 @@
 
   let innerWidth = 0;
   $: mobileView = innerWidth < 768;
+  $: if (data) {
+    loadData();
+  }
 
   let form: HTMLFormElement;
 
