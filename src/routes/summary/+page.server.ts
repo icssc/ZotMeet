@@ -29,8 +29,6 @@ export const load: PageServerLoad = async ({ cookies }) => {
     .groupBy(meetings.id)
     .where(eq(availabilities.member_id, user_id));
 
-  console.log(meetingList);
-
   const scheduledMeetings = meetingList.filter((meeting) => meeting.scheduled === true);
   const scheduled: ScheduledMeeting[] = scheduledMeetings.map((meeting) => {
     const meetingDate = meeting.startDate?.toLocaleDateString();

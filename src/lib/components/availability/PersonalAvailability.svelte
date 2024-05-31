@@ -37,7 +37,6 @@
 
   let currentPage = 0;
 
-  console.log(currentPage, lastPage);
   let currentPageAvailability: (ZotDate | null)[];
 
   let selectionState: SelectionStateType | null = null;

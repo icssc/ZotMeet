@@ -13,6 +13,7 @@ import {
   meetingDates,
   membersInMeeting,
   type AvailabilityInsertSchema,
+  type AvailabilityMeetingDateJoinSchema,
   type MeetingDateSelectSchema,
 } from "$lib/db/schema";
 import type { ZotDate } from "$lib/utils/ZotDate";
@@ -27,11 +28,14 @@ export const load: PageServerLoad = (async ({ locals, params }) => {
     availability: user ? await getAvailability(user, params?.slug) : null,
     meetingId: params?.slug as string | undefined,
     meetingData: await getExistingMeeting(params?.slug),
-    defaultDates: (await getMeetingDates(params?.slug)) ?? [],
+    defaultDates: (await _getMeetingDates(params?.slug)) ?? [],
   };
 }) satisfies PageServerLoad;
 
-const getAvailability = async (user: User, meetingId: string | undefined) => {
+const getAvailability = async (
+  user: User,
+  meetingId: string | undefined,
+): Promise<AvailabilityMeetingDateJoinSchema[]> => {
   const availability = await db
     .select()
     .from(availabilities)
@@ -40,7 +44,7 @@ const getAvailability = async (user: User, meetingId: string | undefined) => {
       and(eq(availabilities.member_id, user.id), eq(meetingDates.meeting_id, meetingId ?? "")),
     );
 
-  return availability.map((item) => item.availabilities).sort((a, b) => (a.day < b.day ? -1 : 1));
+  return availability.sort((a, b) => (a.meeting_dates.date > b.meeting_dates.date ? 1 : -1));
 };
 
 export const actions: Actions = {
@@ -59,7 +63,7 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
   let dbMeetingDates: MeetingDateSelectSchema[] = [];
 
   try {
-    dbMeetingDates = await getMeetingDates(meetingId);
+    dbMeetingDates = await _getMeetingDates(meetingId);
   } catch (e) {
     console.log("Error getting meeting dates:", e);
   }
@@ -119,7 +123,7 @@ async function save({ request, locals }: { request: Request; locals: App.Locals 
   }
 }
 
-async function getMeetingDates(meetingId: string): Promise<MeetingDateSelectSchema[]> {
+export async function _getMeetingDates(meetingId: string): Promise<MeetingDateSelectSchema[]> {
   const dbMeeting = await getExistingMeeting(meetingId);
   const dbMeetingDates = await db
     .select()

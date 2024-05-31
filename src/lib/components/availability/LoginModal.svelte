@@ -10,6 +10,7 @@
     isEditingAvailability,
     isStateUnsaved,
     guestSession,
+    availabilityDates,
   } from "$lib/stores/availabilityStores";
   import BrightnessAlert from "~icons/material-symbols/brightness-alert-outline-rounded";
   import EmailIcon from "~icons/mdi/email";
@@ -84,6 +85,16 @@
       if (authModal && authModal instanceof HTMLDialogElement) {
         authModal.close();
       }
+
+      // encodes availabilityDates for formData
+      const availabilityDatesStrings = $availabilityDates.map((date) => JSON.stringify(date));
+      const availabilityDatesString = `[${availabilityDatesStrings.join(",")}]`;
+
+      formData.append("availabilityDates", availabilityDatesString);
+      await fetch("/api/availability/saveGuest", {
+        method: "POST",
+        body: formData,
+      });
 
       $guestSession = {
         guestName: guestData.data?.username,
