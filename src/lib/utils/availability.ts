@@ -62,9 +62,9 @@ export function availabilityDatesToBlocks(
   return Object.entries(memberAvailabilities).map(([name, availabilities]) => {
     return {
       name,
-      availableBlocks: availabilities.map((availability) =>
-        JSON.parse("[" + availability.availability_string + "]"),
-      ),
+      availableBlocks: availabilities.map((availability) => {
+        return availability.availability_string.split("").map((char) => char === "1");
+      }),
     };
   });
 }
