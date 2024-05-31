@@ -5,6 +5,7 @@ import { join } from "path";
 import forms from "@tailwindcss/forms";
 import daisyui from "daisyui";
 import emerald from "daisyui/src/theming/themes";
+import defaultTheme from "tailwindcss/defaultTheme";
 
 // import { zotmeetTheme } from "./theme";
 
@@ -36,6 +37,11 @@ export default {
         "dm-sans": ["'DM Sans'", "sans-serif"],
         default: ["'DM Sans'", "sans-serif"],
       },
+    },
+    screens: {
+      xs: "400px",
+      ...defaultTheme.screens,
+      "3xl": "1920px",
     },
     default: "daisy",
   },
