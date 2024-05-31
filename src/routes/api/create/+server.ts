@@ -43,6 +43,6 @@ export async function POST({ request }) {
   } catch (err) {
     console.log("Error creating meeting:", err);
     // TODO: This is unsafe
-    throw error(500, `${err.stack}\nmeeting schema: ${meeting}`);
+    throw error(500, `${err.stack}\nmeeting schema: ${JSON.stringify(meeting)}`);
   }
 }
