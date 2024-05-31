@@ -42,6 +42,7 @@ export async function POST({ request }) {
     return json({ meetingId });
   } catch (err) {
     console.log("Error creating meeting:", err);
-    throw error(500, "Error creating meeting");
+    // TODO: This is unsafe
+    throw error(500, `Error creating meeting: ${err}`);
   }
 }
