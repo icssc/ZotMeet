@@ -114,9 +114,15 @@ export const getExistingGuest = async (username: string, meeting: MeetingSelectS
  * @returns The id of the inserted meeting.
  */
 export const insertMeeting = async (meeting: MeetingInsertSchema, meetingDates: Date[]) => {
-  const [dbMeeting] = await db.insert(meetings).values(meeting).returning();
-  await insertMeetingDates(meetingDates, dbMeeting.id);
-  return dbMeeting.id;
+  try {
+    const [dbMeeting] = await db.insert(meetings).values(meeting).returning();
+    await insertMeetingDates(meetingDates, dbMeeting.id);
+
+    return dbMeeting.id;
+  } catch (err) {
+    console.error("Error inserting meeting=", meeting);
+    throw Error(`Error inserting meeting=${meeting}`);
+  }
 };
 
 export const getExistingMeeting = async (meetingId: string) => {
@@ -134,10 +140,9 @@ export const insertMeetingDates = async (dates: Date[], meeting_id: string) => {
 
   try {
     await db.insert(meetingDates).values(dbMeetingDates);
-  }
-  catch (err) {
+  } catch (err) {
     console.error("Error inserting meeting dates=", dbMeetingDates);
-    throw err;
+    throw Error(`Error inserting meeting dates=${dbMeetingDates}`);
   }
 };
 
