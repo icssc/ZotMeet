@@ -119,8 +119,9 @@ export const insertMeeting = async (meeting: MeetingInsertSchema, meetingDates: 
   try {
     [dbMeeting] = await db.insert(meetings).values(meeting).returning();
   } catch (err) {
-    console.error("Error inserting meeting=", meeting);
-    throw Error(`Error inserting meeting=${meeting}`);
+    const meetingSerialized = JSON.stringify(meeting);
+    console.error("Error inserting meeting=", meetingSerialized);
+    throw Error(`Error inserting meeting=${meetingSerialized}`);
   }
 
   await insertMeetingDates(meetingDates, dbMeeting.id);
