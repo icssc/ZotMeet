@@ -3,6 +3,11 @@
 
 npx --no -- lint-staged
 
+# Generate migration files
 pnpm generate
+
+# Remove references to the schema "public" from migration SQL files
 sed -i "s/\"public\"\.//g" src/lib/db/migrations/*.sql
+
+# Add the changed migration files
 git add src/lib/db/migrations/
