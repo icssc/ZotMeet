@@ -379,6 +379,13 @@ export class ZotDate {
   }
 
   /**
+   * Resets the group availability array
+   */
+  resetGroupAvailability(): void {
+    this.groupAvailability = [];
+  }
+
+  /**
    * Gets the group availability block based on the block index
    * @param index index of the availability block
    * @return the current availability of the block corresponding to the given index

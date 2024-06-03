@@ -28,34 +28,6 @@
 
   let currentTab: number = 0;
 
-  const loadData = async () => {
-    if (data.meetingId) {
-      $guestSession.meetingId = data.meetingId;
-    }
-
-    // Parse personal availability data
-    const generalAvailability = await getGeneralAvailability(data, $guestSession);
-
-    const defaultMeetingDates = data.defaultDates.map((item) => new ZotDate(item.date, false, []));
-    ZotDate.initializeAvailabilities(defaultMeetingDates);
-
-    $availabilityDates =
-      generalAvailability && generalAvailability.length > 0
-        ? generalAvailability
-        : defaultMeetingDates;
-
-    // Parse group availability data
-    const groupAvailabilitiesBlocks = availabilityDatesToBlocks(data.groupAvailabilities);
-
-    groupAvailabilitiesBlocks.forEach(({ availableBlocks }, memberIndex) => {
-      availableBlocks.forEach((blocks, dateIndex) => {
-        $availabilityDates[dateIndex].setGroupMemberAvailability(memberIndex, blocks);
-      });
-    });
-
-    $groupAvailabilities = groupAvailabilitiesBlocks;
-  };
-
   const handleSave = async (cancel: () => void) => {
     if (data.user) {
       return;
@@ -81,18 +53,46 @@
     $isStateUnsaved = false;
   };
 
-  let innerWidth = 0;
-  $: mobileView = innerWidth < 768;
-  $: if (data) {
-    loadData();
-  }
+  const updatePersonalAvailability = async () => {
+    if (data.meetingId) {
+      $guestSession.meetingId = data.meetingId;
+    }
 
+    const generalAvailability = await getGeneralAvailability(data, $guestSession);
+
+    const defaultMeetingDates = data.defaultDates.map((item) => new ZotDate(item.date, false, []));
+    ZotDate.initializeAvailabilities(defaultMeetingDates);
+
+    $availabilityDates =
+      generalAvailability && generalAvailability.length > 0
+        ? generalAvailability
+        : defaultMeetingDates;
+  };
+
+  const updateGroupAvailability = () => {
+    const groupAvailabilitiesBlocks = availabilityDatesToBlocks(data.groupAvailabilities);
+
+    $availabilityDates.forEach((date) => date.resetGroupAvailability());
+
+    groupAvailabilitiesBlocks.forEach(({ availableBlocks }, memberIndex) => {
+      availableBlocks.forEach((blocks, dateIndex) => {
+        $availabilityDates[dateIndex].setGroupMemberAvailability(memberIndex, blocks);
+      });
+    });
+
+    $groupAvailabilities = groupAvailabilitiesBlocks;
+  };
+
+  let innerWidth = 0;
   let form: HTMLFormElement;
 
-  onMount(async () => {
-    $startTime = data.meetingData.from_time as HourMinuteString;
-    $endTime = data.meetingData.to_time as HourMinuteString;
-  });
+  $: mobileView = innerWidth < 768;
+
+  $: {
+    if (data) {
+      updateGroupAvailability();
+    }
+  }
 
   $: availabilityTimeBlocks.set(
     generateTimeBlocks(
@@ -100,6 +100,14 @@
       getTimeFromHourMinuteString($endTime),
     ),
   );
+
+  onMount(async () => {
+    $startTime = data.meetingData.from_time as HourMinuteString;
+    $endTime = data.meetingData.to_time as HourMinuteString;
+
+    await updatePersonalAvailability();
+    updateGroupAvailability();
+  });
 </script>
 
 <svelte:window bind:innerWidth />
