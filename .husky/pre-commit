@@ -2,3 +2,6 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 npx --no -- lint-staged
+
+pnpm generate
+git add src/lib/db/migrations/
