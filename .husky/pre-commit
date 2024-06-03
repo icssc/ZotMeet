@@ -4,4 +4,5 @@
 npx --no -- lint-staged
 
 pnpm generate
+sed -i "s/\"public\"\.//g" src/lib/db/migrations/*.sql
 git add src/lib/db/migrations/
