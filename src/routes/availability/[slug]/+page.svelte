@@ -8,7 +8,6 @@
   import {
     availabilityDates,
     availabilityTimeBlocks,
-    generateSampleDates,
     generateTimeBlocks,
     getTimeFromHourMinuteString,
     guestSession,
@@ -17,6 +16,7 @@
   } from "$lib/stores/availabilityStores";
   import { endTime, startTime } from "$lib/stores/meetingSetupStores";
   import type { HourMinuteString } from "$lib/types/chrono";
+  import { ZotDate } from "$lib/utils/ZotDate";
   import { getGeneralAvailability } from "$lib/utils/availability";
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
@@ -44,8 +44,21 @@
   };
 
   const handleCancel = async () => {
-    $availabilityDates =
-      (await getGeneralAvailability(data, $guestSession)) ?? generateSampleDates();
+    const generalAvailability = await getGeneralAvailability(data, $guestSession);
+
+    if (!generalAvailability || generalAvailability.length === 0) {
+      const updatedAvailabilityDates = $availabilityDates.map((item) => {
+        return new ZotDate(
+          item.day,
+          item.isSelected,
+          item.availability.map(() => false),
+        );
+      });
+
+      availabilityDates.set(updatedAvailabilityDates);
+    } else {
+      $availabilityDates = generalAvailability;
+    }
 
     $isEditingAvailability = !$isEditingAvailability;
     $isStateUnsaved = false;
