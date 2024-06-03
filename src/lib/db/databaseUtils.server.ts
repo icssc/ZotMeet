@@ -132,7 +132,13 @@ export const insertMeetingDates = async (dates: Date[], meeting_id: string) => {
     return { meeting_id, date: startOfDay };
   });
 
-  await db.insert(meetingDates).values(dbMeetingDates);
+  try {
+    await db.insert(meetingDates).values(dbMeetingDates);
+  }
+  catch (err) {
+    console.error("Error inserting meeting dates=", dbMeetingDates);
+    throw err;
+  }
 };
 
 export const getExistingMeetingDates = async (meetingId: string) => {
