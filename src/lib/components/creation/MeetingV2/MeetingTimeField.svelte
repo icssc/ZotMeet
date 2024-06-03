@@ -1,5 +1,6 @@
 <script lang="ts">
   import { startTime, endTime } from "$lib/stores/meetingSetupStores";
+  import { cn } from "$lib/utils/utils";
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
 
   let startHour: number = 9;
@@ -46,12 +47,24 @@
     <span class="pl-2 xs:pl-0"> and </span>
 
     <div class="flex gap-[6px]">
-      <select bind:value={endHour} class="select select-bordered h-8 min-h-0 py-0 pl-3 pr-8">
+      <select
+        bind:value={endHour}
+        class={cn(
+          "select select-bordered h-8 min-h-0 py-0 pl-3 pr-8",
+          $startTime >= $endTime && "border-red-500 focus:border-red-500 focus:outline-red-500",
+        )}
+      >
         {#each Array.from({ length: 12 }, (_, i) => i + 1) as hour}
           <option value={hour} selected={endHour === hour}>{hour}</option>
         {/each}
       </select>
-      <select bind:value={endPeriod} class="select select-bordered h-8 min-h-0 py-0 pl-3 pr-8">
+      <select
+        bind:value={endPeriod}
+        class={cn(
+          "select select-bordered h-8 min-h-0 py-0 pl-3 pr-8",
+          $startTime >= $endTime && "border-red-500 focus:border-red-500 focus:outline-red-500",
+        )}
+      >
         <option selected={endPeriod === "AM"}>AM</option>
         <option selected={endPeriod === "PM"}>PM</option>
       </select>

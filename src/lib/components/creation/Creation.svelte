@@ -70,7 +70,13 @@
     class={cn(
       "btn w-48 border-none bg-success font-montserrat text-xl font-medium text-gray-light sm:btn-wide",
     )}
-    disabled={$selectedDays.length > 0 && $startTime && $endTime && $meetingName ? false : true}
+    disabled={$selectedDays.length > 0 &&
+    $startTime &&
+    $endTime &&
+    $startTime < $endTime &&
+    $meetingName
+      ? false
+      : true}
     on:click={handleCreation}
   >
     Continue →
