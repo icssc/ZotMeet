@@ -40,6 +40,16 @@
 
     goto(`/availability/${meetingId}`);
   };
+
+  const hasValidParams = () => {
+    return $selectedDays.length > 0 &&
+      $startTime &&
+      $endTime &&
+      $startTime < $endTime &&
+      $meetingName
+      ? true
+      : false;
+  };
 </script>
 
 <div class="px-4 pt-8 md:pl-[60px] md:pt-10">
@@ -70,13 +80,7 @@
     class={cn(
       "btn w-48 border-none bg-success font-montserrat text-xl font-medium text-gray-light sm:btn-wide",
     )}
-    disabled={$selectedDays.length > 0 &&
-    $startTime &&
-    $endTime &&
-    $startTime < $endTime &&
-    $meetingName
-      ? false
-      : true}
+    disabled={!hasValidParams()}
     on:click={handleCreation}
   >
     Continue →

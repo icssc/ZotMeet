@@ -1,5 +1,6 @@
 <script lang="ts">
   import { startTime, endTime } from "$lib/stores/meetingSetupStores";
+  import type { HourMinuteString } from "$lib/types/chrono";
   import { cn } from "$lib/utils/utils";
   import ClockIcon from "~icons/material-symbols/nest-clock-farsight-analog-outline";
 
@@ -8,7 +9,7 @@
   let startPeriod: "AM" | "PM" = "AM";
   let endPeriod: "AM" | "PM" = "PM";
 
-  function convertTo24Hour(hour: number, period: "AM" | "PM"): string {
+  const convertTo24Hour = (hour: number, period: "AM" | "PM"): string => {
     if (period === "PM" && hour !== 12) {
       hour += 12;
     } else if (period === "AM" && hour === 12) {
@@ -16,10 +17,10 @@
     }
 
     return hour.toString().padStart(2, "0");
-  }
+  };
 
-  $: $startTime = `${convertTo24Hour(startHour, startPeriod)}:00` as `${string}:${string}`;
-  $: $endTime = `${convertTo24Hour(endHour, endPeriod)}:00` as `${string}:${string}`;
+  $: $startTime = `${convertTo24Hour(startHour, startPeriod)}:00` as HourMinuteString;
+  $: $endTime = `${convertTo24Hour(endHour, endPeriod)}:00` as HourMinuteString;
 </script>
 
 <div>
