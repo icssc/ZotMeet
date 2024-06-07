@@ -24,14 +24,14 @@ import type { ZotDate } from "$lib/utils/ZotDate";
 export const load: PageServerLoad = (async ({ locals, params }) => {
   const user = locals.user;
   // @ts-expect-error slug is defined in the route
-  const meeting_id: string = params?.slug;
+  const meeting_id: string = params?.slug ?? "";
 
   // TODO: If no slug is in the URL (i.e. no meeting ID), we should redirect to an error page
 
   return {
     form: await superValidate(_loginSchema),
     availability: user ? await getUserSpecificAvailability(user, meeting_id) : null,
-    groupAvailabilities: await getMeetingMemeberAvailabilities(meeting_id),
+    groupAvailabilities: await getMeetingMemberAvailabilities(meeting_id),
     meetingId: meeting_id as string | undefined,
     meetingData: await getExistingMeeting(meeting_id),
     defaultDates: (await _getMeetingDates(meeting_id)) ?? [],
@@ -59,7 +59,7 @@ const getUserSpecificAvailability = async (
  * @param meetingId
  * @returns a record of the member name to their availabilities, each sorted by date
  */
-async function getMeetingMemeberAvailabilities(meetingId: string) {
+async function getMeetingMemberAvailabilities(meetingId: string) {
   const raw_availabilities = await db
     .select({
       username: users.displayName,
