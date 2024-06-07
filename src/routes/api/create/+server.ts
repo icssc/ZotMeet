@@ -41,7 +41,8 @@ export async function POST({ request }) {
     const meetingId = await insertMeeting(meeting, sortedDates);
     return json({ meetingId });
   } catch (err) {
-    console.log("Error creating meeting:", err);
-    throw error(500, "Error creating meeting");
+    console.error("Error creating meeting:", err.message);
+    // TODO: This is unsafe
+    throw error(500, `Error creating meeting: ${err.message}`);
   }
 }
