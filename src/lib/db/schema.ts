@@ -16,7 +16,7 @@ import {
 export const attendanceValues = ["accepted", "maybe", "declined"] as const;
 export type AttendanceValue = (typeof attendanceValues)[number];
 
-export const attendanceEnum = pgEnum("attendance", ["accepted", "maybe", "declined"]);
+export const attendanceEnum = pgEnum("attendance", attendanceValues);
 
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = pgTable("members", {

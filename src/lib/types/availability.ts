@@ -15,7 +15,7 @@ export type SelectionStateType = {
 
 export interface MemberAvailability {
   name: string;
-  availableBlocks: number[][];
+  availableBlocks: boolean[][];
 }
 
 export interface LoginModalProps {

@@ -15,24 +15,29 @@ import {
   type AvailabilityInsertSchema,
   type AvailabilityMeetingDateJoinSchema,
   type MeetingDateSelectSchema,
+  users,
+  meetings,
+  members,
 } from "$lib/db/schema";
 import type { ZotDate } from "$lib/utils/ZotDate";
 
 export const load: PageServerLoad = (async ({ locals, params }) => {
   const user = locals.user;
+  const meeting_id: string = params?.slug ?? "";
 
   // TODO: If no slug is in the URL (i.e. no meeting ID), we should redirect to an error page
 
   return {
     form: await superValidate(_loginSchema),
-    availability: user ? await getAvailability(user, params?.slug) : null,
-    meetingId: params?.slug as string | undefined,
-    meetingData: await getExistingMeeting(params?.slug),
-    defaultDates: (await _getMeetingDates(params?.slug)) ?? [],
+    availability: user ? await getUserSpecificAvailability(user, meeting_id) : null,
+    groupAvailabilities: await getMeetingMemberAvailabilities(meeting_id),
+    meetingId: meeting_id as string | undefined,
+    meetingData: await getExistingMeeting(meeting_id),
+    defaultDates: (await _getMeetingDates(meeting_id)) ?? [],
   };
 }) satisfies PageServerLoad;
 
-const getAvailability = async (
+const getUserSpecificAvailability = async (
   user: User,
   meetingId: string | undefined,
 ): Promise<AvailabilityMeetingDateJoinSchema[]> => {
@@ -46,6 +51,48 @@ const getAvailability = async (
 
   return availability.sort((a, b) => (a.meeting_dates.date > b.meeting_dates.date ? 1 : -1));
 };
+
+/**
+ * Get all availabilities of members for a meeting
+ *
+ * @param meetingId
+ * @returns a record of the member name to their availabilities, each sorted by date
+ */
+async function getMeetingMemberAvailabilities(meetingId: string) {
+  const raw_availabilities = await db
+    .select({
+      username: users.displayName,
+      availability_string: availabilities.availability_string,
+      day: meetingDates.date,
+    })
+    .from(availabilities)
+    .innerJoin(meetingDates, eq(availabilities.meeting_day, meetingDates.id))
+    .innerJoin(meetings, eq(meetingDates.meeting_id, meetings.id))
+    .innerJoin(members, eq(availabilities.member_id, members.id))
+    .innerJoin(users, eq(members.id, users.id))
+    .where(eq(meetings.id, meetingId));
+
+  // Group availabilities by user
+  const userAvailabilities = raw_availabilities.reduce(
+    (acc, { username, availability_string, day }) => {
+      if (!acc[username]) {
+        acc[username] = [];
+      }
+
+      acc[username].push({ day, availability_string });
+
+      return acc;
+    },
+    {} as Record<string, { day: Date; availability_string: string }[]>,
+  );
+
+  // Sort availabilities by date
+  for (const username in userAvailabilities) {
+    userAvailabilities[username].sort((a, b) => (a.day < b.day ? -1 : 1));
+  }
+
+  return userAvailabilities;
+}
 
 export const actions: Actions = {
   save: save,

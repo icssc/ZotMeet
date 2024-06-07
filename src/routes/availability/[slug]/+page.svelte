@@ -11,13 +11,15 @@
     generateSampleDates,
     generateTimeBlocks,
     getTimeFromHourMinuteString,
+    groupAvailabilities,
     guestSession,
     isEditingAvailability,
     isStateUnsaved,
   } from "$lib/stores/availabilityStores";
   import { endTime, startTime } from "$lib/stores/meetingSetupStores";
   import type { HourMinuteString } from "$lib/types/chrono";
-  import { getGeneralAvailability } from "$lib/utils/availability";
+  import { ZotDate } from "$lib/utils/ZotDate";
+  import { availabilityDatesToBlocks, getGeneralAvailability } from "$lib/utils/availability";
   import { cn } from "$lib/utils/utils";
   import CancelCircleOutline from "~icons/mdi/cancel-circle-outline";
   import CheckboxMarkerdCircleOutlineIcon from "~icons/mdi/checkbox-marked-circle-outline";
@@ -51,15 +53,46 @@
     $isStateUnsaved = false;
   };
 
-  let innerWidth = 0;
-  $: mobileView = innerWidth < 768;
+  const updatePersonalAvailability = async () => {
+    if (data.meetingId) {
+      $guestSession.meetingId = data.meetingId;
+    }
 
+    const generalAvailability = await getGeneralAvailability(data, $guestSession);
+
+    const defaultMeetingDates = data.defaultDates.map((item) => new ZotDate(item.date, false, []));
+    ZotDate.initializeAvailabilities(defaultMeetingDates);
+
+    $availabilityDates =
+      generalAvailability && generalAvailability.length > 0
+        ? generalAvailability
+        : defaultMeetingDates;
+  };
+
+  const updateGroupAvailability = () => {
+    const groupAvailabilitiesBlocks = availabilityDatesToBlocks(data.groupAvailabilities);
+
+    $availabilityDates.forEach((date) => date.resetGroupAvailability());
+
+    groupAvailabilitiesBlocks.forEach(({ availableBlocks }, memberIndex) => {
+      availableBlocks.forEach((blocks, dateIndex) => {
+        $availabilityDates[dateIndex].setGroupMemberAvailability(memberIndex, blocks);
+      });
+    });
+
+    $groupAvailabilities = groupAvailabilitiesBlocks;
+  };
+
+  let innerWidth = 0;
   let form: HTMLFormElement;
 
-  onMount(async () => {
-    $startTime = data.meetingData.from_time as HourMinuteString;
-    $endTime = data.meetingData.to_time as HourMinuteString;
-  });
+  $: mobileView = innerWidth < 768;
+
+  $: {
+    if (data) {
+      updateGroupAvailability();
+    }
+  }
 
   $: availabilityTimeBlocks.set(
     generateTimeBlocks(
@@ -67,6 +100,14 @@
       getTimeFromHourMinuteString($endTime),
     ),
   );
+
+  onMount(async () => {
+    $startTime = data.meetingData.from_time as HourMinuteString;
+    $endTime = data.meetingData.to_time as HourMinuteString;
+
+    await updatePersonalAvailability();
+    updateGroupAvailability();
+  });
 </script>
 
 <svelte:window bind:innerWidth />
