@@ -23,7 +23,6 @@ import type { ZotDate } from "$lib/utils/ZotDate";
 
 export const load: PageServerLoad = (async ({ locals, params }) => {
   const user = locals.user;
-  // @ts-expect-error slug is defined in the route
   const meeting_id: string = params?.slug ?? "";
 
   // TODO: If no slug is in the URL (i.e. no meeting ID), we should redirect to an error page
