@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# About
 
-## Getting Started
+Simple, clean, and efficient meeting scheduling app.
 
-First, run the development server:
+## Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- [SST](https://sst.dev)
+- [Drizzle](https://orm.drizzle.team/)
+- [Lucia](https://lucia-auth.com)
+- [Next](https://nextjs.org/)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# Contributing
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Local Development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prerequisites
 
-## Learn More
+- [Git](https://git-scm.com/downloads)
+- [Node.js](https://nodejs.org/en/)
+- [pnpm](https://pnpm.io)
+  - Just run `npm i -g pnpm` to install.
 
-To learn more about Next.js, take a look at the following resources:
+### Local Setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Clone this repository locally
+2. Navigate to the root directory and install the dependencies.
+   1. `cd ZotMeet`
+   2. `pnpm install`
+3. Start the development server
+   1. `pnpm start` (run `pnpm start --host` if you want to access the server from other devices on your network)
+4. The app should be viewable at `localhost:3000` by default. Changes to the code will automatically update the page. If you ran `pnpm start --host`, you can access the app from other devices on your network at `host-ip:3000`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Local Database Setup
 
-## Deploy on Vercel
+1. Go to the [Postgres official website](https://www.postgresql.org/download/) and download the database for your specific OS. \([Here](https://www.postgresql.org/docs/16/tutorial-start.html) is more information, if you get stuck)
+2. While running the setup, ensure that pgAdmin is downloaded alongside Postgres itself
+3. Once connected to the Postgres Server, Right click on databases -> create -> database, and name it `zotmeet`.
+4. In the ZotMeet project root directory, `pnpm db:generate` will generate any updated database migrations.
+5. Create a .env file, and set `DATABASE_URL=postgres://yourusername:yourpassword@localhost:5432/zotmeet`
+6. Run `pnpm db:migrate` to apply all the migration changes to your local database.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Committing Changes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) specification when writing commit messages.
+  - E.g., `git commit -m "feat: add this feature"`; `git commit -m "fix: fix this bug"`.
+- Keep commits and PRs atomic.
+  - A PR should be a single feature or bug fix.
+  - A commit should be a single logical change.
+
+### Environment Variables
+
+If you need credentials for the `.env` file, contact the project lead ([Sean](https://github.com/seancfong/)).
+
+After changes to the .env file, run `pnpm run check` to update SvelteKit's auto-generated environment variable types.
