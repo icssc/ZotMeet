@@ -1,10 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
-import { NavSecondary } from "@/components/nav-secondary";
-import { NavUser } from "@/components/nav-user";
+import { useCallback, useEffect, useState } from "react";
+import { NavMain } from "@/app/components/sidebar/nav-main";
+import { NavUser } from "@/app/components/sidebar/nav-user";
 import { Separator } from "@/components/ui/separator";
 import {
     Sidebar,
@@ -153,9 +152,28 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const [isMobile, setIsMobile] = useState(false);
+
+    const checkWindowSize = useCallback(() => {
+        if (window.innerWidth < 768) {
+            setIsMobile(true);
+        } else {
+            setIsMobile(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        checkWindowSize();
+
+        window.addEventListener("resize", checkWindowSize);
+
+        return () => window.removeEventListener("resize", checkWindowSize);
+    }, [checkWindowSize]);
+
     return (
         <Sidebar
             variant="inset"
+            side={isMobile ? "right" : "left"}
             className="bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]"
             {...props}
         >
