@@ -3,16 +3,7 @@ import localFont from "next/font/local";
 
 import "./globals.css";
 
-import { AppSidebar } from "@/app/components/sidebar/app-sidebar";
-import {
-    Breadcrumb,
-    BreadcrumbItem,
-    BreadcrumbLink,
-    BreadcrumbList,
-    BreadcrumbPage,
-    BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
+import { AppSidebar } from "@/app/components/nav/app-nav";
 import {
     SidebarInset,
     SidebarProvider,
