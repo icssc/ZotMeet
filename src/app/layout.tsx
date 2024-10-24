@@ -37,7 +37,7 @@ export default function RootLayout({
                 )}
             >
                 <SidebarProvider>
-                    <AppSidebar />
+                    <AppSidebar className="w-[300px]" />
                     <SidebarInset>
                         <div className="h-full rounded-tl-xl bg-gray-50">
                             {children}
