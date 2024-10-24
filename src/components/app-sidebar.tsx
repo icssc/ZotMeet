@@ -5,6 +5,7 @@ import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
+import { Separator } from "@/components/ui/separator";
 import {
     Sidebar,
     SidebarContent,
@@ -164,13 +165,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         <SidebarMenuButton
                             size="lg"
                             asChild
+                            className="hover:bg-inherit"
                         >
-                            <a href="#">
+                            <a
+                                href="#"
+                                className="space-gray-800 space-x-2"
+                            >
                                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                                     <Command className="size-4" />
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold">
+                                    <span className="truncate text-4xl font-semibold">
                                         ZotMeet
                                     </span>
                                 </div>
@@ -178,14 +183,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
+
+                <Separator className="h-[2px] bg-gray-300" />
             </SidebarHeader>
             <SidebarContent className="bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]">
                 <NavMain items={data.navMain} />
-                <NavProjects projects={data.projects} />
-                <NavSecondary
-                    items={data.navSecondary}
-                    className="mt-auto"
-                />
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={data.user} />
