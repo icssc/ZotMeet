@@ -5,6 +5,7 @@ import "./globals.css";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -30,12 +31,17 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body
-                className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+                className={cn(
+                    `${geistSans.variable} ${geistMono.variable} antialiased`,
+                    "bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]"
+                )}
             >
                 <SidebarProvider>
                     <AppSidebar />
                     <SidebarInset>
-                        <div>{children}</div>
+                        <div className="h-full rounded-tl-xl bg-gray-50">
+                            {children}
+                        </div>
                     </SidebarInset>
                 </SidebarProvider>
             </body>

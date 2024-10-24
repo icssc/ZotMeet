@@ -155,9 +155,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar
             variant="inset"
+            className="bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]"
             {...props}
         >
-            <SidebarHeader>
+            <SidebarHeader className="bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton
@@ -170,10 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate font-semibold">
-                                        Acme Inc
-                                    </span>
-                                    <span className="truncate text-xs">
-                                        Enterprise
+                                        ZotMeet
                                     </span>
                                 </div>
                             </a>
@@ -181,7 +179,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]">
                 <NavMain items={data.navMain} />
                 <NavProjects projects={data.projects} />
                 <NavSecondary
