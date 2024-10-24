@@ -41,7 +41,7 @@ export default function RootLayout({
                 )}
             >
                 <SidebarProvider>
-                    <AppSidebar className="w-[300px]" />
+                    <AppSidebar />
                     <SidebarInset>
                         <header className="flex h-16 shrink-0 items-center justify-end gap-2 md:hidden">
                             <div className="flex items-center gap-2 px-4">

@@ -36,7 +36,7 @@ export function NavMain({
                             <SidebarMenuButton
                                 asChild
                                 tooltip={item.title}
-                                className="h-12 rounded-xl px-4 py-2 hover:bg-gray-300"
+                                className="h-12 rounded-xl px-4 py-2 hover:bg-gray-300 active:bg-gray-300/80"
                             >
                                 <a
                                     href={item.url}
