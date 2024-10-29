@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { InferSelectModel, relations } from "drizzle-orm";
 import {
     boolean,
     char,
@@ -33,7 +33,7 @@ export const users = pgTable("users", {
         .references(() => members.id, { onDelete: "cascade" }),
     displayName: text("displayName").notNull(),
     email: text("email").unique().notNull(),
-    password: text("password"),
+    passwordHash: text("password_hash"),
     created_at: timestamp("created_at"),
 });
 
@@ -261,16 +261,5 @@ export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
     }),
 }));
 
-export type MemberInsertSchema = typeof members.$inferInsert;
-export type UserInsertSchema = typeof users.$inferInsert;
-export type GuestInsertSchema = typeof guests.$inferInsert;
-export type AvailabilityInsertSchema = typeof availabilities.$inferInsert;
-export type MeetingInsertSchema = typeof meetings.$inferInsert;
-export type MeetingSelectSchema = typeof meetings.$inferSelect;
-export type MeetingDateInsertSchema = typeof meetingDates.$inferInsert;
-export type MeetingDateSelectSchema = typeof meetingDates.$inferSelect;
-
-export type AvailabilityMeetingDateJoinSchema = {
-    availabilities: typeof availabilities.$inferSelect;
-    meeting_dates: typeof meetingDates.$inferSelect;
-};
+export type SelectUser = InferSelectModel<typeof users>;
+export type SelectSession = InferSelectModel<typeof sessions>;
