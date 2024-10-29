@@ -11,6 +11,8 @@
         "db:migrate": "drizzle-kit migrate"
     },
     "dependencies": {
+        "@oslojs/crypto": "^1.0.1",
+        "@oslojs/encoding": "^1.1.0",
         "@radix-ui/react-avatar": "^1.1.1",
         "@radix-ui/react-collapsible": "^1.1.1",
         "@radix-ui/react-dialog": "^1.1.2",

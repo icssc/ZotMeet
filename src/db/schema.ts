@@ -1,4 +1,4 @@
-import { InferSelectModel, relations } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 import {
     boolean,
     char,
@@ -262,4 +262,6 @@ export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
 }));
 
 export type SelectUser = InferSelectModel<typeof users>;
+
 export type SelectSession = InferSelectModel<typeof sessions>;
+export type InsertSession = InferInsertModel<typeof sessions>;
