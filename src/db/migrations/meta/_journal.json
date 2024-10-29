@@ -8,6 +8,13 @@
       "when": 1729188489200,
       "tag": "0000_natural_toad_men",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1730162564250,
+      "tag": "0001_lean_harpoon",
+      "breakpoints": true
     }
   ]
 }

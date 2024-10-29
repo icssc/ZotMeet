@@ -3,7 +3,6 @@ import {
     boolean,
     char,
     index,
-    json,
     pgEnum,
     pgTable,
     primaryKey,
@@ -36,7 +35,6 @@ export const users = pgTable("users", {
     email: text("email").unique().notNull(),
     password: text("password"),
     created_at: timestamp("created_at"),
-    authMethods: json("auth_methods").$type<string[]>().notNull(),
 });
 
 // Guests are Members who do not have an account and are bound to one specific meeting.
@@ -52,6 +50,41 @@ export const guests = pgTable(
     (table) => ({
         pk: primaryKey({ columns: [table.username, table.meeting_id] }),
     })
+);
+
+export const oauthAccounts = pgTable(
+    "oauth_accounts",
+    {
+        userId: text("user_id")
+            .notNull()
+            .references(() => users.id, {
+                onDelete: "cascade",
+            }),
+        providerId: text("provider_id").notNull(),
+        providerUserId: text("provider_user_id").notNull(),
+    },
+    (table) => ({
+        pk: primaryKey({ columns: [table.providerId, table.providerUserId] }),
+    })
+);
+
+export const sessions = pgTable(
+    "sessions",
+    {
+        id: text("id").primaryKey(),
+        expiresAt: timestamp("expires_at", {
+            withTimezone: true,
+            mode: "date",
+        }).notNull(),
+        userId: text("user_id")
+            .references(() => users.id, { onDelete: "cascade" })
+            .notNull(),
+    },
+    (table) => {
+        return {
+            userIdx: index("user_idx_sessions").on(table.userId),
+        };
+    }
 );
 
 export const meetings = pgTable("meetings", {
@@ -107,42 +140,6 @@ export const availabilities = pgTable(
     })
 );
 
-// meeting_day
-export const oauthAccountsTable = pgTable(
-    "oauth_accounts",
-    {
-        userId: text("user_id")
-            .notNull()
-            .references(() => users.id, {
-                onDelete: "cascade",
-            }),
-        providerId: text("provider_id").notNull(),
-        providerUserId: text("provider_user_id").notNull(),
-    },
-    (table) => ({
-        pk: primaryKey({ columns: [table.providerId, table.providerUserId] }),
-    })
-);
-
-export const sessions = pgTable(
-    "sessions",
-    {
-        id: text("id").primaryKey(),
-        expiresAt: timestamp("expires_at", {
-            withTimezone: true,
-            mode: "date",
-        }).notNull(),
-        userId: text("user_id")
-            .references(() => users.id, { onDelete: "cascade" })
-            .notNull(),
-    },
-    (table) => {
-        return {
-            userIdx: index("user_idx_sessions").on(table.userId),
-        };
-    }
-);
-
 export const usersInGroup = pgTable(
     "users_in_group",
     {
@@ -180,7 +177,7 @@ export const memberRelations = relations(members, ({ many }) => ({
 }));
 
 export const userRelations = relations(users, ({ one, many }) => ({
-    oauthAccountsTable: one(oauthAccountsTable),
+    oauthAccountsTable: one(oauthAccounts),
     usersInGroups: many(usersInGroup),
     sessions: many(sessions),
 }));
@@ -246,9 +243,9 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
     }),
 }));
 
-export const oauthRelations = relations(oauthAccountsTable, ({ one }) => ({
+export const oauthRelations = relations(oauthAccounts, ({ one }) => ({
     users: one(users, {
-        fields: [oauthAccountsTable.userId],
+        fields: [oauthAccounts.userId],
         references: [users.id],
     }),
 }));
