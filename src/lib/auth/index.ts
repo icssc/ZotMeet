@@ -5,7 +5,8 @@ import {
     validateSessionToken,
 } from "@/lib/auth/session";
 
-// Uses React cache to de-dupe calls to check the current session, per request
+// Uses React cache to de-dupe calls to check the current session, per request.
+// To be used in server components, server actions, and route handlers (but not middleware).
 export const getCurrentSession = cache(
     async (): Promise<SessionValidationResult> => {
         const token = cookies().get("session")?.value ?? null;
