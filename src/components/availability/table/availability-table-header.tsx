@@ -1,4 +1,4 @@
-import { useAvailabilityContext } from "@/app/components/availability/context/availability-context";
+import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 
 export function AvailabilityTableHeader() {
     const { currentPageAvailability } = useAvailabilityContext();

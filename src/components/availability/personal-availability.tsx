@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useAvailabilityContext } from "@/app/components/availability/context/availability-context";
-import { AvailabilityBlocks } from "@/app/components/availability/table/availability-blocks";
-import { AvailabilityNavButton } from "@/app/components/availability/table/availability-nav-button";
-import { AvailabilityTableHeader } from "@/app/components/availability/table/availability-table-header";
-import { AvailabilityTimeTicks } from "@/app/components/availability/table/availability-time-ticks";
+import { useAvailabilityContext } from "@/components/availability/context/availability-context";
+import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
+import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
+import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
+import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import {
     AvailabilityMeetingDateJoinSchema,
     MeetingDateSelectSchema,

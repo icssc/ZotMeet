@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, Dispatch, SetStateAction, useContext } from "react";
-import { useAvailabilityState } from "@/app/components/availability/context/use-availability-state";
+import { useAvailabilityState } from "@/components/availability/context/use-availability-state";
 import {
     AvailabilityBlockType,
     SelectionStateType,

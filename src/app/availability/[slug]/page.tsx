@@ -1,12 +1,12 @@
 import { redirect } from "next/navigation";
-import { AvailabilityHeader } from "@/app/components/availability/availability-header";
-import { PersonalAvailability } from "@/app/components/availability/personal-availability";
+import { AvailabilityHeader } from "@/components/availability/availability-header";
+import { PersonalAvailability } from "@/components/availability/personal-availability";
 import {
     Tabs,
     TabsContent,
     TabsList,
     TabsTrigger,
-} from "@/app/components/custom/tabs";
+} from "@/components/custom/tabs";
 import { getExistingMeeting } from "@/lib/db/databaseUtils";
 import { getAvailability, getMeetingDates } from "@/lib/db/utils";
 import { cn } from "@/lib/utils";
