@@ -8,7 +8,8 @@
         "start": "next start",
         "lint": "next lint",
         "db:generate": "drizzle-kit generate",
-        "db:migrate": "drizzle-kit migrate"
+        "db:migrate": "drizzle-kit migrate",
+        "db:studio": "drizzle-kit studio"
     },
     "dependencies": {
         "@radix-ui/react-avatar": "^1.1.1",
@@ -28,7 +29,8 @@
         "react": "^18",
         "react-dom": "^18",
         "tailwind-merge": "^2.5.4",
-        "tailwindcss-animate": "^1.0.7"
+        "tailwindcss-animate": "^1.0.7",
+        "zod": "^3.23.8"
     },
     "devDependencies": {
         "@eslint/js": "^9.12.0",
