@@ -1,17 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AvailabilityBlock } from "@/app/components/availability/availability-block";
+import { AvailabilityBlocks } from "@/app/components/availability/availability-blocks";
+import { useAvailabilityContext } from "@/app/components/availability/availability-context";
 import {
     AvailabilityMeetingDateJoinSchema,
     MeetingDateSelectSchema,
     MeetingSelectSchema,
 } from "@/db/schema";
-import {
-    AvailabilityBlockType,
-    SelectionStateType,
-} from "@/lib/types/availability";
-import { cn } from "@/lib/utils";
+import { AvailabilityBlockType } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
 // import LoginFlow from "./LoginModal";
@@ -19,40 +16,47 @@ import { ZotDate } from "@/lib/zotdate";
 interface PersonalAvailabilityProps {
     columns: number;
     meetingData: MeetingSelectSchema;
-    defaultDates: MeetingDateSelectSchema[];
+    meetingDates: MeetingDateSelectSchema[];
     availability: AvailabilityMeetingDateJoinSchema[] | null;
 }
 
 export function PersonalAvailability({
     columns,
     meetingData,
-    defaultDates,
+    meetingDates,
     availability,
 }: PersonalAvailabilityProps) {
-    const [itemsPerPage, setItemsPerPage] = useState(columns);
+    const {
+        startBlockSelection,
+        setStartBlockSelection,
+        endBlockSelection,
+        setEndBlockSelection,
+        selectionState,
+        setSelectionState,
+        currentPage,
+        setCurrentPage,
+        itemsPerPage,
+        setItemsPerPage,
+    } = useAvailabilityContext();
+
     const [availabilityDates, setAvailabilityDates] = useState<ZotDate[]>([]);
     const [availabilityTimeBlocks, setAvailabilityTimeBlocks] = useState<
         number[]
     >([]);
+
     const [guestSession, setGuestSession] = useState({
         meetingId: meetingData.id || "",
     });
+
     const [isEditingAvailability, setIsEditingAvailability] = useState(false);
     const [isStateUnsaved, setIsStateUnsaved] = useState(false);
 
-    const [startBlockSelection, setStartBlockSelection] =
-        useState<AvailabilityBlockType>();
-    const [endBlockSelection, setEndBlockSelection] =
-        useState<AvailabilityBlockType>();
-    const [selectionState, setSelectionState] = useState<SelectionStateType>();
-
-    const [currentPage, setCurrentPage] = useState(0);
     const [currentPageAvailability, setCurrentPageAvailability] =
         useState<ZotDate[]>();
 
     useEffect(() => {
         setItemsPerPage(columns);
-    }, [columns]);
+    }, [columns, setItemsPerPage]);
 
     const numPaddingDates = useMemo(() => {
         return availabilityDates.length % itemsPerPage === 0
@@ -106,17 +110,7 @@ export function PersonalAvailability({
                 ),
             });
         }
-    }, [startBlockSelection, endBlockSelection]);
-
-    const generateDateKey = (
-        selectedDate: ZotDate,
-        timeBlock: number,
-        pageDateIndex: number
-    ) => {
-        return selectedDate
-            ? `date-${selectedDate.valueOf()}-${timeBlock}`
-            : `padding-${pageDateIndex}`;
-    };
+    }, [startBlockSelection, endBlockSelection, setSelectionState]);
 
     const handleTouchMove = (e: React.TouchEvent) => {
         const touchingElement = document.elementFromPoint(
@@ -187,9 +181,9 @@ export function PersonalAvailability({
                 return updatedDates;
             });
 
-            setStartBlockSelection(null);
-            setEndBlockSelection(null);
-            setSelectionState(null);
+            setStartBlockSelection(undefined);
+            setEndBlockSelection(undefined);
+            setSelectionState(undefined);
             setIsStateUnsaved(true);
         }
     };
@@ -210,35 +204,30 @@ export function PersonalAvailability({
         };
     }, [isStateUnsaved]);
 
-    // useEffect(() => {
-    //     const init = async () => {
-    //         setGuestSession((prev) => ({
-    //             ...prev,
-    //             meetingId: meetingData.id || "",
-    //         }));
+    useEffect(() => {
+        const init = async () => {
+            // const generalAvailability = await getGeneralAvailability(
+            //     meetingData,
+            //     guestSession
+            // );
 
-    //         // const generalAvailability = await getGeneralAvailability(
-    //         //     meetingData,
-    //         //     guestSession
-    //         // );
+            const generalAvailability: Array<unknown> | null = null;
 
-    //         const generalAvailability: Array<unknown> | null = null;
+            const defaultMeetingDates = meetingDates.map(
+                (item) => new ZotDate(item.date, false, [])
+            );
 
-    //         const defaultMeetingDates = defaultDates.map(
-    //             (item) => new ZotDate(item.date, false, [])
-    //         );
+            ZotDate.initializeAvailabilities(defaultMeetingDates);
 
-    //         ZotDate.initializeAvailabilities(defaultMeetingDates);
+            setAvailabilityDates(
+                generalAvailability && generalAvailability.length > 0
+                    ? generalAvailability
+                    : defaultMeetingDates
+            );
+        };
 
-    //         setAvailabilityDates(
-    //             generalAvailability && generalAvailability.length > 0
-    //                 ? generalAvailability
-    //                 : defaultMeetingDates
-    //         );
-    //     };
-
-    //     init();
-    // }, [defaultDates, guestSession, meetingData]);
+        init();
+    }, [meetingData, meetingDates]);
 
     // Sample availabilityTimeBlocks; replace with your actual data
     useEffect(() => {
@@ -257,6 +246,8 @@ export function PersonalAvailability({
             setCurrentPage(currentPage + 1);
         }
     };
+
+    console.log(currentPageAvailability);
 
     return (
         <div>
@@ -335,137 +326,18 @@ export function PersonalAvailability({
                                         )}
                                     </td>
 
-                                    {currentPageAvailability?.map(
-                                        (selectedDate, pageDateIndex) => {
-                                            const key = generateDateKey(
-                                                selectedDate,
-                                                timeBlock,
-                                                pageDateIndex
-                                            );
-
-                                            if (selectedDate) {
-                                                const zotDateIndex =
-                                                    pageDateIndex +
-                                                    currentPage * itemsPerPage;
-                                                const availabilitySelection = {
-                                                    zotDateIndex: zotDateIndex,
-                                                    blockIndex: blockIndex,
-                                                };
-                                                const isAvailable =
-                                                    selectedDate.getBlockAvailability(
-                                                        blockIndex
-                                                    );
-
-                                                return (
-                                                    <td
-                                                        key={key}
-                                                        onMouseUp={() => {
-                                                            if (
-                                                                startBlockSelection
-                                                            ) {
-                                                                setEndBlockSelection(
-                                                                    availabilitySelection
-                                                                );
-                                                                setAvailabilities(
-                                                                    startBlockSelection
-                                                                );
-                                                            }
-                                                        }}
-                                                        className="px-0 py-0"
-                                                    >
-                                                        <button
-                                                            onTouchStart={(
-                                                                e
-                                                            ) => {
-                                                                if (
-                                                                    e.cancelable
-                                                                ) {
-                                                                    e.preventDefault();
-                                                                }
-                                                                setStartBlockSelection(
-                                                                    availabilitySelection
-                                                                );
-                                                                setEndBlockSelection(
-                                                                    availabilitySelection
-                                                                );
-                                                            }}
-                                                            onMouseDown={() => {
-                                                                setStartBlockSelection(
-                                                                    availabilitySelection
-                                                                );
-                                                                setEndBlockSelection(
-                                                                    availabilitySelection
-                                                                );
-                                                            }}
-                                                            onTouchMove={
-                                                                handleTouchMove
-                                                            }
-                                                            onMouseMove={() => {
-                                                                if (
-                                                                    startBlockSelection
-                                                                ) {
-                                                                    setEndBlockSelection(
-                                                                        availabilitySelection
-                                                                    );
-                                                                }
-                                                            }}
-                                                            onTouchEnd={(e) => {
-                                                                if (
-                                                                    e.cancelable
-                                                                ) {
-                                                                    e.preventDefault();
-                                                                }
-                                                                if (
-                                                                    startBlockSelection
-                                                                ) {
-                                                                    setEndBlockSelection(
-                                                                        availabilitySelection
-                                                                    );
-                                                                    setAvailabilities(
-                                                                        startBlockSelection
-                                                                    );
-                                                                }
-                                                            }}
-                                                            // TODO: Fix
-                                                            // tabIndex="0"
-                                                            data-date-index={
-                                                                zotDateIndex
-                                                            }
-                                                            data-block-index={
-                                                                blockIndex
-                                                            }
-                                                            className={cn(
-                                                                "border-gray-medium block h-full w-full cursor-row-resize border-r-[1px]",
-                                                                isTopOfHour &&
-                                                                    "border-t-gray-medium border-t-[1px]",
-                                                                isHalfHour &&
-                                                                    "border-t-gray-base border-t-[1px]",
-                                                                isLastRow &&
-                                                                    "border-b-[1px]"
-                                                            )}
-                                                        >
-                                                            <AvailabilityBlock
-                                                                isAvailable={
-                                                                    isAvailable
-                                                                }
-                                                                zotDateIndex={
-                                                                    zotDateIndex
-                                                                }
-                                                                blockIndex={
-                                                                    blockIndex
-                                                                }
-                                                                selectionState={
-                                                                    selectionState
-                                                                }
-                                                            />
-                                                        </button>
-                                                    </td>
-                                                );
-                                            } else {
-                                                return <td key={key}></td>;
-                                            }
+                                    <AvailabilityBlocks
+                                        setAvailabilities={setAvailabilities}
+                                        currentPageAvailability={
+                                            currentPageAvailability
                                         }
-                                    )}
+                                        handleTouchMove={handleTouchMove}
+                                        isTopOfHour={isTopOfHour}
+                                        isHalfHour={isHalfHour}
+                                        isLastRow={isLastRow}
+                                        timeBlock={timeBlock}
+                                        blockIndex={blockIndex}
+                                    />
                                 </tr>
                             );
                         })}

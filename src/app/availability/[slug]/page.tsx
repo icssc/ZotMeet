@@ -22,14 +22,14 @@ export default async function Page({ params }: PageProps) {
     //     redirect("/error");
     // }
 
-    const defaultDates = await getMeetingDates(slug);
+    const meetingDates = await getMeetingDates(slug);
     const availability = user ? await getAvailability(user, slug) : null;
 
     return (
         <PersonalAvailability
             columns={5}
             meetingData={meetingData}
-            defaultDates={defaultDates}
+            meetingDates={meetingDates}
             availability={availability}
         />
     );
