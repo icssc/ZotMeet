@@ -206,7 +206,9 @@ export function PersonalAvailability({
 
     // TODO: use actual meeting times
     useEffect(() => {
-        setAvailabilityTimeBlocks([0, 30, 60, 90, 120, 150, 180]);
+        setAvailabilityTimeBlocks([
+            0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195,
+        ]);
     }, []);
 
     const handlePrevPage = () => {
