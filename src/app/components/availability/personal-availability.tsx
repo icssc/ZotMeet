@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AvailabilityBlocks } from "@/app/components/availability/availability-blocks";
 import { useAvailabilityContext } from "@/app/components/availability/availability-context";
+import { AvailabilityNavButton } from "@/app/components/availability/availability-nav-button";
 import {
     AvailabilityMeetingDateJoinSchema,
     MeetingDateSelectSchema,
@@ -252,13 +253,11 @@ export function PersonalAvailability({
     return (
         <div>
             <div className="font-dm-sans flex items-center justify-between overflow-x-auto">
-                <button
-                    onClick={handlePrevPage}
-                    className="p-3 pl-0 disabled:opacity-0 md:pl-1"
+                <AvailabilityNavButton
+                    direction="left"
+                    handleClick={handlePrevPage}
                     disabled={currentPage === 0}
-                >
-                    <span className="text-3xl text-gray-500">&lsaquo;</span>
-                </button>
+                />
 
                 <table className="w-full table-fixed">
                     <thead>
@@ -344,13 +343,11 @@ export function PersonalAvailability({
                     </tbody>
                 </table>
 
-                <button
-                    onClick={handleNextPage}
-                    className="p-3 pr-0 disabled:opacity-0 md:pr-1"
+                <AvailabilityNavButton
+                    direction="right"
+                    handleClick={handleNextPage}
                     disabled={currentPage === lastPage}
-                >
-                    <span className="text-3xl text-gray-500">&rsaquo;</span>
-                </button>
+                />
             </div>
 
             {/* <LoginFlow data={data} /> */}
