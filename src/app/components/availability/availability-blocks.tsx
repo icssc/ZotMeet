@@ -6,7 +6,6 @@ import { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityBlocksProps {
     setAvailabilities: (startBlock: AvailabilityBlockType) => void;
-    handleTouchMove: (e: React.TouchEvent) => void;
     isTopOfHour: boolean;
     isHalfHour: boolean;
     isLastRow: boolean;
@@ -16,7 +15,6 @@ interface AvailabilityBlocksProps {
 
 export function AvailabilityBlocks({
     setAvailabilities,
-    handleTouchMove,
     isTopOfHour,
     isHalfHour,
     isLastRow,
@@ -49,11 +47,6 @@ export function AvailabilityBlocks({
                     const zotDateIndex =
                         pageDateIndex + currentPage * itemsPerPage;
 
-                    const availabilitySelection = {
-                        zotDateIndex: zotDateIndex,
-                        blockIndex: blockIndex,
-                    };
-
                     const isAvailable =
                         selectedDate.getBlockAvailability(blockIndex);
 
@@ -63,8 +56,6 @@ export function AvailabilityBlocks({
                             blockIndex={blockIndex}
                             isAvailable={isAvailable}
                             zotDateIndex={zotDateIndex}
-                            availabilitySelection={availabilitySelection}
-                            handleTouchMove={handleTouchMove}
                             setAvailabilities={setAvailabilities}
                             isTopOfHour={isTopOfHour}
                             isHalfHour={isHalfHour}

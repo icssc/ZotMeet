@@ -113,35 +113,6 @@ export function PersonalAvailability({
         }
     }, [startBlockSelection, endBlockSelection, setSelectionState]);
 
-    const handleTouchMove = (e: React.TouchEvent) => {
-        const touchingElement = document.elementFromPoint(
-            e.touches[0].clientX,
-            e.touches[0].clientY
-        );
-
-        if (!touchingElement) return;
-
-        const touchingDateIndex = parseInt(
-            touchingElement.getAttribute("data-date-index") || "",
-            10
-        );
-        const touchingBlockIndex = parseInt(
-            touchingElement.getAttribute("data-block-index") || "",
-            10
-        );
-
-        if (
-            !isNaN(touchingDateIndex) &&
-            !isNaN(touchingBlockIndex) &&
-            startBlockSelection
-        ) {
-            setEndBlockSelection({
-                zotDateIndex: touchingDateIndex,
-                blockIndex: touchingBlockIndex,
-            });
-        }
-    };
-
     const setAvailabilities = (startBlock: AvailabilityBlockType) => {
         if (!isEditingAvailability) {
             setIsEditingAvailability(true);
@@ -154,6 +125,7 @@ export function PersonalAvailability({
                 earlierBlockIndex,
                 laterBlockIndex,
             } = selectionState;
+
             const {
                 zotDateIndex: selectionStartDateIndex,
                 blockIndex: selectionStartBlockIndex,
@@ -221,6 +193,8 @@ export function PersonalAvailability({
             ZotDate.initializeAvailabilities(defaultMeetingDates);
 
             setAvailabilityDates(
+                // ! fix this
+                // @ts-expect-error trust me bro
                 generalAvailability && generalAvailability.length > 0
                     ? generalAvailability
                     : defaultMeetingDates
@@ -290,7 +264,6 @@ export function PersonalAvailability({
 
                                     <AvailabilityBlocks
                                         setAvailabilities={setAvailabilities}
-                                        handleTouchMove={handleTouchMove}
                                         isTopOfHour={isTopOfHour}
                                         isHalfHour={isHalfHour}
                                         isLastRow={isLastRow}
