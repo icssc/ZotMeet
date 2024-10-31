@@ -5,6 +5,7 @@ import {
     AvailabilityBlockType,
     SelectionStateType,
 } from "@/lib/types/availability";
+import { ZotDate } from "@/lib/zotdate";
 
 export const useAvailabilityState = () => {
     const [startBlockSelection, setStartBlockSelection] =
@@ -14,6 +15,8 @@ export const useAvailabilityState = () => {
     const [selectionState, setSelectionState] = useState<SelectionStateType>();
     const [currentPage, setCurrentPage] = useState(0);
     const [itemsPerPage, setItemsPerPage] = useState(0);
+    const [currentPageAvailability, setCurrentPageAvailability] =
+        useState<ZotDate[]>();
 
     return {
         startBlockSelection,
@@ -26,5 +29,7 @@ export const useAvailabilityState = () => {
         setCurrentPage,
         itemsPerPage,
         setItemsPerPage,
+        currentPageAvailability,
+        setCurrentPageAvailability,
     };
 };

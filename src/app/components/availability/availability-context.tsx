@@ -6,6 +6,7 @@ import {
     AvailabilityBlockType,
     SelectionStateType,
 } from "@/lib/types/availability";
+import { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityContextProps {
     startBlockSelection: AvailabilityBlockType | undefined;
@@ -22,6 +23,8 @@ interface AvailabilityContextProps {
     setCurrentPage: Dispatch<SetStateAction<number>>;
     itemsPerPage: number;
     setItemsPerPage: Dispatch<SetStateAction<number>>;
+    currentPageAvailability: ZotDate[] | undefined;
+    setCurrentPageAvailability: Dispatch<SetStateAction<ZotDate[] | undefined>>;
 }
 
 const AvailabilityContext = createContext<AvailabilityContextProps | undefined>(
@@ -44,6 +47,8 @@ export const AvailabilityContextProvider = ({
         setCurrentPage,
         itemsPerPage,
         setItemsPerPage,
+        currentPageAvailability,
+        setCurrentPageAvailability,
     } = useAvailabilityState();
 
     return (
@@ -59,6 +64,8 @@ export const AvailabilityContextProvider = ({
                 setCurrentPage,
                 itemsPerPage,
                 setItemsPerPage,
+                currentPageAvailability,
+                setCurrentPageAvailability,
             }}
         >
             {children}

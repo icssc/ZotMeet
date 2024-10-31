@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AvailabilityBlocks } from "@/app/components/availability/availability-blocks";
 import { useAvailabilityContext } from "@/app/components/availability/availability-context";
+import { AvailabilityHeader } from "@/app/components/availability/availability-header";
 import { AvailabilityNavButton } from "@/app/components/availability/availability-nav-button";
 import {
     AvailabilityMeetingDateJoinSchema,
@@ -38,6 +39,7 @@ export function PersonalAvailability({
         setCurrentPage,
         itemsPerPage,
         setItemsPerPage,
+        setCurrentPageAvailability,
     } = useAvailabilityContext();
 
     const [availabilityDates, setAvailabilityDates] = useState<ZotDate[]>([]);
@@ -51,9 +53,6 @@ export function PersonalAvailability({
 
     const [isEditingAvailability, setIsEditingAvailability] = useState(false);
     const [isStateUnsaved, setIsStateUnsaved] = useState(false);
-
-    const [currentPageAvailability, setCurrentPageAvailability] =
-        useState<ZotDate[]>();
 
     useEffect(() => {
         setItemsPerPage(columns);
@@ -88,6 +87,7 @@ export function PersonalAvailability({
         availabilityDates,
         lastPage,
         numPaddingDates,
+        setCurrentPageAvailability,
     ]);
 
     useEffect(() => {
@@ -248,8 +248,6 @@ export function PersonalAvailability({
         }
     };
 
-    console.log(currentPageAvailability);
-
     return (
         <div>
             <div className="font-dm-sans flex items-center justify-between overflow-x-auto">
@@ -260,41 +258,7 @@ export function PersonalAvailability({
                 />
 
                 <table className="w-full table-fixed">
-                    <thead>
-                        <tr>
-                            <th className="w-10 md:w-16">
-                                <span className="sr-only">Time</span>
-                            </th>
-                            {currentPageAvailability?.map(
-                                (dateHeader, index) => (
-                                    <th
-                                        key={index}
-                                        className="text-sm font-normal"
-                                    >
-                                        {dateHeader && (
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-bold uppercase text-gray-500 md:text-xs">
-                                                    {dateHeader.day.toLocaleDateString(
-                                                        "en-US",
-                                                        { weekday: "short" }
-                                                    )}
-                                                </span>
-                                                <span className="text-gray-medium text-center text-[12px] uppercase md:text-base">
-                                                    {dateHeader.day.toLocaleDateString(
-                                                        "en-US",
-                                                        {
-                                                            month: "numeric",
-                                                            day: "numeric",
-                                                        }
-                                                    )}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </th>
-                                )
-                            )}
-                        </tr>
-                    </thead>
+                    <AvailabilityHeader />
 
                     <tbody>
                         {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
@@ -327,9 +291,6 @@ export function PersonalAvailability({
 
                                     <AvailabilityBlocks
                                         setAvailabilities={setAvailabilities}
-                                        currentPageAvailability={
-                                            currentPageAvailability
-                                        }
                                         handleTouchMove={handleTouchMove}
                                         isTopOfHour={isTopOfHour}
                                         isHalfHour={isHalfHour}

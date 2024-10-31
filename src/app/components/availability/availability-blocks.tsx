@@ -6,7 +6,6 @@ import { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityBlocksProps {
     setAvailabilities: (startBlock: AvailabilityBlockType) => void;
-    currentPageAvailability: ZotDate[] | undefined;
     handleTouchMove: (e: React.TouchEvent) => void;
     isTopOfHour: boolean;
     isHalfHour: boolean;
@@ -17,7 +16,6 @@ interface AvailabilityBlocksProps {
 
 export function AvailabilityBlocks({
     setAvailabilities,
-    currentPageAvailability,
     handleTouchMove,
     isTopOfHour,
     isHalfHour,
@@ -25,7 +23,8 @@ export function AvailabilityBlocks({
     timeBlock,
     blockIndex,
 }: AvailabilityBlocksProps) {
-    const { currentPage, itemsPerPage } = useAvailabilityContext();
+    const { currentPage, itemsPerPage, currentPageAvailability } =
+        useAvailabilityContext();
 
     const generateDateKey = (
         selectedDate: ZotDate,
