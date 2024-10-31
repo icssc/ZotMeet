@@ -42,50 +42,10 @@ export const AvailabilityContextProvider = ({
 }: {
     children: React.ReactNode;
 }) => {
-    const {
-        startBlockSelection,
-        setStartBlockSelection,
-        endBlockSelection,
-        setEndBlockSelection,
-        selectionState,
-        setSelectionState,
-        currentPage,
-        setCurrentPage,
-        itemsPerPage,
-        setItemsPerPage,
-        currentPageAvailability,
-        setCurrentPageAvailability,
-        isEditingAvailability,
-        setIsEditingAvailability,
-        isStateUnsaved,
-        setIsStateUnsaved,
-        availabilityDates,
-        setAvailabilityDates,
-    } = useAvailabilityState();
+    const state = useAvailabilityState();
 
     return (
-        <AvailabilityContext.Provider
-            value={{
-                startBlockSelection,
-                setStartBlockSelection,
-                endBlockSelection,
-                setEndBlockSelection,
-                selectionState,
-                setSelectionState,
-                currentPage,
-                setCurrentPage,
-                itemsPerPage,
-                setItemsPerPage,
-                currentPageAvailability,
-                setCurrentPageAvailability,
-                isEditingAvailability,
-                setIsEditingAvailability,
-                isStateUnsaved,
-                setIsStateUnsaved,
-                availabilityDates,
-                setAvailabilityDates,
-            }}
-        >
+        <AvailabilityContext.Provider value={state}>
             {children}
         </AvailabilityContext.Provider>
     );
