@@ -1,5 +1,4 @@
-import { useAvailabilityContext } from "@/app/components/availability/availability-context";
-import { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityContext } from "@/app/components/availability/context/availability-context";
 
 export function AvailabilityHeader() {
     const { currentPageAvailability } = useAvailabilityContext();
@@ -10,6 +9,7 @@ export function AvailabilityHeader() {
                 <th className="w-10 md:w-16">
                     <span className="sr-only">Time</span>
                 </th>
+
                 {currentPageAvailability?.map((dateHeader, index) => (
                     <th
                         key={index}

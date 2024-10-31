@@ -1,5 +1,5 @@
 import { AvailabilityBlock } from "@/app/components/availability/availability-block";
-import { useAvailabilityContext } from "@/app/components/availability/availability-context";
+import { useAvailabilityContext } from "@/app/components/availability/context/availability-context";
 import { cn } from "@/lib/utils";
 
 export function AvailabilityBlockCell({

@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AvailabilityBlocks } from "@/app/components/availability/availability-blocks";
-import { useAvailabilityContext } from "@/app/components/availability/availability-context";
 import { AvailabilityHeader } from "@/app/components/availability/availability-header";
 import { AvailabilityNavButton } from "@/app/components/availability/availability-nav-button";
+import { useAvailabilityContext } from "@/app/components/availability/context/availability-context";
 import {
     AvailabilityMeetingDateJoinSchema,
     MeetingDateSelectSchema,
@@ -230,9 +230,8 @@ export function PersonalAvailability({
         init();
     }, [meetingData, meetingDates]);
 
-    // Sample availabilityTimeBlocks; replace with your actual data
+    // TODO: use actual meeting times
     useEffect(() => {
-        // Replace with your actual logic to set availabilityTimeBlocks
         setAvailabilityTimeBlocks([0, 30, 60, 90, 120, 150, 180]);
     }, []);
 
