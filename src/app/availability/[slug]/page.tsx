@@ -52,7 +52,7 @@ export default async function Page({ params }: PageProps) {
                         Personal
                     </TabsTrigger>
                     <TabsTrigger
-                        value="password"
+                        value="group"
                         className={cn(
                             "border-0 border-b-2 border-neutral-500 p-4 pb-0 text-lg duration-0",
                             "data-[state=active]:border-orange-500"
@@ -70,7 +70,7 @@ export default async function Page({ params }: PageProps) {
                         availability={availability}
                     />
                 </TabsContent>
-                <TabsContent value="password">Group Availability</TabsContent>
+                <TabsContent value="group">Group Availability</TabsContent>
             </Tabs>
         </div>
     );
