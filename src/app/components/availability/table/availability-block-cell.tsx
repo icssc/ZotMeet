@@ -1,5 +1,5 @@
-import { AvailabilityBlock } from "@/app/components/availability/availability-block";
 import { useAvailabilityContext } from "@/app/components/availability/context/availability-context";
+import { AvailabilityBlock } from "@/app/components/availability/table/availability-block";
 import { AvailabilityBlockType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 

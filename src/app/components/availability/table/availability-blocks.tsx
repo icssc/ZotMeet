@@ -1,6 +1,6 @@
 import React from "react";
-import { AvailabilityBlockCell } from "@/app/components/availability/availability-block-cell";
 import { useAvailabilityContext } from "@/app/components/availability/context/availability-context";
+import { AvailabilityBlockCell } from "@/app/components/availability/table/availability-block-cell";
 import { AvailabilityBlockType } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 

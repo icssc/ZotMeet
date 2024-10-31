@@ -25,6 +25,12 @@ interface AvailabilityContextProps {
     setItemsPerPage: Dispatch<SetStateAction<number>>;
     currentPageAvailability: ZotDate[] | undefined;
     setCurrentPageAvailability: Dispatch<SetStateAction<ZotDate[] | undefined>>;
+    isEditingAvailability: boolean;
+    setIsEditingAvailability: Dispatch<SetStateAction<boolean>>;
+    isStateUnsaved: boolean;
+    setIsStateUnsaved: Dispatch<SetStateAction<boolean>>;
+    availabilityDates: ZotDate[];
+    setAvailabilityDates: Dispatch<SetStateAction<ZotDate[]>>;
 }
 
 const AvailabilityContext = createContext<AvailabilityContextProps | undefined>(
@@ -49,6 +55,12 @@ export const AvailabilityContextProvider = ({
         setItemsPerPage,
         currentPageAvailability,
         setCurrentPageAvailability,
+        isEditingAvailability,
+        setIsEditingAvailability,
+        isStateUnsaved,
+        setIsStateUnsaved,
+        availabilityDates,
+        setAvailabilityDates,
     } = useAvailabilityState();
 
     return (
@@ -66,6 +78,12 @@ export const AvailabilityContextProvider = ({
                 setItemsPerPage,
                 currentPageAvailability,
                 setCurrentPageAvailability,
+                isEditingAvailability,
+                setIsEditingAvailability,
+                isStateUnsaved,
+                setIsStateUnsaved,
+                availabilityDates,
+                setAvailabilityDates,
             }}
         >
             {children}

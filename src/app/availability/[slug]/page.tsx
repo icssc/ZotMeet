@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import PersonalAvailability from "@/app/components/availability/personal-availability";
+import { AvailabilityHeader } from "@/app/components/availability/availability-header";
+import { PersonalAvailability } from "@/app/components/availability/personal-availability";
 import { getExistingMeeting } from "@/lib/db/databaseUtils";
 import { getAvailability, getMeetingDates } from "@/lib/db/utils";
 
@@ -26,11 +27,15 @@ export default async function Page({ params }: PageProps) {
     const availability = user ? await getAvailability(user, slug) : null;
 
     return (
-        <PersonalAvailability
-            columns={5}
-            meetingData={meetingData}
-            meetingDates={meetingDates}
-            availability={availability}
-        />
+        <div>
+            <AvailabilityHeader meetingData={meetingData} />
+
+            <PersonalAvailability
+                columns={5}
+                meetingData={meetingData}
+                meetingDates={meetingDates}
+                availability={availability}
+            />
+        </div>
     );
 }

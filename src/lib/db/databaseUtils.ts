@@ -137,7 +137,9 @@ export const insertMeeting = async (
     return dbMeeting.id;
 };
 
-export const getExistingMeeting = async (meetingId: string) => {
+export const getExistingMeeting = async (
+    meetingId: string
+): Promise<MeetingSelectSchema> => {
     const [dbMeeting] = await db
         .select()
         .from(meetings)

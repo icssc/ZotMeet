@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AvailabilityBlocks } from "@/app/components/availability/availability-blocks";
-import { AvailabilityHeader } from "@/app/components/availability/availability-header";
-import { AvailabilityNavButton } from "@/app/components/availability/availability-nav-button";
 import { useAvailabilityContext } from "@/app/components/availability/context/availability-context";
+import { AvailabilityBlocks } from "@/app/components/availability/table/availability-blocks";
+import { AvailabilityNavButton } from "@/app/components/availability/table/availability-nav-button";
+import { AvailabilityTableHeader } from "@/app/components/availability/table/availability-table-header";
 import {
     AvailabilityMeetingDateJoinSchema,
     MeetingDateSelectSchema,
@@ -40,9 +40,14 @@ export function PersonalAvailability({
         itemsPerPage,
         setItemsPerPage,
         setCurrentPageAvailability,
+        isEditingAvailability,
+        setIsEditingAvailability,
+        isStateUnsaved,
+        setIsStateUnsaved,
+        availabilityDates,
+        setAvailabilityDates,
     } = useAvailabilityContext();
 
-    const [availabilityDates, setAvailabilityDates] = useState<ZotDate[]>([]);
     const [availabilityTimeBlocks, setAvailabilityTimeBlocks] = useState<
         number[]
     >([]);
@@ -50,9 +55,6 @@ export function PersonalAvailability({
     const [guestSession, setGuestSession] = useState({
         meetingId: meetingData.id || "",
     });
-
-    const [isEditingAvailability, setIsEditingAvailability] = useState(false);
-    const [isStateUnsaved, setIsStateUnsaved] = useState(false);
 
     useEffect(() => {
         setItemsPerPage(columns);
@@ -233,7 +235,7 @@ export function PersonalAvailability({
                 />
 
                 <table className="w-full table-fixed">
-                    <AvailabilityHeader />
+                    <AvailabilityTableHeader />
 
                     <tbody>
                         {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
@@ -289,5 +291,3 @@ export function PersonalAvailability({
         </div>
     );
 }
-
-export default PersonalAvailability;
