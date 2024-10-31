@@ -1,6 +1,6 @@
 import React from "react";
 import { useAvailabilityContext } from "@/app/components/availability/context/availability-context";
-import { AvailabilityBlockCell } from "@/app/components/availability/table/availability-block-cell";
+import { AvailabilityBlockCells } from "@/app/components/availability/table/availability-block-cells";
 import { AvailabilityBlockType } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -51,7 +51,7 @@ export function AvailabilityBlocks({
                         selectedDate.getBlockAvailability(blockIndex);
 
                     return (
-                        <AvailabilityBlockCell
+                        <AvailabilityBlockCells
                             key={key}
                             blockIndex={blockIndex}
                             isAvailable={isAvailable}

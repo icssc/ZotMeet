@@ -13,7 +13,7 @@ interface AvailabilityBlockCellProps {
     isLastRow: boolean;
 }
 
-export function AvailabilityBlockCell({
+export function AvailabilityBlockCells({
     blockIndex,
     isAvailable,
     zotDateIndex,
