@@ -1,39 +1,124 @@
-import React from "react";
-import { cn } from "@/lib/utils";
+import { Dispatch, SetStateAction } from "react";
+import { CalendarBodyDaySquare } from "@/components/creation/calendar/calendar-body-day-square";
 import { ZotDate } from "@/lib/zotdate";
 
 interface CalendarBodyDayProps {
-    isHighlighted: boolean;
     calendarDay: ZotDate;
-    isCurrentMonth: boolean;
+    startDaySelection: ZotDate | null;
+    setStartDaySelection: Dispatch<SetStateAction<ZotDate | null>>;
+    endDaySelection: ZotDate | null;
+    setEndDaySelection: Dispatch<SetStateAction<ZotDate | null>>;
+    updateCalendar: VoidFunction;
+    currentMonth: number;
+    updateSelectedRange: (startDate: ZotDate, endDate: ZotDate) => void;
 }
 
 export function CalendarBodyDay({
-    isHighlighted,
     calendarDay,
-    isCurrentMonth,
+    startDaySelection,
+    setStartDaySelection,
+    endDaySelection,
+    setEndDaySelection,
+    updateCalendar,
+    currentMonth,
+    updateSelectedRange,
 }: CalendarBodyDayProps) {
-    const isSelected = calendarDay.isSelected;
+    const isHighlighted =
+        startDaySelection &&
+        endDaySelection &&
+        calendarDay.determineDayWithinBounds(
+            startDaySelection,
+            endDaySelection
+        );
+
+    const isCurrentMonth = currentMonth === calendarDay.getMonth();
+
+    /* Confirms the current highlight selection and updates calendar accordingly */
+    const handleEndSelection = () => {
+        if (startDaySelection && endDaySelection) {
+            try {
+                updateSelectedRange(startDaySelection, endDaySelection);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        updateCalendar();
+
+        setStartDaySelection(null);
+        setEndDaySelection(null);
+    };
+
+    /**
+     * Updates the current highlight selection whenever a mobile user drags on the calendar
+     * @param {TouchEvent} e - Touch event from a mobile user
+     */
+    const handleTouchMove = (e: React.TouchEvent<HTMLButtonElement>) => {
+        const touchingElement = document.elementFromPoint(
+            e.touches[0].clientX,
+            e.touches[0].clientY
+        );
+
+        if (!touchingElement) return;
+
+        const touchingDay = touchingElement.getAttribute("data-day");
+
+        if (startDaySelection && touchingDay) {
+            const day = ZotDate.extractDayFromElement(touchingElement);
+            setEndDaySelection(day);
+        }
+    };
+
+    const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        setStartDaySelection(calendarDay);
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        if (!endDaySelection) {
+            setEndDaySelection(calendarDay);
+        }
+        handleEndSelection();
+    };
+
+    const handleMouseMove = () => {
+        if (startDaySelection) {
+            setEndDaySelection(calendarDay);
+        }
+    };
+
+    const handleMouseUp = () => {
+        if (startDaySelection) {
+            setEndDaySelection(calendarDay);
+            handleEndSelection();
+        }
+    };
+
+    const handleMouseDown = () => {
+        setStartDaySelection(calendarDay);
+    };
 
     return (
-        <p
-            className={cn(
-                "flex-center text-gray-dark relative aspect-square h-8 w-8 rounded-lg text-base font-medium md:h-12 md:w-12 md:rounded-xl md:text-xl",
-                isSelected && "bg-primary text-gray-50",
-                isHighlighted && "bg-slate-base text-gray-dark",
-                !isCurrentMonth &&
-                    cn(
-                        "text-gray-base",
-                        isHighlighted && "bg-opacity-30",
-                        isSelected && "bg-opacity-50 text-gray-100"
-                    )
-            )}
-            data-day={calendarDay.getDay()}
-            data-month={calendarDay.getMonth()}
-            data-year={calendarDay.getYear()}
-            data-selected={isSelected}
-        >
-            {calendarDay.getDay()}
-        </p>
+        <td onMouseUp={handleMouseUp}>
+            <button
+                onTouchMove={handleTouchMove}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onMouseMove={handleMouseMove}
+                onMouseDown={handleMouseDown}
+                className="relative flex w-full cursor-pointer select-none justify-center py-2"
+            >
+                <CalendarBodyDaySquare
+                    isHighlighted={!!isHighlighted}
+                    calendarDay={calendarDay}
+                    isCurrentMonth={isCurrentMonth}
+                />
+            </button>
+        </td>
     );
 }
