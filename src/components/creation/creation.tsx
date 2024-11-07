@@ -4,15 +4,16 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
+import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
+import { Button } from "@/components/ui/button";
+import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 
-// import MeetingTimeField from "./MeetingTimeField";
-
 export function Creation() {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
-    const [startTime, setStartTime] = useState(null);
-    const [endTime, setEndTime] = useState(null);
+    const [startTime, setStartTime] = useState<HourMinuteString>("9:00");
+    const [endTime, setEndTime] = useState<HourMinuteString>("13:00");
     const [meetingName, setMeetingName] = useState("");
     const router = useRouter();
 
@@ -50,6 +51,16 @@ export function Creation() {
         router.push(`/availability/${meetingId}`);
     };
 
+    const hasValidInputs = () => {
+        return (
+            selectedDays.length > 0 &&
+            startTime &&
+            endTime &&
+            startTime < endTime &&
+            meetingName
+        );
+    };
+
     return (
         <div className="space-y-6 px-4 pb-6">
             <div className="px-4 pt-8 md:pl-[60px] md:pt-10">
@@ -68,12 +79,11 @@ export function Creation() {
                         meetingName={meetingName}
                         setMeetingName={setMeetingName}
                     />
-                    {/* <MeetingTimeField
-                        startTime={startTime}
-                        endTime={endTime}
+
+                    <MeetingTimeField
                         setStartTime={setStartTime}
                         setEndTime={setEndTime}
-                    /> */}
+                    />
                 </div>
             </div>
 
@@ -87,22 +97,15 @@ export function Creation() {
                     {selectedDays.length} days selected
                 </p>
 
-                <button
+                <Button
                     className={cn(
-                        "btn bg-success font-montserrat text-gray-light sm:btn-wide w-48 border-none text-xl font-medium"
+                        "font-montserrat text-gray-light sm:btn-wide w-48 rounded-lg border-none bg-green-500 text-xl font-medium hover:bg-green-500/80"
                     )}
-                    disabled={
-                        selectedDays.length > 0 &&
-                        startTime &&
-                        endTime &&
-                        meetingName
-                            ? false
-                            : true
-                    }
+                    disabled={!hasValidInputs()}
                     onClick={handleCreation}
                 >
                     Continue →
-                </button>
+                </Button>
             </div>
         </div>
     );

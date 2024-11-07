@@ -15,12 +15,8 @@ export function CalendarBody({
     currentMonth,
     updateSelectedRange,
 }: CalendarBodyProps) {
-    const [startDaySelection, setStartDaySelection] = useState<ZotDate | null>(
-        null
-    );
-    const [endDaySelection, setEndDaySelection] = useState<ZotDate | null>(
-        null
-    );
+    const [startDaySelection, setStartDaySelection] = useState<ZotDate>();
+    const [endDaySelection, setEndDaySelection] = useState<ZotDate>();
 
     return (
         <tbody>

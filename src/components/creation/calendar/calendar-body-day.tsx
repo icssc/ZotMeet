@@ -4,10 +4,10 @@ import { ZotDate } from "@/lib/zotdate";
 
 interface CalendarBodyDayProps {
     calendarDay: ZotDate;
-    startDaySelection: ZotDate | null;
-    setStartDaySelection: Dispatch<SetStateAction<ZotDate | null>>;
-    endDaySelection: ZotDate | null;
-    setEndDaySelection: Dispatch<SetStateAction<ZotDate | null>>;
+    startDaySelection: ZotDate | undefined;
+    setStartDaySelection: Dispatch<SetStateAction<ZotDate | undefined>>;
+    endDaySelection: ZotDate | undefined;
+    setEndDaySelection: Dispatch<SetStateAction<ZotDate | undefined>>;
     updateCalendar: VoidFunction;
     currentMonth: number;
     updateSelectedRange: (startDate: ZotDate, endDate: ZotDate) => void;
@@ -46,8 +46,8 @@ export function CalendarBodyDay({
 
         updateCalendar();
 
-        setStartDaySelection(null);
-        setEndDaySelection(null);
+        setStartDaySelection(undefined);
+        setEndDaySelection(undefined);
     };
 
     /**
@@ -66,7 +66,7 @@ export function CalendarBodyDay({
 
         if (startDaySelection && touchingDay) {
             const day = ZotDate.extractDayFromElement(touchingElement);
-            setEndDaySelection(day);
+            setEndDaySelection(day ?? undefined);
         }
     };
 
