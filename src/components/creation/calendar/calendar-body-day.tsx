@@ -35,9 +35,10 @@ export function CalendarBodyDay({
 
     /* Confirms the current highlight selection and updates calendar accordingly */
     const handleEndSelection = () => {
-        if (startDaySelection && endDaySelection) {
+        if (startDaySelection) {
             try {
-                updateSelectedRange(startDaySelection, endDaySelection);
+                setEndDaySelection(calendarDay);
+                updateSelectedRange(startDaySelection, calendarDay);
             } catch (err) {
                 console.error(err);
             }
@@ -80,9 +81,7 @@ export function CalendarBodyDay({
         if (e.cancelable) {
             e.preventDefault();
         }
-        if (!endDaySelection) {
-            setEndDaySelection(calendarDay);
-        }
+
         handleEndSelection();
     };
 
@@ -94,7 +93,6 @@ export function CalendarBodyDay({
 
     const handleMouseUp = () => {
         if (startDaySelection) {
-            setEndDaySelection(calendarDay);
             handleEndSelection();
         }
     };
