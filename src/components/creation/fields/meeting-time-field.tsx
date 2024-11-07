@@ -67,7 +67,7 @@ export const MeetingTimeField = ({
                 </p>
             </div>
 
-            <div className="xs:flex-row xs:items-center xs:space-y-0 xs:pt-0 flex w-full flex-row items-center space-x-4 pt-2 text-sm text-gray-500">
+            <div className="flex w-full flex-row items-center space-x-4 pt-2 text-sm text-gray-500">
                 <div className="flex gap-2">
                     <Select
                         value={String(startHour)}
