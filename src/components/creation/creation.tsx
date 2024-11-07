@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createMeeting } from "@/actions/creation/createMeeting";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
@@ -18,7 +19,7 @@ export function Creation() {
     const router = useRouter();
 
     const handleCreation = async () => {
-        const body = {
+        const newMeeting = {
             title: meetingName,
             fromTime: startTime,
             toTime: endTime,
@@ -28,20 +29,12 @@ export function Creation() {
             description: "",
         };
 
-        const response = await fetch("/api/create", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-        });
+        const meeting = await createMeeting(newMeeting);
+        const { meetingId, error } = meeting;
 
-        if (!response.ok) {
-            console.error("Failed to create meeting: ", response.statusText);
-            return;
+        if (error) {
+            console.error("Failed to create meeting: ", error);
         }
-
-        const { meetingId } = await response.json();
 
         if (!meetingId) {
             console.error("Failed to create meeting. Meeting ID not found.");
