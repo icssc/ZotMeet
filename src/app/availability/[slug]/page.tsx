@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { AvailabilityHeader } from "@/components/availability/availability-header";
+import { GroupAvailability } from "@/components/availability/group-availability";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import {
     Tabs,
@@ -70,7 +71,14 @@ export default async function Page({ params }: PageProps) {
                         availability={availability}
                     />
                 </TabsContent>
-                <TabsContent value="group">Group Availability</TabsContent>
+                <TabsContent value="group">
+                    <GroupAvailability
+                        columns={5}
+                        availabilityDates={[]}
+                        availabilityTimeBlocks={[]}
+                        groupAvailabilities={[]}
+                    />
+                </TabsContent>
             </Tabs>
         </div>
     );
