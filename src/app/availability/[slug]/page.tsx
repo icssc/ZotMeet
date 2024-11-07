@@ -26,9 +26,9 @@ export default async function Page({ params }: PageProps) {
     }
 
     const meetingData = await getExistingMeeting(slug);
-    // if (!meetingData) {
-    //     redirect("/error");
-    // }
+    if (!meetingData) {
+        redirect("/error");
+    }
 
     const meetingDates = await getMeetingDates(slug);
     const availability = user ? await getAvailability(user, slug) : null;
