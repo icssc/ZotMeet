@@ -51,12 +51,13 @@ export function Creation() {
     };
 
     return (
-        <div className="p-4">
+        <div className="space-y-6 px-4 pb-6">
             <div className="px-4 pt-8 md:pl-[60px] md:pt-10">
                 <h2 className="font-montserrat text-gray-dark text-xl font-medium md:text-2xl">
                     Let&apos;s plan your next meeting.
                 </h2>
-                <h3 className="text-gray-medium text-sm font-light md:text-base">
+
+                <h3 className="text-sm font-light text-gray-400 md:text-base">
                     Select potential dates and times for you and your team.
                 </h3>
             </div>
@@ -85,6 +86,7 @@ export function Creation() {
                 <p className="text-slate-medium text-sm font-bold uppercase">
                     {selectedDays.length} days selected
                 </p>
+
                 <button
                     className={cn(
                         "btn bg-success font-montserrat text-gray-light sm:btn-wide w-48 border-none text-xl font-medium"

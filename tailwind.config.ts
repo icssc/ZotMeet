@@ -62,11 +62,26 @@ const config: Config = {
                     border: "hsl(var(--sidebar-border))",
                     ring: "hsl(var(--sidebar-ring))",
                 },
+                gray: {
+                    light: "#F3F4F6" /* maps to gray-100 */,
+                    base: "#D1D5DB" /* gray-300 */,
+                    medium: "#9CA3AF" /* gray-400 */,
+                    dark: "#1F2937" /* gray-800 */,
+                },
+                slate: {
+                    base: "#CBD5E1" /* slate-300 */,
+                    medium: "#94A3B8" /* slate-400 */,
+                },
             },
             borderRadius: {
                 lg: "var(--radius)",
                 md: "calc(var(--radius) - 2px)",
                 sm: "calc(var(--radius) - 4px)",
+            },
+            fontFamily: {
+                montserrat: ["Montserrat", "sans-serif"],
+                "dm-sans": ["'DM Sans'", "sans-serif"],
+                default: ["'DM Sans'", "sans-serif"],
             },
         },
     },

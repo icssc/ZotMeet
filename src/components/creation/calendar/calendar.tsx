@@ -6,6 +6,8 @@ import React, {
     useState,
 } from "react";
 import { CalendarBody } from "@/components/creation/calendar/calendar-body";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -103,19 +105,20 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
 
     return (
         <div className="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:p-5">
-            <button
+            <Button
                 onClick={decrementMonth}
-                className="p-3 md:pl-1"
+                className="bg-transparent p-3 hover:bg-transparent md:pl-1"
             >
                 <span className="text-3xl text-gray-500">&lsaquo;</span>
-            </button>
+            </Button>
 
             <div className="md:px-4">
                 <div className="flex flex-col pb-5 md:pb-6">
                     <h3 className="font-montserrat text-gray-dark text-left text-2xl font-semibold md:text-3xl">
                         {monthName} {currentYear}
                     </h3>
-                    <div className="divider m-0 h-[2px] w-12 bg-accent md:w-16" />
+
+                    <Separator className="h-[2px] w-12 bg-orange-500 md:w-16" />
                 </div>
 
                 <table className="w-full table-fixed p-3">
@@ -131,7 +134,7 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
                                             {dayOfWeek}
                                         </p>
                                     </div>
-                                    <div className="divider mt-0" />
+                                    <Separator className="bg-slate-base my-2 h-[2px]" />
                                 </th>
                             ))}
                         </tr>
@@ -146,12 +149,12 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
                 </table>
             </div>
 
-            <button
+            <Button
                 onClick={incrementMonth}
-                className="p-3 md:pr-1"
+                className="bg-transparent p-3 hover:bg-transparent md:pr-1"
             >
                 <span className="text-3xl text-gray-500">&rsaquo;</span>
-            </button>
+            </Button>
         </div>
     );
 }

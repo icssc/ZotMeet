@@ -19,11 +19,11 @@ export function CalendarBodyDaySquare({
         <p
             className={cn(
                 "flex-center text-gray-dark relative aspect-square h-8 w-8 rounded-lg text-base font-medium md:h-12 md:w-12 md:rounded-xl md:text-xl",
-                isSelected && "bg-blue-500 text-gray-50",
-                isHighlighted && "text-gray-dark bg-slate-300",
+                isSelected && "bg-primary text-gray-50",
+                isHighlighted && "bg-slate-base text-gray-dark",
                 !isCurrentMonth &&
                     cn(
-                        "text-gray-300",
+                        "text-gray-base",
                         isHighlighted && "bg-opacity-30",
                         isSelected && "bg-opacity-50 text-gray-100"
                     )
