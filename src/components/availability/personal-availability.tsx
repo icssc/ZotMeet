@@ -203,7 +203,7 @@ export function PersonalAvailability({
         };
 
         init();
-    }, [meetingData, meetingDates]);
+    }, [meetingData, meetingDates, setAvailabilityDates]);
 
     const handlePrevPage = () => {
         if (currentPage > 0) {

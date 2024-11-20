@@ -8,10 +8,13 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/custom/tabs";
+import {
+    getTimeFromHourMinuteString,
+    SAMPLE_MEMBERS,
+} from "@/lib/availability/utils";
 import { getExistingMeeting } from "@/lib/db/databaseUtils";
 import { getAvailability, getMeetingDates } from "@/lib/db/utils";
-import { MemberAvailability } from "@/lib/types/availability";
-import { HourMinuteString, TimeConstants } from "@/lib/types/chrono";
+import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 
 interface PageProps {
@@ -29,9 +32,10 @@ export default async function Page({ params }: PageProps) {
     }
 
     const meetingData = await getExistingMeeting(slug);
-    // if (!meetingData) {
-    //     redirect("/error");
-    // }
+
+    if (!meetingData) {
+        redirect("/error");
+    }
 
     const meetingDates = await getMeetingDates(slug);
     const availability = user ? await getAvailability(user, slug) : [];
@@ -104,58 +108,3 @@ const generateTimeBlocks = (startTime: number, endTime: number): number[] => {
     }
     return timeBlocks;
 };
-
-const getTimeFromHourMinuteString = (
-    hourMinuteString: HourMinuteString
-): number => {
-    const [hours, minutes] = hourMinuteString.split(":");
-
-    return Number(hours) * TimeConstants.MINUTES_PER_HOUR + Number(minutes);
-};
-
-const SAMPLE_MEMBERS: MemberAvailability[] = [
-    {
-        name: "Sean Fong",
-        availableBlocks: [[1], [2], [3, 4, 5], [], [], [], []],
-    },
-    {
-        name: "Joe Biden",
-        availableBlocks: [
-            [],
-            [1, 2],
-            [4, 5, 6, 22, 23, 24, 25, 26, 27, 28],
-            [],
-            [],
-            [],
-            [],
-        ],
-    },
-    {
-        name: "Chuck Norris",
-        availableBlocks: [
-            [4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 23, 24],
-            [3, 4, 5, 6, 7],
-            [4, 5, 6],
-            [],
-            [],
-            [],
-            [],
-        ],
-    },
-    {
-        name: "Dwayne the Rock",
-        availableBlocks: [
-            [],
-            [1, 2, 3, 4, 5],
-            [4, 5, 6, 25, 26, 27, 28],
-            [],
-            [],
-            [],
-            [],
-        ],
-    },
-    {
-        name: "Kevin Hart",
-        availableBlocks: [[], [1, 2], [26, 27, 28, 29, 30, 31], [], [], [], []],
-    },
-];

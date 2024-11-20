@@ -3,6 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { GroupResponses } from "@/components/availability/group-responses";
+import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
+import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
+import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
+import { generateSampleDates } from "@/lib/availability/utils";
 import { MemberAvailability } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -16,10 +20,12 @@ interface GroupAvailabilityProps {
 
 export function GroupAvailability({
     columns,
-    availabilityDates,
+    availabilityDates: _,
     availabilityTimeBlocks,
     groupAvailabilities,
 }: GroupAvailabilityProps) {
+    const availabilityDates = generateSampleDates(); // TODO: replace with actual data
+
     const itemsPerPage = columns;
     const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
     const numPaddingDates =
@@ -156,60 +162,29 @@ export function GroupAvailability({
         }
     };
 
+    const handlePrevPage = () => {
+        if (currentPage > 0) {
+            setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < lastPage) {
+            setCurrentPage(currentPage + 1);
+        }
+    };
+
     return (
-        <>
-            <div className="font-dm-sans flex items-center justify-between overflow-x-auto lg:w-full lg:pr-10">
-                <button
-                    onClick={() => {
-                        if (currentPage > 0) {
-                            setCurrentPage(currentPage - 1);
-                        }
-                    }}
-                    className="p-3 disabled:opacity-0 md:pl-1"
+        <div className="flex flex-row items-start justify-start align-top">
+            <div className="font-dm-sans flex h-fit items-center justify-between overflow-x-auto lg:w-full lg:pr-10">
+                <AvailabilityNavButton
+                    direction="left"
+                    handleClick={handlePrevPage}
                     disabled={currentPage === 0}
-                >
-                    <span className="text-3xl text-gray-500">&lsaquo;</span>
-                </button>
+                />
 
                 <table className="w-full table-fixed">
-                    <thead>
-                        <tr>
-                            <th className="w-10 md:w-16">
-                                <span className="sr-only">Time</span>
-                            </th>
-                            {currentPageAvailability.map(
-                                (dateHeader, pageDateIndex) => (
-                                    <th
-                                        key={pageDateIndex}
-                                        className="pb-2 text-sm font-normal"
-                                    >
-                                        {dateHeader ? (
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-bold uppercase text-gray-500 md:text-xs">
-                                                    {dateHeader.day.toLocaleDateString(
-                                                        "en-US",
-                                                        {
-                                                            weekday: "short",
-                                                        }
-                                                    )}
-                                                </span>
-
-                                                <span className="text-gray-medium text-center text-[12px] uppercase md:text-base">
-                                                    {dateHeader.day.toLocaleDateString(
-                                                        "en-US",
-                                                        {
-                                                            month: "numeric",
-                                                            day: "numeric",
-                                                        }
-                                                    )}
-                                                </span>
-                                            </div>
-                                        ) : null}
-                                    </th>
-                                )
-                            )}
-                        </tr>
-                    </thead>
+                    <AvailabilityTableHeader />
 
                     <tbody>
                         {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
@@ -221,24 +196,9 @@ export function GroupAvailability({
 
                             return (
                                 <tr key={`block-${timeBlock}`}>
-                                    <td className="border-r-gray-medium w-2 border-r-[1px] py-0 pr-3 align-top">
-                                        {isTopOfHour ? (
-                                            <>
-                                                <span className="text-gray-medium float-right hidden whitespace-nowrap text-[10px] font-bold md:flex md:text-xs">
-                                                    {ZotDate.toTimeBlockString(
-                                                        timeBlock,
-                                                        false
-                                                    )}
-                                                </span>
-                                                <span className="text-gray-medium float-right flex whitespace-nowrap text-[10px] font-bold md:hidden md:text-xs">
-                                                    {ZotDate.toTimeBlockString(
-                                                        timeBlock,
-                                                        true
-                                                    )}
-                                                </span>
-                                            </>
-                                        ) : null}
-                                    </td>
+                                    <AvailabilityTimeTicks
+                                        timeBlock={timeBlock}
+                                    />
 
                                     {currentPageAvailability.map(
                                         (selectedDate, pageDateIndex) => {
@@ -340,17 +300,11 @@ export function GroupAvailability({
                     </tbody>
                 </table>
 
-                <button
-                    onClick={() => {
-                        if (currentPage < lastPage) {
-                            setCurrentPage(currentPage + 1);
-                        }
-                    }}
-                    className="p-3 disabled:opacity-0 md:pr-1"
+                <AvailabilityNavButton
+                    direction="right"
+                    handleClick={handleNextPage}
                     disabled={currentPage === lastPage}
-                >
-                    <span className="text-3xl text-gray-500">&rsaquo;</span>
-                </button>
+                />
             </div>
 
             <GroupResponses
@@ -362,7 +316,8 @@ export function GroupAvailability({
                 notAvailableMembersOfSelection={notAvailableMembersOfSelection}
                 closeMobileDrawer={resetSelection}
             />
+
             <div className={`lg:hidden ${isMobileDrawerOpen ? "h-96" : ""}`} />
-        </>
+        </div>
     );
 }
