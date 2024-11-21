@@ -53,7 +53,9 @@ const data = {
     ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function SidebarComponent({
+    ...props
+}: React.ComponentProps<typeof Sidebar>) {
     const [isMobile, setIsMobile] = useState(false);
 
     const checkWindowSize = useCallback(() => {

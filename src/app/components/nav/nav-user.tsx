@@ -1,5 +1,6 @@
 "use client";
 
+import { LoginDialog } from "@/app/components/nav/login-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     DropdownMenu,
@@ -38,6 +39,9 @@ export function NavUser({
 
     return (
         <SidebarMenu>
+            <SidebarMenuItem>
+                <LoginDialog />
+            </SidebarMenuItem>
             <SidebarMenuItem>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
