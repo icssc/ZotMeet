@@ -1,5 +1,6 @@
 "use client";
 
+import { saveAvailability } from "@/actions/availability/saveAvailability";
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { Button } from "@/components/ui/button";
 import { MeetingSelectSchema } from "@/db/schema";
@@ -27,9 +28,21 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
         setIsStateUnsaved(false);
     };
 
+    const handleSave = async () => {
+        const availability = {
+            meetingId: meetingData.id,
+            availabilityDates: availabilityDates.map((date) => ({
+                day: date.day,
+                availability: date.availability,
+            })),
+        };
+
+        await saveAvailability(availability);
+    };
+
     return (
         <div className="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
-            <h1 className="font-montserrat line-clamp-1 h-8 pr-2 text-xl font-medium md:h-fit md:text-3xl">
+            <h1 className="line-clamp-1 h-8 pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
                 {meetingData.title}
             </h1>
 
@@ -87,6 +100,7 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
                             "group hover:border-green-500 hover:bg-green-500"
                         )}
                         type="submit"
+                        onClick={handleSave}
                     >
                         <span className="hidden text-green-500 group-hover:text-white md:flex">
                             Save
