@@ -25,7 +25,6 @@ interface PageProps {
 
 export default async function Page({ params }: PageProps) {
     const { slug } = params;
-    const user = { id: "123" }; // TODO (#auth): replace with actual user from session
 
     if (!slug) {
         redirect("/error");
@@ -38,7 +37,11 @@ export default async function Page({ params }: PageProps) {
     }
 
     const meetingDates = await getMeetingDates(slug);
-    const availability = user ? await getAvailability(user, slug) : [];
+    // const availability = user ? await getAvailability(user, slug) : [];
+    const availability = await getAvailability({
+        userId: "123", // TODO (#auth): replace with actual user from session
+        meetingId: meetingData.id,
+    });
 
     const availabilityTimeBlocks = generateTimeBlocks(
         getTimeFromHourMinuteString(meetingData.from_time as HourMinuteString),
