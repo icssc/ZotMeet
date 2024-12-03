@@ -14,6 +14,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
                 maxAge: 60 * 60 * 24 * 30,
                 sameSite: "lax",
                 httpOnly: true,
+                // TODO: check for deployment
                 secure: process.env.NODE_ENV === "production",
             });
         }
