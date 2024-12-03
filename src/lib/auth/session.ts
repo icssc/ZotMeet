@@ -8,6 +8,8 @@ import {
 } from "@oslojs/encoding";
 import { eq } from "drizzle-orm";
 
+const DAYS_MS = 1000 * 60 * 60 * 24;
+
 export function generateSessionToken(): string {
     const bytes = new Uint8Array(20);
     crypto.getRandomValues(bytes);
@@ -27,7 +29,7 @@ export async function createSession(
     const session: InsertSession = {
         id: sessionId,
         userId,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+        expiresAt: new Date(Date.now() + DAYS_MS * 30),
     };
 
     await db.insert(sessions).values(session);
@@ -41,26 +43,28 @@ export async function validateSessionToken(
         sha256(new TextEncoder().encode(token))
     );
 
-    const result = await db
+    const existingSession = await db
         .select({ user: users, session: sessions })
         .from(sessions)
         .innerJoin(users, eq(sessions.userId, users.id))
         .where(eq(sessions.id, sessionId));
 
-    if (result.length < 1) {
+    if (existingSession.length < 1) {
         return { session: null, user: null };
     }
 
-    const { user, session } = result[0];
+    const { user, session } = existingSession[0];
 
+    // Session has expired
     if (Date.now() >= session.expiresAt.getTime()) {
         await db.delete(sessions).where(eq(sessions.id, session.id));
 
         return { session: null, user: null };
     }
 
-    if (Date.now() >= session.expiresAt.getTime() - 1000 * 60 * 60 * 24 * 15) {
-        session.expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+    // Renew session if close to expiring
+    if (Date.now() >= session.expiresAt.getTime() - DAYS_MS * 15) {
+        session.expiresAt = new Date(Date.now() + DAYS_MS * 30);
 
         await db
             .update(sessions)
