@@ -28,6 +28,7 @@ export default function SignupTabContent() {
         defaultValues: {
             email: "",
             password: "",
+            displayName: "",
         },
     });
 
@@ -49,7 +50,7 @@ export default function SignupTabContent() {
             <DialogHeader>
                 <DialogTitle className="text-2xl">Sign up</DialogTitle>
                 <DialogDescription>
-                    Enter your email below to sign up for an account
+                    Enter your information below to sign up for an account
                 </DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -59,6 +60,22 @@ export default function SignupTabContent() {
                 >
                     <FormField
                         control={form.control}
+                        name="displayName"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Display Name</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Peter Anteater"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
                         name="email"
                         render={({ field }) => (
                             <FormItem>
@@ -66,6 +83,7 @@ export default function SignupTabContent() {
                                 <FormControl>
                                     <Input
                                         placeholder="name@email.com"
+                                        type="email"
                                         {...field}
                                     />
                                 </FormControl>

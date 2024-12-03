@@ -7,4 +7,7 @@ export const signupFormSchema = z.object({
     password: z.string().min(1, {
         message: "Password must not be empty",
     }),
+    displayName: z.string().min(1, {
+        message: "Display name must not be empty",
+    }),
 });
