@@ -1,6 +1,6 @@
 "use client";
 
-import { LoginDialog } from "@/app/components/nav/login-dialog";
+import AuthDialog from "@/app/components/auth/auth-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
     DropdownMenu,
@@ -40,7 +40,7 @@ export function NavUser({
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <LoginDialog />
+                <AuthDialog />
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <DropdownMenu>
