@@ -8,7 +8,12 @@ export default function AuthDialog() {
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline">Login</Button>
+                <Button
+                    variant="default"
+                    className="w-full"
+                >
+                    Login
+                </Button>
             </DialogTrigger>
             <DialogContent className="max-w-96 sm:max-w-[400px]">
                 <Tabs defaultValue="login">
