@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { members, SelectUser, users } from "@/db/schema";
 import { generateIdFromEntropySize } from "@/lib/auth/crypto";
 import { hashPassword } from "@/lib/auth/password";
+import { eq } from "drizzle-orm";
 
 export const userProjection = {
     id: users.id,
@@ -42,4 +43,19 @@ export async function createUser(
     }
 
     return newUser;
+}
+
+export async function getUserPasswordHash(userId: string): Promise<string> {
+    const [row] = await db
+        .select({
+            passwordHash: users.passwordHash,
+        })
+        .from(users)
+        .where(eq(users.id, userId));
+
+    if (row.passwordHash === null) {
+        throw new Error("Invalid user ID");
+    }
+
+    return row.passwordHash;
 }

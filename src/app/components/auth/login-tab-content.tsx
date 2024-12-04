@@ -87,6 +87,9 @@ export default function LoginTabContent() {
                             </FormItem>
                         )}
                     />
+                    {formState.error && (
+                        <p className="text-destructive">{formState.message}</p>
+                    )}
                     <Button
                         disabled={isPending}
                         type="submit"
@@ -96,7 +99,6 @@ export default function LoginTabContent() {
                     </Button>
                 </form>
             </Form>
-            {formState.error && <p>{formState.message}</p>}
         </div>
     );
 }
