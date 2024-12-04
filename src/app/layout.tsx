@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 
 import "./globals.css";
 
-import AppSidebar from "@/app/components/nav/app-sidebar";
+import AppSidebar from "@/components/nav/app-sidebar";
 import {
     SidebarInset,
     SidebarProvider,

@@ -1,4 +1,4 @@
-import { SidebarComponent } from "@/app/components/nav/app-nav";
+import { SidebarComponent } from "@/components/nav/app-nav";
 import { getCurrentSession } from "@/lib/auth";
 
 export default async function AppSidebar() {
