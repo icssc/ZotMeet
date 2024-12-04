@@ -21,6 +21,7 @@ interface PersonalAvailabilityProps {
     meetingData: MeetingSelectSchema;
     meetingDates: MeetingDateSelectSchema[];
     availability: AvailabilityMeetingDateJoinSchema[] | null;
+    availabilityTimeBlocks: number[];
 }
 
 export function PersonalAvailability({
@@ -28,6 +29,7 @@ export function PersonalAvailability({
     meetingData,
     meetingDates,
     availability,
+    availabilityTimeBlocks,
 }: PersonalAvailabilityProps) {
     const {
         startBlockSelection,
@@ -48,10 +50,6 @@ export function PersonalAvailability({
         availabilityDates,
         setAvailabilityDates,
     } = useAvailabilityContext();
-
-    const [availabilityTimeBlocks, setAvailabilityTimeBlocks] = useState<
-        number[]
-    >([]);
 
     const [guestSession, setGuestSession] = useState({
         meetingId: meetingData.id || "",
@@ -205,14 +203,7 @@ export function PersonalAvailability({
         };
 
         init();
-    }, [meetingData, meetingDates]);
-
-    // TODO: use actual meeting times
-    useEffect(() => {
-        setAvailabilityTimeBlocks([
-            0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195,
-        ]);
-    }, []);
+    }, [meetingData, meetingDates, setAvailabilityDates]);
 
     const handlePrevPage = () => {
         if (currentPage > 0) {
