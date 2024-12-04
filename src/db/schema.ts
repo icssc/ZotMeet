@@ -24,6 +24,7 @@ export const attendanceEnum = pgEnum("attendance", [
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = pgTable("members", {
     id: text("id").primaryKey(),
+    // TODO: add unique id constraint
 });
 
 // Users encompasses Members who have created an account.
@@ -34,7 +35,7 @@ export const users = pgTable("users", {
     displayName: text("displayName").notNull(),
     email: text("email").unique().notNull(),
     passwordHash: text("password_hash"),
-    created_at: timestamp("created_at"),
+    createdAt: timestamp("created_at"),
 });
 
 // Guests are Members who do not have an account and are bound to one specific meeting.

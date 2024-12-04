@@ -1,6 +1,7 @@
 import { db } from "@/db";
-import type { InsertSession, SelectUser } from "@/db/schema";
+import type { InsertSession } from "@/db/schema";
 import { sessions, users } from "@/db/schema";
+import { UserProfile, userProjection } from "@/lib/auth/user";
 import { sha256 } from "@oslojs/crypto/sha2";
 import {
     encodeBase32LowerCaseNoPadding,
@@ -44,7 +45,10 @@ export async function validateSessionToken(
     );
 
     const existingSession = await db
-        .select({ user: users, session: sessions })
+        .select({
+            user: userProjection,
+            session: sessions,
+        })
         .from(sessions)
         .innerJoin(users, eq(sessions.userId, users.id))
         .where(eq(sessions.id, sessionId));
@@ -82,5 +86,5 @@ export async function invalidateSession(sessionId: string): Promise<void> {
 }
 
 export type SessionValidationResult =
-    | { session: InsertSession; user: SelectUser }
+    | { session: InsertSession; user: UserProfile }
     | { session: null; user: null };
