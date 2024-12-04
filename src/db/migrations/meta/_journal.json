@@ -15,6 +15,13 @@
       "when": 1730164699995,
       "tag": "0001_faulty_morgan_stark",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1733299056395,
+      "tag": "0002_flashy_ares",
+      "breakpoints": true
     }
   ]
 }

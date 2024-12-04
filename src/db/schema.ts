@@ -9,6 +9,7 @@ import {
     smallint,
     text,
     timestamp,
+    unique,
     uuid,
 } from "drizzle-orm/pg-core";
 
@@ -22,10 +23,15 @@ export const attendanceEnum = pgEnum("attendance", [
 ]);
 
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
-export const members = pgTable("members", {
-    id: text("id").primaryKey(),
-    // TODO: add unique id constraint
-});
+export const members = pgTable(
+    "members",
+    {
+        id: text("id").primaryKey(),
+    },
+    (table) => ({
+        unique: unique().on(table.id),
+    })
+);
 
 // Users encompasses Members who have created an account.
 export const users = pgTable("users", {
