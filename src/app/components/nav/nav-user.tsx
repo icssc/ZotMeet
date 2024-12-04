@@ -26,6 +26,7 @@ import {
     CreditCard,
     LogOut,
     Sparkles,
+    User,
 } from "lucide-react";
 
 type NavUserProps = {
@@ -50,12 +51,8 @@ export function NavUser({ user }: NavUserProps) {
                                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                             >
                                 <Avatar className="h-8 w-8 rounded-lg">
-                                    <AvatarImage
-                                        src={"/missing.png"}
-                                        alt={user.displayName}
-                                    />
                                     <AvatarFallback className="rounded-lg">
-                                        CN
+                                        <User className="text-muted-foreground" />
                                     </AvatarFallback>
                                 </Avatar>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -78,12 +75,8 @@ export function NavUser({ user }: NavUserProps) {
                             <DropdownMenuLabel className="p-0 font-normal">
                                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                                     <Avatar className="h-8 w-8 rounded-lg">
-                                        <AvatarImage
-                                            src={"/missing.png"}
-                                            alt={user.displayName}
-                                        />
                                         <AvatarFallback className="rounded-lg">
-                                            CN
+                                            <User className="text-muted-foreground" />
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="grid flex-1 text-left text-sm leading-tight">
@@ -97,7 +90,7 @@ export function NavUser({ user }: NavUserProps) {
                                 </div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuGroup>
+                            {/* <DropdownMenuGroup>
                                 <DropdownMenuItem>
                                     <Sparkles />
                                     Upgrade to Pro
@@ -118,7 +111,7 @@ export function NavUser({ user }: NavUserProps) {
                                     Notifications
                                 </DropdownMenuItem>
                             </DropdownMenuGroup>
-                            <DropdownMenuSeparator />
+                            <DropdownMenuSeparator /> */}
                             <DropdownMenuItem
                                 onClick={() => {
                                     logoutAction();
