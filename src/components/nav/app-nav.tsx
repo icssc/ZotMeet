@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
-import { NavMain } from "@/app/components/nav/nav-main";
-import { NavUser } from "@/app/components/nav/nav-user";
+import { NavMain } from "@/components/nav/nav-main";
+import { NavUser } from "@/components/nav/nav-user";
 import { Separator } from "@/components/ui/separator";
 import {
     Sidebar,
