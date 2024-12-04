@@ -1,7 +1,8 @@
 import { SidebarComponent } from "@/app/components/nav/app-nav";
+import { getCurrentSession } from "@/lib/auth";
 
-export default function AppSidebar() {
-    // TODO: get user session here on the server
+export default async function AppSidebar() {
+    const { user } = await getCurrentSession();
 
-    return <SidebarComponent />;
+    return <SidebarComponent user={user} />;
 }

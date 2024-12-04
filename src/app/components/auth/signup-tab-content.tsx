@@ -107,6 +107,9 @@ export default function SignupTabContent() {
                             </FormItem>
                         )}
                     />
+                    {formState.error && (
+                        <p className="text-destructive">{formState.message}</p>
+                    )}
                     <Button
                         disabled={isPending}
                         type="submit"
@@ -116,7 +119,6 @@ export default function SignupTabContent() {
                     </Button>
                 </form>
             </Form>
-            {formState.error && <p>{formState.message}</p>}
         </div>
     );
 }
