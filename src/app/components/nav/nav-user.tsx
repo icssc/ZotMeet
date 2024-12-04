@@ -1,5 +1,6 @@
 "use client";
 
+import { logoutAction } from "@/app/actions/auth/logout/action";
 import AuthDialog from "@/app/components/auth/auth-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -118,7 +119,11 @@ export function NavUser({ user }: NavUserProps) {
                                 </DropdownMenuItem>
                             </DropdownMenuGroup>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                                onClick={() => {
+                                    logoutAction();
+                                }}
+                            >
                                 <LogOut />
                                 Log out
                             </DropdownMenuItem>
