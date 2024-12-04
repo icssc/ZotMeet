@@ -14,6 +14,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { UserProfile } from "@/lib/auth/user";
 import {
     BookOpen,
     Bot,
@@ -23,11 +24,6 @@ import {
 } from "lucide-react";
 
 const data = {
-    user: {
-        name: "shadcn",
-        email: "m@example.com",
-        avatar: "/avatars/shadcn.jpg",
-    },
     navMain: [
         {
             title: "Playground",
@@ -53,7 +49,11 @@ const data = {
     ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+type SidebarComponentProps = React.ComponentProps<typeof Sidebar> & {
+    user: UserProfile | null;
+};
+
+export function SidebarComponent({ user, ...props }: SidebarComponentProps) {
     const [isMobile, setIsMobile] = useState(false);
 
     const checkWindowSize = useCallback(() => {
@@ -110,7 +110,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <NavMain items={data.navMain} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={data.user} />
+                <NavUser user={user} />
             </SidebarFooter>
         </Sidebar>
     );
