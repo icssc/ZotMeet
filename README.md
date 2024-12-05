@@ -27,8 +27,8 @@ Simple, clean, and efficient meeting scheduling app.
    1. `cd ZotMeet`
    2. `pnpm install`
 3. Start the development server
-   1. `pnpm start` (run `pnpm start --host` if you want to access the server from other devices on your network)
-4. The app should be viewable at `localhost:3000` by default. Changes to the code will automatically update the page. If you ran `pnpm start --host`, you can access the app from other devices on your network at `host-ip:3000`.
+   1. `pnpm dev` (run `pnpm dev --host` if you want to access the server from other devices on your network)
+4. The app should be viewable at `localhost:3000` by default. Changes to the code will automatically update the page. If you ran `pnpm dev --host`, you can access the app from other devices on your network at `host-ip:3000`.
 
 ### Local Database Setup
 
