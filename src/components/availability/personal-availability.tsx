@@ -179,31 +179,24 @@ export function PersonalAvailability({
     }, [isStateUnsaved]);
 
     useEffect(() => {
-        const init = async () => {
-            // const generalAvailability = await getGeneralAvailability(
-            //     meetingData,
-            //     guestSession
-            // );
+        if (!availability) {
+            setAvailabilityDates([]);
+            return;
+        }
 
-            const generalAvailability: Array<unknown> | null = null;
-
-            const defaultMeetingDates = meetingDates.map(
-                (item) => new ZotDate(item.date, false, [])
-            );
-
-            ZotDate.initializeAvailabilities(defaultMeetingDates);
-
-            setAvailabilityDates(
-                // ! fix this
-                // @ts-expect-error trust me bro
-                generalAvailability && generalAvailability.length > 0
-                    ? generalAvailability
-                    : defaultMeetingDates
-            );
-        };
-
-        init();
-    }, [meetingData, meetingDates, setAvailabilityDates]);
+        setAvailabilityDates(
+            availability?.map(
+                (availability) =>
+                    new ZotDate(
+                        new Date(availability.meeting_dates.date),
+                        false,
+                        Array.from(
+                            availability.availabilities.availability_string
+                        ).map((char) => char === "1")
+                    )
+            )
+        );
+    }, [availability, setAvailabilityDates]);
 
     const handlePrevPage = () => {
         if (currentPage > 0) {
@@ -219,7 +212,7 @@ export function PersonalAvailability({
 
     return (
         <div>
-            <div className="font-dm-sans flex items-center justify-between overflow-x-auto">
+            <div className="flex items-center justify-between overflow-x-auto font-dm-sans">
                 <AvailabilityNavButton
                     direction="left"
                     handleClick={handlePrevPage}

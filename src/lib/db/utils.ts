@@ -8,10 +8,13 @@ import {
 import { and, eq } from "drizzle-orm";
 
 // TODO (#auth): Replace `user` with User type
-export const getAvailability = async (
-    user: { id: string },
-    meetingId: string
-): Promise<AvailabilityMeetingDateJoinSchema[]> => {
+export const getAvailability = async ({
+    userId,
+    meetingId,
+}: {
+    userId: string;
+    meetingId: string;
+}): Promise<AvailabilityMeetingDateJoinSchema[]> => {
     const availability = await db
         .select()
         .from(availabilities)
@@ -21,7 +24,7 @@ export const getAvailability = async (
         )
         .where(
             and(
-                eq(availabilities.member_id, user.id),
+                eq(availabilities.member_id, userId),
                 eq(meetingDates.meeting_id, meetingId || "")
             )
         );
