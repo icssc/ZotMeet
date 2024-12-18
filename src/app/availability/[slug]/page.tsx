@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { AvailabilityHeader } from "@/components/availability/availability-header";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
@@ -28,13 +28,18 @@ export default async function Page({ params }: PageProps) {
     const user = { id: "123" }; // TODO (#auth): replace with actual user from session
 
     if (!slug) {
-        redirect("/error");
+        notFound();
     }
 
-    const meetingData = await getExistingMeeting(slug);
+    const meetingData = await getExistingMeeting(slug).catch((e) => {
+        if (e instanceof Error) {
+            console.error(e);
+        }
+        notFound();
+    });
 
     if (!meetingData) {
-        redirect("/error");
+        notFound();
     }
 
     const meetingDates = await getMeetingDates(slug);
