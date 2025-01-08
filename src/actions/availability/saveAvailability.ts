@@ -4,13 +4,12 @@ import { db } from "@/db";
 import {
     availabilities,
     AvailabilityInsertSchema,
-    meetingDates,
     MeetingDateSelectSchema,
     membersInMeeting,
 } from "@/db/schema";
-import { getExistingMeeting } from "@/lib/db/databaseUtils";
+import { getExistingMeetingDates } from "@/lib/db/databaseUtils";
 import { ZotDate } from "@/lib/zotdate";
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 interface saveAvailabilityProps {
     meetingId: string;
@@ -26,7 +25,7 @@ export async function saveAvailability({
     let dbMeetingDates: MeetingDateSelectSchema[] = [];
 
     try {
-        dbMeetingDates = await _getMeetingDates(meetingId);
+        dbMeetingDates = await getExistingMeetingDates(meetingId);
     } catch (e) {
         console.log("Error getting meeting dates:", e);
     }
@@ -97,16 +96,4 @@ export async function saveAvailability({
             },
         };
     }
-}
-
-export async function _getMeetingDates(
-    meetingId: string
-): Promise<MeetingDateSelectSchema[]> {
-    const dbMeeting = await getExistingMeeting(meetingId);
-    const dbMeetingDates = await db
-        .select()
-        .from(meetingDates)
-        .where(eq(meetingDates.meeting_id, dbMeeting.id));
-
-    return dbMeetingDates.sort((a, b) => (a.date < b.date ? -1 : 1));
 }

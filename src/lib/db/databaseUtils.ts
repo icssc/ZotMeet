@@ -1,5 +1,7 @@
 import { db } from "@/db";
 import {
+    availabilities,
+    AvailabilityMeetingDateJoinSchema,
     GuestInsertSchema,
     guests,
     MeetingDateInsertSchema,
@@ -164,5 +166,32 @@ export const getExistingMeetingDates = async (meetingId: string) => {
         .from(meetingDates)
         .where(eq(meetingDates.meeting_id, meetingId));
 
-    return dbMeetingDates;
+    return dbMeetingDates.sort((a, b) => (a.date < b.date ? -1 : 1));
+};
+
+// TODO (#auth): Replace `user` with User type
+export const getAvailability = async ({
+    userId,
+    meetingId,
+}: {
+    userId: string;
+    meetingId: string;
+}): Promise<AvailabilityMeetingDateJoinSchema[]> => {
+    const availability = await db
+        .select()
+        .from(availabilities)
+        .innerJoin(
+            meetingDates,
+            eq(availabilities.meeting_day, meetingDates.id)
+        )
+        .where(
+            and(
+                eq(availabilities.member_id, userId),
+                eq(meetingDates.meeting_id, meetingId || "")
+            )
+        );
+
+    return availability.sort((a, b) =>
+        a.meeting_dates.date > b.meeting_dates.date ? 1 : -1
+    );
 };

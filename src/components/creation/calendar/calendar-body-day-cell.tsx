@@ -2,23 +2,23 @@ import React from "react";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 
-interface CalendarBodyDaySquareProps {
+interface CalendarBodyDayCellProps {
     isHighlighted: boolean;
     calendarDay: ZotDate;
     isCurrentMonth: boolean;
 }
 
-export function CalendarBodyDaySquare({
+export function CalendarBodyDayCell({
     isHighlighted,
     calendarDay,
     isCurrentMonth,
-}: CalendarBodyDaySquareProps) {
+}: CalendarBodyDayCellProps) {
     const isSelected = calendarDay.isSelected;
 
     return (
         <p
             className={cn(
-                "flex-center text-gray-dark relative aspect-square h-8 w-8 rounded-lg text-base font-medium md:h-12 md:w-12 md:rounded-xl md:text-xl",
+                "flex-center relative aspect-square h-8 w-8 rounded-lg text-base font-medium text-gray-dark md:h-12 md:w-12 md:rounded-xl md:text-xl",
                 isSelected && "bg-primary text-gray-50",
                 isHighlighted && "bg-slate-base text-gray-dark",
                 !isCurrentMonth &&

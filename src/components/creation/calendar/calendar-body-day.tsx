@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
-import { CalendarBodyDaySquare } from "@/components/creation/calendar/calendar-body-day-square";
+import { CalendarBodyDayCell } from "@/components/creation/calendar/calendar-body-day-cell";
 import { ZotDate } from "@/lib/zotdate";
 
 interface CalendarBodyDayProps {
@@ -111,7 +111,7 @@ export function CalendarBodyDay({
                 onMouseDown={handleMouseDown}
                 className="relative flex w-full cursor-pointer select-none justify-center py-2"
             >
-                <CalendarBodyDaySquare
+                <CalendarBodyDayCell
                     isHighlighted={!!isHighlighted}
                     calendarDay={calendarDay}
                     isCurrentMonth={isCurrentMonth}
