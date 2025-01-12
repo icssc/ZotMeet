@@ -12,8 +12,11 @@ import {
     getTimeFromHourMinuteString,
     SAMPLE_MEMBERS,
 } from "@/lib/availability/utils";
-import { getExistingMeeting } from "@/lib/db/databaseUtils";
-import { getAvailability, getMeetingDates } from "@/lib/db/utils";
+import {
+    getAvailability,
+    getExistingMeeting,
+    getExistingMeetingDates,
+} from "@/lib/db/databaseUtils";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +28,6 @@ interface PageProps {
 
 export default async function Page({ params }: PageProps) {
     const { slug } = params;
-    const user = { id: "123" }; // TODO (#auth): replace with actual user from session
 
     if (!slug) {
         notFound();
@@ -42,8 +44,12 @@ export default async function Page({ params }: PageProps) {
         notFound();
     }
 
-    const meetingDates = await getMeetingDates(slug);
-    const availability = user ? await getAvailability(user, slug) : [];
+    const meetingDates = await getExistingMeetingDates(slug);
+    // const availability = user ? await getAvailability(user, slug) : [];
+    const availability = await getAvailability({
+        userId: "123", // TODO (#auth): replace with actual user from session
+        meetingId: meetingData.id,
+    });
 
     const availabilityTimeBlocks = generateTimeBlocks(
         getTimeFromHourMinuteString(meetingData.from_time as HourMinuteString),

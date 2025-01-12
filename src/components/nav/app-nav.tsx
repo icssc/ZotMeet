@@ -15,36 +15,20 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { UserProfile } from "@/lib/auth/user";
-import {
-    BookOpen,
-    Bot,
-    Command,
-    Settings2,
-    SquareTerminal,
-} from "lucide-react";
+import { CalendarSearchIcon, Command, SquarePlusIcon } from "lucide-react";
 
 const data = {
     navMain: [
         {
-            title: "Playground",
-            url: "#",
-            icon: SquareTerminal,
+            title: "New Meeting",
+            url: "/",
+            icon: SquarePlusIcon,
             isActive: true,
         },
         {
-            title: "Models",
-            url: "#",
-            icon: Bot,
-        },
-        {
-            title: "Documentation",
-            url: "#",
-            icon: BookOpen,
-        },
-        {
-            title: "Settings",
-            url: "#",
-            icon: Settings2,
+            title: "Summary",
+            url: "/summary",
+            icon: CalendarSearchIcon,
         },
     ],
 };
@@ -88,7 +72,7 @@ export function SidebarComponent({ user, ...props }: SidebarComponentProps) {
                             className="hover:bg-inherit active:bg-inherit"
                         >
                             <a
-                                href="#"
+                                href="/"
                                 className="space-gray-800 space-x-2"
                             >
                                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
