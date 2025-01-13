@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
@@ -24,7 +24,7 @@ export function GroupAvailability({
     availabilityTimeBlocks,
     groupAvailabilities,
 }: GroupAvailabilityProps) {
-    const availabilityDates = generateSampleDates(); // TODO: replace with actual data
+    const availabilityDates = useMemo(() => generateSampleDates(), []); // TODO: replace with actual data
 
     const itemsPerPage = columns;
     const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
@@ -45,61 +45,6 @@ export function GroupAvailability({
     const [notAvailableMembersOfSelection, setNotAvailableMembersOfSelection] =
         useState<string[]>([]);
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
-
-    // Update current page availability on pagination or data change
-    useEffect(() => {
-        const datesToOffset = currentPage * itemsPerPage;
-        let newCurrentPageAvailability = availabilityDates.slice(
-            datesToOffset,
-            datesToOffset + itemsPerPage
-        );
-
-        if (currentPage === lastPage) {
-            newCurrentPageAvailability = newCurrentPageAvailability.concat(
-                new Array(numPaddingDates).fill(null)
-            );
-        }
-
-        setCurrentPageAvailability(newCurrentPageAvailability);
-    }, [
-        currentPage,
-        itemsPerPage,
-        availabilityDates,
-        numPaddingDates,
-        lastPage,
-    ]);
-
-    // Update selection members when selection changes
-    useEffect(() => {
-        if (
-            selectedZotDateIndex !== undefined &&
-            selectedBlockIndex !== undefined
-        ) {
-            const selectedDate = availabilityDates[selectedZotDateIndex];
-            const availableMemberIndices =
-                selectedDate.getGroupAvailabilityBlock(selectedBlockIndex) ??
-                [];
-
-            const newAvailableMembersOfSelection = availableMemberIndices.map(
-                (availableMemberIndex) =>
-                    groupAvailabilities[availableMemberIndex].name
-            );
-
-            const newNotAvailableMembersOfSelection = groupAvailabilities
-                .filter((_, index) => !availableMemberIndices.includes(index))
-                .map((member) => member.name);
-
-            setAvailableMembersOfSelection(newAvailableMembersOfSelection);
-            setNotAvailableMembersOfSelection(
-                newNotAvailableMembersOfSelection
-            );
-        }
-    }, [
-        selectedZotDateIndex,
-        selectedBlockIndex,
-        availabilityDates,
-        groupAvailabilities,
-    ]);
 
     const generateDateKey = ({
         selectedDate,
@@ -174,9 +119,64 @@ export function GroupAvailability({
         }
     };
 
+    // Update current page availability on pagination or data change
+    useEffect(() => {
+        const datesToOffset = currentPage * itemsPerPage;
+        let newCurrentPageAvailability = availabilityDates.slice(
+            datesToOffset,
+            datesToOffset + itemsPerPage
+        );
+
+        if (currentPage === lastPage) {
+            newCurrentPageAvailability = newCurrentPageAvailability.concat(
+                new Array(numPaddingDates).fill(null)
+            );
+        }
+
+        setCurrentPageAvailability(newCurrentPageAvailability);
+    }, [
+        currentPage,
+        itemsPerPage,
+        availabilityDates,
+        numPaddingDates,
+        lastPage,
+    ]);
+
+    // Update selection members when selection changes
+    useEffect(() => {
+        if (
+            selectedZotDateIndex !== undefined &&
+            selectedBlockIndex !== undefined
+        ) {
+            const selectedDate = availabilityDates[selectedZotDateIndex];
+            const availableMemberIndices =
+                selectedDate.getGroupAvailabilityBlock(selectedBlockIndex) ??
+                [];
+
+            const newAvailableMembersOfSelection = availableMemberIndices.map(
+                (availableMemberIndex) =>
+                    groupAvailabilities[availableMemberIndex].name
+            );
+
+            const newNotAvailableMembersOfSelection = groupAvailabilities
+                .filter((_, index) => !availableMemberIndices.includes(index))
+                .map((member) => member.name);
+
+            setAvailableMembersOfSelection(newAvailableMembersOfSelection);
+            setNotAvailableMembersOfSelection(
+                newNotAvailableMembersOfSelection
+            );
+        }
+    }, [
+        selectedZotDateIndex,
+        selectedBlockIndex,
+        availabilityDates,
+        groupAvailabilities,
+    ]);
+
     return (
         <div className="flex flex-row items-start justify-start align-top">
-            <div className="font-dm-sans flex h-fit items-center justify-between overflow-x-auto lg:w-full lg:pr-10">
+            <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-10">
                 <AvailabilityNavButton
                     direction="left"
                     handleClick={handlePrevPage}
@@ -223,9 +223,9 @@ export function GroupAvailability({
                                                         blockIndex;
                                                 const tableCellStyles = cn(
                                                     isTopOfHour &&
-                                                        "border-t-gray-medium border-t-[1px]",
+                                                        "border-t-[1px] border-t-gray-medium",
                                                     isHalfHour &&
-                                                        "border-t-gray-base border-t-[1px]",
+                                                        "border-t-[1px] border-t-gray-base",
                                                     isLastRow &&
                                                         "border-b-[1px]",
                                                     isSelected &&
