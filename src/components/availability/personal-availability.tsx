@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { metadata } from "@/app/layout";
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
@@ -178,9 +179,20 @@ export function PersonalAvailability({
         };
     }, [isStateUnsaved]);
 
+    console.log(meetingDates);
+
     useEffect(() => {
-        if (!availability) {
-            setAvailabilityDates([]);
+        if (!availability || availability?.length === 0) {
+            setAvailabilityDates(
+                meetingDates?.map(
+                    (meetingDate) =>
+                        new ZotDate(
+                            new Date(meetingDate.date),
+                            false,
+                            Array.from({ length: 96 }).map(() => false)
+                        )
+                )
+            );
             return;
         }
 
@@ -196,7 +208,7 @@ export function PersonalAvailability({
                     )
             )
         );
-    }, [availability, setAvailabilityDates]);
+    }, [availability, meetingDates, setAvailabilityDates]);
 
     const handlePrevPage = () => {
         if (currentPage > 0) {
