@@ -179,8 +179,6 @@ export function PersonalAvailability({
         };
     }, [isStateUnsaved]);
 
-    console.log(meetingDates);
-
     useEffect(() => {
         if (!availability || availability?.length === 0) {
             setAvailabilityDates(
