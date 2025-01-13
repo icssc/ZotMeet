@@ -57,11 +57,8 @@ export class ZotDate {
      * @return a number proportional to the amount of days elapsed since 0 AD, although not exact due to leap years
      */
     valueOf(): number {
-        return (
-            this.day.getDate() +
-            this.day.getMonth() * 30 +
-            this.day.getFullYear() * 366
-        );
+        const res = this.day.getTime();
+        return res;
     }
 
     /**
