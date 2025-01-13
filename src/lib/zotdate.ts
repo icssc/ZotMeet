@@ -59,7 +59,7 @@ export class ZotDate {
     valueOf(): number {
         return (
             this.day.getDate() +
-            this.day.getMonth() * 31 +
+            this.day.getMonth() * 30 +
             this.day.getFullYear() * 366
         );
     }
