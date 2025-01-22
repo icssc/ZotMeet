@@ -54,7 +54,8 @@ export class ZotDate {
 
     /**
      * Used for comparing dates with < and >
-     * @return a number proportional to the amount of days elapsed since 0 AD, although not exact due to leap years
+     * @returns an exact number that refers to the number of milliseconds that have passed since Jan 1, 1970. Can use
+     * valueOf() to check if the value of two Dates is the same.
      */
     valueOf(): number {
         const res = this.day.getTime();
