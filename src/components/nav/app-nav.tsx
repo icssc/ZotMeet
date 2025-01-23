@@ -77,12 +77,10 @@ export function SidebarComponent({ user, ...props }: SidebarComponentProps) {
                                 className="space-gray-800 space-x-2"
                             >
                                 
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-white text-sidebar-primary-foreground">
-                                    {/* <Command className="size-4" /> */}
-                                    {/* <img src="public/ZotMeet_WHITE-01.png" /> */}
+                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg text-sidebar-primary-foreground border border-black">
                                     <Image
                                         src="/ZotMeet_BLACK.png"
-                                        width={500} // h and w are mandatory to specify but don't affect the image size in the div
+                                        width={500}
                                         height={500}
                                         alt="ZotMeet logo"
                                     />
