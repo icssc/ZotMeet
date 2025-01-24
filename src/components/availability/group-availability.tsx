@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
@@ -24,6 +25,9 @@ export function GroupAvailability({
     availabilityTimeBlocks,
     groupAvailabilities,
 }: GroupAvailabilityProps) {
+    const { isEditingAvailability } = useAvailabilityContext();
+    if (isEditingAvailability) return null;
+
     const availabilityDates = generateSampleDates(); // TODO: replace with actual data
 
     const itemsPerPage = columns;
@@ -176,7 +180,7 @@ export function GroupAvailability({
 
     return (
         <div className="flex flex-row items-start justify-start align-top">
-            <div className="font-dm-sans flex h-fit items-center justify-between overflow-x-auto lg:w-full lg:pr-10">
+            <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-10">
                 <AvailabilityNavButton
                     direction="left"
                     handleClick={handlePrevPage}
@@ -223,9 +227,9 @@ export function GroupAvailability({
                                                         blockIndex;
                                                 const tableCellStyles = cn(
                                                     isTopOfHour &&
-                                                        "border-t-gray-medium border-t-[1px]",
+                                                        "border-t-[1px] border-t-gray-medium",
                                                     isHalfHour &&
-                                                        "border-t-gray-base border-t-[1px]",
+                                                        "border-t-[1px] border-t-gray-base",
                                                     isLastRow &&
                                                         "border-b-[1px]",
                                                     isSelected &&

@@ -46,7 +46,7 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
                 {meetingData.title}
             </h1>
 
-            {isEditingAvailability && (
+            {isEditingAvailability ? (
                 <div className="flex space-x-2 md:space-x-4">
                     <Button
                         className={cn(
@@ -109,6 +109,14 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
                     </Button>
                     {/* </form> */}
                 </div>
+            ) : (
+                <Button
+                    variant="default"
+                    className={"h-8 min-h-fit md:w-28 md:p-0"}
+                    onClick={() => setIsEditingAvailability((prev) => !prev)}
+                >
+                    <span className="hidden md:flex">Add Availability</span>
+                </Button>
             )}
         </div>
     );

@@ -50,6 +50,7 @@ export function PersonalAvailability({
         availabilityDates,
         setAvailabilityDates,
     } = useAvailabilityContext();
+    if (!isEditingAvailability) return null;
 
     const [guestSession, setGuestSession] = useState({
         meetingId: meetingData.id || "",
