@@ -29,7 +29,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
     const { slug } = params;
 
-    const meetingData = await getExistingMeeting(slug).catch((e) => {
+    const meetingData = await getExistingMeeting(slug).catch((e) => { // get all meeting information from ID
         if (e instanceof Error) {
             console.error(e);
         }
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: PageProps) {
     return {
         title: {
             default: 'View Meeting Availibility',
-            absolute: `Availability for ${meetingData.title}`,
+            absolute: `Availability for ${meetingData.title}`, // add meeting title
         },
         description: `Specify Meeting Availibility for ${meetingData.title}`,
     };
