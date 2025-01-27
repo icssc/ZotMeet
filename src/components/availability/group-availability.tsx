@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { GroupResponses } from "@/components/availability/group-responses";
@@ -28,7 +28,7 @@ export function GroupAvailability({
     const { isEditingAvailability } = useAvailabilityContext();
     if (isEditingAvailability) return null;
 
-    const availabilityDates = generateSampleDates(); // TODO: replace with actual data
+    const availabilityDates = useMemo(() => generateSampleDates(), []); // TODO: replace with actual data
 
     const itemsPerPage = columns;
     const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
@@ -49,61 +49,6 @@ export function GroupAvailability({
     const [notAvailableMembersOfSelection, setNotAvailableMembersOfSelection] =
         useState<string[]>([]);
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
-
-    // Update current page availability on pagination or data change
-    useEffect(() => {
-        const datesToOffset = currentPage * itemsPerPage;
-        let newCurrentPageAvailability = availabilityDates.slice(
-            datesToOffset,
-            datesToOffset + itemsPerPage
-        );
-
-        if (currentPage === lastPage) {
-            newCurrentPageAvailability = newCurrentPageAvailability.concat(
-                new Array(numPaddingDates).fill(null)
-            );
-        }
-
-        setCurrentPageAvailability(newCurrentPageAvailability);
-    }, [
-        currentPage,
-        itemsPerPage,
-        availabilityDates,
-        numPaddingDates,
-        lastPage,
-    ]);
-
-    // Update selection members when selection changes
-    useEffect(() => {
-        if (
-            selectedZotDateIndex !== undefined &&
-            selectedBlockIndex !== undefined
-        ) {
-            const selectedDate = availabilityDates[selectedZotDateIndex];
-            const availableMemberIndices =
-                selectedDate.getGroupAvailabilityBlock(selectedBlockIndex) ??
-                [];
-
-            const newAvailableMembersOfSelection = availableMemberIndices.map(
-                (availableMemberIndex) =>
-                    groupAvailabilities[availableMemberIndex].name
-            );
-
-            const newNotAvailableMembersOfSelection = groupAvailabilities
-                .filter((_, index) => !availableMemberIndices.includes(index))
-                .map((member) => member.name);
-
-            setAvailableMembersOfSelection(newAvailableMembersOfSelection);
-            setNotAvailableMembersOfSelection(
-                newNotAvailableMembersOfSelection
-            );
-        }
-    }, [
-        selectedZotDateIndex,
-        selectedBlockIndex,
-        availabilityDates,
-        groupAvailabilities,
-    ]);
 
     const generateDateKey = ({
         selectedDate,
@@ -177,6 +122,61 @@ export function GroupAvailability({
             setCurrentPage(currentPage + 1);
         }
     };
+
+    // Update current page availability on pagination or data change
+    useEffect(() => {
+        const datesToOffset = currentPage * itemsPerPage;
+        let newCurrentPageAvailability = availabilityDates.slice(
+            datesToOffset,
+            datesToOffset + itemsPerPage
+        );
+
+        if (currentPage === lastPage) {
+            newCurrentPageAvailability = newCurrentPageAvailability.concat(
+                new Array(numPaddingDates).fill(null)
+            );
+        }
+
+        setCurrentPageAvailability(newCurrentPageAvailability);
+    }, [
+        currentPage,
+        itemsPerPage,
+        availabilityDates,
+        numPaddingDates,
+        lastPage,
+    ]);
+
+    // Update selection members when selection changes
+    useEffect(() => {
+        if (
+            selectedZotDateIndex !== undefined &&
+            selectedBlockIndex !== undefined
+        ) {
+            const selectedDate = availabilityDates[selectedZotDateIndex];
+            const availableMemberIndices =
+                selectedDate.getGroupAvailabilityBlock(selectedBlockIndex) ??
+                [];
+
+            const newAvailableMembersOfSelection = availableMemberIndices.map(
+                (availableMemberIndex) =>
+                    groupAvailabilities[availableMemberIndex].name
+            );
+
+            const newNotAvailableMembersOfSelection = groupAvailabilities
+                .filter((_, index) => !availableMemberIndices.includes(index))
+                .map((member) => member.name);
+
+            setAvailableMembersOfSelection(newAvailableMembersOfSelection);
+            setNotAvailableMembersOfSelection(
+                newNotAvailableMembersOfSelection
+            );
+        }
+    }, [
+        selectedZotDateIndex,
+        selectedBlockIndex,
+        availabilityDates,
+        groupAvailabilities,
+    ]);
 
     return (
         <div className="flex flex-row items-start justify-start align-top">
