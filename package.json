@@ -51,6 +51,7 @@
     "@types/pg": "^8.11.10",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "devmoji": "^2.3.0",
     "drizzle-kit": "^0.26.2",
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.15",
