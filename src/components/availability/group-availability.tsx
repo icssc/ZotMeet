@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
@@ -25,9 +24,6 @@ export function GroupAvailability({
     availabilityTimeBlocks,
     groupAvailabilities,
 }: GroupAvailabilityProps) {
-    const { isEditingAvailability } = useAvailabilityContext();
-    if (isEditingAvailability) return null;
-
     const availabilityDates = useMemo(() => generateSampleDates(), []); // TODO: replace with actual data
 
     const itemsPerPage = columns;

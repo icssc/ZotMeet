@@ -60,21 +60,49 @@ export default async function Page({ params }: PageProps) {
         <div className="space-y-2 px-4">
             <AvailabilityHeader meetingData={meetingData} />
 
-            <div className={"space-y-6 px-6"}>
-                <GroupAvailability
-                    columns={5}
-                    availabilityDates={[]}
-                    availabilityTimeBlocks={availabilityTimeBlocks}
-                    groupAvailabilities={SAMPLE_MEMBERS}
-                />
-                <PersonalAvailability
-                    columns={5}
-                    meetingData={meetingData}
-                    meetingDates={meetingDates}
-                    availability={availability}
-                    availabilityTimeBlocks={availabilityTimeBlocks}
-                />
-            </div>
+            <Tabs
+                defaultValue="group"
+                className={"space-y-6 px-6"}
+            >
+                <TabsList className="mx-6 space-x-0">
+                    <TabsTrigger
+                        value="group"
+                        className={cn(
+                            "border-0 border-b-2 border-neutral-500 p-4 pb-0 text-lg duration-0",
+                            "data-[state=active]:border-orange-500"
+                        )}
+                    >
+                        Group
+                    </TabsTrigger>
+                    <TabsTrigger
+                        value="personal"
+                        className={cn(
+                            "border-0 border-b-2 border-neutral-500 p-4 pb-0 text-lg duration-0",
+                            "data-[state=active]:border-orange-500"
+                        )}
+                    >
+                        Personal
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="group">
+                    <GroupAvailability
+                        columns={5}
+                        availabilityDates={[]}
+                        availabilityTimeBlocks={availabilityTimeBlocks}
+                        groupAvailabilities={SAMPLE_MEMBERS}
+                    />
+                </TabsContent>
+                <TabsContent value="personal">
+                    <PersonalAvailability
+                        columns={5}
+                        meetingData={meetingData}
+                        meetingDates={meetingDates}
+                        availability={availability}
+                        availabilityTimeBlocks={availabilityTimeBlocks}
+                    />
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }
