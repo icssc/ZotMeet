@@ -103,10 +103,6 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
         updateCalendar();
     }, [updateCalendar]);
 
-    useEffect(() => {
-        console.log("Selected Dates:", selectedDays.map(date => date.day.toDateString()));
-    }, [selectedDays]);
-
     return (
         <div className="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:p-5">
             <Button
