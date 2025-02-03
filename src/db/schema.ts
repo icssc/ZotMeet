@@ -47,22 +47,6 @@ export const users = pgTable("users", {
     createdAt: timestamp("created_at"),
 });
 
-//TODO: DELETE THIS AND ITS REFERENCES
-// Guests are Members who do not have an account and are bound to one specific meeting.
-export const guests = pgTable(
-    "guests",
-    {
-        id: text("id").unique().notNull(),
-        username: text("username").notNull(),
-        meeting_id: uuid("meeting_id").references(() => meetings.id, {
-            onDelete: "cascade",
-        }),
-    },
-    (table) => ({
-        pk: primaryKey({ columns: [table.username, table.meeting_id] }),
-    })
-);
-
 export const oauthAccounts = pgTable(
     "oauth_accounts",
     {
@@ -174,6 +158,7 @@ export const usersInGroup = pgTable(
     })
 );
 
+// DELETE THIS TABLE
 export const membersInMeeting = pgTable(
     "members_in_meeting",
     {

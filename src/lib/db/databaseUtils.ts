@@ -41,23 +41,6 @@ export const checkIfEmailExists = async (email: string) => {
     return queryResult.length > 0;
 };
 
-export const checkIfGuestUsernameExists = async (
-    username: string,
-    meeting: MeetingSelectSchema
-) => {
-    const result = await db
-        .select()
-        .from(guests)
-        .where(
-            and(
-                eq(guests.username, username),
-                eq(guests.meeting_id, meeting.id)
-            )
-        );
-
-    return result.length > 0;
-};
-
 export const insertNewMember = async (member: MemberInsertSchema) => {
     return await db.insert(members).values(member);
 };
