@@ -77,11 +77,10 @@ export function SidebarComponent({ user, ...props }: SidebarComponentProps) {
                                 className="space-gray-800 space-x-2"
                             >
                                 
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg text-sidebar-primary-foreground border border-black">
+                                <div className="relative flex aspect-square size-8 items-center justify-center rounded-lg text-sidebar-primary-foreground border border-black">
                                     <Image
                                         src="/ZotMeet_BLACK.png"
-                                        width={500}
-                                        height={500}
+                                        fill
                                         alt="ZotMeet logo"
                                     />
                                 </div>
