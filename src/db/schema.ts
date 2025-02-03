@@ -1,8 +1,9 @@
-import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel, relations, sql } from "drizzle-orm";
 import {
     boolean,
     char,
     index,
+    jsonb,
     pgEnum,
     pgTable,
     primaryKey,
@@ -27,6 +28,7 @@ export const members = pgTable(
     "members",
     {
         id: text("id").primaryKey(),
+        displayName: text("displayName").notNull(),
     },
     (table) => ({
         unique: unique().on(table.id),
@@ -38,12 +40,13 @@ export const users = pgTable("users", {
     id: text("id")
         .primaryKey()
         .references(() => members.id, { onDelete: "cascade" }),
-    displayName: text("displayName").notNull(),
+    displayName: text("displayName").notNull().references(() => members.displayName, { onDelete: "cascade" }),
     email: text("email").unique().notNull(),
     passwordHash: text("password_hash"),
     createdAt: timestamp("created_at"),
 });
 
+//TODO: DELETE THIS AND ITS REFERENCES
 // Guests are Members who do not have an account and are bound to one specific meeting.
 export const guests = pgTable(
     "guests",
@@ -102,10 +105,16 @@ export const meetings = pgTable("meetings", {
     scheduled: boolean("scheduled"),
     from_time: char("from_time", { length: 5 }).notNull(),
     to_time: char("to_time", { length: 5 }).notNull(),
+    timezone: char("timezone", { length: 3 }).notNull().default('PST'),
     group_id: uuid("group_id").references(() => groups.id, {
         onDelete: "cascade",
     }),
     host_id: text("host_id").references(() => members.id),
+    // dates: interval("dates"), -- STORES RELATIVE TIME INTERVAL
+    // dates: jsonb("dates") -- CANNOT VALIDATE KEY-VALUE PAIR FORMAT IN DDL
+    dates: jsonb("dates").notNull().default([])
+    // start_date: timestamp("start_date").notNull(), // could default to today's date
+    // end_date: timestamp("end_date").notNull(),
 });
 
 export const meetingDates = pgTable(
@@ -140,7 +149,9 @@ export const availabilities = pgTable(
             .references(() => meetingDates.id, { onDelete: "cascade" })
             .notNull(),
         block_length: smallint("block_length").notNull().default(15),
-        availability_string: text("availability_string").notNull(),
+        availability_string: text("availability_string").notNull(), // could be a char of length 24
+        availability: jsonb("availability").notNull().default([]), // Stores time slots
+
     }, // user and neeting
     (table) => ({
         pk: primaryKey({ columns: [table.member_id, table.meeting_day] }),
