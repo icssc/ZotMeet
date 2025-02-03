@@ -23,12 +23,14 @@ export const attendanceEnum = pgEnum("attendance", [
     "declined",
 ]);
 
+export const timezoneEnum = pgEnum("timezone", ["PST", "PDT", "MST", "MDT", "CST", "CDT", "EST", "EDT"]);
+
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = pgTable(
     "members",
     {
         id: text("id").primaryKey(),
-        displayName: text("displayName").notNull(),
+        displayName: text("display_name").notNull(),
     },
     (table) => ({
         unique: unique().on(table.id),
@@ -40,7 +42,6 @@ export const users = pgTable("users", {
     id: text("id")
         .primaryKey()
         .references(() => members.id, { onDelete: "cascade" }),
-    displayName: text("displayName").notNull().references(() => members.displayName, { onDelete: "cascade" }),
     email: text("email").unique().notNull(),
     passwordHash: text("password_hash"),
     createdAt: timestamp("created_at"),
@@ -105,7 +106,7 @@ export const meetings = pgTable("meetings", {
     scheduled: boolean("scheduled"),
     from_time: char("from_time", { length: 5 }).notNull(),
     to_time: char("to_time", { length: 5 }).notNull(),
-    timezone: char("timezone", { length: 3 }).notNull().default('PST'),
+    timezone: timezoneEnum("timezone").default("PST").notNull(),
     group_id: uuid("group_id").references(() => groups.id, {
         onDelete: "cascade",
     }),

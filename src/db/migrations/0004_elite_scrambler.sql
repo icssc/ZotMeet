@@ -1,0 +1,1 @@
+ALTER TABLE "meetings" ALTER COLUMN "timezone" DROP NOT NULL;
