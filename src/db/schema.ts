@@ -127,19 +127,23 @@ export const groups = pgTable("groups", {
 export const availabilities = pgTable(
     "availabilities",
     {
-        member_id: text("member_id")
+        memberId: text("member_id")
             .notNull()
             .references(() => members.id, { onDelete: "cascade" }),
-        meeting_day: uuid("meeting_day")
-            .references(() => meetingDates.id, { onDelete: "cascade" })
-            .notNull(),
-        block_length: smallint("block_length").notNull().default(15),
-        availability_string: text("availability_string").notNull(), // could be a char of length 24
-        availability: jsonb("availability").notNull().default([]), // Stores time slots
+        meetingId: uuid("meeting_id")
+            .notNull()
+            .references(() => meetings.id, { onDelete: "cascade" }),
+        // meeting_day: uuid("meeting_day")
+        //     .references(() => meetingDates.id, { onDelete: "cascade" })
+        //     .notNull(),
+        // blockLength: smallint("block_length").notNull().default(15),
+        availabilityString: text("availability_string").notNull(), // could be a char of length 24
+        meetingAvailabilities: jsonb("meeting_availabilities").notNull().default([]), // Stores time slots
+        status: attendanceEnum("status"),
 
     }, // user and neeting
     (table) => ({
-        pk: primaryKey({ columns: [table.member_id, table.meeting_day] }),
+        pk: primaryKey({ columns: [table.memberId, table.meetingId] }),
     })
 );
 
@@ -158,26 +162,8 @@ export const usersInGroup = pgTable(
     })
 );
 
-// DELETE THIS TABLE
-export const membersInMeeting = pgTable(
-    "members_in_meeting",
-    {
-        memberId: text("member_id")
-            .notNull()
-            .references(() => members.id, { onDelete: "cascade" }),
-        meetingId: uuid("meeting_id")
-            .notNull()
-            .references(() => meetings.id, { onDelete: "cascade" }),
-        attending: attendanceEnum("availability"),
-    },
-    (table) => ({
-        pk: primaryKey({ columns: [table.memberId, table.meetingId] }),
-    })
-);
-
 export const memberRelations = relations(members, ({ many }) => ({
     availabilities: many(availabilities),
-    membersInMeeting: many(membersInMeeting),
 }));
 
 export const userRelations = relations(users, ({ one, many }) => ({
@@ -202,19 +188,6 @@ export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
     }),
 }));
 
-export const membersInMeetingRelations = relations(
-    membersInMeeting,
-    ({ one }) => ({
-        groups: one(meetings, {
-            fields: [membersInMeeting.meetingId],
-            references: [meetings.id],
-        }),
-        members: one(members, {
-            fields: [membersInMeeting.memberId],
-            references: [members.id],
-        }),
-    })
-);
 
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
     groups: one(groups, {
@@ -225,20 +198,9 @@ export const meetingsRelations = relations(meetings, ({ one, many }) => ({
         fields: [meetings.host_id],
         references: [members.id],
     }),
-    membersInMeeting: many(membersInMeeting),
-    meetingDates: many(meetingDates),
+    availabilities: many(availabilities),
 }));
 
-export const meetingDatesRelations = relations(
-    meetingDates,
-    ({ one, many }) => ({
-        meetings: one(meetings, {
-            fields: [meetingDates.meeting_id],
-            references: [meetings.id],
-        }),
-        availabilities: many(availabilities),
-    })
-);
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
     users: one(users, {
@@ -255,13 +217,13 @@ export const oauthRelations = relations(oauthAccounts, ({ one }) => ({
 }));
 
 export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
-    meetingDates: one(meetingDates, {
-        fields: [availabilities.meeting_day],
-        references: [meetingDates.id],
-    }),
     members: one(members, {
-        fields: [availabilities.member_id],
+        fields: [availabilities.memberId],
         references: [members.id],
+    }),
+    meetings: one(meetings, {
+    fields: [availabilities.meetingId],
+        references: [meetings.id],
     }),
 }));
 

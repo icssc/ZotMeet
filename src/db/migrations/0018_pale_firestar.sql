@@ -1,0 +1,1 @@
+ALTER TABLE "availabilities" RENAME COLUMN "availability" TO "status";

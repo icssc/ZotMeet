@@ -1,0 +1,1 @@
+ALTER TABLE "availabilities" DROP COLUMN IF EXISTS "status";
