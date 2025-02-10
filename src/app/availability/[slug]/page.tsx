@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { AvailabilityHeader } from "@/components/availability/availability-header";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
@@ -29,7 +29,8 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
     const { slug } = params;
 
-    const meetingData = await getExistingMeeting(slug).catch((e) => { // get all meeting information from ID
+    const meetingData = await getExistingMeeting(slug).catch((e) => {
+        // get all meeting information from ID
         if (e instanceof Error) {
             console.error(e);
         }
@@ -42,10 +43,10 @@ export async function generateMetadata({ params }: PageProps) {
 
     return {
         title: {
-            default: 'View Meeting Availibility',
+            default: "View Meeting Availability",
             absolute: `Availability for ${meetingData.title}`, // add meeting title
         },
-        description: `Specify Meeting Availibility for ${meetingData.title}`,
+        description: `Specify Meeting Availability for ${meetingData.title}`,
     };
 }
 

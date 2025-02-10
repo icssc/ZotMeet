@@ -2,11 +2,10 @@
 
 import { logoutAction } from "@/app/actions/auth/logout/action";
 import AuthDialog from "@/app/components/auth/auth-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -19,15 +18,7 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar";
 import { UserProfile } from "@/lib/auth/user";
-import {
-    BadgeCheck,
-    Bell,
-    ChevronsUpDown,
-    CreditCard,
-    LogOut,
-    Sparkles,
-    User,
-} from "lucide-react";
+import { ChevronsUpDown, LogOut, User } from "lucide-react";
 
 type NavUserProps = {
     user: UserProfile | null;
@@ -90,28 +81,6 @@ export function NavUser({ user }: NavUserProps) {
                                 </div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            {/* <DropdownMenuGroup>
-                                <DropdownMenuItem>
-                                    <Sparkles />
-                                    Upgrade to Pro
-                                </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuGroup>
-                                <DropdownMenuItem>
-                                    <BadgeCheck />
-                                    Account
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <CreditCard />
-                                    Billing
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <Bell />
-                                    Notifications
-                                </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                            <DropdownMenuSeparator /> */}
                             <DropdownMenuItem
                                 onClick={() => {
                                     logoutAction();

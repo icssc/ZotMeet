@@ -38,3 +38,6 @@ next-env.d.ts
 .env
 .sst
 .svelte-kit
+
+# open-next
+.open-next
