@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { metadata } from "@/app/layout";
+import { useEffect, useMemo } from "react";
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
@@ -27,7 +26,7 @@ interface PersonalAvailabilityProps {
 
 export function PersonalAvailability({
     columns,
-    meetingData,
+    meetingData: _meetingData,
     meetingDates,
     availability,
     availabilityTimeBlocks,
@@ -52,9 +51,9 @@ export function PersonalAvailability({
         setAvailabilityDates,
     } = useAvailabilityContext();
 
-    const [guestSession, setGuestSession] = useState({
-        meetingId: meetingData.id || "",
-    });
+    // const [guestSession, setGuestSession] = useState({
+    //     meetingId: meetingData.id || "",
+    // });
 
     useEffect(() => {
         setItemsPerPage(columns);
