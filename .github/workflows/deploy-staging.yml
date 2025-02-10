@@ -25,7 +25,6 @@ env:
   CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
   DATABASE_URL: ${{ secrets.DEV_DB_URL }}
   PR_NUM: ${{ github.event.pull_request.number }}
-  MIGRATION_DB_URL: ${{ secrets.MIGRATION_DB_URL }}
 
 jobs:
   deploy:

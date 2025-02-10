@@ -23,7 +23,6 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
   DATABASE_URL: ${{ secrets.PROD_DB_URL }}
-  MIGRATION_DB_URL: ${{ secrets.MIGRATION_DB_URL }}
 
 jobs:
   deploy:
