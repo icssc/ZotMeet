@@ -1,4 +1,4 @@
-import { InferInsertModel, InferSelectModel, relations, sql } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 import {
     boolean,
     char,
@@ -7,7 +7,6 @@ import {
     pgEnum,
     pgTable,
     primaryKey,
-    smallint,
     text,
     timestamp,
     unique,
@@ -23,7 +22,16 @@ export const attendanceEnum = pgEnum("attendance", [
     "declined",
 ]);
 
-export const timezoneEnum = pgEnum("timezone", ["PST", "PDT", "MST", "MDT", "CST", "CDT", "EST", "EDT"]);
+export const timezoneEnum = pgEnum("timezone", [
+    "PST",
+    "PDT",
+    "MST",
+    "MDT",
+    "CST",
+    "CDT",
+    "EST",
+    "EDT",
+]);
 
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = pgTable(
@@ -37,6 +45,10 @@ export const members = pgTable(
     })
 );
 
+export const memberRelations = relations(members, ({ many }) => ({
+    availabilities: many(availabilities),
+}));
+
 // Users encompasses Members who have created an account.
 export const users = pgTable("users", {
     id: text("id")
@@ -46,6 +58,12 @@ export const users = pgTable("users", {
     passwordHash: text("password_hash"),
     createdAt: timestamp("created_at"),
 });
+
+export const userRelations = relations(users, ({ one, many }) => ({
+    oauthAccountsTable: one(oauthAccounts),
+    usersInGroups: many(usersInGroup),
+    sessions: many(sessions),
+}));
 
 export const oauthAccounts = pgTable(
     "oauth_accounts",
@@ -62,6 +80,13 @@ export const oauthAccounts = pgTable(
         pk: primaryKey({ columns: [table.providerId, table.providerUserId] }),
     })
 );
+
+export const oauthRelations = relations(oauthAccounts, ({ one }) => ({
+    users: one(users, {
+        fields: [oauthAccounts.userId],
+        references: [users.id],
+    }),
+}));
 
 export const sessions = pgTable(
     "sessions",
@@ -82,6 +107,13 @@ export const sessions = pgTable(
     }
 );
 
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+    users: one(users, {
+        fields: [sessions.userId],
+        references: [users.id],
+    }),
+}));
+
 export const meetings = pgTable("meetings", {
     id: uuid("id").defaultRandom().primaryKey(),
     title: text("title").notNull(),
@@ -97,10 +129,22 @@ export const meetings = pgTable("meetings", {
     host_id: text("host_id").references(() => members.id),
     // dates: interval("dates"), -- STORES RELATIVE TIME INTERVAL
     // dates: jsonb("dates") -- CANNOT VALIDATE KEY-VALUE PAIR FORMAT IN DDL
-    dates: jsonb("dates").notNull().default([])
+    dates: jsonb("dates").notNull().default([]),
     // start_date: timestamp("start_date").notNull(), // could default to today's date
     // end_date: timestamp("end_date").notNull(),
 });
+
+export const meetingsRelations = relations(meetings, ({ one, many }) => ({
+    groups: one(groups, {
+        fields: [meetings.group_id],
+        references: [groups.id],
+    }),
+    members: one(members, {
+        fields: [meetings.host_id],
+        references: [members.id],
+    }),
+    availabilities: many(availabilities),
+}));
 
 export const meetingDates = pgTable(
     "meeting_dates",
@@ -124,6 +168,11 @@ export const groups = pgTable("groups", {
     created_by: text("user_id").references(() => users.id),
 });
 
+export const groupsRelations = relations(groups, ({ many }) => ({
+    usersInGroups: many(usersInGroup),
+    meetings: many(meetings),
+}));
+
 export const availabilities = pgTable(
     "availabilities",
     {
@@ -138,14 +187,26 @@ export const availabilities = pgTable(
         //     .notNull(),
         // blockLength: smallint("block_length").notNull().default(15),
         availabilityString: text("availability_string").notNull(), // could be a char of length 24
-        meetingAvailabilities: jsonb("meeting_availabilities").notNull().default([]), // Stores time slots
+        meetingAvailabilities: jsonb("meeting_availabilities")
+            .notNull()
+            .default([]), // Stores time slots
         status: attendanceEnum("status"),
-
     }, // user and neeting
     (table) => ({
         pk: primaryKey({ columns: [table.memberId, table.meetingId] }),
     })
 );
+
+export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
+    members: one(members, {
+        fields: [availabilities.memberId],
+        references: [members.id],
+    }),
+    meetings: one(meetings, {
+        fields: [availabilities.meetingId],
+        references: [meetings.id],
+    }),
+}));
 
 export const usersInGroup = pgTable(
     "users_in_group",
@@ -162,21 +223,7 @@ export const usersInGroup = pgTable(
     })
 );
 
-export const memberRelations = relations(members, ({ many }) => ({
-    availabilities: many(availabilities),
-}));
-
-export const userRelations = relations(users, ({ one, many }) => ({
-    oauthAccountsTable: one(oauthAccounts),
-    usersInGroups: many(usersInGroup),
-    sessions: many(sessions),
-}));
-
-export const groupsRelations = relations(groups, ({ many }) => ({
-    usersInGroups: many(usersInGroup),
-    meetings: many(meetings),
-}));
-
+// TODO: ???
 export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
     groups: one(groups, {
         fields: [usersInGroup.groupId],
@@ -185,45 +232,6 @@ export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
     users: one(users, {
         fields: [usersInGroup.userId],
         references: [users.id],
-    }),
-}));
-
-
-export const meetingsRelations = relations(meetings, ({ one, many }) => ({
-    groups: one(groups, {
-        fields: [meetings.group_id],
-        references: [groups.id],
-    }),
-    members: one(members, {
-        fields: [meetings.host_id],
-        references: [members.id],
-    }),
-    availabilities: many(availabilities),
-}));
-
-
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-    users: one(users, {
-        fields: [sessions.userId],
-        references: [users.id],
-    }),
-}));
-
-export const oauthRelations = relations(oauthAccounts, ({ one }) => ({
-    users: one(users, {
-        fields: [oauthAccounts.userId],
-        references: [users.id],
-    }),
-}));
-
-export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
-    members: one(members, {
-        fields: [availabilities.memberId],
-        references: [members.id],
-    }),
-    meetings: one(meetings, {
-    fields: [availabilities.meetingId],
-        references: [meetings.id],
     }),
 }));
 
