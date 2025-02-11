@@ -1,1 +1,0 @@
-ALTER TABLE "meetings" RENAME COLUMN "timezone" TO "timezoneEnum";

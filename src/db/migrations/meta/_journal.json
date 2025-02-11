@@ -5,148 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1729188489200,
-      "tag": "0000_natural_toad_men",
+      "when": 1739233257210,
+      "tag": "0000_many_norman_osborn",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1730164699995,
-      "tag": "0001_faulty_morgan_stark",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1733299056395,
-      "tag": "0002_flashy_ares",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1738621204451,
-      "tag": "0003_hard_namor",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1738622037998,
-      "tag": "0004_elite_scrambler",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1738622089696,
-      "tag": "0005_lazy_morbius",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1738622126953,
-      "tag": "0006_redundant_dakota_north",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1738622222401,
-      "tag": "0007_unique_satana",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1738622292518,
-      "tag": "0008_jazzy_obadiah_stane",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1738622731296,
-      "tag": "0009_volatile_lady_ursula",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1738622742465,
-      "tag": "0010_late_marauders",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1738622996477,
-      "tag": "0011_strong_wither",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1738623053370,
-      "tag": "0012_aromatic_randall_flagg",
-      "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1738623579899,
-      "tag": "0013_lucky_jackal",
-      "breakpoints": true
-    },
-    {
-      "idx": 14,
-      "version": "7",
-      "when": 1738623905598,
-      "tag": "0014_rapid_trauma",
-      "breakpoints": true
-    },
-    {
-      "idx": 15,
-      "version": "7",
-      "when": 1738623974211,
-      "tag": "0015_fine_thunderbolt_ross",
-      "breakpoints": true
-    },
-    {
-      "idx": 16,
-      "version": "7",
-      "when": 1738626267162,
-      "tag": "0016_curly_shiver_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 17,
-      "version": "7",
-      "when": 1739136743074,
-      "tag": "0017_tearful_forge",
-      "breakpoints": true
-    },
-    {
-      "idx": 18,
-      "version": "7",
-      "when": 1739136851164,
-      "tag": "0018_pale_firestar",
-      "breakpoints": true
-    },
-    {
-      "idx": 19,
-      "version": "7",
-      "when": 1739137691831,
-      "tag": "0019_new_rhodey",
-      "breakpoints": true
-    },
-    {
-      "idx": 20,
-      "version": "7",
-      "when": 1739137704602,
-      "tag": "0020_unusual_mongu",
+      "when": 1739234470630,
+      "tag": "0001_demonic_titanium_man",
       "breakpoints": true
     }
   ]

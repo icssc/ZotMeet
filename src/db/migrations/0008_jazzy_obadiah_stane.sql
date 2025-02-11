@@ -1,1 +1,0 @@
-ALTER TABLE "members" RENAME COLUMN "displayName" TO "display_name";

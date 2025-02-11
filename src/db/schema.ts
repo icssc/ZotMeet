@@ -45,8 +45,12 @@ export const members = pgTable(
     })
 );
 
-export const memberRelations = relations(members, ({ many }) => ({
+export const membersRelations = relations(members, ({ one, many }) => ({
     availabilities: many(availabilities),
+    users: one(users, {
+        fields: [members.id],
+        references: [users.id],
+    }),
 }));
 
 // Users encompasses Members who have created an account.
@@ -54,15 +58,20 @@ export const users = pgTable("users", {
     id: text("id")
         .primaryKey()
         .references(() => members.id, { onDelete: "cascade" }),
+    memberId: text("member_id").references(() => members.id),
     email: text("email").unique().notNull(),
     passwordHash: text("password_hash"),
     createdAt: timestamp("created_at"),
 });
 
-export const userRelations = relations(users, ({ one, many }) => ({
-    oauthAccountsTable: one(oauthAccounts),
+export const usersRelations = relations(users, ({ one, many }) => ({
+    oauthAccountsTable: many(oauthAccounts),
     usersInGroups: many(usersInGroup),
     sessions: many(sessions),
+    members: one(members, {
+        fields: [users.memberId],
+        references: [members.id],
+    }),
 }));
 
 export const oauthAccounts = pgTable(
@@ -81,7 +90,7 @@ export const oauthAccounts = pgTable(
     })
 );
 
-export const oauthRelations = relations(oauthAccounts, ({ one }) => ({
+export const oauthAccountRelations = relations(oauthAccounts, ({ one }) => ({
     users: one(users, {
         fields: [oauthAccounts.userId],
         references: [users.id],
@@ -139,13 +148,13 @@ export const meetingsRelations = relations(meetings, ({ one, many }) => ({
         fields: [meetings.group_id],
         references: [groups.id],
     }),
-    members: one(members, {
-        fields: [meetings.host_id],
-        references: [members.id],
-    }),
     availabilities: many(availabilities),
 }));
 
+// TODO: remove this table
+/**
+ * @deprecated in favor of storing dates in the meetings table as JSON column
+ */
 export const meetingDates = pgTable(
     "meeting_dates",
     {
@@ -223,7 +232,6 @@ export const usersInGroup = pgTable(
     })
 );
 
-// TODO: ???
 export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
     groups: one(groups, {
         fields: [usersInGroup.groupId],

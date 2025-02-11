@@ -1,1 +1,0 @@
-ALTER TABLE "availabilities" ADD COLUMN "status" "attendance";
