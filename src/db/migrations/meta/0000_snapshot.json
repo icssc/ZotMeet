@@ -1,5 +1,5 @@
 {
-  "id": "ac38c344-4947-48cb-ba0a-7ab5b12995e7",
+  "id": "44e31229-e425-492f-a718-103bb4581fea",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -14,24 +14,31 @@
           "primaryKey": false,
           "notNull": true
         },
-        "meeting_day": {
-          "name": "meeting_day",
+        "meeting_id": {
+          "name": "meeting_id",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
-        },
-        "block_length": {
-          "name": "block_length",
-          "type": "smallint",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 15
         },
         "availability_string": {
           "name": "availability_string",
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "meeting_availabilities": {
+          "name": "meeting_availabilities",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "status": {
+          "name": "status",
+          "type": "attendance",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -49,12 +56,12 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "availabilities_meeting_day_meeting_dates_id_fk": {
-          "name": "availabilities_meeting_day_meeting_dates_id_fk",
+        "availabilities_meeting_id_meetings_id_fk": {
+          "name": "availabilities_meeting_id_meetings_id_fk",
           "tableFrom": "availabilities",
-          "tableTo": "meeting_dates",
+          "tableTo": "meetings",
           "columnsFrom": [
-            "meeting_day"
+            "meeting_id"
           ],
           "columnsTo": [
             "id"
@@ -64,11 +71,11 @@
         }
       },
       "compositePrimaryKeys": {
-        "availabilities_member_id_meeting_day_pk": {
-          "name": "availabilities_member_id_meeting_day_pk",
+        "availabilities_member_id_meeting_id_pk": {
+          "name": "availabilities_member_id_meeting_id_pk",
           "columns": [
             "member_id",
-            "meeting_day"
+            "meeting_id"
           ]
         }
       },
@@ -129,65 +136,6 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "public.guests": {
-      "name": "guests",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "username": {
-          "name": "username",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "meeting_id": {
-          "name": "meeting_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "guests_meeting_id_meetings_id_fk": {
-          "name": "guests_meeting_id_meetings_id_fk",
-          "tableFrom": "guests",
-          "tableTo": "meetings",
-          "columnsFrom": [
-            "meeting_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "guests_username_meeting_id_pk": {
-          "name": "guests_username_meeting_id_pk",
-          "columns": [
-            "username",
-            "meeting_id"
-          ]
-        }
-      },
-      "uniqueConstraints": {
-        "guests_id_unique": {
-          "name": "guests_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "id"
-          ]
-        }
-      },
       "checkConstraints": {}
     },
     "public.meeting_dates": {
@@ -297,6 +245,14 @@
           "primaryKey": false,
           "notNull": true
         },
+        "timezone": {
+          "name": "timezone",
+          "type": "timezone",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'PST'"
+        },
         "group_id": {
           "name": "group_id",
           "type": "uuid",
@@ -308,6 +264,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "dates": {
+          "name": "dates",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
         }
       },
       "indexes": {},
@@ -352,77 +315,26 @@
           "type": "text",
           "primaryKey": true,
           "notNull": true
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "public.members_in_meeting": {
-      "name": "members_in_meeting",
-      "schema": "",
-      "columns": {
-        "member_id": {
-          "name": "member_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "meeting_id": {
-          "name": "meeting_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "availability": {
-          "name": "availability",
-          "type": "attendance",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "members_in_meeting_member_id_members_id_fk": {
-          "name": "members_in_meeting_member_id_members_id_fk",
-          "tableFrom": "members_in_meeting",
-          "tableTo": "members",
-          "columnsFrom": [
-            "member_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "members_in_meeting_meeting_id_meetings_id_fk": {
-          "name": "members_in_meeting_meeting_id_meetings_id_fk",
-          "tableFrom": "members_in_meeting",
-          "tableTo": "meetings",
-          "columnsFrom": [
-            "meeting_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "members_in_meeting_member_id_meeting_id_pk": {
-          "name": "members_in_meeting_member_id_meeting_id_pk",
+      "uniqueConstraints": {
+        "members_id_unique": {
+          "name": "members_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
-            "member_id",
-            "meeting_id"
+            "id"
           ]
         }
       },
-      "uniqueConstraints": {},
       "checkConstraints": {}
     },
     "public.oauth_accounts": {
@@ -545,20 +457,14 @@
           "primaryKey": true,
           "notNull": true
         },
-        "displayName": {
-          "name": "displayName",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
         "email": {
           "name": "email",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "password": {
-          "name": "password",
+        "password_hash": {
+          "name": "password_hash",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -568,12 +474,6 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
-        },
-        "auth_methods": {
-          "name": "auth_methods",
-          "type": "json",
-          "primaryKey": false,
-          "notNull": true
         }
       },
       "indexes": {},
@@ -671,6 +571,20 @@
         "accepted",
         "maybe",
         "declined"
+      ]
+    },
+    "public.timezone": {
+      "name": "timezone",
+      "schema": "public",
+      "values": [
+        "PST",
+        "PDT",
+        "MST",
+        "MDT",
+        "CST",
+        "CDT",
+        "EST",
+        "EDT"
       ]
     }
   },

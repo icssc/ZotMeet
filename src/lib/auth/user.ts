@@ -6,12 +6,12 @@ import { eq } from "drizzle-orm";
 
 export const userProjection = {
     id: users.id,
-    displayName: users.displayName,
+    displayName: members.displayName,
     email: users.email,
 };
 
 // Projection of user table to limit what is returned
-export type UserProfile = Pick<SelectUser, "id" | "email" | "displayName">;
+export type UserProfile = Pick<SelectUser, "id" | "email">;
 
 export async function createUser(
     email: string,
@@ -22,13 +22,12 @@ export async function createUser(
     const userId = generateIdFromEntropySize(10);
 
     const newUser = await db.transaction(async (tx) => {
-        await tx.insert(members).values({ id: userId });
+        await tx.insert(members).values({ id: userId , displayName});
 
         const [newUser] = await tx
             .insert(users)
             .values({
                 id: userId,
-                displayName,
                 email,
                 passwordHash,
                 createdAt: new Date(),

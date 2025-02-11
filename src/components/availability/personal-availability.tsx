@@ -201,7 +201,7 @@ export function PersonalAvailability({
                         new Date(availability.meeting_dates.date),
                         false,
                         Array.from(
-                            availability.availabilities.availability_string
+                            availability.availabilities.availabilityString
                         ).map((char) => char === "1")
                     )
             )

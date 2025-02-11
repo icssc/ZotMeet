@@ -3,7 +3,6 @@ import {
     availabilities,
     AvailabilityMeetingDateJoinSchema,
     GuestInsertSchema,
-    guests,
     MeetingDateInsertSchema,
     meetingDates,
     MeetingInsertSchema,
@@ -41,23 +40,6 @@ export const checkIfEmailExists = async (email: string) => {
     return queryResult.length > 0;
 };
 
-export const checkIfGuestUsernameExists = async (
-    username: string,
-    meeting: MeetingSelectSchema
-) => {
-    const result = await db
-        .select()
-        .from(guests)
-        .where(
-            and(
-                eq(guests.username, username),
-                eq(guests.meeting_id, meeting.id)
-            )
-        );
-
-    return result.length > 0;
-};
-
 export const insertNewMember = async (member: MemberInsertSchema) => {
     return await db.insert(members).values(member);
 };
@@ -66,15 +48,12 @@ export const insertNewUser = async (user: UserInsertSchema) => {
     return await db.insert(users).values(user);
 };
 
-export const insertNewGuest = async (guest: GuestInsertSchema) => {
-    return await db.insert(guests).values(guest);
-};
 
 export const getAllUsers = async () => {
     const queryResult = await db
         .select({
             id: users.id,
-            displayName: users.displayName,
+            // displayName: users.displayName,
             email: users.email,
         })
         .from(users);
@@ -107,22 +86,6 @@ export async function getUserIdFromSession(sessionId: string): Promise<string> {
     return userId;
 }
 
-export const getExistingGuest = async (
-    username: string,
-    meeting: MeetingSelectSchema
-) => {
-    const [existingGuest] = await db
-        .select()
-        .from(guests)
-        .where(
-            and(
-                eq(guests.username, username),
-                eq(guests.meeting_id, meeting.id)
-            )
-        );
-
-    return existingGuest;
-};
 
 /**
  * @param meeting The meeting object to insert. `from_time` and `to_time` represent the start and end times
@@ -186,7 +149,7 @@ export const getAvailability = async ({
         )
         .where(
             and(
-                eq(availabilities.member_id, userId),
+                eq(availabilities.memberId, userId),
                 eq(meetingDates.meeting_id, meetingId || "")
             )
         );
