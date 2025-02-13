@@ -185,7 +185,7 @@ export function PersonalAvailability({
                 meetingDates?.map(
                     (meetingDate) =>
                         new ZotDate(
-                            new Date(meetingDate.date),
+                            new Date(meetingDate),
                             false,
                             Array.from({ length: 96 }).map(() => false)
                         )
@@ -198,10 +198,10 @@ export function PersonalAvailability({
             availability?.map(
                 (availability) =>
                     new ZotDate(
-                        new Date(availability.meeting_dates.date),
+                        new Date(availability.meeting_dates),
                         false,
                         Array.from(
-                            availability.availabilities.availability_string
+                            availability.availabilities.availabilityString // needs to be change to JSON array
                         ).map((char) => char === "1")
                     )
             )
