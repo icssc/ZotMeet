@@ -15,6 +15,13 @@
       "when": 1739234470630,
       "tag": "0001_demonic_titanium_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1739473699174,
+      "tag": "0002_strong_talon",
+      "breakpoints": true
     }
   ]
 }

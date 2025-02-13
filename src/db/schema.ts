@@ -135,7 +135,7 @@ export const meetings = pgTable("meetings", {
     group_id: uuid("group_id").references(() => groups.id, {
         onDelete: "cascade",
     }),
-    host_id: text("host_id").references(() => members.id),
+    host_id: text("host_id").references(() => members.id).notNull(),
     // dates: interval("dates"), -- STORES RELATIVE TIME INTERVAL
     // dates: jsonb("dates") -- CANNOT VALIDATE KEY-VALUE PAIR FORMAT IN DDL
     dates: jsonb("dates").notNull().default([]),
@@ -155,19 +155,19 @@ export const meetingsRelations = relations(meetings, ({ one, many }) => ({
 /**
  * @deprecated in favor of storing dates in the meetings table as JSON column
  */
-export const meetingDates = pgTable(
-    "meeting_dates",
-    {
-        id: uuid("id").unique().defaultRandom(),
-        meeting_id: uuid("meeting_id").references(() => meetings.id, {
-            onDelete: "cascade",
-        }),
-        date: timestamp("date").notNull(),
-    },
-    (table) => ({
-        pk: primaryKey({ columns: [table.id, table.date] }),
-    })
-);
+// export const meetingDates = pgTable(
+//     "meeting_dates",
+//     {
+//         id: uuid("id").unique().defaultRandom(),
+//         meeting_id: uuid("meeting_id").references(() => meetings.id, {
+//             onDelete: "cascade",
+//         }),
+//         date: timestamp("date").notNull(),
+//     },
+//     (table) => ({
+//         pk: primaryKey({ columns: [table.id, table.date] }),
+//     })
+// );
 
 export const groups = pgTable("groups", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -195,7 +195,7 @@ export const availabilities = pgTable(
         //     .references(() => meetingDates.id, { onDelete: "cascade" })
         //     .notNull(),
         // blockLength: smallint("block_length").notNull().default(15),
-        availabilityString: text("availability_string").notNull(), // could be a char of length 24
+        // availabilityString: text("availability_string").notNull(), // could be a char of length 24
         meetingAvailabilities: jsonb("meeting_availabilities")
             .notNull()
             .default([]), // Stores time slots

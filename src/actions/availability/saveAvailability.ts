@@ -5,7 +5,6 @@ import {
     availabilities,
     AvailabilityInsertSchema,
     MeetingDateSelectSchema,
-    // membersInMeeting,
 } from "@/db/schema";
 import { getExistingMeetingDates } from "@/lib/db/databaseUtils";
 import { ZotDate } from "@/lib/zotdate";
