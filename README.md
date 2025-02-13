@@ -52,3 +52,60 @@ Simple, clean, and efficient meeting scheduling app.
 If you need credentials for the `.env` file, contact the project lead ([Sean](https://github.com/seancfong/)).
 
 After changes to the .env file, run `pnpm run check` to update SvelteKit's auto-generated environment variable types.
+
+### Database Schema
+
+```mermaid
+erDiagram
+    users {
+        string id PK, FK
+        string email
+        string passwordHash
+        timestamp createdAt
+    }
+    groups {
+        uuid id PK
+        string name
+        string description
+        timestamp createdAt
+        string createdBy FK
+    }
+    usersInGroup {
+        string userId FK
+        uuid groupId FK
+    }
+    members {
+        int id PK
+        string displayName
+    }
+    availability {
+        string memberId FK
+        uuid meetingId FK
+        json meetingAvailabilities
+        enum status
+    }
+    meeting {
+        uuid id PK
+        string title
+        string description
+        string location
+        json dates
+        boolean scheduled
+        char fromTime
+        char toTime
+        uuid groupId FK
+        int hostId FK
+    }
+    sessions {
+        string id PK
+        timestamp expiresAt
+        string userId FK
+    }
+
+    meeting ||--o{ availability : has
+    users ||--o{ usersInGroup : has
+    groups ||--o{ usersInGroup : contains
+    members ||--o| users : extends
+    members ||--o{ availability : provides
+    users ||--o{ sessions : has 
+```
