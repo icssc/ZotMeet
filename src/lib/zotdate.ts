@@ -57,12 +57,9 @@ export class ZotDate {
      * @return a number proportional to the amount of days elapsed since 0 AD, although not exact due to leap years
      */
     valueOf(): number {
-        return (
-            this.day.getDate() +
-            this.day.getMonth() * 31 +
-            this.day.getFullYear() * 366
-        );
+        return this.day.getTime();
     }
+
 
     /**
      * Determines whether the current ZotDate occurs before or after another ZotDate
