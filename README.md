@@ -11,6 +11,35 @@ Simple, clean, and efficient meeting scheduling app.
 
 # Contributing
 
+## Project Structure
+
+```md
+├── README.md
+├── drizzle.config.ts
+├── next.config.mjs
+├── node_modules
+├── package.json
+├── src
+│   ├── app
+│   │   └── [ all front-end routes ]
+│   ├── components
+│   │   └── [ front-end components ]
+│   ├── db
+│   │   ├── index.ts
+│   │   ├── migrations
+│   │   └── schema.ts
+│   ├── lib
+│   └── server
+│       ├── actions
+│       │       └── [ entity ]
+│       │           └── [ verb ]
+│       │               └── action.ts
+│       └── data
+│           └── [ entity ]
+│               └── queries.ts
+└── tsconfig.json
+```
+
 ## Local Development
 
 ### Prerequisites
