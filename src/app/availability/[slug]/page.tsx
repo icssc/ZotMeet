@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { AvailabilityHeader } from "@/components/availability/availability-header";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
@@ -26,6 +26,29 @@ interface PageProps {
     };
 }
 
+export async function generateMetadata({ params }: PageProps) {
+    const { slug } = params;
+
+    const meetingData = await getExistingMeeting(slug).catch((e) => { // get all meeting information from ID
+        if (e instanceof Error) {
+            console.error(e);
+        }
+        notFound();
+    });
+
+    if (!meetingData) {
+        notFound();
+    }
+
+    return {
+        title: {
+            default: 'View Meeting Availibility',
+            absolute: `Availability for ${meetingData.title}`, // add meeting title
+        },
+        description: `Specify Meeting Availibility for ${meetingData.title}`,
+    };
+}
+
 export default async function Page({ params }: PageProps) {
     const { slug } = params;
 
@@ -44,7 +67,7 @@ export default async function Page({ params }: PageProps) {
         notFound();
     }
 
-    const meetingDates = await getExistingMeetingDates(slug);
+    const meetingDates = await getExistingMeetingDates(meetingData.id);
     // const availability = user ? await getAvailability(user, slug) : [];
     const availability = await getAvailability({
         userId: "123", // TODO (#auth): replace with actual user from session
@@ -61,19 +84,10 @@ export default async function Page({ params }: PageProps) {
             <AvailabilityHeader meetingData={meetingData} />
 
             <Tabs
-                defaultValue="personal"
+                defaultValue="group"
                 className={"space-y-6 px-6"}
             >
                 <TabsList className="mx-6 space-x-0">
-                    <TabsTrigger
-                        value="personal"
-                        className={cn(
-                            "border-0 border-b-2 border-neutral-500 p-4 pb-0 text-lg duration-0",
-                            "data-[state=active]:border-orange-500"
-                        )}
-                    >
-                        Personal
-                    </TabsTrigger>
                     <TabsTrigger
                         value="group"
                         className={cn(
@@ -83,8 +97,25 @@ export default async function Page({ params }: PageProps) {
                     >
                         Group
                     </TabsTrigger>
+                    <TabsTrigger
+                        value="personal"
+                        className={cn(
+                            "border-0 border-b-2 border-neutral-500 p-4 pb-0 text-lg duration-0",
+                            "data-[state=active]:border-orange-500"
+                        )}
+                    >
+                        Personal
+                    </TabsTrigger>
                 </TabsList>
 
+                <TabsContent value="group">
+                    <GroupAvailability
+                        columns={5}
+                        availabilityDates={[]}
+                        availabilityTimeBlocks={availabilityTimeBlocks}
+                        groupAvailabilities={SAMPLE_MEMBERS}
+                    />
+                </TabsContent>
                 <TabsContent value="personal">
                     <PersonalAvailability
                         columns={5}
@@ -92,14 +123,6 @@ export default async function Page({ params }: PageProps) {
                         meetingDates={meetingDates}
                         availability={availability}
                         availabilityTimeBlocks={availabilityTimeBlocks}
-                    />
-                </TabsContent>
-                <TabsContent value="group">
-                    <GroupAvailability
-                        columns={5}
-                        availabilityDates={[]}
-                        availabilityTimeBlocks={availabilityTimeBlocks}
-                        groupAvailabilities={SAMPLE_MEMBERS}
                     />
                 </TabsContent>
             </Tabs>

@@ -3,7 +3,6 @@ import {
     availabilities,
     AvailabilityMeetingDateJoinSchema,
     GuestInsertSchema,
-    guests,
     MeetingDateInsertSchema,
     meetingDates,
     MeetingInsertSchema,
@@ -41,23 +40,6 @@ export const checkIfEmailExists = async (email: string) => {
     return queryResult.length > 0;
 };
 
-export const checkIfGuestUsernameExists = async (
-    username: string,
-    meeting: MeetingSelectSchema
-) => {
-    const result = await db
-        .select()
-        .from(guests)
-        .where(
-            and(
-                eq(guests.username, username),
-                eq(guests.meeting_id, meeting.id)
-            )
-        );
-
-    return result.length > 0;
-};
-
 export const insertNewMember = async (member: MemberInsertSchema) => {
     return await db.insert(members).values(member);
 };
@@ -66,15 +48,12 @@ export const insertNewUser = async (user: UserInsertSchema) => {
     return await db.insert(users).values(user);
 };
 
-export const insertNewGuest = async (guest: GuestInsertSchema) => {
-    return await db.insert(guests).values(guest);
-};
 
 export const getAllUsers = async () => {
     const queryResult = await db
         .select({
             id: users.id,
-            displayName: users.displayName,
+            // displayName: users.displayName,
             email: users.email,
         })
         .from(users);
@@ -107,22 +86,6 @@ export async function getUserIdFromSession(sessionId: string): Promise<string> {
     return userId;
 }
 
-export const getExistingGuest = async (
-    username: string,
-    meeting: MeetingSelectSchema
-) => {
-    const [existingGuest] = await db
-        .select()
-        .from(guests)
-        .where(
-            and(
-                eq(guests.username, username),
-                eq(guests.meeting_id, meeting.id)
-            )
-        );
-
-    return existingGuest;
-};
 
 /**
  * @param meeting The meeting object to insert. `from_time` and `to_time` represent the start and end times
@@ -135,7 +98,7 @@ export const insertMeeting = async (
     meetingDates: Date[]
 ) => {
     const [dbMeeting] = await db.insert(meetings).values(meeting).returning();
-    await insertMeetingDates(meetingDates, dbMeeting.id);
+    await insertMeetingDates(meetingDates, dbMeeting.id, dbMeeting.host_id);
     return dbMeeting.id;
 };
 
@@ -150,23 +113,38 @@ export const getExistingMeeting = async (
     return dbMeeting;
 };
 
-export const insertMeetingDates = async (dates: Date[], meeting_id: string) => {
-    const dbMeetingDates: MeetingDateInsertSchema[] = dates.map((date) => {
+export const insertMeetingDates = async (dates: Date[], meeting_id: string, host_id: string) => {
+    const dbAvailabilities = dates.map((date) => {
         // Get the start of the date to better standardize
-        const startOfDay = new Date(date.toDateString());
-        return { meeting_id, date: startOfDay };
+        return {
+            meetingId: meeting_id,
+            meetingAvailabilities: { date: [] },
+            memberId: host_id,
+        };
     });
 
-    await db.insert(meetingDates).values(dbMeetingDates);
+    await db.insert(availabilities).values(dbAvailabilities);
 };
 
 export const getExistingMeetingDates = async (meetingId: string) => {
     const dbMeetingDates = await db
-        .select()
-        .from(meetingDates)
-        .where(eq(meetingDates.meeting_id, meetingId));
+        .select({
+            meetingAvailabilities: availabilities.meetingAvailabilities,
+        })
+        .from(availabilities)
+        .where(eq(availabilities.meetingId, meetingId));
 
-    return dbMeetingDates.sort((a, b) => (a.date < b.date ? -1 : 1));
+    const dates = new Set<string>();
+
+    dbMeetingDates.forEach((row) => {
+        const allAvailabilities = row;
+        console.log("Meeting dates: ", row);
+        for (const date in allAvailabilities) {
+            dates.add(date);
+        }
+    });
+
+    return Array.from(dates).sort((a, b) => (a < b ? -1 : 1));
 };
 
 // TODO (#auth): Replace `user` with User type
@@ -178,20 +156,16 @@ export const getAvailability = async ({
     meetingId: string;
 }): Promise<AvailabilityMeetingDateJoinSchema[]> => {
     const availability = await db
-        .select()
+        .select({
+            meetingAvailabilities: availabilities.meetingAvailabilities
+        })
         .from(availabilities)
-        .innerJoin(
-            meetingDates,
-            eq(availabilities.meeting_day, meetingDates.id)
-        )
         .where(
             and(
-                eq(availabilities.member_id, userId),
-                eq(meetingDates.meeting_id, meetingId || "")
+                eq(availabilities.memberId, userId),
+                eq(availabilities.meetingId, meetingId)
             )
         );
 
-    return availability.sort((a, b) =>
-        a.meeting_dates.date > b.meeting_dates.date ? 1 : -1
-    );
+    return availability;
 };

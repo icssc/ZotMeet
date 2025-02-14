@@ -5,7 +5,6 @@ import {
     availabilities,
     AvailabilityInsertSchema,
     MeetingDateSelectSchema,
-    membersInMeeting,
 } from "@/db/schema";
 import { getExistingMeetingDates } from "@/lib/db/databaseUtils";
 import { ZotDate } from "@/lib/zotdate";
@@ -50,8 +49,9 @@ export async function saveAvailability({
             (date, index) => ({
                 day: new Date(date.day).toISOString(),
                 member_id: memberId,
-                meeting_day: dbMeetingDates[index].id as string, // Type-cast since id is guaranteed if a meetingDate exists
-                availability_string: date.availability
+                meetingId: meetingId,
+                // meeting_day: dbMeetingDates[index].id as string, // Type-cast since id is guaranteed if a meetingDate exists
+                availabilityString: date.availability
                     .map((bool) => (bool ? "1" : "0"))
                     .join(""),
             })
@@ -64,20 +64,18 @@ export async function saveAvailability({
                     .values(insertDates)
                     .onConflictDoUpdate({
                         target: [
-                            availabilities.member_id,
-                            availabilities.meeting_day,
+                            availabilities.memberId,
+                            availabilities.meetingId,
+                            availabilities.meetingAvailabilities,
                         ],
                         set: {
                             // `excluded` refers to the row currently in conflict
-                            availability_string: sql.raw(
+                            availabilityString: sql.raw(
                                 `excluded.availability_string`
                             ),
                         },
                     }),
                 tx
-                    .insert(membersInMeeting)
-                    .values({ memberId, meetingId, attending: "maybe" })
-                    .onConflictDoNothing(),
             ]);
         });
 

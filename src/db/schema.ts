@@ -3,10 +3,10 @@ import {
     boolean,
     char,
     index,
+    jsonb,
     pgEnum,
     pgTable,
     primaryKey,
-    smallint,
     text,
     timestamp,
     unique,
@@ -22,42 +22,57 @@ export const attendanceEnum = pgEnum("attendance", [
     "declined",
 ]);
 
+export const timezoneEnum = pgEnum("timezone", [
+    "PST",
+    "PDT",
+    "MST",
+    "MDT",
+    "CST",
+    "CDT",
+    "EST",
+    "EDT",
+]);
+
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = pgTable(
     "members",
     {
         id: text("id").primaryKey(),
+        displayName: text("display_name").notNull(),
     },
     (table) => ({
         unique: unique().on(table.id),
     })
 );
 
+export const membersRelations = relations(members, ({ one, many }) => ({
+    availabilities: many(availabilities),
+    users: one(users, {
+        fields: [members.id],
+        references: [users.id],
+    }),
+}));
+
 // Users encompasses Members who have created an account.
 export const users = pgTable("users", {
     id: text("id")
         .primaryKey()
         .references(() => members.id, { onDelete: "cascade" }),
-    displayName: text("displayName").notNull(),
+    memberId: text("member_id").references(() => members.id),
     email: text("email").unique().notNull(),
     passwordHash: text("password_hash"),
     createdAt: timestamp("created_at"),
 });
 
-// Guests are Members who do not have an account and are bound to one specific meeting.
-export const guests = pgTable(
-    "guests",
-    {
-        id: text("id").unique().notNull(),
-        username: text("username").notNull(),
-        meeting_id: uuid("meeting_id").references(() => meetings.id, {
-            onDelete: "cascade",
-        }),
-    },
-    (table) => ({
-        pk: primaryKey({ columns: [table.username, table.meeting_id] }),
-    })
-);
+export const usersRelations = relations(users, ({ one, many }) => ({
+    oauthAccountsTable: many(oauthAccounts),
+    usersInGroups: many(usersInGroup),
+    sessions: many(sessions),
+    members: one(members, {
+        fields: [users.memberId],
+        references: [members.id],
+    }),
+}));
 
 export const oauthAccounts = pgTable(
     "oauth_accounts",
@@ -74,6 +89,13 @@ export const oauthAccounts = pgTable(
         pk: primaryKey({ columns: [table.providerId, table.providerUserId] }),
     })
 );
+
+export const oauthAccountRelations = relations(oauthAccounts, ({ one }) => ({
+    users: one(users, {
+        fields: [oauthAccounts.userId],
+        references: [users.id],
+    }),
+}));
 
 export const sessions = pgTable(
     "sessions",
@@ -94,6 +116,13 @@ export const sessions = pgTable(
     }
 );
 
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+    users: one(users, {
+        fields: [sessions.userId],
+        references: [users.id],
+    }),
+}));
+
 export const meetings = pgTable("meetings", {
     id: uuid("id").defaultRandom().primaryKey(),
     title: text("title").notNull(),
@@ -102,25 +131,43 @@ export const meetings = pgTable("meetings", {
     scheduled: boolean("scheduled"),
     from_time: char("from_time", { length: 5 }).notNull(),
     to_time: char("to_time", { length: 5 }).notNull(),
+    timezone: timezoneEnum("timezone").default("PST").notNull(),
     group_id: uuid("group_id").references(() => groups.id, {
         onDelete: "cascade",
     }),
-    host_id: text("host_id").references(() => members.id),
+    host_id: text("host_id").references(() => members.id).notNull(),
+    // dates: interval("dates"), -- STORES RELATIVE TIME INTERVAL
+    // dates: jsonb("dates") -- CANNOT VALIDATE KEY-VALUE PAIR FORMAT IN DDL
+    dates: jsonb("dates").notNull().default([]),
+    // start_date: timestamp("start_date").notNull(), // could default to today's date
+    // end_date: timestamp("end_date").notNull(),
 });
 
-export const meetingDates = pgTable(
-    "meeting_dates",
-    {
-        id: uuid("id").unique().defaultRandom(),
-        meeting_id: uuid("meeting_id").references(() => meetings.id, {
-            onDelete: "cascade",
-        }),
-        date: timestamp("date").notNull(),
-    },
-    (table) => ({
-        pk: primaryKey({ columns: [table.id, table.date] }),
-    })
-);
+export const meetingsRelations = relations(meetings, ({ one, many }) => ({
+    groups: one(groups, {
+        fields: [meetings.group_id],
+        references: [groups.id],
+    }),
+    availabilities: many(availabilities),
+}));
+
+// TODO: remove this table
+/**
+ * @deprecated in favor of storing dates in the meetings table as JSON column
+ */
+// export const meetingDates = pgTable(
+//     "meeting_dates",
+//     {
+//         id: uuid("id").unique().defaultRandom(),
+//         meeting_id: uuid("meeting_id").references(() => meetings.id, {
+//             onDelete: "cascade",
+//         }),
+//         date: timestamp("date").notNull(),
+//     },
+//     (table) => ({
+//         pk: primaryKey({ columns: [table.id, table.date] }),
+//     })
+// );
 
 export const groups = pgTable("groups", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -130,22 +177,45 @@ export const groups = pgTable("groups", {
     created_by: text("user_id").references(() => users.id),
 });
 
+export const groupsRelations = relations(groups, ({ many }) => ({
+    usersInGroups: many(usersInGroup),
+    meetings: many(meetings),
+}));
+
 export const availabilities = pgTable(
     "availabilities",
     {
-        member_id: text("member_id")
+        memberId: text("member_id")
             .notNull()
             .references(() => members.id, { onDelete: "cascade" }),
-        meeting_day: uuid("meeting_day")
-            .references(() => meetingDates.id, { onDelete: "cascade" })
-            .notNull(),
-        block_length: smallint("block_length").notNull().default(15),
-        availability_string: text("availability_string").notNull(),
+        meetingId: uuid("meeting_id")
+            .notNull()
+            .references(() => meetings.id, { onDelete: "cascade" }),
+        // meeting_day: uuid("meeting_day")
+        //     .references(() => meetingDates.id, { onDelete: "cascade" })
+        //     .notNull(),
+        // blockLength: smallint("block_length").notNull().default(15),
+        // availabilityString: text("availability_string").notNull(), // could be a char of length 24
+        meetingAvailabilities: jsonb("meeting_availabilities")
+            .notNull()
+            .default([]), // Stores time slots
+        status: attendanceEnum("status"),
     }, // user and neeting
     (table) => ({
-        pk: primaryKey({ columns: [table.member_id, table.meeting_day] }),
+        pk: primaryKey({ columns: [table.memberId, table.meetingId] }),
     })
 );
+
+export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
+    members: one(members, {
+        fields: [availabilities.memberId],
+        references: [members.id],
+    }),
+    meetings: one(meetings, {
+        fields: [availabilities.meetingId],
+        references: [meetings.id],
+    }),
+}));
 
 export const usersInGroup = pgTable(
     "users_in_group",
@@ -162,38 +232,6 @@ export const usersInGroup = pgTable(
     })
 );
 
-export const membersInMeeting = pgTable(
-    "members_in_meeting",
-    {
-        memberId: text("member_id")
-            .notNull()
-            .references(() => members.id, { onDelete: "cascade" }),
-        meetingId: uuid("meeting_id")
-            .notNull()
-            .references(() => meetings.id, { onDelete: "cascade" }),
-        attending: attendanceEnum("availability"),
-    },
-    (table) => ({
-        pk: primaryKey({ columns: [table.memberId, table.meetingId] }),
-    })
-);
-
-export const memberRelations = relations(members, ({ many }) => ({
-    availabilities: many(availabilities),
-    membersInMeeting: many(membersInMeeting),
-}));
-
-export const userRelations = relations(users, ({ one, many }) => ({
-    oauthAccountsTable: one(oauthAccounts),
-    usersInGroups: many(usersInGroup),
-    sessions: many(sessions),
-}));
-
-export const groupsRelations = relations(groups, ({ many }) => ({
-    usersInGroups: many(usersInGroup),
-    meetings: many(meetings),
-}));
-
 export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
     groups: one(groups, {
         fields: [usersInGroup.groupId],
@@ -202,69 +240,6 @@ export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
     users: one(users, {
         fields: [usersInGroup.userId],
         references: [users.id],
-    }),
-}));
-
-export const membersInMeetingRelations = relations(
-    membersInMeeting,
-    ({ one }) => ({
-        groups: one(meetings, {
-            fields: [membersInMeeting.meetingId],
-            references: [meetings.id],
-        }),
-        members: one(members, {
-            fields: [membersInMeeting.memberId],
-            references: [members.id],
-        }),
-    })
-);
-
-export const meetingsRelations = relations(meetings, ({ one, many }) => ({
-    groups: one(groups, {
-        fields: [meetings.group_id],
-        references: [groups.id],
-    }),
-    members: one(members, {
-        fields: [meetings.host_id],
-        references: [members.id],
-    }),
-    membersInMeeting: many(membersInMeeting),
-    meetingDates: many(meetingDates),
-}));
-
-export const meetingDatesRelations = relations(
-    meetingDates,
-    ({ one, many }) => ({
-        meetings: one(meetings, {
-            fields: [meetingDates.meeting_id],
-            references: [meetings.id],
-        }),
-        availabilities: many(availabilities),
-    })
-);
-
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-    users: one(users, {
-        fields: [sessions.userId],
-        references: [users.id],
-    }),
-}));
-
-export const oauthRelations = relations(oauthAccounts, ({ one }) => ({
-    users: one(users, {
-        fields: [oauthAccounts.userId],
-        references: [users.id],
-    }),
-}));
-
-export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
-    meetingDates: one(meetingDates, {
-        fields: [availabilities.meeting_day],
-        references: [meetingDates.id],
-    }),
-    members: one(members, {
-        fields: [availabilities.member_id],
-        references: [members.id],
     }),
 }));
 
