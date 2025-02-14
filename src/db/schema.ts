@@ -147,11 +147,7 @@ export const meetings = pgTable("meetings", {
     host_id: text("host_id")
         .references(() => members.id)
         .notNull(),
-    // dates: interval("dates"), -- STORES RELATIVE TIME INTERVAL
-    // dates: jsonb("dates") -- CANNOT VALIDATE KEY-VALUE PAIR FORMAT IN DDL
-    dates: jsonb("dates").notNull().default([]),
-    // start_date: timestamp("start_date").notNull(), // could default to today's date
-    // end_date: timestamp("end_date").notNull(),
+    dates: jsonb("dates").$type<Date[]>().notNull().default([]),
 });
 
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
@@ -178,6 +174,10 @@ export const groupsRelations = relations(groups, ({ many }) => ({
     meetings: many(meetings),
 }));
 
+export interface MeetingAvailability {
+    availabilities: Date[];
+}
+
 export const availabilities = pgTable(
     "availabilities",
     {
@@ -187,16 +187,12 @@ export const availabilities = pgTable(
         meetingId: uuid("meeting_id")
             .notNull()
             .references(() => meetings.id, { onDelete: "cascade" }),
-        // meeting_day: uuid("meeting_day")
-        //     .references(() => meetingDates.id, { onDelete: "cascade" })
-        //     .notNull(),
-        // blockLength: smallint("block_length").notNull().default(15),
-        // availabilityString: text("availability_string").notNull(), // could be a char of length 24
-        meetingAvailabilities: jsonb("meeting_availabilities")
-            .notNull()
-            .default([]), // Stores time slots
         status: attendanceEnum("status"),
-    }, // user and neeting
+        meetingAvailabilities: jsonb("meeting_availabilities")
+            .$type<MeetingAvailability>()
+            .notNull()
+            .default({ availabilities: [] }),
+    },
     (table) => ({
         pk: primaryKey({ columns: [table.memberId, table.meetingId] }),
     })
