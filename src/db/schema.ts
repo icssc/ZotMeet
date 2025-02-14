@@ -8,6 +8,7 @@ import {
     pgTable,
     primaryKey,
     text,
+    time,
     timestamp,
     unique,
     uuid,
@@ -20,17 +21,6 @@ export const attendanceEnum = pgEnum("attendance", [
     "accepted",
     "maybe",
     "declined",
-]);
-
-export const timezoneEnum = pgEnum("timezone", [
-    "PST",
-    "PDT",
-    "MST",
-    "MDT",
-    "CST",
-    "CDT",
-    "EST",
-    "EDT",
 ]);
 
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
@@ -140,9 +130,12 @@ export const meetings = pgTable("meetings", {
     description: text("description"),
     location: text("location"),
     scheduled: boolean("scheduled"),
-    from_time: char("from_time", { length: 5 }).notNull(),
-    to_time: char("to_time", { length: 5 }).notNull(),
-    timezone: timezoneEnum("timezone").default("PST").notNull(),
+    fromTime: time("from_time", {
+        withTimezone: false,
+    }).notNull(),
+    toTime: time("to_time", { withTimezone: false }).notNull(),
+    // store IANA timezone as a string for better compatibility
+    timezone: text("timezone").default("PST").notNull(),
     group_id: uuid("group_id").references(() => groups.id, {
         onDelete: "cascade",
     }),

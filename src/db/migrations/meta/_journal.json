@@ -64,6 +64,34 @@
       "when": 1739502078107,
       "tag": "0008_plain_bushwacker",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1739507497002,
+      "tag": "0009_secret_northstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1739507705295,
+      "tag": "0010_brief_punisher",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1739507785109,
+      "tag": "0011_medical_scorpion",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1739507818782,
+      "tag": "0012_special_the_renegades",
+      "breakpoints": true
     }
   ]
 }
