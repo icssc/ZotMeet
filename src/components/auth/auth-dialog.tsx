@@ -1,5 +1,5 @@
-import LoginTabContent from "@/app/components/auth/login-tab-content";
-import SignupTabContent from "@/app/components/auth/signup-tab-content";
+import LoginTabContent from "@/components/auth/login-tab-content";
+import SignupTabContent from "@/components/auth/signup-tab-content";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
