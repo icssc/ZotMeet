@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createMeeting } from "@/app/actions/meeting/create/action";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
@@ -10,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
+import { createMeeting } from "@/server/actions/meeting/create/action";
 
 export function Creation() {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);

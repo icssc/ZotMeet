@@ -1,10 +1,10 @@
 "use client";
 
-import { saveAvailability } from "@/app/actions/availability/save/action";
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { Button } from "@/components/ui/button";
 import { MeetingSelectSchema } from "@/db/schema";
 import { cn } from "@/lib/utils";
+import { saveAvailability } from "@/server/actions/availability/save/action";
 import { CircleCheckIcon, CircleXIcon } from "lucide-react";
 
 interface AvailabilityHeaderProps {

@@ -1,8 +1,4 @@
 import { useState } from "react";
-import signupAction, {
-    SignupFormState,
-} from "@/app/actions/auth/signup/action";
-import { signupFormSchema } from "@/app/actions/auth/signup/schema";
 import { Button } from "@/components/ui/button";
 import {
     DialogDescription,
@@ -18,6 +14,10 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import signupAction, {
+    SignupFormState,
+} from "@/server/actions/auth/signup/action";
+import { signupFormSchema } from "@/server/actions/auth/signup/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
