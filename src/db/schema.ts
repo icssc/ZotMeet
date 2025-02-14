@@ -53,6 +53,9 @@ export const membersRelations = relations(members, ({ one, many }) => ({
     }),
 }));
 
+export type InsertMember = InferInsertModel<typeof members>;
+export type SelectMember = InferSelectModel<typeof members>;
+
 // Users encompasses Members who have created an account.
 export const users = pgTable("users", {
     id: text("id")
@@ -73,6 +76,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
         references: [members.id],
     }),
 }));
+
+export type SelectUser = InferSelectModel<typeof users>;
+export type InsertUser = InferInsertModel<typeof users>;
 
 export const oauthAccounts = pgTable(
     "oauth_accounts",
@@ -123,6 +129,9 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
     }),
 }));
 
+export type SelectSession = InferSelectModel<typeof sessions>;
+export type InsertSession = InferInsertModel<typeof sessions>;
+
 export const meetings = pgTable("meetings", {
     id: uuid("id").defaultRandom().primaryKey(),
     title: text("title").notNull(),
@@ -152,6 +161,9 @@ export const meetingsRelations = relations(meetings, ({ one, many }) => ({
     }),
     availabilities: many(availabilities),
 }));
+
+export type InsertMeeting = InferInsertModel<typeof meetings>;
+export type SelectMeeting = InferSelectModel<typeof meetings>;
 
 export const groups = pgTable("groups", {
     id: uuid("id").defaultRandom().primaryKey(),
@@ -201,6 +213,9 @@ export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
     }),
 }));
 
+export type SelectAvailability = InferSelectModel<typeof availabilities>;
+export type InsertAvailability = InferInsertModel<typeof availabilities>;
+
 export const usersInGroup = pgTable(
     "users_in_group",
     {
@@ -226,8 +241,3 @@ export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
         references: [users.id],
     }),
 }));
-
-export type SelectUser = InferSelectModel<typeof users>;
-
-export type SelectSession = InferSelectModel<typeof sessions>;
-export type InsertSession = InferInsertModel<typeof sessions>;
