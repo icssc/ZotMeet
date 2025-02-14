@@ -161,8 +161,8 @@ export const groups = pgTable("groups", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     description: text("description"),
-    created_at: timestamp("created_at"),
-    created_by: text("user_id").references(() => users.id),
+    createdAt: timestamp("created_at"),
+    createdBy: text("user_id").references(() => users.id),
 });
 
 export const groupsRelations = relations(groups, ({ many }) => ({
