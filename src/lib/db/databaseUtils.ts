@@ -2,14 +2,11 @@ import { db } from "@/db";
 import {
     availabilities,
     AvailabilityMeetingDateJoinSchema,
-    GuestInsertSchema,
-    MeetingDateInsertSchema,
-    meetingDates,
-    MeetingInsertSchema,
+    InsertMeeting,
+    InsertMember,
     meetings,
-    MeetingSelectSchema,
-    MemberInsertSchema,
     members,
+    SelectMeeting,
     sessions,
     UserInsertSchema,
     users,
@@ -40,14 +37,13 @@ export const checkIfEmailExists = async (email: string) => {
     return queryResult.length > 0;
 };
 
-export const insertNewMember = async (member: MemberInsertSchema) => {
+export const insertNewMember = async (member: InsertMember) => {
     return await db.insert(members).values(member);
 };
 
 export const insertNewUser = async (user: UserInsertSchema) => {
     return await db.insert(users).values(user);
 };
-
 
 export const getAllUsers = async () => {
     const queryResult = await db
@@ -86,7 +82,6 @@ export async function getUserIdFromSession(sessionId: string): Promise<string> {
     return userId;
 }
 
-
 /**
  * @param meeting The meeting object to insert. `from_time` and `to_time` represent the start and end times
  * and are only used for the times of day.
@@ -94,7 +89,7 @@ export async function getUserIdFromSession(sessionId: string): Promise<string> {
  * @returns The id of the inserted meeting.
  */
 export const insertMeeting = async (
-    meeting: MeetingInsertSchema,
+    meeting: InsertMeeting,
     meetingDates: Date[]
 ) => {
     const [dbMeeting] = await db.insert(meetings).values(meeting).returning();
@@ -104,7 +99,7 @@ export const insertMeeting = async (
 
 export const getExistingMeeting = async (
     meetingId: string
-): Promise<MeetingSelectSchema> => {
+): Promise<SelectMeeting> => {
     const [dbMeeting] = await db
         .select()
         .from(meetings)
@@ -113,7 +108,11 @@ export const getExistingMeeting = async (
     return dbMeeting;
 };
 
-export const insertMeetingDates = async (dates: Date[], meeting_id: string, host_id: string) => {
+export const insertMeetingDates = async (
+    dates: Date[],
+    meeting_id: string,
+    host_id: string
+) => {
     const dbAvailabilities = dates.map((date) => {
         // Get the start of the date to better standardize
         return {
@@ -157,7 +156,7 @@ export const getAvailability = async ({
 }): Promise<AvailabilityMeetingDateJoinSchema[]> => {
     const availability = await db
         .select({
-            meetingAvailabilities: availabilities.meetingAvailabilities
+            meetingAvailabilities: availabilities.meetingAvailabilities,
         })
         .from(availabilities)
         .where(

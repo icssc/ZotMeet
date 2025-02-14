@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
-import { createMeeting } from "@/server/actions/meeting/create/action";
+import { createMeeting } from "@actions/meeting/create/action";
 
 export function Creation() {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);

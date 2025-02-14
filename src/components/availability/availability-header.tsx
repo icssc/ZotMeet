@@ -2,13 +2,13 @@
 
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { Button } from "@/components/ui/button";
-import { MeetingSelectSchema } from "@/db/schema";
+import { SelectMeeting } from "@/db/schema";
 import { cn } from "@/lib/utils";
-import { saveAvailability } from "@/server/actions/availability/save/action";
+import { saveAvailability } from "@actions/availability/save/action";
 import { CircleCheckIcon, CircleXIcon } from "lucide-react";
 
 interface AvailabilityHeaderProps {
-    meetingData: MeetingSelectSchema;
+    meetingData: SelectMeeting;
 }
 
 export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
