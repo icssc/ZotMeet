@@ -25,6 +25,9 @@ const geistMono = localFont({
 export const metadata: Metadata = {
     title: "ZotMeet | Create a Meeting",
     description: "ZotMeet: Simple, clean, and efficient meeting scheduling app",
+    icons: {
+        icon: 'favicon.ico'
+    }
 };
 
 export default function RootLayout({
