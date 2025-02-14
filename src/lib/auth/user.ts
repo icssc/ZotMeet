@@ -22,7 +22,7 @@ export async function createUser(
     const userId = generateIdFromEntropySize(10);
 
     const newUser = await db.transaction(async (tx) => {
-        await tx.insert(members).values({ id: userId , displayName});
+        await tx.insert(members).values({ id: userId, displayName });
 
         const [newUser] = await tx
             .insert(users)

@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
@@ -16,7 +15,6 @@ export function Creation() {
     const [startTime, setStartTime] = useState<HourMinuteString>("9:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00");
     const [meetingName, setMeetingName] = useState("");
-    const router = useRouter();
 
     const handleCreation = async () => {
         const newMeeting = {
@@ -29,19 +27,11 @@ export function Creation() {
             description: "",
         };
 
-        const meeting = await createMeeting(newMeeting);
-        const { meetingId, error } = meeting;
+        const { error } = await createMeeting(newMeeting);
 
         if (error) {
             console.error("Failed to create meeting: ", error);
         }
-
-        if (!meetingId) {
-            console.error("Failed to create meeting. Meeting ID not found.");
-            return;
-        }
-
-        router.push(`/availability/${meetingId}`);
     };
 
     const hasValidInputs = () => {

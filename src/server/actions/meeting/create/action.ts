@@ -1,71 +1,32 @@
 "use server";
 
-import { getUserIdFromSession, insertMeeting } from "@/lib/db/databaseUtils";
+import { redirect } from "next/navigation";
+import { getCurrentSession } from "@/lib/auth";
 import { CreateMeetingPostParams } from "@/lib/types/meetings";
 
 export async function createMeeting(newMeeting: CreateMeetingPostParams) {
     try {
-        const {
-            title,
-            description,
-            fromTime,
-            toTime,
-            meetingDates,
-            sessionId,
-        } = newMeeting;
+        const { title, description, fromTime, toTime, meetingDates } =
+            newMeeting;
 
-        console.log(
-            "Creating meeting:",
-            title,
-            description,
-            fromTime,
-            toTime,
-            meetingDates
-        );
+        // TODO: Re-write this according to the new database schema
 
-        // Validate the input data
-        if (fromTime >= toTime) {
-            return { error: "From time must be before to time" };
-        }
+        // - Check if the user is logged in
+        const { user } = await getCurrentSession();
 
-        if (!meetingDates || meetingDates.length === 0) {
-            return { error: "At least one date must be provided" };
-        }
+        // - If not, return an error (for now, guests are not allowed to create meetings)
+        // - If so, get the member id of the user for the meeting's host id
 
-        // Limit the number of dates to prevent abuse
-        if (meetingDates.length > 100) {
-            return { error: "Too many dates provided" };
-        }
+        // - Check validity of the meeting dates and times (e.g. no duplicate dates, fromTime < toTime, etc.)
 
-        // Sort the dates in UTC order
-        const sortedDates = meetingDates
-            .map((dateString) => new Date(dateString))
-            .sort((a, b) => a.getTime() - b.getTime());
+        // - Create a new row in the meetings table and get the id of the new meeting
 
-        // Retrieve the host ID if the session ID is provided
-        const host_id = sessionId
-            ? await getUserIdFromSession(sessionId)
-            : undefined;
-
-        // Prepare the meeting data
-        const meeting = {
-            title,
-            description: description || "",
-            from_time: fromTime,
-            to_time: toTime,
-            host_id,
-        };
-
-        // Insert the meeting into the database
-        const meetingId = await insertMeeting(meeting, sortedDates);
-
-        // Return the created meeting ID
-        return { meetingId };
+        // - On the server (300 resopnse code), redirect the user to the meeting page
+        redirect(`/availability/_`);
     } catch (err) {
         const error = err as Error;
         console.error("Error creating meeting:", error.message);
 
-        // Return a 500 error response
         return { error: `Error creating meeting: ${error.message}` };
     }
 }

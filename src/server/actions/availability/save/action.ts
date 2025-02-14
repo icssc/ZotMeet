@@ -12,69 +12,21 @@ export async function saveAvailability({
     meetingId,
     availabilityDates,
 }: saveAvailabilityProps) {
-    const { user } = await getCurrentSession();
-
-    // TODO: Implement the logic to save availability dates with the new schema
-
-    // const user: User | null = locals.user;
-
-    // let dbMeetingDates: MeetingDateSelectSchema[] = [];
-
-    // try {
-    //     dbMeetingDates = await getExistingMeetingDates(meetingId);
-    // } catch (e) {
-    //     console.log("Error getting meeting dates:", e);
-    // }
-
-    // if (!dbMeetingDates || dbMeetingDates.length === 0) {
-    //     return;
-    // }
-
     try {
-        //     // const memberId =
-        //     //     user?.id ??
-        //     //     (
-        //     //         await getExistingGuest(
-        //     //             formData.get("username") as string,
-        //     //             await getExistingMeeting(meetingId)
-        //     //         )
-        //     //     ).id;
+        // TODO: Implement the logic to save availability dates with the new schema
+        // - Check if the user is logged in
+        const { user } = await getCurrentSession();
 
-        //     const memberId = "123";
+        // - If so, get the id of the user
+        // - If not, create a new member row and get the id
 
-        //     const insertDates: AvailabilityInsertSchema[] = availabilityDates.map(
-        //         (date, index) => ({
-        //             day: new Date(date.day).toISOString(),
-        //             member_id: memberId,
-        //             meetingId: meetingId,
-        //             // meeting_day: dbMeetingDates[index].id as string, // Type-cast since id is guaranteed if a meetingDate exists
-        //             availabilityString: date.availability
-        //                 .map((bool) => (bool ? "1" : "0"))
-        //                 .join(""),
-        //         })
-        //     );
+        // - Check if the meeting exists
+        // - If so, get the id of the meeting
+        // - If not, return an error
 
-        //     await db.transaction(async (tx) => {
-        //         await Promise.all([
-        //             tx
-        //                 .insert(availabilities)
-        //                 .values(insertDates)
-        //                 .onConflictDoUpdate({
-        //                     target: [
-        //                         availabilities.memberId,
-        //                         availabilities.meetingId,
-        //                         availabilities.meetingAvailabilities,
-        //                     ],
-        //                     set: {
-        //                         // `excluded` refers to the row currently in conflict
-        //                         availabilityString: sql.raw(
-        //                             `excluded.availability_string`
-        //                         ),
-        //                     },
-        //                 }),
-        //             tx,
-        //         ]);
-        //     });
+        // - Check if the user has existing availability for the meeting
+        // - If so, update the existing availability
+        // - If not, create a new availability row
 
         return {
             status: 200,
