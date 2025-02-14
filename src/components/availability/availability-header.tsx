@@ -1,6 +1,6 @@
 "use client";
 
-import { saveAvailability } from "@/actions/availability/saveAvailability";
+import { saveAvailability } from "@/app/actions/availability/save/action";
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { Button } from "@/components/ui/button";
 import { MeetingSelectSchema } from "@/db/schema";

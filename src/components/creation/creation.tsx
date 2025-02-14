@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createMeeting } from "@/actions/creation/createMeeting";
+import { createMeeting } from "@/app/actions/meeting/create/action";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
@@ -57,7 +57,7 @@ export function Creation() {
     return (
         <div className="space-y-6 px-4 pb-6">
             <div className="px-4 pt-8 md:pl-[60px] md:pt-10">
-                <h2 className="font-montserrat text-gray-dark text-xl font-medium md:text-2xl">
+                <h2 className="font-montserrat text-xl font-medium text-gray-dark md:text-2xl">
                     Let&apos;s plan your next meeting.
                 </h2>
 
@@ -86,13 +86,13 @@ export function Creation() {
             />
 
             <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0">
-                <p className="text-slate-medium text-sm font-bold uppercase">
+                <p className="text-sm font-bold uppercase text-slate-medium">
                     {selectedDays.length} days selected
                 </p>
 
                 <Button
                     className={cn(
-                        "font-montserrat text-gray-light sm:btn-wide w-48 rounded-lg border-none bg-green-500 text-xl font-medium hover:bg-green-500/80"
+                        "sm:btn-wide w-48 rounded-lg border-none bg-green-500 font-montserrat text-xl font-medium text-gray-light hover:bg-green-500/80"
                     )}
                     disabled={!hasValidInputs()}
                     onClick={handleCreation}
