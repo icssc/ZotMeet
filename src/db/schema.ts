@@ -37,7 +37,7 @@ export const timezoneEnum = pgEnum("timezone", [
 export const members = pgTable(
     "members",
     {
-        id: text("id").primaryKey(),
+        id: uuid("id").primaryKey().notNull().defaultRandom(),
         displayName: text("display_name").notNull(),
     },
     (table) => ({
@@ -58,10 +58,10 @@ export type SelectMember = InferSelectModel<typeof members>;
 
 // Users encompasses Members who have created an account.
 export const users = pgTable("users", {
-    id: text("id")
-        .primaryKey()
-        .references(() => members.id, { onDelete: "cascade" }),
-    memberId: text("member_id").references(() => members.id),
+    id: text("id").primaryKey(),
+    memberId: uuid("member_id").references(() => members.id, {
+        onDelete: "cascade",
+    }),
     email: text("email").unique().notNull(),
     passwordHash: text("password_hash"),
     createdAt: timestamp("created_at"),
@@ -144,8 +144,8 @@ export const meetings = pgTable("meetings", {
     group_id: uuid("group_id").references(() => groups.id, {
         onDelete: "cascade",
     }),
-    host_id: text("host_id")
-        .references(() => members.id)
+    hostId: uuid("host_id")
+        .references(() => members.id, { onDelete: "cascade" })
         .notNull(),
     // JSON array of calendar dates
     dates: jsonb("dates").$type<Date[]>().notNull().default([]),
@@ -178,7 +178,7 @@ export const groupsRelations = relations(groups, ({ many }) => ({
 export const availabilities = pgTable(
     "availabilities",
     {
-        memberId: text("member_id")
+        memberId: uuid("member_id")
             .notNull()
             .references(() => members.id, { onDelete: "cascade" }),
         meetingId: uuid("meeting_id")
