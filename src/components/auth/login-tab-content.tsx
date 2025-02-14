@@ -1,6 +1,4 @@
 import { useState } from "react";
-import loginAction, { LoginFormState } from "@/app/actions/auth/login/action";
-import { loginFormSchema } from "@/app/actions/auth/login/schema";
 import { Button } from "@/components/ui/button";
 import {
     DialogDescription,
@@ -16,6 +14,8 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import loginAction, { LoginFormState } from "@actions/auth/login/action";
+import { loginFormSchema } from "@actions/auth/login/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

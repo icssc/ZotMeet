@@ -59,9 +59,11 @@ export type SelectMember = InferSelectModel<typeof members>;
 // Users encompasses Members who have created an account.
 export const users = pgTable("users", {
     id: text("id").primaryKey(),
-    memberId: uuid("member_id").references(() => members.id, {
-        onDelete: "cascade",
-    }),
+    memberId: uuid("member_id")
+        .references(() => members.id, {
+            onDelete: "cascade",
+        })
+        .notNull(),
     email: text("email").unique().notNull(),
     passwordHash: text("password_hash"),
     createdAt: timestamp("created_at"),
