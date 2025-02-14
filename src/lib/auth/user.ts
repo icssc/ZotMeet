@@ -45,16 +45,20 @@ export async function createUser(
 }
 
 export async function getUserPasswordHash(userId: string): Promise<string> {
-    const [row] = await db
-        .select({
-            passwordHash: users.passwordHash,
-        })
-        .from(users)
-        .where(eq(users.id, userId));
+    const user = await db.query.users.findFirst({
+        columns: {
+            passwordHash: true,
+        },
+        where: eq(users.id, userId),
+    });
 
-    if (row.passwordHash === null) {
+    if (user === undefined) {
         throw new Error("Invalid user ID");
     }
 
-    return row.passwordHash;
+    if (user.passwordHash === null) {
+        throw new Error("User does not have a password");
+    }
+
+    return user.passwordHash;
 }

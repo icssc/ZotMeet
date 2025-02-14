@@ -25,6 +25,9 @@ export async function saveAvailability({
         // - If not, return an error
 
         // - Check if the user has existing availability for the meeting
+
+        // - Validate the availability dates according to the dates column of the meeting table
+
         // - If so, update the existing availability
         // - If not, create a new availability row
 

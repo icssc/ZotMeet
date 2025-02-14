@@ -147,6 +147,7 @@ export const meetings = pgTable("meetings", {
     host_id: text("host_id")
         .references(() => members.id)
         .notNull(),
+    // JSON array of calendar dates
     dates: jsonb("dates").$type<Date[]>().notNull().default([]),
 });
 
@@ -174,10 +175,6 @@ export const groupsRelations = relations(groups, ({ many }) => ({
     meetings: many(meetings),
 }));
 
-export interface MeetingAvailability {
-    availabilities: Date[];
-}
-
 export const availabilities = pgTable(
     "availabilities",
     {
@@ -188,10 +185,11 @@ export const availabilities = pgTable(
             .notNull()
             .references(() => meetings.id, { onDelete: "cascade" }),
         status: attendanceEnum("status"),
+        // JSON array of timestamps
         meetingAvailabilities: jsonb("meeting_availabilities")
-            .$type<MeetingAvailability>()
+            .$type<Date[]>()
             .notNull()
-            .default({ availabilities: [] }),
+            .default([]),
     },
     (table) => ({
         pk: primaryKey({ columns: [table.memberId, table.meetingId] }),

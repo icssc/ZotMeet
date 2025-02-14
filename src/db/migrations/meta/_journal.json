@@ -29,6 +29,13 @@
       "when": 1739497340597,
       "tag": "0003_sticky_pepper_potts",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1739498080005,
+      "tag": "0004_dapper_goblin_queen",
+      "breakpoints": true
     }
   ]
 }
