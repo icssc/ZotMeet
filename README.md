@@ -30,11 +30,11 @@ Simple, clean, and efficient meeting scheduling app.
 │   │   └── schema.ts
 │   ├── lib
 │   └── server
-│       ├── actions
+│       ├── actions ( mutate or insert data )
 │       │       └── [ entity ]
 │       │           └── [ verb ]
 │       │               └── action.ts
-│       └── data
+│       └── data ( query data )
 │           └── [ entity ]
 │               └── queries.ts
 └── tsconfig.json
