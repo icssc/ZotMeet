@@ -134,7 +134,7 @@ export const meetings = pgTable("meetings", {
     }).notNull(),
     toTime: time("to_time", { withTimezone: false }).notNull(),
     // store IANA timezone as a string for better compatibility
-    timezone: text("timezone").default("PST").notNull(),
+    timezone: text("timezone").notNull(),
     group_id: uuid("group_id").references(() => groups.id, {
         onDelete: "cascade",
     }),

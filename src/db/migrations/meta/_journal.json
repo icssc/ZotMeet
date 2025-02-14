@@ -92,6 +92,13 @@
       "when": 1739507818782,
       "tag": "0012_special_the_renegades",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1739508079257,
+      "tag": "0013_classy_goblin_queen",
+      "breakpoints": true
     }
   ]
 }
