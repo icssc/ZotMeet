@@ -12,6 +12,9 @@ export default $config({
     },
     async run() {
         new sst.aws.Nextjs("site", {
+            environment: {
+                DATABASE_URL: process.env.DATABASE_URL ?? "localhost:3000",
+            },
             domain: {
                 name: `${$app.stage === "prod" ? "" : `${$app.stage}.`}zotmeet.com`,
                 dns: sst.aws.dns({
