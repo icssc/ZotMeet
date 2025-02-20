@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import type { InsertSession } from "@/db/schema";
-import { sessions, users } from "@/db/schema";
-import { UserProfile, userProjection } from "@/lib/auth/user";
+import { members, sessions, users } from "@/db/schema";
+import { UserProfile, userProfileProjection } from "@/lib/auth/user";
 import { sha256 } from "@oslojs/crypto/sha2";
 import {
     encodeBase32LowerCaseNoPadding,
@@ -45,12 +45,14 @@ export async function validateSessionToken(
     );
 
     const existingSession = await db
+        // use projection to not leak any sensitive data
         .select({
-            user: userProjection,
+            user: userProfileProjection,
             session: sessions,
         })
         .from(sessions)
         .innerJoin(users, eq(sessions.userId, users.id))
+        .innerJoin(members, eq(users.memberId, members.id))
         .where(eq(sessions.id, sessionId));
 
     if (existingSession.length < 1) {

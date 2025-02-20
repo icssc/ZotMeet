@@ -22,6 +22,83 @@
       "when": 1739473699174,
       "tag": "0002_strong_talon",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1739497340597,
+      "tag": "0003_sticky_pepper_potts",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1739498080005,
+      "tag": "0004_dapper_goblin_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1739500055812,
+      "tag": "0005_oval_deadpool",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1739500715810,
+      "tag": "0006_fresh_maelstrom",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1739500744220,
+      "tag": "0007_cuddly_songbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1739502078107,
+      "tag": "0008_plain_bushwacker",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1739507497002,
+      "tag": "0009_secret_northstar",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1739507705295,
+      "tag": "0010_brief_punisher",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1739507785109,
+      "tag": "0011_medical_scorpion",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1739507818782,
+      "tag": "0012_special_the_renegades",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1739508079257,
+      "tag": "0013_classy_goblin_queen",
+      "breakpoints": true
     }
   ]
 }

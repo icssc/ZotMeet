@@ -1,0 +1,2 @@
+ALTER TABLE "availabilities" ADD CONSTRAINT "availabilities_member_id_meeting_id_pk" PRIMARY KEY("member_id","meeting_id");--> statement-breakpoint
+ALTER TABLE "members" ADD CONSTRAINT "members_id_unique" UNIQUE("id");

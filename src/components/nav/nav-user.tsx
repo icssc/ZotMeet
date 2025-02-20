@@ -1,12 +1,10 @@
 "use client";
 
-import { logoutAction } from "@/app/actions/auth/logout/action";
-import AuthDialog from "@/app/components/auth/auth-dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import AuthDialog from "@/components/auth/auth-dialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -19,15 +17,8 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar";
 import { UserProfile } from "@/lib/auth/user";
-import {
-    BadgeCheck,
-    Bell,
-    ChevronsUpDown,
-    CreditCard,
-    LogOut,
-    Sparkles,
-    User,
-} from "lucide-react";
+import { logoutAction } from "@actions/auth/logout/action";
+import { ChevronsUpDown, LogOut, User } from "lucide-react";
 
 type NavUserProps = {
     user: UserProfile | null;

@@ -1,12 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { signupFormSchema } from "@/app/actions/auth/signup/schema";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { setSessionTokenCookie } from "@/lib/auth/cookies";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
 import { createUser } from "@/lib/auth/user";
+import { signupFormSchema } from "@actions/auth/signup/schema";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 

@@ -10,7 +10,7 @@ import { AvailabilityTimeTicks } from "@/components/availability/table/availabil
 import {
     AvailabilityMeetingDateJoinSchema,
     MeetingDateSelectSchema,
-    MeetingSelectSchema,
+    SelectMeeting,
 } from "@/db/schema";
 import { AvailabilityBlockType } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
@@ -19,7 +19,7 @@ import { ZotDate } from "@/lib/zotdate";
 
 interface PersonalAvailabilityProps {
     columns: number;
-    meetingData: MeetingSelectSchema;
+    meetingData: SelectMeeting;
     meetingDates: MeetingDateSelectSchema[];
     availability: AvailabilityMeetingDateJoinSchema[] | null;
     availabilityTimeBlocks: number[];

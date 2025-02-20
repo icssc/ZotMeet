@@ -1,8 +1,4 @@
 import { useState } from "react";
-import signupAction, {
-    SignupFormState,
-} from "@/app/actions/auth/signup/action";
-import { signupFormSchema } from "@/app/actions/auth/signup/schema";
 import { Button } from "@/components/ui/button";
 import {
     DialogDescription,
@@ -18,27 +14,28 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import loginAction, { LoginFormState } from "@actions/auth/login/action";
+import { loginFormSchema } from "@actions/auth/login/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-export default function SignupTabContent() {
-    const form = useForm<z.infer<typeof signupFormSchema>>({
-        resolver: zodResolver(signupFormSchema),
+export default function LoginTabContent() {
+    const form = useForm<z.infer<typeof loginFormSchema>>({
+        resolver: zodResolver(loginFormSchema),
         defaultValues: {
             email: "",
             password: "",
-            displayName: "",
         },
     });
 
-    const [formState, setFormState] = useState<SignupFormState>({
+    const [formState, setFormState] = useState<LoginFormState>({
         message: "",
         error: false,
     });
 
-    const onSubmit = async (data: z.infer<typeof signupFormSchema>) => {
-        const response = await signupAction(data);
+    const onSubmit = async (data: z.infer<typeof loginFormSchema>) => {
+        const response = await loginAction(data);
 
         setFormState(response);
     };
@@ -48,9 +45,9 @@ export default function SignupTabContent() {
     return (
         <div className="space-y-4">
             <DialogHeader>
-                <DialogTitle className="text-2xl">Sign up</DialogTitle>
+                <DialogTitle className="text-2xl">Login</DialogTitle>
                 <DialogDescription>
-                    Enter your information below to sign up for an account
+                    Enter your email below to login to your account
                 </DialogDescription>
             </DialogHeader>
             <Form {...form}>
@@ -60,22 +57,6 @@ export default function SignupTabContent() {
                 >
                     <FormField
                         control={form.control}
-                        name="displayName"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Display Name</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder="Peter Anteater"
-                                        {...field}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
                         name="email"
                         render={({ field }) => (
                             <FormItem>
@@ -83,7 +64,6 @@ export default function SignupTabContent() {
                                 <FormControl>
                                     <Input
                                         placeholder="name@email.com"
-                                        type="email"
                                         {...field}
                                     />
                                 </FormControl>
@@ -115,7 +95,7 @@ export default function SignupTabContent() {
                         type="submit"
                         className="mt-4 w-full"
                     >
-                        Sign up
+                        Log in
                     </Button>
                 </form>
             </Form>
