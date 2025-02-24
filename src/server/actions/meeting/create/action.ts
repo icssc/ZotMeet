@@ -6,7 +6,7 @@ import { CreateMeetingPostParams } from "@/lib/types/meetings";
 
 export async function createMeeting(newMeeting: CreateMeetingPostParams) {
     try {
-        const { title, description, fromTime, toTime, meetingDates } =
+        const { title, description, fromTime, toTime, timezone, meetingDates } =
             newMeeting;
 
         // TODO: Re-write this according to the new database schema
@@ -15,6 +15,9 @@ export async function createMeeting(newMeeting: CreateMeetingPostParams) {
         const { user } = await getCurrentSession();
 
         // - If not, return an error (for now, guests are not allowed to create meetings)
+        if (!user) {
+            return { error: "You must be logged in to create a meeting." };
+        }
         // - If so, get the member id of the user for the meeting's host id
 
         // - Check validity of the meeting dates and times (e.g. no duplicate dates, fromTime < toTime, etc.)

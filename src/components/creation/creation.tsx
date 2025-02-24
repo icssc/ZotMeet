@@ -21,6 +21,7 @@ export function Creation() {
             title: meetingName,
             fromTime: startTime,
             toTime: endTime,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             meetingDates: selectedDays.map((zotDate) =>
                 zotDate.day.toISOString()
             ),
