@@ -1,1 +1,0 @@
-ALTER TABLE "availabilities" ALTER COLUMN "meeting_availabilities" SET DEFAULT '[]'::jsonb;

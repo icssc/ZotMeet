@@ -5,13 +5,15 @@ import { ZotDate } from "@/lib/zotdate";
 export const getTimeFromHourMinuteString = (
     hourMinuteString: HourMinuteString
 ): number => {
-    const [hours, minutes] = hourMinuteString.split(":");
+    console.log('time', hourMinuteString);
+    const [hours, minutes, seconds] = hourMinuteString.split(":");
+    console.log(hours, minutes, seconds);
 
     return Number(hours) * TimeConstants.MINUTES_PER_HOUR + Number(minutes);
 };
 
-const earliestTime: number = getTimeFromHourMinuteString("08:00");
-const latestTime: number = getTimeFromHourMinuteString("17:30");
+const earliestTime: number = getTimeFromHourMinuteString("08:00:00");
+const latestTime: number = getTimeFromHourMinuteString("17:30:00");
 
 const BLOCK_LENGTH: number = 15;
 

@@ -36,4 +36,4 @@ export enum TimeConstants {
     MINUTES_PER_HOUR = 60,
 }
 
-export type HourMinuteString = `${string}:${string}`;
+export type HourMinuteString = `${string}:${string}:${string}`;

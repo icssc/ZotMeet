@@ -16,9 +16,11 @@ import {
     getAvailability,
     getExistingMeeting,
     getExistingMeetingDates,
-} from "@/lib/db/databaseUtils";
+    getAllMemberAvailability
+} from "@/server/data/meeting/queries";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
+import { getCurrentSession } from "@/lib/auth";
 
 interface PageProps {
     params: {
@@ -70,13 +72,21 @@ export default async function Page({ params }: PageProps) {
     const meetingDates = await getExistingMeetingDates(meetingData.id);
     // const availability = user ? await getAvailability(user, slug) : [];
     const availability = await getAvailability({
-        userId: "123", // TODO (#auth): replace with actual user from session
+        userId: (await getCurrentSession()).user?.memberId, 
+        meetingId: meetingData.id,
+        
+    });
+    console.log((await getCurrentSession()).user?.memberId, meetingData.id);
+    console.log(`Availability/${slug}:`, availability);
+
+    const allAvailabilties = await getAllMemberAvailability({
         meetingId: meetingData.id,
     });
+    console.log(`All member Availability/${slug}:`, allAvailabilties);
 
     const availabilityTimeBlocks = generateTimeBlocks(
-        getTimeFromHourMinuteString(meetingData.from_time as HourMinuteString),
-        getTimeFromHourMinuteString(meetingData.to_time as HourMinuteString)
+        getTimeFromHourMinuteString(meetingData.fromTime as HourMinuteString),
+        getTimeFromHourMinuteString(meetingData.toTime as HourMinuteString)
     );
 
     return (
