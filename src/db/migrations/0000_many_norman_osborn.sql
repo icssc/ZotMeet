@@ -1,5 +1,15 @@
-CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');--> statement-breakpoint
-CREATE TYPE "public"."timezone" AS ENUM('PST', 'PDT', 'MST', 'MDT', 'CST', 'CDT', 'EST', 'EDT');--> statement-breakpoint
+DO $$ BEGIN
+	CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+	CREATE TYPE "public"."timezone" AS ENUM('PST', 'PDT', 'MST', 'MDT', 'CST', 'CDT', 'EST', 'EDT');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "availabilities" (
 	"member_id" text NOT NULL,
 	"meeting_id" uuid NOT NULL,
