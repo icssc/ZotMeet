@@ -12,13 +12,13 @@ import {
     getTimeFromHourMinuteString,
     SAMPLE_MEMBERS,
 } from "@/lib/availability/utils";
-import {
-    getAvailability,
-    getExistingMeeting,
-    getExistingMeetingDates,
-} from "@/lib/db/databaseUtils";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
+import { getMemberMeetingAvailability } from "@data/availability/queries";
+import {
+    getExistingMeeting,
+    getExistingMeetingDates,
+} from "@data/meeting/queries";
 
 interface PageProps {
     params: {
@@ -70,14 +70,14 @@ export default async function Page({ params }: PageProps) {
 
     const meetingDates = await getExistingMeetingDates(meetingData.id);
     // const availability = user ? await getAvailability(user, slug) : [];
-    const availability = await getAvailability({
-        userId: "123", // TODO (#auth): replace with actual user from session
+    const availability = await getMemberMeetingAvailability({
+        memberId: "123", // TODO (#auth): replace with actual user from session
         meetingId: meetingData.id,
     });
 
     const availabilityTimeBlocks = generateTimeBlocks(
-        getTimeFromHourMinuteString(meetingData.from_time as HourMinuteString),
-        getTimeFromHourMinuteString(meetingData.to_time as HourMinuteString)
+        getTimeFromHourMinuteString(meetingData.fromTime as HourMinuteString),
+        getTimeFromHourMinuteString(meetingData.toTime as HourMinuteString)
     );
 
     return (

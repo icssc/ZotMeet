@@ -1,7 +1,6 @@
 "use client";
 
-import { logoutAction } from "@/app/actions/auth/logout/action";
-import AuthDialog from "@/app/components/auth/auth-dialog";
+import AuthDialog from "@/components/auth/auth-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
     DropdownMenu,
@@ -18,6 +17,7 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar";
 import { UserProfile } from "@/lib/auth/user";
+import { logoutAction } from "@actions/auth/logout/action";
 import { ChevronsUpDown, LogOut, User } from "lucide-react";
 
 type NavUserProps = {
