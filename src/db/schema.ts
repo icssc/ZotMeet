@@ -34,6 +34,17 @@ export const members = pgTable(
     })
 );
 
+export const foo = pgTable(
+    "foo",
+    {
+        id: uuid("id").primaryKey().notNull().defaultRandom(),
+        displayName: text("display_name").notNull(),
+    },
+    (table) => ({
+        unique: unique().on(table.id),
+    })
+);
+
 export const membersRelations = relations(members, ({ one, many }) => ({
     availabilities: many(availabilities),
     users: one(users, {
