@@ -230,83 +230,9 @@ export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
     }),
 }));
 
-export const membersInMeetingRelations = relations(
-    membersInMeeting,
-    ({ one }) => ({
-        groups: one(meetings, {
-            fields: [membersInMeeting.meetingId],
-            references: [meetings.id],
-        }),
-        members: one(members, {
-            fields: [membersInMeeting.memberId],
-            references: [members.id],
-        }),
-    })
-);
-
-export const meetingsRelations = relations(meetings, ({ one, many }) => ({
-    groups: one(groups, {
-        fields: [meetings.group_id],
-        references: [groups.id],
-    }),
-    members: one(members, {
-        fields: [meetings.host_id],
-        references: [members.id],
-    }),
-    membersInMeeting: many(membersInMeeting),
-    meetingDates: many(meetingDates),
-}));
-
-export const meetingDatesRelations = relations(
-    meetingDates,
-    ({ one, many }) => ({
-        meetings: one(meetings, {
-            fields: [meetingDates.meeting_id],
-            references: [meetings.id],
-        }),
-        availabilities: many(availabilities),
-    })
-);
-
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-    users: one(users, {
-        fields: [sessions.userId],
-        references: [users.id],
-    }),
-}));
-
 export const oauthRelations = relations(oauthAccounts, ({ one }) => ({
     users: one(users, {
         fields: [oauthAccounts.userId],
         references: [users.id],
     }),
 }));
-
-export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
-    meetingDates: one(meetingDates, {
-        fields: [availabilities.meeting_day],
-        references: [meetingDates.id],
-    }),
-    members: one(members, {
-        fields: [availabilities.member_id],
-        references: [members.id],
-    }),
-}));
-
-export type SelectUser = InferSelectModel<typeof users>;
-
-export type SelectSession = InferSelectModel<typeof sessions>;
-export type InsertSession = InferInsertModel<typeof sessions>;
-export type MemberInsertSchema = typeof members.$inferInsert;
-export type UserInsertSchema = typeof users.$inferInsert;
-export type GuestInsertSchema = typeof guests.$inferInsert;
-export type AvailabilityInsertSchema = typeof availabilities.$inferInsert;
-export type MeetingInsertSchema = typeof meetings.$inferInsert;
-export type MeetingSelectSchema = typeof meetings.$inferSelect;
-export type MeetingDateInsertSchema = typeof meetingDates.$inferInsert;
-export type MeetingDateSelectSchema = typeof meetingDates.$inferSelect;
-
-export type AvailabilityMeetingDateJoinSchema = {
-    availabilities: typeof availabilities.$inferSelect;
-    meeting_dates: typeof meetingDates.$inferSelect;
-};
