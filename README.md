@@ -11,6 +11,35 @@ Simple, clean, and efficient meeting scheduling app.
 
 # Contributing
 
+## Project Structure
+
+```md
+├── README.md
+├── drizzle.config.ts
+├── next.config.mjs
+├── node_modules
+├── package.json
+├── src
+│   ├── app
+│   │   └── [ all front-end routes ]
+│   ├── components
+│   │   └── [ front-end components ]
+│   ├── db
+│   │   ├── index.ts
+│   │   ├── migrations
+│   │   └── schema.ts
+│   ├── lib
+│   └── server
+│       ├── actions ( mutate or insert data )
+│       │       └── [ entity ]
+│       │           └── [ verb ]
+│       │               └── action.ts
+│       └── data ( query data )
+│           └── [ entity ]
+│               └── queries.ts
+└── tsconfig.json
+```
+
 ## Local Development
 
 ### Prerequisites
@@ -52,3 +81,60 @@ Simple, clean, and efficient meeting scheduling app.
 If you need credentials for the `.env` file, contact the project lead ([Sean](https://github.com/seancfong/)).
 
 After changes to the .env file, run `pnpm run check` to update SvelteKit's auto-generated environment variable types.
+
+### Database Schema
+
+```mermaid
+erDiagram
+    users {
+        string id PK, FK
+        string email
+        string passwordHash
+        timestamp createdAt
+    }
+    groups {
+        uuid id PK
+        string name
+        string description
+        timestamp createdAt
+        string createdBy FK
+    }
+    usersInGroup {
+        string userId FK
+        uuid groupId FK
+    }
+    members {
+        int id PK
+        string displayName
+    }
+    availability {
+        string memberId FK
+        uuid meetingId FK
+        json meetingAvailabilities
+        enum status
+    }
+    meeting {
+        uuid id PK
+        string title
+        string description
+        string location
+        json dates
+        boolean scheduled
+        char fromTime
+        char toTime
+        uuid groupId FK
+        int hostId FK
+    }
+    sessions {
+        string id PK
+        timestamp expiresAt
+        string userId FK
+    }
+
+    meeting ||--o{ availability : has
+    users ||--o{ usersInGroup : has
+    groups ||--o{ usersInGroup : contains
+    members ||--o| users : extends
+    members ||--o{ availability : provides
+    users ||--o{ sessions : has 
+```

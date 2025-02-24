@@ -1,0 +1,2 @@
+# Generate migration files
+pnpm db:generate

@@ -1,17 +1,23 @@
 import { db } from "@/db";
-import { members, SelectUser, users } from "@/db/schema";
+import { members, users } from "@/db/schema";
 import { generateIdFromEntropySize } from "@/lib/auth/crypto";
 import { hashPassword } from "@/lib/auth/password";
 import { eq } from "drizzle-orm";
 
-export const userProjection = {
+// Projection of user table for db queries to limit what is returned
+export const userProfileProjection = {
     id: users.id,
-    displayName: users.displayName,
     email: users.email,
+    memberId: users.memberId,
+    displayName: members.displayName,
 };
 
-// Projection of user table to limit what is returned
-export type UserProfile = Pick<SelectUser, "id" | "email" | "displayName">;
+export type UserProfile = {
+    id: string;
+    email: string;
+    memberId: string;
+    displayName: string;
+};
 
 export async function createUser(
     email: string,
@@ -22,18 +28,27 @@ export async function createUser(
     const userId = generateIdFromEntropySize(10);
 
     const newUser = await db.transaction(async (tx) => {
-        await tx.insert(members).values({ id: userId });
+        const [newMember] = await tx
+            .insert(members)
+            .values({ displayName })
+            .returning({
+                id: members.id,
+            });
 
         const [newUser] = await tx
             .insert(users)
             .values({
                 id: userId,
-                displayName,
                 email,
                 passwordHash,
                 createdAt: new Date(),
+                memberId: newMember.id,
             })
-            .returning(userProjection);
+            .returning({
+                id: users.id,
+                email: users.email,
+                memberId: users.memberId,
+            });
 
         return newUser;
     });
@@ -42,20 +57,27 @@ export async function createUser(
         throw new Error("Unexpected error");
     }
 
-    return newUser;
+    return {
+        ...newUser,
+        displayName,
+    };
 }
 
 export async function getUserPasswordHash(userId: string): Promise<string> {
-    const [row] = await db
-        .select({
-            passwordHash: users.passwordHash,
-        })
-        .from(users)
-        .where(eq(users.id, userId));
+    const user = await db.query.users.findFirst({
+        columns: {
+            passwordHash: true,
+        },
+        where: eq(users.id, userId),
+    });
 
-    if (row.passwordHash === null) {
+    if (user === undefined) {
         throw new Error("Invalid user ID");
     }
 
-    return row.passwordHash;
+    if (user.passwordHash === null) {
+        throw new Error("User does not have a password");
+    }
+
+    return user.passwordHash;
 }

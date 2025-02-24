@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { NavMain } from "@/components/nav/nav-main";
 import { NavUser } from "@/components/nav/nav-user";
 import { Separator } from "@/components/ui/separator";
+import Image from 'next/image'
 import {
     Sidebar,
     SidebarContent,
@@ -75,8 +76,13 @@ export function SidebarComponent({ user, ...props }: SidebarComponentProps) {
                                 href="/"
                                 className="space-gray-800 space-x-2"
                             >
-                                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                                    <Command className="size-4" />
+                                
+                                <div className="relative flex aspect-square size-8 items-center justify-center rounded-lg text-sidebar-primary-foreground border border-black">
+                                    <Image
+                                        src="/ZotMeet_BLACK.png"
+                                        fill
+                                        alt="ZotMeet logo"
+                                    />
                                 </div>
                                 <div className="grid flex-1 text-left text-sm leading-tight">
                                     <span className="truncate text-4xl font-semibold">
