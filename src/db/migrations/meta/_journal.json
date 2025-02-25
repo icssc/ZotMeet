@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1740392175840,
-      "tag": "0000_optimal_stature",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1740453458309,
-      "tag": "0001_red_prima",
+      "when": 1740453683464,
+      "tag": "0000_easy_shen",
       "breakpoints": true
     }
   ]

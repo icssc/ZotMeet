@@ -1,5 +1,5 @@
 {
-  "id": "8030b1c4-fbaa-4c59-bdc8-49f5aa6340f6",
+  "id": "77f71012-fd95-49e5-a34f-59d0e34e83f6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -74,38 +74,6 @@
         }
       },
       "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "public.foo": {
-      "name": "foo",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "display_name": {
-          "name": "display_name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "foo_id_unique": {
-          "name": "foo_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "id"
-          ]
-        }
-      },
       "checkConstraints": {}
     },
     "public.groups": {

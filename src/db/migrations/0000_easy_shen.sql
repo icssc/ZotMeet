@@ -1,21 +1,10 @@
-DO $$ BEGIN
-    CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
+CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "availabilities" (
 	"member_id" uuid NOT NULL,
 	"meeting_id" uuid NOT NULL,
 	"status" "attendance",
 	"meeting_availabilities" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	CONSTRAINT "availabilities_member_id_meeting_id_pk" PRIMARY KEY("member_id","meeting_id")
-);
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "foo" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"display_name" text NOT NULL,
-	CONSTRAINT "foo_id_unique" UNIQUE("id")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "groups" (
