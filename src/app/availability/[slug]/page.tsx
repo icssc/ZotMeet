@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { AvailabilityHeader } from "@/components/availability/availability-header";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
@@ -12,13 +12,13 @@ import {
     getTimeFromHourMinuteString,
     SAMPLE_MEMBERS,
 } from "@/lib/availability/utils";
-import {
-    getAvailability,
-    getExistingMeeting,
-    getExistingMeetingDates,
-} from "@/lib/db/databaseUtils";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
+import { getMemberMeetingAvailability } from "@data/availability/queries";
+import {
+    getExistingMeeting,
+    getExistingMeetingDates,
+} from "@data/meeting/queries";
 
 interface PageProps {
     params: {
@@ -29,7 +29,8 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
     const { slug } = params;
 
-    const meetingData = await getExistingMeeting(slug).catch((e) => { // get all meeting information from ID
+    const meetingData = await getExistingMeeting(slug).catch((e) => {
+        // get all meeting information from ID
         if (e instanceof Error) {
             console.error(e);
         }
@@ -42,10 +43,10 @@ export async function generateMetadata({ params }: PageProps) {
 
     return {
         title: {
-            default: 'View Meeting Availibility',
+            default: "View Meeting Availability",
             absolute: `Availability for ${meetingData.title}`, // add meeting title
         },
-        description: `Specify Meeting Availibility for ${meetingData.title}`,
+        description: `Specify Meeting Availability for ${meetingData.title}`,
     };
 }
 
@@ -69,14 +70,14 @@ export default async function Page({ params }: PageProps) {
 
     const meetingDates = await getExistingMeetingDates(meetingData.id);
     // const availability = user ? await getAvailability(user, slug) : [];
-    const availability = await getAvailability({
-        userId: "123", // TODO (#auth): replace with actual user from session
+    const availability = await getMemberMeetingAvailability({
+        memberId: "123", // TODO (#auth): replace with actual user from session
         meetingId: meetingData.id,
     });
 
     const availabilityTimeBlocks = generateTimeBlocks(
-        getTimeFromHourMinuteString(meetingData.from_time as HourMinuteString),
-        getTimeFromHourMinuteString(meetingData.to_time as HourMinuteString)
+        getTimeFromHourMinuteString(meetingData.fromTime as HourMinuteString),
+        getTimeFromHourMinuteString(meetingData.toTime as HourMinuteString)
     );
 
     return (

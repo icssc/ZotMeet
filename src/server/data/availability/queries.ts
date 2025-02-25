@@ -12,11 +12,6 @@ export async function getMemberMeetingAvailability({
     meetingId: string;
 }) {
     const availabilityData = await db.query.availabilities.findFirst({
-        columns: {
-            memberId: true,
-            meetingId: true,
-            meetingAvailabilities: true,
-        },
         where: and(
             eq(availabilities.memberId, memberId),
             eq(availabilities.meetingId, meetingId)

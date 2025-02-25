@@ -1,6 +1,6 @@
 {
-  "id": "c8f02e25-d737-45fb-8afa-e831e6a2b64a",
-  "prevId": "a282a259-090f-4349-a42d-48ed3f78e2a8",
+  "id": "2e866e9b-32d3-4922-b609-b8f74029181c",
+  "prevId": "cc4bfe60-79b9-4b59-a944-9f9dcf5db76e",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -10,7 +10,7 @@
       "columns": {
         "member_id": {
           "name": "member_id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -20,19 +20,19 @@
           "primaryKey": false,
           "notNull": true
         },
-        "meeting_availabilities": {
-          "name": "meeting_availabilities",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'[]'::jsonb"
-        },
         "status": {
           "name": "status",
           "type": "attendance",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": false
+        },
+        "meeting_availabilities": {
+          "name": "meeting_availabilities",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
         }
       },
       "indexes": {},
@@ -169,23 +169,21 @@
         },
         "from_time": {
           "name": "from_time",
-          "type": "char(5)",
+          "type": "time",
           "primaryKey": false,
           "notNull": true
         },
         "to_time": {
           "name": "to_time",
-          "type": "char(5)",
+          "type": "time",
           "primaryKey": false,
           "notNull": true
         },
         "timezone": {
           "name": "timezone",
-          "type": "timezone",
-          "typeSchema": "public",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'PST'"
+          "notNull": true
         },
         "group_id": {
           "name": "group_id",
@@ -195,7 +193,7 @@
         },
         "host_id": {
           "name": "host_id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": true
         },
@@ -232,7 +230,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -246,9 +244,10 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": true,
-          "notNull": true
+          "notNull": true,
+          "default": "gen_random_uuid()"
         },
         "display_name": {
           "name": "display_name",
@@ -393,9 +392,9 @@
         },
         "member_id": {
           "name": "member_id",
-          "type": "text",
+          "type": "uuid",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "email": {
           "name": "email",
@@ -418,19 +417,6 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "users_id_members_id_fk": {
-          "name": "users_id_members_id_fk",
-          "tableFrom": "users",
-          "tableTo": "members",
-          "columnsFrom": [
-            "id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
         "users_member_id_members_id_fk": {
           "name": "users_member_id_members_id_fk",
           "tableFrom": "users",
@@ -441,7 +427,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -524,20 +510,6 @@
         "accepted",
         "maybe",
         "declined"
-      ]
-    },
-    "public.timezone": {
-      "name": "timezone",
-      "schema": "public",
-      "values": [
-        "PST",
-        "PDT",
-        "MST",
-        "MDT",
-        "CST",
-        "CDT",
-        "EST",
-        "EDT"
       ]
     }
   },

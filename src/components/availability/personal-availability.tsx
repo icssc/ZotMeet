@@ -1,17 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { metadata } from "@/app/layout";
+import { useEffect, useMemo } from "react";
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import {
-    AvailabilityMeetingDateJoinSchema,
-    MeetingDateSelectSchema,
-    SelectMeeting,
-} from "@/db/schema";
+import { SelectAvailability, SelectMeeting } from "@/db/schema";
 import { AvailabilityBlockType } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -20,14 +15,14 @@ import { ZotDate } from "@/lib/zotdate";
 interface PersonalAvailabilityProps {
     columns: number;
     meetingData: SelectMeeting;
-    meetingDates: MeetingDateSelectSchema[];
-    availability: AvailabilityMeetingDateJoinSchema[] | null;
+    meetingDates: Date[];
+    availability: SelectAvailability;
     availabilityTimeBlocks: number[];
 }
 
 export function PersonalAvailability({
     columns,
-    meetingData,
+    meetingData: _meetingData,
     meetingDates,
     availability,
     availabilityTimeBlocks,
@@ -52,9 +47,9 @@ export function PersonalAvailability({
         setAvailabilityDates,
     } = useAvailabilityContext();
 
-    const [guestSession, setGuestSession] = useState({
-        meetingId: meetingData.id || "",
-    });
+    // const [guestSession, setGuestSession] = useState({
+    //     meetingId: meetingData.id || "",
+    // });
 
     useEffect(() => {
         setItemsPerPage(columns);
@@ -180,7 +175,7 @@ export function PersonalAvailability({
     }, [isStateUnsaved]);
 
     useEffect(() => {
-        if (!availability || availability?.length === 0) {
+        if (!availability || availability.meetingAvailabilities.length === 0) {
             setAvailabilityDates(
                 meetingDates?.map(
                     (meetingDate) =>
@@ -194,18 +189,18 @@ export function PersonalAvailability({
             return;
         }
 
-        setAvailabilityDates(
-            availability?.map(
-                (availability) =>
-                    new ZotDate(
-                        new Date(availability.meeting_dates),
-                        false,
-                        Array.from(
-                            availability.availabilities.availabilityString // needs to be change to JSON array
-                        ).map((char) => char === "1")
-                    )
-            )
-        );
+        // setAvailabilityDates(
+        //     availability.meetingAvailabilities.map(
+        //         (availability) =>
+        //             new ZotDate(
+        //                 availability,
+        //                 false,
+        //                 Array.from(
+        //                     availability.availabilities.availabilityString // needs to be change to JSON array
+        //                 ).map((char) => char === "1")
+        //             )
+        //     )
+        // );
     }, [availability, meetingDates, setAvailabilityDates]);
 
     const handlePrevPage = () => {

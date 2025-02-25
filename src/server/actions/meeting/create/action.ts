@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { db } from "@/db";
+import { meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { CreateMeetingPostParams } from "@/lib/types/meetings";
 
