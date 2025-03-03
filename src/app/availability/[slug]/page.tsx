@@ -48,6 +48,7 @@ export async function generateMetadata({ params }: PageProps) {
             absolute: `Availability for ${meetingData.title}`, // add meeting title
         },
         description: `Specify Meeting Availibility for ${meetingData.title}`,
+        icon: '../../favicon.ico'
     };
 }
 
