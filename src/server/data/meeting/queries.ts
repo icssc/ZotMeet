@@ -53,21 +53,6 @@ export const getAvailability = async ({
     if (!availability) {
         return;
     }
-    // .select({
-    //     meetingAvailabilities: availabilities.meetingAvailabilities
-    // })
-    // .from(availabilities)
-    // .where(
-    //     and(
-    //         eq(availabilities.memberId, userId),
-    //         eq(availabilities.meetingId, meetingId)
-    //     )
-    // );
-
-
-
-    console.log('JSON availbility.', typeof availability.meetingAvailabilities);
-
     return availability;
 };
 

@@ -77,8 +77,7 @@ export default async function Page({ params }: PageProps) {
         meetingId: meetingData.id,
         
     });
-    console.log((await getCurrentSession()).user?.memberId, meetingData.id);
-    console.log(`Availability/${slug}:`, availability);
+    console.log(`Current user Availability/${slug}:`, availability);
 
     const allAvailabilties = await getAllMemberAvailability({
         meetingId: meetingData.id,

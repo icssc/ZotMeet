@@ -5,10 +5,7 @@ import { ZotDate } from "@/lib/zotdate";
 export const getTimeFromHourMinuteString = (
     hourMinuteString: HourMinuteString
 ): number => {
-    console.log('time', hourMinuteString);
     const [hours, minutes, seconds] = hourMinuteString.split(":");
-    console.log(hours, minutes, seconds);
-
     return Number(hours) * TimeConstants.MINUTES_PER_HOUR + Number(minutes);
 };
 
