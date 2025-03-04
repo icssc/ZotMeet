@@ -1,1 +1,0 @@
-ALTER TABLE "meetings" ALTER COLUMN "timezone" DROP DEFAULT;

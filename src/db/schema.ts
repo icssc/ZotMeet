@@ -29,9 +29,9 @@ export const members = pgTable(
         id: uuid("id").primaryKey().notNull().defaultRandom(),
         displayName: text("display_name").notNull(),
     },
-    (table) => ({
-        unique: unique().on(table.id),
-    })
+    // (table) => ({
+    //     unique: unique().on(table.id),
+    // })
 );
 
 export const membersRelations = relations(members, ({ one, many }) => ({
