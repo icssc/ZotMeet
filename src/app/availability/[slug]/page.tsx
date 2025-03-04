@@ -71,13 +71,14 @@ export default async function Page({ params }: PageProps) {
     }
 
     const meetingDates = await getExistingMeetingDates(meetingData.id);
+    console.log(`Meeting dates ${meetingDates}`);
     // const availability = user ? await getAvailability(user, slug) : [];
-    const availability = await getAvailability({
+    const userAvailability = await getAvailability({
         userId: (await getCurrentSession()).user?.memberId, 
         meetingId: meetingData.id,
         
     });
-    console.log(`Current user Availability/${slug}:`, availability);
+    console.log(`Current user Availability/${slug}:`, userAvailability);
 
     const allAvailabilties = await getAllMemberAvailability({
         meetingId: meetingData.id,
@@ -131,7 +132,7 @@ export default async function Page({ params }: PageProps) {
                         columns={5}
                         meetingData={meetingData}
                         meetingDates={meetingDates}
-                        availability={availability}
+                        availability={userAvailability}
                         availabilityTimeBlocks={availabilityTimeBlocks}
                     />
                 </TabsContent>
