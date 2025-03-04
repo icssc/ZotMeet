@@ -48,7 +48,6 @@ export async function generateMetadata({ params }: PageProps) {
             absolute: `Availability for ${meetingData.title}`, // add meeting title
         },
         description: `Specify Meeting Availibility for ${meetingData.title}`,
-        icon: '../../favicon.ico'
     };
 }
 
@@ -71,7 +70,7 @@ export default async function Page({ params }: PageProps) {
     }
 
     const meetingDates = await getExistingMeetingDates(meetingData.id);
-    console.log(`Meeting dates ${meetingDates}`);
+    console.log(`Meeting dates ${meetingDates[0]}`);
     // const availability = user ? await getAvailability(user, slug) : [];
     const userAvailability = await getAvailability({
         userId: (await getCurrentSession()).user?.memberId, 
