@@ -1,8 +1,10 @@
 import "server-only";
 
 import { db } from "@/db";
-import { meetings } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { availabilities, meetings } from "@/db/schema";
+import { and, eq, sql } from "drizzle-orm";
+import { jsonb } from "drizzle-orm/pg-core";
+
 
 export async function getExistingMeeting(meetingId: string) {
     const meeting = await db.query.meetings.findFirst({
@@ -29,3 +31,48 @@ export async function getExistingMeetingDates(meetingId: string) {
     // TODO: sort dates in ascending order
     return dates;
 }
+
+// TODO (#auth): Replace `user` with User type
+export const getAvailability = async ({
+    userId,
+    meetingId,
+}: {
+    userId: string;
+    meetingId: string;
+}) => {
+    const availability = await db.query.availabilities.findFirst(
+        {
+            extras: {
+                meetingAvailabilities: sql`${availabilities.meetingAvailabilities}::jsonb`.as('meetingAvailabilities'),
+            },
+            where:
+                and(eq(availabilities.memberId, userId),
+                    eq(availabilities.meetingId, meetingId))
+        }
+    )
+
+    if (!availability) {
+        return;
+    }
+    return availability;
+};
+
+export const getAllMemberAvailability = async ({
+    meetingId,
+}: {
+    meetingId: string;
+}) => {
+    const availability = await db
+        .select({
+            memberId: availabilities.memberId,
+            meetingAvailabilities: sql`${availabilities.meetingAvailabilities}::jsonb`.as('meetingAvailabilities')
+        })
+        .from(availabilities)
+        .where(
+            and(
+                eq(availabilities.meetingId, meetingId)
+            )
+        );
+
+    return availability;
+};

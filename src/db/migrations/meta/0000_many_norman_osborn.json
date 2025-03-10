@@ -1,6 +1,6 @@
 {
-  "id": "9c8c49d1-dbad-438d-8521-03cfd771da17",
-  "prevId": "b281cf79-5201-4f2f-84cd-d316c3cb2f0f",
+  "id": "54f78be9-4bf8-4fca-8956-556b58afc064",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -181,11 +181,9 @@
         },
         "timezone": {
           "name": "timezone",
-          "type": "timezone",
-          "typeSchema": "public",
+          "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'PST'"
+          "notNull": true
         },
         "group_id": {
           "name": "group_id",
@@ -261,15 +259,7 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "members_id_unique": {
-          "name": "members_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "id"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "checkConstraints": {}
     },
     "public.oauth_accounts": {
@@ -512,20 +502,6 @@
         "accepted",
         "maybe",
         "declined"
-      ]
-    },
-    "public.timezone": {
-      "name": "timezone",
-      "schema": "public",
-      "values": [
-        "PST",
-        "PDT",
-        "MST",
-        "MDT",
-        "CST",
-        "CDT",
-        "EST",
-        "EDT"
       ]
     }
   },
