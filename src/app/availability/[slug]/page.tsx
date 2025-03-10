@@ -71,7 +71,6 @@ export default async function Page({ params }: PageProps) {
 
     const meetingDates = await getExistingMeetingDates(meetingData.id);
     console.log(`Meeting dates ${meetingDates[0]}`);
-    // const availability = user ? await getAvailability(user, slug) : [];
     const allAvailabilties = await getAllMemberAvailability({
         meetingId: meetingData.id,
     });
@@ -79,8 +78,8 @@ export default async function Page({ params }: PageProps) {
     const session = await getCurrentSession();
     let userAvailability = null;
 
-    if (session?.user) {
-        const userId = session?.user.memberId;
+    if (session.user !== null) {
+        const userId = session.user.memberId;
         for (const availability of allAvailabilties) {
             if (availability.memberId === userId) {
                 userAvailability = availability;
