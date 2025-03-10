@@ -46,9 +46,15 @@ export async function createMeeting(meetingData: CreateMeetingPostParams) {
             .insert(meetings)
             .values(meeting)
             .returning({ id: meetings.id });
-        // - On the server (300 resopnse code), redirect the user to the meeting page
+
         redirect(`/availability/${newMeeting.id}`);
+
     } catch (err) {
+        // if redirect error, throw redirect
+        if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
+            throw err;
+        }
+
         const error = err as Error;
         console.error("Error creating meeting:", error.message);
 
