@@ -72,16 +72,27 @@ export default async function Page({ params }: PageProps) {
     const meetingDates = await getExistingMeetingDates(meetingData.id);
     console.log(`Meeting dates ${meetingDates[0]}`);
     // const availability = user ? await getAvailability(user, slug) : [];
-    const userAvailability = await getAvailability({
-        userId: (await getCurrentSession()).user?.memberId, 
-        meetingId: meetingData.id,
-        
-    });
-    console.log(`Current user Availability/${slug}:`, userAvailability);
-
     const allAvailabilties = await getAllMemberAvailability({
         meetingId: meetingData.id,
     });
+
+    const session = await getCurrentSession();
+    let userAvailability = null;
+
+    if (session?.user) {
+        const userId = session?.user.memberId;
+        for (const availability of allAvailabilties) {
+            if (availability.memberId === userId) {
+                userAvailability = availability;
+                break;
+            }
+        }
+        console.log(`Current user Availability/${slug}:`, userAvailability);
+
+    } else {
+        console.log("No user logged in");
+    }
+
     console.log(`All member Availability/${slug}:`, allAvailabilties);
 
     const availabilityTimeBlocks = generateTimeBlocks(

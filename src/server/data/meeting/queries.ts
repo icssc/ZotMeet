@@ -3,6 +3,7 @@ import "server-only";
 import { db } from "@/db";
 import { availabilities, meetings } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
+import { jsonb } from "drizzle-orm/pg-core";
 
 
 export async function getExistingMeeting(meetingId: string) {
@@ -64,7 +65,7 @@ export const getAllMemberAvailability = async ({
     const availability = await db
         .select({
             memberId: availabilities.memberId,
-            meetingAvailabilities: availabilities.meetingAvailabilities
+            meetingAvailabilities: sql`${availabilities.meetingAvailabilities}::jsonb`.as('meetingAvailabilities')
         })
         .from(availabilities)
         .where(
