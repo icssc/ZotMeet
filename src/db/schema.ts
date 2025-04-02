@@ -142,7 +142,7 @@ export const meetings = pgTable("meetings", {
         .references(() => members.id, { onDelete: "cascade" })
         .notNull(),
     // JSON array of calendar dates
-    dates: jsonb("dates").$type<Date[]>().notNull().default([]),
+    dates: jsonb("dates").$type<string[]>().notNull().default([]),
 });
 
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
