@@ -1,32 +1,62 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { db } from "@/db";
+import { InsertMeeting, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { CreateMeetingPostParams } from "@/lib/types/meetings";
+import { sql } from "drizzle-orm";
 
-export async function createMeeting(newMeeting: CreateMeetingPostParams) {
-    try {
-        const { title, description, fromTime, toTime, meetingDates } =
-            newMeeting;
+export async function createMeeting(meetingData: CreateMeetingPostParams) {
+    const { title, description, fromTime, toTime, timezone, meetingDates } =
+        meetingData;
 
-        // TODO: Re-write this according to the new database schema
+    const { user } = await getCurrentSession();
 
-        // - Check if the user is logged in
-        const { user } = await getCurrentSession();
-
-        // - If not, return an error (for now, guests are not allowed to create meetings)
-        // - If so, get the member id of the user for the meeting's host id
-
-        // - Check validity of the meeting dates and times (e.g. no duplicate dates, fromTime < toTime, etc.)
-
-        // - Create a new row in the meetings table and get the id of the new meeting
-
-        // - On the server (300 resopnse code), redirect the user to the meeting page
-        redirect(`/availability/_`);
-    } catch (err) {
-        const error = err as Error;
-        console.error("Error creating meeting:", error.message);
-
-        return { error: `Error creating meeting: ${error.message}` };
+    if (!user) {
+        return { error: "You must be logged in to create a meeting." };
     }
+    const hostId = user.memberId;
+
+    if (
+        fromTime >= toTime ||
+        meetingDates.length === 0 ||
+        new Set(meetingDates).size !== meetingDates.length ||
+        meetingDates.some(
+            (date) =>
+                new Date(date).setHours(0, 0, 0, 0) <
+                new Date().setHours(0, 0, 0, 0)
+        )
+    ) {
+        // Nondescript error message.
+        return { error: "Invalid meeting dates or times." };
+    }
+
+    const dates = meetingDates.map((d) => {
+        const date = new Date(d);
+        const month = (date.getMonth() + 1).toString().padStart(2, "0");
+        const day = date.getDate().toString().padStart(2, "0");
+        const year = date.getFullYear();
+        return `${month}-${day}-${year}`;
+    });
+
+    const meeting: InsertMeeting = {
+        title,
+        description,
+        fromTime,
+        toTime,
+        timezone,
+        hostId,
+        // ! FIX ME: TS is not recognizing sql`` as a valid type
+        // @ts-expect-error trust me bro
+        dates: sql`'${JSON.stringify(dates)}'::jsonb`,
+        // dates: meetingDates.map((date: string) => new Date(date)),
+    };
+
+    const [newMeeting] = await db
+        .insert(meetings)
+        .values(meeting)
+        .returning({ id: meetings.id });
+
+    redirect(`/availability/${newMeeting.id}`);
 }
