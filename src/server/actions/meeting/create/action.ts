@@ -5,7 +5,6 @@ import { db } from "@/db";
 import { InsertMeeting, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { CreateMeetingPostParams } from "@/lib/types/meetings";
-import { sql } from "drizzle-orm";
 
 export async function createMeeting(meetingData: CreateMeetingPostParams) {
     const { title, description, fromTime, toTime, timezone, meetingDates } =
@@ -47,10 +46,7 @@ export async function createMeeting(meetingData: CreateMeetingPostParams) {
         toTime,
         timezone,
         hostId,
-        // ! FIX ME: TS is not recognizing sql`` as a valid type
-        // @ts-expect-error trust me bro
-        dates: sql`'${JSON.stringify(dates)}'::jsonb`,
-        // dates: meetingDates.map((date: string) => new Date(date)),
+        dates,
     };
 
     const [newMeeting] = await db

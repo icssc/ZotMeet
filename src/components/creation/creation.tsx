@@ -12,8 +12,8 @@ import { createMeeting } from "@actions/meeting/create/action";
 
 export function Creation() {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
-    const [startTime, setStartTime] = useState<HourMinuteString>("9:00");
-    const [endTime, setEndTime] = useState<HourMinuteString>("13:00");
+    const [startTime, setStartTime] = useState<HourMinuteString>("9:00:00");
+    const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
     const [meetingName, setMeetingName] = useState("");
 
     const handleCreation = async () => {
@@ -28,7 +28,8 @@ export function Creation() {
             description: "",
         };
 
-        const { error } = await createMeeting(newMeeting);
+        const result = await createMeeting(newMeeting);
+        const error = result?.error;
 
         if (error) {
             console.error("Failed to create meeting: ", error);
