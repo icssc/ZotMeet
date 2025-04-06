@@ -2,7 +2,7 @@ import "server-only";
 
 import { db } from "@/db";
 import { availabilities, meetings } from "@/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, sql, or } from "drizzle-orm";
 import { jsonb } from "drizzle-orm/pg-core";
 
 
@@ -93,12 +93,15 @@ export async function getMeetingsByUserId(userId: string) {
       //group_id: meetings.group_id
     })
     .from(meetings)
-    .innerJoin(
+    .leftJoin(
       availabilities,
       eq(meetings.id, availabilities.meetingId)
     )
     .where(
-      eq(availabilities.memberId, userId)
+      or(
+        eq(meetings.hostId, userId),
+        eq(availabilities.memberId, userId)
+      )
     );
 
   return userMeetings;
