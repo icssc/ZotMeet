@@ -12,13 +12,20 @@ interface MeetingCardDropdownProps {
 const MeetingCardDropdown = ({ status, onStatusChange }: MeetingCardDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   
-  const statusOptions: StatusType[] = ['ACCEPT', 'MAYBE', 'DECLINE', 'NOT INDICATED'];
+  const statusOptions: StatusType[] = ['ACCEPT', 'MAYBE', 'DECLINE'];
   
   const statusColors = {
     'ACCEPT': 'bg-green-500',
     'MAYBE': 'bg-yellow-500',
     'DECLINE': 'bg-red-500',
     'NOT INDICATED': 'bg-gray-400',
+  }
+
+  const statusDisplay = {
+    'ACCEPT': 'ACCEPTED',
+    'MAYBE': 'MAYBE',
+    'DECLINE': 'DECLINED',
+    'NOT INDICATED': 'NOT INDICATED',
   }
 
   const handleSelect = (option: StatusType) => {
@@ -30,19 +37,19 @@ const MeetingCardDropdown = ({ status, onStatusChange }: MeetingCardDropdownProp
     <div className="relative">
       <button 
         type="button"
-        className="flex items-center gap-2 border-2 border-gray-200 rounded-lg px-2 py-1 w-full"
+        className={`flex items-center gap-2 border-2 border-gray-200 rounded-lg px-4 py-1 ${status === 'NOT INDICATED' ? 'w-full' : 'w-28'} justify-center`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className={`w-2 h-2 rounded-full ${statusColors[status as keyof typeof statusColors]}`}></div>
-        <p className="text-xs text-gray-500 font-dm-sans font-semibold">{status}</p>
+        <p className="text-xs text-gray-500 font-dm-sans font-semibold">{statusDisplay[status as keyof typeof statusDisplay]}</p>
       </button>
 
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+        <div className="absolute z-10 w-28 mt-1 bg-gray-200 border border-gray-200 rounded-lg shadow-lg">
           {statusOptions.map((option) => (
             <div 
               key={option}
-              className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 hover:rounded-lg m-1 cursor-pointer"
               onClick={() => handleSelect(option)}
             >
               <div className={`w-2 h-2 rounded-full ${statusColors[option as keyof typeof statusColors]}`}></div>
