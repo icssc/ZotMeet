@@ -76,3 +76,30 @@ export const getAllMemberAvailability = async ({
 
     return availability;
 };
+
+export async function getMeetingsByUserId(userId: string) {
+  const userMeetings = await db
+    .select({
+      id: meetings.id,
+      title: meetings.title,
+      //description: meetings.description, //is this needed? maybe not for summary page
+      location: meetings.location,
+      scheduled: meetings.scheduled,
+      fromTime: meetings.fromTime,
+      toTime: meetings.toTime,
+      timezone: meetings.timezone,
+      dates: meetings.dates,
+      //hostId: meetings.hostId,
+      //group_id: meetings.group_id
+    })
+    .from(meetings)
+    .innerJoin(
+      availabilities,
+      eq(meetings.id, availabilities.meetingId)
+    )
+    .where(
+      eq(availabilities.memberId, userId)
+    );
+
+  return userMeetings;
+}
