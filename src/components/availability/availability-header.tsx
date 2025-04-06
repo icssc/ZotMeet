@@ -4,6 +4,7 @@ import { useAvailabilityContext } from "@/components/availability/context/availa
 import { Button } from "@/components/ui/button";
 import { SelectMeeting } from "@/db/schema";
 import { cn } from "@/lib/utils";
+import useAvailabilityStore from "@/store/useAvailabilityStore";
 import { saveAvailability } from "@actions/availability/save/action";
 import { CircleCheckIcon, CircleXIcon } from "lucide-react";
 
@@ -14,18 +15,22 @@ interface AvailabilityHeaderProps {
 export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
     const {
         isEditingAvailability,
-        setIsEditingAvailability,
-        setIsStateUnsaved,
+        // setIsEditingAvailability,
+        // setIsStateUnsaved,
         availabilityDates,
     } = useAvailabilityContext();
+
+    const editAvailability = useAvailabilityStore(
+        (state) => state.editAvailability
+    );
+    const value = useAvailabilityStore((state) => state.value);
 
     const handleCancel = async () => {
         // $availabilityDates =
         //     (await getGeneralAvailability(data, $guestSession)) ??
         //     generateSampleDates();
-
-        setIsEditingAvailability((prev) => !prev);
-        setIsStateUnsaved(false);
+        // setIsEditingAvailability((prev) => !prev);
+        // setIsStateUnsaved(false);
     };
 
     const handleSave = async () => {
@@ -46,14 +51,14 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
                 {meetingData.title}
             </h1>
 
-            {isEditingAvailability && (
+            {value === "personal" ? (
                 <div className="flex space-x-2 md:space-x-4">
                     <Button
                         className={cn(
                             "flex-center h-8 min-h-fit border-yellow-500 bg-white px-2 uppercase text-yellow-500 outline md:w-28 md:p-0",
                             "hover:border-yellow-500 hover:bg-yellow-500 hover:text-white"
                         )}
-                        onClick={handleCancel}
+                        onClick={editAvailability(handleCancel)}
                     >
                         <span className="hidden md:flex">Cancel</span>
                         <CircleXIcon />
@@ -100,7 +105,7 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
                             "group hover:border-green-500 hover:bg-green-500"
                         )}
                         type="submit"
-                        onClick={handleSave}
+                        onClick={editAvailability(handleSave)}
                     >
                         <span className="hidden text-green-500 group-hover:text-white md:flex">
                             Save
@@ -108,6 +113,17 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
                         <CircleCheckIcon className="text-green-500 group-hover:text-white" />
                     </Button>
                     {/* </form> */}
+                </div>
+            ) : (
+                <div className="flex space-x-4">
+                    <Button
+                        className={cn(
+                            "flex-center h-8 min-h-fit px-2 uppercase md:w-40 md:p-0"
+                        )}
+                        onClick={editAvailability()}
+                    >
+                        <span className="hidden md:flex">Add Availability</span>
+                    </Button>
                 </div>
             )}
         </div>
