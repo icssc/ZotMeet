@@ -14,8 +14,8 @@ const GroupCard = ({ name }: { name: string }) => {
             />
           ))}
         </div>
-        <h3 className="text-xl text-gray-800">{name}</h3>
-        <p className="text-xs text-gray-500">8 upcoming meetings</p>
+        <h3 className="text-xl text-gray-800 font-dm-sans font-medium">{name}</h3>
+        <p className="text-xs text-gray-500 font-dm-sans font-medium">8 upcoming meetings</p>
         
         
       </div>
