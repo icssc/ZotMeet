@@ -23,7 +23,7 @@ const MeetingCard = ({ title, time, location, status: initialStatus, type}: Meet
   }
 
   return (
-    <div className="bg-[#F9FAFB] bg-opacity-50 rounded-xl border-2 border-gray-200 p-6 flex items-center gap-4 mb-4 pr-8">
+    <div className="bg-[#F9FAFB] bg-opacity-50 rounded-xl border-2 border-gray-200 p-6 flex items-center gap-4 pr-8">
       <div className="h-12 w-12 rounded-full border border-gray-200 flex items-center justify-center text-gray-500">
         {type === 'users' ? <Users size={20} /> : <Monitor size={20} />}
       </div>
