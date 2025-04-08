@@ -1,0 +1,43 @@
+'use client'
+
+import React from 'react'
+import MeetingCard from './MeetingCard'
+
+// Define Meeting type
+type Meeting = {
+  id: string;
+  title: string;
+  location: string | null;
+  scheduled: boolean | null;
+  fromTime: string;
+  toTime: string;
+  timezone: string;
+  dates: string[];
+};
+
+interface ScheduledMeetingsDisplayProps {
+  meetings: Meeting[];
+}
+
+const ScheduledMeetingsDisplay = ({ meetings }: ScheduledMeetingsDisplayProps) => {
+  if (meetings.length === 0) {
+    return <div className="p-4">No scheduled meetings found.</div>
+  }
+
+  return (
+    <div className='flex flex-col gap-2'>
+      {meetings.map(meeting => (
+        <MeetingCard 
+          key={meeting.id}
+          title={meeting.title}
+          time={`${meeting.fromTime} - ${meeting.toTime}`}
+          location={meeting.location || "Not specified"} 
+          type="users" 
+          status="NOT INDICATED"
+        />
+      ))}
+    </div>
+  )
+}
+
+export default ScheduledMeetingsDisplay
