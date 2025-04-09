@@ -180,33 +180,75 @@ export function PersonalAvailability({
     }, [isStateUnsaved]);
 
     useEffect(() => {
+        if (!meetingDates || meetingDates.length === 0) return;
+
         if (!availability || availability?.length === 0) {
-            setAvailabilityDates(
-                meetingDates?.map(
-                    (meetingDate) =>
-                        new ZotDate(
-                            new Date(meetingDate),
-                            false,
-                            Array.from({ length: 96 }).map(() => false)
-                        )
-                )
+            const emptyDates = meetingDates.map(
+                (meetingDate) => new ZotDate(new Date(meetingDate), false)
             );
+
+            emptyDates.forEach((date) => {
+                date.earliestTime =
+                    availabilityTimeBlocks.length > 0
+                        ? availabilityTimeBlocks[0]
+                        : 480;
+                date.latestTime =
+                    availabilityTimeBlocks.length > 0
+                        ? availabilityTimeBlocks[
+                              availabilityTimeBlocks.length - 1
+                          ] + 15
+                        : 1050;
+            });
+
+            setAvailabilityDates(emptyDates);
             return;
         }
 
-        setAvailabilityDates(
-            availability?.map(
-                (availability) =>
-                    new ZotDate(
-                        new Date(availability.meeting_dates),
-                        false,
-                        Array.from(
-                            availability.availabilities.availabilityString // needs to be change to JSON array
-                        ).map((char) => char === "1")
-                    )
-            )
-        );
-    }, [availability, meetingDates, setAvailabilityDates]);
+        const convertedDates = availability.map((availabilityItem) => {
+            const date = new Date(availabilityItem.meeting_dates);
+            const ISOAvailability: string[] = [];
+
+            const earliestMinutes =
+                availabilityTimeBlocks.length > 0
+                    ? availabilityTimeBlocks[0]
+                    : 480;
+
+            const latestMinutes =
+                availabilityTimeBlocks.length > 0
+                    ? availabilityTimeBlocks[
+                          availabilityTimeBlocks.length - 1
+                      ] + 15
+                    : 1050;
+
+            Array.from(
+                availabilityItem.availabilities.availabilityString
+            ).forEach((char, index) => {
+                if (char === "1") {
+                    const minutesFromMidnight = earliestMinutes + index * 15;
+
+                    const timeDate = new Date(date);
+                    timeDate.setHours(Math.floor(minutesFromMidnight / 60));
+                    timeDate.setMinutes(minutesFromMidnight % 60);
+                    timeDate.setSeconds(0);
+                    timeDate.setMilliseconds(0);
+
+                    ISOAvailability.push(timeDate.toISOString());
+                }
+            });
+            const zotDate = new ZotDate(date, false, ISOAvailability);
+            zotDate.earliestTime = earliestMinutes;
+            zotDate.latestTime = latestMinutes;
+
+            return zotDate;
+        });
+
+        setAvailabilityDates(convertedDates);
+    }, [
+        availability,
+        meetingDates,
+        setAvailabilityDates,
+        availabilityTimeBlocks,
+    ]);
 
     const handlePrevPage = () => {
         if (currentPage > 0) {
@@ -266,8 +308,6 @@ export function PersonalAvailability({
                     disabled={currentPage === lastPage}
                 />
             </div>
-
-            {/* <LoginFlow data={data} /> */}
         </div>
     );
 }

@@ -14,7 +14,7 @@ interface AvailabilityHeaderProps {
 
 export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
     const {
-        isEditingAvailability,
+        // isEditingAvailability,
         // setIsEditingAvailability,
         // setIsStateUnsaved,
         availabilityDates,
@@ -36,10 +36,11 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
     const handleSave = async () => {
         const availability = {
             meetingId: meetingData.id,
-            availabilityDates: availabilityDates.map((date) => ({
-                day: date.day,
-                availability: date.availability,
-            })),
+            availabilityTimes: availabilityDates.flatMap(
+                (date) => date.availability
+            ),
+            // TODO: REMOVE
+            displayName: "HELLO_WORLD",
         };
 
         await saveAvailability(availability);
