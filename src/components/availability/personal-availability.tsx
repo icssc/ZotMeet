@@ -185,44 +185,20 @@ export function PersonalAvailability({
             return;
         }
 
-        if (!availability) {
-            const emptyDates = meetingDates.map(
-                (meetingDate) => new ZotDate(new Date(meetingDate), false)
-            );
-
-            emptyDates.forEach((date) => {
-                date.earliestTime =
-                    availabilityTimeBlocks.length > 0
-                        ? availabilityTimeBlocks[0]
-                        : 480;
-                date.latestTime =
-                    availabilityTimeBlocks.length > 0
-                        ? availabilityTimeBlocks[
-                              availabilityTimeBlocks.length - 1
-                          ] + 15
-                        : 1050;
-            });
-
-            setAvailabilityDates(emptyDates);
-            console.log("Case 1", availabilityDates);
-            return;
-        }
-
-        // Case 2: Process the object with meetingAvailabilities array
-        const { meetingAvailabilities } = availability;
-
         const availabilitiesByDate = new Map<string, string[]>();
 
-        meetingAvailabilities.forEach((timeStr) => {
-            const time = new Date(timeStr);
-            const dateStr = time.toISOString().split("T")[0];
+        if (availability && availability.meetingAvailabilities) {
+            availability.meetingAvailabilities.forEach((timeStr) => {
+                const time = new Date(timeStr);
+                const dateStr = time.toISOString().split("T")[0];
 
-            if (!availabilitiesByDate.has(dateStr)) {
-                availabilitiesByDate.set(dateStr, []);
-            }
+                if (!availabilitiesByDate.has(dateStr)) {
+                    availabilitiesByDate.set(dateStr, []);
+                }
 
-            availabilitiesByDate.get(dateStr)?.push(timeStr);
-        });
+                availabilitiesByDate.get(dateStr)?.push(timeStr);
+            });
+        }
 
         const convertedDates = meetingDates.map((meetingDate) => {
             const date = new Date(meetingDate);
