@@ -49,11 +49,11 @@ export class ZotDate {
 
     /**
      * Converts ISO string to block index
-     * @param isoString ISO string representing a datetime
+     * @param ISOString ISO string representing a datetime
      * @return the corresponding block index for the given time
      */
-    private getBlockIndexFromISOString(isoString: string): number {
-        const date = new Date(isoString);
+    private getBlockIndexFromISOString(ISOString: string): number {
+        const date = new Date(ISOString);
         const minutesFromMidnight = date.getHours() * 60 + date.getMinutes();
         return Math.floor(
             (minutesFromMidnight - this.earliestTime) / this.blockLength
@@ -394,8 +394,8 @@ export class ZotDate {
      * @return the current availability of the block corresponding to the given index
      */
     getBlockAvailability(index: number): boolean {
-        const isoString = this.getISOStringForBlock(index);
-        return this.availability.includes(isoString);
+        const ISOString = this.getISOStringForBlock(index);
+        return this.availability.includes(ISOString);
     }
 
     /**
@@ -417,11 +417,11 @@ export class ZotDate {
                 blockIndex <= laterBlockIndex;
                 blockIndex++
             ) {
-                const isoString = this.getISOStringForBlock(blockIndex);
+                const ISOString = this.getISOStringForBlock(blockIndex);
 
                 // Only add if not already present
-                if (!this.availability.includes(isoString)) {
-                    this.availability.push(isoString);
+                if (!this.availability.includes(ISOString)) {
+                    this.availability.push(ISOString);
                 }
             }
             // Sort the ISO strings to maintain chronological order
@@ -430,8 +430,8 @@ export class ZotDate {
         // If setting to unavailable (false)
         else {
             // Remove ISO strings in the range
-            this.availability = this.availability.filter((isoString) => {
-                const blockIndex = this.getBlockIndexFromISOString(isoString);
+            this.availability = this.availability.filter((ISOString) => {
+                const blockIndex = this.getBlockIndexFromISOString(ISOString);
                 return (
                     blockIndex < earlierBlockIndex ||
                     blockIndex > laterBlockIndex
@@ -491,8 +491,8 @@ export class ZotDate {
      * @return array of block indices that are available
      */
     getAvailableBlockIndices(): number[] {
-        return this.availability.map((isoString) =>
-            this.getBlockIndexFromISOString(isoString)
+        return this.availability.map((ISOString) =>
+            this.getBlockIndexFromISOString(ISOString)
         );
     }
 }

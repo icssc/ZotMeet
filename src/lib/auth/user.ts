@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { availabilities, members, users } from "@/db/schema";
 import { generateIdFromEntropySize } from "@/lib/auth/crypto";
 import { hashPassword } from "@/lib/auth/password";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 // Projection of user table for db queries to limit what is returned
 export const userProfileProjection = {
@@ -90,17 +90,19 @@ export async function createGuest({
     meetingId: string;
 }): Promise<UserProfile> {
     // Temporary implementation for guest users.
-    const existingMember = await db.query.members.findFirst({
-        columns: { id: true },
-        where: eq(members.displayName, displayName),
-        with: {
-            availabilities: {
-                where: eq(availabilities.meetingId, meetingId),
-            },
-        },
-    });
+    const existingMember = await db
+        .select()
+        .from(availabilities)
+        .innerJoin(members, eq(availabilities.memberId, members.id))
+        .where(
+            and(
+                eq(availabilities.meetingId, meetingId),
+                eq(members.displayName, displayName)
+            )
+        )
+        .limit(1);
 
-    if (existingMember) {
+    if (existingMember && existingMember.length > 0) {
         throw new Error(`$Display name "${displayName}" already exists.`);
     }
 
