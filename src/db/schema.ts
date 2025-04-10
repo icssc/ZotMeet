@@ -28,7 +28,7 @@ export const members = pgTable(
     {
         id: uuid("id").primaryKey().notNull().defaultRandom(),
         displayName: text("display_name").notNull(),
-    },
+    }
     // (table) => ({
     //     unique: unique().on(table.id),
     // })
@@ -181,7 +181,7 @@ export const availabilities = pgTable(
         status: attendanceEnum("status"),
         // JSON array of timestamps
         meetingAvailabilities: jsonb("meeting_availabilities")
-            .$type<Date[]>()
+            .$type<string[]>()
             .notNull()
             .default([]),
     },

@@ -7,11 +7,7 @@ import { AvailabilityBlocks } from "@/components/availability/table/availability
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import {
-    AvailabilityMeetingDateJoinSchema,
-    MeetingDateSelectSchema,
-    SelectMeeting,
-} from "@/db/schema";
+import { MeetingDateSelectSchema, SelectMeeting } from "@/db/schema";
 import { AvailabilityBlockType } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -21,7 +17,10 @@ interface PersonalAvailabilityProps {
     columns: number;
     meetingData: SelectMeeting;
     meetingDates: MeetingDateSelectSchema[];
-    availability: AvailabilityMeetingDateJoinSchema[] | null;
+    availability: {
+        memberId: string;
+        meetingAvailabilities: string[];
+    } | null;
     availabilityTimeBlocks: number[];
 }
 
@@ -180,33 +179,60 @@ export function PersonalAvailability({
     }, [isStateUnsaved]);
 
     useEffect(() => {
-        if (!availability || availability?.length === 0) {
-            setAvailabilityDates(
-                meetingDates?.map(
-                    (meetingDate) =>
-                        new ZotDate(
-                            new Date(meetingDate),
-                            false,
-                            Array.from({ length: 96 }).map(() => false)
-                        )
-                )
-            );
+        if (!meetingDates || meetingDates.length === 0) return;
+
+        if (isStateUnsaved && availabilityDates.length > 0) {
             return;
         }
 
-        setAvailabilityDates(
-            availability?.map(
-                (availability) =>
-                    new ZotDate(
-                        new Date(availability.meeting_dates),
-                        false,
-                        Array.from(
-                            availability.availabilities.availabilityString // needs to be change to JSON array
-                        ).map((char) => char === "1")
-                    )
-            )
-        );
-    }, [availability, meetingDates, setAvailabilityDates]);
+        const availabilitiesByDate = new Map<string, string[]>();
+
+        if (availability && availability.meetingAvailabilities) {
+            availability.meetingAvailabilities.forEach((timeStr) => {
+                const time = new Date(timeStr);
+                const dateStr = time.toISOString().split("T")[0];
+
+                if (!availabilitiesByDate.has(dateStr)) {
+                    availabilitiesByDate.set(dateStr, []);
+                }
+
+                availabilitiesByDate.get(dateStr)?.push(timeStr);
+            });
+        }
+
+        const convertedDates = meetingDates.map((meetingDate) => {
+            const date = new Date(meetingDate);
+            const dateStr = date.toISOString().split("T")[0];
+
+            const earliestMinutes =
+                availabilityTimeBlocks.length > 0
+                    ? availabilityTimeBlocks[0]
+                    : 480;
+
+            const latestMinutes =
+                availabilityTimeBlocks.length > 0
+                    ? availabilityTimeBlocks[
+                          availabilityTimeBlocks.length - 1
+                      ] + 15
+                    : 1050;
+
+            const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
+
+            const zotDate = new ZotDate(date, false, dateAvailabilities);
+            zotDate.earliestTime = earliestMinutes;
+            zotDate.latestTime = latestMinutes;
+
+            return zotDate;
+        });
+
+        setAvailabilityDates(convertedDates);
+    }, [
+        availability,
+        meetingDates,
+        setAvailabilityDates,
+        availabilityTimeBlocks,
+        isStateUnsaved,
+    ]);
 
     const handlePrevPage = () => {
         if (currentPage > 0) {
@@ -266,8 +292,6 @@ export function PersonalAvailability({
                     disabled={currentPage === lastPage}
                 />
             </div>
-
-            {/* <LoginFlow data={data} /> */}
         </div>
     );
 }

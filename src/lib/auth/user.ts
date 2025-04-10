@@ -1,8 +1,8 @@
 import { db } from "@/db";
-import { members, users } from "@/db/schema";
+import { availabilities, members, users } from "@/db/schema";
 import { generateIdFromEntropySize } from "@/lib/auth/crypto";
 import { hashPassword } from "@/lib/auth/password";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 // Projection of user table for db queries to limit what is returned
 export const userProfileProjection = {
@@ -80,4 +80,65 @@ export async function getUserPasswordHash(userId: string): Promise<string> {
     }
 
     return user.passwordHash;
+}
+
+export async function createGuest({
+    displayName,
+    meetingId,
+}: {
+    displayName: string;
+    meetingId: string;
+}): Promise<UserProfile> {
+    // Temporary implementation for guest users.
+    const existingMember = await db
+        .select()
+        .from(availabilities)
+        .innerJoin(members, eq(availabilities.memberId, members.id))
+        .where(
+            and(
+                eq(availabilities.meetingId, meetingId),
+                eq(members.displayName, displayName)
+            )
+        )
+        .limit(1);
+
+    if (existingMember && existingMember.length > 0) {
+        throw new Error(`$Display name "${displayName}" already exists.`);
+    }
+
+    const userId = generateIdFromEntropySize(10);
+
+    const newUser = await db.transaction(async (tx) => {
+        const [newMember] = await tx
+            .insert(members)
+            .values({ displayName })
+            .returning({
+                id: members.id,
+            });
+
+        const [newUser] = await tx
+            .insert(users)
+            .values({
+                id: userId,
+                email: `guest_${crypto.randomUUID()}@example.com`,
+                createdAt: new Date(),
+                memberId: newMember.id,
+            })
+            .returning({
+                id: users.id,
+                email: users.email,
+                memberId: users.memberId,
+            });
+
+        return newUser;
+    });
+
+    if (newUser === null) {
+        throw new Error("Unexpected error");
+    }
+
+    return {
+        ...newUser,
+        displayName,
+    };
 }
