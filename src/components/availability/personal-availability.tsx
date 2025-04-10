@@ -7,11 +7,7 @@ import { AvailabilityBlocks } from "@/components/availability/table/availability
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import {
-    AvailabilityMeetingDateJoinSchema,
-    MeetingDateSelectSchema,
-    SelectMeeting,
-} from "@/db/schema";
+import { MeetingDateSelectSchema, SelectMeeting } from "@/db/schema";
 import { AvailabilityBlockType } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -21,7 +17,10 @@ interface PersonalAvailabilityProps {
     columns: number;
     meetingData: SelectMeeting;
     meetingDates: MeetingDateSelectSchema[];
-    availability: AvailabilityMeetingDateJoinSchema[] | null;
+    availability: {
+        memberId: string;
+        meetingAvailabilities: string[];
+    } | null;
     availabilityTimeBlocks: number[];
 }
 
@@ -182,7 +181,11 @@ export function PersonalAvailability({
     useEffect(() => {
         if (!meetingDates || meetingDates.length === 0) return;
 
-        if (!availability || availability?.length === 0) {
+        if (isStateUnsaved && availabilityDates.length > 0) {
+            return;
+        }
+
+        if (!availability) {
             const emptyDates = meetingDates.map(
                 (meetingDate) => new ZotDate(new Date(meetingDate), false)
             );
@@ -201,12 +204,29 @@ export function PersonalAvailability({
             });
 
             setAvailabilityDates(emptyDates);
+            console.log("Case 1", availabilityDates);
             return;
         }
 
-        const convertedDates = availability.map((availabilityItem) => {
-            const date = new Date(availabilityItem.meeting_dates);
-            const ISOAvailability: string[] = [];
+        // Case 2: Process the object with meetingAvailabilities array
+        const { meetingAvailabilities } = availability;
+
+        const availabilitiesByDate = new Map<string, string[]>();
+
+        meetingAvailabilities.forEach((timeStr) => {
+            const time = new Date(timeStr);
+            const dateStr = time.toISOString().split("T")[0];
+
+            if (!availabilitiesByDate.has(dateStr)) {
+                availabilitiesByDate.set(dateStr, []);
+            }
+
+            availabilitiesByDate.get(dateStr)?.push(timeStr);
+        });
+
+        const convertedDates = meetingDates.map((meetingDate) => {
+            const date = new Date(meetingDate);
+            const dateStr = date.toISOString().split("T")[0];
 
             const earliestMinutes =
                 availabilityTimeBlocks.length > 0
@@ -220,22 +240,9 @@ export function PersonalAvailability({
                       ] + 15
                     : 1050;
 
-            Array.from(
-                availabilityItem.availabilities.availabilityString
-            ).forEach((char, index) => {
-                if (char === "1") {
-                    const minutesFromMidnight = earliestMinutes + index * 15;
+            const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
 
-                    const timeDate = new Date(date);
-                    timeDate.setHours(Math.floor(minutesFromMidnight / 60));
-                    timeDate.setMinutes(minutesFromMidnight % 60);
-                    timeDate.setSeconds(0);
-                    timeDate.setMilliseconds(0);
-
-                    ISOAvailability.push(timeDate.toISOString());
-                }
-            });
-            const zotDate = new ZotDate(date, false, ISOAvailability);
+            const zotDate = new ZotDate(date, false, dateAvailabilities);
             zotDate.earliestTime = earliestMinutes;
             zotDate.latestTime = latestMinutes;
 
@@ -248,6 +255,7 @@ export function PersonalAvailability({
         meetingDates,
         setAvailabilityDates,
         availabilityTimeBlocks,
+        isStateUnsaved,
     ]);
 
     const handlePrevPage = () => {
