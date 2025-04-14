@@ -29,10 +29,12 @@ export function GroupAvailabilityBlock({
         return "transparent";
     };
 
+    // console.log(calculateGroupBlockColor(availableMemberIndices));
+
     return (
         <button
             className={cn(
-                "border-gray-medium h-full w-full border-r-[1px]",
+                "h-full w-full border-r-[1px] border-gray-medium",
                 tableCellStyles,
                 className
             )}

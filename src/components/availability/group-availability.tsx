@@ -1,12 +1,13 @@
 "use client";
 
+import { group } from "console";
 import React, { useEffect, useMemo, useState } from "react";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import { generateSampleDates } from "@/lib/availability/utils";
+import { generateDates, generateSampleDates } from "@/lib/availability/utils";
 import { MemberAvailability } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -16,15 +17,25 @@ interface GroupAvailabilityProps {
     availabilityDates: ZotDate[];
     availabilityTimeBlocks: number[];
     groupAvailabilities: MemberAvailability[];
+    //fromTime: string;
+    //groupAvailabilities: any;
+    //meetingId: string;
 }
-
 export function GroupAvailability({
     columns,
     availabilityDates: _,
     availabilityTimeBlocks,
     groupAvailabilities,
 }: GroupAvailabilityProps) {
-    const availabilityDates = useMemo(() => generateSampleDates(), []); // TODO: replace with actual data
+    //const availabilityDates = useMemo(() => generateSampleDates(), []); // TODO: replace with actual data
+    const availabilityDates = useMemo(
+        () => generateDates(8, 17, groupAvailabilities),
+        []
+    );
+
+    console.log("GROUP AVAILABILITY RENDERED");
+    console.log("availability dates:", availabilityDates);
+    console.log("availability dates1:", availabilityDates[0]);
 
     const itemsPerPage = columns;
     const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
@@ -34,9 +45,16 @@ export function GroupAvailability({
             : itemsPerPage - (availabilityDates.length % itemsPerPage);
 
     const [currentPage, setCurrentPage] = useState(0);
+
+    const datesToOffset = currentPage * itemsPerPage;
+    const newCurrentPageAvailability = availabilityDates.slice(
+        datesToOffset,
+        datesToOffset + itemsPerPage
+    );
+
     const [currentPageAvailability, setCurrentPageAvailability] = useState<
         ZotDate[]
-    >([]);
+    >(newCurrentPageAvailability);
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
     const [selectedZotDateIndex, setSelectedZotDateIndex] = useState<number>();
     const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>();
@@ -121,6 +139,7 @@ export function GroupAvailability({
 
     // Update current page availability on pagination or data change
     useEffect(() => {
+        console.log("YO DAWG");
         const datesToOffset = currentPage * itemsPerPage;
         let newCurrentPageAvailability = availabilityDates.slice(
             datesToOffset,
@@ -132,6 +151,11 @@ export function GroupAvailability({
                 new Array(numPaddingDates).fill(null)
             );
         }
+
+        console.log(
+            "new current page availability",
+            newCurrentPageAvailability
+        );
 
         setCurrentPageAvailability(newCurrentPageAvailability);
     }, [
@@ -155,7 +179,7 @@ export function GroupAvailability({
 
             const newAvailableMembersOfSelection = availableMemberIndices.map(
                 (availableMemberIndex) =>
-                    groupAvailabilities[availableMemberIndex].name
+                    groupAvailabilities[availableMemberIndex]?.memberId
             );
 
             const newNotAvailableMembersOfSelection = groupAvailabilities
@@ -174,6 +198,9 @@ export function GroupAvailability({
         groupAvailabilities,
     ]);
 
+    console.log("render render erendre");
+    console.log("current PageAva", currentPageAvailability);
+
     return (
         <div className="flex flex-row items-start justify-start align-top">
             <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-10">
@@ -187,116 +214,160 @@ export function GroupAvailability({
                     <AvailabilityTableHeader />
 
                     <tbody>
-                        {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
-                            const isTopOfHour = timeBlock % 60 === 0;
-                            const isHalfHour = timeBlock % 60 === 30;
-                            const isLastRow =
-                                blockIndex ===
-                                availabilityTimeBlocks.length - 1;
+                        {availabilityTimeBlocks.map(
+                            (timeBlock, blockIndex, fromTime) => {
+                                const isTopOfHour = timeBlock % 60 === 0;
+                                const isHalfHour = timeBlock % 60 === 30;
+                                console.log("THE BLOCK INDEX", blockIndex);
+                                //console.log(availabilityTimeBlocks.length - 1);
+                                const isLastRow =
+                                    blockIndex ===
+                                    availabilityTimeBlocks.length - 1;
 
-                            return (
-                                <tr key={`block-${timeBlock}`}>
-                                    <AvailabilityTimeTicks
-                                        timeBlock={timeBlock}
-                                    />
+                                return (
+                                    <tr key={`block-${timeBlock}`}>
+                                        <AvailabilityTimeTicks
+                                            timeBlock={timeBlock}
+                                        />
 
-                                    {currentPageAvailability.map(
-                                        (selectedDate, pageDateIndex) => {
-                                            const key = generateDateKey({
-                                                selectedDate,
-                                                timeBlock,
-                                                pageDateIndex,
-                                            });
+                                        {currentPageAvailability.map(
+                                            (selectedDate, pageDateIndex) => {
+                                                const key = generateDateKey({
+                                                    selectedDate,
+                                                    timeBlock,
+                                                    pageDateIndex,
+                                                });
 
-                                            if (selectedDate) {
-                                                const zotDateIndex =
-                                                    pageDateIndex +
-                                                    currentPage * itemsPerPage;
-                                                const availableMemberIndices =
-                                                    selectedDate.getGroupAvailabilityBlock(
-                                                        blockIndex
+                                                if (selectedDate) {
+                                                    // console.log(
+                                                    //     "selected date",
+                                                    //     selectedDate
+                                                    // );
+
+                                                    const zotDateIndex =
+                                                        pageDateIndex +
+                                                        currentPage *
+                                                            itemsPerPage;
+                                                    // console.log(
+                                                    //     "BLOCKINDEX",
+                                                    //     blockIndex
+                                                    // );
+                                                    // console.log(
+                                                    //     "Availability time block for block index",
+                                                    //     blockIndex,
+                                                    //     availabilityTimeBlocks[
+                                                    //         blockIndex
+                                                    //     ]
+                                                    // );
+                                                    // console.log(
+                                                    //     "hellllll",
+                                                    //     groupAvailabilities[
+                                                    //         "2025-04-04T10:00:00Z"
+                                                    //     ]
+                                                    // );
+                                                    // console.log(
+                                                    //     "Selected date",
+                                                    //     selectedDate
+                                                    // );
+
+                                                    const availableMemberIndices =
+                                                        selectedDate.getGroupAvailabilityBlock(
+                                                            fromTime[0],
+                                                            blockIndex
+                                                        );
+
+                                                    // const availableMemberIndices =
+                                                    //     selectedDate.getGroupAvailabilityBlock(
+                                                    //         groupAvailabilities[]
+                                                    //     );
+
+                                                    console.log(
+                                                        "available member indices",
+                                                        availableMemberIndices
                                                     );
-                                                const isSelected =
-                                                    selectedZotDateIndex ===
-                                                        zotDateIndex &&
-                                                    selectedBlockIndex ===
-                                                        blockIndex;
-                                                const tableCellStyles = cn(
-                                                    isTopOfHour &&
-                                                        "border-t-[1px] border-t-gray-medium",
-                                                    isHalfHour &&
-                                                        "border-t-[1px] border-t-gray-base",
-                                                    isLastRow &&
-                                                        "border-b-[1px]",
-                                                    isSelected &&
-                                                        "outline-dashed outline-2 outline-slate-500"
-                                                );
 
-                                                return (
-                                                    <td
-                                                        key={key}
-                                                        className="px-0 py-0"
-                                                    >
-                                                        <GroupAvailabilityBlock
-                                                            className="hidden lg:block"
-                                                            onClick={() =>
-                                                                handleCellClick(
-                                                                    {
-                                                                        isSelected,
-                                                                        zotDateIndex,
-                                                                        blockIndex,
-                                                                    }
-                                                                )
-                                                            }
-                                                            onHover={() =>
-                                                                handleCellHover(
-                                                                    {
-                                                                        zotDateIndex,
-                                                                        blockIndex,
-                                                                    }
-                                                                )
-                                                            }
-                                                            groupAvailabilities={
-                                                                groupAvailabilities
-                                                            }
-                                                            availableMemberIndices={
-                                                                availableMemberIndices
-                                                            }
-                                                            tableCellStyles={
-                                                                tableCellStyles
-                                                            }
-                                                        />
-                                                        <GroupAvailabilityBlock
-                                                            className="block lg:hidden"
-                                                            onClick={() =>
-                                                                handleCellClick(
-                                                                    {
-                                                                        isSelected,
-                                                                        zotDateIndex,
-                                                                        blockIndex,
-                                                                    }
-                                                                )
-                                                            }
-                                                            groupAvailabilities={
-                                                                groupAvailabilities
-                                                            }
-                                                            availableMemberIndices={
-                                                                availableMemberIndices
-                                                            }
-                                                            tableCellStyles={
-                                                                tableCellStyles
-                                                            }
-                                                        />
-                                                    </td>
-                                                );
-                                            } else {
-                                                return <td key={key}></td>;
+                                                    const isSelected =
+                                                        selectedZotDateIndex ===
+                                                            zotDateIndex &&
+                                                        selectedBlockIndex ===
+                                                            blockIndex;
+                                                    const tableCellStyles = cn(
+                                                        isTopOfHour &&
+                                                            "border-t-[1px] border-t-gray-medium",
+                                                        isHalfHour &&
+                                                            "border-t-[1px] border-t-gray-base",
+                                                        isLastRow &&
+                                                            "border-b-[1px]",
+                                                        isSelected &&
+                                                            "outline-dashed outline-2 outline-slate-500"
+                                                    );
+
+                                                    return (
+                                                        <td
+                                                            key={key}
+                                                            className="px-0 py-0"
+                                                        >
+                                                            <GroupAvailabilityBlock
+                                                                className="hidden lg:block"
+                                                                onClick={() =>
+                                                                    handleCellClick(
+                                                                        {
+                                                                            isSelected,
+                                                                            zotDateIndex,
+                                                                            blockIndex,
+                                                                        }
+                                                                    )
+                                                                }
+                                                                onHover={() =>
+                                                                    handleCellHover(
+                                                                        {
+                                                                            zotDateIndex,
+                                                                            blockIndex,
+                                                                        }
+                                                                    )
+                                                                }
+                                                                groupAvailabilities={
+                                                                    groupAvailabilities
+                                                                }
+                                                                availableMemberIndices={
+                                                                    availableMemberIndices
+                                                                }
+                                                                tableCellStyles={
+                                                                    tableCellStyles
+                                                                }
+                                                            />
+                                                            <GroupAvailabilityBlock
+                                                                className="block lg:hidden"
+                                                                onClick={() =>
+                                                                    handleCellClick(
+                                                                        {
+                                                                            isSelected,
+                                                                            zotDateIndex,
+                                                                            blockIndex,
+                                                                        }
+                                                                    )
+                                                                }
+                                                                groupAvailabilities={
+                                                                    groupAvailabilities
+                                                                }
+                                                                availableMemberIndices={
+                                                                    availableMemberIndices
+                                                                }
+                                                                tableCellStyles={
+                                                                    tableCellStyles
+                                                                }
+                                                            />
+                                                        </td>
+                                                    );
+                                                } else {
+                                                    return <td key={key}></td>;
+                                                }
                                             }
-                                        }
-                                    )}
-                                </tr>
-                            );
-                        })}
+                                        )}
+                                    </tr>
+                                );
+                            }
+                        )}
                     </tbody>
                 </table>
 
