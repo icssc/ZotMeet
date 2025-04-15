@@ -27,16 +27,10 @@ export function GroupAvailability({
     availabilityTimeBlocks,
     groupAvailabilities,
 }: GroupAvailabilityProps) {
-    //const availabilityDates = useMemo(() => generateSampleDates(), []); // TODO: replace with actual data
     const availabilityDates = useMemo(
         () => generateDates(8, 17, groupAvailabilities),
         []
     );
-    console.log("AVAILABILITY DATES:", availabilityDates);
-
-    // console.log("GROUP AVAILABILITY RENDERED");
-    // console.log("availability dates:", availabilityDates);
-    // console.log("availability dates1:", availabilityDates[0]);
 
     const itemsPerPage = columns;
     const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
@@ -153,11 +147,6 @@ export function GroupAvailability({
             );
         }
 
-        // console.log(
-        //     "new current page availability",
-        //     newCurrentPageAvailability
-        // );
-
         setCurrentPageAvailability(newCurrentPageAvailability);
     }, [
         currentPage,
@@ -202,9 +191,6 @@ export function GroupAvailability({
         groupAvailabilities,
     ]);
 
-    //console.log("render render erendre");
-    //console.log("current PageAva", currentPageAvailability);
-    console.log("AVAAIAIAI ", availabilityDates);
     return (
         <div className="flex flex-row items-start justify-start align-top">
             <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-10">
@@ -222,8 +208,6 @@ export function GroupAvailability({
                             (timeBlock, blockIndex, fromTime) => {
                                 const isTopOfHour = timeBlock % 60 === 0;
                                 const isHalfHour = timeBlock % 60 === 30;
-                                //console.log("THE BLOCK INDEX", blockIndex);
-                                //console.log(availabilityTimeBlocks.length - 1);
                                 const isLastRow =
                                     blockIndex ===
                                     availabilityTimeBlocks.length - 1;
@@ -243,52 +227,15 @@ export function GroupAvailability({
                                                 });
 
                                                 if (selectedDate) {
-                                                    // console.log(
-                                                    //     "selected date",
-                                                    //     selectedDate
-                                                    // );
-
                                                     const zotDateIndex =
                                                         pageDateIndex +
                                                         currentPage *
                                                             itemsPerPage;
-                                                    // console.log(
-                                                    //     "BLOCKINDEX",
-                                                    //     blockIndex
-                                                    // );
-                                                    // console.log(
-                                                    //     "Availability time block for block index",
-                                                    //     blockIndex,
-                                                    //     availabilityTimeBlocks[
-                                                    //         blockIndex
-                                                    //     ]
-                                                    // );
-                                                    // console.log(
-                                                    //     "hellllll",
-                                                    //     groupAvailabilities[
-                                                    //         "2025-04-04T10:00:00Z"
-                                                    //     ]
-                                                    // );
-                                                    // console.log(
-                                                    //     "Selected date",
-                                                    //     selectedDate
-                                                    // );
-
                                                     const availableMemberIndices =
                                                         selectedDate.getGroupAvailabilityBlock(
                                                             fromTime[0],
                                                             blockIndex
                                                         );
-
-                                                    // const availableMemberIndices =
-                                                    //     selectedDate.getGroupAvailabilityBlock(
-                                                    //         groupAvailabilities[]
-                                                    //     );
-
-                                                    // console.log(
-                                                    //     "available member indices",
-                                                    //     availableMemberIndices
-                                                    // );
 
                                                     const isSelected =
                                                         selectedZotDateIndex ===

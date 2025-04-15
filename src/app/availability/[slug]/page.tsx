@@ -92,7 +92,7 @@ export default async function Page({ params }: PageProps) {
                 break;
             }
         }
-        //console.log(`Current user Availability/${slug}:`, userAvailability);
+        console.log(`Current user Availability/${slug}:`, userAvailability);
     } else {
         console.log("No user logged in");
     }
@@ -104,10 +104,6 @@ export default async function Page({ params }: PageProps) {
     );
 
     console.log("Availability time blocks:", availabilityTimeBlocks);
-    console.log("fromtime", meetingData.fromTime);
-    //fromTimeDate={new Date(meetingData.fromTime).toISOString()}
-
-    //const fromTimeDate = new Date(`1970-01-01T${meetingData.fromTime as HourMinuteString}:00Z`).toISOString();
 
     return (
         <div className="space-y-2 px-4">
@@ -143,7 +139,6 @@ export default async function Page({ params }: PageProps) {
                         columns={5}
                         availabilityDates={[]}
                         availabilityTimeBlocks={availabilityTimeBlocks}
-                        //groupAvailabilities={SAMPLE_MEMBERS}
                         groupAvailabilities={allAvailabilties}
                         // fromTimeDate={new Date(meetingData.fromTime as HourMinuteString).toISOString()}
                         //fromTimeDate={meetingData.fromTime}

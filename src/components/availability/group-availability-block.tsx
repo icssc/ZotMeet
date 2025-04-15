@@ -29,8 +29,6 @@ export function GroupAvailabilityBlock({
         return "transparent";
     };
 
-    // console.log(calculateGroupBlockColor(availableMemberIndices));
-
     return (
         <button
             className={cn(

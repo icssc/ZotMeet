@@ -20,24 +20,16 @@ export const generateDates = (
     groupMembers: MemberAvailability[]
 ): ZotDate[] => {
     // Extract unique calendar dates from groupMembers' availableBlocks
-    //console.log("group members in generate dates:", groupMembers);
-    //console.log("group members display:", groupMembers);
     const uniqueDates = new Set<string>();
-    // for (let i = 0; i < groupMembers.length; i++) {
-    //     console.log("memberId:", groupMembers[i].memberId);
-    //     console.log("meetingAvailabilities:", groupMembers[i].meetingAvailabilities);
-    // }
     
     groupMembers.forEach(({ meetingAvailabilities }) => {
-        //console.log("available block:", meetingAvailabilities);
         for (let dateIndex = 0; dateIndex < meetingAvailabilities.length; dateIndex++) {
             const blocks = meetingAvailabilities[dateIndex];
-            //console.log("block at index", dateIndex, ":", blocks);
+
             if (blocks.length > 0) {
                 uniqueDates.add(blocks.split("T")[0]);
             }
         }
-        //console.log("unique dates:", uniqueDates);
 
     });
 
@@ -51,7 +43,6 @@ export const generateDates = (
             acc[dateString] = new ZotDate(new Date(dateString), earliestTime, latestTime);
             return acc;
         }, {} as Record<string, ZotDate>);
-    //console.log("selected calendar dates:", selectedCalendarDates);
     const dayCount = selectedCalendarDates.length;
     ZotDate.initializeAvailabilities(
         selectedCalendarDates,
@@ -59,94 +50,18 @@ export const generateDates = (
         endTime,
         BLOCK_LENGTH
     );
-    //go through each group member, find the corresponding date, and set it
     groupMembers.forEach(({displayName}, memberCount) => {
-        //console.log("memberId:", memberId, "memberCount:", memberCount);
         groupMembers[memberCount].meetingAvailabilities.forEach((meetingCount) => {
-            //console.log("current meeting",  meetingCount);
-            //console.log("attempted to set to zotdate:", selectedCalendarDateDict[meetingCount.split("T")[0]]);
             selectedCalendarDateDict[meetingCount.split("T")[0]].setDayAvailability(
                 0, 
                 displayName,
                 meetingCount,
             )
-        // groupMembers[memberCount].forEach(({meetingAvailabilities}, meetingCount) => {
-        //     const currentDateString = groupMembers[memberCount].meetingAvailabilities[meetingCount];
-        //     if (currentDateString.split("T")[0] === )
-        //     console.log("meetingAvailabilities:", meetingAvailabilities, "meetingCount:", meetingCount);
-        //     selectedCalendarDates[memberCount].setGroupMemberAvailability(
-        //         memberCount,
-        //         groupMembers[memberCount].meetingAvailabilities
-        //     );
-        // }
-        // const currentDateString = groupMembers
-        // selectedCalendarDates[memberCount].setGroupMemberAvailability(
-        //     memberCount,
-        //     groupMembers[memberCount].meetingAvailabilities
-        // );
     }
     );
 
     }
 );
-    // selectedCalendarDates.forEach(({day}, dayCount) => {
-    //     console.log("ZotDate day:", day, "dayCount:", dayCount);
-    //     console.log("day display:", day.toISOString());
-        
-        
-
-    //     groupMembers.forEach(({meetingAvailabilities}, memberIndex) => {
-    //         console.log("meetingAvailabilities:", meetingAvailabilities, "memberIndex:", memberIndex);
-    //         console.log("current date string:", groupMembers[memberIndex].meetingAvailabilities[dayCount]);
-    //         const currentDateString = groupMembers[memberIndex].meetingAvailabilities[dayCount];
-    //         if (currentDateString.split("T")[0] === selectedCalendarDates[dayCount].day.toISOString().split("T")[0]) {
-    //             console.log("currentDateString:", currentDateString, "day:", day);
-    //             selectedCalendarDates[dayCount].setDayAvailability(
-    //                 dayCount,
-    //                 memberIndex,
-    //                 //groupMembers[dayCount].meetingAvailabilities,
-    //                 groupMembers[dayCount].meetingAvailabilities
-    //             );
-    //         }
-    //     }
-    // );});
-    // groupMembers.forEach(({memberId}, memberCount) => {
-    //     console.log("memberId:", memberId, "memberCount:", memberCount);
-    //     groupMembers[memberCount].forEach(({meetingAvailabilities}, meetingCount) => {
-    //         const currentDateString = groupMembers[memberCount].meetingAvailabilities[meetingCount];
-    //         if (currentDateString.split("T")[0] === )
-    //         console.log("meetingAvailabilities:", meetingAvailabilities, "meetingCount:", meetingCount);
-    //         selectedCalendarDates[memberCount].setGroupMemberAvailability(
-    //             memberCount,
-    //             groupMembers[memberCount].meetingAvailabilities
-    //         );
-    //     }
-    //     const currentDateString = groupMembers
-    //     selectedCalendarDates[memberCount].setGroupMemberAvailability(
-    //         memberCount,
-    //         groupMembers[memberCount].meetingAvailabilities
-    //     );
-    // }
-    // groupMembers.forEach(({ meetingAvailabilities }, dayCount) => {
-    //     selectedCalendarDates[dayCount].setDayAvailability(
-    //         dayCount,
-    //         groupMembers[dayCount].meetingAvailabilities,
-    //         meetingAvailabilities
-    //     );
-    // });
-    // groupMembers.forEach(({ meetingAvailabilities }, memberIndex) => {
-    //     selectedCalendarDates[memberIndex].setGroupMemberAvailability(
-    //         memberIndex,
-    //         meetingAvailabilities
-    //     );
-    // });
-
-    //console.log("okay dict", selectedCalendarDateDict["2025-04-04"])
-    //console.log("okay dict", selectedCalendarDateDict["2025-04-05"])
-
-    //console.log("selected calendar dates after setting group member availability:", selectedCalendarDates);
-    //return selectedCalendarDates;
-    //console.log("selected calendar date dict into an array:", Object.values(selectedCalendarDateDict));
     return Object.values(selectedCalendarDateDict);
 };
 
