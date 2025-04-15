@@ -19,15 +19,17 @@ export class ZotDate {
      */
     constructor(
         day: Date = new Date(),
+        earliestTime: number = 0,
+        latestTime: number = 1440,
         //isSelected: boolean = false,
         isSelected: boolean = true,
         availability: boolean[] = []
     ) {
         this.day = day;
+        this.earliestTime = earliestTime;
+        this.latestTime = latestTime;
         this.isSelected = isSelected;
         this.blockLength = 15;
-        this.earliestTime = 0;
-        this.latestTime = 0;
         this.availability = availability;
         this.groupAvailability = {};
     }
@@ -439,17 +441,17 @@ export class ZotDate {
 
     setDayAvailability(
         dayIndex: number,
-        memberIndex: number,
+        displayName: string,
         //timeString: string,
         meetingAvailabilities: string
     ): void {
-        console.log("METTING AVAILABILITIES", meetingAvailabilities);
-        if(!this.groupAvailability[memberIndex]) {
-            console.log("Created new dict entry")
-            this.groupAvailability[memberIndex] = [];
+        // console.log("METTING AVAILABILITIES", meetingAvailabilities);
+        if(!this.groupAvailability[displayName]) {
+            // console.log("Created new dict entry")
+            this.groupAvailability[displayName] = [];
         }
-        this.groupAvailability[memberIndex].push(meetingAvailabilities);
-        console.log("push done")
+        this.groupAvailability[displayName].push(meetingAvailabilities);
+        // console.log("push done")
         // meetingAvailabilities.forEach((blockIndex) => {
         //     if (!this.groupAvailability[blockIndex]) {
         //         this.groupAvailability[blockIndex] = [memberIndex];
@@ -467,37 +469,41 @@ export class ZotDate {
     getGroupAvailabilityBlock(fromTime: number, index: number): number[] | null {
         //console.log("UGH", this.groupAvailability)
         //console.log(this.groupAvailability["2025-04-04T10:00:00Z"])
-        let totalAvailable = 0;
+        let totalAvailable: number[] = [];
         Object.keys(this.groupAvailability).forEach((memberCount) => {
             //console.log("brooo", this.groupAvailability[memberCount])
             let currentTime = new Date(this.day)
+            //const totalMinutes = fromTime + index*15;
             //console.log("ummm",fromTime + index * 15)
-            currentTime.setMinutes(currentTime.getMinutes() + fromTime + index * 15);
+            currentTime.setMinutes(currentTime.getMinutes() + (fromTime + index * 15) % 60);
+            currentTime.setHours(currentTime.getHours() + (fromTime + index * 15) / 60);
             //console.log("CURRENT TIME DATE", currentTime);
+            //console.log("last one", currentTime);
+            //console.log("kill me", currentTime.toISOString());
             const currentString = currentTime.toISOString();
             //console.log("THIS BETTER WORK", currentString);
             //console.log("TYPE IS ARRAY??", Array.isArray((this.groupAvailability[memberCount])));
             //console.log(this.groupAvailability[memberCount].includes(currentString));
-            // if (this.groupAvailability[memberCount]?.includes(currentString.toString())) {
-            //     totalAvailable += 1;
-            //     console.log("YASS");
-            // }
-            console.log("please", this.groupAvailability[memberCount][0] === '2025-04-05T10:00:00.000Z');
-            console.log("pleasenum2", this.groupAvailability[memberCount][0], currentString);
+            if (this.groupAvailability[memberCount]?.includes(currentString.toString())) {
+                totalAvailable.push(memberCount);
+                //console.log("YASS");
+            }
+            //console.log("please", this.groupAvailability[memberCount][0] === '2025-04-05T10:00:00.000Z');
+            //console.log("pleasenum2", this.groupAvailability[memberCount][0], currentString);
             // if (this.groupAvailability[memberCount]?.includes('2025-04-05T10:00:000Z')) {
             //     console.log("ok wtf");
             // }
-            if (this.groupAvailability[memberCount]?.includes(currentString.toString())) {
-                totalAvailable += 1;
-                console.log("YASS");
-            } //doesnt work for some reason???? needed to use a for loop
+            // if (this.groupAvailability[memberCount]?.includes(currentString.toString())) {
+            //     totalAvailable += 1;
+            //     console.log("YASS");
+            // } //doesnt work for some reason???? needed to use a for loop
 
             // if(currentString in this.groupAvailability[memberCount]) {
             //     totalAvailable += 1;
             //     console.log("YASS");
             // }
         });
-        console.log("total available", totalAvailable);
+        //console.log("total available", totalAvailable);
             // if (index in this.groupAvailability[memberCount]) {
             //     totalAvailable += 1;
         //return this.groupAvailability[0];

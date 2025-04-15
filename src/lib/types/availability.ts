@@ -20,6 +20,7 @@ export type SelectionStateType = {
 
 export interface MemberAvailability {
     memberId: string;  // change this to the name once fetch is changed
+    displayName: string;
     meetingAvailabilities: string[];
 }
 

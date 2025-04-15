@@ -92,7 +92,7 @@ export default async function Page({ params }: PageProps) {
                 break;
             }
         }
-        console.log(`Current user Availability/${slug}:`, userAvailability);
+        //console.log(`Current user Availability/${slug}:`, userAvailability);
     } else {
         console.log("No user logged in");
     }

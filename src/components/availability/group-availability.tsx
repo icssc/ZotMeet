@@ -32,10 +32,11 @@ export function GroupAvailability({
         () => generateDates(8, 17, groupAvailabilities),
         []
     );
+    console.log("AVAILABILITY DATES:", availabilityDates);
 
-    console.log("GROUP AVAILABILITY RENDERED");
-    console.log("availability dates:", availabilityDates);
-    console.log("availability dates1:", availabilityDates[0]);
+    // console.log("GROUP AVAILABILITY RENDERED");
+    // console.log("availability dates:", availabilityDates);
+    // console.log("availability dates1:", availabilityDates[0]);
 
     const itemsPerPage = columns;
     const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
@@ -139,7 +140,7 @@ export function GroupAvailability({
 
     // Update current page availability on pagination or data change
     useEffect(() => {
-        console.log("YO DAWG");
+        //console.log("YO DAWG");
         const datesToOffset = currentPage * itemsPerPage;
         let newCurrentPageAvailability = availabilityDates.slice(
             datesToOffset,
@@ -152,10 +153,10 @@ export function GroupAvailability({
             );
         }
 
-        console.log(
-            "new current page availability",
-            newCurrentPageAvailability
-        );
+        // console.log(
+        //     "new current page availability",
+        //     newCurrentPageAvailability
+        // );
 
         setCurrentPageAvailability(newCurrentPageAvailability);
     }, [
@@ -174,13 +175,16 @@ export function GroupAvailability({
         ) {
             const selectedDate = availabilityDates[selectedZotDateIndex];
             const availableMemberIndices =
-                selectedDate.getGroupAvailabilityBlock(selectedBlockIndex) ??
-                [];
+                selectedDate.getGroupAvailabilityBlock(
+                    480,
+                    selectedBlockIndex
+                ) ?? []; //currently hardcoded in 480
 
-            const newAvailableMembersOfSelection = availableMemberIndices.map(
-                (availableMemberIndex) =>
-                    groupAvailabilities[availableMemberIndex]?.memberId
-            );
+            // const newAvailableMembersOfSelection = availableMemberIndices.map(
+            //     (availableMemberIndex) =>
+            //         groupAvailabilities[availableMemberIndex]?.memberId
+            // );
+            const newAvailableMembersOfSelection = availableMemberIndices;
 
             const newNotAvailableMembersOfSelection = groupAvailabilities
                 .filter((_, index) => !availableMemberIndices.includes(index))
@@ -198,9 +202,9 @@ export function GroupAvailability({
         groupAvailabilities,
     ]);
 
-    console.log("render render erendre");
-    console.log("current PageAva", currentPageAvailability);
-
+    //console.log("render render erendre");
+    //console.log("current PageAva", currentPageAvailability);
+    console.log("AVAAIAIAI ", availabilityDates);
     return (
         <div className="flex flex-row items-start justify-start align-top">
             <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-10">
@@ -218,7 +222,7 @@ export function GroupAvailability({
                             (timeBlock, blockIndex, fromTime) => {
                                 const isTopOfHour = timeBlock % 60 === 0;
                                 const isHalfHour = timeBlock % 60 === 30;
-                                console.log("THE BLOCK INDEX", blockIndex);
+                                //console.log("THE BLOCK INDEX", blockIndex);
                                 //console.log(availabilityTimeBlocks.length - 1);
                                 const isLastRow =
                                     blockIndex ===
@@ -281,10 +285,10 @@ export function GroupAvailability({
                                                     //         groupAvailabilities[]
                                                     //     );
 
-                                                    console.log(
-                                                        "available member indices",
-                                                        availableMemberIndices
-                                                    );
+                                                    // console.log(
+                                                    //     "available member indices",
+                                                    //     availableMemberIndices
+                                                    // );
 
                                                     const isSelected =
                                                         selectedZotDateIndex ===
