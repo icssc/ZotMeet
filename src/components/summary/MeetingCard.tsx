@@ -27,6 +27,26 @@ export const MeetingCard = ({ title, time, location, status: initialStatus, type
     setStatus(newStatus)
   }
 
+  const formatSingleTime = (timeStr: string): string => {
+    if (!timeStr) return "";
+    const [hourStr] = timeStr.split(':');
+    let hour = parseInt(hourStr, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    hour = hour ? hour : 12;
+    return `${hour} ${ampm}`;
+  }
+
+  const formatTime = (timeStr: string): string => {
+    if (!timeStr) return "";
+    if (timeStr.includes('-')) {
+      const [startTimeStr, endTimeStr] = timeStr.split('-');
+      return `${formatSingleTime(startTimeStr)} — ${formatSingleTime(endTimeStr)}`;
+    } else {
+      return formatSingleTime(timeStr);
+    }
+  }
+
   const statusColors = {
     ACCEPT: 'bg-green-500',
     MAYBE: 'bg-yellow-500',
@@ -53,7 +73,7 @@ export const MeetingCard = ({ title, time, location, status: initialStatus, type
         <h3 className="font-medium font-dm-sans text-xl text-gray-800">{title}</h3>
         <div className="flex items-center font-dm-sans font-semibold text-xs text-gray-500 text-sm mt-1">
           <Clock size={14} className="mr-1" />
-          <span className="mr-4">{time}</span>
+          <span className="mr-4">{formatTime(time)}</span>
           <MapPin size={14} className="mr-1" />
           <span>{location}</span>
         </div>
