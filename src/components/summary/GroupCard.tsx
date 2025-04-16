@@ -1,6 +1,4 @@
-import React from 'react'
-
-const GroupCard = ({ name }: { name: string }) => {
+export const GroupCard = ({ name }: { name: string }) => {
   return (
     <div className="bg-white rounded-xl p-2 flex gap-4 border border-gray-200 cursor-pointer pr-8 flex-shrink-0">
       <div className="w-20 h-20 bg-gray-300 rounded-lg flex-shrink-0" />
@@ -22,5 +20,3 @@ const GroupCard = ({ name }: { name: string }) => {
     </div>
   )
 }
-
-export default GroupCard

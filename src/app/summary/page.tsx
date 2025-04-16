@@ -1,43 +1,34 @@
-"use client";
+import { GroupsDisplay } from '@/components/summary/GroupsDisplay';
+import { MeetingsDisplay } from '@/components/summary/MeetingsDisplay';
+import { getCurrentSession } from "@/lib/auth";
+import { getMeetingsByUserId } from "@/server/data/meeting/queries";
+import { SelectMeeting } from '@/db/schema';
 
-import React, { useState, useEffect } from 'react';
-import GroupsDisplay from '@/components/summary/GroupsDisplay';
-import MeetingsDisplay from '@/components/summary/MeetingsDisplay';
-import { getUserMeetings } from "@/server/actions/meeting/fetch/action";
+const Summary = async () => {
+  let meetings: SelectMeeting[] | null = null;
+  let error: string | null = null;
 
-type Meeting = {
-  id: string;
-  title: string;
-  location: string | null;
-  scheduled: boolean | null;
-  fromTime: string;
-  toTime: string;
-  timezone: string;
-  dates: string[];
-};
-
-const Summary = () => {
-  const [meetings, setMeetings] = useState<Meeting[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchMeetings = async () => {
-    setError(null);
-    
-    try {
-      const result = await getUserMeetings();
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setMeetings(result.meetings || []);
-      }
-    } catch (err) {
-      setError("Failed to fetch meetings");
+  try {
+    const session = await getCurrentSession();
+    if (!session?.user) {
+      error = "You must be logged in to view your meetings.";
+    } else {
+      meetings = await getMeetingsByUserId(session.user.memberId);
     }
-  };
+  } catch (err) {
+    error = "Failed to fetch meetings on the server.";
+    console.error("Error fetching meetings:", err);
+  }
 
-  useEffect(() => {
-    fetchMeetings();
-  }, []);
+  if (error) {
+    return (
+      <div className='px-8 py-8 text-center text-red-500'>
+        <h1 className='text-2xl font-montserrat font-medium'>Error</h1>
+        <p>{error}</p>
+        <p>Could not load meeting data. Please try again later.</p>
+      </div>
+    );
+  }
 
   return (
     <div className='px-8 py-8'>
@@ -47,7 +38,6 @@ const Summary = () => {
       </div>
       <MeetingsDisplay 
         meetings={meetings} 
-        error={error} 
       />
     </div>
   );

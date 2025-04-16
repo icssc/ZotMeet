@@ -82,15 +82,15 @@ export async function getMeetingsByUserId(userId: string) {
     .select({
       id: meetings.id,
       title: meetings.title,
-      //description: meetings.description, //is this needed? maybe not for summary page
+      description: meetings.description,
       location: meetings.location,
       scheduled: meetings.scheduled,
       fromTime: meetings.fromTime,
       toTime: meetings.toTime,
       timezone: meetings.timezone,
       dates: meetings.dates,
-      //hostId: meetings.hostId,
-      //group_id: meetings.group_id
+      hostId: meetings.hostId,
+      group_id: meetings.group_id
     })
     .from(meetings)
     .leftJoin(

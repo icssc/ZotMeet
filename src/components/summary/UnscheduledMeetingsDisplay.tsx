@@ -1,24 +1,14 @@
 'use client'
 
 import React from 'react'
-import MeetingCard from './MeetingCard'
-
-type Meeting = {
-  id: string;
-  title: string;
-  location: string | null;
-  scheduled: boolean | null;
-  fromTime: string;
-  toTime: string;
-  timezone: string;
-  dates: string[];
-};
+import { MeetingCard } from './MeetingCard'
+import { SelectMeeting } from '@/db/schema'
 
 interface UnscheduledMeetingsDisplayProps {
-  meetings: Meeting[];
+  meetings: SelectMeeting[];
 }
 
-const UnscheduledMeetingsDisplay = ({ meetings }: UnscheduledMeetingsDisplayProps) => {
+export const UnscheduledMeetingsDisplay = ({ meetings }: UnscheduledMeetingsDisplayProps) => {
   if (meetings.length === 0) {
     return <div className="p-4">No unscheduled meetings found.</div>
   }
@@ -38,5 +28,3 @@ const UnscheduledMeetingsDisplay = ({ meetings }: UnscheduledMeetingsDisplayProp
     </div>
   ) 
 }
-
-export default UnscheduledMeetingsDisplay

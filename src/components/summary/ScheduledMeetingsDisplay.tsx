@@ -1,25 +1,11 @@
-'use client'
-
-import React from 'react'
-import MeetingCard from './MeetingCard'
-
-// Define Meeting type
-type Meeting = {
-  id: string;
-  title: string;
-  location: string | null;
-  scheduled: boolean | null;
-  fromTime: string;
-  toTime: string;
-  timezone: string;
-  dates: string[];
-};
+import { MeetingCard } from '@/components/summary/MeetingCard'
+import { SelectMeeting } from '@/db/schema'
 
 interface ScheduledMeetingsDisplayProps {
-  meetings: Meeting[];
+  meetings: SelectMeeting[];
 }
 
-const ScheduledMeetingsDisplay = ({ meetings }: ScheduledMeetingsDisplayProps) => {
+export const ScheduledMeetingsDisplay = ({ meetings }: ScheduledMeetingsDisplayProps) => {
   if (meetings.length === 0) {
     return <div className="p-4">No scheduled meetings found.</div>
   }
@@ -39,5 +25,3 @@ const ScheduledMeetingsDisplay = ({ meetings }: ScheduledMeetingsDisplayProps) =
     </div>
   )
 }
-
-export default ScheduledMeetingsDisplay

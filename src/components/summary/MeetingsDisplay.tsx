@@ -1,30 +1,18 @@
 'use client'
 
 import React, { useState } from 'react'
-import ScheduledMeetingsDisplay from './ScheduledMeetingsDisplay'
-import UnscheduledMeetingsDisplay from './UnscheduledMeetingsDisplay'
+import { ScheduledMeetingsDisplay } from './ScheduledMeetingsDisplay'
+import { UnscheduledMeetingsDisplay } from './UnscheduledMeetingsDisplay'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/custom/tabs'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Crown } from 'lucide-react'
-
-type Meeting = {
-  id: string;
-  title: string;
-  location: string | null;
-  scheduled: boolean | null;
-  fromTime: string;
-  toTime: string;
-  timezone: string;
-  dates: string[];
-};
+import { SelectMeeting } from '@/db/schema'
 
 interface MeetingsDisplayProps {
-  meetings: Meeting[] | null;
-  error: string | null;
+  meetings: SelectMeeting[];
 }
 
-const MeetingsDisplay = ({ meetings, error }: MeetingsDisplayProps) => {
+export const MeetingsDisplay = ({ meetings }: MeetingsDisplayProps) => {
   const [showHostedOnly, setShowHostedOnly] = useState(false);
 
   const scheduledMeetings = meetings?.filter(meeting => meeting.scheduled) || [];
@@ -43,12 +31,6 @@ const MeetingsDisplay = ({ meetings, error }: MeetingsDisplayProps) => {
           {showHostedOnly ? 'Show All' : 'Show Hosted Only'}
         </Button>
       </div>
-      
-      {error && (
-        <div className="mt-4 p-4 bg-red-100 text-red-800 rounded mx-4">
-          {error}
-        </div>
-      )}
       
       <Tabs defaultValue="scheduled" className="mt-2">
         <TabsList className="mx-4 space-x-0 mb-8">
@@ -84,4 +66,3 @@ const MeetingsDisplay = ({ meetings, error }: MeetingsDisplayProps) => {
   )
 }
 
-export default MeetingsDisplay
