@@ -19,6 +19,14 @@ export const MeetingsDisplay = ({ meetings, userId }: MeetingsDisplayProps) => {
   const scheduledMeetings = meetings?.filter(meeting => meeting.scheduled) || [];
   const unscheduledMeetings = meetings?.filter(meeting => !meeting.scheduled) || [];
 
+  const filteredScheduledMeetings = showHostedOnly
+    ? scheduledMeetings.filter(meeting => meeting.hostId === userId)
+    : scheduledMeetings;
+
+  const filteredUnscheduledMeetings = showHostedOnly
+    ? unscheduledMeetings.filter(meeting => meeting.hostId === userId)
+    : unscheduledMeetings;
+
   return (
     <div className="w-full rounded-xl bg-gradient-to-r from-[#EAEFF2] to-[#EEEEEE] p-6 border-2 border-gray-300">
       <div className="flex justify-between items-center">
@@ -56,11 +64,11 @@ export const MeetingsDisplay = ({ meetings, userId }: MeetingsDisplayProps) => {
         </TabsList>
         
         <TabsContent value="scheduled">
-          <ScheduledMeetingsDisplay meetings={scheduledMeetings} />
+          <ScheduledMeetingsDisplay meetings={filteredScheduledMeetings} />
         </TabsContent>
         
         <TabsContent value="unscheduled">
-          <UnscheduledMeetingsDisplay meetings={unscheduledMeetings} />
+          <UnscheduledMeetingsDisplay meetings={filteredUnscheduledMeetings} />
         </TabsContent>
       </Tabs>
     </div>
