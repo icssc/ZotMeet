@@ -27,23 +27,23 @@ export const MeetingCard = ({ title, time, location, status: initialStatus, type
     setStatus(newStatus)
   }
 
-  const formatSingleTime = (timeStr: string): string => {
-    if (!timeStr) return "";
-    const [hourStr] = timeStr.split(':');
-    let hour = parseInt(hourStr, 10);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    hour = hour ? hour : 12;
-    return `${hour} ${ampm}`;
-  }
-
   const formatTime = (timeStr: string): string => {
     if (!timeStr) return "";
+
+    const formatPart = (part: string): string => {
+      const [hourStr] = part.split(':');
+      let hour = parseInt(hourStr, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      hour = hour % 12;
+      hour = hour ? hour : 12;
+      return `${hour} ${ampm}`;
+    };
+
     if (timeStr.includes('-')) {
       const [startTimeStr, endTimeStr] = timeStr.split('-');
-      return `${formatSingleTime(startTimeStr)} — ${formatSingleTime(endTimeStr)}`;
+      return `${formatPart(startTimeStr)} – ${formatPart(endTimeStr)}`;
     } else {
-      return formatSingleTime(timeStr);
+      return formatPart(timeStr);
     }
   }
 

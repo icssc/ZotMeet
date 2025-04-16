@@ -1,5 +1,6 @@
 import { MeetingCard } from '@/components/summary/MeetingCard'
 import { SelectMeeting } from '@/db/schema'
+import Link from 'next/link'
 
 interface ScheduledMeetingsDisplayProps {
   meetings: SelectMeeting[];
@@ -13,14 +14,15 @@ export const ScheduledMeetingsDisplay = ({ meetings }: ScheduledMeetingsDisplayP
   return (
     <div className='flex flex-col gap-2'>
       {meetings.map(meeting => (
-        <MeetingCard 
-          key={meeting.id}
-          title={meeting.title}
-          time={`${meeting.fromTime} - ${meeting.toTime}`}
-          location={meeting.location || "Not specified"} 
-          type="users" 
-          status="NOT INDICATED"
-        />
+        <Link href={`/availability/${meeting.id}`} key={meeting.id}>
+          <MeetingCard 
+            title={meeting.title}
+            time={`${meeting.fromTime} - ${meeting.toTime}`}
+            location={meeting.location || "Not specified"} 
+            type="users" 
+            status="NOT INDICATED"
+          />
+        </Link>
       ))}
     </div>
   )

@@ -3,6 +3,7 @@
 import React from 'react'
 import { MeetingCard } from './MeetingCard'
 import { SelectMeeting } from '@/db/schema'
+import Link from 'next/link'
 
 interface UnscheduledMeetingsDisplayProps {
   meetings: SelectMeeting[];
@@ -16,14 +17,15 @@ export const UnscheduledMeetingsDisplay = ({ meetings }: UnscheduledMeetingsDisp
   return (
     <div className='flex flex-col gap-2'>
       {meetings.map(meeting => (
-        <MeetingCard 
-          key={meeting.id}
-          title={meeting.title}
-          time={`${meeting.fromTime} - ${meeting.toTime}`}
-          location={meeting.location || "Not specified"} 
-          type="users" 
-          status="NOT INDICATED"
-        />
+        <Link href={`/availability/${meeting.id}`} key={meeting.id}>
+          <MeetingCard 
+            title={meeting.title}
+            time={`${meeting.fromTime} - ${meeting.toTime}`}
+            location={meeting.location || "Not specified"} 
+            type="users" 
+            status="NOT INDICATED"
+          />
+        </Link>
       ))}
     </div>
   ) 

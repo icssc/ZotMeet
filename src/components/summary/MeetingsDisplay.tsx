@@ -25,7 +25,7 @@ export const MeetingsDisplay = ({ meetings }: MeetingsDisplayProps) => {
         <Button
           variant="outline"
           size="sm"
-          className="flex items-center rounded-lg bg-[#EAEFF2] text-black bg-[#F9FAFB] bg-opacity-50 border-2 border-gray-200 font-dm-sans text-xs" 
+          className="flex items-center rounded-lg bg-[#EAEFF2] text-gray-700 bg-[#F9FAFB] bg-opacity-50 border-2 border-gray-200 font-dm-sans text-xs" 
           onClick={() => setShowHostedOnly(!showHostedOnly)}
         >
           {showHostedOnly ? 'Show All' : 'Show Hosted Only'}
