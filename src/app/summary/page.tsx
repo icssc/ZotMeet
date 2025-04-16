@@ -5,7 +5,7 @@ import { getMeetingsByUserId } from "@/server/data/meeting/queries";
 import { SelectMeeting } from '@/db/schema';
 
 const Summary = async () => {
-  let meetings: SelectMeeting[] | null = null;
+  let meetings: SelectMeeting[] = [];
   let error: string | null = null;
 
   try {
