@@ -74,7 +74,7 @@ export default async function Page({ params }: PageProps) {
     }
 
     const meetingDates = await getExistingMeetingDates(meetingData.id);
-    console.log(`Meeting dates ${meetingDates[0]}`);
+    console.log("Meeting dates hahaha", meetingDates);
     const allAvailabilties = await getAllMemberAvailability({
         meetingId: meetingData.id,
     });
@@ -102,6 +102,13 @@ export default async function Page({ params }: PageProps) {
         getTimeFromHourMinuteString(meetingData.fromTime as HourMinuteString),
         getTimeFromHourMinuteString(meetingData.toTime as HourMinuteString)
     );
+
+    const fromTimeNumber =
+        parseInt(meetingData.fromTime.substring(0, 2), 10) +
+        parseInt(meetingData.fromTime.substring(3, 5), 10) / 60;
+    const toTimeNumber =
+        parseInt(meetingData.toTime.substring(0, 2), 10) +
+        parseInt(meetingData.toTime.substring(3, 5), 10) / 60;
 
     console.log("Availability time blocks:", availabilityTimeBlocks);
 
@@ -140,8 +147,8 @@ export default async function Page({ params }: PageProps) {
                         availabilityDates={[]}
                         availabilityTimeBlocks={availabilityTimeBlocks}
                         groupAvailabilities={allAvailabilties}
-                        // fromTimeDate={new Date(meetingData.fromTime as HourMinuteString).toISOString()}
-                        //fromTimeDate={meetingData.fromTime}
+                        fromTime={fromTimeNumber}
+                        toTime={toTimeNumber}
                     />
                 </TabsContent>
                 <TabsContent value="personal">

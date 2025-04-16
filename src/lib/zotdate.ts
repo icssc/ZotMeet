@@ -350,8 +350,8 @@ export class ZotDate {
      */
     static initializeAvailabilities(
         selectedDates: ZotDate[],
-        earliestTime: number = 480,
-        latestTime: number = 1050,
+        earliestTime: number = 0,
+        latestTime: number = 1440,
         blockLength: number = 15
     ): void {
         const minuteRange = Math.abs(latestTime - earliestTime);
@@ -456,6 +456,7 @@ export class ZotDate {
      */
     getGroupAvailabilityBlock(fromTime: number, index: number): number[] | null {
         let totalAvailable: number[] = [];
+        let unavailable: number[] = [];
         Object.keys(this.groupAvailability).forEach((memberCount) => {
             let currentTime = new Date(this.day)
             
@@ -467,8 +468,11 @@ export class ZotDate {
             if (this.groupAvailability[memberCount]?.includes(currentString.toString())) {
                 totalAvailable.push(memberCount);
             }
+            else{
+                unavailable.push(memberCount);
+            }
         });
-
+        console.log("totalAvailable", totalAvailable)
         return totalAvailable;
         
     }

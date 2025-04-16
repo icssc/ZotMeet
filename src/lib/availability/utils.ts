@@ -9,14 +9,14 @@ export const getTimeFromHourMinuteString = (
     return Number(hours) * TimeConstants.MINUTES_PER_HOUR + Number(minutes);
 };
 
-const earliestTime: number = getTimeFromHourMinuteString("08:00:00");
-const latestTime: number = getTimeFromHourMinuteString("17:30:00");
+// const earliestTime: number = getTimeFromHourMinuteString("08:00:00");
+// const latestTime: number = getTimeFromHourMinuteString("17:30:00");
 
 const BLOCK_LENGTH: number = 15;
 
 export const generateDates = (
-    startTime: number = earliestTime,
-    endTime: number = latestTime,
+    startTime: number = 0,
+    endTime: number = 1440,
     groupMembers: MemberAvailability[]
 ): ZotDate[] => {
     // Extract unique calendar dates from groupMembers' availableBlocks
@@ -40,7 +40,7 @@ export const generateDates = (
     const selectedCalendarDateDict: Record<string, ZotDate> = Array.from(uniqueDates)
         .sort()
         .reduce((acc, dateString) => {
-            acc[dateString] = new ZotDate(new Date(dateString), earliestTime, latestTime);
+            acc[dateString] = new ZotDate(new Date(dateString), startTime, endTime);
             return acc;
         }, {} as Record<string, ZotDate>);
     const dayCount = selectedCalendarDates.length;

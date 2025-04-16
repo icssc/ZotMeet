@@ -17,7 +17,8 @@ interface GroupAvailabilityProps {
     availabilityDates: ZotDate[];
     availabilityTimeBlocks: number[];
     groupAvailabilities: MemberAvailability[];
-    //fromTime: string;
+    fromTime: number;
+    toTime: number;
     //groupAvailabilities: any;
     //meetingId: string;
 }
@@ -26,11 +27,15 @@ export function GroupAvailability({
     availabilityDates: _,
     availabilityTimeBlocks,
     groupAvailabilities,
+    fromTime,
+    toTime,
 }: GroupAvailabilityProps) {
     const availabilityDates = useMemo(
-        () => generateDates(8, 17, groupAvailabilities),
+        () => generateDates(fromTime, toTime, groupAvailabilities),
         []
     );
+    console.log("AVAILABILITY DATES", availabilityDates[0]);
+    console.log("AVAILABILITY DATES", availabilityDates[1]);
 
     const itemsPerPage = columns;
     const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
@@ -165,19 +170,23 @@ export function GroupAvailability({
             const selectedDate = availabilityDates[selectedZotDateIndex];
             const availableMemberIndices =
                 selectedDate.getGroupAvailabilityBlock(
-                    480,
+                    fromTime * 60,
                     selectedBlockIndex
-                ) ?? []; //currently hardcoded in 480
+                ) ?? [];
 
-            // const newAvailableMembersOfSelection = availableMemberIndices.map(
-            //     (availableMemberIndex) =>
-            //         groupAvailabilities[availableMemberIndex]?.memberId
-            // );
             const newAvailableMembersOfSelection = availableMemberIndices;
 
-            const newNotAvailableMembersOfSelection = groupAvailabilities
-                .filter((_, index) => !availableMemberIndices.includes(index))
-                .map((member) => member.name);
+            const newNotAvailableMembersOfSelection = Object.keys(
+                groupAvailabilities
+            )
+                .map(Number) // Convert keys to numbers
+                .filter(
+                    (index) =>
+                        !availableMemberIndices.includes(
+                            groupAvailabilities[index].displayName
+                        )
+                )
+                .map((index) => groupAvailabilities[index].displayName || "");
 
             setAvailableMembersOfSelection(newAvailableMembersOfSelection);
             setNotAvailableMembersOfSelection(
