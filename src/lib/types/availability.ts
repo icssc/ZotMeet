@@ -13,9 +13,15 @@ export type SelectionStateType = {
     laterBlockIndex: number;
 };
 
+// export interface MemberAvailability {
+//     name: string;
+//     availableBlocks: number[][];
+// }
+
 export interface MemberAvailability {
-    name: string;
-    availableBlocks: number[][];
+    memberId: string;  // change this to the name once fetch is changed
+    displayName: string;
+    meetingAvailabilities: string[];
 }
 
 // export interface LoginModalProps {

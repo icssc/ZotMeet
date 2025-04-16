@@ -1,10 +1,11 @@
 import { CalendarConstants } from "@/lib/types/chrono";
+import { group } from "console";
 
 export class ZotDate {
     readonly day: Date;
     isSelected: boolean;
     availability: boolean[];
-    groupAvailability: (number[] | null)[];
+    groupAvailability: Record<number, Array<string> | null>;
     blockLength: number;
 
     // Times represented as minutes past midnight
@@ -18,16 +19,19 @@ export class ZotDate {
      */
     constructor(
         day: Date = new Date(),
-        isSelected: boolean = false,
+        earliestTime: number = 0,
+        latestTime: number = 1440,
+        //isSelected: boolean = false,
+        isSelected: boolean = true,
         availability: boolean[] = []
     ) {
         this.day = day;
+        this.earliestTime = earliestTime;
+        this.latestTime = latestTime;
         this.isSelected = isSelected;
         this.blockLength = 15;
-        this.earliestTime = 0;
-        this.latestTime = 0;
         this.availability = availability;
-        this.groupAvailability = [];
+        this.groupAvailability = {};
     }
 
     /**
@@ -346,8 +350,8 @@ export class ZotDate {
      */
     static initializeAvailabilities(
         selectedDates: ZotDate[],
-        earliestTime: number = 480,
-        latestTime: number = 1050,
+        earliestTime: number = 0,
+        latestTime: number = 1440,
         blockLength: number = 15
     ): void {
         const minuteRange = Math.abs(latestTime - earliestTime);
@@ -360,9 +364,9 @@ export class ZotDate {
             selectedDate.availability = new Array<boolean>(totalBlocks).fill(
                 false
             );
-            selectedDate.groupAvailability = new Array<null>(totalBlocks).fill(
-                null
-            );
+            // selectedDate.groupAvailability = new Array<null>(totalBlocks).fill(
+            //     null
+            // );
         });
     }
 
@@ -417,13 +421,15 @@ export class ZotDate {
      * instantiated if it is the first member to indicate availability of that block.
      *
      * @param memberIndex the index of a member in an array
-     * @param availableBlocks an array of availability blocks to set that member's availability
+     * @param meetingAvailabilities an array of availability blocks to set that member's availability
      */
+    //@param availableBlocks an array of availability blocks to set that member's availability
+
     setGroupMemberAvailability(
         memberIndex: number,
-        availableBlocks: number[]
+        meetingAvailabilities: string[]
     ): void {
-        availableBlocks.forEach((blockIndex) => {
+        meetingAvailabilities.forEach((blockIndex) => {
             if (!this.groupAvailability[blockIndex]) {
                 this.groupAvailability[blockIndex] = [memberIndex];
             } else {
@@ -432,12 +438,42 @@ export class ZotDate {
         });
     }
 
+    setDayAvailability(
+        dayIndex: number,
+        displayName: string,
+        meetingAvailabilities: string
+    ): void {
+        if(!this.groupAvailability[displayName]) {
+            this.groupAvailability[displayName] = [];
+        }
+        this.groupAvailability[displayName].push(meetingAvailabilities);
+    
+}
     /**
      * Gets the group availability block based on the block index
      * @param index index of the availability block
      * @return the current availability of the block corresponding to the given index
      */
-    getGroupAvailabilityBlock(index: number): number[] | null {
-        return this.groupAvailability[index];
+    getGroupAvailabilityBlock(fromTime: number, index: number): number[] | null {
+        let totalAvailable: number[] = [];
+        let unavailable: number[] = [];
+        Object.keys(this.groupAvailability).forEach((memberCount) => {
+            let currentTime = new Date(this.day)
+            
+            currentTime.setMinutes(currentTime.getMinutes() + (fromTime + index * 15) % 60);
+            currentTime.setHours(currentTime.getHours() + (fromTime + index * 15) / 60);
+
+            const currentString = currentTime.toISOString();
+            
+            if (this.groupAvailability[memberCount]?.includes(currentString.toString())) {
+                totalAvailable.push(memberCount);
+            }
+            else{
+                unavailable.push(memberCount);
+            }
+        });
+        console.log("totalAvailable", totalAvailable)
+        return totalAvailable;
+        
     }
 }

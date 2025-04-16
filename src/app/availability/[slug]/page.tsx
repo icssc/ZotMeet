@@ -8,19 +8,20 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/custom/tabs";
+import { getCurrentSession } from "@/lib/auth";
 import {
     getTimeFromHourMinuteString,
     SAMPLE_MEMBERS,
 } from "@/lib/availability/utils";
+import { HourMinuteString } from "@/lib/types/chrono";
+import { cn } from "@/lib/utils";
+import { ZotDate } from "@/lib/zotdate";
 import {
+    getAllMemberAvailability,
     getAvailability,
     getExistingMeeting,
     getExistingMeetingDates,
-    getAllMemberAvailability
 } from "@/server/data/meeting/queries";
-import { HourMinuteString } from "@/lib/types/chrono";
-import { cn } from "@/lib/utils";
-import { getCurrentSession } from "@/lib/auth";
 
 interface PageProps {
     params: {
@@ -31,7 +32,8 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps) {
     const { slug } = params;
 
-    const meetingData = await getExistingMeeting(slug).catch((e) => { // get all meeting information from ID
+    const meetingData = await getExistingMeeting(slug).catch((e) => {
+        // get all meeting information from ID
         if (e instanceof Error) {
             console.error(e);
         }
@@ -44,7 +46,7 @@ export async function generateMetadata({ params }: PageProps) {
 
     return {
         title: {
-            default: 'View Meeting Availibility',
+            default: "View Meeting Availibility",
             absolute: `Availability for ${meetingData.title}`, // add meeting title
         },
         description: `Specify Meeting Availibility for ${meetingData.title}`,
@@ -65,15 +67,19 @@ export default async function Page({ params }: PageProps) {
         notFound();
     });
 
+    console.log("meetng data", meetingData);
+
     if (!meetingData) {
         notFound();
     }
 
     const meetingDates = await getExistingMeetingDates(meetingData.id);
-    console.log(`Meeting dates ${meetingDates[0]}`);
+    console.log("Meeting dates hahaha", meetingDates);
     const allAvailabilties = await getAllMemberAvailability({
         meetingId: meetingData.id,
     });
+
+    //const availabilityPerDay = allAvailabilties.meetingAvailabilities;
 
     const session = await getCurrentSession();
     let userAvailability = null;
@@ -87,17 +93,24 @@ export default async function Page({ params }: PageProps) {
             }
         }
         console.log(`Current user Availability/${slug}:`, userAvailability);
-
     } else {
         console.log("No user logged in");
     }
 
     console.log(`All member Availability/${slug}:`, allAvailabilties);
-
     const availabilityTimeBlocks = generateTimeBlocks(
         getTimeFromHourMinuteString(meetingData.fromTime as HourMinuteString),
         getTimeFromHourMinuteString(meetingData.toTime as HourMinuteString)
     );
+
+    const fromTimeNumber =
+        parseInt(meetingData.fromTime.substring(0, 2), 10) +
+        parseInt(meetingData.fromTime.substring(3, 5), 10) / 60;
+    const toTimeNumber =
+        parseInt(meetingData.toTime.substring(0, 2), 10) +
+        parseInt(meetingData.toTime.substring(3, 5), 10) / 60;
+
+    console.log("Availability time blocks:", availabilityTimeBlocks);
 
     return (
         <div className="space-y-2 px-4">
@@ -133,7 +146,9 @@ export default async function Page({ params }: PageProps) {
                         columns={5}
                         availabilityDates={[]}
                         availabilityTimeBlocks={availabilityTimeBlocks}
-                        groupAvailabilities={SAMPLE_MEMBERS}
+                        groupAvailabilities={allAvailabilties}
+                        fromTime={fromTimeNumber}
+                        toTime={toTimeNumber}
                     />
                 </TabsContent>
                 <TabsContent value="personal">
@@ -153,6 +168,7 @@ export default async function Page({ params }: PageProps) {
 const BLOCK_LENGTH: number = 15;
 
 const generateTimeBlocks = (startTime: number, endTime: number): number[] => {
+    console.log("hit", startTime, endTime);
     const timeBlocks: number[] = [];
     const minuteRange = Math.abs(endTime - startTime);
     const totalBlocks = Math.floor(minuteRange / BLOCK_LENGTH);

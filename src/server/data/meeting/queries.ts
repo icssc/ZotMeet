@@ -1,7 +1,7 @@
 import "server-only";
 
 import { db } from "@/db";
-import { availabilities, meetings } from "@/db/schema";
+import { availabilities, meetings, members } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 import { jsonb } from "drizzle-orm/pg-core";
 
@@ -65,14 +65,17 @@ export const getAllMemberAvailability = async ({
     const availability = await db
         .select({
             memberId: availabilities.memberId,
-            meetingAvailabilities: sql`${availabilities.meetingAvailabilities}::jsonb`.as('meetingAvailabilities')
+            meetingAvailabilities: sql`${availabilities.meetingAvailabilities}::jsonb`.as('meetingAvailabilities'),
+            displayName: members.displayName,
         })
         .from(availabilities)
+        .innerJoin(members, eq(availabilities.memberId, members.id))
         .where(
             and(
                 eq(availabilities.meetingId, meetingId)
             )
         );
+
 
     return availability;
 };
