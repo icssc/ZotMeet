@@ -10,9 +10,10 @@ import { SelectMeeting } from '@/db/schema'
 
 interface MeetingsDisplayProps {
   meetings: SelectMeeting[];
+  userId: string;
 }
 
-export const MeetingsDisplay = ({ meetings }: MeetingsDisplayProps) => {
+export const MeetingsDisplay = ({ meetings, userId }: MeetingsDisplayProps) => {
   const [showHostedOnly, setShowHostedOnly] = useState(false);
 
   const scheduledMeetings = meetings?.filter(meeting => meeting.scheduled) || [];

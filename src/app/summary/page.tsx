@@ -7,13 +7,15 @@ import { SelectMeeting } from '@/db/schema';
 const Summary = async () => {
   let meetings: SelectMeeting[] = [];
   let error: string | null = null;
+  let userId: string | null = null;
 
   try {
     const session = await getCurrentSession();
     if (!session?.user) {
       error = "You must be logged in to view your meetings.";
     } else {
-      meetings = await getMeetingsByUserId(session.user.memberId);
+      userId = session.user.memberId;
+      meetings = await getMeetingsByUserId(userId);
     }
   } catch (err) {
     error = "Failed to fetch meetings on the server.";
@@ -30,14 +32,19 @@ const Summary = async () => {
     );
   }
 
+  if (!userId) {
+    return <p>User ID not found.</p>;
+  }
+
   return (
     <div className='px-8 py-8'>
       <div className='flex flex-col gap-4 px-8 mb-4'>
         <h1 className='text-3xl font-montserrat font-medium'>Groups</h1>
         <GroupsDisplay />
       </div>
-      <MeetingsDisplay 
-        meetings={meetings} 
+      <MeetingsDisplay
+        meetings={meetings}
+        userId={userId}
       />
     </div>
   );
