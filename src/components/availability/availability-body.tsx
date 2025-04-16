@@ -1,25 +1,26 @@
 "use client";
 
+import { GroupAvailability } from "@/components/availability/group-availability";
+import { PersonalAvailability } from "@/components/availability/personal-availability";
+import { SelectMeeting } from "@/db/schema";
 import {
     getTimeFromHourMinuteString,
     SAMPLE_MEMBERS,
 } from "@/lib/availability/utils";
+import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { HourMinuteString } from "@/lib/types/chrono";
-import useAvailabilityStore from "@/store/useAvailabilityStore";
+import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 
-import { GroupAvailability } from "./group-availability";
-import { PersonalAvailability } from "./personal-availability";
-
-export default function AvailabilityBody({
+export function AvailabilityBody({
     meetingData,
     meetingDates,
     userAvailability,
 }: {
-    meetingData: any;
-    meetingDates: any;
-    userAvailability: any;
+    meetingData: SelectMeeting;
+    meetingDates: string[];
+    userAvailability: MemberMeetingAvailability | null;
 }) {
-    const { value } = useAvailabilityStore();
+    const { availabilityView } = useAvailabilityViewStore();
     const availabilityTimeBlocks = generateTimeBlocks(
         getTimeFromHourMinuteString(meetingData.fromTime as HourMinuteString),
         getTimeFromHourMinuteString(meetingData.toTime as HourMinuteString)
@@ -27,7 +28,7 @@ export default function AvailabilityBody({
 
     return (
         <div className={"space-y-6 px-6"}>
-            {value === "group" ? (
+            {availabilityView === "group" ? (
                 <GroupAvailability
                     columns={5}
                     availabilityDates={[]}

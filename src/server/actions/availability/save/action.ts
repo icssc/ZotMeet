@@ -18,12 +18,8 @@ export async function saveAvailability({
     displayName,
 }: saveAvailabilityProps) {
     try {
-        // TODO: Implement the logic to save availability dates with the new schema
-        // - Check if the user is logged in
         let { user } = await getCurrentSession();
 
-        // - If so, get the id of the user
-        // - If not, create a new member row and get the id
         if (!user) {
             user = await createGuest({
                 displayName:
@@ -34,43 +30,27 @@ export async function saveAvailability({
         }
         const memberId = user.memberId;
 
-        // - Check if the meeting exists
-        // - If so, get the id of the meeting
-        // - If not, return an error
         const meeting = await getExistingMeeting(meetingId);
 
         if (!meeting) {
             throw new Error("Meeting not found");
         }
 
-        // - Check if the user has existing availability for the meeting
-
-        // - Validate the availability dates according to the dates column of the meeting table
         const meetingWindows = meeting.dates.map((date) => {
             const [month, day, year] = date.split("-");
             const formattedDate = `${year}-${month}-${day}`;
 
-            // Create Date objects that represent the local time in the specified timezone
-            const options = { timeZone: meeting.timezone };
-
-            // Helper function to create ISO string adjusted for timezone
-            function createAdjustedISO(dateStr: string, timeStr: string) {
-                // Create a Date for the local time
-                const localDate = new Date(`${dateStr}T${timeStr}`);
-
-                // Convert to the target timezone's corresponding UTC time
-                const targetDate = new Date(
-                    localDate.toLocaleString("en-US", options)
-                );
-                const offset = localDate.getTime() - targetDate.getTime();
-                const adjustedDate = new Date(localDate.getTime() + offset);
-
-                return adjustedDate.toISOString();
-            }
-
             return {
-                start: createAdjustedISO(formattedDate, meeting.fromTime),
-                end: createAdjustedISO(formattedDate, meeting.toTime),
+                start: createAdjustedISO(
+                    formattedDate,
+                    meeting.fromTime,
+                    meeting.timezone
+                ),
+                end: createAdjustedISO(
+                    formattedDate,
+                    meeting.toTime,
+                    meeting.timezone
+                ),
             };
         });
         const isValid = validateAvailability(availabilityTimes, meetingWindows);
@@ -79,8 +59,6 @@ export async function saveAvailability({
             throw new Error("Invalid availability dates");
         }
 
-        // - If so, update the existing availability
-        // - If not, create a new availability row
         await db
             .insert(availabilities)
             .values({
@@ -110,6 +88,18 @@ export async function saveAvailability({
             },
         };
     }
+}
+
+function createAdjustedISO(dateStr: string, timeStr: string, timezone: string) {
+    const localDate = new Date(`${dateStr}T${timeStr}`);
+
+    const targetDate = new Date(
+        localDate.toLocaleString("en-US", { timeZone: timezone })
+    );
+    const offset = localDate.getTime() - targetDate.getTime();
+    const adjustedDate = new Date(localDate.getTime() + offset);
+
+    return adjustedDate.toISOString();
 }
 
 function validateAvailability(

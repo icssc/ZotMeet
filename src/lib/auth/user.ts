@@ -19,6 +19,11 @@ export type UserProfile = {
     displayName: string;
 };
 
+export type GuestMember = {
+    memberId: string;
+    displayName: string;
+};
+
 export async function createUser(
     email: string,
     displayName: string,
@@ -88,7 +93,7 @@ export async function createGuest({
 }: {
     displayName: string;
     meetingId: string;
-}): Promise<UserProfile> {
+}): Promise<GuestMember> {
     // Temporary implementation for guest users.
     const existingMember = await db
         .select()
@@ -106,39 +111,19 @@ export async function createGuest({
         throw new Error(`$Display name "${displayName}" already exists.`);
     }
 
-    const userId = generateIdFromEntropySize(10);
+    const [newMember] = await db
+        .insert(members)
+        .values({ displayName })
+        .returning({
+            memberId: members.id,
+        });
 
-    const newUser = await db.transaction(async (tx) => {
-        const [newMember] = await tx
-            .insert(members)
-            .values({ displayName })
-            .returning({
-                id: members.id,
-            });
-
-        const [newUser] = await tx
-            .insert(users)
-            .values({
-                id: userId,
-                email: `guest_${crypto.randomUUID()}@example.com`,
-                createdAt: new Date(),
-                memberId: newMember.id,
-            })
-            .returning({
-                id: users.id,
-                email: users.email,
-                memberId: users.memberId,
-            });
-
-        return newUser;
-    });
-
-    if (newUser === null) {
+    if (newMember === null) {
         throw new Error("Unexpected error");
     }
 
     return {
-        ...newUser,
+        ...newMember,
         displayName,
     };
 }

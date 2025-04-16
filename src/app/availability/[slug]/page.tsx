@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import AvailabilityBody from "@/components/availability/availability-body";
+import { AvailabilityBody } from "@/components/availability/availability-body";
 import { AvailabilityHeader } from "@/components/availability/availability-header";
 import { getCurrentSession } from "@/lib/auth";
 import {
@@ -18,7 +18,6 @@ export async function generateMetadata({ params }: PageProps) {
     const { slug } = params;
 
     const meetingData = await getExistingMeeting(slug).catch((e) => {
-        // get all meeting information from ID
         if (e instanceof Error) {
             console.error(e);
         }
@@ -32,7 +31,7 @@ export async function generateMetadata({ params }: PageProps) {
     return {
         title: {
             default: "View Meeting Availibility",
-            absolute: `Availability for ${meetingData.title}`, // add meeting title
+            absolute: `Availability for ${meetingData.title}`,
         },
         description: `Specify Meeting Availibility for ${meetingData.title}`,
     };

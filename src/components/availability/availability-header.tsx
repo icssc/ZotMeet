@@ -4,7 +4,7 @@ import { useAvailabilityContext } from "@/components/availability/context/availa
 import { Button } from "@/components/ui/button";
 import { SelectMeeting } from "@/db/schema";
 import { cn } from "@/lib/utils";
-import useAvailabilityStore from "@/store/useAvailabilityStore";
+import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { saveAvailability } from "@actions/availability/save/action";
 import { CircleCheckIcon, CircleXIcon } from "lucide-react";
 
@@ -13,24 +13,17 @@ interface AvailabilityHeaderProps {
 }
 
 export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
-    const {
-        // isEditingAvailability,
-        // setIsEditingAvailability,
-        // setIsStateUnsaved,
-        availabilityDates,
-    } = useAvailabilityContext();
+    const { availabilityDates } = useAvailabilityContext();
 
-    const editAvailability = useAvailabilityStore(
-        (state) => state.editAvailability
+    const availabilityView = useAvailabilityViewStore(
+        (store) => store.availabilityView
     );
-    const value = useAvailabilityStore((state) => state.value);
+    const setAvailabilityView = useAvailabilityViewStore(
+        (store) => store.setAvailabilityView
+    );
 
     const handleCancel = async () => {
-        // $availabilityDates =
-        //     (await getGeneralAvailability(data, $guestSession)) ??
-        //     generateSampleDates();
-        // setIsEditingAvailability((prev) => !prev);
-        // setIsStateUnsaved(false);
+        setAvailabilityView("group");
     };
 
     const handleSave = async () => {
@@ -43,7 +36,13 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
             displayName: "HELLO_WORLD",
         };
 
-        await saveAvailability(availability);
+        const response = await saveAvailability(availability);
+
+        if (response.status === 200) {
+            setAvailabilityView("group");
+        } else {
+            console.error("Error saving availability:", response.body.error);
+        }
     };
 
     return (
@@ -52,14 +51,14 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
                 {meetingData.title}
             </h1>
 
-            {value === "personal" ? (
+            {availabilityView === "personal" ? (
                 <div className="flex space-x-2 md:space-x-4">
                     <Button
                         className={cn(
                             "flex-center h-8 min-h-fit border-yellow-500 bg-white px-2 uppercase text-yellow-500 outline md:w-28 md:p-0",
                             "hover:border-yellow-500 hover:bg-yellow-500 hover:text-white"
                         )}
-                        onClick={editAvailability(handleCancel)}
+                        onClick={handleCancel}
                     >
                         <span className="hidden md:flex">Cancel</span>
                         <CircleXIcon />
@@ -106,14 +105,13 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
                             "group hover:border-green-500 hover:bg-green-500"
                         )}
                         type="submit"
-                        onClick={editAvailability(handleSave)}
+                        onClick={handleSave}
                     >
                         <span className="hidden text-green-500 group-hover:text-white md:flex">
                             Save
                         </span>
                         <CircleCheckIcon className="text-green-500 group-hover:text-white" />
                     </Button>
-                    {/* </form> */}
                 </div>
             ) : (
                 <div className="flex space-x-4">
@@ -121,7 +119,7 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
                         className={cn(
                             "flex-center h-8 min-h-fit px-2 uppercase md:w-40 md:p-0"
                         )}
-                        onClick={editAvailability()}
+                        onClick={() => setAvailabilityView("personal")}
                     >
                         <span className="hidden md:flex">Add Availability</span>
                     </Button>

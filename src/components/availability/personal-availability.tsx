@@ -7,8 +7,11 @@ import { AvailabilityBlocks } from "@/components/availability/table/availability
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import { MeetingDateSelectSchema, SelectMeeting } from "@/db/schema";
-import { AvailabilityBlockType } from "@/lib/types/availability";
+import { SelectMeeting } from "@/db/schema";
+import {
+    AvailabilityBlockType,
+    MemberMeetingAvailability,
+} from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
 // import LoginFlow from "./LoginModal";
@@ -16,11 +19,8 @@ import { ZotDate } from "@/lib/zotdate";
 interface PersonalAvailabilityProps {
     columns: number;
     meetingData: SelectMeeting;
-    meetingDates: MeetingDateSelectSchema[];
-    availability: {
-        memberId: string;
-        meetingAvailabilities: string[];
-    } | null;
+    meetingDates: string[];
+    availability: MemberMeetingAvailability | null;
     availabilityTimeBlocks: number[];
 }
 
