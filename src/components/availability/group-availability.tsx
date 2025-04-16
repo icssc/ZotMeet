@@ -31,9 +31,10 @@ export function GroupAvailability({
     toTime,
 }: GroupAvailabilityProps) {
     const availabilityDates = useMemo(
-        () => generateDates(fromTime, toTime, groupAvailabilities),
+        () => generateDates(fromTime * 60, toTime * 60, groupAvailabilities),
         []
     );
+    console.log("fromtime, totime: ", fromTime, toTime);
     console.log("AVAILABILITY DATES", availabilityDates[0]);
     console.log("AVAILABILITY DATES", availabilityDates[1]);
 
