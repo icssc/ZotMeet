@@ -26,7 +26,12 @@ export function AvailabilityHeader({
     meetingData,
     user,
 }: AvailabilityHeaderProps) {
-    const { availabilityDates } = useAvailabilityContext();
+    const {
+        availabilityDates,
+        setAvailabilityDates,
+        originalAvailabilityDates,
+        setOriginalAvailabilityDates,
+    } = useAvailabilityContext();
     const {
         hasAvailability,
         setHasAvailability,

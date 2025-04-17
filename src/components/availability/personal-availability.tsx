@@ -49,11 +49,8 @@ export function PersonalAvailability({
         setIsStateUnsaved,
         availabilityDates,
         setAvailabilityDates,
+        setOriginalAvailabilityDates,
     } = useAvailabilityContext();
-
-    const [guestSession, setGuestSession] = useState({
-        meetingId: meetingData.id || "",
-    });
 
     useEffect(() => {
         setItemsPerPage(columns);
