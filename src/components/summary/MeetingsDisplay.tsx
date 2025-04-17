@@ -63,11 +63,15 @@ export const MeetingsDisplay = ({ meetings, userId }: MeetingsDisplayProps) => {
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="scheduled">
+        <TabsContent value="scheduled" className="max-h-[47vh] overflow-y-auto [&::-webkit-scrollbar]:w-[6px] 
+        [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400 
+        [&::-webkit-scrollbar-track]:bg-gray-200 pr-4">
           <ScheduledMeetingsDisplay meetings={filteredScheduledMeetings} />
         </TabsContent>
         
-        <TabsContent value="unscheduled">
+        <TabsContent value="unscheduled" className="max-h-[47vh] overflow-y-auto [&::-webkit-scrollbar]:w-[6px] 
+        [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400 
+        [&::-webkit-scrollbar-track]:bg-gray-200 pr-4">
           <UnscheduledMeetingsDisplay meetings={filteredUnscheduledMeetings} />
         </TabsContent>
       </Tabs>
