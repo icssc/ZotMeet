@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { SelectMeeting } from "@/db/schema";
+import { UserProfile } from "@/lib/auth/user";
 import {
     getTimeFromHourMinuteString,
     SAMPLE_MEMBERS,
@@ -20,7 +22,14 @@ export function AvailabilityBody({
     meetingDates: string[];
     userAvailability: MemberMeetingAvailability | null;
 }) {
-    const { availabilityView } = useAvailabilityViewStore();
+    const { availabilityView, setHasAvailability } = useAvailabilityViewStore(); // boop add a field for "dirtying"
+
+    useEffect(() => {
+        if (userAvailability) {
+            setHasAvailability(true);
+        }
+    }, [setHasAvailability, userAvailability]);
+
     const availabilityTimeBlocks = generateTimeBlocks(
         getTimeFromHourMinuteString(meetingData.fromTime as HourMinuteString),
         getTimeFromHourMinuteString(meetingData.toTime as HourMinuteString)

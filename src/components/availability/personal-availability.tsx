@@ -187,10 +187,11 @@ export function PersonalAvailability({
 
         const availabilitiesByDate = new Map<string, string[]>();
 
+        // Only populate the map if the availability object exists and has time blocks
         if (availability && availability.meetingAvailabilities) {
             availability.meetingAvailabilities.forEach((timeStr) => {
                 const time = new Date(timeStr);
-                const dateStr = time.toISOString().split("T")[0];
+                const dateStr = time.toISOString().split("T")[0]; // Get just the date part
 
                 if (!availabilitiesByDate.has(dateStr)) {
                     availabilitiesByDate.set(dateStr, []);
@@ -200,10 +201,13 @@ export function PersonalAvailability({
             });
         }
 
+        // For every meeting date, create a corresponding ZotDate object
         const convertedDates = meetingDates.map((meetingDate) => {
             const date = new Date(meetingDate);
             const dateStr = date.toISOString().split("T")[0];
 
+            // TODO: Refactor this logic for new date string format.
+            // Choose default bounds if no availabilityTimeBlocks exist
             const earliestMinutes =
                 availabilityTimeBlocks.length > 0
                     ? availabilityTimeBlocks[0]
@@ -216,8 +220,10 @@ export function PersonalAvailability({
                       ] + 15
                     : 1050;
 
+            // Load the availability time strings for this date or use empty array
             const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
 
+            // Create the ZotDate with any found availabilities
             const zotDate = new ZotDate(date, false, dateAvailabilities);
             zotDate.earliestTime = earliestMinutes;
             zotDate.latestTime = latestMinutes;
@@ -232,6 +238,7 @@ export function PersonalAvailability({
         setAvailabilityDates,
         availabilityTimeBlocks,
         isStateUnsaved,
+        availabilityDates.length, // TODO: May cause problems
     ]);
 
     const handlePrevPage = () => {

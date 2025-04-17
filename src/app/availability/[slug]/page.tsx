@@ -81,7 +81,10 @@ export default async function Page({ params }: PageProps) {
 
     return (
         <div className="space-y-2 px-4">
-            <AvailabilityHeader meetingData={meetingData} />
+            <AvailabilityHeader
+                meetingData={meetingData}
+                user={session.user}
+            />
 
             <AvailabilityBody
                 meetingData={meetingData}

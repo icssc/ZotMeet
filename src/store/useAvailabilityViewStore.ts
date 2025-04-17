@@ -3,6 +3,8 @@ import { create } from "zustand";
 interface AvailabilityViewStore {
     availabilityView: "group" | "personal";
     setAvailabilityView: (view: "group" | "personal") => void;
+    hasAvailability: boolean;
+    setHasAvailability: (hasAvailability: boolean) => void;
 }
 
 export const useAvailabilityViewStore = create<AvailabilityViewStore>(
@@ -10,6 +12,10 @@ export const useAvailabilityViewStore = create<AvailabilityViewStore>(
         availabilityView: "group",
         setAvailabilityView: (view) => {
             set({ availabilityView: view });
+        },
+        hasAvailability: false,
+        setHasAvailability: (hasAvailability) => {
+            set({ hasAvailability });
         },
     })
 );

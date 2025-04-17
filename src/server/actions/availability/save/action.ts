@@ -19,16 +19,19 @@ export async function saveAvailability({
 }: saveAvailabilityProps) {
     try {
         let { user } = await getCurrentSession();
+        let memberId: string;
 
         if (!user) {
-            user = await createGuest({
+            const guest = await createGuest({
                 displayName:
                     displayName ??
                     `TEST_${Math.floor(Math.random() * 1000 + 1)}`,
                 meetingId,
             });
+            memberId = guest.memberId;
+        } else {
+            memberId = user.memberId;
         }
-        const memberId = user.memberId;
 
         const meeting = await getExistingMeeting(meetingId);
 
