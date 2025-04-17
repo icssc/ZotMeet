@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Montserrat, DM_Sans } from "next/font/google";
 
 import "./globals.css";
 
@@ -10,6 +11,16 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+
+const montserrat = Montserrat({
+    subsets: ['latin'],
+    variable: '--font-montserrat',
+});
+
+const dmSans = DM_Sans({
+    subsets: ['latin'],
+    variable: '--font-dm-sans',
+});
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -39,7 +50,7 @@ export default function RootLayout({
         <html lang="en">
             <body
                 className={cn(
-                    `${geistSans.variable} ${geistMono.variable} antialiased`,
+                    `${geistSans.variable} ${geistMono.variable} ${montserrat.variable} ${dmSans.variable} antialiased`,
                     "bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]"
                 )}
             >

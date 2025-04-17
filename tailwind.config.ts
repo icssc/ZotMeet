@@ -79,9 +79,9 @@ const config: Config = {
                 sm: "calc(var(--radius) - 4px)",
             },
             fontFamily: {
-                montserrat: ["Montserrat", "sans-serif"],
-                "dm-sans": ["'DM Sans'", "sans-serif"],
-                default: ["'DM Sans'", "sans-serif"],
+                montserrat: ["var(--font-montserrat)"],
+                "dm-sans": ["var(--font-dm-sans)"],
+                default: ["var(--font-dm-sans)"],
             },
         },
     },

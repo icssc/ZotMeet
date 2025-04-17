@@ -2,7 +2,7 @@ import "server-only";
 
 import { db } from "@/db";
 import { availabilities, meetings } from "@/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, sql, or } from "drizzle-orm";
 import { jsonb } from "drizzle-orm/pg-core";
 
 
@@ -76,3 +76,33 @@ export const getAllMemberAvailability = async ({
 
     return availability;
 };
+
+export async function getMeetingsByUserId(userId: string) {
+  const userMeetings = await db
+    .select({
+      id: meetings.id,
+      title: meetings.title,
+      description: meetings.description,
+      location: meetings.location,
+      scheduled: meetings.scheduled,
+      fromTime: meetings.fromTime,
+      toTime: meetings.toTime,
+      timezone: meetings.timezone,
+      dates: meetings.dates,
+      hostId: meetings.hostId,
+      group_id: meetings.group_id
+    })
+    .from(meetings)
+    .leftJoin(
+      availabilities,
+      eq(meetings.id, availabilities.meetingId)
+    )
+    .where(
+      or(
+        eq(meetings.hostId, userId),
+        eq(availabilities.memberId, userId)
+      )
+    );
+
+  return userMeetings;
+}
