@@ -3,8 +3,8 @@ import { CalendarConstants } from "@/lib/types/chrono";
 export class ZotDate {
     readonly day: Date;
     isSelected: boolean;
-    availability: boolean[];
-    groupAvailability: (number[] | null)[];
+    availability: string[];
+    groupAvailability: { [blockIndex: number]: number[] | null };
     blockLength: number;
 
     // Times represented as minutes past midnight
@@ -15,11 +15,12 @@ export class ZotDate {
      * Description
      * @param day a Date object representing a calendar day
      * @param isSelected whether the day is selected from the calendar
+     * @param availability array of ISO strings representing available time slots
      */
     constructor(
         day: Date = new Date(),
         isSelected: boolean = false,
-        availability: boolean[] = []
+        availability: string[] = []
     ) {
         this.day = day;
         this.isSelected = isSelected;
@@ -28,6 +29,35 @@ export class ZotDate {
         this.latestTime = 0;
         this.availability = availability;
         this.groupAvailability = [];
+    }
+
+    /**
+     * Converts block index to ISO string
+     * @param blockIndex the index of the time block
+     * @return ISO string representing the start time of the block
+     */
+    private getISOStringForBlock(blockIndex: number): string {
+        const minutesFromMidnight =
+            this.earliestTime + blockIndex * this.blockLength;
+        const newDate = new Date(this.day);
+        newDate.setHours(Math.floor(minutesFromMidnight / 60));
+        newDate.setMinutes(minutesFromMidnight % 60);
+        newDate.setSeconds(0);
+        newDate.setMilliseconds(0);
+        return newDate.toISOString();
+    }
+
+    /**
+     * Converts ISO string to block index
+     * @param ISOString ISO string representing a datetime
+     * @return the corresponding block index for the given time
+     */
+    private getBlockIndexFromISOString(ISOString: string): number {
+        const date = new Date(ISOString);
+        const minutesFromMidnight = date.getHours() * 60 + date.getMinutes();
+        return Math.floor(
+            (minutesFromMidnight - this.earliestTime) / this.blockLength
+        );
     }
 
     /**
@@ -342,7 +372,6 @@ export class ZotDate {
      * @param earliestTime minutes since midnight that marks the earliest boundary of possible meeting times
      * @param latestTime minutes since midnight that marks the latest boundary of possible meeting times
      * @param blockLength optional minutes per availability block, default is 15
-     * @return an array of numbers, each representing minutes from the earliest time
      */
     static initializeAvailabilities(
         selectedDates: ZotDate[],
@@ -350,19 +379,12 @@ export class ZotDate {
         latestTime: number = 1050,
         blockLength: number = 15
     ): void {
-        const minuteRange = Math.abs(latestTime - earliestTime);
-        const totalBlocks = Math.floor(minuteRange / blockLength);
-
         selectedDates.forEach((selectedDate: ZotDate) => {
             selectedDate.earliestTime = earliestTime;
             selectedDate.latestTime = latestTime;
             selectedDate.blockLength = blockLength;
-            selectedDate.availability = new Array<boolean>(totalBlocks).fill(
-                false
-            );
-            selectedDate.groupAvailability = new Array<null>(totalBlocks).fill(
-                null
-            );
+            selectedDate.availability = [];
+            selectedDate.groupAvailability = {};
         });
     }
 
@@ -372,7 +394,8 @@ export class ZotDate {
      * @return the current availability of the block corresponding to the given index
      */
     getBlockAvailability(index: number): boolean {
-        return this.availability[index];
+        const ISOString = this.getISOStringForBlock(index);
+        return this.availability.includes(ISOString);
     }
 
     /**
@@ -386,12 +409,34 @@ export class ZotDate {
         laterBlockIndex: number,
         selection: boolean
     ): void {
-        for (
-            let blockIndex = earlierBlockIndex;
-            blockIndex <= laterBlockIndex;
-            blockIndex++
-        ) {
-            this.availability[blockIndex] = selection;
+        // If setting to available (true)
+        if (selection) {
+            // Add ISO strings for each block in the range
+            for (
+                let blockIndex = earlierBlockIndex;
+                blockIndex <= laterBlockIndex;
+                blockIndex++
+            ) {
+                const ISOString = this.getISOStringForBlock(blockIndex);
+
+                // Only add if not already present
+                if (!this.availability.includes(ISOString)) {
+                    this.availability.push(ISOString);
+                }
+            }
+            // Sort the ISO strings to maintain chronological order
+            this.availability.sort();
+        }
+        // If setting to unavailable (false)
+        else {
+            // Remove ISO strings in the range
+            this.availability = this.availability.filter((ISOString) => {
+                const blockIndex = this.getBlockIndexFromISOString(ISOString);
+                return (
+                    blockIndex < earlierBlockIndex ||
+                    blockIndex > laterBlockIndex
+                );
+            });
         }
     }
 
@@ -438,6 +483,16 @@ export class ZotDate {
      * @return the current availability of the block corresponding to the given index
      */
     getGroupAvailabilityBlock(index: number): number[] | null {
-        return this.groupAvailability[index];
+        return this.groupAvailability[index] || null;
+    }
+
+    /**
+     * Returns all block indices that are currently set as available
+     * @return array of block indices that are available
+     */
+    getAvailableBlockIndices(): number[] {
+        return this.availability.map((ISOString) =>
+            this.getBlockIndexFromISOString(ISOString)
+        );
     }
 }

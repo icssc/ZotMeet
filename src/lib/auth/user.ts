@@ -1,8 +1,8 @@
 import { db } from "@/db";
-import { members, users } from "@/db/schema";
+import { availabilities, members, users } from "@/db/schema";
 import { generateIdFromEntropySize } from "@/lib/auth/crypto";
 import { hashPassword } from "@/lib/auth/password";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 // Projection of user table for db queries to limit what is returned
 export const userProfileProjection = {
@@ -15,6 +15,11 @@ export const userProfileProjection = {
 export type UserProfile = {
     id: string;
     email: string;
+    memberId: string;
+    displayName: string;
+};
+
+export type GuestMember = {
     memberId: string;
     displayName: string;
 };
@@ -80,4 +85,45 @@ export async function getUserPasswordHash(userId: string): Promise<string> {
     }
 
     return user.passwordHash;
+}
+
+export async function createGuest({
+    displayName,
+    meetingId,
+}: {
+    displayName: string;
+    meetingId: string;
+}): Promise<GuestMember> {
+    // Temporary implementation for guest users.
+    const existingMember = await db
+        .select()
+        .from(availabilities)
+        .innerJoin(members, eq(availabilities.memberId, members.id))
+        .where(
+            and(
+                eq(availabilities.meetingId, meetingId),
+                eq(members.displayName, displayName)
+            )
+        )
+        .limit(1);
+
+    if (existingMember && existingMember.length > 0) {
+        throw new Error(`$Display name "${displayName}" already exists.`);
+    }
+
+    const [newMember] = await db
+        .insert(members)
+        .values({ displayName })
+        .returning({
+            memberId: members.id,
+        });
+
+    if (newMember === null) {
+        throw new Error("Unexpected error");
+    }
+
+    return {
+        ...newMember,
+        displayName,
+    };
 }

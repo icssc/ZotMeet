@@ -28,7 +28,7 @@ export const members = pgTable(
     {
         id: uuid("id").primaryKey().notNull().defaultRandom(),
         displayName: text("display_name").notNull(),
-    },
+    }
     // (table) => ({
     //     unique: unique().on(table.id),
     // })
@@ -179,9 +179,12 @@ export const availabilities = pgTable(
             .notNull()
             .references(() => meetings.id, { onDelete: "cascade" }),
         status: attendanceEnum("status"),
-        // JSON array of timestamps
+        /**
+         * A JSON array of ISO dates as strings
+         * @example ["2025-04-11T00:00:00.000Z", "2025-04-12T00:00:00.000Z"]
+         */
         meetingAvailabilities: jsonb("meeting_availabilities")
-            .$type<Date[]>()
+            .$type<string[]>()
             .notNull()
             .default([]),
     },

@@ -1,15 +1,21 @@
 import "server-only";
 
 import { db } from "@/db";
-import { availabilities, meetings } from "@/db/schema";
+import { availabilities, meetings, SelectMeeting } from "@/db/schema";
+import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { and, eq, sql } from "drizzle-orm";
 import { jsonb } from "drizzle-orm/pg-core";
 
-
-export async function getExistingMeeting(meetingId: string) {
+export async function getExistingMeeting(
+    meetingId: string
+): Promise<SelectMeeting> {
     const meeting = await db.query.meetings.findFirst({
         where: eq(meetings.id, meetingId),
     });
+
+    if (!meeting) {
+        throw new Error("Meeting not found");
+    }
 
     return meeting;
 }
@@ -40,16 +46,18 @@ export const getAvailability = async ({
     userId: string;
     meetingId: string;
 }) => {
-    const availability = await db.query.availabilities.findFirst(
-        {
-            extras: {
-                meetingAvailabilities: sql`${availabilities.meetingAvailabilities}::jsonb`.as('meetingAvailabilities'),
-            },
-            where:
-                and(eq(availabilities.memberId, userId),
-                    eq(availabilities.meetingId, meetingId))
-        }
-    )
+    const availability = await db.query.availabilities.findFirst({
+        extras: {
+            meetingAvailabilities:
+                sql`${availabilities.meetingAvailabilities}::jsonb`.as(
+                    "meetingAvailabilities"
+                ),
+        },
+        where: and(
+            eq(availabilities.memberId, userId),
+            eq(availabilities.meetingId, meetingId)
+        ),
+    });
 
     if (!availability) {
         return;
@@ -61,18 +69,14 @@ export const getAllMemberAvailability = async ({
     meetingId,
 }: {
     meetingId: string;
-}) => {
+}): Promise<MemberMeetingAvailability[]> => {
     const availability = await db
         .select({
             memberId: availabilities.memberId,
-            meetingAvailabilities: sql`${availabilities.meetingAvailabilities}::jsonb`.as('meetingAvailabilities')
+            meetingAvailabilities: availabilities.meetingAvailabilities,
         })
         .from(availabilities)
-        .where(
-            and(
-                eq(availabilities.meetingId, meetingId)
-            )
-        );
+        .where(and(eq(availabilities.meetingId, meetingId)));
 
     return availability;
 };

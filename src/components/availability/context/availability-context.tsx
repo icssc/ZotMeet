@@ -31,6 +31,8 @@ interface AvailabilityContextProps {
     setIsStateUnsaved: Dispatch<SetStateAction<boolean>>;
     availabilityDates: ZotDate[];
     setAvailabilityDates: Dispatch<SetStateAction<ZotDate[]>>;
+    originalAvailabilityDates: ZotDate[];
+    setOriginalAvailabilityDates: Dispatch<SetStateAction<ZotDate[]>>;
 }
 
 const AvailabilityContext = createContext<AvailabilityContextProps | undefined>(

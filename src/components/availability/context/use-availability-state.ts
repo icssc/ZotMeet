@@ -20,6 +20,9 @@ export const useAvailabilityState = () => {
     const [isEditingAvailability, setIsEditingAvailability] = useState(false);
     const [isStateUnsaved, setIsStateUnsaved] = useState(false);
     const [availabilityDates, setAvailabilityDates] = useState<ZotDate[]>([]);
+    const [originalAvailabilityDates, setOriginalAvailabilityDates] = useState<
+        ZotDate[]
+    >([]);
 
     return {
         startBlockSelection,
@@ -40,5 +43,7 @@ export const useAvailabilityState = () => {
         setIsStateUnsaved,
         availabilityDates,
         setAvailabilityDates,
+        originalAvailabilityDates,
+        setOriginalAvailabilityDates,
     };
 };
