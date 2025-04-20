@@ -3,8 +3,7 @@ import "server-only";
 import { db } from "@/db";
 import { availabilities, meetings, SelectMeeting } from "@/db/schema";
 import { MemberMeetingAvailability } from "@/lib/types/availability";
-import { and, eq, sql } from "drizzle-orm";
-import { jsonb } from "drizzle-orm/pg-core";
+import { and, eq, or, sql } from "drizzle-orm";
 
 export async function getExistingMeeting(
     meetingId: string
@@ -73,10 +72,43 @@ export const getAllMemberAvailability = async ({
     const availability = await db
         .select({
             memberId: availabilities.memberId,
-            meetingAvailabilities: availabilities.meetingAvailabilities,
+            meetingAvailabilities:
+                sql`${availabilities.meetingAvailabilities}::jsonb`.as(
+                    "meetingAvailabilities"
+                ),
         })
         .from(availabilities)
         .where(and(eq(availabilities.meetingId, meetingId)));
 
-    return availability;
+    return availability as {
+        memberId: string;
+        meetingAvailabilities: string[];
+    }[];
 };
+
+export async function getMeetings(memberId: string) {
+    const userMeetings = await db
+        .select({
+            id: meetings.id,
+            title: meetings.title,
+            description: meetings.description,
+            location: meetings.location,
+            scheduled: meetings.scheduled,
+            fromTime: meetings.fromTime,
+            toTime: meetings.toTime,
+            timezone: meetings.timezone,
+            dates: meetings.dates,
+            hostId: meetings.hostId,
+            group_id: meetings.group_id,
+        })
+        .from(meetings)
+        .leftJoin(availabilities, eq(meetings.id, availabilities.meetingId))
+        .where(
+            or(
+                eq(meetings.hostId, memberId),
+                eq(availabilities.memberId, memberId)
+            )
+        );
+
+    return userMeetings;
+}
