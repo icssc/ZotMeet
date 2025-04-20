@@ -49,13 +49,11 @@ export function GroupResponses({
                 earliestTime + selectedBlockIndex * blockLength + blockLength,
                 false
             );
-
             setBlockInfoString(`${formattedDate}, ${startTime} - ${endTime}`);
         } else {
             setBlockInfoString("Select a cell to view");
         }
     }, [selectedZotDateIndex, selectedBlockIndex, availabilityDates]);
-
     return (
         <div>
             <div className="hidden pb-1 pl-8 lg:block">

@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { AvailabilityBody } from "@/components/availability/availability-body";
 import { AvailabilityHeader } from "@/components/availability/availability-header";
 import { getCurrentSession } from "@/lib/auth";
@@ -21,6 +21,7 @@ export async function generateMetadata({ params }: PageProps) {
         if (e instanceof Error) {
             console.error(e);
         }
+
         notFound();
     });
 
@@ -30,10 +31,10 @@ export async function generateMetadata({ params }: PageProps) {
 
     return {
         title: {
-            default: "View Meeting Availibility",
-            absolute: `Availability for ${meetingData.title}`,
+            default: "View Meeting Availability",
+            absolute: `Availability for ${meetingData.title}`, // add meeting title
         },
-        description: `Specify Meeting Availibility for ${meetingData.title}`,
+        description: `Specify Meeting Availability for ${meetingData.title}`,
     };
 }
 
@@ -56,7 +57,6 @@ export default async function Page({ params }: PageProps) {
     }
 
     const meetingDates = await getExistingMeetingDates(meetingData.id);
-    console.log(`Meeting dates ${meetingDates[0]}`);
     const allAvailabilties = await getAllMemberAvailability({
         meetingId: meetingData.id,
     });
@@ -90,6 +90,7 @@ export default async function Page({ params }: PageProps) {
                 meetingData={meetingData}
                 meetingDates={meetingDates}
                 userAvailability={userAvailability}
+                allAvailabilties={allAvailabilties}
             />
         </div>
     );

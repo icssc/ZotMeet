@@ -1,38 +1,54 @@
-import { MemberAvailability } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
+import { ZotDate } from "@/lib/zotdate";
 
 interface GroupAvailabilityBlockProps {
-    groupAvailabilities: MemberAvailability[];
-    availableMemberIndices: number[] | null;
+    groupAvailabilities: ZotDate[];
     className?: string;
     tableCellStyles?: string;
     onClick: VoidFunction;
     onHover?: VoidFunction;
+    timestamp: string;
+}
+
+function getAllUniqueMembers(dates: ZotDate[]): string[] {
+    return Array.from(
+        new Set(
+            dates
+                .flatMap((date) => Object.values(date.groupAvailability))
+                .flat()
+        )
+    );
 }
 
 export function GroupAvailabilityBlock({
+    timestamp,
     groupAvailabilities,
-    availableMemberIndices,
     tableCellStyles = "",
     className = "",
     onClick,
     onHover,
 }: GroupAvailabilityBlockProps) {
-    const calculateGroupBlockColor = (
-        availableMemberIndices: number[] | null
-    ) => {
-        if (availableMemberIndices) {
-            const opacity =
-                availableMemberIndices.length / groupAvailabilities.length;
-            return `rgba(55, 124, 251, ${opacity})`;
+    const members = getAllUniqueMembers(groupAvailabilities);
+
+    const calculateGroupBlockColor = () => {
+        const day = groupAvailabilities.find(
+            (date) => date.day.getDay() === new Date(timestamp).getDay()
+        );
+
+        const block = day?.groupAvailability[timestamp];
+
+        if (!block) {
+            return "transparent";
         }
-        return "transparent";
+
+        const opacity = block.length / members.length;
+        return `rgba(55, 124, 251, ${opacity})`;
     };
 
     return (
         <button
             className={cn(
-                "border-gray-medium h-full w-full border-r-[1px]",
+                "h-full w-full border-r-[1px] border-gray-medium",
                 tableCellStyles,
                 className
             )}
@@ -40,11 +56,9 @@ export function GroupAvailabilityBlock({
             onMouseEnter={onHover}
         >
             <div
-                className="block h-full w-full py-2"
+                className="block w-full h-full py-2"
                 style={{
-                    backgroundColor: calculateGroupBlockColor(
-                        availableMemberIndices
-                    ),
+                    backgroundColor: calculateGroupBlockColor(),
                 }}
             />
         </button>

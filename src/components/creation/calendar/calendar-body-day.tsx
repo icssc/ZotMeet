@@ -8,7 +8,6 @@ interface CalendarBodyDayProps {
     setStartDaySelection: Dispatch<SetStateAction<ZotDate | undefined>>;
     endDaySelection: ZotDate | undefined;
     setEndDaySelection: Dispatch<SetStateAction<ZotDate | undefined>>;
-    updateCalendar: VoidFunction;
     currentMonth: number;
     updateSelectedRange: (startDate: ZotDate, endDate: ZotDate) => void;
 }
@@ -19,7 +18,6 @@ export function CalendarBodyDay({
     setStartDaySelection,
     endDaySelection,
     setEndDaySelection,
-    updateCalendar,
     currentMonth,
     updateSelectedRange,
 }: CalendarBodyDayProps) {
@@ -43,8 +41,6 @@ export function CalendarBodyDay({
                 console.error(err);
             }
         }
-
-        updateCalendar();
 
         setStartDaySelection(undefined);
         setEndDaySelection(undefined);

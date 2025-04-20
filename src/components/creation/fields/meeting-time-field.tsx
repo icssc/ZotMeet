@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import {
     Select,
     SelectContent,
@@ -8,6 +8,15 @@ import {
 } from "@/components/ui/select";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { ClockIcon } from "lucide-react";
+
+const convertTo24Hour = (hour: number, period: string) => {
+    if (period === "PM" && hour !== 12) {
+        hour += 12;
+    } else if (period === "AM" && hour === 12) {
+        hour = 0;
+    }
+    return hour.toString().padStart(2, "0");
+};
 
 interface MeetingTimeFieldProps {
     setStartTime: Dispatch<SetStateAction<HourMinuteString>>;
@@ -23,44 +32,39 @@ export const MeetingTimeField = ({
     const [startPeriod, setStartPeriod] = useState("AM");
     const [endPeriod, setEndPeriod] = useState("PM");
 
-    const convertTo24Hour = (hour: number, period: string) => {
-        if (period === "PM" && hour !== 12) {
-            hour += 12;
-        } else if (period === "AM" && hour === 12) {
-            hour = 0;
-        }
-        return hour.toString().padStart(2, "0");
-    };
-
     const handleStartHourChange = (value: string) => {
-        setStartHour(parseInt(value));
+        const hour = parseInt(value);
+        setStartHour(hour);
+        setStartTime(
+            `${convertTo24Hour(hour, startPeriod)}:00:00` as HourMinuteString
+        );
     };
 
     const handleStartPeriodChange = (value: string) => {
         setStartPeriod(value);
+        setStartTime(
+            `${convertTo24Hour(startHour, value)}:00:00` as HourMinuteString
+        );
     };
 
     const handleEndHourChange = (value: string) => {
-        setEndHour(parseInt(value));
+        const hour = parseInt(value);
+        setEndHour(hour);
+        setEndTime(
+            `${convertTo24Hour(hour, endPeriod)}:00:00` as HourMinuteString
+        );
     };
 
     const handleEndPeriodChange = (value: string) => {
         setEndPeriod(value);
+        setEndTime(
+            `${convertTo24Hour(endHour, value)}:00:00` as HourMinuteString
+        );
     };
-
-    useEffect(() => {
-        const newStartTime =
-            `${convertTo24Hour(startHour, startPeriod)}:00` as HourMinuteString;
-        const newEndTime =
-            `${convertTo24Hour(endHour, endPeriod)}:00` as HourMinuteString;
-
-        setStartTime(newStartTime);
-        setEndTime(newEndTime);
-    }, [startHour, startPeriod, endHour, endPeriod, setStartTime, setEndTime]);
 
     return (
         <div>
-            <div className="text-slate-medium flex flex-row items-center space-x-2">
+            <div className="flex flex-row items-center space-x-2 text-slate-medium">
                 <ClockIcon />
                 <p className="text-sm font-semibold uppercase tracking-wide">
                     ANY TIME BETWEEN (PST)

@@ -1,12 +1,15 @@
+import { group } from "console";
 import { CalendarConstants } from "@/lib/types/chrono";
 
 export class ZotDate {
     readonly day: Date;
     isSelected: boolean;
     availability: string[];
-    groupAvailability: { [blockIndex: number]: number[] | null };
+    /**
+     * `groupAvailability` maps a timestring to an array of memberIds that are available for that timestring
+     */
+    groupAvailability: Record<string, string[]>;
     blockLength: number;
-
     // Times represented as minutes past midnight
     earliestTime: number;
     latestTime: number;
@@ -19,16 +22,19 @@ export class ZotDate {
      */
     constructor(
         day: Date = new Date(),
+        earliestTime: number = 0,
+        latestTime: number = 1440,
         isSelected: boolean = false,
-        availability: string[] = []
+        availability: string[] = [],
+        groupAvailability: Record<string, string[]> = {}
     ) {
         this.day = day;
+        this.earliestTime = earliestTime;
+        this.latestTime = latestTime;
         this.isSelected = isSelected;
         this.blockLength = 15;
-        this.earliestTime = 0;
-        this.latestTime = 0;
         this.availability = availability;
-        this.groupAvailability = [];
+        this.groupAvailability = groupAvailability;
     }
 
     /**
@@ -223,7 +229,12 @@ export class ZotDate {
                     isSelected = true;
                 }
 
-                const newZotDate = new ZotDate(newDate, isSelected);
+                const newZotDate = new ZotDate(
+                    newDate,
+                    undefined,
+                    undefined,
+                    isSelected
+                );
                 generatedWeek.push(newZotDate);
             }
 
@@ -250,7 +261,7 @@ export class ZotDate {
             )
         ) {
             const newDay = new Date(year, month, day);
-            return new ZotDate(newDay, isSelected);
+            return new ZotDate(newDay, undefined, undefined, isSelected);
         }
 
         return null;
@@ -375,16 +386,14 @@ export class ZotDate {
      */
     static initializeAvailabilities(
         selectedDates: ZotDate[],
-        earliestTime: number = 480,
-        latestTime: number = 1050,
+        earliestTime: number = 0,
+        latestTime: number = 1440,
         blockLength: number = 15
     ): void {
         selectedDates.forEach((selectedDate: ZotDate) => {
             selectedDate.earliestTime = earliestTime;
             selectedDate.latestTime = latestTime;
             selectedDate.blockLength = blockLength;
-            selectedDate.availability = [];
-            selectedDate.groupAvailability = {};
         });
     }
 
@@ -462,37 +471,68 @@ export class ZotDate {
      * instantiated if it is the first member to indicate availability of that block.
      *
      * @param memberIndex the index of a member in an array
-     * @param availableBlocks an array of availability blocks to set that member's availability
+     * @param meetingAvailabilities an array of availability blocks to set that member's availability
      */
-    setGroupMemberAvailability(
-        memberIndex: number,
-        availableBlocks: number[]
-    ): void {
-        availableBlocks.forEach((blockIndex) => {
-            if (!this.groupAvailability[blockIndex]) {
-                this.groupAvailability[blockIndex] = [memberIndex];
-            } else {
-                this.groupAvailability[blockIndex]?.push(memberIndex);
-            }
-        });
-    }
+    //@param availableBlocks an array of availability blocks to set that member's availability
 
-    /**
-     * Gets the group availability block based on the block index
-     * @param index index of the availability block
-     * @return the current availability of the block corresponding to the given index
-     */
-    getGroupAvailabilityBlock(index: number): number[] | null {
-        return this.groupAvailability[index] || null;
-    }
+    // setGroupMemberAvailability(
+    //     memberIndex: number,
+    //     meetingAvailabilities: string[]
+    // ): void {
+    //     meetingAvailabilities.forEach((blockIndex) => {
+    //         if (!this.groupAvailability[blockIndex]) {
+    //             this.groupAvailability[blockIndex] = [memberIndex];
+    //         } else {
+    //             this.groupAvailability[blockIndex]?.push(memberIndex);
+    //         }
+    //     });
+    // }
 
-    /**
-     * Returns all block indices that are currently set as available
-     * @return array of block indices that are available
-     */
-    getAvailableBlockIndices(): number[] {
-        return this.availability.map((ISOString) =>
-            this.getBlockIndexFromISOString(ISOString)
-        );
-    }
+    // setDayAvailability(
+    //     dayIndex: number,
+    //     displayName: string,
+    //     meetingAvailabilities: string
+    // ): void {
+    //     if (!this.groupAvailability[displayName]) {
+    //         this.groupAvailability[displayName] = [];
+    //     }
+    //     this.groupAvailability[displayName].push(meetingAvailabilities);
+    // }
+
+    // /**
+    //  * Gets the group availability block based on the block index
+    //  * @param index index of the availability block
+    //  * @return the current availability of the block corresponding to the given index
+    //  */
+    // getGroupAvailabilityBlock(
+    //     fromTime: number,
+    //     index: number
+    // ): number[] | null {
+    //     let totalAvailable: number[] = [];
+    //     let unavailable: number[] = [];
+    //     Object.keys(this.groupAvailability).forEach((memberCount) => {
+    //         let currentTime = new Date(this.day);
+
+    //         currentTime.setMinutes(
+    //             currentTime.getMinutes() + ((fromTime + index * 15) % 60)
+    //         );
+    //         currentTime.setHours(
+    //             currentTime.getHours() + (fromTime + index * 15) / 60
+    //         );
+
+    //         const currentString = currentTime.toISOString();
+
+    //         if (
+    //             this.groupAvailability[memberCount]?.includes(
+    //                 currentString.toString()
+    //             )
+    //         ) {
+    //             totalAvailable.push(memberCount);
+    //         } else {
+    //             unavailable.push(memberCount);
+    //         }
+    //     });
+    //     console.log("totalAvailable", totalAvailable);
+    //     return totalAvailable;
+    // }
 }

@@ -20,14 +20,8 @@ export async function createMeeting(meetingData: CreateMeetingPostParams) {
     if (
         fromTime >= toTime ||
         meetingDates.length === 0 ||
-        new Set(meetingDates).size !== meetingDates.length ||
-        meetingDates.some(
-            (date) =>
-                new Date(date).setHours(0, 0, 0, 0) <
-                new Date().setHours(0, 0, 0, 0)
-        )
+        new Set(meetingDates).size !== meetingDates.length
     ) {
-        // Nondescript error message.
         return { error: "Invalid meeting dates or times." };
     }
 
