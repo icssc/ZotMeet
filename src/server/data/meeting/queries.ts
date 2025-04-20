@@ -2,9 +2,7 @@ import "server-only";
 
 import { db } from "@/db";
 import { availabilities, meetings } from "@/db/schema";
-import { and, eq, sql, or } from "drizzle-orm";
-import { jsonb } from "drizzle-orm/pg-core";
-
+import { and, eq, or, sql } from "drizzle-orm";
 
 export async function getExistingMeeting(meetingId: string) {
     const meeting = await db.query.meetings.findFirst({
@@ -40,16 +38,18 @@ export const getAvailability = async ({
     userId: string;
     meetingId: string;
 }) => {
-    const availability = await db.query.availabilities.findFirst(
-        {
-            extras: {
-                meetingAvailabilities: sql`${availabilities.meetingAvailabilities}::jsonb`.as('meetingAvailabilities'),
-            },
-            where:
-                and(eq(availabilities.memberId, userId),
-                    eq(availabilities.meetingId, meetingId))
-        }
-    )
+    const availability = await db.query.availabilities.findFirst({
+        extras: {
+            meetingAvailabilities:
+                sql`${availabilities.meetingAvailabilities}::jsonb`.as(
+                    "meetingAvailabilities"
+                ),
+        },
+        where: and(
+            eq(availabilities.memberId, userId),
+            eq(availabilities.meetingId, meetingId)
+        ),
+    });
 
     if (!availability) {
         return;
@@ -65,44 +65,40 @@ export const getAllMemberAvailability = async ({
     const availability = await db
         .select({
             memberId: availabilities.memberId,
-            meetingAvailabilities: sql`${availabilities.meetingAvailabilities}::jsonb`.as('meetingAvailabilities')
+            meetingAvailabilities:
+                sql`${availabilities.meetingAvailabilities}::jsonb`.as(
+                    "meetingAvailabilities"
+                ),
         })
         .from(availabilities)
-        .where(
-            and(
-                eq(availabilities.meetingId, meetingId)
-            )
-        );
+        .where(and(eq(availabilities.meetingId, meetingId)));
 
     return availability;
 };
 
-export async function getMeetingsByUserId(userId: string) {
-  const userMeetings = await db
-    .select({
-      id: meetings.id,
-      title: meetings.title,
-      description: meetings.description,
-      location: meetings.location,
-      scheduled: meetings.scheduled,
-      fromTime: meetings.fromTime,
-      toTime: meetings.toTime,
-      timezone: meetings.timezone,
-      dates: meetings.dates,
-      hostId: meetings.hostId,
-      group_id: meetings.group_id
-    })
-    .from(meetings)
-    .leftJoin(
-      availabilities,
-      eq(meetings.id, availabilities.meetingId)
-    )
-    .where(
-      or(
-        eq(meetings.hostId, userId),
-        eq(availabilities.memberId, userId)
-      )
-    );
+export async function getMeetings(memberId: string) {
+    const userMeetings = await db
+        .select({
+            id: meetings.id,
+            title: meetings.title,
+            description: meetings.description,
+            location: meetings.location,
+            scheduled: meetings.scheduled,
+            fromTime: meetings.fromTime,
+            toTime: meetings.toTime,
+            timezone: meetings.timezone,
+            dates: meetings.dates,
+            hostId: meetings.hostId,
+            group_id: meetings.group_id,
+        })
+        .from(meetings)
+        .leftJoin(availabilities, eq(meetings.id, availabilities.meetingId))
+        .where(
+            or(
+                eq(meetings.hostId, memberId),
+                eq(availabilities.memberId, memberId)
+            )
+        );
 
-  return userMeetings;
+    return userMeetings;
 }
