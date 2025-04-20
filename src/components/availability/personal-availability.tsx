@@ -2,29 +2,27 @@
 
 import { useEffect, useMemo } from "react";
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
+import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import { SelectAvailability, SelectMeeting } from "@/db/schema";
-import { AvailabilityBlockType } from "@/lib/types/availability";
-import { ZotDate } from "@/lib/zotdate";
-
-// import LoginFlow from "./LoginModal";
+import {
+    AvailabilityBlockType,
+    MemberMeetingAvailability,
+} from "@/lib/types/availability";
 
 interface PersonalAvailabilityProps {
-    columns: number;
-    meetingData: SelectMeeting;
-    meetingDates: Date[];
-    availability: SelectAvailability;
+    meetingDates: string[];
+    userAvailability: MemberMeetingAvailability | null;
     availabilityTimeBlocks: number[];
+    fromTime: number;
 }
 
 export function PersonalAvailability({
-    columns,
-    meetingData: _meetingData,
     meetingDates,
-    availability,
+    userAvailability,
+    fromTime,
     availabilityTimeBlocks,
 }: PersonalAvailabilityProps) {
     const {
@@ -45,15 +43,8 @@ export function PersonalAvailability({
         setIsStateUnsaved,
         availabilityDates,
         setAvailabilityDates,
+        setOriginalAvailabilityDates,
     } = useAvailabilityContext();
-
-    // const [guestSession, setGuestSession] = useState({
-    //     meetingId: meetingData.id || "",
-    // });
-
-    useEffect(() => {
-        setItemsPerPage(columns);
-    }, [columns, setItemsPerPage]);
 
     const numPaddingDates = useMemo(() => {
         return availabilityDates.length % itemsPerPage === 0
@@ -136,6 +127,7 @@ export function PersonalAvailability({
 
             setAvailabilityDates((currentAvailabilityDates) => {
                 const updatedDates = [...currentAvailabilityDates];
+
                 for (
                     let dateIndex = earlierDateIndex;
                     dateIndex <= laterDateIndex;
@@ -147,7 +139,50 @@ export function PersonalAvailability({
                         laterBlockIndex,
                         selectionValue
                     );
+
+                    // For each block in the selection range
+                    for (
+                        let blockIdx = earlierBlockIndex;
+                        blockIdx <= laterBlockIndex;
+                        blockIdx++
+                    ) {
+                        const timestamp = getTimestampFromBlockIndex(
+                            blockIdx,
+                            dateIndex,
+                            fromTime,
+                            availabilityDates
+                        );
+
+                        // Initialize empty array if timestamp doesn't exist
+                        if (!currentDate.groupAvailability[timestamp]) {
+                            currentDate.groupAvailability[timestamp] = [];
+                        }
+
+                        if (selectionValue) {
+                            // Add user to availability if not already present
+                            if (
+                                !currentDate.groupAvailability[
+                                    timestamp
+                                ].includes(userAvailability?.memberId ?? "")
+                            ) {
+                                currentDate.groupAvailability[timestamp].push(
+                                    userAvailability?.memberId ?? ""
+                                );
+                            }
+                        } else {
+                            // Remove user from availability
+                            currentDate.groupAvailability[timestamp] =
+                                currentDate.groupAvailability[timestamp].filter(
+                                    (id) =>
+                                        id !==
+                                        (userAvailability?.memberId ?? "")
+                                );
+                        }
+                    }
                 }
+
+                console.log(updatedDates);
+
                 return updatedDates;
             });
 
@@ -173,35 +208,6 @@ export function PersonalAvailability({
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
     }, [isStateUnsaved]);
-
-    useEffect(() => {
-        if (!availability || availability.meetingAvailabilities.length === 0) {
-            setAvailabilityDates(
-                meetingDates?.map(
-                    (meetingDate) =>
-                        new ZotDate(
-                            new Date(meetingDate),
-                            false,
-                            Array.from({ length: 96 }).map(() => false)
-                        )
-                )
-            );
-            return;
-        }
-
-        // setAvailabilityDates(
-        //     availability.meetingAvailabilities.map(
-        //         (availability) =>
-        //             new ZotDate(
-        //                 availability,
-        //                 false,
-        //                 Array.from(
-        //                     availability.availabilities.availabilityString // needs to be change to JSON array
-        //                 ).map((char) => char === "1")
-        //             )
-        //     )
-        // );
-    }, [availability, meetingDates, setAvailabilityDates]);
 
     const handlePrevPage = () => {
         if (currentPage > 0) {
@@ -261,8 +267,6 @@ export function PersonalAvailability({
                     disabled={currentPage === lastPage}
                 />
             </div>
-
-            {/* <LoginFlow data={data} /> */}
         </div>
     );
 }

@@ -28,10 +28,10 @@ export const members = pgTable(
     {
         id: uuid("id").primaryKey().notNull().defaultRandom(),
         displayName: text("display_name").notNull(),
-    },
-    (table) => ({
-        unique: unique().on(table.id),
-    })
+    }
+    // (table) => ({
+    //     unique: unique().on(table.id),
+    // })
 );
 
 export const membersRelations = relations(members, ({ one, many }) => ({
@@ -142,7 +142,7 @@ export const meetings = pgTable("meetings", {
         .references(() => members.id, { onDelete: "cascade" })
         .notNull(),
     // JSON array of calendar dates
-    dates: jsonb("dates").$type<Date[]>().notNull().default([]),
+    dates: jsonb("dates").$type<string[]>().notNull().default([]),
 });
 
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
@@ -179,9 +179,12 @@ export const availabilities = pgTable(
             .notNull()
             .references(() => meetings.id, { onDelete: "cascade" }),
         status: attendanceEnum("status"),
-        // JSON array of timestamps
+        /**
+         * A JSON array of ISO dates as strings
+         * @example ["2025-04-11T00:00:00.000Z", "2025-04-12T00:00:00.000Z"]
+         */
         meetingAvailabilities: jsonb("meeting_availabilities")
-            .$type<Date[]>()
+            .$type<string[]>()
             .notNull()
             .default([]),
     },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
@@ -12,8 +12,8 @@ import { createMeeting } from "@actions/meeting/create/action";
 
 export function Creation() {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
-    const [startTime, setStartTime] = useState<HourMinuteString>("9:00");
-    const [endTime, setEndTime] = useState<HourMinuteString>("13:00");
+    const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
+    const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
     const [meetingName, setMeetingName] = useState("");
 
     const handleCreation = async () => {
@@ -21,20 +21,22 @@ export function Creation() {
             title: meetingName,
             fromTime: startTime,
             toTime: endTime,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             meetingDates: selectedDays.map((zotDate) =>
                 zotDate.day.toISOString()
             ),
             description: "",
         };
 
-        const { error } = await createMeeting(newMeeting);
+        const result = await createMeeting(newMeeting);
+        const error = result?.error;
 
         if (error) {
             console.error("Failed to create meeting: ", error);
         }
     };
 
-    const hasValidInputs = () => {
+    const hasValidInputs = useMemo(() => {
         return (
             selectedDays.length > 0 &&
             startTime &&
@@ -42,7 +44,7 @@ export function Creation() {
             startTime < endTime &&
             meetingName
         );
-    };
+    }, [selectedDays.length, startTime, endTime, meetingName]);
 
     return (
         <div className="space-y-6 px-4 pb-6">
@@ -84,7 +86,7 @@ export function Creation() {
                     className={cn(
                         "sm:btn-wide w-48 rounded-lg border-none bg-green-500 font-montserrat text-xl font-medium text-gray-light hover:bg-green-500/80"
                     )}
-                    disabled={!hasValidInputs()}
+                    disabled={!hasValidInputs}
                     onClick={handleCreation}
                 >
                     Continue →

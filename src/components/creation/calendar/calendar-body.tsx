@@ -4,14 +4,12 @@ import { ZotDate } from "@/lib/zotdate";
 
 interface CalendarBodyProps {
     calendarDays: ZotDate[][];
-    updateCalendar: VoidFunction;
     currentMonth: number;
     updateSelectedRange: (startDate: ZotDate, endDate: ZotDate) => void;
 }
 
 export function CalendarBody({
     calendarDays,
-    updateCalendar,
     currentMonth,
     updateSelectedRange,
 }: CalendarBodyProps) {
@@ -30,7 +28,6 @@ export function CalendarBody({
                             setStartDaySelection={setStartDaySelection}
                             endDaySelection={endDaySelection}
                             setEndDaySelection={setEndDaySelection}
-                            updateCalendar={updateCalendar}
                             currentMonth={currentMonth}
                             updateSelectedRange={updateSelectedRange}
                         />

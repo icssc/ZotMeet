@@ -1,10 +1,4 @@
-import React, {
-    Dispatch,
-    SetStateAction,
-    useCallback,
-    useEffect,
-    useState,
-} from "react";
+import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { CalendarBody } from "@/components/creation/calendar/calendar-body";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -20,19 +14,12 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
     const today = new Date();
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
-    const [calendarDays, setCalendarDays] = useState<ZotDate[][]>([]);
 
     const monthName = MONTHS[currentMonth];
-
-    const updateCalendar = useCallback(() => {
-        const days = ZotDate.generateZotDates(
-            currentMonth,
-            currentYear,
-            selectedDays
-        );
-
-        setCalendarDays(days);
-    }, [currentMonth, currentYear, selectedDays]);
+    const calendarDays = useMemo(
+        () => ZotDate.generateZotDates(currentMonth, currentYear, selectedDays),
+        [currentMonth, currentYear, selectedDays]
+    );
 
     const decrementMonth = () => {
         let newMonth = currentMonth - 1;
@@ -82,15 +69,22 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
                     (d) => d.compareTo(new ZotDate(highlightedZotDate)) === 0
                 );
 
+                // Remove any selected days if the multiselect initiated from an already selected day
                 if (startDate.isSelected && foundSelectedDay) {
-                    // Remove any selected days if the multiselect initiated from an already selected day
                     modifiedSelectedDays = modifiedSelectedDays.filter(
                         (d) => d.compareTo(foundSelectedDay) !== 0
                     );
-                } else if (!startDate.isSelected && !foundSelectedDay) {
-                    // Add day to selected days if the multiselect did not initiate from an already selected day
+                }
+
+                // Add day to selected days if the multiselect did not initiate from an already selected day
+                if (!startDate.isSelected && !foundSelectedDay) {
                     modifiedSelectedDays.push(
-                        new ZotDate(highlightedZotDate, true)
+                        new ZotDate(
+                            highlightedZotDate,
+                            undefined,
+                            undefined,
+                            true
+                        )
                     );
                 }
             });
@@ -98,10 +92,6 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
             return modifiedSelectedDays;
         });
     };
-
-    useEffect(() => {
-        updateCalendar();
-    }, [updateCalendar]);
 
     return (
         <div className="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:p-5">
@@ -114,7 +104,7 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
 
             <div className="md:px-4">
                 <div className="flex flex-col pb-5 md:pb-6">
-                    <h3 className="font-montserrat text-gray-dark text-left text-2xl font-semibold md:text-3xl">
+                    <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
                         {monthName} {currentYear}
                     </h3>
 
@@ -130,11 +120,11 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
                                     key={dayOfWeek}
                                 >
                                     <div>
-                                        <p className="text-slate-medium w-full text-center text-sm font-light uppercase md:font-bold">
+                                        <p className="w-full text-center text-sm font-light uppercase text-slate-medium md:font-bold">
                                             {dayOfWeek}
                                         </p>
                                     </div>
-                                    <Separator className="bg-slate-base my-2 h-[2px]" />
+                                    <Separator className="my-2 h-[2px] bg-slate-base" />
                                 </th>
                             ))}
                         </tr>
@@ -142,7 +132,6 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
 
                     <CalendarBody
                         calendarDays={calendarDays}
-                        updateCalendar={updateCalendar}
                         currentMonth={currentMonth}
                         updateSelectedRange={updateSelectedRange}
                     />

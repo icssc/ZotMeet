@@ -14,12 +14,15 @@ export const useAvailabilityState = () => {
         useState<AvailabilityBlockType>();
     const [selectionState, setSelectionState] = useState<SelectionStateType>();
     const [currentPage, setCurrentPage] = useState(0);
-    const [itemsPerPage, setItemsPerPage] = useState(0);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
     const [currentPageAvailability, setCurrentPageAvailability] =
         useState<ZotDate[]>();
     const [isEditingAvailability, setIsEditingAvailability] = useState(false);
     const [isStateUnsaved, setIsStateUnsaved] = useState(false);
     const [availabilityDates, setAvailabilityDates] = useState<ZotDate[]>([]);
+    const [originalAvailabilityDates, setOriginalAvailabilityDates] = useState<
+        ZotDate[]
+    >([]);
 
     return {
         startBlockSelection,
@@ -40,5 +43,7 @@ export const useAvailabilityState = () => {
         setIsStateUnsaved,
         availabilityDates,
         setAvailabilityDates,
+        originalAvailabilityDates,
+        setOriginalAvailabilityDates,
     };
 };

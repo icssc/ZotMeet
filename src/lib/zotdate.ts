@@ -1,12 +1,15 @@
+import { group } from "console";
 import { CalendarConstants } from "@/lib/types/chrono";
 
 export class ZotDate {
     readonly day: Date;
     isSelected: boolean;
-    availability: boolean[];
-    groupAvailability: (number[] | null)[];
+    availability: string[];
+    /**
+     * `groupAvailability` maps a timestring to an array of memberIds that are available for that timestring
+     */
+    groupAvailability: Record<string, string[]>;
     blockLength: number;
-
     // Times represented as minutes past midnight
     earliestTime: number;
     latestTime: number;
@@ -15,19 +18,52 @@ export class ZotDate {
      * Description
      * @param day a Date object representing a calendar day
      * @param isSelected whether the day is selected from the calendar
+     * @param availability array of ISO strings representing available time slots
      */
     constructor(
         day: Date = new Date(),
+        earliestTime: number = 0,
+        latestTime: number = 1440,
         isSelected: boolean = false,
-        availability: boolean[] = []
+        availability: string[] = [],
+        groupAvailability: Record<string, string[]> = {}
     ) {
         this.day = day;
+        this.earliestTime = earliestTime;
+        this.latestTime = latestTime;
         this.isSelected = isSelected;
         this.blockLength = 15;
-        this.earliestTime = 0;
-        this.latestTime = 0;
         this.availability = availability;
-        this.groupAvailability = [];
+        this.groupAvailability = groupAvailability;
+    }
+
+    /**
+     * Converts block index to ISO string
+     * @param blockIndex the index of the time block
+     * @return ISO string representing the start time of the block
+     */
+    private getISOStringForBlock(blockIndex: number): string {
+        const minutesFromMidnight =
+            this.earliestTime + blockIndex * this.blockLength;
+        const newDate = new Date(this.day);
+        newDate.setHours(Math.floor(minutesFromMidnight / 60));
+        newDate.setMinutes(minutesFromMidnight % 60);
+        newDate.setSeconds(0);
+        newDate.setMilliseconds(0);
+        return newDate.toISOString();
+    }
+
+    /**
+     * Converts ISO string to block index
+     * @param ISOString ISO string representing a datetime
+     * @return the corresponding block index for the given time
+     */
+    private getBlockIndexFromISOString(ISOString: string): number {
+        const date = new Date(ISOString);
+        const minutesFromMidnight = date.getHours() * 60 + date.getMinutes();
+        return Math.floor(
+            (minutesFromMidnight - this.earliestTime) / this.blockLength
+        );
     }
 
     /**
@@ -57,11 +93,7 @@ export class ZotDate {
      * @return a number proportional to the amount of days elapsed since 0 AD, although not exact due to leap years
      */
     valueOf(): number {
-        return (
-            this.day.getDate() +
-            this.day.getMonth() * 31 +
-            this.day.getFullYear() * 366
-        );
+        return this.day.getTime();
     }
 
     /**
@@ -197,7 +229,12 @@ export class ZotDate {
                     isSelected = true;
                 }
 
-                const newZotDate = new ZotDate(newDate, isSelected);
+                const newZotDate = new ZotDate(
+                    newDate,
+                    undefined,
+                    undefined,
+                    isSelected
+                );
                 generatedWeek.push(newZotDate);
             }
 
@@ -224,7 +261,7 @@ export class ZotDate {
             )
         ) {
             const newDay = new Date(year, month, day);
-            return new ZotDate(newDay, isSelected);
+            return new ZotDate(newDay, undefined, undefined, isSelected);
         }
 
         return null;
@@ -346,27 +383,17 @@ export class ZotDate {
      * @param earliestTime minutes since midnight that marks the earliest boundary of possible meeting times
      * @param latestTime minutes since midnight that marks the latest boundary of possible meeting times
      * @param blockLength optional minutes per availability block, default is 15
-     * @return an array of numbers, each representing minutes from the earliest time
      */
     static initializeAvailabilities(
         selectedDates: ZotDate[],
-        earliestTime: number = 480,
-        latestTime: number = 1050,
+        earliestTime: number = 0,
+        latestTime: number = 1440,
         blockLength: number = 15
     ): void {
-        const minuteRange = Math.abs(latestTime - earliestTime);
-        const totalBlocks = Math.floor(minuteRange / blockLength);
-
         selectedDates.forEach((selectedDate: ZotDate) => {
             selectedDate.earliestTime = earliestTime;
             selectedDate.latestTime = latestTime;
             selectedDate.blockLength = blockLength;
-            selectedDate.availability = new Array<boolean>(totalBlocks).fill(
-                false
-            );
-            selectedDate.groupAvailability = new Array<null>(totalBlocks).fill(
-                null
-            );
         });
     }
 
@@ -376,7 +403,8 @@ export class ZotDate {
      * @return the current availability of the block corresponding to the given index
      */
     getBlockAvailability(index: number): boolean {
-        return this.availability[index];
+        const ISOString = this.getISOStringForBlock(index);
+        return this.availability.includes(ISOString);
     }
 
     /**
@@ -390,12 +418,34 @@ export class ZotDate {
         laterBlockIndex: number,
         selection: boolean
     ): void {
-        for (
-            let blockIndex = earlierBlockIndex;
-            blockIndex <= laterBlockIndex;
-            blockIndex++
-        ) {
-            this.availability[blockIndex] = selection;
+        // If setting to available (true)
+        if (selection) {
+            // Add ISO strings for each block in the range
+            for (
+                let blockIndex = earlierBlockIndex;
+                blockIndex <= laterBlockIndex;
+                blockIndex++
+            ) {
+                const ISOString = this.getISOStringForBlock(blockIndex);
+
+                // Only add if not already present
+                if (!this.availability.includes(ISOString)) {
+                    this.availability.push(ISOString);
+                }
+            }
+            // Sort the ISO strings to maintain chronological order
+            this.availability.sort();
+        }
+        // If setting to unavailable (false)
+        else {
+            // Remove ISO strings in the range
+            this.availability = this.availability.filter((ISOString) => {
+                const blockIndex = this.getBlockIndexFromISOString(ISOString);
+                return (
+                    blockIndex < earlierBlockIndex ||
+                    blockIndex > laterBlockIndex
+                );
+            });
         }
     }
 
@@ -421,27 +471,68 @@ export class ZotDate {
      * instantiated if it is the first member to indicate availability of that block.
      *
      * @param memberIndex the index of a member in an array
-     * @param availableBlocks an array of availability blocks to set that member's availability
+     * @param meetingAvailabilities an array of availability blocks to set that member's availability
      */
-    setGroupMemberAvailability(
-        memberIndex: number,
-        availableBlocks: number[]
-    ): void {
-        availableBlocks.forEach((blockIndex) => {
-            if (!this.groupAvailability[blockIndex]) {
-                this.groupAvailability[blockIndex] = [memberIndex];
-            } else {
-                this.groupAvailability[blockIndex]?.push(memberIndex);
-            }
-        });
-    }
+    //@param availableBlocks an array of availability blocks to set that member's availability
 
-    /**
-     * Gets the group availability block based on the block index
-     * @param index index of the availability block
-     * @return the current availability of the block corresponding to the given index
-     */
-    getGroupAvailabilityBlock(index: number): number[] | null {
-        return this.groupAvailability[index];
-    }
+    // setGroupMemberAvailability(
+    //     memberIndex: number,
+    //     meetingAvailabilities: string[]
+    // ): void {
+    //     meetingAvailabilities.forEach((blockIndex) => {
+    //         if (!this.groupAvailability[blockIndex]) {
+    //             this.groupAvailability[blockIndex] = [memberIndex];
+    //         } else {
+    //             this.groupAvailability[blockIndex]?.push(memberIndex);
+    //         }
+    //     });
+    // }
+
+    // setDayAvailability(
+    //     dayIndex: number,
+    //     displayName: string,
+    //     meetingAvailabilities: string
+    // ): void {
+    //     if (!this.groupAvailability[displayName]) {
+    //         this.groupAvailability[displayName] = [];
+    //     }
+    //     this.groupAvailability[displayName].push(meetingAvailabilities);
+    // }
+
+    // /**
+    //  * Gets the group availability block based on the block index
+    //  * @param index index of the availability block
+    //  * @return the current availability of the block corresponding to the given index
+    //  */
+    // getGroupAvailabilityBlock(
+    //     fromTime: number,
+    //     index: number
+    // ): number[] | null {
+    //     let totalAvailable: number[] = [];
+    //     let unavailable: number[] = [];
+    //     Object.keys(this.groupAvailability).forEach((memberCount) => {
+    //         let currentTime = new Date(this.day);
+
+    //         currentTime.setMinutes(
+    //             currentTime.getMinutes() + ((fromTime + index * 15) % 60)
+    //         );
+    //         currentTime.setHours(
+    //             currentTime.getHours() + (fromTime + index * 15) / 60
+    //         );
+
+    //         const currentString = currentTime.toISOString();
+
+    //         if (
+    //             this.groupAvailability[memberCount]?.includes(
+    //                 currentString.toString()
+    //             )
+    //         ) {
+    //             totalAvailable.push(memberCount);
+    //         } else {
+    //             unavailable.push(memberCount);
+    //         }
+    //     });
+    //     console.log("totalAvailable", totalAvailable);
+    //     return totalAvailable;
+    // }
 }

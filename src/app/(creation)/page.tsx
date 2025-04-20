@@ -1,5 +1,5 @@
 import { Creation } from "@/components/creation/creation";
 
-export default function Home() {
+export default async function Page() {
     return <Creation />;
 }

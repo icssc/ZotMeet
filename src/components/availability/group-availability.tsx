@@ -1,42 +1,69 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import { generateSampleDates } from "@/lib/availability/utils";
-import { MemberAvailability } from "@/lib/types/availability";
+import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 
-interface GroupAvailabilityProps {
-    columns: number;
-    availabilityDates: ZotDate[];
-    availabilityTimeBlocks: number[];
-    groupAvailabilities: MemberAvailability[];
-}
+export const getTimestampFromBlockIndex = (
+    blockIndex: number,
+    zotDateIndex: number,
+    fromTime: number,
+    availabilityDates: ZotDate[]
+) => {
+    const minutesFromMidnight = fromTime * 60 + blockIndex * 15;
+    const hours = Math.floor(minutesFromMidnight / 60);
+    const minutes = minutesFromMidnight % 60;
 
+    const selectedDate = availabilityDates.at(zotDateIndex);
+
+    if (!selectedDate) {
+        return "";
+    }
+
+    const date = new Date(selectedDate.day);
+    date.setHours(hours);
+    date.setMinutes(minutes);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+
+    const isoString = date.toISOString();
+    // console.log(`Block ${blockIndex} corresponds to time ${isoString}`);
+    return isoString;
+};
+
+interface GroupAvailabilityProps {
+    availabilityTimeBlocks: number[];
+    groupAvailabilities: MemberMeetingAvailability[];
+    fromTime: number;
+    toTime: number;
+}
 export function GroupAvailability({
-    columns,
-    availabilityDates: _,
     availabilityTimeBlocks,
     groupAvailabilities,
+    fromTime,
 }: GroupAvailabilityProps) {
-    const availabilityDates = useMemo(() => generateSampleDates(), []); // TODO: replace with actual data
+    const {
+        currentPage,
+        setCurrentPage,
+        itemsPerPage,
+        currentPageAvailability,
+        setCurrentPageAvailability,
+        availabilityDates,
+    } = useAvailabilityContext();
 
-    const itemsPerPage = columns;
     const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
     const numPaddingDates =
         availabilityDates.length % itemsPerPage === 0
             ? 0
             : itemsPerPage - (availabilityDates.length % itemsPerPage);
 
-    const [currentPage, setCurrentPage] = useState(0);
-    const [currentPageAvailability, setCurrentPageAvailability] = useState<
-        ZotDate[]
-    >([]);
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
     const [selectedZotDateIndex, setSelectedZotDateIndex] = useState<number>();
     const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>();
@@ -44,6 +71,7 @@ export function GroupAvailability({
         useState<string[]>([]);
     const [notAvailableMembersOfSelection, setNotAvailableMembersOfSelection] =
         useState<string[]>([]);
+
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
 
     const generateDateKey = ({
@@ -149,34 +177,37 @@ export function GroupAvailability({
             selectedBlockIndex !== undefined
         ) {
             const selectedDate = availabilityDates[selectedZotDateIndex];
-            const availableMemberIndices =
-                selectedDate.getGroupAvailabilityBlock(selectedBlockIndex) ??
-                [];
-
-            const newAvailableMembersOfSelection = availableMemberIndices.map(
-                (availableMemberIndex) =>
-                    groupAvailabilities[availableMemberIndex].name
+            const timestamp = getTimestampFromBlockIndex(
+                selectedBlockIndex,
+                selectedZotDateIndex,
+                fromTime,
+                availabilityDates
             );
 
-            const newNotAvailableMembersOfSelection = groupAvailabilities
-                .filter((_, index) => !availableMemberIndices.includes(index))
-                .map((member) => member.name);
+            const availableMembers =
+                selectedDate.groupAvailability[timestamp] || [];
+            setAvailableMembersOfSelection(availableMembers);
 
-            setAvailableMembersOfSelection(newAvailableMembersOfSelection);
+            const notAvailableMembers = groupAvailabilities.filter(
+                (member) => !availableMembers.includes(member.memberId)
+            );
             setNotAvailableMembersOfSelection(
-                newNotAvailableMembersOfSelection
+                notAvailableMembers.map((member) => member.memberId)
             );
         }
     }, [
+        setCurrentPageAvailability,
         selectedZotDateIndex,
         selectedBlockIndex,
         availabilityDates,
         groupAvailabilities,
     ]);
 
+    console.log(fromTime, availabilityDates);
+
     return (
         <div className="flex flex-row items-start justify-start align-top">
-            <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-10">
+            <div className="flex items-center justify-between overflow-x-auto h-fit font-dm-sans lg:w-full lg:pr-10">
                 <AvailabilityNavButton
                     direction="left"
                     handleClick={handlePrevPage}
@@ -200,7 +231,7 @@ export function GroupAvailability({
                                         timeBlock={timeBlock}
                                     />
 
-                                    {currentPageAvailability.map(
+                                    {currentPageAvailability?.map(
                                         (selectedDate, pageDateIndex) => {
                                             const key = generateDateKey({
                                                 selectedDate,
@@ -212,10 +243,12 @@ export function GroupAvailability({
                                                 const zotDateIndex =
                                                     pageDateIndex +
                                                     currentPage * itemsPerPage;
-                                                const availableMemberIndices =
-                                                    selectedDate.getGroupAvailabilityBlock(
-                                                        blockIndex
-                                                    );
+                                                // const availableMemberIndices =
+                                                //     selectedDate.getGroupAvailabilityBlock(
+                                                //         fromTime[0],
+                                                //         blockIndex
+                                                //     );
+
                                                 const isSelected =
                                                     selectedZotDateIndex ===
                                                         zotDateIndex &&
@@ -232,6 +265,14 @@ export function GroupAvailability({
                                                         "outline-dashed outline-2 outline-slate-500"
                                                 );
 
+                                                const timestamp =
+                                                    getTimestampFromBlockIndex(
+                                                        blockIndex,
+                                                        zotDateIndex,
+                                                        fromTime,
+                                                        availabilityDates
+                                                    );
+
                                                 return (
                                                     <td
                                                         key={key}
@@ -239,6 +280,9 @@ export function GroupAvailability({
                                                     >
                                                         <GroupAvailabilityBlock
                                                             className="hidden lg:block"
+                                                            timestamp={
+                                                                timestamp
+                                                            }
                                                             onClick={() =>
                                                                 handleCellClick(
                                                                     {
@@ -257,16 +301,16 @@ export function GroupAvailability({
                                                                 )
                                                             }
                                                             groupAvailabilities={
-                                                                groupAvailabilities
-                                                            }
-                                                            availableMemberIndices={
-                                                                availableMemberIndices
+                                                                availabilityDates
                                                             }
                                                             tableCellStyles={
                                                                 tableCellStyles
                                                             }
                                                         />
                                                         <GroupAvailabilityBlock
+                                                            timestamp={
+                                                                timestamp
+                                                            }
                                                             className="block lg:hidden"
                                                             onClick={() =>
                                                                 handleCellClick(
@@ -278,10 +322,7 @@ export function GroupAvailability({
                                                                 )
                                                             }
                                                             groupAvailabilities={
-                                                                groupAvailabilities
-                                                            }
-                                                            availableMemberIndices={
-                                                                availableMemberIndices
+                                                                availabilityDates
                                                             }
                                                             tableCellStyles={
                                                                 tableCellStyles
