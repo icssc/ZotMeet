@@ -11,6 +11,33 @@ import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 
+export const getTimestampFromBlockIndex = (
+    blockIndex: number,
+    zotDateIndex: number,
+    fromTime: number,
+    availabilityDates: ZotDate[]
+) => {
+    const minutesFromMidnight = fromTime * 60 + blockIndex * 15;
+    const hours = Math.floor(minutesFromMidnight / 60);
+    const minutes = minutesFromMidnight % 60;
+
+    const selectedDate = availabilityDates.at(zotDateIndex);
+
+    if (!selectedDate) {
+        return "";
+    }
+
+    const date = new Date(selectedDate.day);
+    date.setHours(hours);
+    date.setMinutes(minutes);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+
+    const isoString = date.toISOString();
+    // console.log(`Block ${blockIndex} corresponds to time ${isoString}`);
+    return isoString;
+};
+
 interface GroupAvailabilityProps {
     availabilityTimeBlocks: number[];
     groupAvailabilities: MemberMeetingAvailability[];
@@ -143,36 +170,6 @@ export function GroupAvailability({
         lastPage,
     ]);
 
-    // console.log(availabilityDates);
-    const getTimestampFromBlockIndex = (
-        blockIndex: number,
-        zotDateIndex: number
-    ) => {
-        const minutesFromMidnight = fromTime * 60 + blockIndex * 15;
-        const hours = Math.floor(minutesFromMidnight / 60);
-        const minutes = minutesFromMidnight % 60;
-
-        const selectedDate = availabilityDates[zotDateIndex];
-        const date = new Date(selectedDate.day);
-        date.setHours(hours);
-        date.setMinutes(minutes);
-        date.setSeconds(0);
-        date.setMilliseconds(0);
-
-        const isoString = date.toISOString();
-        console.log(`Block ${blockIndex} corresponds to time ${isoString}`);
-        return isoString;
-    };
-
-    if (
-        selectedBlockIndex !== undefined &&
-        selectedZotDateIndex !== undefined
-    ) {
-        console.log(
-            getTimestampFromBlockIndex(selectedBlockIndex, selectedZotDateIndex)
-        );
-    }
-
     // Update selection members when selection changes
     useEffect(() => {
         if (
@@ -182,7 +179,9 @@ export function GroupAvailability({
             const selectedDate = availabilityDates[selectedZotDateIndex];
             const timestamp = getTimestampFromBlockIndex(
                 selectedBlockIndex,
-                selectedZotDateIndex
+                selectedZotDateIndex,
+                fromTime,
+                availabilityDates
             );
 
             const availableMembers =
@@ -190,22 +189,25 @@ export function GroupAvailability({
             setAvailableMembersOfSelection(availableMembers);
 
             const notAvailableMembers = groupAvailabilities.filter(
-                (member) => !availableMembers.includes(member.displayName)
+                (member) => !availableMembers.includes(member.memberId)
             );
             setNotAvailableMembersOfSelection(
-                notAvailableMembers.map((member) => member.displayName)
+                notAvailableMembers.map((member) => member.memberId)
             );
         }
     }, [
+        setCurrentPageAvailability,
         selectedZotDateIndex,
         selectedBlockIndex,
         availabilityDates,
         groupAvailabilities,
     ]);
 
+    console.log(fromTime, availabilityDates);
+
     return (
         <div className="flex flex-row items-start justify-start align-top">
-            <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-10">
+            <div className="flex items-center justify-between overflow-x-auto h-fit font-dm-sans lg:w-full lg:pr-10">
                 <AvailabilityNavButton
                     direction="left"
                     handleClick={handlePrevPage}
@@ -263,6 +265,14 @@ export function GroupAvailability({
                                                         "outline-dashed outline-2 outline-slate-500"
                                                 );
 
+                                                const timestamp =
+                                                    getTimestampFromBlockIndex(
+                                                        blockIndex,
+                                                        zotDateIndex,
+                                                        fromTime,
+                                                        availabilityDates
+                                                    );
+
                                                 return (
                                                     <td
                                                         key={key}
@@ -270,6 +280,9 @@ export function GroupAvailability({
                                                     >
                                                         <GroupAvailabilityBlock
                                                             className="hidden lg:block"
+                                                            timestamp={
+                                                                timestamp
+                                                            }
                                                             onClick={() =>
                                                                 handleCellClick(
                                                                     {
@@ -288,19 +301,16 @@ export function GroupAvailability({
                                                                 )
                                                             }
                                                             groupAvailabilities={
-                                                                groupAvailabilities
-                                                            }
-                                                            availableMembers={
-                                                                availableMembersOfSelection
+                                                                availabilityDates
                                                             }
                                                             tableCellStyles={
                                                                 tableCellStyles
                                                             }
-                                                            selectedDate={
-                                                                selectedDate
-                                                            }
                                                         />
                                                         <GroupAvailabilityBlock
+                                                            timestamp={
+                                                                timestamp
+                                                            }
                                                             className="block lg:hidden"
                                                             onClick={() =>
                                                                 handleCellClick(
@@ -312,16 +322,10 @@ export function GroupAvailability({
                                                                 )
                                                             }
                                                             groupAvailabilities={
-                                                                groupAvailabilities
-                                                            }
-                                                            availableMembers={
-                                                                availableMembersOfSelection
+                                                                availabilityDates
                                                             }
                                                             tableCellStyles={
                                                                 tableCellStyles
-                                                            }
-                                                            selectedDate={
-                                                                selectedDate
                                                             }
                                                         />
                                                     </td>

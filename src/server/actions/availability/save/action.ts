@@ -18,7 +18,7 @@ export async function saveAvailability({
     displayName,
 }: saveAvailabilityProps) {
     try {
-        let { user } = await getCurrentSession();
+        const { user } = await getCurrentSession();
         let memberId: string;
 
         if (!user) {

@@ -89,7 +89,7 @@ export function AvailabilityHeader({
     return (
         <>
             <div className="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
-                <h1 className="line-clamp-1 h-8 pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
+                <h1 className="h-8 pr-2 text-xl font-medium line-clamp-1 font-montserrat md:h-fit md:text-3xl">
                     {meetingData.title}
                 </h1>
 

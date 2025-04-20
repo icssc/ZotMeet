@@ -73,53 +73,55 @@ export function AvailabilityBody({
                 if (!timestampsByDate[date][timestamp]) {
                     timestampsByDate[date][timestamp] = [];
                 }
-                timestampsByDate[date][timestamp].push(member.displayName);
+                timestampsByDate[date][timestamp].push(member.memberId);
             }
         }
 
         // For every meeting date, create a corresponding ZotDate object
-        const convertedDates = meetingDates.map((meetingDate) => {
-            const date = new Date(meetingDate);
-            const dateStr = date.toISOString().split("T")[0];
+        const convertedDates = meetingDates
+            .map((meetingDate) => {
+                const date = new Date(meetingDate);
+                const dateStr = date.toISOString().split("T")[0];
 
-            // TODO: Refactor this logic for new date string format.
-            // Choose default bounds if no availabilityTimeBlocks exist
-            const earliestMinutes =
-                availabilityTimeBlocks.length > 0
-                    ? availabilityTimeBlocks[0]
-                    : 480;
+                // TODO: Refactor this logic for new date string format.
+                // Choose default bounds if no availabilityTimeBlocks exist
+                const earliestMinutes =
+                    availabilityTimeBlocks.length > 0
+                        ? availabilityTimeBlocks[0]
+                        : 480;
 
-            const latestMinutes =
-                availabilityTimeBlocks.length > 0
-                    ? availabilityTimeBlocks[
-                          availabilityTimeBlocks.length - 1
-                      ] + 15
-                    : 1050;
+                const latestMinutes =
+                    availabilityTimeBlocks.length > 0
+                        ? availabilityTimeBlocks[
+                              availabilityTimeBlocks.length - 1
+                          ] + 15
+                        : 1050;
 
-            // Load the availability time strings for this date or use empty array
-            const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
-            const dateGroupAvailabilities = timestampsByDate[dateStr] || {};
+                // Load the availability time strings for this date or use empty array
+                const dateAvailabilities =
+                    availabilitiesByDate.get(dateStr) || [];
+                const dateGroupAvailabilities = timestampsByDate[dateStr] || {};
 
-            // console.log("date", dateGroupAvailabilities);
+                // Create the ZotDate with any found availabilities
+                const zotDate = new ZotDate(
+                    date,
+                    earliestMinutes,
+                    latestMinutes,
+                    false,
+                    dateAvailabilities,
+                    dateGroupAvailabilities
+                );
 
-            // Create the ZotDate with any found availabilities
-            const zotDate = new ZotDate(
-                date,
-                earliestMinutes,
-                latestMinutes,
-                false,
-                dateAvailabilities,
-                dateGroupAvailabilities
-            );
-
-            return zotDate;
-        });
+                return zotDate;
+            })
+            .sort((a, b) => a.day.getTime() - b.day.getTime());
 
         setAvailabilityDates(convertedDates);
     }, [
         userAvailability,
         meetingDates,
         setAvailabilityDates,
+        allAvailabilties,
         // TODO: fix this useEffect nonsense — availabilityTimeBlocks should be in the dependency array, but it breaks selection if it is
         // availabilityTimeBlocks,
         availabilityDates.length, // TODO: May cause problems
@@ -136,6 +138,7 @@ export function AvailabilityBody({
                 />
             ) : (
                 <PersonalAvailability
+                    fromTime={fromTimeNumber}
                     meetingDates={meetingDates}
                     userAvailability={userAvailability}
                     availabilityTimeBlocks={availabilityTimeBlocks}
