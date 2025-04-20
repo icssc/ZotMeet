@@ -90,6 +90,7 @@ export const getAllMemberAvailability = async ({
     return availability as {
         memberId: string;
         meetingAvailabilities: string[];
+        displayName: string;
     }[];
 };
 

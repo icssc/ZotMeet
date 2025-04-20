@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { AvailabilityBody } from "@/components/availability/availability-body";
 import { AvailabilityHeader } from "@/components/availability/availability-header";
 import { getCurrentSession } from "@/lib/auth";

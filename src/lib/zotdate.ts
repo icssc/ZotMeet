@@ -5,7 +5,10 @@ export class ZotDate {
     readonly day: Date;
     isSelected: boolean;
     availability: string[];
-    groupAvailability: { [blockIndex: number]: number[] | null };
+    /**
+     * `groupAvailability` maps a timestring to an array of memberIds that are available for that timestring
+     */
+    groupAvailability: Record<string, string[]>;
     blockLength: number;
     // Times represented as minutes past midnight
     earliestTime: number;
@@ -22,7 +25,8 @@ export class ZotDate {
         earliestTime: number = 0,
         latestTime: number = 1440,
         isSelected: boolean = false,
-        availability: string[] = []
+        availability: string[] = [],
+        groupAvailability: Record<string, string[]> = {}
     ) {
         this.day = day;
         this.earliestTime = earliestTime;
@@ -30,7 +34,7 @@ export class ZotDate {
         this.isSelected = isSelected;
         this.blockLength = 15;
         this.availability = availability;
-        this.groupAvailability = {};
+        this.groupAvailability = groupAvailability;
     }
 
     /**
@@ -390,12 +394,6 @@ export class ZotDate {
             selectedDate.earliestTime = earliestTime;
             selectedDate.latestTime = latestTime;
             selectedDate.blockLength = blockLength;
-            selectedDate.availability = new Array<boolean>(totalBlocks).fill(
-                false
-            );
-            // selectedDate.groupAvailability = new Array<null>(totalBlocks).fill(
-            //     null
-            // );
         });
     }
 
@@ -477,63 +475,64 @@ export class ZotDate {
      */
     //@param availableBlocks an array of availability blocks to set that member's availability
 
-    setGroupMemberAvailability(
-        memberIndex: number,
-        meetingAvailabilities: string[]
-    ): void {
-        meetingAvailabilities.forEach((blockIndex) => {
-            if (!this.groupAvailability[blockIndex]) {
-                this.groupAvailability[blockIndex] = [memberIndex];
-            } else {
-                this.groupAvailability[blockIndex]?.push(memberIndex);
-            }
-        });
-    }
+    // setGroupMemberAvailability(
+    //     memberIndex: number,
+    //     meetingAvailabilities: string[]
+    // ): void {
+    //     meetingAvailabilities.forEach((blockIndex) => {
+    //         if (!this.groupAvailability[blockIndex]) {
+    //             this.groupAvailability[blockIndex] = [memberIndex];
+    //         } else {
+    //             this.groupAvailability[blockIndex]?.push(memberIndex);
+    //         }
+    //     });
+    // }
 
-    setDayAvailability(
-        dayIndex: number,
-        displayName: string,
-        meetingAvailabilities: string
-    ): void {
-        if (!this.groupAvailability[displayName]) {
-            this.groupAvailability[displayName] = [];
-        }
-        this.groupAvailability[displayName].push(meetingAvailabilities);
-    }
-    /**
-     * Gets the group availability block based on the block index
-     * @param index index of the availability block
-     * @return the current availability of the block corresponding to the given index
-     */
-    getGroupAvailabilityBlock(
-        fromTime: number,
-        index: number
-    ): number[] | null {
-        let totalAvailable: number[] = [];
-        let unavailable: number[] = [];
-        Object.keys(this.groupAvailability).forEach((memberCount) => {
-            let currentTime = new Date(this.day);
+    // setDayAvailability(
+    //     dayIndex: number,
+    //     displayName: string,
+    //     meetingAvailabilities: string
+    // ): void {
+    //     if (!this.groupAvailability[displayName]) {
+    //         this.groupAvailability[displayName] = [];
+    //     }
+    //     this.groupAvailability[displayName].push(meetingAvailabilities);
+    // }
 
-            currentTime.setMinutes(
-                currentTime.getMinutes() + ((fromTime + index * 15) % 60)
-            );
-            currentTime.setHours(
-                currentTime.getHours() + (fromTime + index * 15) / 60
-            );
+    // /**
+    //  * Gets the group availability block based on the block index
+    //  * @param index index of the availability block
+    //  * @return the current availability of the block corresponding to the given index
+    //  */
+    // getGroupAvailabilityBlock(
+    //     fromTime: number,
+    //     index: number
+    // ): number[] | null {
+    //     let totalAvailable: number[] = [];
+    //     let unavailable: number[] = [];
+    //     Object.keys(this.groupAvailability).forEach((memberCount) => {
+    //         let currentTime = new Date(this.day);
 
-            const currentString = currentTime.toISOString();
+    //         currentTime.setMinutes(
+    //             currentTime.getMinutes() + ((fromTime + index * 15) % 60)
+    //         );
+    //         currentTime.setHours(
+    //             currentTime.getHours() + (fromTime + index * 15) / 60
+    //         );
 
-            if (
-                this.groupAvailability[memberCount]?.includes(
-                    currentString.toString()
-                )
-            ) {
-                totalAvailable.push(memberCount);
-            } else {
-                unavailable.push(memberCount);
-            }
-        });
-        console.log("totalAvailable", totalAvailable);
-        return totalAvailable;
-    }
+    //         const currentString = currentTime.toISOString();
+
+    //         if (
+    //             this.groupAvailability[memberCount]?.includes(
+    //                 currentString.toString()
+    //             )
+    //         ) {
+    //             totalAvailable.push(memberCount);
+    //         } else {
+    //             unavailable.push(memberCount);
+    //         }
+    //     });
+    //     console.log("totalAvailable", totalAvailable);
+    //     return totalAvailable;
+    // }
 }

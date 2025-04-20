@@ -1,7 +1,7 @@
 // import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
 // import type { AnyZodObject } from "zod";
 
-import { SelectAvailability } from "@/db/schema";
+import { SelectAvailability, SelectMember } from "@/db/schema";
 
 export type AvailabilityBlockType = {
     zotDateIndex: number;
@@ -15,23 +15,6 @@ export type SelectionStateType = {
     laterBlockIndex: number;
 };
 
-// export interface MemberAvailability {
-//     name: string;
-//     availableBlocks: number[][];
-// }
-
-export interface MemberAvailability {
-    memberId: string;  // change this to the name once fetch is changed
-    displayName: string;
-    meetingAvailabilities: string[];
-}
-
-// export interface LoginModalProps {
-//     user: App.Locals["user"];
-//     form: SuperValidated<ZodValidation<AnyZodObject>>;
-//     guestForm: SuperValidated<ZodValidation<AnyZodObject>>;
-// }
-
 export interface GuestSession {
     guestName: string;
     meetingId: string;
@@ -40,4 +23,5 @@ export interface GuestSession {
 export type MemberMeetingAvailability = Pick<
     SelectAvailability,
     "memberId" | "meetingAvailabilities"
->;
+> &
+    Pick<SelectMember, "displayName">;

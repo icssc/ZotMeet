@@ -1,34 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { metadata } from "@/app/layout";
+import { useEffect, useMemo } from "react";
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import { SelectMeeting } from "@/db/schema";
 import {
     AvailabilityBlockType,
     MemberMeetingAvailability,
 } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
-// import LoginFlow from "./LoginModal";
-
 interface PersonalAvailabilityProps {
-    columns: number;
-    meetingData: SelectMeeting;
     meetingDates: string[];
-    availability: MemberMeetingAvailability | null;
+    userAvailability: MemberMeetingAvailability | null;
     availabilityTimeBlocks: number[];
 }
 
 export function PersonalAvailability({
-    columns,
-    meetingData,
     meetingDates,
-    availability,
+    userAvailability,
     availabilityTimeBlocks,
 }: PersonalAvailabilityProps) {
     const {
@@ -51,10 +43,6 @@ export function PersonalAvailability({
         setAvailabilityDates,
         setOriginalAvailabilityDates,
     } = useAvailabilityContext();
-
-    useEffect(() => {
-        setItemsPerPage(columns);
-    }, [columns, setItemsPerPage]);
 
     const numPaddingDates = useMemo(() => {
         return availabilityDates.length % itemsPerPage === 0
@@ -174,69 +162,6 @@ export function PersonalAvailability({
             window.removeEventListener("beforeunload", handleBeforeUnload);
         };
     }, [isStateUnsaved]);
-
-    useEffect(() => {
-        if (!meetingDates || meetingDates.length === 0) return;
-
-        if (isStateUnsaved && availabilityDates.length > 0) {
-            return;
-        }
-
-        const availabilitiesByDate = new Map<string, string[]>();
-
-        // Only populate the map if the availability object exists and has time blocks
-        if (availability && availability.meetingAvailabilities) {
-            availability.meetingAvailabilities.forEach((timeStr) => {
-                const time = new Date(timeStr);
-                const dateStr = time.toISOString().split("T")[0]; // Get just the date part
-
-                if (!availabilitiesByDate.has(dateStr)) {
-                    availabilitiesByDate.set(dateStr, []);
-                }
-
-                availabilitiesByDate.get(dateStr)?.push(timeStr);
-            });
-        }
-
-        // For every meeting date, create a corresponding ZotDate object
-        const convertedDates = meetingDates.map((meetingDate) => {
-            const date = new Date(meetingDate);
-            const dateStr = date.toISOString().split("T")[0];
-
-            // TODO: Refactor this logic for new date string format.
-            // Choose default bounds if no availabilityTimeBlocks exist
-            const earliestMinutes =
-                availabilityTimeBlocks.length > 0
-                    ? availabilityTimeBlocks[0]
-                    : 480;
-
-            const latestMinutes =
-                availabilityTimeBlocks.length > 0
-                    ? availabilityTimeBlocks[
-                          availabilityTimeBlocks.length - 1
-                      ] + 15
-                    : 1050;
-
-            // Load the availability time strings for this date or use empty array
-            const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
-
-            // Create the ZotDate with any found availabilities
-            const zotDate = new ZotDate(date, false, dateAvailabilities);
-            zotDate.earliestTime = earliestMinutes;
-            zotDate.latestTime = latestMinutes;
-
-            return zotDate;
-        });
-
-        setAvailabilityDates(convertedDates);
-    }, [
-        availability,
-        meetingDates,
-        setAvailabilityDates,
-        availabilityTimeBlocks,
-        isStateUnsaved,
-        availabilityDates.length, // TODO: May cause problems
-    ]);
 
     const handlePrevPage = () => {
         if (currentPage > 0) {
