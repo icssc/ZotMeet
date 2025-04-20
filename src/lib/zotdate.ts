@@ -1,5 +1,5 @@
-import { CalendarConstants } from "@/lib/types/chrono";
 import { group } from "console";
+import { CalendarConstants } from "@/lib/types/chrono";
 
 export class ZotDate {
     readonly day: Date;
@@ -21,8 +21,7 @@ export class ZotDate {
         day: Date = new Date(),
         earliestTime: number = 0,
         latestTime: number = 1440,
-        //isSelected: boolean = false,
-        isSelected: boolean = true,
+        isSelected: boolean = false,
         availability: boolean[] = []
     ) {
         this.day = day;
@@ -197,7 +196,12 @@ export class ZotDate {
                     isSelected = true;
                 }
 
-                const newZotDate = new ZotDate(newDate, isSelected);
+                const newZotDate = new ZotDate(
+                    newDate,
+                    undefined,
+                    undefined,
+                    isSelected
+                );
                 generatedWeek.push(newZotDate);
             }
 
@@ -224,7 +228,7 @@ export class ZotDate {
             )
         ) {
             const newDay = new Date(year, month, day);
-            return new ZotDate(newDay, isSelected);
+            return new ZotDate(newDay, undefined, undefined, isSelected);
         }
 
         return null;
@@ -443,37 +447,45 @@ export class ZotDate {
         displayName: string,
         meetingAvailabilities: string
     ): void {
-        if(!this.groupAvailability[displayName]) {
+        if (!this.groupAvailability[displayName]) {
             this.groupAvailability[displayName] = [];
         }
         this.groupAvailability[displayName].push(meetingAvailabilities);
-    
-}
+    }
     /**
      * Gets the group availability block based on the block index
      * @param index index of the availability block
      * @return the current availability of the block corresponding to the given index
      */
-    getGroupAvailabilityBlock(fromTime: number, index: number): number[] | null {
+    getGroupAvailabilityBlock(
+        fromTime: number,
+        index: number
+    ): number[] | null {
         let totalAvailable: number[] = [];
         let unavailable: number[] = [];
         Object.keys(this.groupAvailability).forEach((memberCount) => {
-            let currentTime = new Date(this.day)
-            
-            currentTime.setMinutes(currentTime.getMinutes() + (fromTime + index * 15) % 60);
-            currentTime.setHours(currentTime.getHours() + (fromTime + index * 15) / 60);
+            let currentTime = new Date(this.day);
+
+            currentTime.setMinutes(
+                currentTime.getMinutes() + ((fromTime + index * 15) % 60)
+            );
+            currentTime.setHours(
+                currentTime.getHours() + (fromTime + index * 15) / 60
+            );
 
             const currentString = currentTime.toISOString();
-            
-            if (this.groupAvailability[memberCount]?.includes(currentString.toString())) {
+
+            if (
+                this.groupAvailability[memberCount]?.includes(
+                    currentString.toString()
+                )
+            ) {
                 totalAvailable.push(memberCount);
-            }
-            else{
+            } else {
                 unavailable.push(memberCount);
             }
         });
-        console.log("totalAvailable", totalAvailable)
+        console.log("totalAvailable", totalAvailable);
         return totalAvailable;
-        
     }
 }
