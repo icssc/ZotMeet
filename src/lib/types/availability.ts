@@ -1,6 +1,8 @@
 // import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
 // import type { AnyZodObject } from "zod";
 
+import { SelectAvailability } from "@/db/schema";
+
 export type AvailabilityBlockType = {
     zotDateIndex: number;
     blockIndex: number;
@@ -34,3 +36,8 @@ export interface GuestSession {
     guestName: string;
     meetingId: string;
 }
+
+export type MemberMeetingAvailability = Pick<
+    SelectAvailability,
+    "memberId" | "meetingAvailabilities"
+>;
