@@ -7,12 +7,11 @@ import { AvailabilityBlocks } from "@/components/availability/table/availability
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
+import { SelectMeeting } from "@/db/schema";
 import {
-    AvailabilityMeetingDateJoinSchema,
-    MeetingDateSelectSchema,
-    SelectMeeting,
-} from "@/db/schema";
-import { AvailabilityBlockType } from "@/lib/types/availability";
+    AvailabilityBlockType,
+    MemberMeetingAvailability,
+} from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
 // import LoginFlow from "./LoginModal";
@@ -20,8 +19,8 @@ import { ZotDate } from "@/lib/zotdate";
 interface PersonalAvailabilityProps {
     columns: number;
     meetingData: SelectMeeting;
-    meetingDates: MeetingDateSelectSchema[];
-    availability: AvailabilityMeetingDateJoinSchema[] | null;
+    meetingDates: string[];
+    availability: MemberMeetingAvailability | null;
     availabilityTimeBlocks: number[];
 }
 
@@ -50,11 +49,8 @@ export function PersonalAvailability({
         setIsStateUnsaved,
         availabilityDates,
         setAvailabilityDates,
+        setOriginalAvailabilityDates,
     } = useAvailabilityContext();
-
-    const [guestSession, setGuestSession] = useState({
-        meetingId: meetingData.id || "",
-    });
 
     useEffect(() => {
         setItemsPerPage(columns);
@@ -180,33 +176,67 @@ export function PersonalAvailability({
     }, [isStateUnsaved]);
 
     useEffect(() => {
-        if (!availability || availability?.length === 0) {
-            setAvailabilityDates(
-                meetingDates?.map(
-                    (meetingDate) =>
-                        new ZotDate(
-                            new Date(meetingDate),
-                            false,
-                            Array.from({ length: 96 }).map(() => false)
-                        )
-                )
-            );
+        if (!meetingDates || meetingDates.length === 0) return;
+
+        if (isStateUnsaved && availabilityDates.length > 0) {
             return;
         }
 
-        setAvailabilityDates(
-            availability?.map(
-                (availability) =>
-                    new ZotDate(
-                        new Date(availability.meeting_dates),
-                        false,
-                        Array.from(
-                            availability.availabilities.availabilityString // needs to be change to JSON array
-                        ).map((char) => char === "1")
-                    )
-            )
-        );
-    }, [availability, meetingDates, setAvailabilityDates]);
+        const availabilitiesByDate = new Map<string, string[]>();
+
+        // Only populate the map if the availability object exists and has time blocks
+        if (availability && availability.meetingAvailabilities) {
+            availability.meetingAvailabilities.forEach((timeStr) => {
+                const time = new Date(timeStr);
+                const dateStr = time.toISOString().split("T")[0]; // Get just the date part
+
+                if (!availabilitiesByDate.has(dateStr)) {
+                    availabilitiesByDate.set(dateStr, []);
+                }
+
+                availabilitiesByDate.get(dateStr)?.push(timeStr);
+            });
+        }
+
+        // For every meeting date, create a corresponding ZotDate object
+        const convertedDates = meetingDates.map((meetingDate) => {
+            const date = new Date(meetingDate);
+            const dateStr = date.toISOString().split("T")[0];
+
+            // TODO: Refactor this logic for new date string format.
+            // Choose default bounds if no availabilityTimeBlocks exist
+            const earliestMinutes =
+                availabilityTimeBlocks.length > 0
+                    ? availabilityTimeBlocks[0]
+                    : 480;
+
+            const latestMinutes =
+                availabilityTimeBlocks.length > 0
+                    ? availabilityTimeBlocks[
+                          availabilityTimeBlocks.length - 1
+                      ] + 15
+                    : 1050;
+
+            // Load the availability time strings for this date or use empty array
+            const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
+
+            // Create the ZotDate with any found availabilities
+            const zotDate = new ZotDate(date, false, dateAvailabilities);
+            zotDate.earliestTime = earliestMinutes;
+            zotDate.latestTime = latestMinutes;
+
+            return zotDate;
+        });
+
+        setAvailabilityDates(convertedDates);
+    }, [
+        availability,
+        meetingDates,
+        setAvailabilityDates,
+        availabilityTimeBlocks,
+        isStateUnsaved,
+        availabilityDates.length, // TODO: May cause problems
+    ]);
 
     const handlePrevPage = () => {
         if (currentPage > 0) {
@@ -266,8 +296,6 @@ export function PersonalAvailability({
                     disabled={currentPage === lastPage}
                 />
             </div>
-
-            {/* <LoginFlow data={data} /> */}
         </div>
     );
 }
