@@ -1,13 +1,20 @@
 import "server-only";
 
 import { db } from "@/db";
-import { availabilities, meetings } from "@/db/schema";
+import { availabilities, meetings, SelectMeeting } from "@/db/schema";
+import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { and, eq, or, sql } from "drizzle-orm";
 
-export async function getExistingMeeting(meetingId: string) {
+export async function getExistingMeeting(
+    meetingId: string
+): Promise<SelectMeeting> {
     const meeting = await db.query.meetings.findFirst({
         where: eq(meetings.id, meetingId),
     });
+
+    if (!meeting) {
+        throw new Error("Meeting not found");
+    }
 
     return meeting;
 }
@@ -61,7 +68,7 @@ export const getAllMemberAvailability = async ({
     meetingId,
 }: {
     meetingId: string;
-}) => {
+}): Promise<MemberMeetingAvailability[]> => {
     const availability = await db
         .select({
             memberId: availabilities.memberId,
@@ -73,7 +80,10 @@ export const getAllMemberAvailability = async ({
         .from(availabilities)
         .where(and(eq(availabilities.meetingId, meetingId)));
 
-    return availability;
+    return availability as {
+        memberId: string;
+        meetingAvailabilities: string[];
+    }[];
 };
 
 export async function getMeetings(memberId: string) {
