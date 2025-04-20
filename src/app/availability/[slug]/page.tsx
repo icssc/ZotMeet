@@ -80,7 +80,7 @@ export default async function Page({ params }: PageProps) {
     console.log(`All member Availability/${slug}:`, allAvailabilties);
 
     return (
-        <div className="space-y-2 px-4">
+        <div className="px-4 space-y-2">
             <AvailabilityHeader
                 meetingData={meetingData}
                 user={session.user}

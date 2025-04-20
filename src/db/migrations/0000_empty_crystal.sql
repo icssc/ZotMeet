@@ -1,5 +1,5 @@
 DO $$ BEGIN
-	CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');
+    CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;

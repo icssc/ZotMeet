@@ -232,3 +232,10 @@ export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
         references: [users.id],
     }),
 }));
+
+export const oauthRelations = relations(oauthAccounts, ({ one }) => ({
+    users: one(users, {
+        fields: [oauthAccounts.userId],
+        references: [users.id],
+    }),
+}));
