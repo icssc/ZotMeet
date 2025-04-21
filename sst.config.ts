@@ -18,7 +18,7 @@ export default $config({
             domain: {
                 name: `${$app.stage === "prod" ? "" : `${$app.stage}.`}zotmeet.com`,
                 dns: sst.aws.dns({
-                    zone: "Z0670880YRIE7KPL5SPX", // test
+                    zone: "Z0670880YRIE7KPL5SPX",
                 }),
             },
         });
