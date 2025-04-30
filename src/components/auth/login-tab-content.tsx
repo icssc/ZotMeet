@@ -99,6 +99,10 @@ export default function LoginTabContent() {
                     </Button>
                 </form>
             </Form>
+            <>
+                <h1>Sign in</h1>
+                <a href="/login/google">Sign in with Google</a>
+            </>
         </div>
     );
 }

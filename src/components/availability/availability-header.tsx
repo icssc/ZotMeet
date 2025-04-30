@@ -79,17 +79,18 @@ export function AvailabilityHeader({
         }
     };
 
-    const handleGuestSubmit = () => {
-        if (guestName.trim()) {
-            setIsGuestDialogOpen(false);
-            saveAvailabilityData(guestName);
-        }
-    };
+    // TODO: Guest
+    // const handleGuestSubmit = () => {
+    //     if (guestName.trim()) {
+    //         setIsGuestDialogOpen(false);
+    //         saveAvailabilityData(guestName);
+    //     }
+    // };
 
     return (
         <>
             <div className="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
-                <h1 className="h-8 pr-2 text-xl font-medium line-clamp-1 font-montserrat md:h-fit md:text-3xl">
+                <h1 className="line-clamp-1 h-8 pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
                     {meetingData.title}
                 </h1>
 
@@ -177,6 +178,7 @@ export function AvailabilityHeader({
                 open={isGuestDialogOpen}
                 onOpenChange={setIsGuestDialogOpen}
             >
+                {/* TODO: Guest
                 <DialogContent>
                     <DialogTitle>Continue as Guest</DialogTitle>
                     <Input
@@ -200,7 +202,7 @@ export function AvailabilityHeader({
                             Submit
                         </Button>
                     </DialogFooter>
-                </DialogContent>
+                </DialogContent> */}
             </Dialog>
         </>
     );

@@ -15,10 +15,11 @@ export type SelectionStateType = {
     laterBlockIndex: number;
 };
 
-export interface GuestSession {
-    guestName: string;
-    meetingId: string;
-}
+//TODO: Guest
+// export interface GuestSession {
+//     guestName: string;
+//     meetingId: string;
+// }
 
 export type MemberMeetingAvailability = Pick<
     SelectAvailability,

@@ -19,10 +19,11 @@ export type UserProfile = {
     displayName: string;
 };
 
-export type GuestMember = {
-    memberId: string;
-    displayName: string;
-};
+//TODO: Guest
+// export type GuestMember = {
+//     memberId: string;
+//     displayName: string;
+// };
 
 export async function createUser(
     email: string,
@@ -86,44 +87,44 @@ export async function getUserPasswordHash(userId: string): Promise<string> {
 
     return user.passwordHash;
 }
+//TODO: Guest
+// export async function createGuest({
+//     displayName,
+//     meetingId,
+// }: {
+//     displayName: string;
+//     meetingId: string;
+// }): Promise<GuestMember> {
+//     // Temporary implementation for guest users.
+//     const existingMember = await db
+//         .select()
+//         .from(availabilities)
+//         .innerJoin(members, eq(availabilities.memberId, members.id))
+//         .where(
+//             and(
+//                 eq(availabilities.meetingId, meetingId),
+//                 eq(members.displayName, displayName)
+//             )
+//         )
+//         .limit(1);
 
-export async function createGuest({
-    displayName,
-    meetingId,
-}: {
-    displayName: string;
-    meetingId: string;
-}): Promise<GuestMember> {
-    // Temporary implementation for guest users.
-    const existingMember = await db
-        .select()
-        .from(availabilities)
-        .innerJoin(members, eq(availabilities.memberId, members.id))
-        .where(
-            and(
-                eq(availabilities.meetingId, meetingId),
-                eq(members.displayName, displayName)
-            )
-        )
-        .limit(1);
+//     if (existingMember && existingMember.length > 0) {
+//         throw new Error(`$Display name "${displayName}" already exists.`);
+//     }
 
-    if (existingMember && existingMember.length > 0) {
-        throw new Error(`$Display name "${displayName}" already exists.`);
-    }
+//     const [newMember] = await db
+//         .insert(members)
+//         .values({ displayName })
+//         .returning({
+//             memberId: members.id,
+//         });
 
-    const [newMember] = await db
-        .insert(members)
-        .values({ displayName })
-        .returning({
-            memberId: members.id,
-        });
+//     if (newMember === null) {
+//         throw new Error("Unexpected error");
+//     }
 
-    if (newMember === null) {
-        throw new Error("Unexpected error");
-    }
-
-    return {
-        ...newMember,
-        displayName,
-    };
-}
+//     return {
+//         ...newMember,
+//         displayName,
+//     };
+// }
