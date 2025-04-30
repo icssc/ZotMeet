@@ -14,7 +14,6 @@ export async function GET(request: Request): Promise<Response> {
     const cookieStore = await cookies();
     const storedState = cookieStore.get("google_oauth_state")?.value ?? null;
     const codeVerifier = cookieStore.get("google_code_verifier")?.value ?? null;
-    console.log("code", code);
 
     console.log("state", state);
 
@@ -52,10 +51,12 @@ export async function GET(request: Request): Promise<Response> {
     const claims = decodeIdToken(tokens.idToken());
     const googleUserId = claims.sub;
     const username = claims.name;
+    console.log("googleUserId", googleUserId);
+    console.log("username", username);
 
     const existingUser = await getUserFromGoogleId(googleUserId);
-
-    if (existingUser !== null) {
+    console.log("existingUser", existingUser);
+    if (existingUser !== undefined) {
         const sessionToken = generateSessionToken();
         const session = await createSession(sessionToken, existingUser.id);
         await setSessionTokenCookie(sessionToken, session.expiresAt);
