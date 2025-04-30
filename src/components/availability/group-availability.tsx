@@ -185,15 +185,20 @@ export function GroupAvailability({
                 availabilityDates
             );
 
-            const availableMembers =
+            const availableMemberIds =
                 selectedDate.groupAvailability[timestamp] || [];
-            setAvailableMembersOfSelection(availableMembers);
+            
+            const availableMemberNames = availableMemberIds.map(memberId => {
+                const member = groupAvailabilities.find(m => m.memberId === memberId);
+                return member ? member.displayName : memberId; // fallback to memberId
+            });
+            setAvailableMembersOfSelection(availableMemberNames);
 
             const notAvailableMembers = groupAvailabilities.filter(
-                (member) => !availableMembers.includes(member.memberId)
+                (member) => !availableMemberIds.includes(member.memberId)
             );
             setNotAvailableMembersOfSelection(
-                notAvailableMembers.map((member) => member.memberId)
+                notAvailableMembers.map((member) => member.displayName)
             );
         }
     }, [
@@ -239,8 +244,14 @@ export function GroupAvailability({
         };
     }, []);
 
-    const handleMemberHover = (memberId: string | null) => {
-        setHoveredMember(memberId);
+    const handleMemberHover = (memberName: string | null) => {
+        if (memberName === null) {
+            setHoveredMember(null);
+            return;
+        }
+        
+        const member = groupAvailabilities.find(m => m.displayName === memberName);
+        setHoveredMember(member ? member.memberId : null);
     };
 
     console.log(fromTime, availabilityDates);
