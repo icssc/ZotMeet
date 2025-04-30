@@ -203,11 +203,30 @@ export function GroupAvailability({
         groupAvailabilities,
     ]);
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as Element;
+            const isOnAvailabilityBlock = !!target.closest('.group-availability-block');
+            
+            if (!isOnAvailabilityBlock) {
+                resetSelection();
+                setSelectionIsLocked(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
     console.log(fromTime, availabilityDates);
 
     return (
         <div className="flex flex-row items-start justify-start align-top">
-            <div className="flex items-center justify-between overflow-x-auto h-fit font-dm-sans lg:w-full lg:pr-10">
+            <div 
+                className="flex items-center justify-between overflow-x-auto h-fit font-dm-sans lg:w-full lg:pr-10"
+            >
                 <AvailabilityNavButton
                     direction="left"
                     handleClick={handlePrevPage}
@@ -230,8 +249,8 @@ export function GroupAvailability({
                                     <AvailabilityTimeTicks
                                         timeBlock={timeBlock}
                                     />
-
-                                    {currentPageAvailability?.map(
+                                    {/* DOES THIS BREAK ANYTHING??? */}
+                                    {currentPageAvailability?.filter(date => date !== null).map(
                                         (selectedDate, pageDateIndex) => {
                                             const key = generateDateKey({
                                                 selectedDate,
@@ -279,7 +298,7 @@ export function GroupAvailability({
                                                         className="px-0 py-0"
                                                     >
                                                         <GroupAvailabilityBlock
-                                                            className="hidden lg:block"
+                                                            className="hidden lg:block group-availability-block"
                                                             timestamp={
                                                                 timestamp
                                                             }
@@ -311,7 +330,7 @@ export function GroupAvailability({
                                                             timestamp={
                                                                 timestamp
                                                             }
-                                                            className="block lg:hidden"
+                                                            className="block lg:hidden group-availability-block"
                                                             onClick={() =>
                                                                 handleCellClick(
                                                                     {
