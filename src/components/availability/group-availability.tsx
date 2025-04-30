@@ -259,6 +259,10 @@ export function GroupAvailability({
             if (event.key === 'Escape') {
                 resetSelection();
                 setSelectionIsLocked(false);
+                // removes weird outline
+                if (document.activeElement instanceof HTMLElement) {
+                    document.activeElement.blur();
+                }
             }
         };
         
