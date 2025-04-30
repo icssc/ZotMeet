@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
@@ -10,13 +10,17 @@ import { AvailabilityTimeTicks } from "@/components/availability/table/availabil
 import {
     AvailabilityBlockType,
     MemberMeetingAvailability,
+    SelectionStateType,
 } from "@/lib/types/availability";
+import { ZotDate } from "@/lib/zotdate";
 
 interface PersonalAvailabilityProps {
     meetingDates: string[];
     userAvailability: MemberMeetingAvailability | null;
     availabilityTimeBlocks: number[];
     fromTime: number;
+    availabilityDates: ZotDate[];
+    setAvailabilityDates: Dispatch<SetStateAction<ZotDate[]>>;
 }
 
 export function PersonalAvailability({
@@ -24,27 +28,20 @@ export function PersonalAvailability({
     userAvailability,
     fromTime,
     availabilityTimeBlocks,
+    availabilityDates,
+    setAvailabilityDates,
 }: PersonalAvailabilityProps) {
-    const {
-        startBlockSelection,
-        setStartBlockSelection,
-        endBlockSelection,
-        setEndBlockSelection,
-        selectionState,
-        setSelectionState,
-        currentPage,
-        setCurrentPage,
-        itemsPerPage,
-        setItemsPerPage,
-        setCurrentPageAvailability,
-        isEditingAvailability,
-        setIsEditingAvailability,
-        isStateUnsaved,
-        setIsStateUnsaved,
-        availabilityDates,
-        setAvailabilityDates,
-        setOriginalAvailabilityDates,
-    } = useAvailabilityContext();
+    const [startBlockSelection, setStartBlockSelection] =
+        useState<AvailabilityBlockType>();
+    const [endBlockSelection, setEndBlockSelection] =
+        useState<AvailabilityBlockType>();
+    const [selectionState, setSelectionState] = useState<SelectionStateType>();
+    const [currentPage, setCurrentPage] = useState(0);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [currentPageAvailability, setCurrentPageAvailability] =
+        useState<ZotDate[]>();
+    const [isEditingAvailability, setIsEditingAvailability] = useState(false);
+    const [isStateUnsaved, setIsStateUnsaved] = useState(false);
 
     const numPaddingDates = useMemo(() => {
         return availabilityDates.length % itemsPerPage === 0
@@ -231,7 +228,9 @@ export function PersonalAvailability({
                 />
 
                 <table className="w-full table-fixed">
-                    <AvailabilityTableHeader />
+                    <AvailabilityTableHeader
+                        currentPageAvailability={currentPageAvailability}
+                    />
 
                     <tbody>
                         {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
@@ -245,6 +244,8 @@ export function PersonalAvailability({
                                 <tr key={`block-${timeBlock}`}>
                                     <AvailabilityTimeTicks
                                         timeBlock={timeBlock}
+                                        isTopOfHour={isTopOfHour}
+                                        isHalfHour={isHalfHour}
                                     />
 
                                     <AvailabilityBlocks
@@ -254,6 +255,11 @@ export function PersonalAvailability({
                                         isLastRow={isLastRow}
                                         timeBlock={timeBlock}
                                         blockIndex={blockIndex}
+                                        currentPage={currentPage}
+                                        itemsPerPage={itemsPerPage}
+                                        currentPageAvailability={
+                                            currentPageAvailability
+                                        }
                                     />
                                 </tr>
                             );

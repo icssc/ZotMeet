@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useAvailabilityContext } from "@/components/availability/context/availability-context";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
@@ -43,20 +42,22 @@ interface GroupAvailabilityProps {
     groupAvailabilities: MemberMeetingAvailability[];
     fromTime: number;
     toTime: number;
+    availabilityDates: ZotDate[];
+    setAvailabilityDates: Dispatch<SetStateAction<ZotDate[]>>;
 }
+
 export function GroupAvailability({
     availabilityTimeBlocks,
     groupAvailabilities,
     fromTime,
+    toTime,
+    availabilityDates,
+    setAvailabilityDates,
 }: GroupAvailabilityProps) {
-    const {
-        currentPage,
-        setCurrentPage,
-        itemsPerPage,
-        currentPageAvailability,
-        setCurrentPageAvailability,
-        availabilityDates,
-    } = useAvailabilityContext();
+    const [currentPage, setCurrentPage] = useState(0);
+    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [currentPageAvailability, setCurrentPageAvailability] =
+        useState<ZotDate[]>();
 
     const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
     const numPaddingDates =
@@ -207,7 +208,7 @@ export function GroupAvailability({
 
     return (
         <div className="flex flex-row items-start justify-start align-top">
-            <div className="flex items-center justify-between overflow-x-auto h-fit font-dm-sans lg:w-full lg:pr-10">
+            <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-10">
                 <AvailabilityNavButton
                     direction="left"
                     handleClick={handlePrevPage}
@@ -215,7 +216,9 @@ export function GroupAvailability({
                 />
 
                 <table className="w-full table-fixed">
-                    <AvailabilityTableHeader />
+                    <AvailabilityTableHeader
+                        currentPageAvailability={currentPageAvailability}
+                    />
 
                     <tbody>
                         {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
@@ -229,6 +232,8 @@ export function GroupAvailability({
                                 <tr key={`block-${timeBlock}`}>
                                     <AvailabilityTimeTicks
                                         timeBlock={timeBlock}
+                                        isTopOfHour={isTopOfHour}
+                                        isHalfHour={isHalfHour}
                                     />
 
                                     {currentPageAvailability?.map(
@@ -243,12 +248,6 @@ export function GroupAvailability({
                                                 const zotDateIndex =
                                                     pageDateIndex +
                                                     currentPage * itemsPerPage;
-                                                // const availableMemberIndices =
-                                                //     selectedDate.getGroupAvailabilityBlock(
-                                                //         fromTime[0],
-                                                //         blockIndex
-                                                //     );
-
                                                 const isSelected =
                                                     selectedZotDateIndex ===
                                                         zotDateIndex &&
