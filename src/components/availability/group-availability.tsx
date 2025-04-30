@@ -210,6 +210,31 @@ export function GroupAvailability({
     ]);
 
     useEffect(() => {
+        const handleMouseMove = (event: MouseEvent) => {
+            if (selectionIsLocked) return;
+            
+            const gridBlocks = document.querySelectorAll('.group-availability-block');
+            if (gridBlocks.length === 0) return;
+            
+            let isOverGrid = false;
+            for (const block of gridBlocks) {
+                const rect = block.getBoundingClientRect();
+                if (
+                    event.clientX >= rect.left &&
+                    event.clientX <= rect.right &&
+                    event.clientY >= rect.top &&
+                    event.clientY <= rect.bottom
+                ) {
+                    isOverGrid = true;
+                    break;
+                }
+            }
+            
+            if (!isOverGrid) {
+                resetSelection();
+            }
+        };
+        
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as Element;
             const isOnAvailabilityBlock = !!target.closest('.group-availability-block');
@@ -219,22 +244,21 @@ export function GroupAvailability({
                 setSelectionIsLocked(false);
             }
         };
-
-        document.addEventListener("mousedown", handleClickOutside);
+        
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mousedown', handleClickOutside);
+        
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, []);
+    }, [selectionIsLocked, resetSelection]);
 
     useEffect(() => {
         const handleEscKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
                 resetSelection();
                 setSelectionIsLocked(false);
-                // removes weird outline
-                if (document.activeElement instanceof HTMLElement) {
-                    document.activeElement.blur();
-                }
             }
         };
         
