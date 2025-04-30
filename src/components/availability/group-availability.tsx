@@ -220,6 +220,24 @@ export function GroupAvailability({
         };
     }, []);
 
+    useEffect(() => {
+        const handleEscKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                resetSelection();
+                setSelectionIsLocked(false);
+                // removes weird outline
+                if (document.activeElement instanceof HTMLElement) {
+                    document.activeElement.blur();
+                }
+            }
+        };
+        
+        document.addEventListener('keydown', handleEscKey);
+        return () => {
+            document.removeEventListener('keydown', handleEscKey);
+        };
+    }, []);
+
     console.log(fromTime, availabilityDates);
 
     return (
