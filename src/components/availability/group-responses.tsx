@@ -11,6 +11,7 @@ interface GroupResponsesProps {
     availableMembersOfSelection: string[];
     notAvailableMembersOfSelection: string[];
     closeMobileDrawer: VoidFunction;
+    onMemberHover: (memberId: string | null) => void;
 }
 
 export function GroupResponses({
@@ -21,6 +22,7 @@ export function GroupResponses({
     availableMembersOfSelection,
     notAvailableMembersOfSelection,
     closeMobileDrawer,
+    onMemberHover,
 }: GroupResponsesProps) {
     const [blockInfoString, setBlockInfoString] = useState("");
 
@@ -100,7 +102,9 @@ export function GroupResponses({
                                     (availableName) => (
                                         <li
                                             key={availableName}
-                                            className="text-lg text-gray-800"
+                                            className="text-lg text-gray-800 cursor-pointer"
+                                            onMouseEnter={() => onMemberHover(availableName)}
+                                            onMouseLeave={() => onMemberHover(null)}
                                         >
                                             {availableName}
                                         </li>
@@ -126,7 +130,9 @@ export function GroupResponses({
                                     (notAvailableName) => (
                                         <li
                                             key={notAvailableName}
-                                            className="text-lg text-gray-400"
+                                            className="text-lg text-gray-400 cursor-pointer"
+                                            onMouseEnter={() => onMemberHover(notAvailableName)}
+                                            onMouseLeave={() => onMemberHover(null)}
                                         >
                                             {notAvailableName}
                                         </li>

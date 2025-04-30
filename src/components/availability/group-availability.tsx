@@ -73,6 +73,7 @@ export function GroupAvailability({
         useState<string[]>([]);
 
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
+    const [hoveredMember, setHoveredMember] = useState<string | null>(null);
 
     const generateDateKey = ({
         selectedDate,
@@ -238,6 +239,10 @@ export function GroupAvailability({
         };
     }, []);
 
+    const handleMemberHover = (memberId: string | null) => {
+        setHoveredMember(memberId);
+    };
+
     console.log(fromTime, availabilityDates);
 
     return (
@@ -280,17 +285,25 @@ export function GroupAvailability({
                                                 const zotDateIndex =
                                                     pageDateIndex +
                                                     currentPage * itemsPerPage;
-                                                // const availableMemberIndices =
-                                                //     selectedDate.getGroupAvailabilityBlock(
-                                                //         fromTime[0],
-                                                //         blockIndex
-                                                //     );
 
                                                 const isSelected =
                                                     selectedZotDateIndex ===
                                                         zotDateIndex &&
                                                     selectedBlockIndex ===
                                                         blockIndex;
+                                                        
+                                                const timestamp =
+                                                    getTimestampFromBlockIndex(
+                                                        blockIndex,
+                                                        zotDateIndex,
+                                                        fromTime,
+                                                        availabilityDates
+                                                    );
+                                                
+                                                const isMemberAvailableAtTimestamp = hoveredMember && 
+                                                    selectedDate.groupAvailability[timestamp] && 
+                                                    selectedDate.groupAvailability[timestamp].includes(hoveredMember);
+                                                
                                                 const tableCellStyles = cn(
                                                     isTopOfHour &&
                                                         "border-t-[1px] border-t-gray-medium",
@@ -301,14 +314,6 @@ export function GroupAvailability({
                                                     isSelected &&
                                                         "outline-dashed outline-2 outline-slate-500"
                                                 );
-
-                                                const timestamp =
-                                                    getTimestampFromBlockIndex(
-                                                        blockIndex,
-                                                        zotDateIndex,
-                                                        fromTime,
-                                                        availabilityDates
-                                                    );
 
                                                 return (
                                                     <td
@@ -343,6 +348,7 @@ export function GroupAvailability({
                                                             tableCellStyles={
                                                                 tableCellStyles
                                                             }
+                                                            hoveredMember={hoveredMember}
                                                         />
                                                         <GroupAvailabilityBlock
                                                             timestamp={
@@ -364,6 +370,7 @@ export function GroupAvailability({
                                                             tableCellStyles={
                                                                 tableCellStyles
                                                             }
+                                                            hoveredMember={hoveredMember}
                                                         />
                                                     </td>
                                                 );
@@ -393,6 +400,7 @@ export function GroupAvailability({
                 availableMembersOfSelection={availableMembersOfSelection}
                 notAvailableMembersOfSelection={notAvailableMembersOfSelection}
                 closeMobileDrawer={resetSelection}
+                onMemberHover={handleMemberHover}
             />
 
             <div className={`lg:hidden ${isMobileDrawerOpen ? "h-96" : ""}`} />
