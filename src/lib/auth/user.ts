@@ -1,8 +1,8 @@
 import { db } from "@/db";
-import { availabilities, members, users } from "@/db/schema";
+import { members, oauthAccounts, users } from "@/db/schema";
 import { generateIdFromEntropySize } from "@/lib/auth/crypto";
 import { hashPassword } from "@/lib/auth/password";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 // Projection of user table for db queries to limit what is returned
 export const userProfileProjection = {
@@ -18,6 +18,14 @@ export type UserProfile = {
     memberId: string;
     displayName: string;
 };
+
+export type UserProfileWithGoogleId = {
+    id: string
+    googleUserId: string;
+    username: string;
+    picture: string | null;
+}
+
 
 //TODO: Guest
 // export type GuestMember = {
@@ -69,6 +77,62 @@ export async function createUser(
     };
 }
 
+export async function createGoogleUser(
+    googleUserId: string,
+    username: string,
+    picture: string | null,
+) : Promise<UserProfileWithGoogleId> {
+    const userId = generateIdFromEntropySize(10);
+
+    const newGoogleUser = await db.transaction(async (tx) => {
+        const [newMember] = await tx
+            .insert(members)
+            .values({ displayName: username })
+            .returning({
+                id: members.id,
+            });
+            const [newUser] = await tx
+            .insert(users)
+            .values({
+                id: googleUserId,
+                memberId: newMember.id,
+                email: "google user", //TODO: Change to correct values
+                passwordHash: "google user", //TODO: Change to correct values
+                createdAt: new Date(),
+            })
+            .returning({
+                id: users.id,
+                email: users.email,
+                memberId: users.memberId,
+            });
+        const [newGoogleMember] = await tx
+            .insert(oauthAccounts)
+            .values({ 
+                userId: newUser.id,
+                providerId: "google",
+                providerUserId: googleUserId,
+            }) //TODO: Change to correct values
+            .returning({
+                id: oauthAccounts.userId,
+            });
+        
+        
+
+        return newGoogleMember;
+    });
+
+    if (newGoogleUser === null) {
+        throw new Error("Unexpected error");
+    }
+
+    return {
+        ...newGoogleUser,
+        googleUserId,
+        username,
+        picture,
+    };
+}
+
 export async function getUserPasswordHash(userId: string): Promise<string> {
     const user = await db.query.users.findFirst({
         columns: {
@@ -87,6 +151,7 @@ export async function getUserPasswordHash(userId: string): Promise<string> {
 
     return user.passwordHash;
 }
+
 //TODO: Guest
 // export async function createGuest({
 //     displayName,
