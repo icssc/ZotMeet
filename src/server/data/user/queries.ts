@@ -21,9 +21,9 @@ export async function getUserEmailExists(email: string) {
 }
 
 export async function getUserFromGoogleId(googleId: string) {
-    const user = await db.query.members.findFirst({
+    const user = await db.query.users.findFirst({
         where: eq(users.id, googleId),
     });
 
-    return user;
+    return user !== undefined;
 }
