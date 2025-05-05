@@ -1,14 +1,8 @@
-"use client";
+import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 
-import { ZotDate } from "@/lib/zotdate";
+export function AvailabilityTableHeader() {
+    const { currentPageAvailability } = useAvailabilityContext();
 
-interface AvailabilityTableHeaderProps {
-    currentPageAvailability: ZotDate[] | undefined;
-}
-
-export function AvailabilityTableHeader({
-    currentPageAvailability,
-}: AvailabilityTableHeaderProps) {
     return (
         <thead>
             <tr>
@@ -29,7 +23,7 @@ export function AvailabilityTableHeader({
                                         { weekday: "short" }
                                     )}
                                 </span>
-                                <span className="text-center text-[12px] uppercase text-gray-medium md:text-base">
+                                <span className="text-gray-medium text-center text-[12px] uppercase md:text-base">
                                     {dateHeader.day.toLocaleDateString(
                                         "en-US",
                                         {

@@ -1,21 +1,16 @@
-"use client";
-
+import React from "react";
+import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { AvailabilityBlockCells } from "@/components/availability/table/availability-block-cells";
+import { AvailabilityBlockType } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityBlocksProps {
-    setAvailabilities: (block: {
-        zotDateIndex: number;
-        blockIndex: number;
-    }) => void;
+    setAvailabilities: (startBlock: AvailabilityBlockType) => void;
     isTopOfHour: boolean;
     isHalfHour: boolean;
     isLastRow: boolean;
     timeBlock: number;
     blockIndex: number;
-    currentPage: number;
-    itemsPerPage: number;
-    currentPageAvailability: ZotDate[] | undefined;
 }
 
 export function AvailabilityBlocks({
@@ -25,10 +20,10 @@ export function AvailabilityBlocks({
     isLastRow,
     timeBlock,
     blockIndex,
-    currentPage,
-    itemsPerPage,
-    currentPageAvailability,
 }: AvailabilityBlocksProps) {
+    const { currentPage, itemsPerPage, currentPageAvailability } =
+        useAvailabilityContext();
+
     const generateDateKey = (
         selectedDate: ZotDate,
         timeBlock: number,
