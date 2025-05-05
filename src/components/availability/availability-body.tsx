@@ -103,17 +103,12 @@ export function AvailabilityBody({
     user: UserProfile | null;
 }) {
     const { availabilityView, setHasAvailability } = useAvailabilityViewStore();
-    // const { availabilityDates, setAvailabilityDates } =
-    //     useAvailabilityContext();
-
-    // const fromTimeNumber = getTimeFromHourMinuteString(
-    //     meetingData.fromTime as HourMinuteString
-    // );
-    // const toTimeNumber = getTimeFromHourMinuteString(
-    //     meetingData.toTime as HourMinuteString
-    // );
-    const fromTimeNumber = 9; // 9 AM [DEBUG]
-    const toTimeNumber = 16; // 4 PM [DEBUG]
+    const fromTimeNumber =
+        getTimeFromHourMinuteString(meetingData.fromTime as HourMinuteString) /
+        60;
+    const toTimeNumber =
+        getTimeFromHourMinuteString(meetingData.toTime as HourMinuteString) /
+        60;
     const availabilityTimeBlocks = generateTimeBlocks(
         fromTimeNumber,
         toTimeNumber

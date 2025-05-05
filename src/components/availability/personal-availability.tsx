@@ -190,7 +190,12 @@ export function PersonalAvailability({
 
                 <table className="w-full table-fixed">
                     <AvailabilityTableHeader
-                        currentPageAvailability={currentPageAvailability}
+                        currentPageAvailability={[
+                            ...currentPageAvailability,
+                            ...Array(
+                                5 - (currentPageAvailability?.length || 0)
+                            ).fill(null),
+                        ]}
                     />
 
                     <tbody>
@@ -216,9 +221,14 @@ export function PersonalAvailability({
                                         blockIndex={blockIndex}
                                         currentPage={currentPage}
                                         itemsPerPage={itemsPerPage}
-                                        currentPageAvailability={
-                                            currentPageAvailability
-                                        }
+                                        currentPageAvailability={[
+                                            ...currentPageAvailability,
+                                            ...Array(
+                                                5 -
+                                                    (currentPageAvailability?.length ||
+                                                        0)
+                                            ).fill(null),
+                                        ]}
                                         startBlockSelection={
                                             startBlockSelection
                                         }

@@ -45,8 +45,8 @@ export function AvailabilityBlocks({
         pageDateIndex: number
     ) => {
         return selectedDate
-            ? `date-${selectedDate.valueOf()}-${timeBlock}`
-            : `padding-${pageDateIndex}`;
+            ? `date-${selectedDate.valueOf()}-${timeBlock}-${pageDateIndex}`
+            : `padding-${pageDateIndex}-${timeBlock}`;
     };
 
     return (
