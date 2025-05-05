@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useAvailabilityContext } from "@/components/availability/context/availability-context";
+import { useEffect, useMemo, useState } from "react";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
@@ -10,13 +9,24 @@ import { AvailabilityTimeTicks } from "@/components/availability/table/availabil
 import {
     AvailabilityBlockType,
     MemberMeetingAvailability,
+    SelectionStateType,
 } from "@/lib/types/availability";
+import { ZotDate } from "@/lib/zotdate";
 
 interface PersonalAvailabilityProps {
     meetingDates: string[];
     userAvailability: MemberMeetingAvailability | null;
     availabilityTimeBlocks: number[];
     fromTime: number;
+    availabilityDates: ZotDate[];
+    currentPageAvailability: (ZotDate | null)[];
+    itemsPerPage: number;
+    currentPage: number;
+    onPrevPage: () => void;
+    onNextPage: () => void;
+    isFirstPage: boolean;
+    isLastPage: boolean;
+    onAvailabilityChange: (updatedDates: ZotDate[]) => void;
 }
 
 export function PersonalAvailability({
@@ -24,59 +34,23 @@ export function PersonalAvailability({
     userAvailability,
     fromTime,
     availabilityTimeBlocks,
+    availabilityDates,
+    currentPageAvailability,
+    itemsPerPage,
+    currentPage,
+    onPrevPage,
+    onNextPage,
+    isFirstPage,
+    isLastPage,
+    onAvailabilityChange,
 }: PersonalAvailabilityProps) {
-    const {
-        startBlockSelection,
-        setStartBlockSelection,
-        endBlockSelection,
-        setEndBlockSelection,
-        selectionState,
-        setSelectionState,
-        currentPage,
-        setCurrentPage,
-        itemsPerPage,
-        setItemsPerPage,
-        setCurrentPageAvailability,
-        isEditingAvailability,
-        setIsEditingAvailability,
-        isStateUnsaved,
-        setIsStateUnsaved,
-        availabilityDates,
-        setAvailabilityDates,
-        setOriginalAvailabilityDates,
-    } = useAvailabilityContext();
-
-    const numPaddingDates = useMemo(() => {
-        return availabilityDates.length % itemsPerPage === 0
-            ? 0
-            : itemsPerPage - (availabilityDates.length % itemsPerPage);
-    }, [availabilityDates.length, itemsPerPage]);
-
-    const lastPage = useMemo(() => {
-        return Math.floor((availabilityDates.length - 1) / itemsPerPage);
-    }, [availabilityDates.length, itemsPerPage]);
-
-    useEffect(() => {
-        const datesToOffset = currentPage * itemsPerPage;
-        let pageAvailability = availabilityDates.slice(
-            datesToOffset,
-            datesToOffset + itemsPerPage
-        );
-
-        if (currentPage === lastPage) {
-            pageAvailability = pageAvailability.concat(
-                new Array(numPaddingDates).fill(null)
-            );
-        }
-        setCurrentPageAvailability(pageAvailability);
-    }, [
-        currentPage,
-        itemsPerPage,
-        availabilityDates,
-        lastPage,
-        numPaddingDates,
-        setCurrentPageAvailability,
-    ]);
+    const [startBlockSelection, setStartBlockSelection] =
+        useState<AvailabilityBlockType>();
+    const [endBlockSelection, setEndBlockSelection] =
+        useState<AvailabilityBlockType>();
+    const [selectionState, setSelectionState] = useState<SelectionStateType>();
+    const [isEditingAvailability, setIsEditingAvailability] = useState(false);
+    const [isStateUnsaved, setIsStateUnsaved] = useState(false);
 
     useEffect(() => {
         if (startBlockSelection && endBlockSelection) {
@@ -99,7 +73,7 @@ export function PersonalAvailability({
                 ),
             });
         }
-    }, [startBlockSelection, endBlockSelection, setSelectionState]);
+    }, [startBlockSelection, endBlockSelection]);
 
     const setAvailabilities = (startBlock: AvailabilityBlockType) => {
         if (!isEditingAvailability) {
@@ -125,71 +99,67 @@ export function PersonalAvailability({
                 selectionStartBlockIndex
             );
 
-            setAvailabilityDates((currentAvailabilityDates) => {
-                const updatedDates = [...currentAvailabilityDates];
+            const updatedDates = [...availabilityDates];
 
+            for (
+                let dateIndex = earlierDateIndex;
+                dateIndex <= laterDateIndex;
+                dateIndex++
+            ) {
+                const currentDate = updatedDates[dateIndex];
+                currentDate.setBlockAvailabilities(
+                    earlierBlockIndex,
+                    laterBlockIndex,
+                    selectionValue
+                );
+
+                // For each block in the selection range
                 for (
-                    let dateIndex = earlierDateIndex;
-                    dateIndex <= laterDateIndex;
-                    dateIndex++
+                    let blockIdx = earlierBlockIndex;
+                    blockIdx <= laterBlockIndex;
+                    blockIdx++
                 ) {
-                    const currentDate = updatedDates[dateIndex];
-                    currentDate.setBlockAvailabilities(
-                        earlierBlockIndex,
-                        laterBlockIndex,
-                        selectionValue
+                    const timestamp = getTimestampFromBlockIndex(
+                        blockIdx,
+                        dateIndex,
+                        fromTime,
+                        availabilityDates
                     );
 
-                    // For each block in the selection range
-                    for (
-                        let blockIdx = earlierBlockIndex;
-                        blockIdx <= laterBlockIndex;
-                        blockIdx++
-                    ) {
-                        const timestamp = getTimestampFromBlockIndex(
-                            blockIdx,
-                            dateIndex,
-                            fromTime,
-                            availabilityDates
-                        );
+                    // Initialize empty array if timestamp doesn't exist
+                    if (!currentDate.groupAvailability[timestamp]) {
+                        currentDate.groupAvailability[timestamp] = [];
+                    }
 
-                        // Initialize empty array if timestamp doesn't exist
-                        if (!currentDate.groupAvailability[timestamp]) {
-                            currentDate.groupAvailability[timestamp] = [];
+                    if (selectionValue) {
+                        // Add user to availability if not already present
+                        if (
+                            !currentDate.groupAvailability[timestamp].includes(
+                                userAvailability?.memberId ?? ""
+                            )
+                        ) {
+                            currentDate.groupAvailability[timestamp].push(
+                                userAvailability?.memberId ?? ""
+                            );
                         }
-
-                        if (selectionValue) {
-                            // Add user to availability if not already present
-                            if (
-                                !currentDate.groupAvailability[
-                                    timestamp
-                                ].includes(userAvailability?.memberId ?? "")
-                            ) {
-                                currentDate.groupAvailability[timestamp].push(
-                                    userAvailability?.memberId ?? ""
-                                );
-                            }
-                        } else {
-                            // Remove user from availability
-                            currentDate.groupAvailability[timestamp] =
-                                currentDate.groupAvailability[timestamp].filter(
-                                    (id) =>
-                                        id !==
-                                        (userAvailability?.memberId ?? "")
-                                );
-                        }
+                    } else {
+                        // Remove user from availability
+                        currentDate.groupAvailability[timestamp] =
+                            currentDate.groupAvailability[timestamp].filter(
+                                (id) =>
+                                    id !== (userAvailability?.memberId ?? "")
+                            );
                     }
                 }
-
-                console.log(updatedDates);
-
-                return updatedDates;
-            });
+            }
 
             setStartBlockSelection(undefined);
             setEndBlockSelection(undefined);
             setSelectionState(undefined);
             setIsStateUnsaved(true);
+
+            // Call the onAvailabilityChange handler with the updated dates
+            onAvailabilityChange(updatedDates);
         }
     };
 
@@ -209,29 +179,19 @@ export function PersonalAvailability({
         };
     }, [isStateUnsaved]);
 
-    const handlePrevPage = () => {
-        if (currentPage > 0) {
-            setCurrentPage(currentPage - 1);
-        }
-    };
-
-    const handleNextPage = () => {
-        if (currentPage < lastPage) {
-            setCurrentPage(currentPage + 1);
-        }
-    };
-
     return (
         <div>
             <div className="flex items-center justify-between overflow-x-auto font-dm-sans">
                 <AvailabilityNavButton
                     direction="left"
-                    handleClick={handlePrevPage}
-                    disabled={currentPage === 0}
+                    handleClick={onPrevPage}
+                    disabled={isFirstPage}
                 />
 
                 <table className="w-full table-fixed">
-                    <AvailabilityTableHeader />
+                    <AvailabilityTableHeader
+                        currentPageAvailability={currentPageAvailability}
+                    />
 
                     <tbody>
                         {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
@@ -254,6 +214,22 @@ export function PersonalAvailability({
                                         isLastRow={isLastRow}
                                         timeBlock={timeBlock}
                                         blockIndex={blockIndex}
+                                        currentPage={currentPage}
+                                        itemsPerPage={itemsPerPage}
+                                        currentPageAvailability={
+                                            currentPageAvailability
+                                        }
+                                        startBlockSelection={
+                                            startBlockSelection
+                                        }
+                                        setStartBlockSelection={
+                                            setStartBlockSelection
+                                        }
+                                        endBlockSelection={endBlockSelection}
+                                        setEndBlockSelection={
+                                            setEndBlockSelection
+                                        }
+                                        selectionState={selectionState}
                                     />
                                 </tr>
                             );
@@ -263,8 +239,8 @@ export function PersonalAvailability({
 
                 <AvailabilityNavButton
                     direction="right"
-                    handleClick={handleNextPage}
-                    disabled={currentPage === lastPage}
+                    handleClick={onNextPage}
+                    disabled={isLastPage}
                 />
             </div>
         </div>

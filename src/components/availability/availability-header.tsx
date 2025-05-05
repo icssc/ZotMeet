@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -13,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { SelectMeeting } from "@/db/schema";
 import { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
+import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { saveAvailability } from "@actions/availability/save/action";
 import { CircleCheckIcon, CircleXIcon } from "lucide-react";
@@ -20,18 +20,14 @@ import { CircleCheckIcon, CircleXIcon } from "lucide-react";
 interface AvailabilityHeaderProps {
     meetingData: SelectMeeting;
     user: UserProfile | null;
+    availabilityDates: ZotDate[];
 }
 
 export function AvailabilityHeader({
     meetingData,
     user,
+    availabilityDates,
 }: AvailabilityHeaderProps) {
-    const {
-        availabilityDates,
-        setAvailabilityDates,
-        originalAvailabilityDates,
-        setOriginalAvailabilityDates,
-    } = useAvailabilityContext();
     const {
         hasAvailability,
         setHasAvailability,
@@ -89,7 +85,7 @@ export function AvailabilityHeader({
     return (
         <>
             <div className="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
-                <h1 className="h-8 pr-2 text-xl font-medium line-clamp-1 font-montserrat md:h-fit md:text-3xl">
+                <h1 className="line-clamp-1 h-8 pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
                     {meetingData.title}
                 </h1>
 

@@ -1,7 +1,9 @@
 import React from "react";
-import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { AvailabilityBlockCells } from "@/components/availability/table/availability-block-cells";
-import { AvailabilityBlockType } from "@/lib/types/availability";
+import {
+    AvailabilityBlockType,
+    SelectionStateType,
+} from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityBlocksProps {
@@ -11,6 +13,14 @@ interface AvailabilityBlocksProps {
     isLastRow: boolean;
     timeBlock: number;
     blockIndex: number;
+    currentPage: number;
+    itemsPerPage: number;
+    currentPageAvailability: (ZotDate | null)[];
+    startBlockSelection: AvailabilityBlockType | undefined;
+    setStartBlockSelection: (block: AvailabilityBlockType | undefined) => void;
+    endBlockSelection: AvailabilityBlockType | undefined;
+    setEndBlockSelection: (block: AvailabilityBlockType | undefined) => void;
+    selectionState: SelectionStateType | undefined;
 }
 
 export function AvailabilityBlocks({
@@ -20,12 +30,17 @@ export function AvailabilityBlocks({
     isLastRow,
     timeBlock,
     blockIndex,
+    currentPage,
+    itemsPerPage,
+    currentPageAvailability,
+    startBlockSelection,
+    setStartBlockSelection,
+    endBlockSelection,
+    setEndBlockSelection,
+    selectionState,
 }: AvailabilityBlocksProps) {
-    const { currentPage, itemsPerPage, currentPageAvailability } =
-        useAvailabilityContext();
-
     const generateDateKey = (
-        selectedDate: ZotDate,
+        selectedDate: ZotDate | null,
         timeBlock: number,
         pageDateIndex: number
     ) => {
@@ -60,6 +75,11 @@ export function AvailabilityBlocks({
                             isTopOfHour={isTopOfHour}
                             isHalfHour={isHalfHour}
                             isLastRow={isLastRow}
+                            startBlockSelection={startBlockSelection}
+                            setStartBlockSelection={setStartBlockSelection}
+                            endBlockSelection={endBlockSelection}
+                            setEndBlockSelection={setEndBlockSelection}
+                            selectionState={selectionState}
                         />
                     );
                 } else {
