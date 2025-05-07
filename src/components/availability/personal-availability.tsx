@@ -1,56 +1,52 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import {
+import type {
     AvailabilityBlockType,
     MemberMeetingAvailability,
-    SelectionStateType,
 } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface PersonalAvailabilityProps {
-    meetingDates: string[];
     userAvailability: MemberMeetingAvailability | null;
     availabilityTimeBlocks: number[];
     fromTime: number;
     availabilityDates: ZotDate[];
     currentPageAvailability: (ZotDate | null)[];
-    itemsPerPage: number;
-    currentPage: number;
-    onPrevPage: () => void;
-    onNextPage: () => void;
-    isFirstPage: boolean;
-    isLastPage: boolean;
     onAvailabilityChange: (updatedDates: ZotDate[]) => void;
 }
 
 export function PersonalAvailability({
-    meetingDates,
     userAvailability,
     fromTime,
     availabilityTimeBlocks,
     availabilityDates,
     currentPageAvailability,
-    itemsPerPage,
-    currentPage,
-    onPrevPage,
-    onNextPage,
-    isFirstPage,
-    isLastPage,
     onAvailabilityChange,
 }: PersonalAvailabilityProps) {
-    const [startBlockSelection, setStartBlockSelection] =
-        useState<AvailabilityBlockType>();
-    const [endBlockSelection, setEndBlockSelection] =
-        useState<AvailabilityBlockType>();
-    const [selectionState, setSelectionState] = useState<SelectionStateType>();
+    const {
+        startBlockSelection,
+        setStartBlockSelection,
+        endBlockSelection,
+        setEndBlockSelection,
+        selectionState,
+        setSelectionState,
+    } = useBlockSelectionStore();
     const [isEditingAvailability, setIsEditingAvailability] = useState(false);
     const [isStateUnsaved, setIsStateUnsaved] = useState(false);
+    const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
+        useAvailabilityPaginationStore();
+
+    const isLastPage =
+        currentPage ===
+        Math.floor((availabilityDates.length - 1) / itemsPerPage);
 
     useEffect(() => {
         if (startBlockSelection && endBlockSelection) {
@@ -73,7 +69,7 @@ export function PersonalAvailability({
                 ),
             });
         }
-    }, [startBlockSelection, endBlockSelection]);
+    }, [startBlockSelection, endBlockSelection, setSelectionState]);
 
     const setAvailabilities = (startBlock: AvailabilityBlockType) => {
         if (!isEditingAvailability) {
@@ -184,18 +180,13 @@ export function PersonalAvailability({
             <div className="flex items-center justify-between overflow-x-auto font-dm-sans">
                 <AvailabilityNavButton
                     direction="left"
-                    handleClick={onPrevPage}
+                    handleClick={prevPage}
                     disabled={isFirstPage}
                 />
 
                 <table className="w-full table-fixed">
                     <AvailabilityTableHeader
-                        currentPageAvailability={[
-                            ...currentPageAvailability,
-                            ...Array(
-                                5 - (currentPageAvailability?.length || 0)
-                            ).fill(null),
-                        ]}
+                        currentPageAvailability={currentPageAvailability}
                     />
 
                     <tbody>
@@ -221,25 +212,9 @@ export function PersonalAvailability({
                                         blockIndex={blockIndex}
                                         currentPage={currentPage}
                                         itemsPerPage={itemsPerPage}
-                                        currentPageAvailability={[
-                                            ...currentPageAvailability,
-                                            ...Array(
-                                                5 -
-                                                    (currentPageAvailability?.length ||
-                                                        0)
-                                            ).fill(null),
-                                        ]}
-                                        startBlockSelection={
-                                            startBlockSelection
+                                        currentPageAvailability={
+                                            currentPageAvailability
                                         }
-                                        setStartBlockSelection={
-                                            setStartBlockSelection
-                                        }
-                                        endBlockSelection={endBlockSelection}
-                                        setEndBlockSelection={
-                                            setEndBlockSelection
-                                        }
-                                        selectionState={selectionState}
                                     />
                                 </tr>
                             );
@@ -249,7 +224,7 @@ export function PersonalAvailability({
 
                 <AvailabilityNavButton
                     direction="right"
-                    handleClick={onNextPage}
+                    handleClick={() => nextPage(availabilityDates.length)}
                     disabled={isLastPage}
                 />
             </div>

@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AvailabilityHeader } from "@/components/availability/availability-header";
-import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { SelectMeeting } from "@/db/schema";
@@ -11,6 +10,7 @@ import { getTimeFromHourMinuteString } from "@/lib/availability/utils";
 import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 
 // Helper function to derive initial availability data
@@ -39,17 +39,18 @@ const deriveInitialAvailability = ({
     }
 
     // Generate timestamps by date
-    const timestampsByDate: Record<string, Record<string, string[]>> = {};
+    const timestampsByDate = new Map<string, Map<string, string[]>>();
     for (const member of allAvailabilties) {
         for (const timestamp of member.meetingAvailabilities) {
             const date = timestamp.split("T")[0];
-            if (!timestampsByDate[date]) {
-                timestampsByDate[date] = {};
+            if (!timestampsByDate.has(date)) {
+                timestampsByDate.set(date, new Map());
             }
-            if (!timestampsByDate[date][timestamp]) {
-                timestampsByDate[date][timestamp] = [];
+            const dateMap = timestampsByDate.get(date)!;
+            if (!dateMap.has(timestamp)) {
+                dateMap.set(timestamp, []);
             }
-            timestampsByDate[date][timestamp].push(member.memberId);
+            dateMap.get(timestamp)!.push(member.memberId);
         }
     }
 
@@ -65,7 +66,9 @@ const deriveInitialAvailability = ({
                     1035) + 15;
 
             const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
-            const dateGroupAvailabilities = timestampsByDate[dateStr] || {};
+            const dateGroupAvailabilities = Object.fromEntries(
+                timestampsByDate.get(dateStr) || new Map()
+            );
 
             return new ZotDate(
                 date,
@@ -78,15 +81,7 @@ const deriveInitialAvailability = ({
         })
         .sort((a, b) => a.day.getTime() - b.day.getTime());
 
-    // For the first page of availability
-    const itemsPerPage = 5; // We can make this configurable later
-    const currentPageAvailability = zotDates.slice(0, itemsPerPage);
-
-    return {
-        availabilityDates: zotDates,
-        currentPageAvailability,
-        itemsPerPage,
-    };
+    return zotDates;
 };
 
 export function AvailabilityBody({
@@ -103,21 +98,21 @@ export function AvailabilityBody({
     user: UserProfile | null;
 }) {
     const { availabilityView, setHasAvailability } = useAvailabilityViewStore();
-    const fromTimeNumber =
-        getTimeFromHourMinuteString(meetingData.fromTime as HourMinuteString) /
-        60;
-    const toTimeNumber =
-        getTimeFromHourMinuteString(meetingData.toTime as HourMinuteString) /
-        60;
+    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
+
+    const fromTimeMinutes = getTimeFromHourMinuteString(
+        meetingData.fromTime as HourMinuteString
+    );
+    const toTimeMinutes = getTimeFromHourMinuteString(
+        meetingData.toTime as HourMinuteString
+    );
     const availabilityTimeBlocks = generateTimeBlocks(
-        fromTimeNumber,
-        toTimeNumber
+        fromTimeMinutes,
+        toTimeMinutes
     );
 
-    console.log("Initial availabilityTimeBlocks:", availabilityTimeBlocks);
-
     // Initialize state with derived data
-    const [availability, setAvailability] = useState(() => {
+    const [availabilityDates, setAvailabilityDates] = useState(() => {
         const initialData = deriveInitialAvailability({
             meetingDates,
             userAvailability,
@@ -128,56 +123,38 @@ export function AvailabilityBody({
         return initialData;
     });
 
-    // Add pagination state
-    const [currentPage, setCurrentPage] = useState(0);
-
     // Calculate last page
-    const lastPage = Math.floor(
-        (availability.availabilityDates.length - 1) / availability.itemsPerPage
-    );
+    const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
 
     // Calculate padding dates for the last page
     const numPaddingDates =
-        availability.availabilityDates.length % availability.itemsPerPage === 0
+        availabilityDates.length % itemsPerPage === 0
             ? 0
-            : availability.itemsPerPage -
-              (availability.availabilityDates.length %
-                  availability.itemsPerPage);
+            : itemsPerPage - (availabilityDates.length % itemsPerPage);
 
-    // Handle page changes
-    const handlePrevPage = () => {
-        if (currentPage > 0) {
-            setCurrentPage(currentPage - 1);
-        }
-    };
-
-    const handleNextPage = () => {
-        if (currentPage < lastPage) {
-            setCurrentPage(currentPage + 1);
-        }
-    };
-
-    // Update current page availability whenever page changes
-    useEffect(() => {
-        const startIdx = currentPage * availability.itemsPerPage;
-        let pageAvailability = availability.availabilityDates.slice(
-            startIdx,
-            startIdx + availability.itemsPerPage
+    // Calculate current page availability
+    const datesToOffset = currentPage * itemsPerPage;
+    const currentPageAvailability = useMemo(() => {
+        let pageAvailability = availabilityDates.slice(
+            datesToOffset,
+            datesToOffset + itemsPerPage
         );
 
-        // Add padding for last page
-        if (currentPage === lastPage && numPaddingDates > 0) {
+        if (currentPage === lastPage) {
             pageAvailability = pageAvailability.concat(
                 new Array(numPaddingDates).fill(null)
             );
         }
 
-        console.log("Current page availability:", pageAvailability);
-        setAvailability((prev) => ({
-            ...prev,
-            currentPageAvailability: pageAvailability,
-        }));
-    }, [currentPage, availability.itemsPerPage, numPaddingDates, lastPage]);
+        return pageAvailability;
+    }, [
+        availabilityDates,
+        datesToOffset,
+        itemsPerPage,
+        currentPage,
+        lastPage,
+        numPaddingDates,
+    ]);
 
     // Single useEffect for any necessary initial setup
     useEffect(() => {
@@ -186,28 +163,15 @@ export function AvailabilityBody({
         }
     }, [setHasAvailability, userAvailability]);
 
-    console.log("availabilityTimeBlocks", availabilityTimeBlocks); // Properly generated
-    console.log("meetingDates", meetingDates);
-    console.log("groupAvailabilities", allAvailabilties);
-    console.log("userAvailability", userAvailability);
-    console.log("fromTimeNumber, toTimeNumber", fromTimeNumber, toTimeNumber); // Not properly generated, should generate array of ZotDates, but currently generates nothing.
-
     console.log("Rendering with:", {
         availabilityTimeBlocks,
-        currentPageAvailability: availability.currentPageAvailability,
-        availabilityDates: availability.availabilityDates,
+        currentPageAvailability,
+        availabilityDates,
     });
 
     // Handler to update user availability
     const handleUserAvailabilityChange = (updatedDates: ZotDate[]) => {
-        setAvailability((prev) => ({
-            ...prev,
-            availabilityDates: updatedDates,
-            currentPageAvailability: updatedDates.slice(
-                currentPage * prev.itemsPerPage,
-                (currentPage + 1) * prev.itemsPerPage
-            ),
-        }));
+        setAvailabilityDates(updatedDates);
     };
 
     return (
@@ -215,41 +179,23 @@ export function AvailabilityBody({
             <AvailabilityHeader
                 meetingData={meetingData}
                 user={user}
-                availabilityDates={availability.availabilityDates}
+                availabilityDates={availabilityDates}
             />
             {availabilityView === "group" ? (
                 <GroupAvailability
                     availabilityTimeBlocks={availabilityTimeBlocks}
                     groupAvailabilities={allAvailabilties}
-                    fromTime={fromTimeNumber}
-                    toTime={toTimeNumber}
-                    availabilityDates={availability.availabilityDates}
-                    currentPageAvailability={
-                        availability.currentPageAvailability
-                    }
-                    itemsPerPage={availability.itemsPerPage}
-                    currentPage={currentPage}
-                    onPrevPage={handlePrevPage}
-                    onNextPage={handleNextPage}
-                    isFirstPage={currentPage === 0}
-                    isLastPage={currentPage === lastPage}
+                    fromTime={fromTimeMinutes}
+                    availabilityDates={availabilityDates}
+                    currentPageAvailability={currentPageAvailability}
                 />
             ) : (
                 <PersonalAvailability
-                    fromTime={fromTimeNumber}
-                    meetingDates={meetingDates}
+                    fromTime={fromTimeMinutes}
                     userAvailability={userAvailability}
                     availabilityTimeBlocks={availabilityTimeBlocks}
-                    availabilityDates={availability.availabilityDates}
-                    currentPageAvailability={
-                        availability.currentPageAvailability
-                    }
-                    itemsPerPage={availability.itemsPerPage}
-                    currentPage={currentPage}
-                    onPrevPage={handlePrevPage}
-                    onNextPage={handleNextPage}
-                    isFirstPage={currentPage === 0}
-                    isLastPage={currentPage === lastPage}
+                    availabilityDates={availabilityDates}
+                    currentPageAvailability={currentPageAvailability}
                     onAvailabilityChange={handleUserAvailabilityChange}
                 />
             )}
@@ -261,13 +207,11 @@ const BLOCK_LENGTH: number = 15;
 
 const generateTimeBlocks = (startTime: number, endTime: number): number[] => {
     const timeBlocks: number[] = [];
-    const startMinutes = startTime * 60; // Convert hours to minutes
-    const endMinutes = endTime * 60; // Convert hours to minutes
-    const minuteRange = endMinutes - startMinutes;
+    const minuteRange = Math.abs(endTime - startTime);
     const totalBlocks = Math.floor(minuteRange / BLOCK_LENGTH);
 
     for (let blockIndex = 0; blockIndex < totalBlocks; blockIndex++) {
-        timeBlocks.push(startMinutes + blockIndex * BLOCK_LENGTH);
+        timeBlocks.push(startTime + blockIndex * BLOCK_LENGTH);
     }
     return timeBlocks;
 };

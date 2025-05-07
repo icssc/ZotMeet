@@ -1,9 +1,6 @@
 import React from "react";
 import { AvailabilityBlockCells } from "@/components/availability/table/availability-block-cells";
-import {
-    AvailabilityBlockType,
-    SelectionStateType,
-} from "@/lib/types/availability";
+import type { AvailabilityBlockType } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityBlocksProps {
@@ -16,11 +13,6 @@ interface AvailabilityBlocksProps {
     currentPage: number;
     itemsPerPage: number;
     currentPageAvailability: (ZotDate | null)[];
-    startBlockSelection: AvailabilityBlockType | undefined;
-    setStartBlockSelection: (block: AvailabilityBlockType | undefined) => void;
-    endBlockSelection: AvailabilityBlockType | undefined;
-    setEndBlockSelection: (block: AvailabilityBlockType | undefined) => void;
-    selectionState: SelectionStateType | undefined;
 }
 
 export function AvailabilityBlocks({
@@ -33,11 +25,6 @@ export function AvailabilityBlocks({
     currentPage,
     itemsPerPage,
     currentPageAvailability,
-    startBlockSelection,
-    setStartBlockSelection,
-    endBlockSelection,
-    setEndBlockSelection,
-    selectionState,
 }: AvailabilityBlocksProps) {
     const generateDateKey = (
         selectedDate: ZotDate | null,
@@ -75,11 +62,6 @@ export function AvailabilityBlocks({
                             isTopOfHour={isTopOfHour}
                             isHalfHour={isHalfHour}
                             isLastRow={isLastRow}
-                            startBlockSelection={startBlockSelection}
-                            setStartBlockSelection={setStartBlockSelection}
-                            endBlockSelection={endBlockSelection}
-                            setEndBlockSelection={setEndBlockSelection}
-                            selectionState={selectionState}
                         />
                     );
                 } else {

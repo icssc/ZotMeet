@@ -9,6 +9,7 @@ import { AvailabilityTimeTicks } from "@/components/availability/table/availabil
 import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 
 export const getTimestampFromBlockIndex = (
     blockIndex: number,
@@ -16,7 +17,7 @@ export const getTimestampFromBlockIndex = (
     fromTime: number,
     availabilityDates: ZotDate[]
 ) => {
-    const minutesFromMidnight = fromTime * 60 + blockIndex * 15;
+    const minutesFromMidnight = fromTime + blockIndex * 15;
     const hours = Math.floor(minutesFromMidnight / 60);
     const minutes = minutesFromMidnight % 60;
 
@@ -41,15 +42,8 @@ interface GroupAvailabilityProps {
     availabilityTimeBlocks: number[];
     groupAvailabilities: MemberMeetingAvailability[];
     fromTime: number;
-    toTime: number;
     availabilityDates: ZotDate[];
     currentPageAvailability: (ZotDate | null)[];
-    itemsPerPage: number;
-    currentPage: number;
-    onPrevPage: () => void;
-    onNextPage: () => void;
-    isFirstPage: boolean;
-    isLastPage: boolean;
 }
 
 export function GroupAvailability({
@@ -58,13 +52,14 @@ export function GroupAvailability({
     fromTime,
     availabilityDates,
     currentPageAvailability,
-    currentPage,
-    itemsPerPage,
-    onPrevPage,
-    onNextPage,
-    isFirstPage,
-    isLastPage,
 }: GroupAvailabilityProps) {
+    const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
+        useAvailabilityPaginationStore();
+
+    const isLastPage =
+        currentPage ===
+        Math.floor((availabilityDates.length - 1) / itemsPerPage);
+
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
     const [selectedZotDateIndex, setSelectedZotDateIndex] = useState<number>();
     const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>();
@@ -79,13 +74,13 @@ export function GroupAvailability({
         timeBlock,
         pageDateIndex,
     }: {
-        selectedDate: ZotDate;
+        selectedDate: ZotDate | null;
         timeBlock: number;
         pageDateIndex: number;
     }) => {
-        return selectedDate // Just... Keep this here.
-            ? `date-${selectedDate.valueOf()}-${timeBlock}-${pageDateIndex}`
-            : `padding-${pageDateIndex}-${timeBlock}`;
+        return selectedDate
+            ? `date-${selectedDate.valueOf()}-${timeBlock}`
+            : `padding-${pageDateIndex}`;
     };
 
     const updateSelection = ({
@@ -173,19 +168,13 @@ export function GroupAvailability({
             <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-10">
                 <AvailabilityNavButton
                     direction="left"
-                    handleClick={onPrevPage}
+                    handleClick={prevPage}
                     disabled={isFirstPage}
                 />
 
                 <table className="w-full table-fixed">
                     <AvailabilityTableHeader
-                        // Stops FOUC with non-5-columned pages on load
-                        currentPageAvailability={[
-                            ...currentPageAvailability,
-                            ...Array(
-                                5 - (currentPageAvailability?.length || 0)
-                            ).fill(null),
-                        ]}
+                        currentPageAvailability={currentPageAvailability}
                     />
 
                     <tbody>
@@ -202,105 +191,104 @@ export function GroupAvailability({
                                         timeBlock={timeBlock}
                                     />
 
-                                    {[
-                                        ...currentPageAvailability,
-                                        ...Array(
-                                            5 -
-                                                (currentPageAvailability?.length ||
-                                                    0)
-                                        ).fill(null),
-                                    ].map((selectedDate, pageDateIndex) => {
-                                        const key = generateDateKey({
-                                            selectedDate:
-                                                selectedDate ||
-                                                new ZotDate(
-                                                    new Date(),
-                                                    0,
-                                                    0,
-                                                    false
-                                                ),
-                                            timeBlock,
-                                            pageDateIndex,
-                                        });
+                                    {currentPageAvailability.map(
+                                        (selectedDate, pageDateIndex) => {
+                                            const key = generateDateKey({
+                                                selectedDate,
+                                                timeBlock,
+                                                pageDateIndex,
+                                            });
 
-                                        if (selectedDate) {
-                                            const zotDateIndex =
-                                                pageDateIndex +
-                                                currentPage * itemsPerPage;
-                                            const isSelected =
-                                                selectedZotDateIndex ===
-                                                    zotDateIndex &&
-                                                selectedBlockIndex ===
-                                                    blockIndex;
-                                            const tableCellStyles = cn(
-                                                isTopOfHour &&
-                                                    "border-t-[1px] border-t-gray-medium",
-                                                isHalfHour &&
-                                                    "border-t-[1px] border-t-gray-base",
-                                                isLastRow && "border-b-[1px]",
-                                                isSelected &&
-                                                    "outline-dashed outline-2 outline-slate-500"
-                                            );
-
-                                            const timestamp =
-                                                getTimestampFromBlockIndex(
-                                                    blockIndex,
-                                                    zotDateIndex,
-                                                    fromTime,
-                                                    availabilityDates
+                                            if (selectedDate) {
+                                                const zotDateIndex =
+                                                    pageDateIndex +
+                                                    currentPage * itemsPerPage;
+                                                const isSelected =
+                                                    selectedZotDateIndex ===
+                                                        zotDateIndex &&
+                                                    selectedBlockIndex ===
+                                                        blockIndex;
+                                                const tableCellStyles = cn(
+                                                    isTopOfHour &&
+                                                        "border-t-[1px] border-t-gray-medium",
+                                                    isHalfHour &&
+                                                        "border-t-[1px] border-t-gray-base",
+                                                    isLastRow &&
+                                                        "border-b-[1px]",
+                                                    isSelected &&
+                                                        "outline-dashed outline-2 outline-slate-500"
                                                 );
 
-                                            return (
-                                                <td
-                                                    key={key}
-                                                    className="px-0 py-0"
-                                                >
-                                                    <GroupAvailabilityBlock
-                                                        className="hidden lg:block"
-                                                        timestamp={timestamp}
-                                                        onClick={() =>
-                                                            handleCellClick({
-                                                                isSelected,
-                                                                zotDateIndex,
-                                                                blockIndex,
-                                                            })
-                                                        }
-                                                        onHover={() =>
-                                                            handleCellHover({
-                                                                zotDateIndex,
-                                                                blockIndex,
-                                                            })
-                                                        }
-                                                        groupAvailabilities={
-                                                            availabilityDates
-                                                        }
-                                                        tableCellStyles={
-                                                            tableCellStyles
-                                                        }
-                                                    />
-                                                    <GroupAvailabilityBlock
-                                                        timestamp={timestamp}
-                                                        className="block lg:hidden"
-                                                        onClick={() =>
-                                                            handleCellClick({
-                                                                isSelected,
-                                                                zotDateIndex,
-                                                                blockIndex,
-                                                            })
-                                                        }
-                                                        groupAvailabilities={
-                                                            availabilityDates
-                                                        }
-                                                        tableCellStyles={
-                                                            tableCellStyles
-                                                        }
-                                                    />
-                                                </td>
-                                            );
-                                        } else {
-                                            return <td key={key}></td>;
+                                                const timestamp =
+                                                    getTimestampFromBlockIndex(
+                                                        blockIndex,
+                                                        zotDateIndex,
+                                                        fromTime,
+                                                        availabilityDates
+                                                    );
+
+                                                return (
+                                                    <td
+                                                        key={key}
+                                                        className="px-0 py-0"
+                                                    >
+                                                        <GroupAvailabilityBlock
+                                                            className="hidden lg:block"
+                                                            timestamp={
+                                                                timestamp
+                                                            }
+                                                            onClick={() =>
+                                                                handleCellClick(
+                                                                    {
+                                                                        isSelected,
+                                                                        zotDateIndex,
+                                                                        blockIndex,
+                                                                    }
+                                                                )
+                                                            }
+                                                            onHover={() =>
+                                                                handleCellHover(
+                                                                    {
+                                                                        zotDateIndex,
+                                                                        blockIndex,
+                                                                    }
+                                                                )
+                                                            }
+                                                            groupAvailabilities={
+                                                                availabilityDates
+                                                            }
+                                                            tableCellStyles={
+                                                                tableCellStyles
+                                                            }
+                                                        />
+                                                        <GroupAvailabilityBlock
+                                                            timestamp={
+                                                                timestamp
+                                                            }
+                                                            className="block lg:hidden"
+                                                            onClick={() =>
+                                                                handleCellClick(
+                                                                    {
+                                                                        isSelected,
+                                                                        zotDateIndex,
+                                                                        blockIndex,
+                                                                    }
+                                                                )
+                                                            }
+                                                            groupAvailabilities={
+                                                                availabilityDates
+                                                            }
+                                                            tableCellStyles={
+                                                                tableCellStyles
+                                                            }
+                                                        />
+                                                    </td>
+                                                );
+                                            } else {
+                                                return <td key={key}></td>;
+                                            }
                                         }
-                                    })}
+                                    )}
                                 </tr>
                             );
                         })}
@@ -309,7 +297,7 @@ export function GroupAvailability({
 
                 <AvailabilityNavButton
                     direction="right"
-                    handleClick={onNextPage}
+                    handleClick={() => nextPage(availabilityDates.length)}
                     disabled={isLastPage}
                 />
             </div>

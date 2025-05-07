@@ -1,9 +1,7 @@
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
-import {
-    AvailabilityBlockType,
-    SelectionStateType,
-} from "@/lib/types/availability";
+import type { AvailabilityBlockType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
+import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface AvailabilityBlockCellProps {
     blockIndex: number;
@@ -13,11 +11,6 @@ interface AvailabilityBlockCellProps {
     isTopOfHour: boolean;
     isHalfHour: boolean;
     isLastRow: boolean;
-    startBlockSelection: AvailabilityBlockType | undefined;
-    setStartBlockSelection: (block: AvailabilityBlockType | undefined) => void;
-    endBlockSelection: AvailabilityBlockType | undefined;
-    setEndBlockSelection: (block: AvailabilityBlockType | undefined) => void;
-    selectionState: SelectionStateType | undefined;
 }
 
 export function AvailabilityBlockCells({
@@ -28,12 +21,14 @@ export function AvailabilityBlockCells({
     isTopOfHour,
     isHalfHour,
     isLastRow,
-    startBlockSelection,
-    setStartBlockSelection,
-    endBlockSelection,
-    setEndBlockSelection,
-    selectionState,
 }: AvailabilityBlockCellProps) {
+    const {
+        startBlockSelection,
+        setStartBlockSelection,
+        setEndBlockSelection,
+        selectionState,
+    } = useBlockSelectionStore();
+
     const availabilitySelection = {
         zotDateIndex: zotDateIndex,
         blockIndex: blockIndex,
