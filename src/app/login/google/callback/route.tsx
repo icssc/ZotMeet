@@ -3,7 +3,7 @@ import { setSessionTokenCookie } from "@/lib/auth/cookies";
 import { google } from "@/lib/auth/oauth";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
 import { createGoogleUser } from "@/lib/auth/user";
-import { getUserFromGoogleId } from "@/server/data/user/queries";
+import { getUserIdExists } from "@/server/data/user/queries";
 import { decodeIdToken } from "arctic";
 import type { OAuth2Tokens } from "arctic";
 
@@ -22,13 +22,11 @@ export async function GET(request: Request): Promise<Response> {
         storedState === null ||
         codeVerifier === null
     ) {
-        console.log("null error");
         return new Response(null, {
             status: 400,
         });
     }
     if (state !== storedState) {
-        console.log("state does not match stored state");
         return new Response(null, {
             status: 400,
         });
@@ -44,11 +42,17 @@ export async function GET(request: Request): Promise<Response> {
             status: 400,
         });
     }
-    const claims = decodeIdToken(tokens.idToken());
+    const claims = decodeIdToken(tokens.idToken()) as {
+        sub: string;
+        name: string;
+        at_hash: string;
+    };
+
     const googleUserId = claims.sub;
     const username = claims.name;
+    const atHash = claims.at_hash;
 
-    const existingUser = await getUserFromGoogleId(googleUserId);
+    const existingUser = await getUserIdExists(googleUserId);
 
     if (existingUser !== false) {
         const sessionToken = generateSessionToken();
@@ -61,7 +65,7 @@ export async function GET(request: Request): Promise<Response> {
             },
         });
     }
-    const user = await createGoogleUser(googleUserId, username, "oauth pass");
+    const user = await createGoogleUser(googleUserId, atHash, username, null);
 
     const sessionToken = generateSessionToken();
     const session = await createSession(sessionToken, user.id);
