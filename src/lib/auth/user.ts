@@ -19,8 +19,6 @@ export type UserProfile = {
     displayName: string;
 };
 
-
-
 //TODO: Guest
 // export type GuestMember = {
 //     memberId: string;
@@ -73,11 +71,10 @@ export async function createUser(
 
 export async function createGoogleUser(
     googleUserId: string,
-    atHash: string,
+    email: string,
     username: string,
-    picture: string | null,
-) : Promise<UserProfile> {
-
+    _picture: string | null
+): Promise<UserProfile> {
     const newGoogleUser = await db.transaction(async (tx) => {
         const [newMember] = await tx
             .insert(members)
@@ -85,13 +82,13 @@ export async function createGoogleUser(
             .returning({
                 id: members.id,
             });
-            const [newUser] = await tx
+        const [newUser] = await tx
             .insert(users)
             .values({
                 id: googleUserId,
                 memberId: newMember.id,
-                email: atHash, 
-                passwordHash: "", 
+                email: email,
+                passwordHash: "",
                 createdAt: new Date(),
             })
             .returning({
@@ -101,16 +98,14 @@ export async function createGoogleUser(
             });
         const [newGoogleMember] = await tx
             .insert(oauthAccounts)
-            .values({ 
+            .values({
                 userId: googleUserId,
                 providerId: "google",
                 providerUserId: newUser.memberId,
-            }) 
+            })
             .returning({
                 memberId: oauthAccounts.providerUserId,
             });
-        
-        
 
         return newGoogleMember;
     });
@@ -122,7 +117,7 @@ export async function createGoogleUser(
     return {
         ...newGoogleUser,
         id: googleUserId,
-        email: atHash,
+        email: email,
         memberId: newGoogleUser.memberId,
         displayName: username,
     };
