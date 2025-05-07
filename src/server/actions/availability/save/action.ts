@@ -5,6 +5,7 @@ import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 //import { createGuest } from "@/lib/auth/user";
 import { getExistingMeeting } from "@data/meeting/queries";
+import { UserRoundIcon } from "lucide-react";
 
 interface saveAvailabilityProps {
     meetingId: string;
@@ -19,7 +20,8 @@ export async function saveAvailability({
 }: saveAvailabilityProps) {
     try {
         const { user } = await getCurrentSession();
-        let memberId: string;
+        let memberId = user.memberId; 
+        //Guest functionality disabled for now
         
         //TODO: Guest
         // if (!user) {
