@@ -112,16 +112,14 @@ export function AvailabilityBody({
     );
 
     // Initialize state with derived data
-    const [availabilityDates, setAvailabilityDates] = useState(() => {
-        const initialData = deriveInitialAvailability({
+    const [availabilityDates, setAvailabilityDates] = useState(() =>
+        deriveInitialAvailability({
             meetingDates,
             userAvailability,
             allAvailabilties,
             availabilityTimeBlocks,
-        });
-        console.log("Initial availability data:", initialData);
-        return initialData;
-    });
+        })
+    );
 
     // Track original availability state for cancellation
     const [originalAvailabilityDates, setOriginalAvailabilityDates] = useState<
