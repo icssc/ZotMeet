@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { GroupResponses } from "@/components/availability/group-responses";
@@ -101,11 +101,11 @@ export function GroupAvailability({
         setSelectedBlockIndex(blockIndex);
     };
 
-    const resetSelection = () => {
+    const resetSelection = useCallback(() => {
         setIsMobileDrawerOpen(false);
         setSelectedZotDateIndex(undefined);
         setSelectedBlockIndex(undefined);
-    };
+    }, []);
 
     const handleCellClick = ({
         isSelected,
@@ -190,8 +190,8 @@ export function GroupAvailability({
             
             const availableMemberNames = availableMemberIds.map(memberId => {
                 const member = groupAvailabilities.find(m => m.memberId === memberId);
-                return member ? member.displayName : memberId; // fallback to memberId
-            });
+                return member?.displayName;
+            }) as string[];
             setAvailableMembersOfSelection(availableMemberNames);
 
             const notAvailableMembers = groupAvailabilities.filter(
@@ -207,6 +207,7 @@ export function GroupAvailability({
         selectedBlockIndex,
         availabilityDates,
         groupAvailabilities,
+        fromTime,
     ]);
 
     useEffect(() => {
@@ -259,7 +260,7 @@ export function GroupAvailability({
             if (event.key === 'Escape') {
                 resetSelection();
                 setSelectionIsLocked(false);
-                // removes weird outline
+                // Removes focused outline from previously selected block
                 if (document.activeElement instanceof HTMLElement) {
                     document.activeElement.blur();
                 }
@@ -281,8 +282,6 @@ export function GroupAvailability({
         const member = groupAvailabilities.find(m => m.displayName === memberName);
         setHoveredMember(member ? member.memberId : null);
     };
-
-    console.log(fromTime, availabilityDates);
 
     return (
         <div className="flex flex-row items-start justify-start align-top">
@@ -311,8 +310,7 @@ export function GroupAvailability({
                                     <AvailabilityTimeTicks
                                         timeBlock={timeBlock}
                                     />
-                                    {/* DOES THIS BREAK ANYTHING??? */}
-                                    {currentPageAvailability?.filter(date => date !== null).map(
+                                    {currentPageAvailability?.map(
                                         (selectedDate, pageDateIndex) => {
                                             const key = generateDateKey({
                                                 selectedDate,
@@ -338,10 +336,6 @@ export function GroupAvailability({
                                                         fromTime,
                                                         availabilityDates
                                                     );
-                                                
-                                                const isMemberAvailableAtTimestamp = hoveredMember && 
-                                                    selectedDate.groupAvailability[timestamp] && 
-                                                    selectedDate.groupAvailability[timestamp].includes(hoveredMember);
                                                 
                                                 const tableCellStyles = cn(
                                                     isTopOfHour &&
