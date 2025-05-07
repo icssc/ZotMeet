@@ -191,7 +191,7 @@ export function GroupAvailability({
             const availableMemberNames = availableMemberIds.map(memberId => {
                 const member = groupAvailabilities.find(m => m.memberId === memberId);
                 return member?.displayName;
-            }) as string[];
+            }).filter(Boolean) as string[];
             setAvailableMembersOfSelection(availableMemberNames);
 
             const notAvailableMembers = groupAvailabilities.filter(
