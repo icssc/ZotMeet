@@ -123,6 +123,38 @@ export function AvailabilityBody({
         return initialData;
     });
 
+    // Track original availability state for cancellation
+    const [originalAvailabilityDates, setOriginalAvailabilityDates] = useState<
+        ZotDate[]
+    >([]);
+    const [isEditingAvailability, setIsEditingAvailability] = useState(false);
+
+    // Update original state when entering edit mode
+    useEffect(() => {
+        if (availabilityView === "personal" && !isEditingAvailability) {
+            setOriginalAvailabilityDates(
+                availabilityDates.map((date) => date.clone())
+            );
+            setIsEditingAvailability(true);
+        }
+    }, [availabilityView, isEditingAvailability, availabilityDates]);
+
+    // Reset availability state to last saved state
+    const resetAvailabilityState = () => {
+        setAvailabilityDates(
+            originalAvailabilityDates.map((date) => date.clone())
+        );
+        setIsEditingAvailability(false);
+    };
+
+    // Handle successful save
+    const handleSaveSuccess = () => {
+        setOriginalAvailabilityDates(
+            availabilityDates.map((date) => date.clone())
+        );
+        setIsEditingAvailability(false);
+    };
+
     // Calculate last page
     const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
 
@@ -163,12 +195,6 @@ export function AvailabilityBody({
         }
     }, [setHasAvailability, userAvailability]);
 
-    console.log("Rendering with:", {
-        availabilityTimeBlocks,
-        currentPageAvailability,
-        availabilityDates,
-    });
-
     // Handler to update user availability
     const handleUserAvailabilityChange = (updatedDates: ZotDate[]) => {
         setAvailabilityDates(updatedDates);
@@ -180,6 +206,8 @@ export function AvailabilityBody({
                 meetingData={meetingData}
                 user={user}
                 availabilityDates={availabilityDates}
+                onCancel={resetAvailabilityState}
+                onSaveSuccess={handleSaveSuccess}
             />
             {availabilityView === "group" ? (
                 <GroupAvailability

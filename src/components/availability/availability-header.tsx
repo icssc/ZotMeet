@@ -21,12 +21,16 @@ interface AvailabilityHeaderProps {
     meetingData: SelectMeeting;
     user: UserProfile | null;
     availabilityDates: ZotDate[];
+    onCancel: () => void;
+    onSaveSuccess: () => void;
 }
 
 export function AvailabilityHeader({
     meetingData,
     user,
     availabilityDates,
+    onCancel,
+    onSaveSuccess,
 }: AvailabilityHeaderProps) {
     const {
         hasAvailability,
@@ -39,6 +43,7 @@ export function AvailabilityHeader({
     const [guestName, setGuestName] = useState("");
 
     const handleCancel = async () => {
+        onCancel();
         setAvailabilityView("group");
     };
 
@@ -65,6 +70,7 @@ export function AvailabilityHeader({
         if (response.status === 200) {
             setHasAvailability(true);
             setAvailabilityView("group");
+            onSaveSuccess();
 
             // Clear guest member name
             if (!user) {
