@@ -31,7 +31,7 @@ export default function AuthDialog() {
                             Sign up
                         </TabsTrigger>
                     </TabsList>
-                    <hr className="-mx-4 my-4 border-neutral-200" />
+                    <hr className="my-4 -mx-4 border-neutral-200" />
                     <TabsContent value="login">
                         <LoginTabContent />
                     </TabsContent>
