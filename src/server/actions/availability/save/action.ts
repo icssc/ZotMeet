@@ -3,7 +3,7 @@
 import { db } from "@/db";
 import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { createGuest } from "@/lib/auth/user";
+//import { createGuest } from "@/lib/auth/user";
 import { getExistingMeeting } from "@data/meeting/queries";
 
 interface saveAvailabilityProps {
@@ -15,23 +15,30 @@ interface saveAvailabilityProps {
 export async function saveAvailability({
     meetingId,
     availabilityTimes,
-    displayName,
+    displayName: _displayName,
 }: saveAvailabilityProps) {
     try {
         const { user } = await getCurrentSession();
-        let memberId: string;
 
         if (!user) {
-            const guest = await createGuest({
-                displayName:
-                    displayName ??
-                    `TEST_${Math.floor(Math.random() * 1000 + 1)}`,
-                meetingId,
-            });
-            memberId = guest.memberId;
-        } else {
-            memberId = user.memberId;
+            throw new Error("User not found");
         }
+
+        const memberId = user.memberId;
+
+        //Guest functionality disabled for now
+        //TODO: Guest
+        // if (!user) {
+        //     const guest = await createGuest({
+        //         displayName:
+        //             displayName ??
+        //             `TEST_${Math.floor(Math.random() * 1000 + 1)}`,
+        //         meetingId,
+        //     });
+        //     memberId = guest.memberId;
+        // } else {
+        //     memberId = user.memberId;
+        // }
 
         const meeting = await getExistingMeeting(meetingId);
 

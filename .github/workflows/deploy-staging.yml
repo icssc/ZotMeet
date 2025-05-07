@@ -25,6 +25,9 @@ env:
   CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
   DATABASE_URL: ${{ secrets.DEV_DB_URL }}
   PR_NUM: ${{ github.event.pull_request.number }}
+  GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+  GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+  # GOOGLE_OAUTH_REDIRECT_URI: https://staging-${{ github.event.pull_request.number }}.zotmeet.com/auth/login/google/callback
 
 jobs:
   deploy:

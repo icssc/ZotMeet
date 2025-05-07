@@ -2,13 +2,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { SelectMeeting } from "@/db/schema";
 import { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
@@ -39,8 +32,8 @@ export function AvailabilityHeader({
         setAvailabilityView,
     } = useAvailabilityViewStore();
 
-    const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
-    const [guestName, setGuestName] = useState("");
+    // const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
+    // const [guestName, setGuestName] = useState("");
 
     const handleCancel = async () => {
         onCancel();
@@ -49,7 +42,7 @@ export function AvailabilityHeader({
 
     const handleSave = async () => {
         if (!user) {
-            setIsGuestDialogOpen(true);
+            // setIsGuestDialogOpen(true);
             return;
         }
 
@@ -74,17 +67,10 @@ export function AvailabilityHeader({
 
             // Clear guest member name
             if (!user) {
-                setGuestName("");
+                // setGuestName("");
             }
         } else {
             console.error("Error saving availability:", response.body.error);
-        }
-    };
-
-    const handleGuestSubmit = () => {
-        if (guestName.trim()) {
-            setIsGuestDialogOpen(false);
-            saveAvailabilityData(guestName);
         }
     };
 
@@ -107,41 +93,6 @@ export function AvailabilityHeader({
                             <span className="hidden md:flex">Cancel</span>
                             <CircleXIcon />
                         </Button>
-
-                        {/* <form
-                    // bind:this={form}
-                    // use:enhance={({ cancel }) => {
-                    //   handleSave(cancel);
-
-                    //   console.log("Saving Availability");
-
-                    //   return async ({ update }) => {
-                    //     update();
-
-                    //     $isEditingAvailability = false;
-                    //     $isStateUnsaved = false;
-                    //   };
-                    // }}
-                    // action={`/availability/${data.meetingId}?/save`}
-                    // method="POST"
-                    // id="availability-save-form"
-                    // on:submit|preventDefault
-                    >
-                        <input
-                            type="hidden"
-                            name="availabilityDates"
-                            value={JSON.stringify(availabilityDates)}
-                        />
-                        <input
-                            type="hidden"
-                            name="username"
-                            value={$guestSession.guestName}
-                        />
-                        <input
-                            type="hidden"
-                            name="meetingId"
-                            value={meetingData.id ?? ""}
-                        /> */}
 
                         <Button
                             className={cn(
@@ -175,35 +126,13 @@ export function AvailabilityHeader({
                 )}
             </div>
 
-            <Dialog
-                open={isGuestDialogOpen}
-                onOpenChange={setIsGuestDialogOpen}
-            >
-                <DialogContent>
-                    <DialogTitle>Continue as Guest</DialogTitle>
-                    <Input
-                        id="name"
-                        placeholder="Enter your name..."
-                        value={guestName}
-                        onChange={(e) => setGuestName(e.target.value)}
-                        autoFocus
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                                handleGuestSubmit();
-                            }
-                        }}
-                    />
-                    <DialogFooter>
-                        <Button
-                            type="button"
-                            onClick={handleGuestSubmit}
-                            disabled={!guestName.trim()}
-                        >
-                            Submit
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* <GuestDialog
+                isGuestDialogOpen={isGuestDialogOpen}
+                setIsGuestDialogOpen={setIsGuestDialogOpen}
+                guestName={guestName}
+                setGuestName={setGuestName}
+                saveAvailabilityData={saveAvailabilityData}
+            /> */}
         </>
     );
 }
