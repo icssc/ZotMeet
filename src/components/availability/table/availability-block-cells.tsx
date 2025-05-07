@@ -1,7 +1,7 @@
-import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
-import { AvailabilityBlockType } from "@/lib/types/availability";
+import type { AvailabilityBlockType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
+import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface AvailabilityBlockCellProps {
     blockIndex: number;
@@ -27,7 +27,7 @@ export function AvailabilityBlockCells({
         setStartBlockSelection,
         setEndBlockSelection,
         selectionState,
-    } = useAvailabilityContext();
+    } = useBlockSelectionStore();
 
     const availabilitySelection = {
         zotDateIndex: zotDateIndex,
@@ -111,14 +111,12 @@ export function AvailabilityBlockCells({
                 onTouchEnd={handleTouchEnd}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
-                // TODO: Fix
-                // tabIndex="0"
                 data-date-index={zotDateIndex}
                 data-block-index={blockIndex}
                 className={cn(
-                    "border-gray-medium block h-full w-full cursor-row-resize border-r-[1px]",
-                    isTopOfHour && "border-t-gray-medium border-t-[1px]",
-                    isHalfHour && "border-t-gray-base border-t-[1px]",
+                    "block h-full w-full cursor-row-resize border-r-[1px] border-gray-medium",
+                    isTopOfHour && "border-t-[1px] border-t-gray-medium",
+                    isHalfHour && "border-t-[1px] border-t-gray-base",
                     isLastRow && "border-b-[1px]"
                 )}
             >

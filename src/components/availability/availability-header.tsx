@@ -1,12 +1,11 @@
 "use client";
 
-// import { useState } from "react";
-import { useAvailabilityContext } from "@/components/availability/context/availability-context";
-// import { GuestDialog } from "@/components/availability/guest-dialog";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SelectMeeting } from "@/db/schema";
 import { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
+import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { saveAvailability } from "@actions/availability/save/action";
 import { CircleCheckIcon, CircleXIcon } from "lucide-react";
@@ -14,13 +13,18 @@ import { CircleCheckIcon, CircleXIcon } from "lucide-react";
 interface AvailabilityHeaderProps {
     meetingData: SelectMeeting;
     user: UserProfile | null;
+    availabilityDates: ZotDate[];
+    onCancel: () => void;
+    onSaveSuccess: () => void;
 }
 
 export function AvailabilityHeader({
     meetingData,
     user,
+    availabilityDates,
+    onCancel,
+    onSaveSuccess,
 }: AvailabilityHeaderProps) {
-    const { availabilityDates } = useAvailabilityContext();
     const {
         hasAvailability,
         setHasAvailability,
@@ -32,6 +36,7 @@ export function AvailabilityHeader({
     // const [guestName, setGuestName] = useState("");
 
     const handleCancel = async () => {
+        onCancel();
         setAvailabilityView("group");
     };
 
@@ -58,6 +63,7 @@ export function AvailabilityHeader({
         if (response.status === 200) {
             setHasAvailability(true);
             setAvailabilityView("group");
+            onSaveSuccess();
 
             // Clear guest member name
             if (!user) {
@@ -71,7 +77,7 @@ export function AvailabilityHeader({
     return (
         <>
             <div className="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
-                <h1 className="h-8 pr-2 text-xl font-medium line-clamp-1 font-montserrat md:h-fit md:text-3xl">
+                <h1 className="line-clamp-1 h-8 pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
                     {meetingData.title}
                 </h1>
 

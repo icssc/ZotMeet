@@ -450,6 +450,22 @@ export class ZotDate {
     }
 
     /**
+     * Creates a deep copy of this ZotDate instance
+     * @returns A new ZotDate instance with the same properties
+     */
+    clone(): ZotDate {
+        const clonedDate = new ZotDate(
+            new Date(this.day),
+            this.earliestTime,
+            this.latestTime,
+            this.isSelected,
+            [...this.availability],
+            { ...this.groupAvailability }
+        );
+        return clonedDate;
+    }
+
+    /**
      * Sets whether the day is selected or not
      * @param isSelected a boolean representing whether the day is selected
      */
