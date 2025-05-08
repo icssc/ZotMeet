@@ -46,4 +46,6 @@ jobs:
               run: pnpm install --frozen-lockfile
 
             - name: Deploy ZotMeet to production
-              run: STAGE=prod pnpm db:migrate && pnpm sst remove --stage prod &&pnpm sst deploy --stage prod
+              run:
+                  STAGE=prod pnpm db:migrate && pnpm sst remove --stage prod &&
+                  pnpm sst deploy --stage prod
