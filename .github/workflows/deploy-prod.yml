@@ -48,4 +48,4 @@ jobs:
             - name: Deploy ZotMeet to production
               run:
                   STAGE=prod pnpm db:migrate && pnpm sst unlock --stage prod &&
-                  pnpm sst deploy --stage prod
+                  pnpm sst remove --stage prod && pnpm sst deploy --stage prod
