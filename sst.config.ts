@@ -14,6 +14,13 @@ export default $config({
         new sst.aws.Nextjs("site", {
             environment: {
                 DATABASE_URL: process.env.DATABASE_URL ?? "localhost:3000",
+                GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID!,
+                GOOGLE_OAUTH_CLIENT_SECRET:
+                    process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
+                GOOGLE_OAUTH_REDIRECT_URI:
+                    $app.stage === "prod"
+                        ? "https://zotmeet.com/auth/login/google/callback"
+                        : "http://localhost:3000/auth/login/google/callback",
             },
             domain: {
                 name: `${$app.stage === "prod" ? "" : `${$app.stage}.`}zotmeet.com`,
