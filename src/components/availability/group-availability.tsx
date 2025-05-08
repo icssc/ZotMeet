@@ -87,7 +87,12 @@ export function GroupAvailability({
         setIsMobileDrawerOpen(false);
         setSelectedZotDateIndex(undefined);
         setSelectedBlockIndex(undefined);
-    }, []);
+        setHoveredMember(null);
+        setAvailableMembersOfSelection([]);
+        setNotAvailableMembersOfSelection(
+            groupAvailabilities.map((member) => member.displayName)
+        );
+    }, [groupAvailabilities]);
 
     const handleCellClick = ({
         isSelected,
