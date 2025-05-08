@@ -24,7 +24,9 @@ export function GroupResponses({
     closeMobileDrawer,
     onMemberHover,
 }: GroupResponsesProps) {
-    const [blockInfoString, setBlockInfoString] = useState("");
+    const [blockInfoString, setBlockInfoString] = useState(
+        "Select a cell to view"
+    );
 
     useEffect(() => {
         if (

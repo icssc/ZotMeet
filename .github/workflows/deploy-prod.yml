@@ -3,44 +3,47 @@
 name: Deploy to production
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
 
 permissions:
-  id-token: write
-  contents: read
-  deployments: write
-  pull-requests: write
+    id-token: write
+    contents: read
+    deployments: write
+    pull-requests: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
-  DATABASE_URL: ${{ secrets.PROD_DB_URL }}
+    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
+    DATABASE_URL: ${{ secrets.PROD_DB_URL }}
+    GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+    GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+    GOOGLE_OAUTH_REDIRECT_URI: https://zotmeet.com/auth/login/google/callback
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    deploy:
+        runs-on: ubuntu-latest
 
-    environment:
-      name: production
-      url: https://zotmeet.com
+        environment:
+            name: production
+            url: https://zotmeet.com
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-      - name: Setup Node.js and pnpm
-        uses: ./.github/actions/setup-node-and-pnpm
+            - name: Setup Node.js and pnpm
+              uses: ./.github/actions/setup-node-and-pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
-      - name: Deploy ZotMeet to production
-        run: STAGE=prod pnpm db:migrate && pnpm sst deploy --stage prod
+            - name: Deploy ZotMeet to production
+              run: STAGE=prod pnpm db:migrate && pnpm sst deploy --stage prod

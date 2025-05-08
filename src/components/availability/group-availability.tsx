@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
@@ -10,6 +9,7 @@ import { AvailabilityTimeTicks } from "@/components/availability/table/availabil
 import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 
 export const getTimestampFromBlockIndex = (
     blockIndex: number,
@@ -17,7 +17,7 @@ export const getTimestampFromBlockIndex = (
     fromTime: number,
     availabilityDates: ZotDate[]
 ) => {
-    const minutesFromMidnight = fromTime * 60 + blockIndex * 15;
+    const minutesFromMidnight = fromTime + blockIndex * 15;
     const hours = Math.floor(minutesFromMidnight / 60);
     const minutes = minutesFromMidnight % 60;
 
@@ -42,27 +42,23 @@ interface GroupAvailabilityProps {
     availabilityTimeBlocks: number[];
     groupAvailabilities: MemberMeetingAvailability[];
     fromTime: number;
-    toTime: number;
+    availabilityDates: ZotDate[];
+    currentPageAvailability: (ZotDate | null)[];
 }
+
 export function GroupAvailability({
     availabilityTimeBlocks,
     groupAvailabilities,
     fromTime,
+    availabilityDates,
+    currentPageAvailability,
 }: GroupAvailabilityProps) {
-    const {
-        currentPage,
-        setCurrentPage,
-        itemsPerPage,
-        currentPageAvailability,
-        setCurrentPageAvailability,
-        availabilityDates,
-    } = useAvailabilityContext();
+    const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
+        useAvailabilityPaginationStore();
 
-    const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
-    const numPaddingDates =
-        availabilityDates.length % itemsPerPage === 0
-            ? 0
-            : itemsPerPage - (availabilityDates.length % itemsPerPage);
+    const isLastPage =
+        currentPage ===
+        Math.floor((availabilityDates.length - 1) / itemsPerPage);
 
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
     const [selectedZotDateIndex, setSelectedZotDateIndex] = useState<number>();
@@ -71,7 +67,6 @@ export function GroupAvailability({
         useState<string[]>([]);
     const [notAvailableMembersOfSelection, setNotAvailableMembersOfSelection] =
         useState<string[]>([]);
-
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
 
@@ -80,7 +75,7 @@ export function GroupAvailability({
         timeBlock,
         pageDateIndex,
     }: {
-        selectedDate: ZotDate;
+        selectedDate: ZotDate | null;
         timeBlock: number;
         pageDateIndex: number;
     }) => {
@@ -136,41 +131,6 @@ export function GroupAvailability({
         }
     };
 
-    const handlePrevPage = () => {
-        if (currentPage > 0) {
-            setCurrentPage(currentPage - 1);
-        }
-    };
-
-    const handleNextPage = () => {
-        if (currentPage < lastPage) {
-            setCurrentPage(currentPage + 1);
-        }
-    };
-
-    // Update current page availability on pagination or data change
-    useEffect(() => {
-        const datesToOffset = currentPage * itemsPerPage;
-        let newCurrentPageAvailability = availabilityDates.slice(
-            datesToOffset,
-            datesToOffset + itemsPerPage
-        );
-
-        if (currentPage === lastPage) {
-            newCurrentPageAvailability = newCurrentPageAvailability.concat(
-                new Array(numPaddingDates).fill(null)
-            );
-        }
-
-        setCurrentPageAvailability(newCurrentPageAvailability);
-    }, [
-        currentPage,
-        itemsPerPage,
-        availabilityDates,
-        numPaddingDates,
-        lastPage,
-    ]);
-
     // Update selection members when selection changes
     useEffect(() => {
         if (
@@ -202,7 +162,6 @@ export function GroupAvailability({
             );
         }
     }, [
-        setCurrentPageAvailability,
         selectedZotDateIndex,
         selectedBlockIndex,
         availabilityDates,
@@ -290,12 +249,14 @@ export function GroupAvailability({
             >
                 <AvailabilityNavButton
                     direction="left"
-                    handleClick={handlePrevPage}
-                    disabled={currentPage === 0}
+                    handleClick={prevPage}
+                    disabled={isFirstPage}
                 />
 
                 <table className="w-full table-fixed">
-                    <AvailabilityTableHeader />
+                    <AvailabilityTableHeader
+                        currentPageAvailability={currentPageAvailability}
+                    />
 
                     <tbody>
                         {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
@@ -310,7 +271,8 @@ export function GroupAvailability({
                                     <AvailabilityTimeTicks
                                         timeBlock={timeBlock}
                                     />
-                                    {currentPageAvailability?.map(
+                                    {currentPageAvailability.map(
+
                                         (selectedDate, pageDateIndex) => {
                                             const key = generateDateKey({
                                                 selectedDate,
@@ -420,8 +382,8 @@ export function GroupAvailability({
 
                 <AvailabilityNavButton
                     direction="right"
-                    handleClick={handleNextPage}
-                    disabled={currentPage === lastPage}
+                    handleClick={() => nextPage(availabilityDates.length)}
+                    disabled={isLastPage}
                 />
             </div>
 

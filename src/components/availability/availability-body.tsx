@@ -1,147 +1,228 @@
 "use client";
 
-import { useEffect } from "react";
-import { useAvailabilityContext } from "@/components/availability/context/availability-context";
+import { useEffect, useMemo, useState } from "react";
+import { AvailabilityHeader } from "@/components/availability/availability-header";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { SelectMeeting } from "@/db/schema";
+import { UserProfile } from "@/lib/auth/user";
 import { getTimeFromHourMinuteString } from "@/lib/availability/utils";
 import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+
+// Helper function to derive initial availability data
+const deriveInitialAvailability = ({
+    meetingDates,
+    userAvailability,
+    allAvailabilties,
+    availabilityTimeBlocks,
+}: {
+    meetingDates: string[];
+    userAvailability: MemberMeetingAvailability | null;
+    allAvailabilties: MemberMeetingAvailability[];
+    availabilityTimeBlocks: number[];
+}) => {
+    // Create the availability map
+    const availabilitiesByDate = new Map<string, string[]>();
+    if (userAvailability?.meetingAvailabilities) {
+        userAvailability.meetingAvailabilities.forEach((timeStr) => {
+            const time = new Date(timeStr);
+            const dateStr = time.toISOString().split("T")[0];
+            if (!availabilitiesByDate.has(dateStr)) {
+                availabilitiesByDate.set(dateStr, []);
+            }
+            availabilitiesByDate.get(dateStr)?.push(timeStr);
+        });
+    }
+
+    // Generate timestamps by date
+    const timestampsByDate = new Map<string, Map<string, string[]>>();
+    for (const member of allAvailabilties) {
+        for (const timestamp of member.meetingAvailabilities) {
+            const date = timestamp.split("T")[0];
+            if (!timestampsByDate.has(date)) {
+                timestampsByDate.set(date, new Map());
+            }
+            const dateMap = timestampsByDate.get(date)!;
+            if (!dateMap.has(timestamp)) {
+                dateMap.set(timestamp, []);
+            }
+            dateMap.get(timestamp)!.push(member.memberId);
+        }
+    }
+
+    // Generate ZotDates
+    const zotDates = meetingDates
+        .map((meetingDate) => {
+            const date = new Date(meetingDate);
+            const dateStr = date.toISOString().split("T")[0];
+
+            const earliestMinutes = availabilityTimeBlocks[0] || 480;
+            const latestMinutes =
+                (availabilityTimeBlocks[availabilityTimeBlocks.length - 1] ||
+                    1035) + 15;
+
+            const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
+            const dateGroupAvailabilities = Object.fromEntries(
+                timestampsByDate.get(dateStr) || new Map()
+            );
+
+            return new ZotDate(
+                date,
+                earliestMinutes,
+                latestMinutes,
+                false,
+                dateAvailabilities,
+                dateGroupAvailabilities
+            );
+        })
+        .sort((a, b) => a.day.getTime() - b.day.getTime());
+
+    return zotDates;
+};
 
 export function AvailabilityBody({
     meetingData,
     meetingDates,
     userAvailability,
     allAvailabilties,
+    user,
 }: {
     meetingData: SelectMeeting;
     meetingDates: string[];
     userAvailability: MemberMeetingAvailability | null;
     allAvailabilties: MemberMeetingAvailability[];
+    user: UserProfile | null;
 }) {
     const { availabilityView, setHasAvailability } = useAvailabilityViewStore();
-    const { availabilityDates, setAvailabilityDates } =
-        useAvailabilityContext();
+    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
 
+    const fromTimeMinutes = getTimeFromHourMinuteString(
+        meetingData.fromTime as HourMinuteString
+    );
+    const toTimeMinutes = getTimeFromHourMinuteString(
+        meetingData.toTime as HourMinuteString
+    );
+    const availabilityTimeBlocks = generateTimeBlocks(
+        fromTimeMinutes,
+        toTimeMinutes
+    );
+
+    // Initialize state with derived data
+    const [availabilityDates, setAvailabilityDates] = useState(() =>
+        deriveInitialAvailability({
+            meetingDates,
+            userAvailability,
+            allAvailabilties,
+            availabilityTimeBlocks,
+        })
+    );
+
+    // Track original availability state for cancellation
+    const [originalAvailabilityDates, setOriginalAvailabilityDates] = useState<
+        ZotDate[]
+    >([]);
+    const [isEditingAvailability, setIsEditingAvailability] = useState(false);
+
+    // Update original state when entering edit mode
+    useEffect(() => {
+        if (availabilityView === "personal" && !isEditingAvailability) {
+            setOriginalAvailabilityDates(
+                availabilityDates.map((date) => date.clone())
+            );
+            setIsEditingAvailability(true);
+        }
+    }, [availabilityView, isEditingAvailability, availabilityDates]);
+
+    // Reset availability state to last saved state
+    const resetAvailabilityState = () => {
+        setAvailabilityDates(
+            originalAvailabilityDates.map((date) => date.clone())
+        );
+        setIsEditingAvailability(false);
+    };
+
+    // Handle successful save
+    const handleSaveSuccess = () => {
+        setOriginalAvailabilityDates(
+            availabilityDates.map((date) => date.clone())
+        );
+        setIsEditingAvailability(false);
+    };
+
+    // Calculate last page
+    const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
+
+    // Calculate padding dates for the last page
+    const numPaddingDates =
+        availabilityDates.length % itemsPerPage === 0
+            ? 0
+            : itemsPerPage - (availabilityDates.length % itemsPerPage);
+
+    // Calculate current page availability
+    const datesToOffset = currentPage * itemsPerPage;
+    const currentPageAvailability = useMemo(() => {
+        let pageAvailability = availabilityDates.slice(
+            datesToOffset,
+            datesToOffset + itemsPerPage
+        );
+
+        if (currentPage === lastPage) {
+            pageAvailability = pageAvailability.concat(
+                new Array(numPaddingDates).fill(null)
+            );
+        }
+
+        return pageAvailability;
+    }, [
+        availabilityDates,
+        datesToOffset,
+        itemsPerPage,
+        currentPage,
+        lastPage,
+        numPaddingDates,
+    ]);
+
+    // Single useEffect for any necessary initial setup
     useEffect(() => {
         if (userAvailability) {
             setHasAvailability(true);
         }
     }, [setHasAvailability, userAvailability]);
 
-    const availabilityTimeBlocks = generateTimeBlocks(
-        getTimeFromHourMinuteString(meetingData.fromTime as HourMinuteString),
-        getTimeFromHourMinuteString(meetingData.toTime as HourMinuteString)
-    );
-
-    const fromTimeNumber =
-        parseInt(meetingData.fromTime.substring(0, 2), 10) +
-        parseInt(meetingData.fromTime.substring(3, 5), 10) / 60;
-    const toTimeNumber =
-        parseInt(meetingData.toTime.substring(0, 2), 10) +
-        parseInt(meetingData.toTime.substring(3, 5), 10) / 60;
-
-    useEffect(() => {
-        if (!meetingDates || meetingDates.length === 0) return;
-
-        const availabilitiesByDate = new Map<string, string[]>();
-
-        // Only populate the map if the availability object exists and has time blocks
-        if (userAvailability && userAvailability.meetingAvailabilities) {
-            userAvailability.meetingAvailabilities.forEach((timeStr) => {
-                const time = new Date(timeStr);
-                const dateStr = time.toISOString().split("T")[0]; // Get just the date part
-
-                if (!availabilitiesByDate.has(dateStr)) {
-                    availabilitiesByDate.set(dateStr, []);
-                }
-
-                availabilitiesByDate.get(dateStr)?.push(timeStr);
-            });
-        }
-
-        const timestampsByDate: Record<string, Record<string, string[]>> = {};
-        for (const member of allAvailabilties) {
-            for (const timestamp of member.meetingAvailabilities) {
-                const date = timestamp.split("T")[0];
-                if (!timestampsByDate[date]) {
-                    timestampsByDate[date] = {};
-                }
-                if (!timestampsByDate[date][timestamp]) {
-                    timestampsByDate[date][timestamp] = [];
-                }
-                timestampsByDate[date][timestamp].push(member.memberId);
-            }
-        }
-
-        // For every meeting date, create a corresponding ZotDate object
-        const convertedDates = meetingDates
-            .map((meetingDate) => {
-                const date = new Date(meetingDate);
-                const dateStr = date.toISOString().split("T")[0];
-
-                // TODO: Refactor this logic for new date string format.
-                // Choose default bounds if no availabilityTimeBlocks exist
-                const earliestMinutes =
-                    availabilityTimeBlocks.length > 0
-                        ? availabilityTimeBlocks[0]
-                        : 480;
-
-                const latestMinutes =
-                    availabilityTimeBlocks.length > 0
-                        ? availabilityTimeBlocks[
-                              availabilityTimeBlocks.length - 1
-                          ] + 15
-                        : 1050;
-
-                // Load the availability time strings for this date or use empty array
-                const dateAvailabilities =
-                    availabilitiesByDate.get(dateStr) || [];
-                const dateGroupAvailabilities = timestampsByDate[dateStr] || {};
-
-                // Create the ZotDate with any found availabilities
-                const zotDate = new ZotDate(
-                    date,
-                    earliestMinutes,
-                    latestMinutes,
-                    false,
-                    dateAvailabilities,
-                    dateGroupAvailabilities
-                );
-
-                return zotDate;
-            })
-            .sort((a, b) => a.day.getTime() - b.day.getTime());
-
-        setAvailabilityDates(convertedDates);
-    }, [
-        userAvailability,
-        meetingDates,
-        setAvailabilityDates,
-        allAvailabilties,
-        // TODO: fix this useEffect nonsense — availabilityTimeBlocks should be in the dependency array, but it breaks selection if it is
-        // availabilityTimeBlocks,
-        availabilityDates.length, // TODO: May cause problems
-    ]);
+    // Handler to update user availability
+    const handleUserAvailabilityChange = (updatedDates: ZotDate[]) => {
+        setAvailabilityDates(updatedDates);
+    };
 
     return (
         <div className={"space-y-6 px-6"}>
+            <AvailabilityHeader
+                meetingData={meetingData}
+                user={user}
+                availabilityDates={availabilityDates}
+                onCancel={resetAvailabilityState}
+                onSaveSuccess={handleSaveSuccess}
+            />
             {availabilityView === "group" ? (
                 <GroupAvailability
                     availabilityTimeBlocks={availabilityTimeBlocks}
                     groupAvailabilities={allAvailabilties}
-                    fromTime={fromTimeNumber}
-                    toTime={toTimeNumber}
+                    fromTime={fromTimeMinutes}
+                    availabilityDates={availabilityDates}
+                    currentPageAvailability={currentPageAvailability}
                 />
             ) : (
                 <PersonalAvailability
-                    fromTime={fromTimeNumber}
-                    meetingDates={meetingDates}
+                    fromTime={fromTimeMinutes}
                     userAvailability={userAvailability}
                     availabilityTimeBlocks={availabilityTimeBlocks}
+                    availabilityDates={availabilityDates}
+                    currentPageAvailability={currentPageAvailability}
+                    onAvailabilityChange={handleUserAvailabilityChange}
                 />
             )}
         </div>

@@ -1,7 +1,6 @@
 import React from "react";
-import { useAvailabilityContext } from "@/components/availability/context/availability-context";
 import { AvailabilityBlockCells } from "@/components/availability/table/availability-block-cells";
-import { AvailabilityBlockType } from "@/lib/types/availability";
+import type { AvailabilityBlockType } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityBlocksProps {
@@ -11,6 +10,9 @@ interface AvailabilityBlocksProps {
     isLastRow: boolean;
     timeBlock: number;
     blockIndex: number;
+    currentPage: number;
+    itemsPerPage: number;
+    currentPageAvailability: (ZotDate | null)[];
 }
 
 export function AvailabilityBlocks({
@@ -20,18 +22,18 @@ export function AvailabilityBlocks({
     isLastRow,
     timeBlock,
     blockIndex,
+    currentPage,
+    itemsPerPage,
+    currentPageAvailability,
 }: AvailabilityBlocksProps) {
-    const { currentPage, itemsPerPage, currentPageAvailability } =
-        useAvailabilityContext();
-
     const generateDateKey = (
-        selectedDate: ZotDate,
+        selectedDate: ZotDate | null,
         timeBlock: number,
         pageDateIndex: number
     ) => {
         return selectedDate
-            ? `date-${selectedDate.valueOf()}-${timeBlock}`
-            : `padding-${pageDateIndex}`;
+            ? `date-${selectedDate.valueOf()}-${timeBlock}-${pageDateIndex}`
+            : `padding-${pageDateIndex}-${timeBlock}`;
     };
 
     return (
