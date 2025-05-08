@@ -15,6 +15,9 @@ export async function GET(request: Request): Promise<Response> {
     const cookieStore = await cookies();
     const storedState = cookieStore.get("google_oauth_state")?.value ?? null;
     const codeVerifier = cookieStore.get("google_code_verifier")?.value ?? null;
+    const redirectUrl = cookieStore.get("auth_redirect_url")?.value ?? "/";
+
+    cookieStore.delete("auth_redirect_url");
 
     if (
         code === null ||
@@ -61,7 +64,7 @@ export async function GET(request: Request): Promise<Response> {
         return new Response(null, {
             status: 302,
             headers: {
-                Location: "/",
+                Location: redirectUrl,
             },
         });
     }
@@ -73,7 +76,7 @@ export async function GET(request: Request): Promise<Response> {
     return new Response(null, {
         status: 302,
         headers: {
-            Location: "/",
+            Location: redirectUrl,
         },
     });
 }

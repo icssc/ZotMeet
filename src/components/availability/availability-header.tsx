@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { AuthDialog } from "@/components/auth/auth-dialog";
 import { Button } from "@/components/ui/button";
 import { SelectMeeting } from "@/db/schema";
 import { UserProfile } from "@/lib/auth/user";
@@ -34,6 +36,8 @@ export function AvailabilityHeader({
     // const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
     // const [guestName, setGuestName] = useState("");
 
+    const [open, setOpen] = useState(false);
+
     const handleCancel = () => {
         onCancel();
         setAvailabilityView("group");
@@ -42,6 +46,7 @@ export function AvailabilityHeader({
     const handleSave = async () => {
         if (!user) {
             // setIsGuestDialogOpen(true);
+
             return;
         }
 
@@ -109,7 +114,13 @@ export function AvailabilityHeader({
                             className={cn(
                                 "flex-center h-8 min-h-fit px-2 uppercase md:w-40 md:p-0"
                             )}
-                            onClick={() => setAvailabilityView("personal")}
+                            onClick={() => {
+                                if (!user) {
+                                    setOpen(true);
+                                    return;
+                                }
+                                setAvailabilityView("personal");
+                            }}
                         >
                             <span className="hidden md:flex">
                                 {hasAvailability
@@ -120,6 +131,12 @@ export function AvailabilityHeader({
                     </div>
                 )}
             </div>
+
+            <AuthDialog
+                open={open}
+                setOpen={setOpen}
+                trigger={false}
+            />
 
             {/* <GuestDialog
                 isGuestDialogOpen={isGuestDialogOpen}

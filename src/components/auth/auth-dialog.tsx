@@ -4,17 +4,31 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export default function AuthDialog() {
+interface AuthDialogProps {
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    trigger?: boolean;
+}
+
+export function AuthDialog({ open, setOpen, trigger = true }: AuthDialogProps) {
     return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Button
-                    variant="default"
-                    className="w-full"
+        <Dialog
+            open={open}
+            onOpenChange={setOpen}
+        >
+            {trigger ? (
+                <DialogTrigger
+                    asChild
+                    onClick={() => setOpen(true)}
                 >
-                    Login
-                </Button>
-            </DialogTrigger>
+                    <Button
+                        variant="default"
+                        className="w-full"
+                    >
+                        Login
+                    </Button>
+                </DialogTrigger>
+            ) : null}
             <DialogContent className="max-w-96 sm:max-w-[400px]">
                 <Tabs defaultValue="login">
                     <TabsList>
@@ -31,7 +45,7 @@ export default function AuthDialog() {
                             Sign up
                         </TabsTrigger>
                     </TabsList>
-                    <hr className="my-4 -mx-4 border-neutral-200" />
+                    <hr className="-mx-4 my-4 border-neutral-200" />
                     <TabsContent value="login">
                         <LoginTabContent />
                     </TabsContent>

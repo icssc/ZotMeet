@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { google } from "@/lib/auth/oauth";
 import { generateCodeVerifier, generateState } from "arctic";
 
@@ -27,6 +27,19 @@ export async function GET(): Promise<Response> {
         maxAge: 60 * 10, // 10 minutes
         sameSite: "lax",
     });
+
+    const headersList = headers();
+    const referer = headersList.get("referer");
+
+    if (referer) {
+        cookieStore.set("auth_redirect_url", referer, {
+            path: "/",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 60 * 10, // 10 minutes
+            sameSite: "lax",
+        });
+    }
 
     return new Response(null, {
         status: 302,
