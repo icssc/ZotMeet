@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
+import { generateDateKey } from "@/lib/availability/utils";
 import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -43,7 +44,7 @@ interface GroupAvailabilityProps {
     groupAvailabilities: MemberMeetingAvailability[];
     fromTime: number;
     availabilityDates: ZotDate[];
-    currentPageAvailability: (ZotDate | null)[];
+    currentPageAvailability: ZotDate[];
 }
 
 export function GroupAvailability({
@@ -69,20 +70,6 @@ export function GroupAvailability({
         useState<string[]>([]);
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
-
-    const generateDateKey = ({
-        selectedDate,
-        timeBlock,
-        pageDateIndex,
-    }: {
-        selectedDate: ZotDate | null;
-        timeBlock: number;
-        pageDateIndex: number;
-    }) => {
-        return selectedDate
-            ? `date-${selectedDate.valueOf()}-${timeBlock}`
-            : `padding-${pageDateIndex}`;
-    };
 
     const updateSelection = ({
         zotDateIndex,
@@ -147,11 +134,15 @@ export function GroupAvailability({
 
             const availableMemberIds =
                 selectedDate.groupAvailability[timestamp] || [];
-            
-            const availableMemberNames = availableMemberIds.map(memberId => {
-                const member = groupAvailabilities.find(m => m.memberId === memberId);
-                return member?.displayName;
-            }).filter(Boolean) as string[];
+
+            const availableMemberNames = availableMemberIds
+                .map((memberId) => {
+                    const member = groupAvailabilities.find(
+                        (m) => m.memberId === memberId
+                    );
+                    return member?.displayName;
+                })
+                .filter(Boolean) as string[];
             setAvailableMembersOfSelection(availableMemberNames);
 
             const notAvailableMembers = groupAvailabilities.filter(
@@ -172,10 +163,12 @@ export function GroupAvailability({
     useEffect(() => {
         const handleMouseMove = (event: MouseEvent) => {
             if (selectionIsLocked) return;
-            
-            const gridBlocks = document.querySelectorAll('.group-availability-block');
+
+            const gridBlocks = document.querySelectorAll(
+                ".group-availability-block"
+            );
             if (gridBlocks.length === 0) return;
-            
+
             let isOverGrid = false;
             for (const block of gridBlocks) {
                 const rect = block.getBoundingClientRect();
@@ -189,34 +182,36 @@ export function GroupAvailability({
                     break;
                 }
             }
-            
+
             if (!isOverGrid) {
                 resetSelection();
             }
         };
-        
+
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as Element;
-            const isOnAvailabilityBlock = !!target.closest('.group-availability-block');
-            
+            const isOnAvailabilityBlock = !!target.closest(
+                ".group-availability-block"
+            );
+
             if (!isOnAvailabilityBlock) {
                 resetSelection();
                 setSelectionIsLocked(false);
             }
         };
-        
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mousedown', handleClickOutside);
-        
+
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mousedown", handleClickOutside);
+
         return () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousemove", handleMouseMove);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [selectionIsLocked, resetSelection]);
 
     useEffect(() => {
         const handleEscKey = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
+            if (event.key === "Escape") {
                 resetSelection();
                 setSelectionIsLocked(false);
                 // Removes focused outline from previously selected block
@@ -225,28 +220,28 @@ export function GroupAvailability({
                 }
             }
         };
-        
-        document.addEventListener('keydown', handleEscKey);
+
+        document.addEventListener("keydown", handleEscKey);
         return () => {
-            document.removeEventListener('keydown', handleEscKey);
+            document.removeEventListener("keydown", handleEscKey);
         };
-    }, []);
+    }, [resetSelection]);
 
     const handleMemberHover = (memberName: string | null) => {
         if (memberName === null) {
             setHoveredMember(null);
             return;
         }
-        
-        const member = groupAvailabilities.find(m => m.displayName === memberName);
+
+        const member = groupAvailabilities.find(
+            (m) => m.displayName === memberName
+        );
         setHoveredMember(member ? member.memberId : null);
     };
 
     return (
         <div className="flex flex-row items-start justify-start align-top">
-            <div 
-                className="flex items-center justify-between overflow-x-auto h-fit font-dm-sans lg:w-full lg:pr-10"
-            >
+            <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-10">
                 <AvailabilityNavButton
                     direction="left"
                     handleClick={prevPage}
@@ -272,7 +267,6 @@ export function GroupAvailability({
                                         timeBlock={timeBlock}
                                     />
                                     {currentPageAvailability.map(
-
                                         (selectedDate, pageDateIndex) => {
                                             const key = generateDateKey({
                                                 selectedDate,
@@ -290,7 +284,7 @@ export function GroupAvailability({
                                                         zotDateIndex &&
                                                     selectedBlockIndex ===
                                                         blockIndex;
-                                                        
+
                                                 const timestamp =
                                                     getTimestampFromBlockIndex(
                                                         blockIndex,
@@ -298,7 +292,7 @@ export function GroupAvailability({
                                                         fromTime,
                                                         availabilityDates
                                                     );
-                                                
+
                                                 const tableCellStyles = cn(
                                                     isTopOfHour &&
                                                         "border-t-[1px] border-t-gray-medium",
@@ -316,7 +310,7 @@ export function GroupAvailability({
                                                         className="px-0 py-0"
                                                     >
                                                         <GroupAvailabilityBlock
-                                                            className="hidden lg:block group-availability-block"
+                                                            className="group-availability-block hidden lg:block"
                                                             timestamp={
                                                                 timestamp
                                                             }
@@ -343,13 +337,15 @@ export function GroupAvailability({
                                                             tableCellStyles={
                                                                 tableCellStyles
                                                             }
-                                                            hoveredMember={hoveredMember}
+                                                            hoveredMember={
+                                                                hoveredMember
+                                                            }
                                                         />
                                                         <GroupAvailabilityBlock
                                                             timestamp={
                                                                 timestamp
                                                             }
-                                                            className="block lg:hidden group-availability-block"
+                                                            className="group-availability-block block lg:hidden"
                                                             onClick={() =>
                                                                 handleCellClick(
                                                                     {
@@ -365,7 +361,9 @@ export function GroupAvailability({
                                                             tableCellStyles={
                                                                 tableCellStyles
                                                             }
-                                                            hoveredMember={hoveredMember}
+                                                            hoveredMember={
+                                                                hoveredMember
+                                                            }
                                                         />
                                                     </td>
                                                 );
@@ -398,7 +396,11 @@ export function GroupAvailability({
                 onMemberHover={handleMemberHover}
             />
 
-            <div className={`lg:hidden ${isMobileDrawerOpen ? "h-96" : ""}`} />
+            <div
+                className={cn("lg:hidden", {
+                    "h-96": isMobileDrawerOpen,
+                })}
+            />
         </div>
     );
 }

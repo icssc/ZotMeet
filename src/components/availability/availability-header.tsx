@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SelectMeeting } from "@/db/schema";
 import { UserProfile } from "@/lib/auth/user";
@@ -15,7 +14,7 @@ interface AvailabilityHeaderProps {
     user: UserProfile | null;
     availabilityDates: ZotDate[];
     onCancel: () => void;
-    onSaveSuccess: () => void;
+    onSave: () => void;
 }
 
 export function AvailabilityHeader({
@@ -23,7 +22,7 @@ export function AvailabilityHeader({
     user,
     availabilityDates,
     onCancel,
-    onSaveSuccess,
+    onSave,
 }: AvailabilityHeaderProps) {
     const {
         hasAvailability,
@@ -35,7 +34,7 @@ export function AvailabilityHeader({
     // const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
     // const [guestName, setGuestName] = useState("");
 
-    const handleCancel = async () => {
+    const handleCancel = () => {
         onCancel();
         setAvailabilityView("group");
     };
@@ -46,16 +45,12 @@ export function AvailabilityHeader({
             return;
         }
 
-        await saveAvailabilityData();
-    };
-
-    const saveAvailabilityData = async (displayName?: string) => {
         const availability = {
             meetingId: meetingData.id,
             availabilityTimes: availabilityDates.flatMap(
                 (date) => date.availability
             ),
-            displayName: user ? undefined : displayName,
+            displayName: user.displayName,
         };
 
         const response = await saveAvailability(availability);
@@ -63,7 +58,7 @@ export function AvailabilityHeader({
         if (response.status === 200) {
             setHasAvailability(true);
             setAvailabilityView("group");
-            onSaveSuccess();
+            onSave();
 
             // Clear guest member name
             if (!user) {
