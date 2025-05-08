@@ -8,6 +8,7 @@ interface GroupAvailabilityBlockProps {
     onClick: VoidFunction;
     onHover?: VoidFunction;
     timestamp: string;
+    hoveredMember?: string | null;
 }
 
 function getAllUniqueMembers(dates: ZotDate[]): string[] {
@@ -27,6 +28,7 @@ export function GroupAvailabilityBlock({
     className = "",
     onClick,
     onHover,
+    hoveredMember,
 }: GroupAvailabilityBlockProps) {
     const members = getAllUniqueMembers(groupAvailabilities);
 
@@ -41,14 +43,29 @@ export function GroupAvailabilityBlock({
             return "transparent";
         }
 
+        if (hoveredMember) {
+            if (block.includes(hoveredMember)) {
+                return "rgba(55, 124, 251)";
+            }
+            return "transparent";
+        }
+
         const opacity = block.length / members.length;
         return `rgba(55, 124, 251, ${opacity})`;
     };
 
+    const day = groupAvailabilities.find(
+        (date) => date.day.getDay() === new Date(timestamp).getDay()
+    );
+    
+    const block = day?.groupAvailability[timestamp];
+    const isMemberAvailable = hoveredMember && block && block.includes(hoveredMember);
+    
     return (
         <button
             className={cn(
-                "h-full w-full border-r-[1px] border-gray-medium",
+                "h-full w-full border-r-[1px] border-gray-medium transition-opacity duration-200",
+                (hoveredMember && !isMemberAvailable) && "opacity-30",
                 tableCellStyles,
                 className
             )}
