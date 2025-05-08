@@ -19,7 +19,7 @@ interface PersonalAvailabilityProps {
     availabilityTimeBlocks: number[];
     fromTime: number;
     availabilityDates: ZotDate[];
-    currentPageAvailability: (ZotDate | null)[];
+    currentPageAvailability: ZotDate[];
     onAvailabilityChange: (updatedDates: ZotDate[]) => void;
 }
 
