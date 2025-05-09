@@ -58,6 +58,7 @@ export function GroupResponses({
             setBlockInfoString("Select a cell to view");
         }
     }, [selectedZotDateIndex, selectedBlockIndex, availabilityDates]);
+
     return (
         <div>
             <div className="hidden pb-1 pl-8 lg:block">
@@ -68,9 +69,10 @@ export function GroupResponses({
                     {blockInfoString}
                 </p>
             </div>
+
             <div
                 className={cn(
-                    "fixed bottom-0 left-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl border-[1px] border-gray-400 bg-gray-100 bg-opacity-90 transition-transform duration-500 ease-in-out sm:left-auto sm:right-0 sm:w-96 lg:relative lg:right-0 lg:top-0 lg:h-auto lg:w-72 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:rounded-r-none lg:bg-opacity-50",
+                    "fixed bottom-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl border-[1px] border-gray-400 bg-gray-100 bg-opacity-90 transition-transform duration-500 ease-in-out sm:left-auto sm:right-0 sm:w-96 lg:relative lg:right-10 lg:top-0 lg:h-auto lg:w-64 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:bg-opacity-50",
                     isMobileDrawerOpen && "translate-y-0"
                 )}
             >
