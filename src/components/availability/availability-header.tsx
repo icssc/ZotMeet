@@ -109,26 +109,24 @@ export function AvailabilityHeader({
                         </Button>
                     </div>
                 ) : (
-                    <div className="flex space-x-4">
-                        <Button
-                            className={cn(
-                                "flex-center h-8 min-h-fit px-2 uppercase md:w-40 md:p-0"
-                            )}
-                            onClick={() => {
-                                if (!user) {
-                                    setOpen(true);
-                                    return;
-                                }
-                                setAvailabilityView("personal");
-                            }}
-                        >
-                            <span className="hidden md:flex">
-                                {hasAvailability
-                                    ? "Edit Availability"
-                                    : "Add Availability"}
-                            </span>
-                        </Button>
-                    </div>
+                    <Button
+                        className={cn(
+                            "flex-center h-8 min-h-fit min-w-fit px-2 md:w-40 md:p-0"
+                        )}
+                        onClick={() => {
+                            if (!user) {
+                                setOpen(true);
+                                return;
+                            }
+                            setAvailabilityView("personal");
+                        }}
+                    >
+                        <span className="flex font-dm-sans">
+                            {hasAvailability
+                                ? "Edit Availability"
+                                : "Add Availability"}
+                        </span>
+                    </Button>
                 )}
             </div>
 
