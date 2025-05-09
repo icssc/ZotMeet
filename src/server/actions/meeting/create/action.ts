@@ -30,7 +30,7 @@ export async function createMeeting(meetingData: CreateMeetingPostParams) {
         const month = (date.getMonth() + 1).toString().padStart(2, "0");
         const day = date.getDate().toString().padStart(2, "0");
         const year = date.getFullYear();
-        return `${month}-${day}-${year}`;
+        return `${year}-${month}-${day}`; // NB: YYYY-MM-DD is the official ISO 8601 format
     });
 
     const meeting: InsertMeeting = {
