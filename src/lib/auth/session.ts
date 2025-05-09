@@ -11,6 +11,12 @@ import { eq } from "drizzle-orm";
 
 const DAYS_MS = 1000 * 60 * 60 * 24;
 
+type OAuthTokenData = {
+    googleAccessToken?: string;
+    googleRefreshToken?: string;
+    googleAccessTokenExpiresAt?: Date;
+};
+
 export function generateSessionToken(): string {
     const bytes = new Uint8Array(20);
     crypto.getRandomValues(bytes);
@@ -21,7 +27,8 @@ export function generateSessionToken(): string {
 
 export async function createSession(
     token: string,
-    userId: string
+    userId: string,
+    options: OAuthTokenData = {}
 ): Promise<InsertSession> {
     const sessionId = encodeHexLowerCase(
         sha256(new TextEncoder().encode(token))
@@ -31,6 +38,9 @@ export async function createSession(
         id: sessionId,
         userId,
         expiresAt: new Date(Date.now() + DAYS_MS * 30),
+        googleAccessToken: options.googleAccessToken,
+        googleRefreshToken: options.googleRefreshToken,
+        googleAccessTokenExpiresAt: options.googleAccessTokenExpiresAt,
     };
 
     await db.insert(sessions).values(session);

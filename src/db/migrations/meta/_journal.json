@@ -8,6 +8,13 @@
       "when": 1745142823501,
       "tag": "0000_empty_crystal",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1746782398530,
+      "tag": "0001_spooky_tyger_tiger",
+      "breakpoints": true
     }
   ]
 }

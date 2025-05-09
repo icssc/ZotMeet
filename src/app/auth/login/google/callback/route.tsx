@@ -50,6 +50,11 @@ export async function GET(request: Request): Promise<Response> {
         name: string;
         email: string;
     };
+    const accessToken = tokens.accessToken();
+    const refreshToken = tokens.hasRefreshToken()
+        ? tokens.refreshToken()
+        : undefined;
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60);
 
     const googleUserId = claims.sub;
     const username = claims.name;
@@ -59,7 +64,11 @@ export async function GET(request: Request): Promise<Response> {
 
     if (existingUser !== false) {
         const sessionToken = generateSessionToken();
-        const session = await createSession(sessionToken, googleUserId);
+        const session = await createSession(sessionToken, googleUserId, {
+            googleAccessToken: accessToken,
+            googleRefreshToken: refreshToken,
+            googleAccessTokenExpiresAt: expiresAt,
+        });
         await setSessionTokenCookie(sessionToken, session.expiresAt);
         return new Response(null, {
             status: 302,
