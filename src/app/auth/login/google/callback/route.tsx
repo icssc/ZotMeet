@@ -80,7 +80,11 @@ export async function GET(request: Request): Promise<Response> {
     const user = await createGoogleUser(googleUserId, email, username, null);
 
     const sessionToken = generateSessionToken();
-    const session = await createSession(sessionToken, user.id);
+    const session = await createSession(sessionToken, user.id, {
+        googleAccessToken: accessToken,
+        googleRefreshToken: refreshToken,
+        googleAccessTokenExpiresAt: expiresAt,
+    });
     await setSessionTokenCookie(sessionToken, session.expiresAt);
     return new Response(null, {
         status: 302,

@@ -90,11 +90,27 @@ export async function validateSessionToken(
             .where(eq(sessions.id, session.id));
     }
 
-    return { session, user };
+    return { session, user }; // ? Should Google tokens be flattened here? Leaning towards no, so implementation reflects this.
 }
 
 export async function invalidateSession(sessionId: string): Promise<void> {
     await db.delete(sessions).where(eq(sessions.id, sessionId));
+}
+
+export async function updateSessionGoogleTokens(
+    sessionId: string,
+    tokens: {
+        googleAccessToken: string;
+        googleAccessTokenExpiresAt: Date;
+    }
+): Promise<void> {
+    await db
+        .update(sessions)
+        .set({
+            googleAccessToken: tokens.googleAccessToken,
+            googleAccessTokenExpiresAt: tokens.googleAccessTokenExpiresAt,
+        })
+        .where(eq(sessions.id, sessionId));
 }
 
 export type SessionValidationResult =
