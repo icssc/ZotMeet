@@ -107,8 +107,6 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
                     <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
                         {monthName} {currentYear}
                     </h3>
-
-                    <Separator className="h-[2px] w-12 bg-orange-500 md:w-16" />
                 </div>
 
                 <table className="w-full table-fixed p-3">

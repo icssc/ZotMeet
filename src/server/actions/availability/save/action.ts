@@ -125,8 +125,7 @@ function validateAvailability(
 
     const slotDurationMs = blockLength * 60 * 1000;
 
-    console.log(availabilityTimes);
-
+    console.log(availabilityTimes, meetingWindows);
     for (const time of availabilityTimes) {
         const startTime = new Date(time);
         const endTime = new Date(startTime.getTime() + slotDurationMs);
