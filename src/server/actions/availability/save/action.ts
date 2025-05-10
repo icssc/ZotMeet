@@ -47,20 +47,13 @@ export async function saveAvailability({
         }
 
         const meetingWindows = meeting.dates.map((date) => {
-            const [month, day, year] = date.split("-");
-            const formattedDate = `${year}-${month}-${day}`;
-
             return {
                 start: createAdjustedISO(
-                    formattedDate,
+                    date,
                     meeting.fromTime,
                     meeting.timezone
                 ),
-                end: createAdjustedISO(
-                    formattedDate,
-                    meeting.toTime,
-                    meeting.timezone
-                ),
+                end: createAdjustedISO(date, meeting.toTime, meeting.timezone),
             };
         });
         const isValid = validateAvailability(availabilityTimes, meetingWindows);
@@ -131,6 +124,8 @@ function validateAvailability(
     });
 
     const slotDurationMs = blockLength * 60 * 1000;
+
+    console.log(availabilityTimes);
 
     for (const time of availabilityTimes) {
         const startTime = new Date(time);
