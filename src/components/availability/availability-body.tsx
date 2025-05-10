@@ -183,18 +183,18 @@ export function AvailabilityBody({
             {availabilityView === "group" ? (
                 <GroupAvailability
                     availabilityTimeBlocks={availabilityTimeBlocks}
-                    groupAvailabilities={allAvailabilties}
                     fromTime={fromTimeMinutes}
                     availabilityDates={availabilityDates}
                     currentPageAvailability={currentPageAvailability}
+                    groupAvailabilities={allAvailabilties}
                 />
             ) : (
                 <PersonalAvailability
-                    fromTime={fromTimeMinutes}
-                    userAvailability={userAvailability}
                     availabilityTimeBlocks={availabilityTimeBlocks}
+                    fromTime={fromTimeMinutes}
                     availabilityDates={availabilityDates}
                     currentPageAvailability={currentPageAvailability}
+                    userAvailability={userAvailability}
                     onAvailabilityChange={handleUserAvailabilityChange}
                 />
             )}
