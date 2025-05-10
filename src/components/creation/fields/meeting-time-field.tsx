@@ -28,7 +28,7 @@ export const MeetingTimeField = ({
     setEndTime,
 }: MeetingTimeFieldProps) => {
     const [startHour, setStartHour] = useState(9);
-    const [endHour, setEndHour] = useState(4);
+    const [endHour, setEndHour] = useState(1);
     const [startPeriod, setStartPeriod] = useState("AM");
     const [endPeriod, setEndPeriod] = useState("PM");
 
