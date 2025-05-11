@@ -35,7 +35,6 @@ export const getTimestampFromBlockIndex = (
     date.setMilliseconds(0);
 
     const isoString = date.toISOString();
-    // console.log(`Block ${blockIndex} corresponds to time ${isoString}`);
     return isoString;
 };
 
@@ -71,17 +70,20 @@ export function GroupAvailability({
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
 
-    const updateSelection = ({
-        zotDateIndex,
-        blockIndex,
-    }: {
-        zotDateIndex: number;
-        blockIndex: number;
-    }) => {
-        setIsMobileDrawerOpen(true);
-        setSelectedZotDateIndex(zotDateIndex);
-        setSelectedBlockIndex(blockIndex);
-    };
+    const updateSelection = useCallback(
+        ({
+            zotDateIndex,
+            blockIndex,
+        }: {
+            zotDateIndex: number;
+            blockIndex: number;
+        }) => {
+            setIsMobileDrawerOpen(true);
+            setSelectedZotDateIndex(zotDateIndex);
+            setSelectedBlockIndex(blockIndex);
+        },
+        []
+    );
 
     const resetSelection = useCallback(() => {
         setIsMobileDrawerOpen(false);
@@ -94,34 +96,40 @@ export function GroupAvailability({
         );
     }, [groupAvailabilities]);
 
-    const handleCellClick = ({
-        isSelected,
-        zotDateIndex,
-        blockIndex,
-    }: {
-        isSelected: boolean;
-        zotDateIndex: number;
-        blockIndex: number;
-    }) => {
-        if (selectionIsLocked && isSelected) {
-            setSelectionIsLocked(false);
-        } else {
-            setSelectionIsLocked(true);
-            updateSelection({ zotDateIndex, blockIndex });
-        }
-    };
+    const handleCellClick = useCallback(
+        ({
+            isSelected,
+            zotDateIndex,
+            blockIndex,
+        }: {
+            isSelected: boolean;
+            zotDateIndex: number;
+            blockIndex: number;
+        }) => {
+            if (selectionIsLocked && isSelected) {
+                setSelectionIsLocked(false);
+            } else {
+                setSelectionIsLocked(true);
+                updateSelection({ zotDateIndex, blockIndex });
+            }
+        },
+        [selectionIsLocked, updateSelection]
+    );
 
-    const handleCellHover = ({
-        zotDateIndex,
-        blockIndex,
-    }: {
-        zotDateIndex: number;
-        blockIndex: number;
-    }) => {
-        if (!selectionIsLocked) {
-            updateSelection({ zotDateIndex, blockIndex });
-        }
-    };
+    const handleCellHover = useCallback(
+        ({
+            zotDateIndex,
+            blockIndex,
+        }: {
+            zotDateIndex: number;
+            blockIndex: number;
+        }) => {
+            if (!selectionIsLocked) {
+                updateSelection({ zotDateIndex, blockIndex });
+            }
+        },
+        [selectionIsLocked, updateSelection]
+    );
 
     // Update selection members when selection changes
     useEffect(() => {
@@ -167,12 +175,16 @@ export function GroupAvailability({
 
     useEffect(() => {
         const handleMouseMove = (event: MouseEvent) => {
-            if (selectionIsLocked) return;
+            if (selectionIsLocked) {
+                return;
+            }
 
             const gridBlocks = document.querySelectorAll(
                 ".group-availability-block"
             );
-            if (gridBlocks.length === 0) return;
+            if (gridBlocks.length === 0) {
+                return;
+            }
 
             let isOverGrid = false;
             for (const block of gridBlocks) {
@@ -266,11 +278,25 @@ export function GroupAvailability({
                                 blockIndex ===
                                 availabilityTimeBlocks.length - 1;
 
+                            // Compute all unique members for the current page
+                            const allMembers = Array.from(
+                                new Set(
+                                    currentPageAvailability
+                                        .flatMap((date) =>
+                                            Object.values(
+                                                date.groupAvailability
+                                            )
+                                        )
+                                        .flat()
+                                )
+                            );
+
                             return (
                                 <tr key={`block-${timeBlock}`}>
                                     <AvailabilityTimeTicks
                                         timeBlock={timeBlock}
                                     />
+
                                     {currentPageAvailability.map(
                                         (selectedDate, pageDateIndex) => {
                                             const key = generateDateKey({
@@ -298,6 +324,36 @@ export function GroupAvailability({
                                                         availabilityDates
                                                     );
 
+                                                // Get the block (array of member IDs available at this timestamp)
+                                                const block =
+                                                    selectedDate
+                                                        .groupAvailability[
+                                                        timestamp
+                                                    ] || [];
+
+                                                // Calculate block color
+                                                let blockColor = "transparent";
+                                                if (hoveredMember) {
+                                                    if (
+                                                        block.includes(
+                                                            hoveredMember
+                                                        )
+                                                    ) {
+                                                        blockColor =
+                                                            "rgba(55, 124, 251)";
+                                                    } else {
+                                                        blockColor =
+                                                            "transparent";
+                                                    }
+                                                } else if (
+                                                    allMembers.length > 0
+                                                ) {
+                                                    const opacity =
+                                                        block.length /
+                                                        allMembers.length;
+                                                    blockColor = `rgba(55, 124, 251, ${opacity})`;
+                                                }
+
                                                 const tableCellStyles = cn(
                                                     isTopOfHour &&
                                                         "border-t-[1px] border-t-gray-medium",
@@ -315,10 +371,7 @@ export function GroupAvailability({
                                                         className="px-0 py-0"
                                                     >
                                                         <GroupAvailabilityBlock
-                                                            className="group-availability-block hidden lg:block"
-                                                            timestamp={
-                                                                timestamp
-                                                            }
+                                                            className="group-availability-block block"
                                                             onClick={() =>
                                                                 handleCellClick(
                                                                     {
@@ -336,32 +389,9 @@ export function GroupAvailability({
                                                                     }
                                                                 )
                                                             }
-                                                            groupAvailabilities={
-                                                                availabilityDates
-                                                            }
-                                                            tableCellStyles={
-                                                                tableCellStyles
-                                                            }
-                                                            hoveredMember={
-                                                                hoveredMember
-                                                            }
-                                                        />
-                                                        <GroupAvailabilityBlock
-                                                            timestamp={
-                                                                timestamp
-                                                            }
-                                                            className="group-availability-block block lg:hidden"
-                                                            onClick={() =>
-                                                                handleCellClick(
-                                                                    {
-                                                                        isSelected,
-                                                                        zotDateIndex,
-                                                                        blockIndex,
-                                                                    }
-                                                                )
-                                                            }
-                                                            groupAvailabilities={
-                                                                availabilityDates
+                                                            block={block}
+                                                            blockColor={
+                                                                blockColor
                                                             }
                                                             tableCellStyles={
                                                                 tableCellStyles

@@ -30,6 +30,7 @@
     "arctic": "^3.6.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "date-fns-tz": "^3.2.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.35.1",
     "lucide-react": "^0.453.0",

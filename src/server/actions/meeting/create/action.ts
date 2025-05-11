@@ -25,14 +25,6 @@ export async function createMeeting(meetingData: CreateMeetingPostParams) {
         return { error: "Invalid meeting dates or times." };
     }
 
-    const dates = meetingDates.map((d) => {
-        const date = new Date(d);
-        const month = (date.getMonth() + 1).toString().padStart(2, "0");
-        const day = date.getDate().toString().padStart(2, "0");
-        const year = date.getFullYear();
-        return `${year}-${month}-${day}`; // NB: YYYY-MM-DD is the official ISO 8601 format
-    });
-
     const meeting: InsertMeeting = {
         title,
         description,
@@ -40,7 +32,7 @@ export async function createMeeting(meetingData: CreateMeetingPostParams) {
         toTime,
         timezone,
         hostId,
-        dates,
+        dates: meetingDates,
     };
 
     const [newMeeting] = await db
