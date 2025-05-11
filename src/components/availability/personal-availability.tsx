@@ -44,8 +44,6 @@ export function PersonalAvailability({
     const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
         useAvailabilityPaginationStore();
 
-    console.log("personal", currentPageAvailability);
-
     const isLastPage =
         currentPage ===
         Math.floor((availabilityDates.length - 1) / itemsPerPage);

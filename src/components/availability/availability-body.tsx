@@ -45,16 +45,15 @@ const deriveInitialAvailability = ({
         });
     }
 
-    console.log("foo", availabilitiesByDate);
-
     const timestampsByDate = new Map<string, Map<string, string[]>>();
     for (const member of allAvailabilties) {
         for (const timestamp of member.meetingAvailabilities) {
-            const date = timestamp.split("T")[0];
-            if (!timestampsByDate.has(date)) {
-                timestampsByDate.set(date, new Map());
+            const dateStr = timestamp.split("T")[0];
+
+            if (!timestampsByDate.has(dateStr)) {
+                timestampsByDate.set(dateStr, new Map());
             }
-            const dateMap = timestampsByDate.get(date)!;
+            const dateMap = timestampsByDate.get(dateStr)!;
             if (!dateMap.has(timestamp)) {
                 dateMap.set(timestamp, []);
             }
@@ -67,8 +66,6 @@ const deriveInitialAvailability = ({
             const date = toZonedTime(meetingDate, timezone);
             const dateStr = date.toISOString().split("T")[0];
 
-            console.log("dateStr", dateStr);
-
             const earliestMinutes = availabilityTimeBlocks[0] || 480;
             const latestMinutes =
                 (availabilityTimeBlocks[availabilityTimeBlocks.length - 1] ||
@@ -76,7 +73,6 @@ const deriveInitialAvailability = ({
 
             const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
 
-            console.log("dateAvailabilities", dateAvailabilities);
             const dateGroupAvailabilities = Object.fromEntries(
                 timestampsByDate.get(dateStr) || new Map()
             );
@@ -91,7 +87,6 @@ const deriveInitialAvailability = ({
         })
         .sort((a, b) => a.day.getTime() - b.day.getTime());
 
-    console.log(foo);
     return foo;
 };
 
@@ -131,8 +126,6 @@ export function AvailabilityBody({
             availabilityTimeBlocks,
         })
     );
-
-    console.log("availabilityDates", availabilityDates);
 
     const { cancelEdit, confirmSave } = useEditState({
         currentAvailabilityDates: availabilityDates,

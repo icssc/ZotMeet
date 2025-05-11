@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: PageProps) {
     return {
         title: {
             default: "View Meeting Availability",
-            absolute: `Availability for ${meetingData.title}`, // add meeting title
+            absolute: `Availability for ${meetingData.title}`,
         },
         description: `Specify Meeting Availability for ${meetingData.title}`,
     };
@@ -71,12 +71,7 @@ export default async function Page({ params }: PageProps) {
                 break;
             }
         }
-        console.log(`Current user Availability/${slug}:`, userAvailability);
-    } else {
-        console.log("No user logged in");
     }
-
-    console.log(`All member Availability/${slug}:`, allAvailabilties);
 
     return (
         <div className="space-y-2 px-4">
