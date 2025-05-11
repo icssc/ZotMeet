@@ -35,7 +35,6 @@ export const getTimestampFromBlockIndex = (
     date.setMilliseconds(0);
 
     const isoString = date.toISOString();
-    // console.log(`Block ${blockIndex} corresponds to time ${isoString}`);
     return isoString;
 };
 
@@ -71,17 +70,20 @@ export function GroupAvailability({
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
 
-    const updateSelection = ({
-        zotDateIndex,
-        blockIndex,
-    }: {
-        zotDateIndex: number;
-        blockIndex: number;
-    }) => {
-        setIsMobileDrawerOpen(true);
-        setSelectedZotDateIndex(zotDateIndex);
-        setSelectedBlockIndex(blockIndex);
-    };
+    const updateSelection = useCallback(
+        ({
+            zotDateIndex,
+            blockIndex,
+        }: {
+            zotDateIndex: number;
+            blockIndex: number;
+        }) => {
+            setIsMobileDrawerOpen(true);
+            setSelectedZotDateIndex(zotDateIndex);
+            setSelectedBlockIndex(blockIndex);
+        },
+        []
+    );
 
     const resetSelection = useCallback(() => {
         setIsMobileDrawerOpen(false);
@@ -94,34 +96,40 @@ export function GroupAvailability({
         );
     }, [groupAvailabilities]);
 
-    const handleCellClick = ({
-        isSelected,
-        zotDateIndex,
-        blockIndex,
-    }: {
-        isSelected: boolean;
-        zotDateIndex: number;
-        blockIndex: number;
-    }) => {
-        if (selectionIsLocked && isSelected) {
-            setSelectionIsLocked(false);
-        } else {
-            setSelectionIsLocked(true);
-            updateSelection({ zotDateIndex, blockIndex });
-        }
-    };
+    const handleCellClick = useCallback(
+        ({
+            isSelected,
+            zotDateIndex,
+            blockIndex,
+        }: {
+            isSelected: boolean;
+            zotDateIndex: number;
+            blockIndex: number;
+        }) => {
+            if (selectionIsLocked && isSelected) {
+                setSelectionIsLocked(false);
+            } else {
+                setSelectionIsLocked(true);
+                updateSelection({ zotDateIndex, blockIndex });
+            }
+        },
+        [selectionIsLocked, updateSelection]
+    );
 
-    const handleCellHover = ({
-        zotDateIndex,
-        blockIndex,
-    }: {
-        zotDateIndex: number;
-        blockIndex: number;
-    }) => {
-        if (!selectionIsLocked) {
-            updateSelection({ zotDateIndex, blockIndex });
-        }
-    };
+    const handleCellHover = useCallback(
+        ({
+            zotDateIndex,
+            blockIndex,
+        }: {
+            zotDateIndex: number;
+            blockIndex: number;
+        }) => {
+            if (!selectionIsLocked) {
+                updateSelection({ zotDateIndex, blockIndex });
+            }
+        },
+        [selectionIsLocked, updateSelection]
+    );
 
     // Update selection members when selection changes
     useEffect(() => {
@@ -167,12 +175,16 @@ export function GroupAvailability({
 
     useEffect(() => {
         const handleMouseMove = (event: MouseEvent) => {
-            if (selectionIsLocked) return;
+            if (selectionIsLocked) {
+                return;
+            }
 
             const gridBlocks = document.querySelectorAll(
                 ".group-availability-block"
             );
-            if (gridBlocks.length === 0) return;
+            if (gridBlocks.length === 0) {
+                return;
+            }
 
             let isOverGrid = false;
             for (const block of gridBlocks) {
@@ -315,7 +327,7 @@ export function GroupAvailability({
                                                         className="px-0 py-0"
                                                     >
                                                         <GroupAvailabilityBlock
-                                                            className="group-availability-block hidden lg:block"
+                                                            className="group-availability-block block"
                                                             timestamp={
                                                                 timestamp
                                                             }
@@ -331,30 +343,6 @@ export function GroupAvailability({
                                                             onHover={() =>
                                                                 handleCellHover(
                                                                     {
-                                                                        zotDateIndex,
-                                                                        blockIndex,
-                                                                    }
-                                                                )
-                                                            }
-                                                            groupAvailabilities={
-                                                                availabilityDates
-                                                            }
-                                                            tableCellStyles={
-                                                                tableCellStyles
-                                                            }
-                                                            hoveredMember={
-                                                                hoveredMember
-                                                            }
-                                                        />
-                                                        <GroupAvailabilityBlock
-                                                            timestamp={
-                                                                timestamp
-                                                            }
-                                                            className="group-availability-block block lg:hidden"
-                                                            onClick={() =>
-                                                                handleCellClick(
-                                                                    {
-                                                                        isSelected,
                                                                         zotDateIndex,
                                                                         blockIndex,
                                                                     }

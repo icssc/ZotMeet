@@ -16,14 +16,17 @@ import { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { toZonedTime } from "date-fns-tz";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
+    timezone,
     meetingDates,
     userAvailability,
     allAvailabilties,
     availabilityTimeBlocks,
 }: {
+    timezone: string;
     meetingDates: string[];
     userAvailability: MemberMeetingAvailability | null;
     allAvailabilties: MemberMeetingAvailability[];
@@ -32,14 +35,17 @@ const deriveInitialAvailability = ({
     const availabilitiesByDate = new Map<string, string[]>();
     if (userAvailability?.meetingAvailabilities) {
         userAvailability.meetingAvailabilities.forEach((timeStr) => {
-            const time = new Date(timeStr);
-            const dateStr = time.toISOString().split("T")[0];
+            const dateStr = timeStr.split("T")[0];
+
             if (!availabilitiesByDate.has(dateStr)) {
                 availabilitiesByDate.set(dateStr, []);
             }
+
             availabilitiesByDate.get(dateStr)?.push(timeStr);
         });
     }
+
+    console.log("foo", availabilitiesByDate);
 
     const timestampsByDate = new Map<string, Map<string, string[]>>();
     for (const member of allAvailabilties) {
@@ -52,19 +58,25 @@ const deriveInitialAvailability = ({
             if (!dateMap.has(timestamp)) {
                 dateMap.set(timestamp, []);
             }
-            dateMap.get(timestamp)!.push(member.memberId);
+            dateMap.get(timestamp)?.push(member.memberId);
         }
     }
 
-    return meetingDates
+    const foo = meetingDates
         .map((meetingDate) => {
-            const date = new Date(meetingDate);
+            const date = toZonedTime(meetingDate, timezone);
             const dateStr = date.toISOString().split("T")[0];
+
+            console.log("dateStr", dateStr);
+
             const earliestMinutes = availabilityTimeBlocks[0] || 480;
             const latestMinutes =
                 (availabilityTimeBlocks[availabilityTimeBlocks.length - 1] ||
                     1035) + 15;
+
             const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
+
+            console.log("dateAvailabilities", dateAvailabilities);
             const dateGroupAvailabilities = Object.fromEntries(
                 timestampsByDate.get(dateStr) || new Map()
             );
@@ -78,6 +90,9 @@ const deriveInitialAvailability = ({
             );
         })
         .sort((a, b) => a.day.getTime() - b.day.getTime());
+
+    console.log(foo);
+    return foo;
 };
 
 export function AvailabilityBody({
@@ -109,12 +124,16 @@ export function AvailabilityBody({
 
     const [availabilityDates, setAvailabilityDates] = useState(() =>
         deriveInitialAvailability({
+            timezone: meetingData.timezone,
             meetingDates,
             userAvailability,
             allAvailabilties,
             availabilityTimeBlocks,
         })
     );
+
+    console.log("availabilityDates", availabilityDates);
+
     const { cancelEdit, confirmSave } = useEditState({
         currentAvailabilityDates: availabilityDates,
     });

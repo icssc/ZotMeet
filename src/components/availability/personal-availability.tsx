@@ -44,6 +44,8 @@ export function PersonalAvailability({
     const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
         useAvailabilityPaginationStore();
 
+    console.log("personal", currentPageAvailability);
+
     const isLastPage =
         currentPage ===
         Math.floor((availabilityDates.length - 1) / itemsPerPage);
@@ -176,8 +178,8 @@ export function PersonalAvailability({
     }, [isStateUnsaved]);
 
     return (
-        <div>
-            <div className="flex items-center justify-between overflow-x-auto font-dm-sans">
+        <div className="flex flex-row items-start justify-start align-top">
+            <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
                 <AvailabilityNavButton
                     direction="left"
                     handleClick={prevPage}
