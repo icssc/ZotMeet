@@ -192,6 +192,7 @@ export function AvailabilityBody({
                 onCancel={handleCancelEditing}
                 onSave={handleSuccessfulSave}
             />
+
             {availabilityView === "group" ? (
                 <GroupAvailability
                     availabilityTimeBlocks={availabilityTimeBlocks}

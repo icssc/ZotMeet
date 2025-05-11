@@ -296,6 +296,7 @@ export function GroupAvailability({
                                     <AvailabilityTimeTicks
                                         timeBlock={timeBlock}
                                     />
+
                                     {currentPageAvailability.map(
                                         (selectedDate, pageDateIndex) => {
                                             const key = generateDateKey({
