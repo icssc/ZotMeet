@@ -1,66 +1,26 @@
 import { memo } from "react";
 import { cn } from "@/lib/utils";
-import { ZotDate } from "@/lib/zotdate";
 
 interface GroupAvailabilityBlockProps {
-    groupAvailabilities: ZotDate[];
+    block: string[];
     className?: string;
     tableCellStyles?: string;
     onClick: VoidFunction;
     onHover?: VoidFunction;
-    timestamp: string;
+    blockColor: string;
     hoveredMember?: string | null;
-}
-
-function getAllUniqueMembers(dates: ZotDate[]): string[] {
-    return Array.from(
-        new Set(
-            dates
-                .flatMap((date) => Object.values(date.groupAvailability))
-                .flat()
-        )
-    );
 }
 
 export const GroupAvailabilityBlock = memo(
     ({
-        timestamp,
-        groupAvailabilities,
+        block,
         tableCellStyles = "",
         className = "",
         onClick,
         onHover,
+        blockColor,
         hoveredMember,
     }: GroupAvailabilityBlockProps) => {
-        const members = getAllUniqueMembers(groupAvailabilities);
-
-        const calculateGroupBlockColor = () => {
-            const day = groupAvailabilities.find(
-                (date) => date.day.getDay() === new Date(timestamp).getDay()
-            );
-
-            const block = day?.groupAvailability[timestamp];
-
-            if (!block) {
-                return "transparent";
-            }
-
-            if (hoveredMember) {
-                if (block.includes(hoveredMember)) {
-                    return "rgba(55, 124, 251)";
-                }
-                return "transparent";
-            }
-
-            const opacity = block.length / members.length;
-            return `rgba(55, 124, 251, ${opacity})`;
-        };
-
-        const day = groupAvailabilities.find(
-            (date) => date.day.getDay() === new Date(timestamp).getDay()
-        );
-
-        const block = day?.groupAvailability[timestamp];
         const isMemberAvailable =
             hoveredMember && block && block.includes(hoveredMember);
 
@@ -76,10 +36,8 @@ export const GroupAvailabilityBlock = memo(
                 onMouseEnter={onHover}
             >
                 <div
-                    className={cn(
-                        "block h-full w-full py-2",
-                        `bg-[${calculateGroupBlockColor()}]`
-                    )}
+                    className={cn("block h-full w-full py-2")}
+                    style={{ background: blockColor }}
                 />
             </button>
         );

@@ -278,6 +278,19 @@ export function GroupAvailability({
                                 blockIndex ===
                                 availabilityTimeBlocks.length - 1;
 
+                            // Compute all unique members for the current page
+                            const allMembers = Array.from(
+                                new Set(
+                                    currentPageAvailability
+                                        .flatMap((date) =>
+                                            Object.values(
+                                                date.groupAvailability
+                                            )
+                                        )
+                                        .flat()
+                                )
+                            );
+
                             return (
                                 <tr key={`block-${timeBlock}`}>
                                     <AvailabilityTimeTicks
@@ -310,6 +323,36 @@ export function GroupAvailability({
                                                         availabilityDates
                                                     );
 
+                                                // Get the block (array of member IDs available at this timestamp)
+                                                const block =
+                                                    selectedDate
+                                                        .groupAvailability[
+                                                        timestamp
+                                                    ] || [];
+
+                                                // Calculate block color
+                                                let blockColor = "transparent";
+                                                if (hoveredMember) {
+                                                    if (
+                                                        block.includes(
+                                                            hoveredMember
+                                                        )
+                                                    ) {
+                                                        blockColor =
+                                                            "rgba(55, 124, 251)";
+                                                    } else {
+                                                        blockColor =
+                                                            "transparent";
+                                                    }
+                                                } else if (
+                                                    allMembers.length > 0
+                                                ) {
+                                                    const opacity =
+                                                        block.length /
+                                                        allMembers.length;
+                                                    blockColor = `rgba(55, 124, 251, ${opacity})`;
+                                                }
+
                                                 const tableCellStyles = cn(
                                                     isTopOfHour &&
                                                         "border-t-[1px] border-t-gray-medium",
@@ -328,9 +371,6 @@ export function GroupAvailability({
                                                     >
                                                         <GroupAvailabilityBlock
                                                             className="group-availability-block block"
-                                                            timestamp={
-                                                                timestamp
-                                                            }
                                                             onClick={() =>
                                                                 handleCellClick(
                                                                     {
@@ -348,8 +388,9 @@ export function GroupAvailability({
                                                                     }
                                                                 )
                                                             }
-                                                            groupAvailabilities={
-                                                                availabilityDates
+                                                            block={block}
+                                                            blockColor={
+                                                                blockColor
                                                             }
                                                             tableCellStyles={
                                                                 tableCellStyles
