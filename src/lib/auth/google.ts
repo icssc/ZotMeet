@@ -44,7 +44,7 @@ export async function validateGoogleAccessToken(): Promise<GoogleTokenResult> {
         });
 
         return { accessToken: credentials.access_token!, error: null };
-    } catch (error) {
+    } catch {
         return { accessToken: null, error: "Failed to refresh Google token" };
     }
 }

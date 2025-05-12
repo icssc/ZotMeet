@@ -201,7 +201,7 @@ export function AvailabilityBody({
 
             fetchGoogleCalendarEvents(firstDateISO, lastDateISO)
                 .then((events) => {
-                    setGoogleCalendarEvents(events as GoogleCalendarEvent[]);
+                    setGoogleCalendarEvents(events);
                 })
                 .catch((error) => {
                     console.error(
