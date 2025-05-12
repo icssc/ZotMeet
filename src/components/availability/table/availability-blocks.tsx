@@ -1,7 +1,10 @@
 import React from "react";
 import { AvailabilityBlockCells } from "@/components/availability/table/availability-block-cells";
 import { generateDateKey } from "@/lib/availability/utils";
-import type { AvailabilityBlockType } from "@/lib/types/availability";
+import type {
+    AvailabilityBlockType,
+    ProcessedCellEventSegments,
+} from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityBlocksProps {
@@ -14,6 +17,7 @@ interface AvailabilityBlocksProps {
     currentPage: number;
     itemsPerPage: number;
     currentPageAvailability: ZotDate[];
+    processedCellSegments: ProcessedCellEventSegments;
 }
 
 export function AvailabilityBlocks({
@@ -26,6 +30,7 @@ export function AvailabilityBlocks({
     currentPage,
     itemsPerPage,
     currentPageAvailability,
+    processedCellSegments,
 }: AvailabilityBlocksProps) {
     return (
         <>
@@ -43,6 +48,10 @@ export function AvailabilityBlocks({
                     const isAvailable =
                         selectedDate.getBlockAvailability(blockIndex);
 
+                    const cellKey = `${zotDateIndex}_${blockIndex}`;
+                    const segmentsForCell =
+                        processedCellSegments.get(cellKey) || [];
+
                     return (
                         <AvailabilityBlockCells
                             key={key}
@@ -53,6 +62,7 @@ export function AvailabilityBlocks({
                             isTopOfHour={isTopOfHour}
                             isHalfHour={isHalfHour}
                             isLastRow={isLastRow}
+                            eventSegments={segmentsForCell}
                         />
                     );
                 } else {

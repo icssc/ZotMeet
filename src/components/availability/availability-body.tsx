@@ -11,11 +11,15 @@ import {
     generateTimeBlocks,
     getTimeFromHourMinuteString,
 } from "@/lib/availability/utils";
-import { MemberMeetingAvailability } from "@/lib/types/availability";
-import { HourMinuteString } from "@/lib/types/chrono";
+import type {
+    GoogleCalendarEvent,
+    MemberMeetingAvailability,
+} from "@/lib/types/availability";
+import type { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -106,6 +110,9 @@ export function AvailabilityBody({
         () => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
         [fromTimeMinutes, toTimeMinutes]
     );
+    const [googleCalendarEvents, setGoogleCalendarEvents] = useState<
+        GoogleCalendarEvent[]
+    >([]);
 
     const [availabilityDates, setAvailabilityDates] = useState(() =>
         deriveInitialAvailability({
@@ -171,6 +178,31 @@ export function AvailabilityBody({
         }
     }, [setHasAvailability, userAvailability]);
 
+    useEffect(() => {
+        if (availabilityDates.length > 0) {
+            const firstDateISO = availabilityDates[0].day.toISOString();
+
+            const lastZotDate = availabilityDates[availabilityDates.length - 1];
+            const lastDateObj = new Date(lastZotDate.day);
+            lastDateObj.setHours(23, 59, 59, 999);
+            const lastDateISO = lastDateObj.toISOString();
+
+            fetchGoogleCalendarEvents(firstDateISO, lastDateISO)
+                .then((events) => {
+                    setGoogleCalendarEvents(events as GoogleCalendarEvent[]);
+                })
+                .catch((error) => {
+                    console.error(
+                        "Error fetching Google Calendar events:",
+                        error
+                    );
+                    setGoogleCalendarEvents([]);
+                });
+        } else {
+            setGoogleCalendarEvents([]);
+        }
+    }, [availabilityDates]);
+
     return (
         <div className={"space-y-6 px-6"}>
             <AvailabilityHeader
@@ -195,6 +227,7 @@ export function AvailabilityBody({
                     availabilityTimeBlocks={availabilityTimeBlocks}
                     availabilityDates={availabilityDates}
                     currentPageAvailability={currentPageAvailability}
+                    googleCalendarEvents={googleCalendarEvents}
                     onAvailabilityChange={handleUserAvailabilityChange}
                 />
             )}
