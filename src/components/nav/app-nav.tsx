@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import { NavMain } from "@/components/nav/nav-main";
 import { NavUser } from "@/components/nav/nav-user";
 import { Separator } from "@/components/ui/separator";
-import Image from 'next/image'
 import {
     Sidebar,
     SidebarContent,
@@ -16,7 +16,7 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { UserProfile } from "@/lib/auth/user";
-import { CalendarSearchIcon, Command, SquarePlusIcon } from "lucide-react";
+import { CalendarSearchIcon, SquarePlusIcon } from "lucide-react";
 
 const data = {
     navMain: [
@@ -76,8 +76,7 @@ export function SidebarComponent({ user, ...props }: SidebarComponentProps) {
                                 href="/"
                                 className="space-gray-800 space-x-2"
                             >
-                                
-                                <div className="relative flex aspect-square size-8 items-center justify-center rounded-lg text-sidebar-primary-foreground border border-black">
+                                <div className="relative flex aspect-square size-8 items-center justify-center rounded-lg border border-black text-sidebar-primary-foreground">
                                     <Image
                                         src="/ZotMeet_BLACK.png"
                                         fill

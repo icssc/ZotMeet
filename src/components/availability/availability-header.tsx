@@ -76,7 +76,7 @@ export function AvailabilityHeader({
 
     return (
         <>
-            <div className="flex-between px-2 pt-8 md:px-4 md:pt-10 lg:px-[60px]">
+            <div className="flex-between px-2 pt-8 md:px-4 md:pt-10">
                 <h1 className="line-clamp-1 h-8 pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
                     {meetingData.title}
                 </h1>
@@ -109,26 +109,24 @@ export function AvailabilityHeader({
                         </Button>
                     </div>
                 ) : (
-                    <div className="flex space-x-4">
-                        <Button
-                            className={cn(
-                                "flex-center h-8 min-h-fit px-2 uppercase md:w-40 md:p-0"
-                            )}
-                            onClick={() => {
-                                if (!user) {
-                                    setOpen(true);
-                                    return;
-                                }
-                                setAvailabilityView("personal");
-                            }}
-                        >
-                            <span className="hidden md:flex">
-                                {hasAvailability
-                                    ? "Edit Availability"
-                                    : "Add Availability"}
-                            </span>
-                        </Button>
-                    </div>
+                    <Button
+                        className={cn(
+                            "flex-center h-8 min-h-fit min-w-fit px-2 md:w-40 md:p-0"
+                        )}
+                        onClick={() => {
+                            if (!user) {
+                                setOpen(true);
+                                return;
+                            }
+                            setAvailabilityView("personal");
+                        }}
+                    >
+                        <span className="flex font-dm-sans">
+                            {hasAvailability
+                                ? "Edit Availability"
+                                : "Add Availability"}
+                        </span>
+                    </Button>
                 )}
             </div>
 

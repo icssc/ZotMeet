@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { DM_Sans, Montserrat } from "next/font/google";
 import localFont from "next/font/local";
-import { Montserrat, DM_Sans } from "next/font/google";
 
 import "./globals.css";
 
@@ -13,13 +13,13 @@ import {
 import { cn } from "@/lib/utils";
 
 const montserrat = Montserrat({
-    subsets: ['latin'],
-    variable: '--font-montserrat',
+    subsets: ["latin"],
+    variable: "--font-montserrat",
 });
 
 const dmSans = DM_Sans({
-    subsets: ['latin'],
-    variable: '--font-dm-sans',
+    subsets: ["latin"],
+    variable: "--font-dm-sans",
 });
 
 const geistSans = localFont({
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
     title: "ZotMeet | Create a Meeting",
     description: "ZotMeet: Simple, clean, and efficient meeting scheduling app",
     icons: {
-        icon: 'favicon.ico'
-    }
+        icon: "favicon.ico",
+    },
 };
 
 export default function RootLayout({
@@ -57,7 +57,7 @@ export default function RootLayout({
                 <SidebarProvider>
                     <AppSidebar />
                     <SidebarInset>
-                        <header className="flex h-16 shrink-0 items-center justify-end gap-2 md:hidden">
+                        <header className="flex h-16 shrink-0 items-center justify-end gap-2 border-b border-opacity-50 bg-gray-50 drop-shadow-sm md:hidden">
                             <div className="flex items-center gap-2 px-4">
                                 <SidebarTrigger className="-ml-1" />
                             </div>

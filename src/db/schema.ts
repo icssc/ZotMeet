@@ -9,7 +9,6 @@ import {
     text,
     time,
     timestamp,
-    unique,
     uuid,
 } from "drizzle-orm/pg-core";
 
@@ -55,7 +54,7 @@ export const users = pgTable("users", {
         .notNull(),
     email: text("email").unique().notNull(),
     passwordHash: text("password_hash"),
-    createdAt: timestamp("created_at"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -152,6 +151,7 @@ export const meetings = pgTable("meetings", {
         .notNull(),
     // JSON array of calendar dates
     dates: jsonb("dates").$type<string[]>().notNull().default([]),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
