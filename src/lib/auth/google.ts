@@ -2,9 +2,14 @@ import { getCurrentSession } from "@/lib/auth";
 import { updateSessionGoogleTokens } from "@/lib/auth/session";
 import { google as googleClient } from "googleapis";
 
+export type ValidateGoogleAccessTokenError =
+    | "Not authenticated"
+    | "No Google refresh token"
+    | "Failed to refresh Google token";
+
 export type GoogleTokenResult =
     | { accessToken: string; error: null }
-    | { accessToken: null; error: string };
+    | { accessToken: null; error: ValidateGoogleAccessTokenError };
 
 export async function validateGoogleAccessToken(): Promise<GoogleTokenResult> {
     const { session } = await getCurrentSession();

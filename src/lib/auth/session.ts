@@ -90,7 +90,7 @@ export async function validateSessionToken(
             .where(eq(sessions.id, session.id));
     }
 
-    return { session, user }; // ? Should Google tokens be flattened here? Leaning towards no, so implementation reflects this.
+    return { session, user };
 }
 
 export async function invalidateSession(sessionId: string): Promise<void> {

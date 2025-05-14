@@ -37,3 +37,12 @@ export const generateDateKey = ({
         ? `date-${selectedDate.valueOf()}-${timeBlock}-${pageDateIndex}`
         : `padding-${pageDateIndex}-${timeBlock}`;
 };
+
+export const getMinutesFromMidnight = (isoOrDateString: string): number => {
+    const date = new Date(isoOrDateString);
+    return date.getHours() * 60 + date.getMinutes();
+};
+
+export const getDatePart = (isoOrDateString: string): string => {
+    return isoOrDateString.substring(0, 10);
+};

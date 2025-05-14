@@ -51,9 +51,7 @@ export async function GET(request: Request): Promise<Response> {
         email: string;
     };
     const accessToken = tokens.accessToken();
-    const refreshToken = tokens.hasRefreshToken()
-        ? tokens.refreshToken()
-        : undefined;
+    const refreshToken = tokens.refreshToken();
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60);
 
     const googleUserId = claims.sub;

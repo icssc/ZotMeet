@@ -134,7 +134,10 @@ export function AvailabilityBlockCells({
                 />
             </button>
 
-            <GoogleCalendarEventBlock eventSegments={eventSegments} />
+            <GoogleCalendarEventBlock
+                eventSegments={eventSegments}
+                isAvailable={isAvailable}
+            />
         </td>
     );
 }

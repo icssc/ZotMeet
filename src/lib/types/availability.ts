@@ -32,6 +32,8 @@ export interface GoogleCalendarEvent {
     summary: string;
     start: string;
     end: string;
+    calendarColor: string;
+    calendarId?: string; // For UI calendar list groupings
 }
 
 export interface GoogleCalendarEventLayoutInfo {
@@ -50,6 +52,7 @@ export interface GoogleCalendarEventLayoutInfo {
     startDateString: string;
     startBlockIndex: number;
     endBlockIndex: number;
+    calendarColor: string;
 }
 
 export interface EventSegment {
@@ -62,6 +65,7 @@ export interface EventSegment {
 
     cellAssignedColumn: number;
     cellMaxConcurrentInGroup: number;
+    calendarColor: string;
 }
 
 export type ProcessedCellEventSegments = Map<

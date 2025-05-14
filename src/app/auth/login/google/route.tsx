@@ -14,6 +14,7 @@ export async function GET(): Promise<Response> {
         ])
     );
 
+    // Requests Google to provide refresh token for silent access token refresh (not natively supported by Arctic)
     url.searchParams.set("access_type", "offline");
     url.searchParams.set("prompt", "consent");
 

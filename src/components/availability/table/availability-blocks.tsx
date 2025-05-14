@@ -48,6 +48,7 @@ export function AvailabilityBlocks({
                     const isAvailable =
                         selectedDate.getBlockAvailability(blockIndex);
 
+                    // TODO: Standardize key convention
                     const cellKey = `${zotDateIndex}_${blockIndex}`;
                     const segmentsForCell =
                         processedCellSegments.get(cellKey) || [];

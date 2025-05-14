@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1745142823501,
-      "tag": "0000_empty_crystal",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1746782398530,
-      "tag": "0001_spooky_tyger_tiger",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1747082378408,
-      "tag": "0002_fine_queen_noir",
+      "when": 1747116295222,
+      "tag": "0000_medical_romulus",
       "breakpoints": true
     }
   ]
