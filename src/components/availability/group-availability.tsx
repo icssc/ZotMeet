@@ -355,14 +355,18 @@ export function GroupAvailability({
                                                 }
 
                                                 const tableCellStyles = cn(
-                                                    isTopOfHour &&
-                                                        "border-t-[1px] border-t-gray-medium",
-                                                    isHalfHour &&
-                                                        "border-t-[1px] border-t-gray-base",
-                                                    isLastRow &&
-                                                        "border-b-[1px]",
-                                                    isSelected &&
-                                                        "outline-dashed outline-2 outline-slate-500"
+                                                    isTopOfHour
+                                                        ? "border-t-[1px] border-t-gray-medium"
+                                                        : "",
+                                                    isHalfHour
+                                                        ? "border-t-[1px] border-t-gray-base"
+                                                        : "",
+                                                    isLastRow
+                                                        ? "border-b-[1px]"
+                                                        : "",
+                                                    isSelected
+                                                        ? "outline-dashed outline-2 outline-slate-500"
+                                                        : ""
                                                 );
 
                                                 return (
