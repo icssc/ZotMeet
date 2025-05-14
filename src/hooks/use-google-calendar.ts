@@ -1,5 +1,9 @@
 import { useMemo } from "react";
-import { getDatePart, getMinutesFromMidnight } from "@/lib/availability/utils";
+import {
+    generateCellKey,
+    getDatePart,
+    getMinutesFromMidnight,
+} from "@/lib/availability/utils";
 import type {
     EventSegment,
     GoogleCalendarEvent,
@@ -24,7 +28,7 @@ export function useGoogleCalendar({
     itemsPerPage,
 }: UseGoogleCalendarProps) {
     const processedCellSegments = useMemo((): ProcessedCellEventSegments => {
-        const segmentsMap: ProcessedCellEventSegments = new Map();
+        const segmentsMap = new Map<string, EventSegment[]>();
         if (
             !googleCalendarEvents ||
             googleCalendarEvents.length === 0 ||
@@ -114,7 +118,7 @@ function processEventsByDate(
             clampedStartMinutes: clampedStart,
             clampedEndMinutes: clampedEnd,
             assignedColumn: 0,
-            maxConcurrentInGroup: 1,
+            gridColumnCount: 1, // Represents number of events that will share same cell (isolated cell doesn't know in case of staggered events)
             startDateString: currentDateStr,
             startBlockIndex: startBlock,
             endBlockIndex: endBlock,
@@ -124,7 +128,11 @@ function processEventsByDate(
         if (!eventsByDate.has(currentDateStr)) {
             eventsByDate.set(currentDateStr, []);
         }
-        eventsByDate.get(currentDateStr)!.push(layoutInfo);
+        const eventsForDate = eventsByDate.get(currentDateStr);
+        if (!eventsForDate) {
+            continue;
+        }
+        eventsForDate.push(layoutInfo);
     }
 
     return eventsByDate;
@@ -134,7 +142,9 @@ function calculateEventLayout(
     eventsByDate: Map<string, GoogleCalendarEventLayoutInfo[]>
 ): Map<string, GoogleCalendarEventLayoutInfo[]> {
     eventsByDate.forEach((eventsForDay) => {
-        if (eventsForDay.length === 0) return;
+        if (eventsForDay.length === 0) {
+            return;
+        }
 
         // Sort events by start time and duration
         eventsForDay.sort(
@@ -146,6 +156,7 @@ function calculateEventLayout(
         );
 
         // Assign columns to events
+        // TODO: Optimize algorithm, currently greedy algorithm approach (n^2)
         const columns: GoogleCalendarEventLayoutInfo[][] = [];
         for (const event of eventsForDay) {
             let placed = false;
@@ -167,27 +178,29 @@ function calculateEventLayout(
             }
         }
 
-        // Calculate max concurrent events
+        // Calculate gridColumnCount
+        // TODO: Optimize algorithm, currently greedy algorithm approach (n^2)
         for (const event of eventsForDay) {
-            let currentMaxConcurrent = 0;
+            let currentGridColumnCount = 0;
             for (const otherEvent of eventsForDay) {
                 const startsBeforeOtherEnds =
                     event.clampedStartMinutes < otherEvent.clampedEndMinutes;
                 const endsAfterOtherStarts =
                     event.clampedEndMinutes > otherEvent.clampedStartMinutes;
                 if (startsBeforeOtherEnds && endsAfterOtherStarts) {
-                    currentMaxConcurrent = Math.max(
-                        currentMaxConcurrent,
+                    currentGridColumnCount = Math.max(
+                        currentGridColumnCount,
                         otherEvent.assignedColumn + 1
                     );
                 }
             }
-            event.maxConcurrentInGroup = Math.max(1, currentMaxConcurrent);
+            event.gridColumnCount = Math.max(1, currentGridColumnCount);
         }
 
-        // Propagate max concurrent among overlapping events
+        // Propagate gridColumnCount among overlapping events
+        // TODO: Optimize algorithm, currently greedy algorithm approach (n^2)
         for (const event of eventsForDay) {
-            let groupSharedMaxConcurrent = event.maxConcurrentInGroup;
+            let groupSharedGridColumnCount = event.gridColumnCount;
             for (const otherEvent of eventsForDay) {
                 if (event.id === otherEvent.id) continue;
                 const startsBeforeOtherEnds =
@@ -195,13 +208,13 @@ function calculateEventLayout(
                 const endsAfterOtherStarts =
                     event.clampedEndMinutes > otherEvent.clampedStartMinutes;
                 if (startsBeforeOtherEnds && endsAfterOtherStarts) {
-                    groupSharedMaxConcurrent = Math.max(
-                        groupSharedMaxConcurrent,
-                        otherEvent.maxConcurrentInGroup
+                    groupSharedGridColumnCount = Math.max(
+                        groupSharedGridColumnCount,
+                        otherEvent.gridColumnCount
                     );
                 }
             }
-            event.maxConcurrentInGroup = groupSharedMaxConcurrent;
+            event.gridColumnCount = groupSharedGridColumnCount;
         }
     });
 
@@ -224,34 +237,36 @@ function createCellSegments(
         const currentDateStr = getDatePart(zotDate.day.toISOString());
         const eventsToLayout = eventsByDate.get(currentDateStr) || [];
 
-        eventsToLayout.forEach((eventLayout) => {
+        eventsToLayout.forEach((event) => {
             for (
-                let blockIdx = eventLayout.startBlockIndex;
-                blockIdx <= eventLayout.endBlockIndex;
+                let blockIdx = event.startBlockIndex;
+                blockIdx <= event.endBlockIndex;
                 blockIdx++
             ) {
                 if (blockIdx < 0 || blockIdx >= availabilityTimeBlocks.length) {
                     continue;
                 }
 
-                // TODO: Standardize key convention
-                const cellKey = `${zotDateIndex}_${blockIdx}`;
+                const cellKey = generateCellKey(zotDateIndex, blockIdx);
                 if (!segmentsMap.has(cellKey)) {
                     segmentsMap.set(cellKey, []);
                 }
 
                 const segment: EventSegment = {
-                    eventId: eventLayout.id,
-                    summary: eventLayout.summary,
-                    layoutInfo: { ...eventLayout },
-                    isStartOfEventInCell:
-                        blockIdx === eventLayout.startBlockIndex,
-                    isEndOfEventInCell: blockIdx === eventLayout.endBlockIndex,
-                    cellAssignedColumn: eventLayout.assignedColumn,
-                    cellMaxConcurrentInGroup: eventLayout.maxConcurrentInGroup,
-                    calendarColor: eventLayout.calendarColor,
+                    eventId: event.id,
+                    summary: event.summary,
+                    layoutInfo: structuredClone(event),
+                    isStartOfEventInCell: blockIdx === event.startBlockIndex,
+                    isEndOfEventInCell: blockIdx === event.endBlockIndex,
+                    cellAssignedColumn: event.assignedColumn,
+                    cellGridColumnCount: event.gridColumnCount,
+                    calendarColor: event.calendarColor,
                 };
-                segmentsMap.get(cellKey)!.push(segment);
+                const segmentsForCell = segmentsMap.get(cellKey);
+                if (!segmentsForCell) {
+                    continue;
+                }
+                segmentsForCell.push(segment);
             }
         });
     });

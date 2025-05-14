@@ -46,3 +46,10 @@ export const getMinutesFromMidnight = (isoOrDateString: string): number => {
 export const getDatePart = (isoOrDateString: string): string => {
     return isoOrDateString.substring(0, 10);
 };
+
+export function generateCellKey(
+    zotDateIndex: number,
+    blockIndex: number
+): string {
+    return `${zotDateIndex}_${blockIndex}`;
+}

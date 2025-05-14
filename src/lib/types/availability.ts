@@ -47,7 +47,7 @@ export interface GoogleCalendarEventLayoutInfo {
     clampedEndMinutes: number;
 
     assignedColumn: number;
-    maxConcurrentInGroup: number;
+    gridColumnCount: number;
 
     startDateString: string;
     startBlockIndex: number;
@@ -64,7 +64,7 @@ export interface EventSegment {
     isEndOfEventInCell: boolean;
 
     cellAssignedColumn: number;
-    cellMaxConcurrentInGroup: number;
+    cellGridColumnCount: number;
     calendarColor: string;
 }
 

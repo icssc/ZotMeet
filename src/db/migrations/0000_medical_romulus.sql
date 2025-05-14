@@ -1,3 +1,9 @@
+DO $$ BEGIN
+    CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
 CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "availabilities" (
 	"member_id" uuid NOT NULL,

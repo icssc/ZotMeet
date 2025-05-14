@@ -11,13 +11,7 @@ export async function fetchGoogleCalendarEvents(
     startDate: string,
     endDate: string
 ): Promise<GoogleCalendarEvent[]> {
-    const {
-        accessToken,
-        error,
-    }: {
-        accessToken: string | null;
-        error: ValidateGoogleAccessTokenError | null;
-    } = await validateGoogleAccessToken();
+    const { accessToken, error } = await validateGoogleAccessToken();
 
     if (error === "No Google refresh token" || error === "Not authenticated") {
         return [];
@@ -38,9 +32,10 @@ export async function fetchGoogleCalendarEvents(
 
         const eventsPerCalendar = await Promise.all(
             calendarItems.map(async (cal) => {
+                // Skip if calendar ID is missing
                 if (!cal.id) {
                     return [];
-                } // Skip if calendar ID is missing
+                }
 
                 const calendarColor = cal.backgroundColor ?? "#039BE5"; // Fallback color
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { AvailabilityBlockCells } from "@/components/availability/table/availability-block-cells";
-import { generateDateKey } from "@/lib/availability/utils";
+import { generateCellKey, generateDateKey } from "@/lib/availability/utils";
 import type {
     AvailabilityBlockType,
     ProcessedCellEventSegments,
@@ -48,8 +48,7 @@ export function AvailabilityBlocks({
                     const isAvailable =
                         selectedDate.getBlockAvailability(blockIndex);
 
-                    // TODO: Standardize key convention
-                    const cellKey = `${zotDateIndex}_${blockIndex}`;
+                    const cellKey = generateCellKey(zotDateIndex, blockIndex);
                     const segmentsForCell =
                         processedCellSegments.get(cellKey) || [];
 
