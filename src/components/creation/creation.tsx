@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
@@ -36,7 +37,9 @@ export function Creation({ isUserLoggedIn }: CreationProps) {
         const error = result?.error;
 
         if (error) {
-            console.error("Failed to create meeting: ", error);
+            toast.error("Failed to create meeting.");
+        } else {
+            toast("Meeting created successfully!");
         }
     };
 
