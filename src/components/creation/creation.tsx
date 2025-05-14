@@ -10,7 +10,11 @@ import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
 
-export function Creation() {
+export type CreationProps = {
+    isUserLoggedIn: boolean;
+};
+
+export function Creation({ isUserLoggedIn }: CreationProps) {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
@@ -46,6 +50,8 @@ export function Creation() {
         );
     }, [selectedDays.length, startTime, endTime, meetingName]);
 
+    const isButtonDisabled = !hasValidInputs || !isUserLoggedIn;
+    
     return (
         <div className="space-y-6 px-4 pb-6">
             <div className="px-4 pt-8 md:pl-[60px] md:pt-10">
@@ -87,7 +93,7 @@ export function Creation() {
                     className={cn(
                         "sm:btn-wide w-48 rounded-lg border-none bg-green-500 font-montserrat text-xl font-medium text-gray-light hover:bg-green-500/80"
                     )}
-                    disabled={!hasValidInputs}
+                    disabled={isButtonDisabled}
                     onClick={handleCreation}
                 >
                     Continue →
