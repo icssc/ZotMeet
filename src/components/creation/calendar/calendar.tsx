@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
+import { isDatePast } from "@/lib/creation/utils";
 
 interface CalendarProps {
     selectedDays: ZotDate[];
@@ -64,10 +65,15 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
         setSelectedDays((alreadySelectedDays: ZotDate[]) => {
             let modifiedSelectedDays = [...alreadySelectedDays];
 
-            highlightedRange.forEach((highlightedZotDate: Date) => {
+            highlightedRange.forEach((highlightedLocalDate: Date) => {
+                const zotVersionOfHighlightedDate = new ZotDate(highlightedLocalDate);
                 const foundSelectedDay = alreadySelectedDays.find(
-                    (d) => d.compareTo(new ZotDate(highlightedZotDate)) === 0
+                    (d) => d.compareTo(zotVersionOfHighlightedDate) === 0
                 );
+
+                if (isDatePast(highlightedLocalDate) && !startDate.isSelected) {
+                    return;
+                }
 
                 // Remove any selected days if the multiselect initiated from an already selected day
                 if (startDate.isSelected && foundSelectedDay) {
@@ -78,9 +84,10 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
 
                 // Add day to selected days if the multiselect did not initiate from an already selected day
                 if (!startDate.isSelected && !foundSelectedDay) {
+                    if (isDatePast(highlightedLocalDate)) return;
                     modifiedSelectedDays.push(
                         new ZotDate(
-                            highlightedZotDate,
+                            highlightedLocalDate,
                             undefined,
                             undefined,
                             true
