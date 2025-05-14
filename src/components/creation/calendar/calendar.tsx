@@ -94,7 +94,7 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
     };
 
     return (
-        <div className="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:p-5">
+        <div className="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:pt-5 md:pb-4 md:px-5">
             <Button
                 onClick={decrementMonth}
                 className="bg-transparent p-3 hover:bg-transparent md:pl-1"
@@ -103,7 +103,7 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
             </Button>
 
             <div className="md:px-4">
-                <div className="flex flex-col pb-5 md:pb-6">
+                <div className="flex flex-col pb-5">
                     <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
                         {monthName} {currentYear}
                     </h3>
@@ -138,7 +138,7 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
 
             <Button
                 onClick={incrementMonth}
-                className="bg-transparent p-3 hover:bg-transparent md:pr-1"
+                className="bg-transparent p-3 hover:bg-transparent"
             >
                 <span className="text-3xl text-gray-500">&rsaquo;</span>
             </Button>

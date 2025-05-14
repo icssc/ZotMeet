@@ -77,8 +77,8 @@ export function Creation() {
                 setSelectedDays={setSelectedDays}
             />
 
- <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 
-                md:w-full md:border-2 md:rounded-xl md:bottom-4 md:ml-0">
+            <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 
+                md:w-full md:border-2 md:rounded-xl md:bottom-4 md:ml-0 md:drop-shadow-sm">
                 <p className="text-sm font-bold uppercase text-slate-medium">
                     {selectedDays.length} days selected
                 </p>

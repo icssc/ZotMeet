@@ -18,7 +18,7 @@ export function CalendarBodyDayCell({
     return (
         <p
             className={cn(
-                "flex-center relative aspect-square h-8 w-8 rounded-lg text-base font-medium text-gray-dark md:h-12 md:w-12 md:rounded-xl md:text-xl",
+                "flex-center relative aspect-square h-8 w-8 rounded-lg text-base font-medium text-gray-dark md:h-10 md:w-10 md:rounded-xl md:text-xl",
                 isSelected && "bg-primary text-gray-50",
                 isHighlighted && "bg-slate-base text-gray-dark",
                 !isCurrentMonth &&
