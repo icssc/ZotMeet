@@ -86,7 +86,7 @@ export default function LoginTabFormContent() {
                     disabled={isPending}
                     variant="outline"
                     type="submit"
-                    className="w-full mt-2"
+                    className="mt-2 w-full"
                 >
                     Log in
                 </Button>
