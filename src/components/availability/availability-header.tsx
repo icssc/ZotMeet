@@ -9,14 +9,17 @@ import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { saveAvailability } from "@actions/availability/save/action";
+import { deleteMeeting } from "@actions/meeting/delete/action";
+import { editMeeting } from "@actions/meeting/edit/action";
 import { CircleCheckIcon, CircleXIcon } from "lucide-react";
+
+import EditingModal from "../edit/edit-modal";
 
 interface AvailabilityHeaderProps {
     meetingData: SelectMeeting;
     user: UserProfile | null;
     availabilityDates: ZotDate[];
     onCancel: () => void;
-    onSave: () => void;
 }
 
 export function AvailabilityHeader({
@@ -24,7 +27,6 @@ export function AvailabilityHeader({
     user,
     availabilityDates,
     onCancel,
-    onSave,
 }: AvailabilityHeaderProps) {
     const {
         hasAvailability,
@@ -37,6 +39,50 @@ export function AvailabilityHeader({
     // const [guestName, setGuestName] = useState("");
 
     const [open, setOpen] = useState(false);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const openModal = () => setIsModalOpen(true);
+    const closeModal = () => setIsModalOpen(false);
+    const [saved, setSaved] = useState(false);
+
+    const handleDeleteMeeting = (meetingId: string) => {
+        deleteMeeting(meetingId);
+    };
+
+    const handleEditSave = (meeting: {
+        title: string;
+        description: string;
+        fromTime: `${string}:${string}:${string}`;
+        toTime: `${string}:${string}:${string}`;
+        timezone: string;
+        meetingDates: string[];
+    }) => {
+        console.log("Editing meeting:", meeting);
+        const newMeeting = {
+            title: meeting.title,
+            description: meeting.description,
+            fromTime: meeting.fromTime,
+            toTime: meeting.toTime,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            meetingDates: meeting.meetingDates.map((zotDate) =>
+                new Date(zotDate).toISOString()
+            ),
+        };
+
+        const result = editMeeting(meetingData.id, newMeeting);
+        const error = result?.error;
+
+        if (error) {
+            console.error("Failed to create meeting: ", error);
+        }
+
+        console.log("Editing meeting...");
+
+        setSaved(true);
+        setIsModalOpen(false); // Close modal after saving
+        console.log("Data saved!");
+    };
 
     const handleCancel = () => {
         onCancel();
@@ -63,7 +109,6 @@ export function AvailabilityHeader({
         if (response.status === 200) {
             setHasAvailability(true);
             setAvailabilityView("group");
-            onSave();
 
             // Clear guest member name
             if (!user) {
@@ -76,58 +121,91 @@ export function AvailabilityHeader({
 
     return (
         <>
-            <div className="flex-between px-2 pt-8 md:px-4 md:pt-10">
-                <h1 className="line-clamp-1 h-8 pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
+            <div className="flex items-center space-x-2 px-2 pt-8 md:px-4 md:pt-10">
+                <h1 className="h-8 space-x-2 pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
                     {meetingData.title}
                 </h1>
-
-                {availabilityView === "personal" ? (
-                    <div className="flex space-x-2 md:space-x-4">
-                        <Button
-                            className={cn(
-                                "flex-center h-8 min-h-fit border-yellow-500 bg-white px-2 uppercase text-yellow-500 outline md:w-28 md:p-0",
-                                "hover:border-yellow-500 hover:bg-yellow-500 hover:text-white"
-                            )}
-                            onClick={handleCancel}
-                        >
-                            <span className="hidden md:flex">Cancel</span>
-                            <CircleXIcon />
-                        </Button>
-
-                        <Button
-                            className={cn(
-                                "flex-center h-8 min-h-fit border border-green-500 bg-white px-2 uppercase text-secondary md:w-24 md:p-0",
-                                "group hover:border-green-500 hover:bg-green-500"
-                            )}
-                            type="submit"
-                            onClick={handleSave}
-                        >
-                            <span className="hidden text-green-500 group-hover:text-white md:flex">
-                                Save
-                            </span>
-                            <CircleCheckIcon className="text-green-500 group-hover:text-white" />
-                        </Button>
-                    </div>
-                ) : (
-                    <Button
-                        className={cn(
-                            "flex-center h-8 min-h-fit min-w-fit px-2 md:w-40 md:p-0"
-                        )}
-                        onClick={() => {
-                            if (!user) {
-                                setOpen(true);
-                                return;
-                            }
-                            setAvailabilityView("personal");
-                        }}
+                <div className="flex w-full flex-row justify-end space-x-2">
+                    <button
+                        onClick={openModal}
+                        className="flex-center h-8 min-h-fit min-w-fit rounded bg-blue-600 px-2 font-dm-sans text-white md:w-40 md:p-0"
                     >
-                        <span className="flex font-dm-sans">
-                            {hasAvailability
-                                ? "Edit Availability"
-                                : "Add Availability"}
-                        </span>
-                    </Button>
-                )}
+                        Edit Meeting
+                    </button>
+                    <button
+                        onClick={() => {
+                            handleDeleteMeeting(meetingData.id);
+                        }}
+                        className="flex-center h-8 min-h-fit min-w-fit rounded bg-blue-600 px-2 font-dm-sans text-white md:w-40 md:p-0"
+                    >
+                        Delete Meeting
+                    </button>
+
+                    <EditingModal
+                        isOpen={isModalOpen}
+                        onClose={closeModal}
+                        onSave={handleEditSave}
+                    >
+                        <div className="flex justify-end space-x-2">
+                            <button
+                                onClick={() => {
+                                    handleEditSave;
+                                }}
+                                className="mt-4 rounded bg-green-500 px-3 py-1 text-white hover:bg-green-700"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </EditingModal>
+
+                    {availabilityView === "personal" ? (
+                        <div className="flex space-x-2 md:space-x-4">
+                            <Button
+                                className={cn(
+                                    "flex-center h-8 min-h-fit border-yellow-500 bg-white px-2 uppercase text-yellow-500 outline md:w-28 md:p-0",
+                                    "hover:border-yellow-500 hover:bg-yellow-500 hover:text-white"
+                                )}
+                                onClick={handleCancel}
+                            >
+                                <span className="hidden md:flex">Cancel</span>
+                                <CircleXIcon />
+                            </Button>
+
+                            <Button
+                                className={cn(
+                                    "flex-center h-8 min-h-fit border border-green-500 bg-white px-2 uppercase text-secondary md:w-24 md:p-0",
+                                    "group hover:border-green-500 hover:bg-green-500"
+                                )}
+                                type="submit"
+                                onClick={handleSave}
+                            >
+                                <span className="hidden text-green-500 group-hover:text-white md:flex">
+                                    Save
+                                </span>
+                                <CircleCheckIcon className="text-green-500 group-hover:text-white" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <Button
+                            className={cn(
+                                "flex-center h-8 min-h-fit min-w-fit px-2 md:w-40 md:p-0"
+                            )}
+                            onClick={() => {
+                                if (!user) {
+                                    setOpen(true);
+                                    return;
+                                }
+                                setAvailabilityView("personal");
+                            }}
+                        >
+                            <span className="flex font-dm-sans">
+                                {hasAvailability
+                                    ? "Edit Availability"
+                                    : "Add Availability"}
+                            </span>
+                        </Button>
+                    )}
+                </div>
             </div>
 
             <AuthDialog
