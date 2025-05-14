@@ -70,6 +70,8 @@ export function GroupAvailability({
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
 
+    const numMembers = groupAvailabilities.length;
+
     const updateSelection = useCallback(
         ({
             zotDateIndex,
@@ -278,19 +280,6 @@ export function GroupAvailability({
                                 blockIndex ===
                                 availabilityTimeBlocks.length - 1;
 
-                            // Compute all unique members for the current page
-                            const allMembers = Array.from(
-                                new Set(
-                                    currentPageAvailability
-                                        .flatMap((date) =>
-                                            Object.values(
-                                                date.groupAvailability
-                                            )
-                                        )
-                                        .flat()
-                                )
-                            );
-
                             return (
                                 <tr key={`block-${timeBlock}`}>
                                     <AvailabilityTimeTicks
@@ -345,12 +334,10 @@ export function GroupAvailability({
                                                         blockColor =
                                                             "transparent";
                                                     }
-                                                } else if (
-                                                    allMembers.length > 0
-                                                ) {
+                                                } else if (numMembers > 0) {
                                                     const opacity =
                                                         block.length /
-                                                        allMembers.length;
+                                                        numMembers;
                                                     blockColor = `rgba(55, 124, 251, ${opacity})`;
                                                 }
 
