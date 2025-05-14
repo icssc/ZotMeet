@@ -6,32 +6,36 @@ interface CalendarBodyDayCellProps {
     isHighlighted: boolean;
     calendarDay: ZotDate;
     isCurrentMonth: boolean;
+    isPast: boolean;
 }
 
 export function CalendarBodyDayCell({
     isHighlighted,
     calendarDay,
     isCurrentMonth,
+    isPast,
 }: CalendarBodyDayCellProps) {
     const isSelected = calendarDay.isSelected;
 
     return (
         <p
             className={cn(
-                "flex-center relative aspect-square h-8 w-8 rounded-lg text-base font-medium text-gray-dark md:h-12 md:w-12 md:rounded-xl md:text-xl",
-                isSelected && "bg-primary text-gray-50",
-                isHighlighted && "bg-slate-base text-gray-dark",
+                "flex-center relative aspect-square h-8 w-8 rounded-lg text-base font-medium text-gray-dark md:h-10 md:w-10 md:rounded-xl md:text-xl",
+                isSelected && !isPast && "bg-primary text-gray-50",
+                isHighlighted && !isPast && "bg-slate-base text-gray-dark",
                 !isCurrentMonth &&
                     cn(
                         "text-gray-base",
-                        isHighlighted && "bg-opacity-30",
-                        isSelected && "bg-opacity-50 text-gray-100"
-                    )
+                        isHighlighted && !isPast && "bg-opacity-30",
+                        isSelected && !isPast && "bg-opacity-50 text-gray-100"
+                    ),
+                isPast && "text-gray-base cursor-not-allowed opacity-50"
             )}
             data-day={calendarDay.getDay()}
             data-month={calendarDay.getMonth()}
             data-year={calendarDay.getYear()}
             data-selected={isSelected}
+            data-past={isPast}
         >
             {calendarDay.getDay()}
         </p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
@@ -10,7 +11,11 @@ import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
 
-export function Creation() {
+export type CreationProps = {
+    isUserLoggedIn: boolean;
+};
+
+export function Creation({ isUserLoggedIn }: CreationProps) {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
@@ -32,7 +37,9 @@ export function Creation() {
         const error = result?.error;
 
         if (error) {
-            console.error("Failed to create meeting: ", error);
+            toast.error("Failed to create meeting.");
+        } else {
+            toast("Meeting created successfully!");
         }
     };
 
@@ -46,6 +53,8 @@ export function Creation() {
         );
     }, [selectedDays.length, startTime, endTime, meetingName]);
 
+    const isButtonDisabled = !hasValidInputs || !isUserLoggedIn;
+    
     return (
         <div className="space-y-6 px-4 pb-6">
             <div className="px-4 pt-8 md:pl-[60px] md:pt-10">
@@ -77,7 +86,8 @@ export function Creation() {
                 setSelectedDays={setSelectedDays}
             />
 
-            <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0">
+            <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 
+                md:w-full md:border-2 md:rounded-xl md:bottom-4 md:ml-0 md:drop-shadow-sm">
                 <p className="text-sm font-bold uppercase text-slate-medium">
                     {selectedDays.length} days selected
                 </p>
@@ -86,7 +96,7 @@ export function Creation() {
                     className={cn(
                         "sm:btn-wide w-48 rounded-lg border-none bg-green-500 font-montserrat text-xl font-medium text-gray-light hover:bg-green-500/80"
                     )}
-                    disabled={!hasValidInputs}
+                    disabled={isButtonDisabled}
                     onClick={handleCreation}
                 >
                     Continue →
