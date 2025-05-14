@@ -8,8 +8,6 @@ import { redirect } from "next/navigation";
 
 export async function deleteMeeting(id: string) {
     const meetingId = id;
-    console.log("IN DELETE MEETING ACTION");
-    console.log("meeting id:", meetingId);
 
     const { user } = await getCurrentSession();
 

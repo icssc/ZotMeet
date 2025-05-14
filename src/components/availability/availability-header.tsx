@@ -58,7 +58,6 @@ export function AvailabilityHeader({
         timezone: string;
         meetingDates: string[];
     }) => {
-        console.log("Editing meeting:", meeting);
         const newMeeting = {
             title: meeting.title,
             description: meeting.description,
@@ -77,11 +76,8 @@ export function AvailabilityHeader({
             console.error("Failed to create meeting: ", error);
         }
 
-        console.log("Editing meeting...");
-
         setSaved(true);
         setIsModalOpen(false); // Close modal after saving
-        console.log("Data saved!");
     };
 
     const handleCancel = () => {
