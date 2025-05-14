@@ -15,6 +15,13 @@
       "when": 1746913110348,
       "tag": "0001_lyrical_blacklash",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747196719947,
+      "tag": "0002_panoramic_frog_thor",
+      "breakpoints": true
     }
   ]
 }
