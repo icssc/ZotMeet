@@ -33,6 +33,7 @@
     "date-fns-tz": "^3.2.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.35.1",
+    "googleapis": "^148.0.0",
     "lucide-react": "^0.453.0",
     "next": "14.2.15",
     "pg": "^8.13.0",
@@ -43,6 +44,7 @@
     "sst": "3.7.1",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
+    "tinycolor2": "^1.6.0",
     "zod": "^3.23.8",
     "zustand": "^5.0.3"
   },
@@ -56,6 +58,7 @@
     "@types/pg": "^8.11.10",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/tinycolor2": "^1.4.6",
     "devmoji": "^2.3.0",
     "drizzle-kit": "^0.26.2",
     "eslint": "^8.57.1",
