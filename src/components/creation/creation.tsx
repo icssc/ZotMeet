@@ -15,8 +15,12 @@ export function Creation() {
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
     const [meetingName, setMeetingName] = useState("");
+    const [isCreating, setIsCreating] = useState(false);
 
     const handleCreation = async () => {
+        if (isCreating) return;
+        setIsCreating(true);
+    
         const newMeeting = {
             title: meetingName,
             fromTime: startTime,
@@ -29,10 +33,10 @@ export function Creation() {
         };
 
         const result = await createMeeting(newMeeting);
-        const error = result?.error;
-
-        if (error) {
-            console.error("Failed to create meeting: ", error);
+        
+        if (result?.error) {
+            console.error("Failed to create meeting: ", result.error);
+            setIsCreating(false);
         }
     };
 
@@ -86,10 +90,10 @@ export function Creation() {
                     className={cn(
                         "sm:btn-wide w-48 rounded-lg border-none bg-green-500 font-montserrat text-xl font-medium text-gray-light hover:bg-green-500/80"
                     )}
-                    disabled={!hasValidInputs}
+                    disabled={!hasValidInputs || isCreating}
                     onClick={handleCreation}
                 >
-                    Continue →
+                    {isCreating ? "Creating..." : "Continue →"}
                 </Button>
             </div>
         </div>
