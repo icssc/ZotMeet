@@ -113,10 +113,11 @@ export async function getMeetings(memberId: string) {
         .from(meetings)
         .leftJoin(availabilities, eq(meetings.id, availabilities.meetingId))
         .where(
+            and(eq(meetings.archived, false),
             or(
                 eq(meetings.hostId, memberId),
                 eq(availabilities.memberId, memberId)
-            )
+            ))
         );
 
     return userMeetings;
