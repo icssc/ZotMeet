@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { getCurrentSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 
-export async function deleteMeeting(id: string) {
+export async function archiveMeeting(id: string) {
     const meetingId = id;
 
     const { user } = await getCurrentSession();
@@ -20,5 +20,4 @@ export async function deleteMeeting(id: string) {
     .where(eq(meetings.id, meetingId));
 
     redirect("/summary");
-
 }
