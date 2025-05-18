@@ -143,7 +143,7 @@ export const meetings = pgTable("meetings", {
     // JSON array of calendar dates
     dates: jsonb("dates").$type<string[]>().notNull().default([]),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-    archived: boolean("archived").default(false),
+    archived: boolean("archived").default(false).notNull(),
 });
 
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
