@@ -22,6 +22,13 @@
       "when": 1747196719947,
       "tag": "0002_panoramic_frog_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1747526783050,
+      "tag": "0003_windy_santa_claus",
+      "breakpoints": true
     }
   ]
 }
