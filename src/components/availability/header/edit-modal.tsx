@@ -12,6 +12,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { SelectMeeting } from "@/db/schema";
+import { getTimeFromHourMinuteString } from "@/lib/availability/utils";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { editMeeting } from "@actions/meeting/edit/action";
@@ -68,11 +69,18 @@ const EditModal = ({ meetingData, isOpen, onClose }: EditModalProps) => {
                 </DialogHeader>
                 <DialogDescription className="relative flex max-h-[60vh] w-full flex-col gap-6 overflow-y-auto rounded-xl border bg-white px-8 py-6 md:px-14">
                     <MeetingNameField
+                        placeholder={meetingData.title}
                         meetingName={meetingName}
                         setMeetingName={setMeetingName}
                     />
 
                     <MeetingTimeField
+                        originalStartTime={getTimeFromHourMinuteString(
+                            meetingData.fromTime as HourMinuteString
+                        )}
+                        originalEndTime={getTimeFromHourMinuteString(
+                            meetingData.toTime as HourMinuteString
+                        )}
                         setStartTime={setStartTime}
                         setEndTime={setEndTime}
                     />

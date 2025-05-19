@@ -5,11 +5,13 @@ import { cn } from "@/lib/utils";
 const DEFAULT_MEETING_NAME = "";
 
 interface MeetingNameFieldProps {
+    placeholder?: string;
     meetingName: string;
     setMeetingName: Dispatch<SetStateAction<string>>;
 }
 
 export function MeetingNameField({
+    placeholder,
     meetingName,
     setMeetingName,
 }: MeetingNameFieldProps) {
@@ -27,15 +29,17 @@ export function MeetingNameField({
         setMeetingName(e.target.value);
     };
 
+    const placeholderText = placeholder || "Meeting Name";
+
     return (
         <div className="flex flex-row items-center gap-x-4 text-lg text-gray-500">
             <Input
                 type="text"
                 className={cn(
-                    "flex-center border-gray-base placeholder:text-gray-base w-full appearance-none rounded-none border-x-0 border-t-0 p-1 text-2xl font-light md:text-3xl",
+                    "flex-center w-full appearance-none rounded-none border-x-0 border-t-0 border-gray-base p-1 text-2xl font-light placeholder:text-gray-base md:text-3xl",
                     "focus-visible:ring-0"
                 )}
-                placeholder="Meeting Name"
+                placeholder={placeholderText}
                 value={meetingName}
                 onChange={handleChange}
                 ref={inputRef}
