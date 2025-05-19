@@ -11,16 +11,16 @@ import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
 import { CreateMeetingPostParams } from "@/lib/types/meetings";
+import { useSession } from "@/context/SessionContext";
 
-export type CreationProps = {
-    isUserLoggedIn: boolean;
-};
 
-export function Creation({ isUserLoggedIn }: CreationProps) {
+export function Creation() {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
     const [meetingName, setMeetingName] = useState("");
+
+    const { isLoggedIn } = useSession(); 
 
     const handleCreation = async () => {
         const newMeeting: CreateMeetingPostParams = {
@@ -56,7 +56,7 @@ export function Creation({ isUserLoggedIn }: CreationProps) {
         );
     }, [selectedDays.length, startTime, endTime, meetingName]);
 
-    const isButtonDisabled = !hasValidInputs || !isUserLoggedIn;
+    const isButtonDisabled = !hasValidInputs || !isLoggedIn;
     
     return (
         <div className="space-y-6 px-4 pb-6">
