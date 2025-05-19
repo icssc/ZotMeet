@@ -5,12 +5,18 @@ import { generateCodeVerifier, generateState } from "arctic";
 export async function GET(): Promise<Response> {
     const state = generateState();
     const codeVerifier = generateCodeVerifier();
-    const url = google.createAuthorizationURL(state, codeVerifier, [
-        "openid",
-        "profile",
-        "email",
-        "https://www.googleapis.com/auth/calendar.readonly",
-    ]);
+    const url = new URL(
+        google.createAuthorizationURL(state, codeVerifier, [
+            "openid",
+            "profile",
+            "email",
+            "https://www.googleapis.com/auth/calendar.readonly",
+        ])
+    );
+
+    // Requests Google to provide refresh token for silent access token refresh (not natively supported by Arctic)
+    url.searchParams.set("access_type", "offline");
+    url.searchParams.set("prompt", "consent");
 
     const cookieStore = await cookies();
     cookieStore.set("google_oauth_state", state, {

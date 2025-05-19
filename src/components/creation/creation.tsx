@@ -24,11 +24,13 @@ export function Creation() {
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
     const [meetingName, setMeetingName] = useState("");
+    const [isCreating, setIsCreating] = useState(false);
 
     const { isLoggedIn } = useSession(); 
 
     const handleCreation = async () => {
         const newMeeting: CreateMeetingPostParams = {
+
             title: meetingName,
             fromTime: startTime,
             toTime: endTime,
@@ -48,6 +50,7 @@ export function Creation() {
             console.error(error);
         } else {
             toast("Meeting created successfully!");
+
         }
     };
 
@@ -121,6 +124,7 @@ export function Creation() {
                         )}
                     </Tooltip>
                 </TooltipProvider>
+
             </div>
         </div>
     );

@@ -104,11 +104,11 @@ erDiagram
         uuid groupId FK
     }
     members {
-        int id PK
+        uuid id PK
         string displayName
     }
     availability {
-        string memberId FK
+        uuid memberId FK
         uuid meetingId FK
         json meetingAvailabilities
         enum status
@@ -120,15 +120,25 @@ erDiagram
         string location
         json dates
         boolean scheduled
-        char fromTime
-        char toTime
+        time fromTime
+        time toTime
+        string timezone
         uuid groupId FK
-        int hostId FK
+        uuid hostId FK
+        timestamp createdAt
     }
     sessions {
         string id PK
         timestamp expiresAt
         string userId FK
+        string googleAccessToken
+        string googleRefreshToken
+        timestamp googleAccessTokenExpiresAt
+    }
+    oauth_accounts {
+        string userId FK
+        string providerId PK
+        string providerUserId PK
     }
 
     meeting ||--o{ availability : has
@@ -136,5 +146,6 @@ erDiagram
     groups ||--o{ usersInGroup : contains
     members ||--o| users : extends
     members ||--o{ availability : provides
-    users ||--o{ sessions : has 
+    users ||--o{ sessions : has
+    users ||--o{ oauth_accounts : has
 ```

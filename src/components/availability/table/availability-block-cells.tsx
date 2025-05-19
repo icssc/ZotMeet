@@ -1,5 +1,9 @@
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
-import type { AvailabilityBlockType } from "@/lib/types/availability";
+import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
+import type {
+    AvailabilityBlockType,
+    EventSegment,
+} from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
@@ -11,6 +15,7 @@ interface AvailabilityBlockCellProps {
     isTopOfHour: boolean;
     isHalfHour: boolean;
     isLastRow: boolean;
+    eventSegments: EventSegment[];
 }
 
 export function AvailabilityBlockCells({
@@ -21,6 +26,7 @@ export function AvailabilityBlockCells({
     isTopOfHour,
     isHalfHour,
     isLastRow,
+    eventSegments,
 }: AvailabilityBlockCellProps) {
     const {
         startBlockSelection,
@@ -103,7 +109,7 @@ export function AvailabilityBlockCells({
     return (
         <td
             onMouseUp={handleMouseUp}
-            className="px-0 py-0"
+            className="relative px-0 py-0"
         >
             <button
                 onTouchStart={handleTouchStart}
@@ -127,6 +133,11 @@ export function AvailabilityBlockCells({
                     selectionState={selectionState}
                 />
             </button>
+
+            <GoogleCalendarEventBlock
+                eventSegments={eventSegments}
+                isAvailable={isAvailable}
+            />
         </td>
     );
 }

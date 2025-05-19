@@ -1,2 +1,5 @@
 # Generate migration files
 pnpm db:generate
+# Lint and format files
+next lint
+npx prettier --write src
