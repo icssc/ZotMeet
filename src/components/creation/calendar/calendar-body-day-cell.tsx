@@ -21,15 +21,14 @@ export function CalendarBodyDayCell({
         <p
             className={cn(
                 "flex-center relative aspect-square h-8 w-8 rounded-lg text-base font-medium text-gray-dark md:h-10 md:w-10 md:rounded-xl md:text-xl",
-                isSelected && !isPast && "bg-primary text-gray-50",
-                isHighlighted && !isPast && "bg-slate-base text-gray-dark",
+                isSelected && "bg-primary text-gray-50",
+                isHighlighted && "bg-slate-base text-gray-dark",
                 !isCurrentMonth &&
                     cn(
-                        "text-gray-base",
-                        isHighlighted && !isPast && "bg-opacity-30",
-                        isSelected && !isPast && "bg-opacity-50 text-gray-100"
+                        !isSelected && "text-gray-medium",
+                        isHighlighted && !isSelected && "bg-opacity-30"
                     ),
-                isPast && "text-gray-base cursor-not-allowed opacity-50"
+                isPast && "pointer-events-none cursor-default text-gray-base opacity-50"
             )}
             data-day={calendarDay.getDay()}
             data-month={calendarDay.getMonth()}

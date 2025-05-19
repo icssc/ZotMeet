@@ -94,7 +94,7 @@ export function Creation({ isUserLoggedIn }: CreationProps) {
 
                 <Button
                     className={cn(
-                        "sm:btn-wide w-48 rounded-lg border-none bg-green-500 font-montserrat text-xl font-medium text-gray-light hover:bg-green-500/80"
+                        "w-48 rounded-lg border-none bg-green-500 font-montserrat text-xl font-medium text-gray-light hover:bg-green-500/80"
                     )}
                     disabled={isButtonDisabled}
                     onClick={handleCreation}

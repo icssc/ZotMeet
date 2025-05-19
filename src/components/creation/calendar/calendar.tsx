@@ -66,14 +66,10 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
             let modifiedSelectedDays = [...alreadySelectedDays];
 
             highlightedRange.forEach((highlightedLocalDate: Date) => {
-                const zotVersionOfHighlightedDate = new ZotDate(highlightedLocalDate);
+                const highlightedZotDate = new ZotDate(highlightedLocalDate);
                 const foundSelectedDay = alreadySelectedDays.find(
-                    (d) => d.compareTo(zotVersionOfHighlightedDate) === 0
+                    (d) => d.compareTo(highlightedZotDate) === 0
                 );
-
-                if (isDatePast(highlightedLocalDate) && !startDate.isSelected) {
-                    return;
-                }
 
                 // Remove any selected days if the multiselect initiated from an already selected day
                 if (startDate.isSelected && foundSelectedDay) {
@@ -101,7 +97,7 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
     };
 
     return (
-        <div className="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:pt-5 md:pb-4 md:px-5">
+        <div className="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:p-5">
             <Button
                 onClick={decrementMonth}
                 className="bg-transparent p-3 hover:bg-transparent md:pl-1"

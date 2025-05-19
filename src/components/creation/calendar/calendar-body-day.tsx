@@ -36,7 +36,7 @@ export function CalendarBodyDay({
     /* Confirms the current highlight selection and updates calendar accordingly */
     const handleEndSelection = () => {
         if (startDaySelection) {
-            if (isDatePast(calendarDay.day) && calendarDay.compareTo(startDaySelection) !== 0) {
+            if (dayIsPast) {
                 setStartDaySelection(undefined);
                 setEndDaySelection(undefined);
                 return;
@@ -53,10 +53,6 @@ export function CalendarBodyDay({
         setEndDaySelection(undefined);
     };
 
-    /**
-     * Updates the current highlight selection whenever a mobile user drags on the calendar
-     * @param {TouchEvent} e - Touch event from a mobile user
-     */
     const handleTouchMove = (e: React.TouchEvent<HTMLButtonElement>) => {
         const touchingElement = document.elementFromPoint(
             e.touches[0].clientX,
@@ -65,15 +61,11 @@ export function CalendarBodyDay({
 
         if (!touchingElement) return;
 
-        const touchingDayAttr = touchingElement.getAttribute("data-day");
-        const touchingMonthAttr = touchingElement.getAttribute("data-month");
-        const touchingYearAttr = touchingElement.getAttribute("data-year");
+        const day = ZotDate.extractDayFromElement(touchingElement);
 
-
-        if (startDaySelection && touchingDayAttr && touchingMonthAttr && touchingYearAttr) {
-            const day = ZotDate.extractDayFromElement(touchingElement);
-            if (day && !isDatePast(day.day)) {
-                setEndDaySelection(day ?? undefined);
+        if (startDaySelection && day) {
+            if (!isDatePast(day.day)) {
+                setEndDaySelection(day);
             }
         }
     };
@@ -90,12 +82,6 @@ export function CalendarBodyDay({
     };
 
     const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
-        if (dayIsPast && !calendarDay.isSelected && (!startDaySelection || startDaySelection.compareTo(calendarDay) !==0) ) {
-             if (e.cancelable) e.preventDefault();
-            setStartDaySelection(undefined);
-            setEndDaySelection(undefined);
-            return;
-        }
         if (e.cancelable) {
             e.preventDefault();
         }
@@ -105,7 +91,7 @@ export function CalendarBodyDay({
 
     const handleMouseMove = () => {
         if (startDaySelection) {
-            if (isDatePast(calendarDay.day) && calendarDay.compareTo(startDaySelection) !==0 ) {
+            if (dayIsPast) {
                 return;
             }
             setEndDaySelection(calendarDay);
@@ -113,11 +99,6 @@ export function CalendarBodyDay({
     };
 
     const handleMouseUp = () => {
-        if (dayIsPast && !calendarDay.isSelected && (!startDaySelection || startDaySelection.compareTo(calendarDay) !==0)) {
-            setStartDaySelection(undefined);
-            setEndDaySelection(undefined);
-            return;
-        }
         if (startDaySelection) {
             handleEndSelection();
         }

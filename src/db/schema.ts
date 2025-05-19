@@ -21,6 +21,8 @@ export const attendanceEnum = pgEnum("attendance", [
     "declined",
 ]);
 
+export const meetingTypeEnum = pgEnum("meeting_type", ["specificDates", "recurringWeekly"]);
+
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = pgTable(
     "members",
@@ -140,8 +142,14 @@ export const meetings = pgTable("meetings", {
     hostId: uuid("host_id")
         .references(() => members.id, { onDelete: "cascade" })
         .notNull(),
-    // JSON array of calendar dates
-    dates: jsonb("dates").$type<string[]>().notNull().default([]),
+    meetingType: meetingTypeEnum("meeting_type").default("specificDates").notNull(),
+    /**
+     * Array of integers representing days of the week (0 for Sunday, 1 for Monday, ..., 6 for Saturday).
+     * Only applicable if meetingType is 'recurringWeekly'.
+     */
+    recurringDays: jsonb("recurring_days").$type<number[]>(),
+    // JSON array of calendar dates - for 'specificDates' type or specific instances/exceptions
+    dates: jsonb("dates").$type<string[]>(),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
