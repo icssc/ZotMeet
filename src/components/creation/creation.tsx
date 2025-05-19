@@ -10,6 +10,7 @@ import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
+import { CreateMeetingPostParams } from "@/lib/types/meetings";
 
 export type CreationProps = {
     isUserLoggedIn: boolean;
@@ -22,7 +23,7 @@ export function Creation({ isUserLoggedIn }: CreationProps) {
     const [meetingName, setMeetingName] = useState("");
 
     const handleCreation = async () => {
-        const newMeeting = {
+        const newMeeting: CreateMeetingPostParams = {
             title: meetingName,
             fromTime: startTime,
             toTime: endTime,
@@ -31,6 +32,7 @@ export function Creation({ isUserLoggedIn }: CreationProps) {
                 zotDate.day.toISOString()
             ),
             description: "",
+            meetingType: "specificDates",
         };
 
         const result = await createMeeting(newMeeting);
@@ -38,6 +40,7 @@ export function Creation({ isUserLoggedIn }: CreationProps) {
 
         if (error) {
             toast.error("Failed to create meeting.");
+            console.error(error);
         } else {
             toast("Meeting created successfully!");
         }
