@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { AuthDialog } from "@/components/auth/auth-dialog";
-import DeletingModal from "@/components/availability/header/delete-modal";
-import EditingModal from "@/components/availability/header/edit-modal";
+import { DeleteModal } from "@/components/availability/header/delete-modal";
+import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
-import { Toaster } from "@/components/ui/sonner";
 import { SelectMeeting } from "@/db/schema";
 import { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
@@ -34,22 +33,22 @@ export function AvailabilityHeader({
         setAvailabilityView,
     } = useAvailabilityViewStore();
 
+    const handleCancel = () => {
+        onCancel();
+        setAvailabilityView("group");
+    };
+
     // const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
     // const [guestName, setGuestName] = useState("");
 
     const [open, setOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
     const openEditModal = () => setIsEditModalOpen(true);
     const closeEditModal = () => setIsEditModalOpen(false);
-
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const openDeleteModal = () => setIsDeleteModalOpen(true);
     const closeDeleteModal = () => setIsDeleteModalOpen(false);
-
-    const handleCancel = () => {
-        onCancel();
-        setAvailabilityView("group");
-    };
 
     const handleSave = async () => {
         if (!user) {
@@ -83,7 +82,6 @@ export function AvailabilityHeader({
 
     return (
         <>
-            <Toaster />
             <div className="flex-between px-2 pt-8 md:px-4 md:pt-10">
                 <h1 className="line-clamp-1 h-8 truncate pr-2 font-montserrat text-xl font-medium md:h-fit md:text-3xl">
                     {meetingData.title}
@@ -102,18 +100,17 @@ export function AvailabilityHeader({
                         Delete Meeting
                     </Button>
 
-                    <EditingModal
-                        meetingId={meetingData.id}
+                    <EditModal
                         meetingData={meetingData}
                         isOpen={isEditModalOpen}
                         onClose={closeEditModal}
-                    ></EditingModal>
+                    />
 
-                    <DeletingModal
-                        meetingDataId={meetingData.id}
+                    <DeleteModal
+                        meetingId={meetingData.id}
                         isOpen={isDeleteModalOpen}
                         onClose={closeDeleteModal}
-                    ></DeletingModal>
+                    />
 
                     {availabilityView === "personal" ? (
                         <div className="flex space-x-2 md:space-x-4">
