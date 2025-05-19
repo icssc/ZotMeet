@@ -12,7 +12,12 @@ import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
 import { CreateMeetingPostParams } from "@/lib/types/meetings";
 import { useSession } from "@/context/SessionContext";
-
+import { 
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export function Creation() {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
@@ -94,16 +99,28 @@ export function Creation() {
                 <p className="text-sm font-bold uppercase text-slate-medium">
                     {selectedDays.length} days selected
                 </p>
-
-                <Button
-                    className={cn(
-                        "w-48 rounded-lg border-none bg-green-500 font-montserrat text-xl font-medium text-gray-light hover:bg-green-500/80"
-                    )}
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger>
+                            <Button
+                                className={cn(
+                                    "w-48 rounded-lg border-none bg-green-500 font-montserrat text-xl font-medium text-gray-light hover:bg-green-500/80"
+                                )}
                     disabled={isButtonDisabled}
                     onClick={handleCreation}
                 >
-                    Continue →
-                </Button>
+                                Continue →
+                            </Button>
+                        </TooltipTrigger>
+                        {isButtonDisabled && (
+                            <TooltipContent>
+                                {!isLoggedIn ? "Please log in to continue." 
+                                : !hasValidInputs ? "Please fill out all fields." 
+                                : ""}
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
+                </TooltipProvider>
             </div>
         </div>
     );
