@@ -8,7 +8,7 @@ import { CreateMeetingPostParams } from "@/lib/types/meetings";
 import { SelectMeeting } from "@/db/schema";
 
 
-export async function editMeeting(meetingId: string, originalMeeting: SelectMeeting, meetingData: CreateMeetingPostParams) {
+export async function editMeeting(originalMeeting: SelectMeeting, meetingData: CreateMeetingPostParams) {
     const { user } = await getCurrentSession();
 
     if (!user) {
@@ -32,7 +32,7 @@ export async function editMeeting(meetingId: string, originalMeeting: SelectMeet
     }
     await db.update(meetings)
     .set({title: title, dates: meetingDates, fromTime: fromTime, toTime: toTime})
-    .where(eq(meetings.id, meetingId));
+    .where(eq(meetings.id, originalMeeting.id));
 
     return {
         status: 200,
