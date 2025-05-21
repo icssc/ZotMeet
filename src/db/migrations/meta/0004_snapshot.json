@@ -1,6 +1,6 @@
 {
-  "id": "313b7620-6042-45c1-b3ba-ab5f75b1c3fa",
-  "prevId": "29ade352-e01b-42e2-8b6a-7604f4505797",
+  "id": "13b8d594-6c8e-44c8-8feb-073c16316bd8",
+  "prevId": "a502d690-7e17-4dd6-b5e7-10bdf3005c87",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -210,6 +210,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "archived": {
+          "name": "archived",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},
@@ -341,6 +348,24 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "google_access_token": {
+          "name": "google_access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "google_refresh_token": {
+          "name": "google_refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "google_access_token_expires_at": {
+          "name": "google_access_token_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {

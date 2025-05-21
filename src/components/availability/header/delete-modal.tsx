@@ -21,13 +21,9 @@ const DeleteModal = ({ meetingId, isOpen, onClose }: DeleteModalProps) => {
     }
 
     const handleDeleteClick = async () => {
-        try {
-            onClose();
-            await archiveMeeting(meetingId);
-            toast.success("Meeting deleted successfully!");
-        } catch (error) {
-            alert("Failed to save the meeting. Please try again.");
-        }
+        onClose();
+        await archiveMeeting(meetingId);
+        toast.success("Meeting deleted successfully!");
     };
     return (
         <Dialog open={isOpen}>

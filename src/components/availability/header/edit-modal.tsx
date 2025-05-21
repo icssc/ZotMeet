@@ -53,13 +53,9 @@ const EditModal = ({ meetingData, isOpen, onClose }: EditModalProps) => {
             ),
         };
 
-        try {
-            await editMeeting(meetingData, newMeeting);
-            toast.success("Meeting updated successfully!");
-            onClose();
-        } catch (error) {
-            alert("Failed to save the meeting. Please try again.");
-        }
+        await editMeeting(meetingData, newMeeting);
+        toast.success("Meeting updated successfully!");
+        onClose();
     };
     return (
         <Dialog open={isOpen}>

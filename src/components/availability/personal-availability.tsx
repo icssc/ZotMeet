@@ -6,8 +6,10 @@ import { AvailabilityBlocks } from "@/components/availability/table/availability
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
+import { useGoogleCalendar } from "@/hooks/use-google-calendar";
 import type {
     AvailabilityBlockType,
+    GoogleCalendarEvent,
     MemberMeetingAvailability,
 } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
@@ -20,6 +22,7 @@ interface PersonalAvailabilityProps {
     fromTime: number;
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
+    googleCalendarEvents: GoogleCalendarEvent[];
     onAvailabilityChange: (updatedDates: ZotDate[]) => void;
 }
 
@@ -29,6 +32,7 @@ export function PersonalAvailability({
     availabilityTimeBlocks,
     availabilityDates,
     currentPageAvailability,
+    googleCalendarEvents,
     onAvailabilityChange,
 }: PersonalAvailabilityProps) {
     const {
@@ -47,6 +51,14 @@ export function PersonalAvailability({
     const isLastPage =
         currentPage ===
         Math.floor((availabilityDates.length - 1) / itemsPerPage);
+
+    const { processedCellSegments } = useGoogleCalendar({
+        googleCalendarEvents,
+        currentPageAvailability,
+        availabilityTimeBlocks,
+        currentPage,
+        itemsPerPage,
+    });
 
     useEffect(() => {
         if (startBlockSelection && endBlockSelection) {
@@ -214,6 +226,9 @@ export function PersonalAvailability({
                                         itemsPerPage={itemsPerPage}
                                         currentPageAvailability={
                                             currentPageAvailability
+                                        }
+                                        processedCellSegments={
+                                            processedCellSegments
                                         }
                                     />
                                 </tr>

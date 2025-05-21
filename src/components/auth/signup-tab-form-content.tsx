@@ -104,7 +104,7 @@ export default function SignupTabFormContent() {
                     disabled={isPending}
                     variant="outline"
                     type="submit"
-                    className="w-full mt-2"
+                    className="mt-2 w-full"
                 >
                     Sign up
                 </Button>

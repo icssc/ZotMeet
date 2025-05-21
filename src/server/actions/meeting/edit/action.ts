@@ -15,8 +15,8 @@ export async function editMeeting(originalMeeting: SelectMeeting, meetingData: C
         return { error: "You must be logged in to edit a meeting." };
     }
 
-    let { title, description: _description, fromTime, toTime, timezone: _timezone, meetingDates } =
-        meetingData; //description and timezone could be edited in the future
+    const { fromTime, toTime, description: _description, timezone: _timezone } = meetingData;
+    let { title, meetingDates } = meetingData; // description and timezone could be edited in the future
 
     if (
         fromTime >= toTime ||
