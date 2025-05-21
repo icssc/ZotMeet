@@ -20,7 +20,7 @@ export function Creation() {
     const handleCreation = async () => {
         if (isCreating) return;
         setIsCreating(true);
-    
+
         const newMeeting = {
             title: meetingName,
             fromTime: startTime,
@@ -33,7 +33,7 @@ export function Creation() {
         };
 
         const result = await createMeeting(newMeeting);
-        
+
         if (result?.error) {
             console.error("Failed to create meeting: ", result.error);
             setIsCreating(false);
