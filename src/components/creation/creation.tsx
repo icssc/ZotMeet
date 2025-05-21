@@ -9,9 +9,16 @@ import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
+import { WEEKDAYS } from "@/lib/types/chrono";
+
+type CalendarMode = "dates" | "days";
+
+const initialSelectedWeekdays = WEEKDAYS.map(() => false);
 
 export function Creation() {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
+    const [mode, setMode] = useState<CalendarMode>("dates");
+    const [selectedWeekdays, setSelectedWeekdays] = useState<boolean[]>(initialSelectedWeekdays);
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
     const [meetingName, setMeetingName] = useState("");
@@ -21,19 +28,35 @@ export function Creation() {
         if (isCreating) return;
         setIsCreating(true);
 
-        const newMeeting = {
+        const newMeetingBase = {
             title: meetingName,
             fromTime: startTime,
             toTime: endTime,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            meetingDates: selectedDays.map((zotDate) =>
-                zotDate.day.toISOString()
-            ),
             description: "",
-            meetingType: 'dates' as const,
         };
 
-        const result = await createMeeting(newMeeting);
+        let newMeetingPayload;
+
+        if (mode === 'dates') {
+            newMeetingPayload = {
+                ...newMeetingBase,
+                meetingDates: selectedDays.map((zotDate) =>
+                    zotDate.day.toISOString()
+                ),
+                meetingType: 'dates' as const,
+                selectedWeekdays: [],
+            };
+        } else {
+            newMeetingPayload = {
+                ...newMeetingBase,
+                selectedWeekdays: selectedWeekdays,
+                meetingType: 'days' as const,
+                meetingDates: [],
+            };
+        }
+
+        const result = await createMeeting(newMeetingPayload);
 
         if (result?.error) {
             console.error("Failed to create meeting: ", result.error);
@@ -42,14 +65,13 @@ export function Creation() {
     };
 
     const hasValidInputs = useMemo(() => {
-        return (
-            selectedDays.length > 0 &&
-            startTime &&
-            endTime &&
-            startTime < endTime &&
-            meetingName
-        );
-    }, [selectedDays.length, startTime, endTime, meetingName]);
+        const timeIsValid = startTime && endTime && startTime < endTime;
+        const nameIsValid = meetingName.length > 0;
+        const datesSelected = mode === 'dates' && selectedDays.length > 0;
+        const daysSelected = mode === 'days' && selectedWeekdays.some(day => day === true);
+
+        return (timeIsValid && nameIsValid && (datesSelected || daysSelected));
+    }, [selectedDays.length, selectedWeekdays, startTime, endTime, meetingName, mode]);
 
     return (
         <div className="space-y-6 px-4 pb-6">
@@ -80,11 +102,15 @@ export function Creation() {
             <Calendar
                 selectedDays={selectedDays}
                 setSelectedDays={setSelectedDays}
+                mode={mode}
+                setMode={setMode}
+                selectedWeekdays={selectedWeekdays}
+                setSelectedWeekdays={setSelectedWeekdays}
             />
 
             <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0">
                 <p className="text-sm font-bold uppercase text-slate-medium">
-                    {selectedDays.length} days selected
+                    {mode === 'dates' ? `${selectedDays.length} days selected` : `${selectedWeekdays.filter(day => day).length} days of week selected`}
                 </p>
 
                 <Button

@@ -15,7 +15,6 @@ export function DaySelector({
         const newSelectedWeekdays = [...selectedWeekdays];
         newSelectedWeekdays[dayIndex] = !newSelectedWeekdays[dayIndex];
         setSelectedWeekdays(newSelectedWeekdays);
-        console.log(newSelectedWeekdays);
     };
 
     return (

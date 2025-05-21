@@ -6,23 +6,23 @@ import { Separator } from "@/components/ui/separator";
 import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 
-interface CalendarProps {
-    selectedDays: ZotDate[];
-    setSelectedDays: Dispatch<SetStateAction<ZotDate[]>>;
-}
-
 type CalendarMode = "dates" | "days";
 
-const initialSelectedWeekdays = WEEKDAYS.map(() => false);
+interface CalendarProps {
+    selectedDays: ZotDate[];
+    setSelectedDays: Dispatch<SetStateAction<ZotDate[]>>
+    mode: CalendarMode;
+    setMode: Dispatch<SetStateAction<CalendarMode>>;
+    selectedWeekdays: boolean[];
+    setSelectedWeekdays: Dispatch<SetStateAction<boolean[]>>;
+}
 
-export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
+
+export function Calendar({selectedDays, setSelectedDays, mode, setMode, selectedWeekdays, setSelectedWeekdays}: CalendarProps) {
+
     const today = new Date();
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
-    const [mode, setMode] = useState<CalendarMode>("dates");
-    const [selectedWeekdays, setSelectedWeekdays] = useState<boolean[]>(
-        initialSelectedWeekdays
-    );
 
     const monthName = MONTHS[currentMonth];
     const calendarDays = useMemo(
