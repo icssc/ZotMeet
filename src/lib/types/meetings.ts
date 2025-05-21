@@ -40,6 +40,8 @@ export interface CreateMeetingPostParams {
     fromTime: HourMinuteString;
     toTime: HourMinuteString;
     timezone: string; // IANA timezone string
-    meetingDates: string[]; // ISO date strings
+    meetingDates?: string[]; // ISO date strings 
+    selectedWeekdays?: boolean[]; 
+    meetingType: 'dates' | 'days'; 
     sessionId?: string;
 }

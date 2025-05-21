@@ -30,6 +30,7 @@ export function Creation() {
                 zotDate.day.toISOString()
             ),
             description: "",
+            meetingType: 'dates' as const,
         };
 
         const result = await createMeeting(newMeeting);
