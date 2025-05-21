@@ -11,7 +11,7 @@ interface CalendarProps {
     setSelectedDays: Dispatch<SetStateAction<ZotDate[]>>;
 }
 
-type CalendarMode = 'dates' | 'days';
+type CalendarMode = "dates" | "days";
 
 const initialSelectedWeekdays = WEEKDAYS.map(() => false);
 
@@ -19,8 +19,10 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
     const today = new Date();
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
-    const [mode, setMode] = useState<CalendarMode>('dates');
-    const [selectedWeekdays, setSelectedWeekdays] = useState<boolean[]>(initialSelectedWeekdays);
+    const [mode, setMode] = useState<CalendarMode>("dates");
+    const [selectedWeekdays, setSelectedWeekdays] = useState<boolean[]>(
+        initialSelectedWeekdays
+    );
 
     const monthName = MONTHS[currentMonth];
     const calendarDays = useMemo(
@@ -102,7 +104,7 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
 
     return (
         <div className="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:p-5">
-            {mode === 'dates' && (
+            {mode === "dates" && (
                 <Button
                     onClick={decrementMonth}
                     className="bg-transparent p-3 hover:bg-transparent md:pl-1"
@@ -112,32 +114,32 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
             )}
 
             <div className="md:px-4">
-                <div className="flex justify-between items-center pb-5 md:pb-6">
+                <div className="flex items-center justify-between pb-5 md:pb-6">
                     <div className="flex flex-col">
-                        {mode === 'dates' ? (
+                        {mode === "dates" ? (
                             <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
                                 {monthName} {currentYear}
                             </h3>
-                         ) : (
-                             <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
-                                 Select Days
-                             </h3>
-                         )}
+                        ) : (
+                            <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
+                                Select Days
+                            </h3>
+                        )}
                     </div>
                     <div className="flex space-x-2">
-                    <Button
+                        <Button
                             variant="outline"
                             size="sm"
-                            className={`font-light ${mode === 'dates' ? 'bg-gray-200' : ''}`}
-                            onClick={() => setMode('dates')}
+                            className={`font-light ${mode === "dates" ? "bg-gray-200" : ""}`}
+                            onClick={() => setMode("dates")}
                         >
                             Specific dates
                         </Button>
                         <Button
                             variant="outline"
                             size="sm"
-                            className={`font-light ${mode === 'days' ? 'bg-gray-200' : ''}`}
-                            onClick={() => setMode('days')}
+                            className={`font-light ${mode === "days" ? "bg-gray-200" : ""}`}
+                            onClick={() => setMode("days")}
                         >
                             Days of the week
                         </Button>
@@ -145,7 +147,7 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
                 </div>
 
                 <table className="w-full table-fixed p-3">
-                    {mode === 'dates' && (
+                    {mode === "dates" && (
                         <thead>
                             <tr>
                                 {WEEKDAYS.map((dayOfWeek) => (
@@ -165,14 +167,14 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
                         </thead>
                     )}
 
-                    {mode === 'dates' && (
+                    {mode === "dates" && (
                         <CalendarBody
                             calendarDays={calendarDays}
                             currentMonth={currentMonth}
                             updateSelectedRange={updateSelectedRange}
                         />
                     )}
-                    {mode === 'days' && (
+                    {mode === "days" && (
                         <DaySelector
                             selectedWeekdays={selectedWeekdays}
                             setSelectedWeekdays={setSelectedWeekdays}
@@ -181,7 +183,7 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
                 </table>
             </div>
 
-            {mode === 'dates' && (
+            {mode === "dates" && (
                 <Button
                     onClick={incrementMonth}
                     className="bg-transparent p-3 hover:bg-transparent md:pr-1"

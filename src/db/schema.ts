@@ -131,6 +131,8 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 export type SelectSession = InferSelectModel<typeof sessions>;
 export type InsertSession = InferInsertModel<typeof sessions>;
 
+export const meetingTypeEnum = pgEnum("meeting_type", ["dates", "days"]);
+
 export const meetings = pgTable("meetings", {
     id: uuid("id").defaultRandom().primaryKey(),
     title: text("title").notNull(),
@@ -149,8 +151,9 @@ export const meetings = pgTable("meetings", {
     hostId: uuid("host_id")
         .references(() => members.id, { onDelete: "cascade" })
         .notNull(),
-    // JSON array of calendar dates
-    dates: jsonb("dates").$type<string[]>().notNull().default([]),
+    dates: jsonb("dates").$type<string[]>().default([]),
+    selectedWeekdays: jsonb("selected_weekdays").$type<boolean[]>().default([]),
+    meetingType: meetingTypeEnum("meeting_type").notNull().default("dates"),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
