@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
+import { isDatePast } from "@/lib/creation/utils";
 
 interface CalendarProps {
     selectedDays: ZotDate[];
@@ -64,9 +65,10 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
         setSelectedDays((alreadySelectedDays: ZotDate[]) => {
             let modifiedSelectedDays = [...alreadySelectedDays];
 
-            highlightedRange.forEach((highlightedZotDate: Date) => {
+            highlightedRange.forEach((highlightedLocalDate: Date) => {
+                const highlightedZotDate = new ZotDate(highlightedLocalDate);
                 const foundSelectedDay = alreadySelectedDays.find(
-                    (d) => d.compareTo(new ZotDate(highlightedZotDate)) === 0
+                    (d) => d.compareTo(highlightedZotDate) === 0
                 );
 
                 // Remove any selected days if the multiselect initiated from an already selected day
@@ -78,9 +80,10 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
 
                 // Add day to selected days if the multiselect did not initiate from an already selected day
                 if (!startDate.isSelected && !foundSelectedDay) {
+                    if (isDatePast(highlightedLocalDate)) return;
                     modifiedSelectedDays.push(
                         new ZotDate(
-                            highlightedZotDate,
+                            highlightedLocalDate,
                             undefined,
                             undefined,
                             true
@@ -103,7 +106,7 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
             </Button>
 
             <div className="md:px-4">
-                <div className="flex flex-col pb-5 md:pb-6">
+                <div className="flex flex-col pb-5">
                     <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
                         {monthName} {currentYear}
                     </h3>
@@ -138,7 +141,7 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
 
             <Button
                 onClick={incrementMonth}
-                className="bg-transparent p-3 hover:bg-transparent md:pr-1"
+                className="bg-transparent p-3 hover:bg-transparent"
             >
                 <span className="text-3xl text-gray-500">&rsaquo;</span>
             </Button>

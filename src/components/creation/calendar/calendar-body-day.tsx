@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 import { CalendarBodyDayCell } from "@/components/creation/calendar/calendar-body-day-cell";
 import { ZotDate } from "@/lib/zotdate";
+import { isDatePast } from "@/lib/creation/utils";
 
 interface CalendarBodyDayProps {
     calendarDay: ZotDate;
@@ -30,10 +31,16 @@ export function CalendarBodyDay({
         );
 
     const isCurrentMonth = currentMonth === calendarDay.getMonth();
+    const dayIsPast = isDatePast(calendarDay.day);
 
     /* Confirms the current highlight selection and updates calendar accordingly */
     const handleEndSelection = () => {
         if (startDaySelection) {
+            if (dayIsPast) {
+                setStartDaySelection(undefined);
+                setEndDaySelection(undefined);
+                return;
+            }
             try {
                 setEndDaySelection(calendarDay);
                 updateSelectedRange(startDaySelection, calendarDay);
@@ -46,10 +53,6 @@ export function CalendarBodyDay({
         setEndDaySelection(undefined);
     };
 
-    /**
-     * Updates the current highlight selection whenever a mobile user drags on the calendar
-     * @param {TouchEvent} e - Touch event from a mobile user
-     */
     const handleTouchMove = (e: React.TouchEvent<HTMLButtonElement>) => {
         const touchingElement = document.elementFromPoint(
             e.touches[0].clientX,
@@ -58,15 +61,20 @@ export function CalendarBodyDay({
 
         if (!touchingElement) return;
 
-        const touchingDay = touchingElement.getAttribute("data-day");
+        const day = ZotDate.extractDayFromElement(touchingElement);
 
-        if (startDaySelection && touchingDay) {
-            const day = ZotDate.extractDayFromElement(touchingElement);
-            setEndDaySelection(day ?? undefined);
+        if (startDaySelection && day) {
+            if (!isDatePast(day.day)) {
+                setEndDaySelection(day);
+            }
         }
     };
 
     const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
+        if (dayIsPast && !calendarDay.isSelected) {
+            if (e.cancelable) e.preventDefault();
+            return;
+        }
         if (e.cancelable) {
             e.preventDefault();
         }
@@ -83,6 +91,9 @@ export function CalendarBodyDay({
 
     const handleMouseMove = () => {
         if (startDaySelection) {
+            if (dayIsPast) {
+                return;
+            }
             setEndDaySelection(calendarDay);
         }
     };
@@ -94,6 +105,7 @@ export function CalendarBodyDay({
     };
 
     const handleMouseDown = () => {
+        if (dayIsPast && !calendarDay.isSelected) return;
         setStartDaySelection(calendarDay);
     };
 
@@ -105,12 +117,14 @@ export function CalendarBodyDay({
                 onTouchEnd={handleTouchEnd}
                 onMouseMove={handleMouseMove}
                 onMouseDown={handleMouseDown}
-                className="relative flex w-full cursor-pointer select-none justify-center py-2"
+                disabled={dayIsPast && !calendarDay.isSelected}
+                className="relative flex w-full cursor-pointer select-none justify-center py-1"
             >
                 <CalendarBodyDayCell
                     isHighlighted={!!isHighlighted}
                     calendarDay={calendarDay}
                     isCurrentMonth={isCurrentMonth}
+                    isPast={dayIsPast}
                 />
             </button>
         </td>
