@@ -9,6 +9,7 @@ import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
+import { Toaster } from "sonner";
 
 export function Creation() {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
@@ -20,7 +21,7 @@ export function Creation() {
     const handleCreation = async () => {
         if (isCreating) return;
         setIsCreating(true);
-    
+
         const newMeeting = {
             title: meetingName,
             fromTime: startTime,
@@ -33,7 +34,7 @@ export function Creation() {
         };
 
         const result = await createMeeting(newMeeting);
-        
+
         if (result?.error) {
             console.error("Failed to create meeting: ", result.error);
             setIsCreating(false);
@@ -52,6 +53,7 @@ export function Creation() {
 
     return (
         <div className="space-y-6 px-4 pb-6">
+            <Toaster />
             <div className="px-4 pt-8 md:pl-[60px] md:pt-10">
                 <h2 className="font-montserrat text-xl font-medium text-gray-dark md:text-2xl">
                     Let&apos;s plan your next meeting.

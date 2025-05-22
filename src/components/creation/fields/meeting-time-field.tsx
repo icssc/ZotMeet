@@ -19,16 +19,22 @@ const convertTo24Hour = (hour: number, period: string) => {
 };
 
 interface MeetingTimeFieldProps {
+    originalStartTime?: number;
+    originalEndTime?: number;
     setStartTime: Dispatch<SetStateAction<HourMinuteString>>;
     setEndTime: Dispatch<SetStateAction<HourMinuteString>>;
 }
 
 export const MeetingTimeField = ({
+    originalStartTime,
+    originalEndTime,
     setStartTime,
     setEndTime,
 }: MeetingTimeFieldProps) => {
-    const [startHour, setStartHour] = useState(9);
-    const [endHour, setEndHour] = useState(1);
+    const startTime = originalStartTime ? originalStartTime : 9;
+    const endTime = originalEndTime ? originalEndTime : 1;
+    const [startHour, setStartHour] = useState(startTime);
+    const [endHour, setEndHour] = useState(endTime);
     const [startPeriod, setStartPeriod] = useState("AM");
     const [endPeriod, setEndPeriod] = useState("PM");
 

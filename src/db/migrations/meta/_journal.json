@@ -8,6 +8,27 @@
       "when": 1747116295222,
       "tag": "0000_medical_romulus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747196719947,
+      "tag": "0002_panoramic_frog_thor",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1747526783050,
+      "tag": "0003_windy_santa_claus",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1747787065343,
+      "tag": "0004_jittery_major_mapleleaf",
+      "breakpoints": true
     }
   ]
 }
