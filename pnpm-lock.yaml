@@ -93,8 +93,8 @@ importers:
         specifier: ^0.0.1
         version: 0.0.1
       sst:
-        specifier: 3.7.1
-        version: 3.7.1
+        specifier: 3.8.0
+        version: 3.8.0
       tailwind-merge:
         specifier: ^2.5.4
         version: 2.5.4
@@ -122,7 +122,7 @@ importers:
         version: 9.12.0
       '@ianvs/prettier-plugin-sort-imports':
         specifier: ^4.3.1
-        version: 4.3.1(prettier@3.3.3)
+        version: 4.3.1(prettier@3.5.3)
       '@types/eslint__js':
         specifier: ^8.42.3
         version: 8.42.3
@@ -161,7 +161,7 @@ importers:
         version: 8.4.47
       prettier-plugin-tailwindcss:
         specifier: ^0.6.8
-        version: 0.6.8(@ianvs/prettier-plugin-sort-imports@4.3.1(prettier@3.3.3))(prettier@3.3.3)
+        version: 0.6.8(@ianvs/prettier-plugin-sort-imports@4.3.1(prettier@3.5.3))(prettier@3.5.3)
       tailwindcss:
         specifier: ^3.4.1
         version: 3.4.14
@@ -1679,8 +1679,8 @@ packages:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
-  aws4fetch@1.0.20:
-    resolution: {integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==}
+  aws4fetch@1.0.18:
+    resolution: {integrity: sha512-3Cf+YaUl07p24MoQ46rFwulAmiyCwH2+1zw1ZyPAX5OtJ34Hh185DwB8y/qRLb6cYYYtSFJ9pthyLc0MD4e8sQ==}
 
   axe-core@4.10.1:
     resolution: {integrity: sha512-qPC9o+kD8Tir0lzNGLeghbOrWMr3ZJpaRlCIb6Uobt/7N4FiEDvqUMnxzCHRHmg8vOg14kr5gVNyScRmbMaJ9g==}
@@ -2933,8 +2933,8 @@ packages:
   obuf@1.1.2:
     resolution: {integrity: sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==}
 
-  oidc-token-hash@5.0.3:
-    resolution: {integrity: sha512-IF4PcGgzAr6XXSff26Sk/+P4KZFJVuHAJZj3wgO3vX2bMdNVp/QXTP3P7CEm9V1IdG8lDLY3HhiqpsE/nOwpPw==}
+  oidc-token-hash@5.1.0:
+    resolution: {integrity: sha512-y0W+X7Ppo7oZX6eovsRkuzcSM40Bicg2JEJkDJ4irIt1wsYAP5MLSNv+QAogO8xivMffw/9OvV3um1pxXgt1uA==}
     engines: {node: ^10.13.0 || >=12.0.0}
 
   once@1.4.0:
@@ -3197,8 +3197,8 @@ packages:
       prettier-plugin-svelte:
         optional: true
 
-  prettier@3.3.3:
-    resolution: {integrity: sha512-i2tDNA0O5IrMO757lfrdQZCc2jPNDVntV0m/+4whiDfWaTKfMNgR7Qz0NAeGz/nRqF4m5/6CLzbP4/liHt12Ew==}
+  prettier@3.5.3:
+    resolution: {integrity: sha512-QQtaxnoDJeAkDvDKWCLiwIXkTgRhwYDEQCghU9Z6q03iyek/rxRh/2lC3HB7P8sWT2xC/y5JDctPLBIGzHKbhw==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -3399,33 +3399,33 @@ packages:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
     engines: {node: '>= 10.x'}
 
-  sst-darwin-arm64@3.7.1:
-    resolution: {integrity: sha512-6AdD13NUZGcPxFEa14wcE/vVhUY2Dyr55dUck4Bx54aYkkDptvlA3zDAENMgyox4sD46QGJcD8uhPoeSsYlIhA==}
+  sst-darwin-arm64@3.8.0:
+    resolution: {integrity: sha512-B9c1ZNgdrsmIVfFzBH0cwwDpiEF/HCBq47CbgI54qNAFjEodIqnNlS3LrUsG9EkVnbjBbalEEdrGQUS28qLQRw==}
     cpu: [arm64]
     os: [darwin]
 
-  sst-darwin-x64@3.7.1:
-    resolution: {integrity: sha512-rSynbkCW034q4UjlGsC1WxaA0iDy8kvpMq3VHOvQ+N+cCh6ixC0f1G4nS0iprOIw0SsWLzgrX6xF0fR2/VPgjw==}
+  sst-darwin-x64@3.8.0:
+    resolution: {integrity: sha512-7D43MGTgp3A+Z3cpk0JoF18LVe0sVtbhfiOU83o8ZHiuVutZy5iNswxz9A5pVaEf2d+899gX030v4Zp9FzJrJQ==}
     cpu: [x64]
     os: [darwin]
 
-  sst-linux-arm64@3.7.1:
-    resolution: {integrity: sha512-cSfRFDjRejSVMKT+eDv1fD+XJNxh606KeUPMauysz+OJFV08iYi1YJloooNIeRD8WvHA8eVX+e/KlqYsKphY5Q==}
+  sst-linux-arm64@3.8.0:
+    resolution: {integrity: sha512-gLNnaJRiMLnbGogeus6wvkhToxWjHBi94p5nlGf3hKHAcM0ZTMYYUXoqEbK1OIhQF7lUSlmlZqJAluKJrm5ssQ==}
     cpu: [arm64]
     os: [linux]
 
-  sst-linux-x64@3.7.1:
-    resolution: {integrity: sha512-W+Yp3HHh8k2nEgX6GuQSLr6CfmYmTWPgigVMxMU88c9sPCc9HqPx7gB4FTT8xemdsN1MXOOjq50ozqv79+AdtQ==}
+  sst-linux-x64@3.8.0:
+    resolution: {integrity: sha512-fsIFr8a0AfRYz7LHty7xD8jEhDur44Go3e5DTdQdz7xhf7Pu4d9nHoUJB5HAaPqhMA9hA0hlGIk5C2pfT1ahUA==}
     cpu: [x64]
     os: [linux]
 
-  sst-linux-x86@3.7.1:
-    resolution: {integrity: sha512-TfCiT2tULPABEwKgsGpx+dFv0d7NNrAv/cFnwRe2gi3vnhA/JCfynbiY0j1UOG6tbYTzzQ8Rl96qYoGp/rYRLA==}
+  sst-linux-x86@3.8.0:
+    resolution: {integrity: sha512-dmcMsvFRaaIxDAKq8JDb5MDmu0FKEHH0h5S/88ZUpQfI1ijb90GmmqSY3Vv09nCx8JvrTdjSE0AHKiOQBTHVww==}
     cpu: [x86]
     os: [linux]
 
-  sst@3.7.1:
-    resolution: {integrity: sha512-y7w0wTE0YNQi4qCQ575a5KLpd0VIg6EcWwVO9rtWdCmMoLlnj8DWh0/5do3B6ZOqWvcXN5FgMuhweJrb05rTbw==}
+  sst@3.8.0:
+    resolution: {integrity: sha512-bYBHiP8gA96H+O00tmNm/qpEu/1nn2uCwDhVv9NXE3L9S4y+UXigtrR53yikkIfFMX2njDhoNyGMi39CtKw7BA==}
     hasBin: true
 
   stop-iteration-iterator@1.0.0:
@@ -4294,14 +4294,14 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@ianvs/prettier-plugin-sort-imports@4.3.1(prettier@3.3.3)':
+  '@ianvs/prettier-plugin-sort-imports@4.3.1(prettier@3.5.3)':
     dependencies:
       '@babel/core': 7.25.8
       '@babel/generator': 7.25.7
       '@babel/parser': 7.25.8
       '@babel/traverse': 7.25.7
       '@babel/types': 7.25.8
-      prettier: 3.3.3
+      prettier: 3.5.3
       semver: 7.6.3
     transitivePeerDependencies:
       - supports-color
@@ -5159,7 +5159,7 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.0.0
 
-  aws4fetch@1.0.20: {}
+  aws4fetch@1.0.18: {}
 
   axe-core@4.10.1: {}
 
@@ -6563,7 +6563,7 @@ snapshots:
 
   obuf@1.1.2: {}
 
-  oidc-token-hash@5.0.3: {}
+  oidc-token-hash@5.1.0: {}
 
   once@1.4.0:
     dependencies:
@@ -6574,7 +6574,7 @@ snapshots:
       jose: 4.15.9
       lru-cache: 6.0.0
       object-hash: 2.2.0
-      oidc-token-hash: 5.0.3
+      oidc-token-hash: 5.1.0
 
   optionator@0.9.4:
     dependencies:
@@ -6753,13 +6753,13 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-tailwindcss@0.6.8(@ianvs/prettier-plugin-sort-imports@4.3.1(prettier@3.3.3))(prettier@3.3.3):
+  prettier-plugin-tailwindcss@0.6.8(@ianvs/prettier-plugin-sort-imports@4.3.1(prettier@3.5.3))(prettier@3.5.3):
     dependencies:
-      prettier: 3.3.3
+      prettier: 3.5.3
     optionalDependencies:
-      '@ianvs/prettier-plugin-sort-imports': 4.3.1(prettier@3.3.3)
+      '@ianvs/prettier-plugin-sort-imports': 4.3.1(prettier@3.5.3)
 
-  prettier@3.3.3: {}
+  prettier@3.5.3: {}
 
   prop-types@15.8.1:
     dependencies:
@@ -6971,32 +6971,32 @@ snapshots:
 
   split2@4.2.0: {}
 
-  sst-darwin-arm64@3.7.1:
+  sst-darwin-arm64@3.8.0:
     optional: true
 
-  sst-darwin-x64@3.7.1:
+  sst-darwin-x64@3.8.0:
     optional: true
 
-  sst-linux-arm64@3.7.1:
+  sst-linux-arm64@3.8.0:
     optional: true
 
-  sst-linux-x64@3.7.1:
+  sst-linux-x64@3.8.0:
     optional: true
 
-  sst-linux-x86@3.7.1:
+  sst-linux-x86@3.8.0:
     optional: true
 
-  sst@3.7.1:
+  sst@3.8.0:
     dependencies:
-      aws4fetch: 1.0.20
+      aws4fetch: 1.0.18
       jose: 5.2.3
       openid-client: 5.6.4
     optionalDependencies:
-      sst-darwin-arm64: 3.7.1
-      sst-darwin-x64: 3.7.1
-      sst-linux-arm64: 3.7.1
-      sst-linux-x64: 3.7.1
-      sst-linux-x86: 3.7.1
+      sst-darwin-arm64: 3.8.0
+      sst-darwin-x64: 3.8.0
+      sst-linux-arm64: 3.8.0
+      sst-linux-x64: 3.8.0
+      sst-linux-x86: 3.8.0
 
   stop-iteration-iterator@1.0.0:
     dependencies:
