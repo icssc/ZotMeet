@@ -648,91 +648,73 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        coursesGrantedTree:
-            | {
-                  /** @description All of these entries are granted */
-                  AND: unknown[];
-              }
-            | {
-                  /** @description Any one of these entries is granted */
-                  OR: components["schemas"]["coursesGrantedTree"][];
-              };
-        prereq:
-            | {
-                  /** @enum {string} */
-                  prereqType: "course";
-                  /** @enum {boolean} */
-                  coreq: false;
-                  courseId: string;
-                  minGrade?: string;
-              }
-            | {
-                  /** @enum {string} */
-                  prereqType: "course";
-                  /** @enum {boolean} */
-                  coreq: true;
-                  courseId: string;
-              }
-            | {
-                  /** @enum {string} */
-                  prereqType: "exam";
-                  examName: string;
-                  minGrade?: string;
-              };
+        coursesGrantedTree: {
+            /** @description All of these entries are granted */
+            AND: unknown[];
+        } | {
+            /** @description Any one of these entries is granted */
+            OR: components["schemas"]["coursesGrantedTree"][];
+        };
+        prereq: {
+            /** @enum {string} */
+            prereqType: "course";
+            /** @enum {boolean} */
+            coreq: false;
+            courseId: string;
+            minGrade?: string;
+        } | {
+            /** @enum {string} */
+            prereqType: "course";
+            /** @enum {boolean} */
+            coreq: true;
+            courseId: string;
+        } | {
+            /** @enum {string} */
+            prereqType: "exam";
+            examName: string;
+            minGrade?: string;
+        };
         prereqTree: {
             /** @description All of these prerequisites must have been fulfilled before this course can be taken. */
-            AND?: (
-                | components["schemas"]["prereq"]
-                | components["schemas"]["prereqTree"]
-            )[];
+            AND?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
             /** @description At least one of these prerequisites must have been fulfilled before this course can be taken. */
-            OR?: (
-                | components["schemas"]["prereq"]
-                | components["schemas"]["prereqTree"]
-            )[];
+            OR?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
             /** @description None of these prerequisites must have been fulfilled before this course can be taken. */
-            NOT?: (
-                | components["schemas"]["prereq"]
-                | components["schemas"]["prereqTree"]
-            )[];
+            NOT?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
         };
-        programRequirement:
-            | {
-                  /** @description Human description of this requirement */
-                  label: string;
-                  /** @enum {string} */
-                  requirementType: "Course";
-                  /** @description The number of courses from this set demanded by this requirement. */
-                  courseCount: number;
-                  /** @description The courses permissible for fulfilling this requirement. */
-                  courses: string[];
-              }
-            | {
-                  /** @description Human description of this requirement */
-                  label: string;
-                  /** @enum {string} */
-                  requirementType: "Unit";
-                  /** @description The number of units needed for this requirement. */
-                  unitCount: number;
-                  /** @description The courses permissible for fulfilling this requirement. */
-                  courses: string[];
-              }
-            | {
-                  /** @description Human description of this requirement */
-                  label: string;
-                  /** @enum {string} */
-                  requirementType: "Group";
-                  /** @description The number of sub-requirements which must be met. */
-                  requirementCount: number;
-                  /** @description The collection of sub-requirements permissible for fulfilling this requirement. */
-                  requirements: components["schemas"]["programRequirement"][];
-              }
-            | {
-                  /** @description Human description of this requirement */
-                  label: string;
-                  /** @enum {string} */
-                  requirementType: "Marker";
-              };
+        programRequirement: {
+            /** @description Human description of this requirement */
+            label: string;
+            /** @enum {string} */
+            requirementType: "Course";
+            /** @description The number of courses from this set demanded by this requirement. */
+            courseCount: number;
+            /** @description The courses permissible for fulfilling this requirement. */
+            courses: string[];
+        } | {
+            /** @description Human description of this requirement */
+            label: string;
+            /** @enum {string} */
+            requirementType: "Unit";
+            /** @description The number of units needed for this requirement. */
+            unitCount: number;
+            /** @description The courses permissible for fulfilling this requirement. */
+            courses: string[];
+        } | {
+            /** @description Human description of this requirement */
+            label: string;
+            /** @enum {string} */
+            requirementType: "Group";
+            /** @description The number of sub-requirements which must be met. */
+            requirementCount: number;
+            /** @description The collection of sub-requirements permissible for fulfilling this requirement. */
+            requirements: components["schemas"]["programRequirement"][];
+        } | {
+            /** @description Human description of this requirement */
+            label: string;
+            /** @enum {string} */
+            requirementType: "Marker";
+        };
     };
     responses: never;
     parameters: never;
@@ -784,28 +766,15 @@ export interface operations {
                                 /** @description The number of units granted as generic elective credit (but not from any course) for this reward */
                                 electiveUnitsGranted: number;
                                 /** @description GE categories granted directly by this reward and not through any course */
-                                geCategories: (
-                                    | "GE-1A"
-                                    | "GE-1B"
-                                    | "GE-2"
-                                    | "GE-3"
-                                    | "GE-4"
-                                    | "GE-5A"
-                                    | "GE-5B"
-                                    | "GE-6"
-                                    | "GE-7"
-                                    | "GE-8"
-                                )[];
+                                geCategories: ("GE-1A" | "GE-1B" | "GE-2" | "GE-3" | "GE-4" | "GE-5A" | "GE-5B" | "GE-6" | "GE-7" | "GE-8")[];
                                 /** @description The tree describing course credit granted by this reward */
-                                coursesGranted:
-                                    | {
-                                          /** @description All of these entries are granted */
-                                          AND: unknown[];
-                                      }
-                                    | {
-                                          /** @description Any one of these entries is granted */
-                                          OR: components["schemas"]["coursesGrantedTree"][];
-                                      };
+                                coursesGranted: {
+                                    /** @description All of these entries are granted */
+                                    AND: unknown[];
+                                } | {
+                                    /** @description Any one of these entries is granted */
+                                    OR: components["schemas"]["coursesGrantedTree"][];
+                                };
                             }[];
                         }[];
                     };
@@ -845,13 +814,7 @@ export interface operations {
         parameters: {
             query: {
                 year?: string;
-                quarter:
-                    | "Fall"
-                    | "Winter"
-                    | "Spring"
-                    | "Summer1"
-                    | "Summer10wk"
-                    | "Summer2";
+                quarter: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
             };
             header?: never;
             path?: never;
@@ -876,13 +839,7 @@ export interface operations {
                              * @example Fall
                              * @enum {string}
                              */
-                            quarter:
-                                | "Fall"
-                                | "Winter"
-                                | "Spring"
-                                | "Summer1"
-                                | "Summer10wk"
-                                | "Summer2";
+                            quarter: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                             /** @example 2024-09-26 */
                             instructionStart: string;
                             /** @example 2024-12-06 */
@@ -967,13 +924,7 @@ export interface operations {
                              * @example Fall
                              * @enum {string}
                              */
-                            quarter:
-                                | "Fall"
-                                | "Winter"
-                                | "Spring"
-                                | "Summer1"
-                                | "Summer10wk"
-                                | "Summer2";
+                            quarter: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                             /** @example 2024-09-26 */
                             instructionStart: string;
                             /** @example 2024-12-06 */
@@ -1042,10 +993,7 @@ export interface operations {
                              * @example Upper Division (100-199)
                              * @enum {string}
                              */
-                            courseLevel:
-                                | "Lower Division (1-99)"
-                                | "Upper Division (100-199)"
-                                | "Graduate/Professional Only (200+)";
+                            courseLevel: "Lower Division (1-99)" | "Upper Division (100-199)" | "Graduate/Professional Only (200+)";
                             /** @example 4 */
                             minUnits: number;
                             /** @example 4 */
@@ -1071,20 +1019,11 @@ export interface operations {
                             }[];
                             prerequisiteTree: {
                                 /** @description All of these prerequisites must have been fulfilled before this course can be taken. */
-                                AND?: (
-                                    | components["schemas"]["prereq"]
-                                    | components["schemas"]["prereqTree"]
-                                )[];
+                                AND?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                                 /** @description At least one of these prerequisites must have been fulfilled before this course can be taken. */
-                                OR?: (
-                                    | components["schemas"]["prereq"]
-                                    | components["schemas"]["prereqTree"]
-                                )[];
+                                OR?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                                 /** @description None of these prerequisites must have been fulfilled before this course can be taken. */
-                                NOT?: (
-                                    | components["schemas"]["prereq"]
-                                    | components["schemas"]["prereqTree"]
-                                )[];
+                                NOT?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                             };
                             prerequisiteText: string;
                             prerequisites: {
@@ -1114,18 +1053,7 @@ export interface operations {
                             restriction: string;
                             overlap: string;
                             corequisites: string;
-                            geList: (
-                                | "GE Ia: Lower Division Writing"
-                                | "GE Ib: Upper Division Writing"
-                                | "GE II: Science and Technology"
-                                | "GE III: Social & Behavioral Sciences"
-                                | "GE IV: Arts and Humanities"
-                                | "GE Va: Quantitative Literacy"
-                                | "GE Vb: Formal Reasoning"
-                                | "GE VI: Language Other Than English"
-                                | "GE VII: Multicultural Studies"
-                                | "GE VIII: International/Global Issues"
-                            )[];
+                            geList: ("GE Ia: Lower Division Writing" | "GE Ib: Upper Division Writing" | "GE II: Science and Technology" | "GE III: Social & Behavioral Sciences" | "GE IV: Arts and Humanities" | "GE Va: Quantitative Literacy" | "GE Vb: Formal Reasoning" | "GE VI: Language Other Than English" | "GE VII: Multicultural Studies" | "GE VIII: International/Global Issues")[];
                             geText: string;
                             terms: string[];
                         }[];
@@ -1200,10 +1128,7 @@ export interface operations {
                              * @example Upper Division (100-199)
                              * @enum {string}
                              */
-                            courseLevel:
-                                | "Lower Division (1-99)"
-                                | "Upper Division (100-199)"
-                                | "Graduate/Professional Only (200+)";
+                            courseLevel: "Lower Division (1-99)" | "Upper Division (100-199)" | "Graduate/Professional Only (200+)";
                             /** @example 4 */
                             minUnits: number;
                             /** @example 4 */
@@ -1229,20 +1154,11 @@ export interface operations {
                             }[];
                             prerequisiteTree: {
                                 /** @description All of these prerequisites must have been fulfilled before this course can be taken. */
-                                AND?: (
-                                    | components["schemas"]["prereq"]
-                                    | components["schemas"]["prereqTree"]
-                                )[];
+                                AND?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                                 /** @description At least one of these prerequisites must have been fulfilled before this course can be taken. */
-                                OR?: (
-                                    | components["schemas"]["prereq"]
-                                    | components["schemas"]["prereqTree"]
-                                )[];
+                                OR?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                                 /** @description None of these prerequisites must have been fulfilled before this course can be taken. */
-                                NOT?: (
-                                    | components["schemas"]["prereq"]
-                                    | components["schemas"]["prereqTree"]
-                                )[];
+                                NOT?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                             };
                             prerequisiteText: string;
                             prerequisites: {
@@ -1272,18 +1188,7 @@ export interface operations {
                             restriction: string;
                             overlap: string;
                             corequisites: string;
-                            geList: (
-                                | "GE Ia: Lower Division Writing"
-                                | "GE Ib: Upper Division Writing"
-                                | "GE II: Science and Technology"
-                                | "GE III: Social & Behavioral Sciences"
-                                | "GE IV: Arts and Humanities"
-                                | "GE Va: Quantitative Literacy"
-                                | "GE Vb: Formal Reasoning"
-                                | "GE VI: Language Other Than English"
-                                | "GE VII: Multicultural Studies"
-                                | "GE VIII: International/Global Issues"
-                            )[];
+                            geList: ("GE Ia: Lower Division Writing" | "GE Ib: Upper Division Writing" | "GE II: Science and Technology" | "GE III: Social & Behavioral Sciences" | "GE IV: Arts and Humanities" | "GE Va: Quantitative Literacy" | "GE Vb: Formal Reasoning" | "GE VI: Language Other Than English" | "GE VII: Multicultural Studies" | "GE VIII: International/Global Issues")[];
                             geText: string;
                             terms: string[];
                         };
@@ -1345,17 +1250,7 @@ export interface operations {
                 minUnits?: number | null;
                 maxUnits?: number | null;
                 descriptionContains?: string;
-                geCategory?:
-                    | "GE-1A"
-                    | "GE-1B"
-                    | "GE-2"
-                    | "GE-3"
-                    | "GE-4"
-                    | "GE-5A"
-                    | "GE-5B"
-                    | "GE-6"
-                    | "GE-7"
-                    | "GE-8";
+                geCategory?: "GE-1A" | "GE-1B" | "GE-2" | "GE-3" | "GE-4" | "GE-5A" | "GE-5B" | "GE-6" | "GE-7" | "GE-8";
                 take?: number | null;
                 skip?: number | null;
             };
@@ -1392,10 +1287,7 @@ export interface operations {
                              * @example Upper Division (100-199)
                              * @enum {string}
                              */
-                            courseLevel:
-                                | "Lower Division (1-99)"
-                                | "Upper Division (100-199)"
-                                | "Graduate/Professional Only (200+)";
+                            courseLevel: "Lower Division (1-99)" | "Upper Division (100-199)" | "Graduate/Professional Only (200+)";
                             /** @example 4 */
                             minUnits: number;
                             /** @example 4 */
@@ -1421,20 +1313,11 @@ export interface operations {
                             }[];
                             prerequisiteTree: {
                                 /** @description All of these prerequisites must have been fulfilled before this course can be taken. */
-                                AND?: (
-                                    | components["schemas"]["prereq"]
-                                    | components["schemas"]["prereqTree"]
-                                )[];
+                                AND?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                                 /** @description At least one of these prerequisites must have been fulfilled before this course can be taken. */
-                                OR?: (
-                                    | components["schemas"]["prereq"]
-                                    | components["schemas"]["prereqTree"]
-                                )[];
+                                OR?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                                 /** @description None of these prerequisites must have been fulfilled before this course can be taken. */
-                                NOT?: (
-                                    | components["schemas"]["prereq"]
-                                    | components["schemas"]["prereqTree"]
-                                )[];
+                                NOT?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                             };
                             prerequisiteText: string;
                             prerequisites: {
@@ -1464,18 +1347,7 @@ export interface operations {
                             restriction: string;
                             overlap: string;
                             corequisites: string;
-                            geList: (
-                                | "GE Ia: Lower Division Writing"
-                                | "GE Ib: Upper Division Writing"
-                                | "GE II: Science and Technology"
-                                | "GE III: Social & Behavioral Sciences"
-                                | "GE IV: Arts and Humanities"
-                                | "GE Va: Quantitative Literacy"
-                                | "GE Vb: Formal Reasoning"
-                                | "GE VI: Language Other Than English"
-                                | "GE VII: Multicultural Studies"
-                                | "GE VIII: International/Global Issues"
-                            )[];
+                            geList: ("GE Ia: Lower Division Writing" | "GE Ib: Upper Division Writing" | "GE II: Science and Technology" | "GE III: Social & Behavioral Sciences" | "GE IV: Arts and Humanities" | "GE Va: Quantitative Literacy" | "GE Vb: Formal Reasoning" | "GE VI: Language Other Than English" | "GE VII: Multicultural Studies" | "GE VIII: International/Global Issues")[];
                             geText: string;
                             terms: string[];
                         }[];
@@ -1523,17 +1395,7 @@ export interface operations {
                 minUnits?: number | null;
                 maxUnits?: number | null;
                 descriptionContains?: string;
-                geCategory?:
-                    | "GE-1A"
-                    | "GE-1B"
-                    | "GE-2"
-                    | "GE-3"
-                    | "GE-4"
-                    | "GE-5A"
-                    | "GE-5B"
-                    | "GE-6"
-                    | "GE-7"
-                    | "GE-8";
+                geCategory?: "GE-1A" | "GE-1B" | "GE-2" | "GE-3" | "GE-4" | "GE-5A" | "GE-5B" | "GE-6" | "GE-7" | "GE-8";
                 cursor?: string;
                 take?: number | null;
             };
@@ -1571,10 +1433,7 @@ export interface operations {
                                  * @example Upper Division (100-199)
                                  * @enum {string}
                                  */
-                                courseLevel:
-                                    | "Lower Division (1-99)"
-                                    | "Upper Division (100-199)"
-                                    | "Graduate/Professional Only (200+)";
+                                courseLevel: "Lower Division (1-99)" | "Upper Division (100-199)" | "Graduate/Professional Only (200+)";
                                 /** @example 4 */
                                 minUnits: number;
                                 /** @example 4 */
@@ -1600,20 +1459,11 @@ export interface operations {
                                 }[];
                                 prerequisiteTree: {
                                     /** @description All of these prerequisites must have been fulfilled before this course can be taken. */
-                                    AND?: (
-                                        | components["schemas"]["prereq"]
-                                        | components["schemas"]["prereqTree"]
-                                    )[];
+                                    AND?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                                     /** @description At least one of these prerequisites must have been fulfilled before this course can be taken. */
-                                    OR?: (
-                                        | components["schemas"]["prereq"]
-                                        | components["schemas"]["prereqTree"]
-                                    )[];
+                                    OR?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                                     /** @description None of these prerequisites must have been fulfilled before this course can be taken. */
-                                    NOT?: (
-                                        | components["schemas"]["prereq"]
-                                        | components["schemas"]["prereqTree"]
-                                    )[];
+                                    NOT?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
                                 };
                                 prerequisiteText: string;
                                 prerequisites: {
@@ -1643,18 +1493,7 @@ export interface operations {
                                 restriction: string;
                                 overlap: string;
                                 corequisites: string;
-                                geList: (
-                                    | "GE Ia: Lower Division Writing"
-                                    | "GE Ib: Upper Division Writing"
-                                    | "GE II: Science and Technology"
-                                    | "GE III: Social & Behavioral Sciences"
-                                    | "GE IV: Arts and Humanities"
-                                    | "GE Va: Quantitative Literacy"
-                                    | "GE Vb: Formal Reasoning"
-                                    | "GE VI: Language Other Than English"
-                                    | "GE VII: Multicultural Studies"
-                                    | "GE VIII: International/Global Issues"
-                                )[];
+                                geList: ("GE Ia: Lower Division Writing" | "GE Ib: Upper Division Writing" | "GE II: Science and Technology" | "GE III: Social & Behavioral Sciences" | "GE IV: Arts and Humanities" | "GE Va: Quantitative Literacy" | "GE Vb: Formal Reasoning" | "GE VI: Language Other Than English" | "GE VII: Multicultural Studies" | "GE VIII: International/Global Issues")[];
                                 geText: string;
                                 terms: string[];
                             }[];
@@ -1698,30 +1537,12 @@ export interface operations {
         parameters: {
             query?: {
                 year?: string;
-                quarter?:
-                    | "Fall"
-                    | "Winter"
-                    | "Spring"
-                    | "Summer1"
-                    | "Summer10wk"
-                    | "Summer2";
+                quarter?: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                 instructorName?: string;
                 department?: string;
                 courseNumber?: string;
                 sectionCode?: string;
-                sectionType?:
-                    | "Act"
-                    | "Col"
-                    | "Dis"
-                    | "Fld"
-                    | "Lab"
-                    | "Lec"
-                    | "Qiz"
-                    | "Res"
-                    | "Sem"
-                    | "Stu"
-                    | "Tap"
-                    | "Tut";
+                sectionType?: "Act" | "Col" | "Dis" | "Fld" | "Lab" | "Lec" | "Qiz" | "Res" | "Sem" | "Stu" | "Tap" | "Tut";
             };
             header?: never;
             path?: never;
@@ -1742,30 +1563,12 @@ export interface operations {
                         data: {
                             year: string;
                             /** @enum {string} */
-                            quarter:
-                                | "Fall"
-                                | "Winter"
-                                | "Spring"
-                                | "Summer1"
-                                | "Summer10wk"
-                                | "Summer2";
+                            quarter: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                             sectionCode: string;
                             department: string;
                             courseNumber: string;
                             /** @enum {string} */
-                            sectionType:
-                                | "Act"
-                                | "Col"
-                                | "Dis"
-                                | "Fld"
-                                | "Lab"
-                                | "Lec"
-                                | "Qiz"
-                                | "Res"
-                                | "Sem"
-                                | "Stu"
-                                | "Tap"
-                                | "Tut";
+                            sectionType: "Act" | "Col" | "Dis" | "Fld" | "Lab" | "Lec" | "Qiz" | "Res" | "Sem" | "Stu" | "Tap" | "Tut";
                             sectionNum: string;
                             units: string;
                             instructors: string[];
@@ -1782,10 +1585,7 @@ export interface operations {
                             waitlistCapHistory: string[];
                             requestedHistory: string[];
                             newOnlyReservedHistory: string[];
-                            statusHistory: (
-                                | ""
-                                | ("OPEN" | "Waitl" | "FULL" | "NewOnly")
-                            )[];
+                            statusHistory: ("" | ("OPEN" | "Waitl" | "FULL" | "NewOnly"))[];
                         }[];
                     };
                 };
@@ -1824,32 +1624,13 @@ export interface operations {
         parameters: {
             query?: {
                 year?: string;
-                quarter?:
-                    | "Fall"
-                    | "Winter"
-                    | "Spring"
-                    | "Summer1"
-                    | "Summer10wk"
-                    | "Summer2";
+                quarter?: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                 instructor?: string;
                 department?: string;
                 courseNumber?: string;
                 sectionCode?: string;
                 division?: ("LowerDiv" | "UpperDiv" | "Graduate") | "ANY";
-                ge?:
-                    | (
-                          | "GE-1A"
-                          | "GE-1B"
-                          | "GE-2"
-                          | "GE-3"
-                          | "GE-4"
-                          | "GE-5A"
-                          | "GE-5B"
-                          | "GE-6"
-                          | "GE-7"
-                          | "GE-8"
-                      )
-                    | "ANY";
+                ge?: ("GE-1A" | "GE-1B" | "GE-2" | "GE-3" | "GE-4" | "GE-5A" | "GE-5B" | "GE-6" | "GE-7" | "GE-8") | "ANY";
                 excludePNP?: string | null;
             };
             header?: never;
@@ -1871,29 +1652,12 @@ export interface operations {
                         data: {
                             year: string;
                             /** @enum {string} */
-                            quarter:
-                                | "Fall"
-                                | "Winter"
-                                | "Spring"
-                                | "Summer1"
-                                | "Summer10wk"
-                                | "Summer2";
+                            quarter: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                             sectionCode: string;
                             department: string;
                             courseNumber: string;
                             courseNumeric: number;
-                            geCategories: (
-                                | "GE-1A"
-                                | "GE-1B"
-                                | "GE-2"
-                                | "GE-3"
-                                | "GE-4"
-                                | "GE-5A"
-                                | "GE-5B"
-                                | "GE-6"
-                                | "GE-7"
-                                | "GE-8"
-                            )[];
+                            geCategories: ("GE-1A" | "GE-1B" | "GE-2" | "GE-3" | "GE-4" | "GE-5A" | "GE-5B" | "GE-6" | "GE-7" | "GE-8")[];
                             instructors: string[];
                             gradeACount: number;
                             gradeBCount: number;
@@ -1942,32 +1706,13 @@ export interface operations {
         parameters: {
             query?: {
                 year?: string;
-                quarter?:
-                    | "Fall"
-                    | "Winter"
-                    | "Spring"
-                    | "Summer1"
-                    | "Summer10wk"
-                    | "Summer2";
+                quarter?: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                 instructor?: string;
                 department?: string;
                 courseNumber?: string;
                 sectionCode?: string;
                 division?: ("LowerDiv" | "UpperDiv" | "Graduate") | "ANY";
-                ge?:
-                    | (
-                          | "GE-1A"
-                          | "GE-1B"
-                          | "GE-2"
-                          | "GE-3"
-                          | "GE-4"
-                          | "GE-5A"
-                          | "GE-5B"
-                          | "GE-6"
-                          | "GE-7"
-                          | "GE-8"
-                      )
-                    | "ANY";
+                ge?: ("GE-1A" | "GE-1B" | "GE-2" | "GE-3" | "GE-4" | "GE-5A" | "GE-5B" | "GE-6" | "GE-7" | "GE-8") | "ANY";
                 excludePNP?: string | null;
             };
             header?: never;
@@ -2029,32 +1774,13 @@ export interface operations {
         parameters: {
             query?: {
                 year?: string;
-                quarter?:
-                    | "Fall"
-                    | "Winter"
-                    | "Spring"
-                    | "Summer1"
-                    | "Summer10wk"
-                    | "Summer2";
+                quarter?: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                 instructor?: string;
                 department?: string;
                 courseNumber?: string;
                 sectionCode?: string;
                 division?: ("LowerDiv" | "UpperDiv" | "Graduate") | "ANY";
-                ge?:
-                    | (
-                          | "GE-1A"
-                          | "GE-1B"
-                          | "GE-2"
-                          | "GE-3"
-                          | "GE-4"
-                          | "GE-5A"
-                          | "GE-5B"
-                          | "GE-6"
-                          | "GE-7"
-                          | "GE-8"
-                      )
-                    | "ANY";
+                ge?: ("GE-1A" | "GE-1B" | "GE-2" | "GE-3" | "GE-4" | "GE-5A" | "GE-5B" | "GE-6" | "GE-7" | "GE-8") | "ANY";
                 excludePNP?: string | null;
             };
             header?: never;
@@ -2077,29 +1803,12 @@ export interface operations {
                             sectionList: {
                                 year: string;
                                 /** @enum {string} */
-                                quarter:
-                                    | "Fall"
-                                    | "Winter"
-                                    | "Spring"
-                                    | "Summer1"
-                                    | "Summer10wk"
-                                    | "Summer2";
+                                quarter: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                                 sectionCode: string;
                                 department: string;
                                 courseNumber: string;
                                 courseNumeric: number;
-                                geCategories: (
-                                    | "GE-1A"
-                                    | "GE-1B"
-                                    | "GE-2"
-                                    | "GE-3"
-                                    | "GE-4"
-                                    | "GE-5A"
-                                    | "GE-5B"
-                                    | "GE-6"
-                                    | "GE-7"
-                                    | "GE-8"
-                                )[];
+                                geCategories: ("GE-1A" | "GE-1B" | "GE-2" | "GE-3" | "GE-4" | "GE-5A" | "GE-5B" | "GE-6" | "GE-7" | "GE-8")[];
                                 instructors: string[];
                             }[];
                             gradeDistribution: {
@@ -2151,32 +1860,13 @@ export interface operations {
         parameters: {
             query?: {
                 year?: string;
-                quarter?:
-                    | "Fall"
-                    | "Winter"
-                    | "Spring"
-                    | "Summer1"
-                    | "Summer10wk"
-                    | "Summer2";
+                quarter?: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                 instructor?: string;
                 department?: string;
                 courseNumber?: string;
                 sectionCode?: string;
                 division?: ("LowerDiv" | "UpperDiv" | "Graduate") | "ANY";
-                ge?:
-                    | (
-                          | "GE-1A"
-                          | "GE-1B"
-                          | "GE-2"
-                          | "GE-3"
-                          | "GE-4"
-                          | "GE-5A"
-                          | "GE-5B"
-                          | "GE-6"
-                          | "GE-7"
-                          | "GE-8"
-                      )
-                    | "ANY";
+                ge?: ("GE-1A" | "GE-1B" | "GE-2" | "GE-3" | "GE-4" | "GE-5A" | "GE-5B" | "GE-6" | "GE-7" | "GE-8") | "ANY";
                 excludePNP?: string | null;
             };
             header?: never;
@@ -2245,32 +1935,13 @@ export interface operations {
         parameters: {
             query?: {
                 year?: string;
-                quarter?:
-                    | "Fall"
-                    | "Winter"
-                    | "Spring"
-                    | "Summer1"
-                    | "Summer10wk"
-                    | "Summer2";
+                quarter?: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                 instructor?: string;
                 department?: string;
                 courseNumber?: string;
                 sectionCode?: string;
                 division?: ("LowerDiv" | "UpperDiv" | "Graduate") | "ANY";
-                ge?:
-                    | (
-                          | "GE-1A"
-                          | "GE-1B"
-                          | "GE-2"
-                          | "GE-3"
-                          | "GE-4"
-                          | "GE-5A"
-                          | "GE-5B"
-                          | "GE-6"
-                          | "GE-7"
-                          | "GE-8"
-                      )
-                    | "ANY";
+                ge?: ("GE-1A" | "GE-1B" | "GE-2" | "GE-3" | "GE-4" | "GE-5A" | "GE-5B" | "GE-6" | "GE-7" | "GE-8") | "ANY";
                 excludePNP?: string | null;
             };
             header?: never;
@@ -2983,44 +2654,39 @@ export interface operations {
                              */
                             name: string;
                             /** @description The set of of requirements for this program; a course, unit, or group requirement as follows: */
-                            requirements: (
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Course";
-                                      /** @description The number of courses from this set demanded by this requirement. */
-                                      courseCount: number;
-                                      /** @description The courses permissible for fulfilling this requirement. */
-                                      courses: string[];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Unit";
-                                      /** @description The number of units needed for this requirement. */
-                                      unitCount: number;
-                                      /** @description The courses permissible for fulfilling this requirement. */
-                                      courses: string[];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Group";
-                                      /** @description The number of sub-requirements which must be met. */
-                                      requirementCount: number;
-                                      /** @description The collection of sub-requirements permissible for fulfilling this requirement. */
-                                      requirements: components["schemas"]["programRequirement"][];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Marker";
-                                  }
-                            )[];
+                            requirements: ({
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Course";
+                                /** @description The number of courses from this set demanded by this requirement. */
+                                courseCount: number;
+                                /** @description The courses permissible for fulfilling this requirement. */
+                                courses: string[];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Unit";
+                                /** @description The number of units needed for this requirement. */
+                                unitCount: number;
+                                /** @description The courses permissible for fulfilling this requirement. */
+                                courses: string[];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Group";
+                                /** @description The number of sub-requirements which must be met. */
+                                requirementCount: number;
+                                /** @description The collection of sub-requirements permissible for fulfilling this requirement. */
+                                requirements: components["schemas"]["programRequirement"][];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Marker";
+                            })[];
                         };
                     };
                 };
@@ -3102,44 +2768,39 @@ export interface operations {
                              */
                             name: string;
                             /** @description The set of of requirements for this program; a course, unit, or group requirement as follows: */
-                            requirements: (
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Course";
-                                      /** @description The number of courses from this set demanded by this requirement. */
-                                      courseCount: number;
-                                      /** @description The courses permissible for fulfilling this requirement. */
-                                      courses: string[];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Unit";
-                                      /** @description The number of units needed for this requirement. */
-                                      unitCount: number;
-                                      /** @description The courses permissible for fulfilling this requirement. */
-                                      courses: string[];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Group";
-                                      /** @description The number of sub-requirements which must be met. */
-                                      requirementCount: number;
-                                      /** @description The collection of sub-requirements permissible for fulfilling this requirement. */
-                                      requirements: components["schemas"]["programRequirement"][];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Marker";
-                                  }
-                            )[];
+                            requirements: ({
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Course";
+                                /** @description The number of courses from this set demanded by this requirement. */
+                                courseCount: number;
+                                /** @description The courses permissible for fulfilling this requirement. */
+                                courses: string[];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Unit";
+                                /** @description The number of units needed for this requirement. */
+                                unitCount: number;
+                                /** @description The courses permissible for fulfilling this requirement. */
+                                courses: string[];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Group";
+                                /** @description The number of sub-requirements which must be met. */
+                                requirementCount: number;
+                                /** @description The collection of sub-requirements permissible for fulfilling this requirement. */
+                                requirements: components["schemas"]["programRequirement"][];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Marker";
+                            })[];
                         };
                     };
                 };
@@ -3221,44 +2882,39 @@ export interface operations {
                              */
                             name: string;
                             /** @description The set of of requirements for this program; a course, unit, or group requirement as follows: */
-                            requirements: (
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Course";
-                                      /** @description The number of courses from this set demanded by this requirement. */
-                                      courseCount: number;
-                                      /** @description The courses permissible for fulfilling this requirement. */
-                                      courses: string[];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Unit";
-                                      /** @description The number of units needed for this requirement. */
-                                      unitCount: number;
-                                      /** @description The courses permissible for fulfilling this requirement. */
-                                      courses: string[];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Group";
-                                      /** @description The number of sub-requirements which must be met. */
-                                      requirementCount: number;
-                                      /** @description The collection of sub-requirements permissible for fulfilling this requirement. */
-                                      requirements: components["schemas"]["programRequirement"][];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Marker";
-                                  }
-                            )[];
+                            requirements: ({
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Course";
+                                /** @description The number of courses from this set demanded by this requirement. */
+                                courseCount: number;
+                                /** @description The courses permissible for fulfilling this requirement. */
+                                courses: string[];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Unit";
+                                /** @description The number of units needed for this requirement. */
+                                unitCount: number;
+                                /** @description The courses permissible for fulfilling this requirement. */
+                                courses: string[];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Group";
+                                /** @description The number of sub-requirements which must be met. */
+                                requirementCount: number;
+                                /** @description The collection of sub-requirements permissible for fulfilling this requirement. */
+                                requirements: components["schemas"]["programRequirement"][];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Marker";
+                            })[];
                         };
                     };
                 };
@@ -3332,44 +2988,39 @@ export interface operations {
                             /** @description ID of the requirements block fetched */
                             id: string;
                             /** @description The requirements in this requirements block */
-                            requirements: (
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Course";
-                                      /** @description The number of courses from this set demanded by this requirement. */
-                                      courseCount: number;
-                                      /** @description The courses permissible for fulfilling this requirement. */
-                                      courses: string[];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Unit";
-                                      /** @description The number of units needed for this requirement. */
-                                      unitCount: number;
-                                      /** @description The courses permissible for fulfilling this requirement. */
-                                      courses: string[];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Group";
-                                      /** @description The number of sub-requirements which must be met. */
-                                      requirementCount: number;
-                                      /** @description The collection of sub-requirements permissible for fulfilling this requirement. */
-                                      requirements: components["schemas"]["programRequirement"][];
-                                  }
-                                | {
-                                      /** @description Human description of this requirement */
-                                      label: string;
-                                      /** @enum {string} */
-                                      requirementType: "Marker";
-                                  }
-                            )[];
+                            requirements: ({
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Course";
+                                /** @description The number of courses from this set demanded by this requirement. */
+                                courseCount: number;
+                                /** @description The courses permissible for fulfilling this requirement. */
+                                courses: string[];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Unit";
+                                /** @description The number of units needed for this requirement. */
+                                unitCount: number;
+                                /** @description The courses permissible for fulfilling this requirement. */
+                                courses: string[];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Group";
+                                /** @description The number of sub-requirements which must be met. */
+                                requirementCount: number;
+                                /** @description The collection of sub-requirements permissible for fulfilling this requirement. */
+                                requirements: components["schemas"]["programRequirement"][];
+                            } | {
+                                /** @description Human description of this requirement */
+                                label: string;
+                                /** @enum {string} */
+                                requirementType: "Marker";
+                            })[];
                         };
                     };
                 };
@@ -3444,149 +3095,123 @@ export interface operations {
                         /** @description The data that was requested */
                         data: {
                             count: number;
-                            results: (
-                                | {
-                                      /** @enum {string} */
-                                      type: "course";
-                                      result: {
-                                          /** @example COMPSCI161 */
-                                          id: string;
-                                          /** @example COMPSCI */
-                                          department: string;
-                                          /** @example 161 */
-                                          courseNumber: string;
-                                          /** @example 161 */
-                                          courseNumeric: number;
-                                          /** @example Donald Bren School of Information and Computer Sciences */
-                                          school: string;
-                                          /** @example Design and Analysis of Algorithms */
-                                          title: string;
-                                          /**
-                                           * @example Upper Division (100-199)
-                                           * @enum {string}
-                                           */
-                                          courseLevel:
-                                              | "Lower Division (1-99)"
-                                              | "Upper Division (100-199)"
-                                              | "Graduate/Professional Only (200+)";
-                                          /** @example 4 */
-                                          minUnits: number;
-                                          /** @example 4 */
-                                          maxUnits: number;
-                                          description: string;
-                                          /** @example Computer Science */
-                                          departmentName: string;
-                                          instructors: {
-                                              /** @example mikes */
-                                              ucinetid: string;
-                                              /** @example Michael Shindler */
-                                              name: string;
-                                              /** @example Associate Professor of Teaching */
-                                              title: string;
-                                              /** @example mikes@uci.edu */
-                                              email: string | "";
-                                              /** @example Computer Science */
-                                              department: string;
-                                              /** @example [
-                                               *       "SHINDLER, M."
-                                               *     ] */
-                                              shortenedNames: string[];
-                                          }[];
-                                          prerequisiteTree: {
-                                              /** @description All of these prerequisites must have been fulfilled before this course can be taken. */
-                                              AND?: (
-                                                  | components["schemas"]["prereq"]
-                                                  | components["schemas"]["prereqTree"]
-                                              )[];
-                                              /** @description At least one of these prerequisites must have been fulfilled before this course can be taken. */
-                                              OR?: (
-                                                  | components["schemas"]["prereq"]
-                                                  | components["schemas"]["prereqTree"]
-                                              )[];
-                                              /** @description None of these prerequisites must have been fulfilled before this course can be taken. */
-                                              NOT?: (
-                                                  | components["schemas"]["prereq"]
-                                                  | components["schemas"]["prereqTree"]
-                                              )[];
-                                          };
-                                          prerequisiteText: string;
-                                          prerequisites: {
-                                              /** @example COMPSCI161 */
-                                              id: string;
-                                              /** @example Design and Analysis of Algorithms */
-                                              title: string;
-                                              /** @example COMPSCI */
-                                              department: string;
-                                              /** @example 161 */
-                                              courseNumber: string;
-                                          }[];
-                                          dependencies: {
-                                              /** @example COMPSCI161 */
-                                              id: string;
-                                              /** @example Design and Analysis of Algorithms */
-                                              title: string;
-                                              /** @example COMPSCI */
-                                              department: string;
-                                              /** @example 161 */
-                                              courseNumber: string;
-                                          }[];
-                                          repeatability: string;
-                                          gradingOption: string;
-                                          concurrent: string;
-                                          sameAs: string;
-                                          restriction: string;
-                                          overlap: string;
-                                          corequisites: string;
-                                          geList: (
-                                              | "GE Ia: Lower Division Writing"
-                                              | "GE Ib: Upper Division Writing"
-                                              | "GE II: Science and Technology"
-                                              | "GE III: Social & Behavioral Sciences"
-                                              | "GE IV: Arts and Humanities"
-                                              | "GE Va: Quantitative Literacy"
-                                              | "GE Vb: Formal Reasoning"
-                                              | "GE VI: Language Other Than English"
-                                              | "GE VII: Multicultural Studies"
-                                              | "GE VIII: International/Global Issues"
-                                          )[];
-                                          geText: string;
-                                          terms: string[];
-                                      };
-                                      rank: number;
-                                  }
-                                | {
-                                      /** @enum {string} */
-                                      type: "instructor";
-                                      result: {
-                                          /** @example mikes */
-                                          ucinetid: string;
-                                          /** @example Michael Shindler */
-                                          name: string;
-                                          /** @example Associate Professor of Teaching */
-                                          title: string;
-                                          /** @example mikes@uci.edu */
-                                          email: string | "";
-                                          /** @example Computer Science */
-                                          department: string;
-                                          /** @example [
-                                           *       "SHINDLER, M."
-                                           *     ] */
-                                          shortenedNames: string[];
-                                          courses: {
-                                              /** @example COMPSCI161 */
-                                              id: string;
-                                              /** @example Design and Analysis of Algorithms */
-                                              title: string;
-                                              /** @example COMPSCI */
-                                              department: string;
-                                              /** @example 161 */
-                                              courseNumber: string;
-                                              terms: string[];
-                                          }[];
-                                      };
-                                      rank: number;
-                                  }
-                            )[];
+                            results: ({
+                                /** @enum {string} */
+                                type: "course";
+                                result: {
+                                    /** @example COMPSCI161 */
+                                    id: string;
+                                    /** @example COMPSCI */
+                                    department: string;
+                                    /** @example 161 */
+                                    courseNumber: string;
+                                    /** @example 161 */
+                                    courseNumeric: number;
+                                    /** @example Donald Bren School of Information and Computer Sciences */
+                                    school: string;
+                                    /** @example Design and Analysis of Algorithms */
+                                    title: string;
+                                    /**
+                                     * @example Upper Division (100-199)
+                                     * @enum {string}
+                                     */
+                                    courseLevel: "Lower Division (1-99)" | "Upper Division (100-199)" | "Graduate/Professional Only (200+)";
+                                    /** @example 4 */
+                                    minUnits: number;
+                                    /** @example 4 */
+                                    maxUnits: number;
+                                    description: string;
+                                    /** @example Computer Science */
+                                    departmentName: string;
+                                    instructors: {
+                                        /** @example mikes */
+                                        ucinetid: string;
+                                        /** @example Michael Shindler */
+                                        name: string;
+                                        /** @example Associate Professor of Teaching */
+                                        title: string;
+                                        /** @example mikes@uci.edu */
+                                        email: string | "";
+                                        /** @example Computer Science */
+                                        department: string;
+                                        /** @example [
+                                         *       "SHINDLER, M."
+                                         *     ] */
+                                        shortenedNames: string[];
+                                    }[];
+                                    prerequisiteTree: {
+                                        /** @description All of these prerequisites must have been fulfilled before this course can be taken. */
+                                        AND?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
+                                        /** @description At least one of these prerequisites must have been fulfilled before this course can be taken. */
+                                        OR?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
+                                        /** @description None of these prerequisites must have been fulfilled before this course can be taken. */
+                                        NOT?: (components["schemas"]["prereq"] | components["schemas"]["prereqTree"])[];
+                                    };
+                                    prerequisiteText: string;
+                                    prerequisites: {
+                                        /** @example COMPSCI161 */
+                                        id: string;
+                                        /** @example Design and Analysis of Algorithms */
+                                        title: string;
+                                        /** @example COMPSCI */
+                                        department: string;
+                                        /** @example 161 */
+                                        courseNumber: string;
+                                    }[];
+                                    dependencies: {
+                                        /** @example COMPSCI161 */
+                                        id: string;
+                                        /** @example Design and Analysis of Algorithms */
+                                        title: string;
+                                        /** @example COMPSCI */
+                                        department: string;
+                                        /** @example 161 */
+                                        courseNumber: string;
+                                    }[];
+                                    repeatability: string;
+                                    gradingOption: string;
+                                    concurrent: string;
+                                    sameAs: string;
+                                    restriction: string;
+                                    overlap: string;
+                                    corequisites: string;
+                                    geList: ("GE Ia: Lower Division Writing" | "GE Ib: Upper Division Writing" | "GE II: Science and Technology" | "GE III: Social & Behavioral Sciences" | "GE IV: Arts and Humanities" | "GE Va: Quantitative Literacy" | "GE Vb: Formal Reasoning" | "GE VI: Language Other Than English" | "GE VII: Multicultural Studies" | "GE VIII: International/Global Issues")[];
+                                    geText: string;
+                                    terms: string[];
+                                };
+                                rank: number;
+                            } | {
+                                /** @enum {string} */
+                                type: "instructor";
+                                result: {
+                                    /** @example mikes */
+                                    ucinetid: string;
+                                    /** @example Michael Shindler */
+                                    name: string;
+                                    /** @example Associate Professor of Teaching */
+                                    title: string;
+                                    /** @example mikes@uci.edu */
+                                    email: string | "";
+                                    /** @example Computer Science */
+                                    department: string;
+                                    /** @example [
+                                     *       "SHINDLER, M."
+                                     *     ] */
+                                    shortenedNames: string[];
+                                    courses: {
+                                        /** @example COMPSCI161 */
+                                        id: string;
+                                        /** @example Design and Analysis of Algorithms */
+                                        title: string;
+                                        /** @example COMPSCI */
+                                        department: string;
+                                        /** @example 161 */
+                                        courseNumber: string;
+                                        terms: string[];
+                                    }[];
+                                };
+                                rank: number;
+                            })[];
                         };
                     };
                 };
@@ -3625,25 +3250,8 @@ export interface operations {
         parameters: {
             query: {
                 year?: string;
-                quarter:
-                    | "Fall"
-                    | "Winter"
-                    | "Spring"
-                    | "Summer1"
-                    | "Summer10wk"
-                    | "Summer2";
-                ge?:
-                    | "ANY"
-                    | "GE-1A"
-                    | "GE-1B"
-                    | "GE-2"
-                    | "GE-3"
-                    | "GE-4"
-                    | "GE-5A"
-                    | "GE-5B"
-                    | "GE-6"
-                    | "GE-7"
-                    | "GE-8";
+                quarter: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
+                ge?: "ANY" | "GE-1A" | "GE-1B" | "GE-2" | "GE-3" | "GE-4" | "GE-5A" | "GE-5B" | "GE-6" | "GE-7" | "GE-8";
                 department?: string;
                 courseTitle?: string;
                 courseNumber?: string;
@@ -3653,28 +3261,8 @@ export interface operations {
                 building?: string;
                 room?: string;
                 division?: ("LowerDiv" | "UpperDiv" | "Graduate") | "ANY";
-                sectionType?:
-                    | "ANY"
-                    | (
-                          | "Act"
-                          | "Col"
-                          | "Dis"
-                          | "Fld"
-                          | "Lab"
-                          | "Lec"
-                          | "Qiz"
-                          | "Res"
-                          | "Sem"
-                          | "Stu"
-                          | "Tap"
-                          | "Tut"
-                      );
-                fullCourses?:
-                    | "ANY"
-                    | "SkipFull"
-                    | "SkipFullWaitlist"
-                    | "FullOnly"
-                    | "Overenrolled";
+                sectionType?: "ANY" | ("Act" | "Col" | "Dis" | "Fld" | "Lab" | "Lec" | "Qiz" | "Res" | "Sem" | "Stu" | "Tap" | "Tut");
+                fullCourses?: "ANY" | "SkipFull" | "SkipFullWaitlist" | "FullOnly" | "Overenrolled";
                 cancelledCourses?: "Exclude" | "Include" | "Only";
                 units?: "VAR" | string;
                 startTime?: string;
@@ -3704,77 +3292,52 @@ export interface operations {
                                     courses: {
                                         sections: {
                                             units: string;
-                                            status:
-                                                | (
-                                                      | "OPEN"
-                                                      | "Waitl"
-                                                      | "FULL"
-                                                      | "NewOnly"
-                                                  )
-                                                | "";
-                                            meetings: (
-                                                | {
-                                                      /** @enum {boolean} */
-                                                      timeIsTBA: true;
-                                                  }
-                                                | {
-                                                      /** @enum {boolean} */
-                                                      timeIsTBA: false;
-                                                      bldg: string[];
-                                                      days: string;
-                                                      startTime: {
-                                                          hour: number;
-                                                          minute: number;
-                                                      };
-                                                      endTime: {
-                                                          hour: number;
-                                                          minute: number;
-                                                      };
-                                                  }
-                                            )[];
-                                            finalExam:
-                                                | {
-                                                      /** @enum {string} */
-                                                      examStatus: "NO_FINAL";
-                                                  }
-                                                | {
-                                                      /** @enum {string} */
-                                                      examStatus: "TBA_FINAL";
-                                                  }
-                                                | {
-                                                      /** @enum {string} */
-                                                      examStatus: "SCHEDULED_FINAL";
-                                                      dayOfWeek: string;
-                                                      month: number;
-                                                      day: number;
-                                                      startTime: {
-                                                          hour: number;
-                                                          minute: number;
-                                                      };
-                                                      endTime: {
-                                                          hour: number;
-                                                          minute: number;
-                                                      };
-                                                      bldg: string[];
-                                                  };
+                                            status: ("OPEN" | "Waitl" | "FULL" | "NewOnly") | "";
+                                            meetings: ({
+                                                /** @enum {boolean} */
+                                                timeIsTBA: true;
+                                            } | {
+                                                /** @enum {boolean} */
+                                                timeIsTBA: false;
+                                                bldg: string[];
+                                                days: string;
+                                                startTime: {
+                                                    hour: number;
+                                                    minute: number;
+                                                };
+                                                endTime: {
+                                                    hour: number;
+                                                    minute: number;
+                                                };
+                                            })[];
+                                            finalExam: {
+                                                /** @enum {string} */
+                                                examStatus: "NO_FINAL";
+                                            } | {
+                                                /** @enum {string} */
+                                                examStatus: "TBA_FINAL";
+                                            } | {
+                                                /** @enum {string} */
+                                                examStatus: "SCHEDULED_FINAL";
+                                                dayOfWeek: string;
+                                                month: number;
+                                                day: number;
+                                                startTime: {
+                                                    hour: number;
+                                                    minute: number;
+                                                };
+                                                endTime: {
+                                                    hour: number;
+                                                    minute: number;
+                                                };
+                                                bldg: string[];
+                                            };
                                             sectionNum: string;
                                             instructors: string[];
                                             maxCapacity: string;
                                             sectionCode: string;
                                             /** @enum {string} */
-                                            sectionType:
-                                                | "Act"
-                                                | "Col"
-                                                | "Dis"
-                                                | "Fld"
-                                                | "Lab"
-                                                | "Lec"
-                                                | "Qiz"
-                                                | "Res"
-                                                | "Sem"
-                                                | "Stu"
-                                                | "Tap"
-                                                | "Tut";
+                                            sectionType: "Act" | "Col" | "Dis" | "Fld" | "Lab" | "Lec" | "Qiz" | "Res" | "Sem" | "Stu" | "Tap" | "Tut";
                                             numRequested: string;
                                             restrictions: string;
                                             numOnWaitlist: string;
@@ -3992,25 +3555,70 @@ export interface operations {
                         ok: true;
                         /** @description The data that was requested */
                         data: {
+                            /**
+                             * @description The ID of this study room, internal to the UCI Libraries system
+                             * @example 44670
+                             */
                             id: string;
+                            /**
+                             * @description A human-readable name for this room
+                             * @example Science 471
+                             */
                             name: string;
+                            /**
+                             * @description The stated capacity in persons of this room
+                             * @example 4
+                             */
                             capacity: number;
+                            /**
+                             * @description The location of the room, typically a building
+                             * @example Science Library
+                             */
                             location: string;
+                            /**
+                             * @description If present, additional notes about the nature of this location
+                             * @example Located on the 4th Floor Drum.
+                             */
                             description?: string;
+                            /**
+                             * @description Additional data about this room, specifically for directions to the room
+                             * @example Located on the main level of Gateway Study Center.
+                             */
                             directions?: string;
+                            /**
+                             * @description Whether this room is tech enhanced, typically indicating the presence of an external monitor, AC outlets, and/or a PC.
+                             * @example true
+                             */
                             techEnhanced: boolean;
+                            /**
+                             * @description The link to this specific room on the UCI Libraries site.
+                             * @example https://spaces.lib.uci.edu/space/44670
+                             */
+                            url: string;
+                            /** @description The time slots available for this room */
                             slots: {
                                 studyRoomId: string;
                                 /**
                                  * Format: date-time
+                                 * @description The start time of this slot
                                  * @example 2021-01-06T08:00:00-08:00
                                  */
                                 start: string;
                                 /**
                                  * Format: date-time
+                                 * @description The end time of this slot
                                  * @example 2021-01-06T08:30:00-08:00
                                  */
                                 end: string;
+                                /**
+                                 * @description The link to this specific slot on the UCI Libraries site. This link focuses on the specific room containing this slot, eagerly selects this slot for booking, and jumps to the submit button.
+                                 * @example https://spaces.lib.uci.edu/space/44704?date=2025-05-23T09:00Z#submit_times
+                                 */
+                                url: string;
+                                /**
+                                 * @description Whether this slot is available
+                                 * @example false
+                                 */
                                 isAvailable: boolean;
                             }[];
                         };
@@ -4068,6 +3676,8 @@ export interface operations {
                 capacityMin?: number | null;
                 capacityMax?: number | null;
                 isTechEnhanced?: boolean | null;
+                dates?: string;
+                times?: string;
             };
             header?: never;
             path?: never;
@@ -4086,25 +3696,70 @@ export interface operations {
                         ok: true;
                         /** @description The data that was requested */
                         data: {
+                            /**
+                             * @description The ID of this study room, internal to the UCI Libraries system
+                             * @example 44670
+                             */
                             id: string;
+                            /**
+                             * @description A human-readable name for this room
+                             * @example Science 471
+                             */
                             name: string;
+                            /**
+                             * @description The stated capacity in persons of this room
+                             * @example 4
+                             */
                             capacity: number;
+                            /**
+                             * @description The location of the room, typically a building
+                             * @example Science Library
+                             */
                             location: string;
+                            /**
+                             * @description If present, additional notes about the nature of this location
+                             * @example Located on the 4th Floor Drum.
+                             */
                             description?: string;
+                            /**
+                             * @description Additional data about this room, specifically for directions to the room
+                             * @example Located on the main level of Gateway Study Center.
+                             */
                             directions?: string;
+                            /**
+                             * @description Whether this room is tech enhanced, typically indicating the presence of an external monitor, AC outlets, and/or a PC.
+                             * @example true
+                             */
                             techEnhanced: boolean;
+                            /**
+                             * @description The link to this specific room on the UCI Libraries site.
+                             * @example https://spaces.lib.uci.edu/space/44670
+                             */
+                            url: string;
+                            /** @description The time slots available for this room */
                             slots: {
                                 studyRoomId: string;
                                 /**
                                  * Format: date-time
+                                 * @description The start time of this slot
                                  * @example 2021-01-06T08:00:00-08:00
                                  */
                                 start: string;
                                 /**
                                  * Format: date-time
+                                 * @description The end time of this slot
                                  * @example 2021-01-06T08:30:00-08:00
                                  */
                                 end: string;
+                                /**
+                                 * @description The link to this specific slot on the UCI Libraries site. This link focuses on the specific room containing this slot, eagerly selects this slot for booking, and jumps to the submit button.
+                                 * @example https://spaces.lib.uci.edu/space/44704?date=2025-05-23T09:00Z#submit_times
+                                 */
+                                url: string;
+                                /**
+                                 * @description Whether this slot is available
+                                 * @example false
+                                 */
                                 isAvailable: boolean;
                             }[];
                         }[];
@@ -4135,13 +3790,7 @@ export interface operations {
                 department?: string;
                 courseNumber?: string;
                 year?: string;
-                quarter:
-                    | "Fall"
-                    | "Winter"
-                    | "Spring"
-                    | "Summer1"
-                    | "Summer10wk"
-                    | "Summer2";
+                quarter: "Fall" | "Winter" | "Spring" | "Summer1" | "Summer10wk" | "Summer2";
                 days?: string;
                 startTime?: string;
                 endTime?: string;
@@ -4175,24 +3824,18 @@ export interface operations {
                                         bldg: string[];
                                         /** @example MWF */
                                         days: string;
-                                        startTime:
-                                            | {
-                                                  /** @example 11 */
-                                                  hour: number;
-                                                  /** @example 50 */
-                                                  minute: number;
-                                              }
-                                            | unknown
-                                            | unknown;
-                                        endTime:
-                                            | {
-                                                  /** @example 11 */
-                                                  hour: number;
-                                                  /** @example 50 */
-                                                  minute: number;
-                                              }
-                                            | unknown
-                                            | unknown;
+                                        startTime: {
+                                            /** @example 11 */
+                                            hour: number;
+                                            /** @example 50 */
+                                            minute: number;
+                                        } | unknown | unknown;
+                                        endTime: {
+                                            /** @example 11 */
+                                            hour: number;
+                                            /** @example 50 */
+                                            minute: number;
+                                        } | unknown | unknown;
                                     }[];
                                     instructors: string[];
                                 }[];
