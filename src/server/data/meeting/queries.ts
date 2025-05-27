@@ -108,6 +108,8 @@ export async function getMeetings(memberId: string) {
             fromTime: meetings.fromTime,
             toTime: meetings.toTime,
             timezone: meetings.timezone,
+            meetingType: meetings.meetingType,
+            recurringDays: meetings.recurringDays,
             dates: meetings.dates,
             hostId: meetings.hostId,
             group_id: meetings.group_id,
