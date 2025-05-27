@@ -29,6 +29,7 @@ export function Creation() {
     const { isLoggedIn } = useSession(); 
 
     const handleCreation = async () => {
+
         const newMeeting: CreateMeetingPostParams = {
 
             title: meetingName,
@@ -50,7 +51,6 @@ export function Creation() {
             console.error(error);
         } else {
             toast("Meeting created successfully!");
-
         }
     };
 
