@@ -47,7 +47,7 @@ const DateRange = ({ dates }: { dates: string[] }) => {
 };
 
 export const MeetingCard = ({ meeting }: MeetingCardProps) => {
-    const { title, fromTime, toTime, dates } = meeting;
+    const { title, fromTime, toTime, dates, meetingType } = meeting;
 
     return (
         <div className="flex items-center gap-4 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-6 pr-8">
@@ -62,7 +62,26 @@ export const MeetingCard = ({ meeting }: MeetingCardProps) => {
                     <div className="flex flex-nowrap items-center gap-x-1">
                         <Calendar className="size-4" />
                         <span className="p text-nowrap">
-                            <DateRange dates={dates} />
+                            {meetingType === "days" ? (
+                                dates && dates.length > 0 ? (
+                                    dates.slice().sort((a, b) => {
+                                        const dayA = new Date(a).getDay();
+                                        const dayB = new Date(b).getDay();
+                                        return dayA - dayB;
+                                    })
+                                    .map((dateString) =>
+                                        new Date(dateString).toLocaleDateString(
+                                            "en-US",
+                                            { weekday: "short" }
+                                        )
+                                    )
+                                    .join(", ")
+                                ) : (
+                                    "No days specified"
+                                )
+                            ) : (
+                                <DateRange dates={dates || []} />
+                            )}
                         </span>
                     </div>
 
