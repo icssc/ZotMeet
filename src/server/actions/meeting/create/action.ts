@@ -8,8 +8,15 @@ import { ANCHOR_DATES } from "@/lib/types/chrono";
 import { CreateMeetingPostParams } from "@/lib/types/meetings";
 
 export async function createMeeting(meetingData: CreateMeetingPostParams) {
-    const { title, description, fromTime, toTime, timezone, meetingDates, meetingType } =
-        meetingData;
+    const {
+        title,
+        description,
+        fromTime,
+        toTime,
+        timezone,
+        meetingDates,
+        meetingType,
+    } = meetingData;
 
     const { user } = await getCurrentSession();
 

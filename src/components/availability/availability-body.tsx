@@ -107,6 +107,7 @@ export function AvailabilityBody({
     allAvailabilties: MemberMeetingAvailability[];
     user: UserProfile | null;
 }) {
+    console.log("Meeting Data:", meetingData);
     const { availabilityView, setHasAvailability } = useAvailabilityViewStore();
     const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
 
@@ -232,6 +233,7 @@ export function AvailabilityBody({
                     availabilityDates={availabilityDates}
                     currentPageAvailability={currentPageAvailability}
                     groupAvailabilities={allAvailabilties}
+                    meetingType={meetingData.meetingType}
                 />
             ) : (
                 <PersonalAvailability
@@ -242,6 +244,7 @@ export function AvailabilityBody({
                     googleCalendarEvents={googleCalendarEvents}
                     userAvailability={userAvailability}
                     onAvailabilityChange={handleUserAvailabilityChange}
+                    meetingType={meetingData.meetingType}
                 />
             )}
         </div>

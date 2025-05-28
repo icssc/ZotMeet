@@ -2,10 +2,12 @@ import { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityTableHeaderProps {
     currentPageAvailability: (ZotDate | null)[];
+    meetingType: string;
 }
 
 export function AvailabilityTableHeader({
     currentPageAvailability,
+    meetingType,
 }: AvailabilityTableHeaderProps) {
     return (
         <thead>
@@ -28,13 +30,14 @@ export function AvailabilityTableHeader({
                                     )}
                                 </span>
                                 <span className="text-center text-[12px] uppercase text-gray-medium md:text-base">
-                                    {dateHeader.day.toLocaleDateString(
-                                        "en-US",
-                                        {
-                                            month: "numeric",
-                                            day: "numeric",
-                                        }
-                                    )}
+                                    {meetingType === "dates" &&
+                                        dateHeader.day.toLocaleDateString(
+                                            "en-US",
+                                            {
+                                                month: "numeric",
+                                                day: "numeric",
+                                            }
+                                        )}
                                 </span>
                             </div>
                         )}

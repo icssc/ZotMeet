@@ -23,6 +23,7 @@ interface PersonalAvailabilityProps {
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
     googleCalendarEvents: GoogleCalendarEvent[];
+    meetingType: string;
     onAvailabilityChange: (updatedDates: ZotDate[]) => void;
 }
 
@@ -34,6 +35,7 @@ export function PersonalAvailability({
     currentPageAvailability,
     googleCalendarEvents,
     onAvailabilityChange,
+    meetingType,
 }: PersonalAvailabilityProps) {
     const {
         startBlockSelection,
@@ -199,6 +201,7 @@ export function PersonalAvailability({
                 <table className="w-full table-fixed">
                     <AvailabilityTableHeader
                         currentPageAvailability={currentPageAvailability}
+                        meetingType={meetingType}
                     />
 
                     <tbody>
