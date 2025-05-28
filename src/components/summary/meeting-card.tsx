@@ -64,18 +64,21 @@ export const MeetingCard = ({ meeting }: MeetingCardProps) => {
                         <span className="p text-nowrap">
                             {meetingType === "days" ? (
                                 dates && dates.length > 0 ? (
-                                    dates.slice().sort((a, b) => {
-                                        const dayA = new Date(a).getDay();
-                                        const dayB = new Date(b).getDay();
-                                        return dayA - dayB;
-                                    })
-                                    .map((dateString) =>
-                                        new Date(dateString).toLocaleDateString(
-                                            "en-US",
-                                            { weekday: "short" }
+                                    dates
+                                        .slice()
+                                        .sort((a, b) => {
+                                            const dayA = new Date(a).getDay();
+                                            const dayB = new Date(b).getDay();
+                                            return dayA - dayB;
+                                        })
+                                        .map((dateString) =>
+                                            new Date(
+                                                dateString
+                                            ).toLocaleDateString("en-US", {
+                                                weekday: "short",
+                                            })
                                         )
-                                    )
-                                    .join(", ")
+                                        .join(", ")
                                 ) : (
                                     "No days specified"
                                 )
