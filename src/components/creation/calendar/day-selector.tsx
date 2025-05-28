@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
-import { WEEKDAYS, ANCHOR_DATES } from "@/lib/types/chrono";
+import { ANCHOR_DATES, WEEKDAYS } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 
 interface DaySelectorProps {
@@ -19,8 +19,8 @@ export function DaySelector({
         if (isSelected) {
             setSelectedDays(selectedDays.filter((date) => date !== anchorDate));
         } else {
-            const newSelectedDays = [...selectedDays, anchorDate].sort((a, b) =>
-                ANCHOR_DATES.indexOf(a) - ANCHOR_DATES.indexOf(b)
+            const newSelectedDays = [...selectedDays, anchorDate].sort(
+                (a, b) => ANCHOR_DATES.indexOf(a) - ANCHOR_DATES.indexOf(b)
             );
             setSelectedDays(newSelectedDays);
         }
@@ -36,7 +36,8 @@ export function DaySelector({
                     <div className="grid grid-cols-7 gap-2 p-3">
                         {WEEKDAYS.map((dayOfWeek, index) => {
                             const anchorDate = ANCHOR_DATES[index];
-                            const isSelected = selectedDays.includes(anchorDate);
+                            const isSelected =
+                                selectedDays.includes(anchorDate);
 
                             return (
                                 <Button

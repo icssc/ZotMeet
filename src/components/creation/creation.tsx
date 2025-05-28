@@ -5,15 +5,18 @@ import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import { Button } from "@/components/ui/button";
+import { SelectMeeting } from "@/db/schema";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
-import { SelectMeeting } from "@/db/schema";
 
 export function Creation() {
-    const [selectedDays, setSelectedDays] = useState<Array<ZotDate | string>>([]);
-    const [calendarView, setCalendarView] = useState<SelectMeeting['meetingType']>("dates");
+    const [selectedDays, setSelectedDays] = useState<Array<ZotDate | string>>(
+        []
+    );
+    const [calendarView, setCalendarView] =
+        useState<SelectMeeting["meetingType"]>("dates");
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
     const [meetingName, setMeetingName] = useState("");
@@ -33,18 +36,18 @@ export function Creation() {
 
         let newMeetingPayload;
 
-        if (calendarView === 'dates') {
+        if (calendarView === "dates") {
             newMeetingPayload = {
                 ...newMeetingBase,
                 meetingDates: selectedDays.map((zotDate) =>
                     (zotDate as ZotDate).day.toISOString()
                 ),
-                meetingType: 'dates' as const,
+                meetingType: "dates" as const,
             };
         } else {
             newMeetingPayload = {
                 ...newMeetingBase,
-                meetingType: 'days' as const,
+                meetingType: "days" as const,
                 meetingDates: selectedDays as string[],
             };
         }
@@ -65,8 +68,8 @@ export function Creation() {
         const timeIsValid = startTime && endTime && startTime < endTime;
         const nameIsValid = meetingName.length > 0;
         const datesSelected = selectedDays.length > 0;
-        return (timeIsValid && nameIsValid && datesSelected);
-    }, [selectedDays.length, startTime, endTime, meetingName, calendarView]);
+        return timeIsValid && nameIsValid && datesSelected;
+    }, [selectedDays.length, startTime, endTime, meetingName]);
 
     return (
         <div className="space-y-6 px-4 pb-6">
@@ -103,7 +106,9 @@ export function Creation() {
 
             <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0">
                 <p className="text-sm font-bold uppercase text-slate-medium">
-                    {calendarView === 'dates' ? `${selectedDays.length} days selected` : `${selectedDays.length} days of week selected`}
+                    {calendarView === "dates"
+                        ? `${selectedDays.length} days selected`
+                        : `${selectedDays.length} days of week selected`}
                 </p>
 
                 <Button

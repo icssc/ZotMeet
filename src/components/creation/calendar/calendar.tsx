@@ -3,35 +3,41 @@ import { CalendarBody } from "@/components/creation/calendar/calendar-body";
 import { DaySelector } from "@/components/creation/calendar/day-selector";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { SelectMeeting } from "@/db/schema";
 import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
-import { SelectMeeting } from "@/db/schema";
 
 interface CalendarProps {
     selectedDays: Array<ZotDate | string>;
-    setSelectedDays: Dispatch<SetStateAction<Array<ZotDate | string>>>
-    mode: SelectMeeting['meetingType'];
-    setMode: Dispatch<SetStateAction<SelectMeeting['meetingType']>>;
+    setSelectedDays: Dispatch<SetStateAction<Array<ZotDate | string>>>;
+    mode: SelectMeeting["meetingType"];
+    setMode: Dispatch<SetStateAction<SelectMeeting["meetingType"]>>;
 }
 
-
-export function Calendar({ selectedDays, setSelectedDays, mode, setMode }: CalendarProps) {
-
+export function Calendar({
+    selectedDays,
+    setSelectedDays,
+    mode,
+    setMode,
+}: CalendarProps) {
     const today = new Date();
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
     const monthName = MONTHS[currentMonth];
-    const calendarDays = useMemo(
-        () => {
-            if (mode === 'dates') {
-                const currentSelectedZotDates = selectedDays.filter(day => day instanceof ZotDate) as ZotDate[];
-                return ZotDate.generateZotDates(currentMonth, currentYear, currentSelectedZotDates);
-            }
-            return [];
-        },
-        [currentMonth, currentYear, selectedDays, mode]
-    );
+    const calendarDays = useMemo(() => {
+        if (mode === "dates") {
+            const currentSelectedZotDates = selectedDays.filter(
+                (day) => day instanceof ZotDate
+            ) as ZotDate[];
+            return ZotDate.generateZotDates(
+                currentMonth,
+                currentYear,
+                currentSelectedZotDates
+            );
+        }
+        return [];
+    }, [currentMonth, currentYear, selectedDays, mode]);
 
     const decrementMonth = () => {
         let newMonth = currentMonth - 1;
@@ -68,7 +74,7 @@ export function Calendar({ selectedDays, setSelectedDays, mode, setMode }: Calen
         startDate: ZotDate,
         endDate: ZotDate
     ): void => {
-        if (mode !== 'dates') {
+        if (mode !== "dates") {
             return;
         }
 
@@ -78,7 +84,9 @@ export function Calendar({ selectedDays, setSelectedDays, mode, setMode }: Calen
         );
 
         setSelectedDays((alreadySelectedDays: Array<ZotDate | string>) => {
-            let currentSelectedZotDates = alreadySelectedDays.filter(day => day instanceof ZotDate) as ZotDate[];
+            const currentSelectedZotDates = alreadySelectedDays.filter(
+                (day) => day instanceof ZotDate
+            ) as ZotDate[];
             let modifiedSelectedDays = [...currentSelectedZotDates];
 
             highlightedRange.forEach((highlightedZotDate: Date) => {
@@ -175,8 +183,6 @@ export function Calendar({ selectedDays, setSelectedDays, mode, setMode }: Calen
                                 </tr>
                             </thead>
 
-
-
                             <CalendarBody
                                 calendarDays={calendarDays}
                                 currentMonth={currentMonth}
@@ -187,7 +193,11 @@ export function Calendar({ selectedDays, setSelectedDays, mode, setMode }: Calen
                     {mode === "days" && (
                         <DaySelector
                             selectedDays={selectedDays as string[]}
-                            setSelectedDays={setSelectedDays as Dispatch<SetStateAction<string[]>>}
+                            setSelectedDays={
+                                setSelectedDays as Dispatch<
+                                    SetStateAction<string[]>
+                                >
+                            }
                         />
                     )}
                 </table>

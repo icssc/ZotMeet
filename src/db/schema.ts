@@ -152,7 +152,6 @@ export const meetings = pgTable("meetings", {
         .references(() => members.id, { onDelete: "cascade" })
         .notNull(),
     dates: jsonb("dates").$type<string[]>().default([]),
-    selectedWeekdays: jsonb("selected_weekdays").$type<boolean[]>().default([]),
     meetingType: meetingTypeEnum("meeting_type").notNull().default("dates"),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });

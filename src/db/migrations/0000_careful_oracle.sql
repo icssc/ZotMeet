@@ -28,7 +28,6 @@ CREATE TABLE IF NOT EXISTS "meetings" (
 	"group_id" uuid,
 	"host_id" uuid NOT NULL,
 	"dates" jsonb DEFAULT '[]'::jsonb,
-	"selected_weekdays" jsonb DEFAULT '[]'::jsonb,
 	"meeting_type" "meeting_type" DEFAULT 'dates' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );

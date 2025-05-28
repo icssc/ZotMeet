@@ -1,5 +1,5 @@
 {
-  "id": "068f355e-2236-439a-b761-fe99b16f123b",
+  "id": "a5bab87c-1ee3-4349-a7a1-ea9660a2699e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -199,13 +199,6 @@
         },
         "dates": {
           "name": "dates",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'[]'::jsonb"
-        },
-        "selected_weekdays": {
-          "name": "selected_weekdays",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false,
