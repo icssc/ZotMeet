@@ -5,14 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
-
-type CalendarMode = "dates" | "days";
+import { SelectMeeting } from "@/db/schema";
 
 interface CalendarProps {
     selectedDays: ZotDate[];
     setSelectedDays: Dispatch<SetStateAction<ZotDate[]>>
-    mode: CalendarMode;
-    setMode: Dispatch<SetStateAction<CalendarMode>>;
+    mode: SelectMeeting['meetingType'];
+    setMode: Dispatch<SetStateAction<SelectMeeting['meetingType']>>;
     selectedWeekdays: boolean[];
     setSelectedWeekdays: Dispatch<SetStateAction<boolean[]>>;
 }
@@ -148,31 +147,33 @@ export function Calendar({selectedDays, setSelectedDays, mode, setMode, selected
 
                 <table className="w-full table-fixed p-3">
                     {mode === "dates" && (
-                        <thead>
-                            <tr>
-                                {WEEKDAYS.map((dayOfWeek) => (
-                                    <th
-                                        className="px-0"
-                                        key={dayOfWeek}
-                                    >
-                                        <div>
-                                            <p className="w-full text-center text-sm font-light uppercase text-slate-medium md:font-bold">
-                                                {dayOfWeek}
-                                            </p>
-                                        </div>
-                                        <Separator className="my-2 h-[2px] bg-slate-base" />
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                    )}
+                        <>
+                            <thead>
+                                <tr>
+                                    {WEEKDAYS.map((dayOfWeek) => (
+                                        <th
+                                            className="px-0"
+                                            key={dayOfWeek}
+                                        >
+                                            <div>
+                                                <p className="w-full text-center text-sm font-light uppercase text-slate-medium md:font-bold">
+                                                    {dayOfWeek}
+                                                </p>
+                                            </div>
+                                            <Separator className="my-2 h-[2px] bg-slate-base" />
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
 
-                    {mode === "dates" && (
-                        <CalendarBody
-                            calendarDays={calendarDays}
-                            currentMonth={currentMonth}
-                            updateSelectedRange={updateSelectedRange}
-                        />
+
+
+                            <CalendarBody
+                                calendarDays={calendarDays}
+                                currentMonth={currentMonth}
+                                updateSelectedRange={updateSelectedRange}
+                            />
+                        </>
                     )}
                     {mode === "days" && (
                         <DaySelector

@@ -10,14 +10,13 @@ import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
 import { WEEKDAYS } from "@/lib/types/chrono";
-
-type CalendarMode = "dates" | "days";
+import { SelectMeeting } from "@/db/schema";
 
 const initialSelectedWeekdays = WEEKDAYS.map(() => false);
 
 export function Creation() {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
-    const [mode, setMode] = useState<CalendarMode>("dates");
+    const [calendarView, setCalendarView] = useState<SelectMeeting['meetingType']>("dates");
     const [selectedWeekdays, setSelectedWeekdays] = useState<boolean[]>(initialSelectedWeekdays);
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
@@ -38,7 +37,7 @@ export function Creation() {
 
         let newMeetingPayload;
 
-        if (mode === 'dates') {
+        if (calendarView === 'dates') {
             newMeetingPayload = {
                 ...newMeetingBase,
                 meetingDates: selectedDays.map((zotDate) =>
@@ -67,11 +66,11 @@ export function Creation() {
     const hasValidInputs = useMemo(() => {
         const timeIsValid = startTime && endTime && startTime < endTime;
         const nameIsValid = meetingName.length > 0;
-        const datesSelected = mode === 'dates' && selectedDays.length > 0;
-        const daysSelected = mode === 'days' && selectedWeekdays.some(day => day === true);
+        const datesSelected = calendarView === 'dates' && selectedDays.length > 0;
+        const daysSelected = calendarView === 'days' && selectedWeekdays.some(day => day === true);
 
         return (timeIsValid && nameIsValid && (datesSelected || daysSelected));
-    }, [selectedDays.length, selectedWeekdays, startTime, endTime, meetingName, mode]);
+    }, [selectedDays.length, selectedWeekdays, startTime, endTime, meetingName, calendarView]);
 
     return (
         <div className="space-y-6 px-4 pb-6">
@@ -102,15 +101,15 @@ export function Creation() {
             <Calendar
                 selectedDays={selectedDays}
                 setSelectedDays={setSelectedDays}
-                mode={mode}
-                setMode={setMode}
+                mode={calendarView}
+                setMode={setCalendarView}
                 selectedWeekdays={selectedWeekdays}
                 setSelectedWeekdays={setSelectedWeekdays}
             />
 
             <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0">
                 <p className="text-sm font-bold uppercase text-slate-medium">
-                    {mode === 'dates' ? `${selectedDays.length} days selected` : `${selectedWeekdays.filter(day => day).length} days of week selected`}
+                    {calendarView === 'dates' ? `${selectedDays.length} days selected` : `${selectedWeekdays.filter(day => day).length} days of week selected`}
                 </p>
 
                 <Button

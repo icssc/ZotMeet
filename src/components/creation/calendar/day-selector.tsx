@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { WEEKDAYS } from "@/lib/types/chrono";
+import { cn } from "@/lib/utils";
 
 interface DaySelectorProps {
     selectedWeekdays: boolean[];
@@ -29,7 +30,12 @@ export function DaySelector({
                             <Button
                                 key={dayOfWeek}
                                 variant="outline"
-                                className={`flex h-16 flex-col items-center justify-center rounded-md border border-gray-300 p-2 transition-colors duration-200 ${selectedWeekdays[index] ? "bg-primary text-white hover:bg-primary/90 hover:text-white" : "hover:bg-gray-100"}`}
+                                className={cn(
+                                    "flex h-16 flex-col items-center justify-center rounded-md border border-gray-300 p-2 transition-colors duration-200",
+                                    selectedWeekdays[index]
+                                        ? "bg-primary text-white hover:bg-primary/90 hover:text-white"
+                                        : "hover:bg-gray-100"
+                                )}
                                 onClick={() => handleDayClick(index)}
                             >
                                 <p className="text-xl">{dayOfWeek}</p>
