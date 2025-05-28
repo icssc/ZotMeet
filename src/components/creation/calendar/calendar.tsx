@@ -8,16 +8,14 @@ import { ZotDate } from "@/lib/zotdate";
 import { SelectMeeting } from "@/db/schema";
 
 interface CalendarProps {
-    selectedDays: ZotDate[];
-    setSelectedDays: Dispatch<SetStateAction<ZotDate[]>>
+    selectedDays: Array<ZotDate | string>;
+    setSelectedDays: Dispatch<SetStateAction<Array<ZotDate | string>>>
     mode: SelectMeeting['meetingType'];
     setMode: Dispatch<SetStateAction<SelectMeeting['meetingType']>>;
-    selectedWeekdays: boolean[];
-    setSelectedWeekdays: Dispatch<SetStateAction<boolean[]>>;
 }
 
 
-export function Calendar({selectedDays, setSelectedDays, mode, setMode, selectedWeekdays, setSelectedWeekdays}: CalendarProps) {
+export function Calendar({ selectedDays, setSelectedDays, mode, setMode }: CalendarProps) {
 
     const today = new Date();
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -25,8 +23,14 @@ export function Calendar({selectedDays, setSelectedDays, mode, setMode, selected
 
     const monthName = MONTHS[currentMonth];
     const calendarDays = useMemo(
-        () => ZotDate.generateZotDates(currentMonth, currentYear, selectedDays),
-        [currentMonth, currentYear, selectedDays]
+        () => {
+            if (mode === 'dates') {
+                const currentSelectedZotDates = selectedDays.filter(day => day instanceof ZotDate) as ZotDate[];
+                return ZotDate.generateZotDates(currentMonth, currentYear, currentSelectedZotDates);
+            }
+            return [];
+        },
+        [currentMonth, currentYear, selectedDays, mode]
     );
 
     const decrementMonth = () => {
@@ -64,16 +68,21 @@ export function Calendar({selectedDays, setSelectedDays, mode, setMode, selected
         startDate: ZotDate,
         endDate: ZotDate
     ): void => {
+        if (mode !== 'dates') {
+            return;
+        }
+
         const highlightedRange: Date[] = ZotDate.generateRange(
             startDate.day,
             endDate.day
         );
 
-        setSelectedDays((alreadySelectedDays: ZotDate[]) => {
-            let modifiedSelectedDays = [...alreadySelectedDays];
+        setSelectedDays((alreadySelectedDays: Array<ZotDate | string>) => {
+            let currentSelectedZotDates = alreadySelectedDays.filter(day => day instanceof ZotDate) as ZotDate[];
+            let modifiedSelectedDays = [...currentSelectedZotDates];
 
             highlightedRange.forEach((highlightedZotDate: Date) => {
-                const foundSelectedDay = alreadySelectedDays.find(
+                const foundSelectedDay = currentSelectedZotDates.find(
                     (d) => d.compareTo(new ZotDate(highlightedZotDate)) === 0
                 );
 
@@ -177,8 +186,8 @@ export function Calendar({selectedDays, setSelectedDays, mode, setMode, selected
                     )}
                     {mode === "days" && (
                         <DaySelector
-                            selectedWeekdays={selectedWeekdays}
-                            setSelectedWeekdays={setSelectedWeekdays}
+                            selectedDays={selectedDays as string[]}
+                            setSelectedDays={setSelectedDays as Dispatch<SetStateAction<string[]>>}
                         />
                     )}
                 </table>
