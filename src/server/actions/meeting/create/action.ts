@@ -2,10 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { InsertMeeting, meetings} from "@/db/schema";
+import { InsertMeeting, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { CreateMeetingPostParams } from "@/lib/types/meetings";
 import { ANCHOR_DATES } from "@/lib/types/chrono";
+import { CreateMeetingPostParams } from "@/lib/types/meetings";
 
 export async function createMeeting(meetingData: CreateMeetingPostParams) {
     const { title, description, fromTime, toTime, timezone, meetingDates, meetingType } =
@@ -29,11 +29,13 @@ export async function createMeeting(meetingData: CreateMeetingPostParams) {
         return { error: "Duplicate meeting dates provided." };
     }
     if (meetingType === "days") {
-        const invalidAnchorDates = meetingDates.filter(date => !ANCHOR_DATES.includes(date));
+        const invalidAnchorDates = meetingDates.filter(
+            (date) => !ANCHOR_DATES.includes(date)
+        );
         if (invalidAnchorDates.length > 0) {
             return { error: "Invalid date format for selected weekdays." };
         }
-    } 
+    }
 
     const meeting: InsertMeeting = {
         title,
