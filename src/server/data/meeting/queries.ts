@@ -25,21 +25,24 @@ export async function getExistingMeeting(
 }
 
 export async function getExistingMeetingDates(meetingId: string) {
-    const meetingDates = await db.query.meetings.findFirst({
+    const meeting = await db.query.meetings.findFirst({
         columns: {
             dates: true,
+            meetingType: true,
+            recurringDays: true,
         },
         where: eq(meetings.id, meetingId),
     });
 
-    if (!meetingDates) {
+    if (!meeting) {
         throw new Error("Meeting not found");
     }
 
-    const { dates } = meetingDates;
+    if (meeting.meetingType === "recurringWeekly") {
+        return [];
+    }
 
-    // TODO: sort dates in ascending order
-    return dates;
+    return meeting.dates || [];
 }
 
 // TODO (#auth): Replace `user` with User type
@@ -105,6 +108,8 @@ export async function getMeetings(memberId: string) {
             fromTime: meetings.fromTime,
             toTime: meetings.toTime,
             timezone: meetings.timezone,
+            meetingType: meetings.meetingType,
+            recurringDays: meetings.recurringDays,
             dates: meetings.dates,
             hostId: meetings.hostId,
             group_id: meetings.group_id,
