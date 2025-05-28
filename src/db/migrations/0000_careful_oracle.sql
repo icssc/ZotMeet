@@ -1,5 +1,14 @@
-CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');--> statement-breakpoint
-CREATE TYPE "public"."meeting_type" AS ENUM('dates', 'days');--> statement-breakpoint
+DO $$ BEGIN
+ CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
+DO $$ BEGIN
+ CREATE TYPE "public"."meeting_type" AS ENUM('dates', 'days');
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
 CREATE TABLE IF NOT EXISTS "availabilities" (
 	"member_id" uuid NOT NULL,
 	"meeting_id" uuid NOT NULL,
