@@ -44,6 +44,7 @@ interface GroupAvailabilityProps {
     fromTime: number;
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
+    meetingType: string;
 }
 
 export function GroupAvailability({
@@ -52,6 +53,7 @@ export function GroupAvailability({
     fromTime,
     availabilityDates,
     currentPageAvailability,
+    meetingType,
 }: GroupAvailabilityProps) {
     const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
         useAvailabilityPaginationStore();
@@ -270,6 +272,7 @@ export function GroupAvailability({
                 <table className="w-full table-fixed">
                     <AvailabilityTableHeader
                         currentPageAvailability={currentPageAvailability}
+                        meetingType={meetingType}
                     />
 
                     <tbody>

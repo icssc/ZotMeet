@@ -1,17 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import { Button } from "@/components/ui/button";
+import { SelectMeeting } from "@/db/schema";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
 
 export function Creation() {
-    const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
+    const [selectedDays, setSelectedDays] = useState<Array<ZotDate | string>>(
+        []
+    );
+    const [calendarView, setCalendarView] =
+        useState<SelectMeeting["meetingType"]>("dates");
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
     const [meetingName, setMeetingName] = useState("");
@@ -21,18 +26,33 @@ export function Creation() {
         if (isCreating) return;
         setIsCreating(true);
 
-        const newMeeting = {
+        const newMeetingBase = {
             title: meetingName,
             fromTime: startTime,
             toTime: endTime,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            meetingDates: selectedDays.map((zotDate) =>
-                zotDate.day.toISOString()
-            ),
             description: "",
         };
 
-        const result = await createMeeting(newMeeting);
+        let newMeetingPayload;
+
+        if (calendarView === "dates") {
+            newMeetingPayload = {
+                ...newMeetingBase,
+                meetingDates: selectedDays.map((zotDate) =>
+                    (zotDate as ZotDate).day.toISOString()
+                ),
+                meetingType: "dates" as const,
+            };
+        } else {
+            newMeetingPayload = {
+                ...newMeetingBase,
+                meetingType: "days" as const,
+                meetingDates: selectedDays as string[],
+            };
+        }
+
+        const result = await createMeeting(newMeetingPayload);
 
         if (result?.error) {
             console.error("Failed to create meeting: ", result.error);
@@ -40,14 +60,15 @@ export function Creation() {
         }
     };
 
+    useEffect(() => {
+        setSelectedDays([]);
+    }, [calendarView]);
+
     const hasValidInputs = useMemo(() => {
-        return (
-            selectedDays.length > 0 &&
-            startTime &&
-            endTime &&
-            startTime < endTime &&
-            meetingName
-        );
+        const timeIsValid = startTime && endTime && startTime < endTime;
+        const nameIsValid = meetingName.length > 0;
+        const datesSelected = selectedDays.length > 0;
+        return timeIsValid && nameIsValid && datesSelected;
     }, [selectedDays.length, startTime, endTime, meetingName]);
 
     return (
@@ -79,11 +100,15 @@ export function Creation() {
             <Calendar
                 selectedDays={selectedDays}
                 setSelectedDays={setSelectedDays}
+                mode={calendarView}
+                setMode={setCalendarView}
             />
 
             <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0">
                 <p className="text-sm font-bold uppercase text-slate-medium">
-                    {selectedDays.length} days selected
+                    {calendarView === "dates"
+                        ? `${selectedDays.length} days selected`
+                        : `${selectedDays.length} days of week selected`}
                 </p>
 
                 <Button

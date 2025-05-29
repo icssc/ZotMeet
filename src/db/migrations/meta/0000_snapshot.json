@@ -1,5 +1,5 @@
 {
-  "id": "84d75ce1-68c2-4353-8803-b073390c0728",
+  "id": "a5bab87c-1ee3-4349-a7a1-ea9660a2699e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -201,8 +201,16 @@
           "name": "dates",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "'[]'::jsonb"
+        },
+        "meeting_type": {
+          "name": "meeting_type",
+          "type": "meeting_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'dates'"
         },
         "created_at": {
           "name": "created_at",
@@ -528,6 +536,14 @@
         "accepted",
         "maybe",
         "declined"
+      ]
+    },
+    "public.meeting_type": {
+      "name": "meeting_type",
+      "schema": "public",
+      "values": [
+        "dates",
+        "days"
       ]
     }
   },
