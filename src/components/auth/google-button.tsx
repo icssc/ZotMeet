@@ -1,17 +1,18 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function GoogleButton() {
     return (
-        <Button
-            asChild
-            className="w-full font-semibold"
+        <form
+            action="/auth/login/google"
+            method="GET"
+            className="w-full"
         >
-            <Link
-                href={`${process.env.NEXT_PUBLIC_BASE_URL}/auth/login/google`}
+            <Button
+                type="submit"
+                className="w-full font-semibold"
             >
                 Sign in with Google
-            </Link>
-        </Button>
+            </Button>
+        </form>
     );
 }
