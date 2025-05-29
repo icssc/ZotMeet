@@ -24,6 +24,10 @@ export default $config({
                     $app.stage === "prod"
                         ? "https://zotmeet.com/auth/login/google/callback"
                         : "http://localhost:3000/auth/login/google/callback",
+                NEXT_PUBLIC_BASE_URL:
+                    $app.stage === "prod"
+                        ? "https://zotmeet.com"
+                        : "http://localhost:3000",
             },
             domain: {
                 name: `${$app.stage === "prod" ? "" : `${$app.stage}.`}zotmeet.com`,
