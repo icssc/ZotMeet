@@ -41,3 +41,6 @@ next-env.d.ts
 
 # open-next
 .open-next
+
+#anteaterapi types
+src/lib/types/anteater-api-types.ts
