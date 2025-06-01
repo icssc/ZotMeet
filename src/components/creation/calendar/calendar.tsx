@@ -1,25 +1,43 @@
 import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { CalendarBody } from "@/components/creation/calendar/calendar-body";
+import { DaySelector } from "@/components/creation/calendar/day-selector";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { SelectMeeting } from "@/db/schema";
 import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 
 interface CalendarProps {
-    selectedDays: ZotDate[];
-    setSelectedDays: Dispatch<SetStateAction<ZotDate[]>>;
+    selectedDays: Array<ZotDate | string>;
+    setSelectedDays: Dispatch<SetStateAction<Array<ZotDate | string>>>;
+    mode: SelectMeeting["meetingType"];
+    setMode: Dispatch<SetStateAction<SelectMeeting["meetingType"]>>;
 }
 
-export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
+export function Calendar({
+    selectedDays,
+    setSelectedDays,
+    mode,
+    setMode,
+}: CalendarProps) {
     const today = new Date();
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
 
     const monthName = MONTHS[currentMonth];
-    const calendarDays = useMemo(
-        () => ZotDate.generateZotDates(currentMonth, currentYear, selectedDays),
-        [currentMonth, currentYear, selectedDays]
-    );
+    const calendarDays = useMemo(() => {
+        if (mode === "dates") {
+            const currentSelectedZotDates = selectedDays.filter(
+                (day) => day instanceof ZotDate
+            ) as ZotDate[];
+            return ZotDate.generateZotDates(
+                currentMonth,
+                currentYear,
+                currentSelectedZotDates
+            );
+        }
+        return [];
+    }, [currentMonth, currentYear, selectedDays, mode]);
 
     const decrementMonth = () => {
         let newMonth = currentMonth - 1;
@@ -56,16 +74,23 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
         startDate: ZotDate,
         endDate: ZotDate
     ): void => {
+        if (mode !== "dates") {
+            return;
+        }
+
         const highlightedRange: Date[] = ZotDate.generateRange(
             startDate.day,
             endDate.day
         );
 
-        setSelectedDays((alreadySelectedDays: ZotDate[]) => {
-            let modifiedSelectedDays = [...alreadySelectedDays];
+        setSelectedDays((alreadySelectedDays: Array<ZotDate | string>) => {
+            const currentSelectedZotDates = alreadySelectedDays.filter(
+                (day) => day instanceof ZotDate
+            ) as ZotDate[];
+            let modifiedSelectedDays = [...currentSelectedZotDates];
 
             highlightedRange.forEach((highlightedZotDate: Date) => {
-                const foundSelectedDay = alreadySelectedDays.find(
+                const foundSelectedDay = currentSelectedZotDates.find(
                     (d) => d.compareTo(new ZotDate(highlightedZotDate)) === 0
                 );
 
@@ -95,53 +120,97 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
 
     return (
         <div className="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:p-5">
-            <Button
-                onClick={decrementMonth}
-                className="bg-transparent p-3 hover:bg-transparent md:pl-1"
-            >
-                <span className="text-3xl text-gray-500">&lsaquo;</span>
-            </Button>
+            {mode === "dates" && (
+                <Button
+                    onClick={decrementMonth}
+                    className="bg-transparent p-3 hover:bg-transparent md:pl-1"
+                >
+                    <span className="text-3xl text-gray-500">&lsaquo;</span>
+                </Button>
+            )}
 
             <div className="md:px-4">
-                <div className="flex flex-col pb-5 md:pb-6">
-                    <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
-                        {monthName} {currentYear}
-                    </h3>
+                <div className="flex items-center justify-between pb-5 md:pb-6">
+                    <div className="flex flex-col">
+                        {mode === "dates" ? (
+                            <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
+                                {monthName} {currentYear}
+                            </h3>
+                        ) : (
+                            <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
+                                Select Days
+                            </h3>
+                        )}
+                    </div>
+                    <div className="flex space-x-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className={`font-light ${mode === "dates" ? "bg-gray-200" : ""}`}
+                            onClick={() => setMode("dates")}
+                        >
+                            Specific dates
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className={`font-light ${mode === "days" ? "bg-gray-200" : ""}`}
+                            onClick={() => setMode("days")}
+                        >
+                            Days of the week
+                        </Button>
+                    </div>
                 </div>
 
                 <table className="w-full table-fixed p-3">
-                    <thead>
-                        <tr>
-                            {WEEKDAYS.map((dayOfWeek) => (
-                                <th
-                                    className="px-0"
-                                    key={dayOfWeek}
-                                >
-                                    <div>
-                                        <p className="w-full text-center text-sm font-light uppercase text-slate-medium md:font-bold">
-                                            {dayOfWeek}
-                                        </p>
-                                    </div>
-                                    <Separator className="my-2 h-[2px] bg-slate-base" />
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
+                    {mode === "dates" && (
+                        <>
+                            <thead>
+                                <tr>
+                                    {WEEKDAYS.map((dayOfWeek) => (
+                                        <th
+                                            className="px-0"
+                                            key={dayOfWeek}
+                                        >
+                                            <div>
+                                                <p className="w-full text-center text-sm font-light uppercase text-slate-medium md:font-bold">
+                                                    {dayOfWeek}
+                                                </p>
+                                            </div>
+                                            <Separator className="my-2 h-[2px] bg-slate-base" />
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
 
-                    <CalendarBody
-                        calendarDays={calendarDays}
-                        currentMonth={currentMonth}
-                        updateSelectedRange={updateSelectedRange}
-                    />
+                            <CalendarBody
+                                calendarDays={calendarDays}
+                                currentMonth={currentMonth}
+                                updateSelectedRange={updateSelectedRange}
+                            />
+                        </>
+                    )}
+                    {mode === "days" && (
+                        <DaySelector
+                            selectedDays={selectedDays as string[]}
+                            setSelectedDays={
+                                setSelectedDays as Dispatch<
+                                    SetStateAction<string[]>
+                                >
+                            }
+                        />
+                    )}
                 </table>
             </div>
 
-            <Button
-                onClick={incrementMonth}
-                className="bg-transparent p-3 hover:bg-transparent md:pr-1"
-            >
-                <span className="text-3xl text-gray-500">&rsaquo;</span>
-            </Button>
+            {mode === "dates" && (
+                <Button
+                    onClick={incrementMonth}
+                    className="bg-transparent p-3 hover:bg-transparent md:pr-1"
+                >
+                    <span className="text-3xl text-gray-500">&rsaquo;</span>
+                </Button>
+            )}
         </div>
     );
 }
