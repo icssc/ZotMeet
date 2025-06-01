@@ -1,13 +1,9 @@
-import type { paths } from "@/lib/types/anteater-api-types";
+"use server";
 
-type studyRoomsByFilters =
-    paths["/v2/rest/studyRooms"]["get"]["parameters"]["query"];
+import { StudyRooms, StudyRoomsByFilters } from "@/lib/types/studyrooms";
 
-type studyRooms =
-    paths["/v2/rest/studyRooms"]["get"]["responses"]["200"]["content"]["application/json"];
-
-export async function getStudyRoomProps(dates: string, times: string) {
-    const query: studyRoomsByFilters = { dates, times };
+export async function getStudyRooms(dates: string, times: string) {
+    const query: StudyRoomsByFilters = { dates, times };
     const params = new URLSearchParams(
         query as Record<string, string>
     ).toString();
@@ -19,9 +15,9 @@ export async function getStudyRoomProps(dates: string, times: string) {
         throw new Error(`API error: ${res.status} ${res.statusText}`);
     }
 
-    const data: studyRooms = await res.json();
+    const data: StudyRooms = await res.json();
 
     return {
-        props: { data },
+        data: data.data,
     };
 }
