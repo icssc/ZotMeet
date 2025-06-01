@@ -28,8 +28,6 @@ env:
     GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
     GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
     # GOOGLE_OAUTH_REDIRECT_URI: https://staging-${{ github.event.pull_request.number }}.zotmeet.com/auth/login/google/callback
-    NEXT_PUBLIC_BASE_URL:
-        https://staging-${{ github.event.pull_request.number }}.zotmeet.com
 
 jobs:
     deploy:
