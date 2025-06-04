@@ -1,13 +1,10 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
+import { GroupAvailabilityRow } from "@/components/availability/group-availability-row";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
-import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import { generateDateKey } from "@/lib/availability/utils";
-import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
@@ -40,18 +37,18 @@ export const getTimestampFromBlockIndex = (
 
 interface GroupAvailabilityProps {
     availabilityTimeBlocks: number[];
-    groupAvailabilities: MemberMeetingAvailability[];
     fromTime: number;
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
+    members: { memberId: string; displayName: string }[];
 }
 
 export function GroupAvailability({
     availabilityTimeBlocks,
-    groupAvailabilities,
     fromTime,
     availabilityDates,
     currentPageAvailability,
+    members,
 }: GroupAvailabilityProps) {
     const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
         useAvailabilityPaginationStore();
@@ -69,8 +66,6 @@ export function GroupAvailability({
         useState<string[]>([]);
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
-
-    const numMembers = groupAvailabilities.length;
 
     const updateSelection = useCallback(
         ({
@@ -94,9 +89,9 @@ export function GroupAvailability({
         setHoveredMember(null);
         setAvailableMembersOfSelection([]);
         setNotAvailableMembersOfSelection(
-            groupAvailabilities.map((member) => member.displayName)
+            members.map((member) => member.displayName)
         );
-    }, [groupAvailabilities]);
+    }, [members]);
 
     const handleCellClick = useCallback(
         ({
@@ -152,15 +147,13 @@ export function GroupAvailability({
 
             const availableMemberNames = availableMemberIds
                 .map((memberId) => {
-                    const member = groupAvailabilities.find(
-                        (m) => m.memberId === memberId
-                    );
+                    const member = members.find((m) => m.memberId === memberId);
                     return member?.displayName;
                 })
                 .filter(Boolean) as string[];
             setAvailableMembersOfSelection(availableMemberNames);
 
-            const notAvailableMembers = groupAvailabilities.filter(
+            const notAvailableMembers = members.filter(
                 (member) => !availableMemberIds.includes(member.memberId)
             );
             setNotAvailableMembersOfSelection(
@@ -171,8 +164,8 @@ export function GroupAvailability({
         selectedZotDateIndex,
         selectedBlockIndex,
         availabilityDates,
-        groupAvailabilities,
         fromTime,
+        members,
     ]);
 
     useEffect(() => {
@@ -252,9 +245,7 @@ export function GroupAvailability({
             return;
         }
 
-        const member = groupAvailabilities.find(
-            (m) => m.displayName === memberName
-        );
+        const member = members.find((m) => m.displayName === memberName);
         setHoveredMember(member ? member.memberId : null);
     };
 
@@ -273,134 +264,27 @@ export function GroupAvailability({
                     />
 
                     <tbody>
-                        {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
-                            const isTopOfHour = timeBlock % 60 === 0;
-                            const isHalfHour = timeBlock % 60 === 30;
-                            const isLastRow =
-                                blockIndex ===
-                                availabilityTimeBlocks.length - 1;
-
-                            return (
-                                <tr key={`block-${timeBlock}`}>
-                                    <AvailabilityTimeTicks
-                                        timeBlock={timeBlock}
-                                    />
-
-                                    {currentPageAvailability.map(
-                                        (selectedDate, pageDateIndex) => {
-                                            const key = generateDateKey({
-                                                selectedDate,
-                                                timeBlock,
-                                                pageDateIndex,
-                                            });
-
-                                            if (selectedDate) {
-                                                const zotDateIndex =
-                                                    pageDateIndex +
-                                                    currentPage * itemsPerPage;
-
-                                                const isSelected =
-                                                    selectedZotDateIndex ===
-                                                        zotDateIndex &&
-                                                    selectedBlockIndex ===
-                                                        blockIndex;
-
-                                                const timestamp =
-                                                    getTimestampFromBlockIndex(
-                                                        blockIndex,
-                                                        zotDateIndex,
-                                                        fromTime,
-                                                        availabilityDates
-                                                    );
-
-                                                // Get the block (array of member IDs available at this timestamp)
-                                                const block =
-                                                    selectedDate
-                                                        .groupAvailability[
-                                                        timestamp
-                                                    ] || [];
-
-                                                // Calculate block color
-                                                let blockColor = "transparent";
-                                                if (hoveredMember) {
-                                                    if (
-                                                        block.includes(
-                                                            hoveredMember
-                                                        )
-                                                    ) {
-                                                        blockColor =
-                                                            "rgba(55, 124, 251)";
-                                                    } else {
-                                                        blockColor =
-                                                            "transparent";
-                                                    }
-                                                } else if (numMembers > 0) {
-                                                    const opacity =
-                                                        block.length /
-                                                        numMembers;
-                                                    blockColor = `rgba(55, 124, 251, ${opacity})`;
-                                                }
-
-                                                const tableCellStyles = cn(
-                                                    isTopOfHour
-                                                        ? "border-t-[1px] border-t-gray-medium"
-                                                        : "",
-                                                    isHalfHour
-                                                        ? "border-t-[1px] border-t-gray-base"
-                                                        : "",
-                                                    isLastRow
-                                                        ? "border-b-[1px]"
-                                                        : "",
-                                                    isSelected
-                                                        ? "outline-dashed outline-2 outline-slate-500"
-                                                        : ""
-                                                );
-
-                                                return (
-                                                    <td
-                                                        key={key}
-                                                        className="px-0 py-0"
-                                                    >
-                                                        <GroupAvailabilityBlock
-                                                            className="group-availability-block block"
-                                                            onClick={() =>
-                                                                handleCellClick(
-                                                                    {
-                                                                        isSelected,
-                                                                        zotDateIndex,
-                                                                        blockIndex,
-                                                                    }
-                                                                )
-                                                            }
-                                                            onHover={() =>
-                                                                handleCellHover(
-                                                                    {
-                                                                        zotDateIndex,
-                                                                        blockIndex,
-                                                                    }
-                                                                )
-                                                            }
-                                                            block={block}
-                                                            blockColor={
-                                                                blockColor
-                                                            }
-                                                            tableCellStyles={
-                                                                tableCellStyles
-                                                            }
-                                                            hoveredMember={
-                                                                hoveredMember
-                                                            }
-                                                        />
-                                                    </td>
-                                                );
-                                            } else {
-                                                return <td key={key}></td>;
-                                            }
-                                        }
-                                    )}
-                                </tr>
-                            );
-                        })}
+                        {availabilityTimeBlocks.map((timeBlock, blockIndex) => (
+                            <GroupAvailabilityRow
+                                key={`block-${timeBlock}`}
+                                timeBlock={timeBlock}
+                                blockIndex={blockIndex}
+                                availabilityTimeBlocksLength={
+                                    availabilityTimeBlocks.length
+                                }
+                                currentPageAvailability={
+                                    currentPageAvailability
+                                }
+                                selectedZotDateIndex={selectedZotDateIndex}
+                                selectedBlockIndex={selectedBlockIndex}
+                                fromTime={fromTime}
+                                availabilityDates={availabilityDates}
+                                numMembers={members.length}
+                                hoveredMember={hoveredMember}
+                                handleCellClick={handleCellClick}
+                                handleCellHover={handleCellHover}
+                            />
+                        ))}
                     </tbody>
                 </table>
 
