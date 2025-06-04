@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { GroupAvailabilityRow } from "@/components/availability/group-availability-row";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
@@ -61,10 +61,6 @@ export function GroupAvailability({
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
     const [selectedZotDateIndex, setSelectedZotDateIndex] = useState<number>();
     const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>();
-    const [availableMembersOfSelection, setAvailableMembersOfSelection] =
-        useState<Member[]>([]);
-    const [notAvailableMembersOfSelection, setNotAvailableMembersOfSelection] =
-        useState<Member[]>([]);
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
 
@@ -88,9 +84,45 @@ export function GroupAvailability({
         setSelectedZotDateIndex(undefined);
         setSelectedBlockIndex(undefined);
         setHoveredMember(null);
-        setAvailableMembersOfSelection([]);
-        setNotAvailableMembersOfSelection(members);
-    }, [members]);
+    }, []);
+
+    const { availableMembers, notAvailableMembers } = useMemo(() => {
+        if (
+            selectedZotDateIndex === undefined ||
+            selectedBlockIndex === undefined
+        ) {
+            return {
+                availableMembers: [],
+                notAvailableMembers: members,
+            };
+        }
+
+        const selectedDate = availabilityDates[selectedZotDateIndex];
+        const timestamp = getTimestampFromBlockIndex(
+            selectedBlockIndex,
+            selectedZotDateIndex,
+            fromTime,
+            availabilityDates
+        );
+
+        const availableMemberIds =
+            selectedDate.groupAvailability[timestamp] || [];
+
+        return {
+            availableMembers: members.filter((member) =>
+                availableMemberIds.includes(member.memberId)
+            ),
+            notAvailableMembers: members.filter(
+                (member) => !availableMemberIds.includes(member.memberId)
+            ),
+        };
+    }, [
+        selectedZotDateIndex,
+        selectedBlockIndex,
+        availabilityDates,
+        fromTime,
+        members,
+    ]);
 
     const handleCellClick = useCallback(
         ({
@@ -126,42 +158,6 @@ export function GroupAvailability({
         },
         [selectionIsLocked, updateSelection]
     );
-
-    useEffect(() => {
-        if (
-            selectedZotDateIndex !== undefined &&
-            selectedBlockIndex !== undefined
-        ) {
-            const selectedDate = availabilityDates[selectedZotDateIndex];
-            const timestamp = getTimestampFromBlockIndex(
-                selectedBlockIndex,
-                selectedZotDateIndex,
-                fromTime,
-                availabilityDates
-            );
-
-            const availableMemberIds =
-                selectedDate.groupAvailability[timestamp] || [];
-
-            const availableMembers = availableMemberIds
-                .map((memberId) => {
-                    return members.find((m) => m.memberId === memberId);
-                })
-                .filter(Boolean) as Member[];
-            setAvailableMembersOfSelection(availableMembers);
-
-            const notAvailableMembers = members.filter(
-                (member) => !availableMemberIds.includes(member.memberId)
-            );
-            setNotAvailableMembersOfSelection(notAvailableMembers);
-        }
-    }, [
-        selectedZotDateIndex,
-        selectedBlockIndex,
-        availabilityDates,
-        fromTime,
-        members,
-    ]);
 
     useEffect(() => {
         const handleMouseMove = (event: MouseEvent) => {
@@ -295,8 +291,8 @@ export function GroupAvailability({
                 isMobileDrawerOpen={isMobileDrawerOpen}
                 selectedZotDateIndex={selectedZotDateIndex}
                 selectedBlockIndex={selectedBlockIndex}
-                availableMembersOfSelection={availableMembersOfSelection}
-                notAvailableMembersOfSelection={notAvailableMembersOfSelection}
+                availableMembersOfSelection={availableMembers}
+                notAvailableMembersOfSelection={notAvailableMembers}
                 closeMobileDrawer={resetSelection}
                 onMemberHover={handleMemberHover}
             />
