@@ -224,10 +224,17 @@ export function AvailabilityBody({
             ),
         ];
 
-        const allMembers = allAvailabilities.map((member) => ({
-            memberId: member.memberId,
-            displayName: member.displayName,
-        }));
+        const allMembers = [
+            ...new Set(allAvailabilities.map((member) => member.memberId)),
+        ].map((memberId) => {
+            const member = allAvailabilities.find(
+                (m) => m.memberId === memberId
+            );
+            return {
+                memberId: member!.memberId,
+                displayName: member!.displayName,
+            };
+        });
 
         if (
             user &&

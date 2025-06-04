@@ -27,6 +27,11 @@ export type MemberMeetingAvailability = Pick<
 > &
     Pick<SelectMember, "displayName">;
 
+export type Member = Pick<
+    MemberMeetingAvailability,
+    "memberId" | "displayName"
+>;
+
 export interface GoogleCalendarEvent {
     id: string;
     summary: string;

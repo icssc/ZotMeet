@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { GroupAvailabilityRow } from "@/components/availability/group-availability-row";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
+import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
@@ -40,7 +41,7 @@ interface GroupAvailabilityProps {
     fromTime: number;
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
-    members: { memberId: string; displayName: string }[];
+    members: Member[];
 }
 
 export function GroupAvailability({
@@ -60,10 +61,6 @@ export function GroupAvailability({
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
     const [selectedZotDateIndex, setSelectedZotDateIndex] = useState<number>();
     const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>();
-    const [availableMembersOfSelection, setAvailableMembersOfSelection] =
-        useState<string[]>([]);
-    const [notAvailableMembersOfSelection, setNotAvailableMembersOfSelection] =
-        useState<string[]>([]);
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
 
@@ -87,11 +84,45 @@ export function GroupAvailability({
         setSelectedZotDateIndex(undefined);
         setSelectedBlockIndex(undefined);
         setHoveredMember(null);
-        setAvailableMembersOfSelection([]);
-        setNotAvailableMembersOfSelection(
-            members.map((member) => member.displayName)
+    }, []);
+
+    const { availableMembers, notAvailableMembers } = useMemo(() => {
+        if (
+            selectedZotDateIndex === undefined ||
+            selectedBlockIndex === undefined
+        ) {
+            return {
+                availableMembers: [],
+                notAvailableMembers: members,
+            };
+        }
+
+        const selectedDate = availabilityDates[selectedZotDateIndex];
+        const timestamp = getTimestampFromBlockIndex(
+            selectedBlockIndex,
+            selectedZotDateIndex,
+            fromTime,
+            availabilityDates
         );
-    }, [members]);
+
+        const availableMemberIds =
+            selectedDate.groupAvailability[timestamp] || [];
+
+        return {
+            availableMembers: members.filter((member) =>
+                availableMemberIds.includes(member.memberId)
+            ),
+            notAvailableMembers: members.filter(
+                (member) => !availableMemberIds.includes(member.memberId)
+            ),
+        };
+    }, [
+        selectedZotDateIndex,
+        selectedBlockIndex,
+        availabilityDates,
+        fromTime,
+        members,
+    ]);
 
     const handleCellClick = useCallback(
         ({
@@ -127,46 +158,6 @@ export function GroupAvailability({
         },
         [selectionIsLocked, updateSelection]
     );
-
-    // Update selection members when selection changes
-    useEffect(() => {
-        if (
-            selectedZotDateIndex !== undefined &&
-            selectedBlockIndex !== undefined
-        ) {
-            const selectedDate = availabilityDates[selectedZotDateIndex];
-            const timestamp = getTimestampFromBlockIndex(
-                selectedBlockIndex,
-                selectedZotDateIndex,
-                fromTime,
-                availabilityDates
-            );
-
-            const availableMemberIds =
-                selectedDate.groupAvailability[timestamp] || [];
-
-            const availableMemberNames = availableMemberIds
-                .map((memberId) => {
-                    const member = members.find((m) => m.memberId === memberId);
-                    return member?.displayName;
-                })
-                .filter(Boolean) as string[];
-            setAvailableMembersOfSelection(availableMemberNames);
-
-            const notAvailableMembers = members.filter(
-                (member) => !availableMemberIds.includes(member.memberId)
-            );
-            setNotAvailableMembersOfSelection(
-                notAvailableMembers.map((member) => member.displayName)
-            );
-        }
-    }, [
-        selectedZotDateIndex,
-        selectedBlockIndex,
-        availabilityDates,
-        fromTime,
-        members,
-    ]);
 
     useEffect(() => {
         const handleMouseMove = (event: MouseEvent) => {
@@ -239,14 +230,14 @@ export function GroupAvailability({
         };
     }, [resetSelection]);
 
-    const handleMemberHover = (memberName: string | null) => {
-        if (memberName === null) {
+    const handleMemberHover = (memberId: string | null) => {
+        if (memberId === null) {
             setHoveredMember(null);
             return;
         }
 
-        const member = members.find((m) => m.displayName === memberName);
-        setHoveredMember(member ? member.memberId : null);
+        const member = members.find((m) => m.memberId === memberId);
+        setHoveredMember(member ? member.displayName : null);
     };
 
     return (
@@ -300,8 +291,8 @@ export function GroupAvailability({
                 isMobileDrawerOpen={isMobileDrawerOpen}
                 selectedZotDateIndex={selectedZotDateIndex}
                 selectedBlockIndex={selectedBlockIndex}
-                availableMembersOfSelection={availableMembersOfSelection}
-                notAvailableMembersOfSelection={notAvailableMembersOfSelection}
+                availableMembersOfSelection={availableMembers}
+                notAvailableMembersOfSelection={notAvailableMembers}
                 closeMobileDrawer={resetSelection}
                 onMemberHover={handleMemberHover}
             />
