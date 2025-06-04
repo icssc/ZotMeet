@@ -1,4 +1,5 @@
-import type { HourMinuteString } from "./chrono";
+import { meetingTypeEnum } from "@/db/schema";
+import type { HourMinuteString } from "@/lib/types/chrono";
 
 export type Group = { name: string; id: number; img: string; link: string };
 
@@ -41,6 +42,6 @@ export interface CreateMeetingPostParams {
     toTime: HourMinuteString;
     timezone: string; // IANA timezone string
     meetingDates: string[]; // ISO date strings
-    meetingType: "dates" | "days";
+    meetingType: typeof meetingTypeEnum;
     sessionId?: string;
 }

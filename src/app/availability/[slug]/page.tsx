@@ -77,7 +77,7 @@ export default async function Page({ params }: PageProps) {
         <div className="space-y-2 px-4">
             <AvailabilityBody
                 meetingData={meetingData}
-                meetingDates={meetingDates ?? []}
+                meetingDates={meetingDates}
                 userAvailability={userAvailability}
                 allAvailabilties={allAvailabilties}
                 user={session.user}

@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { InsertMeeting, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { ANCHOR_DATES } from "@/lib/types/chrono";
 import { CreateMeetingPostParams } from "@/lib/types/meetings";
+import { isAnchorDateString } from "@/lib/types/chrono";
 
 export async function createMeeting(meetingData: CreateMeetingPostParams) {
     const {
@@ -37,7 +37,7 @@ export async function createMeeting(meetingData: CreateMeetingPostParams) {
     }
     if (meetingType === "days") {
         const invalidAnchorDates = meetingDates.filter(
-            (date) => !ANCHOR_DATES.includes(date)
+            (date) => !isAnchorDateString(date)
         );
         if (invalidAnchorDates.length > 0) {
             return { error: "Invalid date format for selected weekdays." };

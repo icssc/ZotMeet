@@ -107,7 +107,6 @@ export function AvailabilityBody({
     allAvailabilties: MemberMeetingAvailability[];
     user: UserProfile | null;
 }) {
-    console.log("Meeting Data:", meetingData);
     const { availabilityView, setHasAvailability } = useAvailabilityViewStore();
     const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
 

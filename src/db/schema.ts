@@ -151,7 +151,10 @@ export const meetings = pgTable("meetings", {
     hostId: uuid("host_id")
         .references(() => members.id, { onDelete: "cascade" })
         .notNull(),
-    dates: jsonb("dates").$type<string[]>().default([]),
+    // JSON array of calendar dates 
+    //if meetingtype is "days" then array will contain anchor dates
+    // if meetingtype is "dates" then array will contain dates of the meeting
+    dates: jsonb("dates").$type<string[]>().notNull().default([]),
     meetingType: meetingTypeEnum("meeting_type").notNull().default("dates"),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
