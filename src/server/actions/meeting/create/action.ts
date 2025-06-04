@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { InsertMeeting, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { CreateMeetingPostParams } from "@/lib/types/meetings";
 import { isAnchorDateString } from "@/lib/types/chrono";
+import { CreateMeetingPostParams } from "@/lib/types/meetings";
 
 export async function createMeeting(meetingData: CreateMeetingPostParams) {
     const {

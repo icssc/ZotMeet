@@ -15,6 +15,7 @@ import type {
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
+import { SelectMeeting } from "@/db/schema";
 
 interface PersonalAvailabilityProps {
     userAvailability: MemberMeetingAvailability | null;
@@ -23,7 +24,7 @@ interface PersonalAvailabilityProps {
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
     googleCalendarEvents: GoogleCalendarEvent[];
-    meetingType: string;
+    meetingType: SelectMeeting["meetingType"];
     onAvailabilityChange: (updatedDates: ZotDate[]) => void;
 }
 

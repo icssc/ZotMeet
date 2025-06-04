@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
-import { ANCHOR_DATES, WEEKDAYS, getAnchorDateIndex } from "@/lib/types/chrono";
+import { ANCHOR_DATES, getAnchorDateIndex, WEEKDAYS } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 
 interface DaySelectorProps {
@@ -14,11 +14,13 @@ export function DaySelector({
 }: DaySelectorProps) {
     const handleDayClick = (dayIndex: number) => {
         const anchorDate = ANCHOR_DATES[dayIndex];
-        const anchorDateString = anchorDate.toISOString().split('T')[0];
+        const anchorDateString = anchorDate.toISOString().split("T")[0];
         const isSelected = selectedDays.includes(anchorDateString);
 
         if (isSelected) {
-            setSelectedDays(selectedDays.filter((date) => date !== anchorDateString));
+            setSelectedDays(
+                selectedDays.filter((date) => date !== anchorDateString)
+            );
         } else {
             setSelectedDays([...selectedDays, anchorDateString]);
         }
@@ -34,8 +36,11 @@ export function DaySelector({
                     <div className="grid grid-cols-7 gap-2 p-3">
                         {WEEKDAYS.map((dayOfWeek, index) => {
                             const anchorDate = ANCHOR_DATES[index];
-                            const anchorDateString = anchorDate.toISOString().split('T')[0];
-                            const isSelected = selectedDays.includes(anchorDateString);
+                            const anchorDateString = anchorDate
+                                .toISOString()
+                                .split("T")[0];
+                            const isSelected =
+                                selectedDays.includes(anchorDateString);
 
                             return (
                                 <Button

@@ -1,8 +1,9 @@
+import { SelectMeeting } from "@/db/schema";
 import { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityTableHeaderProps {
     currentPageAvailability: (ZotDate | null)[];
-    meetingType: string;
+    meetingType: SelectMeeting["meetingType"];
 }
 
 export function AvailabilityTableHeader({

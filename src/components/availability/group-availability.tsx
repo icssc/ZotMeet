@@ -11,6 +11,7 @@ import { MemberMeetingAvailability } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { SelectMeeting } from "@/db/schema";
 
 export const getTimestampFromBlockIndex = (
     blockIndex: number,
@@ -44,7 +45,7 @@ interface GroupAvailabilityProps {
     fromTime: number;
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
-    meetingType: string;
+    meetingType: SelectMeeting["meetingType"];
 }
 
 export function GroupAvailability({
