@@ -36,7 +36,6 @@ const deriveInitialAvailability = ({
     allAvailabilties: MemberMeetingAvailability[];
     availabilityTimeBlocks: number[];
 }) => {
-    console.log("HIT", meetingDates);
     const availabilitiesByDate = new Map<string, string[]>();
     if (userAvailability?.meetingAvailabilities) {
         userAvailability.meetingAvailabilities.forEach((timeStr) => {
@@ -66,7 +65,7 @@ const deriveInitialAvailability = ({
         }
     }
 
-    const foo = meetingDates
+    const initialAvailability = meetingDates
         .map((meetingDate) => {
             const date = toZonedTime(meetingDate, timezone);
             const dateStr = date.toISOString().split("T")[0];
@@ -92,8 +91,7 @@ const deriveInitialAvailability = ({
         })
         .sort((a, b) => a.day.getTime() - b.day.getTime());
 
-    console.log("foo", foo);
-    return foo;
+    return initialAvailability;
 };
 
 export function AvailabilityBody({
