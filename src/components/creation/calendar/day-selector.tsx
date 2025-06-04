@@ -20,10 +20,7 @@ export function DaySelector({
         if (isSelected) {
             setSelectedDays(selectedDays.filter((date) => date !== anchorDateString));
         } else {
-            const newSelectedDays = [...selectedDays, anchorDateString].sort(
-                (a, b) => getAnchorDateIndex(a) - getAnchorDateIndex(b)
-            );
-            setSelectedDays(newSelectedDays);
+            setSelectedDays([...selectedDays, anchorDateString]);
         }
     };
 

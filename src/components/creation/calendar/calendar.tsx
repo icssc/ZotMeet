@@ -10,15 +10,15 @@ import { ZotDate } from "@/lib/zotdate";
 interface CalendarProps {
     selectedDays: Array<ZotDate | string>;
     setSelectedDays: Dispatch<SetStateAction<Array<ZotDate | string>>>;
-    mode: SelectMeeting["meetingType"];
-    setMode: Dispatch<SetStateAction<SelectMeeting["meetingType"]>>;
+    calendarView: SelectMeeting["meetingType"];
+    setCalendarView: Dispatch<SetStateAction<SelectMeeting["meetingType"]>>;
 }
 
 export function Calendar({
     selectedDays,
     setSelectedDays,
-    mode,
-    setMode,
+    calendarView,
+    setCalendarView,
 }: CalendarProps) {
     const today = new Date();
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -26,7 +26,7 @@ export function Calendar({
 
     const monthName = MONTHS[currentMonth];
     const calendarDays = useMemo(() => {
-        if (mode === "dates") {
+        if (calendarView === "dates") {
             const currentSelectedZotDates = selectedDays.filter(
                 (day) => day instanceof ZotDate
             ) as ZotDate[];
@@ -37,7 +37,7 @@ export function Calendar({
             );
         }
         return [];
-    }, [currentMonth, currentYear, selectedDays, mode]);
+    }, [currentMonth, currentYear, selectedDays, calendarView]);
 
     const decrementMonth = () => {
         let newMonth = currentMonth - 1;
@@ -74,7 +74,7 @@ export function Calendar({
         startDate: ZotDate,
         endDate: ZotDate
     ): void => {
-        if (mode !== "dates") {
+        if (calendarView !== "dates") {
             return;
         }
 
@@ -120,7 +120,7 @@ export function Calendar({
 
     return (
         <div className="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:p-5">
-            {mode === "dates" && (
+            {calendarView === "dates" && (
                 <Button
                     onClick={decrementMonth}
                     className="bg-transparent p-3 hover:bg-transparent md:pl-1"
@@ -132,7 +132,7 @@ export function Calendar({
             <div className="md:px-4">
                 <div className="flex items-center justify-between pb-5 md:pb-6">
                     <div className="flex flex-col">
-                        {mode === "dates" ? (
+                        {calendarView === "dates" ? (
                             <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
                                 {monthName} {currentYear}
                             </h3>
@@ -146,16 +146,16 @@ export function Calendar({
                         <Button
                             variant="outline"
                             size="sm"
-                            className={`font-light ${mode === "dates" ? "bg-gray-200" : ""}`}
-                            onClick={() => setMode("dates")}
+                            className={`font-light ${calendarView === "dates" ? "bg-gray-200" : ""}`}
+                            onClick={() => setCalendarView("dates")}
                         >
                             Specific dates
                         </Button>
                         <Button
                             variant="outline"
                             size="sm"
-                            className={`font-light ${mode === "days" ? "bg-gray-200" : ""}`}
-                            onClick={() => setMode("days")}
+                            className={`font-light ${calendarView === "days" ? "bg-gray-200" : ""}`}
+                            onClick={() => setCalendarView("days")}
                         >
                             Days of the week
                         </Button>
@@ -163,7 +163,7 @@ export function Calendar({
                 </div>
 
                 <table className="w-full table-fixed p-3">
-                    {mode === "dates" && (
+                    {calendarView === "dates" && (
                         <>
                             <thead>
                                 <tr>
@@ -190,7 +190,7 @@ export function Calendar({
                             />
                         </>
                     )}
-                    {mode === "days" && (
+                    {calendarView === "days" && (
                         <DaySelector
                             selectedDays={selectedDays as string[]}
                             setSelectedDays={
@@ -203,7 +203,7 @@ export function Calendar({
                 </table>
             </div>
 
-            {mode === "dates" && (
+            {calendarView === "dates" && (
                 <Button
                     onClick={incrementMonth}
                     className="bg-transparent p-3 hover:bg-transparent md:pr-1"

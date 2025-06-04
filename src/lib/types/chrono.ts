@@ -50,9 +50,6 @@ export const ANCHOR_DATES: Date[] = [
     new Date(2023, 0, 7), 
 ];
 
-
-
-
 //Check if a date string matches any anchor date
 export function isAnchorDateString(dateString: string): boolean {
     return ANCHOR_DATES.some(anchorDate => (anchorDate.toISOString().split('T')[0]) === dateString);

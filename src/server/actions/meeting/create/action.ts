@@ -42,6 +42,12 @@ export async function createMeeting(meetingData: CreateMeetingPostParams) {
         if (invalidAnchorDates.length > 0) {
             return { error: "Invalid date format for selected weekdays." };
         }
+    } else if (meetingType === "dates") {
+        if (meetingDates.some((date) => isNaN(new Date(date).getTime()))) {
+            return { error: "Invalid date format provided." };
+        }
+    } else {
+        return { error: "Invalid meeting type provided." };
     }
 
     const meeting: InsertMeeting = {

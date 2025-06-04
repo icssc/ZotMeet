@@ -100,8 +100,8 @@ export function Creation() {
             <Calendar
                 selectedDays={selectedDays}
                 setSelectedDays={setSelectedDays}
-                mode={calendarView}
-                setMode={setCalendarView}
+                calendarView={calendarView}
+                setCalendarView={setCalendarView}
             />
 
             <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0">

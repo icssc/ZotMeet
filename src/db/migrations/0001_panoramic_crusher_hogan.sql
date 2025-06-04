@@ -1,0 +1,1 @@
+ALTER TABLE "meetings" ALTER COLUMN "dates" SET NOT NULL;
