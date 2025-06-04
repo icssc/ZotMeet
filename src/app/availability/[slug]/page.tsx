@@ -56,7 +56,7 @@ export default async function Page({ params }: PageProps) {
     }
 
     const meetingDates = await getExistingMeetingDates(meetingData.id);
-    const allAvailabilties = await getAllMemberAvailability({
+    const allAvailabilities = await getAllMemberAvailability({
         meetingId: meetingData.id,
     });
 
@@ -65,7 +65,7 @@ export default async function Page({ params }: PageProps) {
 
     if (session.user !== null) {
         const userId = session.user.memberId;
-        for (const availability of allAvailabilties) {
+        for (const availability of allAvailabilities) {
             if (availability.memberId === userId) {
                 userAvailability = availability;
                 break;
@@ -79,7 +79,7 @@ export default async function Page({ params }: PageProps) {
                 meetingData={meetingData}
                 meetingDates={meetingDates}
                 userAvailability={userAvailability}
-                allAvailabilties={allAvailabilties}
+                allAvailabilities={allAvailabilities}
                 user={session.user}
             />
         </div>
