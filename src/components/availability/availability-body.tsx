@@ -98,13 +98,13 @@ export function AvailabilityBody({
     meetingData,
     meetingDates,
     userAvailability,
-    allAvailabilties,
+    allAvailabilities,
     user,
 }: {
     meetingData: SelectMeeting;
     meetingDates: string[];
     userAvailability: MemberMeetingAvailability | null;
-    allAvailabilties: MemberMeetingAvailability[];
+    allAvailabilities: MemberMeetingAvailability[];
     user: UserProfile | null;
 }) {
     const { availabilityView, setHasAvailability } = useAvailabilityViewStore();
@@ -129,7 +129,7 @@ export function AvailabilityBody({
             timezone: meetingData.timezone,
             meetingDates,
             userAvailability,
-            allAvailabilties,
+            allAvailabilties: allAvailabilities,
             availabilityTimeBlocks,
         })
     );
@@ -215,6 +215,38 @@ export function AvailabilityBody({
         }
     }, [availabilityDates]);
 
+    const members = useMemo(() => {
+        const presentMemberIds = [
+            ...new Set(
+                availabilityDates.flatMap((date) =>
+                    Object.values(date.groupAvailability).flat()
+                )
+            ),
+        ];
+
+        const allMembers = [
+            ...new Set(allAvailabilities.map((member) => member.memberId)),
+        ].map((memberId) => {
+            const member = allAvailabilities.find(
+                (m) => m.memberId === memberId
+            );
+            return {
+                memberId: member!.memberId,
+                displayName: member!.displayName,
+            };
+        });
+
+        if (
+            user &&
+            presentMemberIds.includes(user.memberId) &&
+            !allMembers.some((member) => member.memberId === user.memberId)
+        ) {
+            allMembers.push(user);
+        }
+
+        return allMembers;
+    }, [allAvailabilities, availabilityDates, user]);
+
     return (
         <div className="space-y-6">
             <AvailabilityHeader
@@ -231,7 +263,7 @@ export function AvailabilityBody({
                     fromTime={fromTimeMinutes}
                     availabilityDates={availabilityDates}
                     currentPageAvailability={currentPageAvailability}
-                    groupAvailabilities={allAvailabilties}
+                    members={members}
                 />
             ) : (
                 <PersonalAvailability
@@ -240,7 +272,7 @@ export function AvailabilityBody({
                     availabilityDates={availabilityDates}
                     currentPageAvailability={currentPageAvailability}
                     googleCalendarEvents={googleCalendarEvents}
-                    userAvailability={userAvailability}
+                    user={user}
                     onAvailabilityChange={handleUserAvailabilityChange}
                 />
             )}

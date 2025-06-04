@@ -1,9 +1,6 @@
 "use server";
 
-import {
-    validateGoogleAccessToken,
-    type ValidateGoogleAccessTokenError,
-} from "@/lib/auth/google";
+import { validateGoogleAccessToken } from "@/lib/auth/google";
 import { GoogleCalendarEvent } from "@/lib/types/availability";
 import { google as googleClient } from "googleapis";
 

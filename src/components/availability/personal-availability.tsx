@@ -7,32 +7,32 @@ import { AvailabilityNavButton } from "@/components/availability/table/availabil
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import { useGoogleCalendar } from "@/hooks/use-google-calendar";
+import { UserProfile } from "@/lib/auth/user";
 import type {
     AvailabilityBlockType,
     GoogleCalendarEvent,
-    MemberMeetingAvailability,
 } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface PersonalAvailabilityProps {
-    userAvailability: MemberMeetingAvailability | null;
     availabilityTimeBlocks: number[];
     fromTime: number;
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
     googleCalendarEvents: GoogleCalendarEvent[];
+    user: UserProfile | null;
     onAvailabilityChange: (updatedDates: ZotDate[]) => void;
 }
 
 export function PersonalAvailability({
-    userAvailability,
     fromTime,
     availabilityTimeBlocks,
     availabilityDates,
     currentPageAvailability,
     googleCalendarEvents,
+    user,
     onAvailabilityChange,
 }: PersonalAvailabilityProps) {
     const {
@@ -43,10 +43,11 @@ export function PersonalAvailability({
         selectionState,
         setSelectionState,
     } = useBlockSelectionStore();
-    const [isEditingAvailability, setIsEditingAvailability] = useState(false);
-    const [isStateUnsaved, setIsStateUnsaved] = useState(false);
     const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
         useAvailabilityPaginationStore();
+
+    const [isEditingAvailability, setIsEditingAvailability] = useState(false);
+    const [isStateUnsaved, setIsStateUnsaved] = useState(false);
 
     const isLastPage =
         currentPage ===
@@ -143,19 +144,18 @@ export function PersonalAvailability({
                         // Add user to availability if not already present
                         if (
                             !currentDate.groupAvailability[timestamp].includes(
-                                userAvailability?.memberId ?? ""
+                                user?.memberId ?? ""
                             )
                         ) {
                             currentDate.groupAvailability[timestamp].push(
-                                userAvailability?.memberId ?? ""
+                                user?.memberId ?? ""
                             );
                         }
                     } else {
                         // Remove user from availability
                         currentDate.groupAvailability[timestamp] =
                             currentDate.groupAvailability[timestamp].filter(
-                                (id) =>
-                                    id !== (userAvailability?.memberId ?? "")
+                                (id) => id !== (user?.memberId ?? "")
                             );
                     }
                 }
