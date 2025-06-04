@@ -20,7 +20,6 @@ import {
 
 interface AvailabilityHeaderProps {
     meetingData: SelectMeeting;
-    setMeetingData: (meetingData: SelectMeeting) => void;
     user: UserProfile | null;
     availabilityDates: ZotDate[];
     onCancel: () => void;
@@ -29,7 +28,6 @@ interface AvailabilityHeaderProps {
 
 export function AvailabilityHeader({
     meetingData,
-    setMeetingData,
     user,
     availabilityDates,
     onCancel,
@@ -170,7 +168,6 @@ export function AvailabilityHeader({
 
             <EditModal
                 meetingData={meetingData}
-                setMeetingData={setMeetingData}
                 isOpen={isEditModalOpen}
                 handleOpenChange={setIsEditModalOpen}
             />

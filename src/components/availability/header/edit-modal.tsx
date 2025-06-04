@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
@@ -19,17 +20,17 @@ import { toast } from "sonner";
 
 interface EditModalProps {
     meetingData: SelectMeeting;
-    setMeetingData: (meetingData: SelectMeeting) => void;
     isOpen: boolean;
     handleOpenChange: (open: boolean) => void;
 }
 
 export const EditModal = ({
     meetingData,
-    setMeetingData,
     isOpen,
     handleOpenChange,
 }: EditModalProps) => {
+    const router = useRouter();
+
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>(
         meetingData.dates.map((date) => new ZotDate(new Date(date)))
     );
@@ -60,7 +61,7 @@ export const EditModal = ({
 
         if (success) {
             toast.success("Meeting updated successfully!");
-            setMeetingData(updatedMeeting);
+            window.location.reload();
         } else {
             toast.error(error);
         }

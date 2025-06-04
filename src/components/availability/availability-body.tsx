@@ -37,7 +37,6 @@ const deriveInitialAvailability = ({
     availabilityTimeBlocks: number[];
 }) => {
     console.log("HIT", meetingDates);
-
     const availabilitiesByDate = new Map<string, string[]>();
     if (userAvailability?.meetingAvailabilities) {
         userAvailability.meetingAvailabilities.forEach((timeStr) => {
@@ -93,13 +92,12 @@ const deriveInitialAvailability = ({
         })
         .sort((a, b) => a.day.getTime() - b.day.getTime());
 
-    console.log("DERIVE", foo);
-
+    console.log("foo", foo);
     return foo;
 };
 
 export function AvailabilityBody({
-    meetingData: _meetingData,
+    meetingData,
     userAvailability,
     allAvailabilities,
     user,
@@ -112,8 +110,6 @@ export function AvailabilityBody({
     const { availabilityView, setHasAvailability } = useAvailabilityViewStore();
     const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
 
-    const [meetingData, setMeetingData] = useState(_meetingData);
-    console.log("data", meetingData);
     const fromTimeMinutes = getTimeFromHourMinuteString(
         meetingData.fromTime as HourMinuteString
     );
@@ -255,7 +251,6 @@ export function AvailabilityBody({
         <div className="space-y-6">
             <AvailabilityHeader
                 meetingData={meetingData}
-                setMeetingData={setMeetingData}
                 user={user}
                 availabilityDates={availabilityDates}
                 onCancel={handleCancelEditing}
