@@ -5,6 +5,7 @@ import { GroupAvailabilityRow } from "@/components/availability/group-availabili
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
+import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
@@ -40,7 +41,7 @@ interface GroupAvailabilityProps {
     fromTime: number;
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
-    members: { memberId: string; displayName: string }[];
+    members: Member[];
 }
 
 export function GroupAvailability({
@@ -61,9 +62,9 @@ export function GroupAvailability({
     const [selectedZotDateIndex, setSelectedZotDateIndex] = useState<number>();
     const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>();
     const [availableMembersOfSelection, setAvailableMembersOfSelection] =
-        useState<string[]>([]);
+        useState<Member[]>([]);
     const [notAvailableMembersOfSelection, setNotAvailableMembersOfSelection] =
-        useState<string[]>([]);
+        useState<Member[]>([]);
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
 
@@ -88,9 +89,7 @@ export function GroupAvailability({
         setSelectedBlockIndex(undefined);
         setHoveredMember(null);
         setAvailableMembersOfSelection([]);
-        setNotAvailableMembersOfSelection(
-            members.map((member) => member.displayName)
-        );
+        setNotAvailableMembersOfSelection(members);
     }, [members]);
 
     const handleCellClick = useCallback(
@@ -128,7 +127,6 @@ export function GroupAvailability({
         [selectionIsLocked, updateSelection]
     );
 
-    // Update selection members when selection changes
     useEffect(() => {
         if (
             selectedZotDateIndex !== undefined &&
@@ -145,20 +143,17 @@ export function GroupAvailability({
             const availableMemberIds =
                 selectedDate.groupAvailability[timestamp] || [];
 
-            const availableMemberNames = availableMemberIds
+            const availableMembers = availableMemberIds
                 .map((memberId) => {
-                    const member = members.find((m) => m.memberId === memberId);
-                    return member?.displayName;
+                    return members.find((m) => m.memberId === memberId);
                 })
-                .filter(Boolean) as string[];
-            setAvailableMembersOfSelection(availableMemberNames);
+                .filter(Boolean) as Member[];
+            setAvailableMembersOfSelection(availableMembers);
 
             const notAvailableMembers = members.filter(
                 (member) => !availableMemberIds.includes(member.memberId)
             );
-            setNotAvailableMembersOfSelection(
-                notAvailableMembers.map((member) => member.displayName)
-            );
+            setNotAvailableMembersOfSelection(notAvailableMembers);
         }
     }, [
         selectedZotDateIndex,
@@ -239,14 +234,14 @@ export function GroupAvailability({
         };
     }, [resetSelection]);
 
-    const handleMemberHover = (memberName: string | null) => {
-        if (memberName === null) {
+    const handleMemberHover = (memberId: string | null) => {
+        if (memberId === null) {
             setHoveredMember(null);
             return;
         }
 
-        const member = members.find((m) => m.displayName === memberName);
-        setHoveredMember(member ? member.memberId : null);
+        const member = members.find((m) => m.memberId === memberId);
+        setHoveredMember(member ? member.displayName : null);
     };
 
     return (
