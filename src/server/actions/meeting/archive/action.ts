@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
@@ -20,5 +19,5 @@ export async function archiveMeeting(id: string) {
         .set({ archived: true })
         .where(eq(meetings.id, meetingId));
 
-    redirect("/summary");
+    return { success: true };
 }

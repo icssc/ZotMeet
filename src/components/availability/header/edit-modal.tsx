@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
@@ -12,7 +12,6 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { SelectMeeting } from "@/db/schema";
-import { getTimeFromHourMinuteString } from "@/lib/availability/utils";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { editMeeting } from "@actions/meeting/edit/action";
@@ -20,64 +19,89 @@ import { toast } from "sonner";
 
 interface EditModalProps {
     meetingData: SelectMeeting;
+    setMeetingData: (meetingData: SelectMeeting) => void;
     isOpen: boolean;
-    onClose: () => void;
+    handleOpenChange: (open: boolean) => void;
 }
-const EditModal = ({ meetingData, isOpen, onClose }: EditModalProps) => {
-    const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
 
-    const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
-    const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
-    const [meetingName, setMeetingName] = useState("");
+export const EditModal = ({
+    meetingData,
+    setMeetingData,
+    isOpen,
+    handleOpenChange,
+}: EditModalProps) => {
+    const [selectedDays, setSelectedDays] = useState<ZotDate[]>(
+        meetingData.dates.map((date) => new ZotDate(new Date(date)))
+    );
+    const [startTime, setStartTime] = useState<HourMinuteString>(
+        meetingData.fromTime as HourMinuteString
+    );
+    const [endTime, setEndTime] = useState<HourMinuteString>(
+        meetingData.toTime as HourMinuteString
+    );
+    const [meetingName, setMeetingName] = useState(meetingData.title);
+
+    const handleEditClick = async () => {
+        const updatedMeetingData = {
+            title: meetingName,
+            description: meetingData.description || "",
+            fromTime: startTime,
+            toTime: endTime,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            dates: selectedDays.map((zotDate) => zotDate.day.toISOString()),
+        };
+
+        const updatedMeeting = {
+            ...meetingData,
+            ...updatedMeetingData,
+        };
+
+        const { success, error } = await editMeeting(updatedMeeting);
+
+        if (success) {
+            toast.success("Meeting updated successfully!");
+            setMeetingData(updatedMeeting);
+        } else {
+            toast.error(error);
+        }
+
+        handleOpenChange(false);
+    };
+
+    const hasValidInputs = useMemo(() => {
+        return (
+            selectedDays.length > 0 &&
+            startTime &&
+            endTime &&
+            startTime < endTime &&
+            meetingName
+        );
+    }, [selectedDays.length, startTime, endTime, meetingName]);
 
     if (!isOpen) {
         return null;
     }
 
-    const handleEditClick = async () => {
-        console.log("in handleEditClick");
-        const title = meetingName;
-        const fromTime = startTime;
-        const toTime = endTime;
-
-        const newMeetingDates = selectedDays;
-
-        const newMeeting = {
-            title,
-            description: "",
-            fromTime,
-            toTime,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            meetingDates: newMeetingDates.map((zotDate) =>
-                zotDate.day.toISOString()
-            ),
-        };
-
-        await editMeeting(meetingData, newMeeting);
-        toast.success("Meeting updated successfully!");
-        onClose();
-    };
     return (
-        <Dialog open={isOpen}>
-            <DialogContent className="md:max-w-1xl lg:max-h-lg overflow-y-auto rounded bg-white p-6 shadow-lg lg:max-w-2xl">
+        <Dialog
+            open={isOpen}
+            onOpenChange={handleOpenChange}
+        >
+            <DialogContent className="max-w-6xl">
                 <DialogHeader>
                     <DialogTitle>Edit Meeting</DialogTitle>
                 </DialogHeader>
-                <DialogDescription className="relative flex max-h-[60vh] w-full flex-col gap-6 overflow-y-auto rounded-xl border bg-white px-8 py-6 md:px-14">
+
+                <DialogDescription className="flex flex-col space-y-6 px-4 pb-6">
                     <MeetingNameField
-                        placeholder={meetingData.title}
                         meetingName={meetingName}
                         setMeetingName={setMeetingName}
                     />
 
                     <MeetingTimeField
-                        originalStartTime={getTimeFromHourMinuteString(
-                            meetingData.fromTime as HourMinuteString
-                        )}
-                        originalEndTime={getTimeFromHourMinuteString(
-                            meetingData.toTime as HourMinuteString
-                        )}
+                        startTime={startTime}
                         setStartTime={setStartTime}
+                        endTime={endTime}
                         setEndTime={setEndTime}
                     />
 
@@ -86,16 +110,17 @@ const EditModal = ({ meetingData, isOpen, onClose }: EditModalProps) => {
                         setSelectedDays={setSelectedDays}
                     />
                 </DialogDescription>
+
                 <DialogFooter>
                     <Button
-                        onClick={onClose}
-                        className="mt-4 rounded bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
+                        onClick={() => handleOpenChange(false)}
+                        variant={"outline"}
                     >
                         Close
                     </Button>
                     <Button
                         onClick={handleEditClick}
-                        className="mt-4 justify-end rounded bg-green-600 px-4 py-2 text-white transition hover:bg-green-700"
+                        disabled={!hasValidInputs}
                     >
                         Save
                     </Button>
@@ -104,5 +129,3 @@ const EditModal = ({ meetingData, isOpen, onClose }: EditModalProps) => {
         </Dialog>
     );
 };
-
-export { EditModal };

@@ -4,7 +4,6 @@ import { getCurrentSession } from "@/lib/auth";
 import {
     getAllMemberAvailability,
     getExistingMeeting,
-    getExistingMeetingDates,
 } from "@/server/data/meeting/queries";
 
 interface PageProps {
@@ -55,7 +54,6 @@ export default async function Page({ params }: PageProps) {
         notFound();
     }
 
-    const meetingDates = await getExistingMeetingDates(meetingData.id);
     const allAvailabilities = await getAllMemberAvailability({
         meetingId: meetingData.id,
     });
@@ -77,7 +75,6 @@ export default async function Page({ params }: PageProps) {
         <div className="space-y-2 px-4">
             <AvailabilityBody
                 meetingData={meetingData}
-                meetingDates={meetingDates}
                 userAvailability={userAvailability}
                 allAvailabilities={allAvailabilities}
                 user={session.user}

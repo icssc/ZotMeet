@@ -18,25 +18,49 @@ const convertTo24Hour = (hour: number, period: string) => {
     return hour.toString().padStart(2, "0");
 };
 
+const parseHourMinuteString = (
+    time: HourMinuteString
+): {
+    hour: number;
+    period: "AM" | "PM";
+} => {
+    const hour = parseInt(time.split(":")[0]);
+    let displayHour = hour;
+    const period = hour >= 12 ? "PM" : "AM";
+
+    if (hour > 12) {
+        displayHour = hour - 12;
+    } else if (hour === 0) {
+        displayHour = 12;
+    }
+
+    return { hour: displayHour, period };
+};
+
 interface MeetingTimeFieldProps {
-    originalStartTime?: number;
-    originalEndTime?: number;
+    startTime: HourMinuteString;
+    endTime: HourMinuteString;
     setStartTime: Dispatch<SetStateAction<HourMinuteString>>;
     setEndTime: Dispatch<SetStateAction<HourMinuteString>>;
 }
 
 export const MeetingTimeField = ({
-    originalStartTime,
-    originalEndTime,
+    startTime,
+    endTime,
     setStartTime,
     setEndTime,
 }: MeetingTimeFieldProps) => {
-    const startTime = originalStartTime ? originalStartTime : 9;
-    const endTime = originalEndTime ? originalEndTime : 1;
-    const [startHour, setStartHour] = useState(startTime);
-    const [endHour, setEndHour] = useState(endTime);
-    const [startPeriod, setStartPeriod] = useState("AM");
-    const [endPeriod, setEndPeriod] = useState("PM");
+    const { hour: initialStartHour, period: initialStartPeriod } =
+        parseHourMinuteString(startTime);
+    const { hour: initialEndHour, period: initialEndPeriod } =
+        parseHourMinuteString(endTime);
+
+    const [startHour, setStartHour] = useState(initialStartHour);
+    const [startPeriod, setStartPeriod] = useState<"AM" | "PM">(
+        initialStartPeriod
+    );
+    const [endHour, setEndHour] = useState(initialEndHour);
+    const [endPeriod, setEndPeriod] = useState<"AM" | "PM">(initialEndPeriod);
 
     const handleStartHourChange = (value: string) => {
         const hour = parseInt(value);
@@ -47,7 +71,7 @@ export const MeetingTimeField = ({
     };
 
     const handleStartPeriodChange = (value: string) => {
-        setStartPeriod(value);
+        setStartPeriod(value as "AM" | "PM");
         setStartTime(
             `${convertTo24Hour(startHour, value)}:00:00` as HourMinuteString
         );
@@ -62,7 +86,7 @@ export const MeetingTimeField = ({
     };
 
     const handleEndPeriodChange = (value: string) => {
-        setEndPeriod(value);
+        setEndPeriod(value as "AM" | "PM");
         setEndTime(
             `${convertTo24Hour(endHour, value)}:00:00` as HourMinuteString
         );

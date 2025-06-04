@@ -5,13 +5,13 @@ import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import { Button } from "@/components/ui/button";
+import type { UserProfile } from "@/lib/auth/user";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
-import { Toaster } from "sonner";
 
-export function Creation() {
+export function Creation({ user }: { user: UserProfile | null }) {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
@@ -26,10 +26,9 @@ export function Creation() {
             title: meetingName,
             fromTime: startTime,
             toTime: endTime,
+            hostId: user?.memberId ?? "",
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            meetingDates: selectedDays.map((zotDate) =>
-                zotDate.day.toISOString()
-            ),
+            dates: selectedDays.map((zotDate) => zotDate.day.toISOString()),
             description: "",
         };
 
@@ -53,7 +52,6 @@ export function Creation() {
 
     return (
         <div className="space-y-6 px-4 pb-6">
-            <Toaster />
             <div className="px-4 pt-8 md:pl-[60px] md:pt-10">
                 <h2 className="font-montserrat text-xl font-medium text-gray-dark md:text-2xl">
                     Let&apos;s plan your next meeting.
@@ -72,6 +70,8 @@ export function Creation() {
                     />
 
                     <MeetingTimeField
+                        startTime={startTime}
+                        endTime={endTime}
                         setStartTime={setStartTime}
                         setEndTime={setEndTime}
                     />
