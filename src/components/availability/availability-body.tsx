@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AvailabilityHeader } from "@/components/availability/availability-header";
 import { GroupAvailability } from "@/components/availability/group-availability";
+import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { SelectMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
@@ -65,7 +65,7 @@ const deriveInitialAvailability = ({
         }
     }
 
-    const foo = meetingDates
+    const initialAvailability = meetingDates
         .map((meetingDate) => {
             const date = toZonedTime(meetingDate, timezone);
             const dateStr = date.toISOString().split("T")[0];
@@ -91,18 +91,16 @@ const deriveInitialAvailability = ({
         })
         .sort((a, b) => a.day.getTime() - b.day.getTime());
 
-    return foo;
+    return initialAvailability;
 };
 
 export function AvailabilityBody({
     meetingData,
-    meetingDates,
     userAvailability,
     allAvailabilities,
     user,
 }: {
     meetingData: SelectMeeting;
-    meetingDates: string[];
     userAvailability: MemberMeetingAvailability | null;
     allAvailabilities: MemberMeetingAvailability[];
     user: UserProfile | null;
@@ -124,10 +122,10 @@ export function AvailabilityBody({
         GoogleCalendarEvent[]
     >([]);
 
-    const [availabilityDates, setAvailabilityDates] = useState(() =>
+    const [availabilityDates, setAvailabilityDates] = useState(
         deriveInitialAvailability({
             timezone: meetingData.timezone,
-            meetingDates,
+            meetingDates: meetingData.dates,
             userAvailability,
             allAvailabilties: allAvailabilities,
             availabilityTimeBlocks,

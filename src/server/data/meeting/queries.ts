@@ -14,7 +14,8 @@ export async function getExistingMeeting(
     meetingId: string
 ): Promise<SelectMeeting> {
     const meeting = await db.query.meetings.findFirst({
-        where: eq(meetings.id, meetingId),
+        where: and(eq(meetings.id, meetingId), eq(meetings.archived, false)),
+        orderBy: meetings.dates,
     });
 
     if (!meeting) {
@@ -22,24 +23,6 @@ export async function getExistingMeeting(
     }
 
     return meeting;
-}
-
-export async function getExistingMeetingDates(meetingId: string) {
-    const meetingDates = await db.query.meetings.findFirst({
-        columns: {
-            dates: true,
-        },
-        where: eq(meetings.id, meetingId),
-    });
-
-    if (!meetingDates) {
-        throw new Error("Meeting not found");
-    }
-
-    const { dates } = meetingDates;
-
-    // TODO: sort dates in ascending order
-    return dates;
 }
 
 // TODO (#auth): Replace `user` with User type
@@ -109,13 +92,17 @@ export async function getMeetings(memberId: string) {
             hostId: meetings.hostId,
             group_id: meetings.group_id,
             createdAt: meetings.createdAt,
+            archived: meetings.archived,
         })
         .from(meetings)
         .leftJoin(availabilities, eq(meetings.id, availabilities.meetingId))
         .where(
-            or(
-                eq(meetings.hostId, memberId),
-                eq(availabilities.memberId, memberId)
+            and(
+                eq(meetings.archived, false),
+                or(
+                    eq(meetings.hostId, memberId),
+                    eq(availabilities.memberId, memberId)
+                )
             )
         );
 

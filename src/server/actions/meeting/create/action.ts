@@ -4,10 +4,9 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { InsertMeeting, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { CreateMeetingPostParams } from "@/lib/types/meetings";
 
-export async function createMeeting(meetingData: CreateMeetingPostParams) {
-    const { title, description, fromTime, toTime, timezone, meetingDates } =
+export async function createMeeting(meetingData: InsertMeeting) {
+    const { title, description, fromTime, toTime, timezone, dates } =
         meetingData;
 
     const { user } = await getCurrentSession();
@@ -19,8 +18,8 @@ export async function createMeeting(meetingData: CreateMeetingPostParams) {
 
     if (
         fromTime >= toTime ||
-        meetingDates.length === 0 ||
-        new Set(meetingDates).size !== meetingDates.length
+        !dates?.length ||
+        new Set(dates).size !== dates.length
     ) {
         return { error: "Invalid meeting dates or times." };
     }
@@ -32,7 +31,7 @@ export async function createMeeting(meetingData: CreateMeetingPostParams) {
         toTime,
         timezone,
         hostId,
-        dates: meetingDates,
+        dates: dates,
     };
 
     const [newMeeting] = await db

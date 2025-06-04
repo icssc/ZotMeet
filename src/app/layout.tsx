@@ -11,6 +11,7 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { Toaster } from "sonner";
 
 const montserrat = Montserrat({
     subsets: ["latin"],
@@ -68,6 +69,8 @@ export default function RootLayout({
                         </div>
                     </SidebarInset>
                 </SidebarProvider>
+
+                <Toaster />
             </body>
         </html>
     );
