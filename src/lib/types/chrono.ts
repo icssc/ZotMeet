@@ -56,9 +56,3 @@ export function isAnchorDateString(dateString: string): boolean {
     );
 }
 
-//Gets the index of an anchor date
-export function getAnchorDateIndex(dateString: string): number {
-    return ANCHOR_DATES.findIndex(
-        (anchorDate) => anchorDate.toISOString().split("T")[0] === dateString
-    );
-}

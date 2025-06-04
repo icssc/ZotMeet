@@ -12,9 +12,7 @@ import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
 
 export function Creation() {
-    const [selectedDays, setSelectedDays] = useState<Array<ZotDate | string>>(
-        []
-    );
+    const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
     const [calendarView, setCalendarView] =
         useState<SelectMeeting["meetingType"]>("dates");
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
@@ -40,7 +38,7 @@ export function Creation() {
             newMeetingPayload = {
                 ...newMeetingBase,
                 meetingDates: selectedDays.map((zotDate) =>
-                    (zotDate as ZotDate).day.toISOString()
+                    zotDate.day.toISOString()
                 ),
                 meetingType: "dates" as const,
             };
@@ -48,7 +46,9 @@ export function Creation() {
             newMeetingPayload = {
                 ...newMeetingBase,
                 meetingType: "days" as const,
-                meetingDates: selectedDays as string[],
+                meetingDates: selectedDays.map((zotDate) => 
+                    zotDate.day.toISOString().split("T")[0]
+                ),
             };
         }
 

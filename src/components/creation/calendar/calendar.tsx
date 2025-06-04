@@ -8,8 +8,8 @@ import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 
 interface CalendarProps {
-    selectedDays: Array<ZotDate | string>;
-    setSelectedDays: Dispatch<SetStateAction<Array<ZotDate | string>>>;
+    selectedDays: ZotDate[];
+    setSelectedDays: Dispatch<SetStateAction<ZotDate[]>>;
     calendarView: SelectMeeting["meetingType"];
     setCalendarView: Dispatch<SetStateAction<SelectMeeting["meetingType"]>>;
 }
@@ -27,13 +27,10 @@ export function Calendar({
     const monthName = MONTHS[currentMonth];
     const calendarDays = useMemo(() => {
         if (calendarView === "dates") {
-            const currentSelectedZotDates = selectedDays.filter(
-                (day) => day instanceof ZotDate
-            ) as ZotDate[];
             return ZotDate.generateZotDates(
                 currentMonth,
                 currentYear,
-                currentSelectedZotDates
+                selectedDays
             );
         }
         return [];
@@ -83,14 +80,11 @@ export function Calendar({
             endDate.day
         );
 
-        setSelectedDays((alreadySelectedDays: Array<ZotDate | string>) => {
-            const currentSelectedZotDates = alreadySelectedDays.filter(
-                (day) => day instanceof ZotDate
-            ) as ZotDate[];
-            let modifiedSelectedDays = [...currentSelectedZotDates];
+        setSelectedDays((alreadySelectedDays: ZotDate[]) => {
+            let modifiedSelectedDays = [...alreadySelectedDays];
 
             highlightedRange.forEach((highlightedZotDate: Date) => {
-                const foundSelectedDay = currentSelectedZotDates.find(
+                const foundSelectedDay = alreadySelectedDays.find(
                     (d) => d.compareTo(new ZotDate(highlightedZotDate)) === 0
                 );
 
@@ -192,12 +186,8 @@ export function Calendar({
                     )}
                     {calendarView === "days" && (
                         <DaySelector
-                            selectedDays={selectedDays as string[]}
-                            setSelectedDays={
-                                setSelectedDays as Dispatch<
-                                    SetStateAction<string[]>
-                                >
-                            }
+                            selectedDays={selectedDays}
+                            setSelectedDays={setSelectedDays}
                         />
                     )}
                 </table>
