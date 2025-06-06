@@ -1,47 +1,46 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import { Button } from "@/components/ui/button";
-import { HourMinuteString } from "@/lib/types/chrono";
-import { cn } from "@/lib/utils";
-import { ZotDate } from "@/lib/zotdate";
-import { createMeeting } from "@actions/meeting/create/action";
-import { CreateMeetingPostParams } from "@/lib/types/meetings";
-import { useSession } from "@/context/SessionContext";
-import { 
+import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useSession } from "@/context/SessionContext";
+import { InsertMeeting } from "@/db/schema";
+import { HourMinuteString } from "@/lib/types/chrono";
+import { cn } from "@/lib/utils";
+import { ZotDate } from "@/lib/zotdate";
+import { createMeeting } from "@actions/meeting/create/action";
+import { toast } from "sonner";
 
 export function Creation() {
+    const { user, isLoggedIn } = useSession();
+
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
     const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
     const [meetingName, setMeetingName] = useState("");
     const [isCreating, setIsCreating] = useState(false);
 
-    const { isLoggedIn } = useSession(); 
-
     const handleCreation = async () => {
+        setIsCreating(true);
 
-        const newMeeting: CreateMeetingPostParams = {
-
+        const newMeeting = {
             title: meetingName,
             fromTime: startTime,
             toTime: endTime,
+            hostId: user?.memberId ?? "",
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            meetingDates: selectedDays.map((zotDate) =>
-                zotDate.day.toISOString()
-            ),
+            dates: selectedDays.map((zotDate) => zotDate.day.toISOString()),
             description: "",
             meetingType: "specificDates",
-        };
+        } satisfies InsertMeeting;
 
         const result = await createMeeting(newMeeting);
         const error = result?.error;
@@ -52,6 +51,8 @@ export function Creation() {
         } else {
             toast("Meeting created successfully!");
         }
+
+        setIsCreating(false);
     };
 
     const hasValidInputs = useMemo(() => {
@@ -64,8 +65,8 @@ export function Creation() {
         );
     }, [selectedDays.length, startTime, endTime, meetingName]);
 
-    const isButtonDisabled = !hasValidInputs || !isLoggedIn;
-    
+    const isButtonDisabled = !hasValidInputs || !isLoggedIn || isCreating;
+
     return (
         <div className="space-y-6 px-4 pb-6">
             <div className="px-4 pt-8 md:pl-[60px] md:pt-10">
@@ -86,6 +87,8 @@ export function Creation() {
                     />
 
                     <MeetingTimeField
+                        startTime={startTime}
+                        endTime={endTime}
                         setStartTime={setStartTime}
                         setEndTime={setEndTime}
                     />
@@ -97,8 +100,7 @@ export function Creation() {
                 setSelectedDays={setSelectedDays}
             />
 
-            <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 
-                md:w-full md:border-2 md:rounded-xl md:bottom-4 md:ml-0 md:drop-shadow-sm">
+            <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:bottom-4 md:ml-0 md:w-full md:rounded-xl md:border-2 md:drop-shadow-sm">
                 <p className="text-sm font-bold uppercase text-slate-medium">
                     {selectedDays.length} days selected
                 </p>
@@ -109,22 +111,23 @@ export function Creation() {
                                 className={cn(
                                     "w-48 rounded-lg border-none bg-green-500 font-montserrat text-xl font-medium text-gray-light hover:bg-green-500/80"
                                 )}
-                    disabled={isButtonDisabled}
-                    onClick={handleCreation}
-                >
+                                disabled={isButtonDisabled}
+                                onClick={handleCreation}
+                            >
                                 Continue →
                             </Button>
                         </TooltipTrigger>
                         {isButtonDisabled && (
                             <TooltipContent>
-                                {!isLoggedIn ? "Please log in to continue." 
-                                : !hasValidInputs ? "Please fill out all fields." 
-                                : ""}
+                                {!isLoggedIn
+                                    ? "Please log in to continue."
+                                    : !hasValidInputs
+                                      ? "Please fill out all fields."
+                                      : ""}
                             </TooltipContent>
                         )}
                     </Tooltip>
                 </TooltipProvider>
-
             </div>
         </div>
     );

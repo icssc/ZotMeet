@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AvailabilityHeader } from "@/components/availability/availability-header";
 import { GroupAvailability } from "@/components/availability/group-availability";
+import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { SelectMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
@@ -65,7 +65,7 @@ const deriveInitialAvailability = ({
         }
     }
 
-    const foo = meetingDates
+    const initialAvailability = meetingDates
         .map((meetingDate) => {
             const date = toZonedTime(meetingDate, timezone);
             const dateStr = date.toISOString().split("T")[0];
@@ -91,20 +91,18 @@ const deriveInitialAvailability = ({
         })
         .sort((a, b) => a.day.getTime() - b.day.getTime());
 
-    return foo;
+    return initialAvailability;
 };
 
 export function AvailabilityBody({
     meetingData,
-    meetingDates,
     userAvailability,
-    allAvailabilties,
+    allAvailabilities,
     user,
 }: {
     meetingData: SelectMeeting;
-    meetingDates: string[];
     userAvailability: MemberMeetingAvailability | null;
-    allAvailabilties: MemberMeetingAvailability[];
+    allAvailabilities: MemberMeetingAvailability[];
     user: UserProfile | null;
 }) {
     const { availabilityView, setHasAvailability } = useAvailabilityViewStore();
@@ -124,12 +122,12 @@ export function AvailabilityBody({
         GoogleCalendarEvent[]
     >([]);
 
-    const [availabilityDates, setAvailabilityDates] = useState(() =>
+    const [availabilityDates, setAvailabilityDates] = useState(
         deriveInitialAvailability({
             timezone: meetingData.timezone,
-            meetingDates,
+            meetingDates: meetingData.dates,
             userAvailability,
-            allAvailabilties,
+            allAvailabilties: allAvailabilities,
             availabilityTimeBlocks,
         })
     );
@@ -215,6 +213,38 @@ export function AvailabilityBody({
         }
     }, [availabilityDates]);
 
+    const members = useMemo(() => {
+        const presentMemberIds = [
+            ...new Set(
+                availabilityDates.flatMap((date) =>
+                    Object.values(date.groupAvailability).flat()
+                )
+            ),
+        ];
+
+        const allMembers = [
+            ...new Set(allAvailabilities.map((member) => member.memberId)),
+        ].map((memberId) => {
+            const member = allAvailabilities.find(
+                (m) => m.memberId === memberId
+            );
+            return {
+                memberId: member!.memberId,
+                displayName: member!.displayName,
+            };
+        });
+
+        if (
+            user &&
+            presentMemberIds.includes(user.memberId) &&
+            !allMembers.some((member) => member.memberId === user.memberId)
+        ) {
+            allMembers.push(user);
+        }
+
+        return allMembers;
+    }, [allAvailabilities, availabilityDates, user]);
+
     return (
         <div className="space-y-6">
             <AvailabilityHeader
@@ -231,7 +261,7 @@ export function AvailabilityBody({
                     fromTime={fromTimeMinutes}
                     availabilityDates={availabilityDates}
                     currentPageAvailability={currentPageAvailability}
-                    groupAvailabilities={allAvailabilties}
+                    members={members}
                 />
             ) : (
                 <PersonalAvailability
@@ -240,7 +270,7 @@ export function AvailabilityBody({
                     availabilityDates={availabilityDates}
                     currentPageAvailability={currentPageAvailability}
                     googleCalendarEvents={googleCalendarEvents}
-                    userAvailability={userAvailability}
+                    user={user}
                     onAvailabilityChange={handleUserAvailabilityChange}
                 />
             )}

@@ -4,7 +4,6 @@ import { getCurrentSession } from "@/lib/auth";
 import {
     getAllMemberAvailability,
     getExistingMeeting,
-    getExistingMeetingDates,
 } from "@/server/data/meeting/queries";
 
 interface PageProps {
@@ -55,8 +54,7 @@ export default async function Page({ params }: PageProps) {
         notFound();
     }
 
-    const meetingDates = await getExistingMeetingDates(meetingData.id);
-    const allAvailabilties = await getAllMemberAvailability({
+    const allAvailabilities = await getAllMemberAvailability({
         meetingId: meetingData.id,
     });
 
@@ -65,7 +63,7 @@ export default async function Page({ params }: PageProps) {
 
     if (session.user !== null) {
         const userId = session.user.memberId;
-        for (const availability of allAvailabilties) {
+        for (const availability of allAvailabilities) {
             if (availability.memberId === userId) {
                 userAvailability = availability;
                 break;
@@ -77,9 +75,8 @@ export default async function Page({ params }: PageProps) {
         <div className="space-y-2 px-4">
             <AvailabilityBody
                 meetingData={meetingData}
-                meetingDates={meetingDates}
                 userAvailability={userAvailability}
-                allAvailabilties={allAvailabilties}
+                allAvailabilities={allAvailabilities}
                 user={session.user}
             />
         </div>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Montserrat } from "next/font/google";
 import localFont from "next/font/local";
-import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
 
@@ -11,9 +10,10 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
-import { getCurrentSession } from "@/lib/auth";
+import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "@/context/SessionContext";
+import { getCurrentSession } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 const montserrat = Montserrat({
     subsets: ["latin"],
@@ -50,6 +50,7 @@ export default async function RootLayout({
     children: React.ReactNode;
 }>) {
     const auth = await getCurrentSession();
+
     return (
         <html lang="en">
             <body

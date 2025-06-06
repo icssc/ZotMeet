@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
-import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { GroupAvailabilityRow } from "@/components/availability/group-availability-row";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
-import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import { generateDateKey } from "@/lib/availability/utils";
-import { MemberMeetingAvailability } from "@/lib/types/availability";
+import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
@@ -40,18 +38,18 @@ export const getTimestampFromBlockIndex = (
 
 interface GroupAvailabilityProps {
     availabilityTimeBlocks: number[];
-    groupAvailabilities: MemberMeetingAvailability[];
     fromTime: number;
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
+    members: Member[];
 }
 
 export function GroupAvailability({
     availabilityTimeBlocks,
-    groupAvailabilities,
     fromTime,
     availabilityDates,
     currentPageAvailability,
+    members,
 }: GroupAvailabilityProps) {
     const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
         useAvailabilityPaginationStore();
@@ -63,14 +61,8 @@ export function GroupAvailability({
     const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
     const [selectedZotDateIndex, setSelectedZotDateIndex] = useState<number>();
     const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>();
-    const [availableMembersOfSelection, setAvailableMembersOfSelection] =
-        useState<string[]>([]);
-    const [notAvailableMembersOfSelection, setNotAvailableMembersOfSelection] =
-        useState<string[]>([]);
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
-
-    const numMembers = groupAvailabilities.length;
 
     const updateSelection = useCallback(
         ({
@@ -92,11 +84,45 @@ export function GroupAvailability({
         setSelectedZotDateIndex(undefined);
         setSelectedBlockIndex(undefined);
         setHoveredMember(null);
-        setAvailableMembersOfSelection([]);
-        setNotAvailableMembersOfSelection(
-            groupAvailabilities.map((member) => member.displayName)
+    }, []);
+
+    const { availableMembers, notAvailableMembers } = useMemo(() => {
+        if (
+            selectedZotDateIndex === undefined ||
+            selectedBlockIndex === undefined
+        ) {
+            return {
+                availableMembers: [],
+                notAvailableMembers: members,
+            };
+        }
+
+        const selectedDate = availabilityDates[selectedZotDateIndex];
+        const timestamp = getTimestampFromBlockIndex(
+            selectedBlockIndex,
+            selectedZotDateIndex,
+            fromTime,
+            availabilityDates
         );
-    }, [groupAvailabilities]);
+
+        const availableMemberIds =
+            selectedDate.groupAvailability[timestamp] || [];
+
+        return {
+            availableMembers: members.filter((member) =>
+                availableMemberIds.includes(member.memberId)
+            ),
+            notAvailableMembers: members.filter(
+                (member) => !availableMemberIds.includes(member.memberId)
+            ),
+        };
+    }, [
+        selectedZotDateIndex,
+        selectedBlockIndex,
+        availabilityDates,
+        fromTime,
+        members,
+    ]);
 
     const handleCellClick = useCallback(
         ({
@@ -132,48 +158,6 @@ export function GroupAvailability({
         },
         [selectionIsLocked, updateSelection]
     );
-
-    // Update selection members when selection changes
-    useEffect(() => {
-        if (
-            selectedZotDateIndex !== undefined &&
-            selectedBlockIndex !== undefined
-        ) {
-            const selectedDate = availabilityDates[selectedZotDateIndex];
-            const timestamp = getTimestampFromBlockIndex(
-                selectedBlockIndex,
-                selectedZotDateIndex,
-                fromTime,
-                availabilityDates
-            );
-
-            const availableMemberIds =
-                selectedDate.groupAvailability[timestamp] || [];
-
-            const availableMemberNames = availableMemberIds
-                .map((memberId) => {
-                    const member = groupAvailabilities.find(
-                        (m) => m.memberId === memberId
-                    );
-                    return member?.displayName;
-                })
-                .filter(Boolean) as string[];
-            setAvailableMembersOfSelection(availableMemberNames);
-
-            const notAvailableMembers = groupAvailabilities.filter(
-                (member) => !availableMemberIds.includes(member.memberId)
-            );
-            setNotAvailableMembersOfSelection(
-                notAvailableMembers.map((member) => member.displayName)
-            );
-        }
-    }, [
-        selectedZotDateIndex,
-        selectedBlockIndex,
-        availabilityDates,
-        groupAvailabilities,
-        fromTime,
-    ]);
 
     useEffect(() => {
         const handleMouseMove = (event: MouseEvent) => {
@@ -246,16 +230,14 @@ export function GroupAvailability({
         };
     }, [resetSelection]);
 
-    const handleMemberHover = (memberName: string | null) => {
-        if (memberName === null) {
+    const handleMemberHover = (memberId: string | null) => {
+        if (memberId === null) {
             setHoveredMember(null);
             return;
         }
 
-        const member = groupAvailabilities.find(
-            (m) => m.displayName === memberName
-        );
-        setHoveredMember(member ? member.memberId : null);
+        const member = members.find((m) => m.memberId === memberId);
+        setHoveredMember(member ? member.displayName : null);
     };
 
     return (
@@ -273,134 +255,27 @@ export function GroupAvailability({
                     />
 
                     <tbody>
-                        {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
-                            const isTopOfHour = timeBlock % 60 === 0;
-                            const isHalfHour = timeBlock % 60 === 30;
-                            const isLastRow =
-                                blockIndex ===
-                                availabilityTimeBlocks.length - 1;
-
-                            return (
-                                <tr key={`block-${timeBlock}`}>
-                                    <AvailabilityTimeTicks
-                                        timeBlock={timeBlock}
-                                    />
-
-                                    {currentPageAvailability.map(
-                                        (selectedDate, pageDateIndex) => {
-                                            const key = generateDateKey({
-                                                selectedDate,
-                                                timeBlock,
-                                                pageDateIndex,
-                                            });
-
-                                            if (selectedDate) {
-                                                const zotDateIndex =
-                                                    pageDateIndex +
-                                                    currentPage * itemsPerPage;
-
-                                                const isSelected =
-                                                    selectedZotDateIndex ===
-                                                        zotDateIndex &&
-                                                    selectedBlockIndex ===
-                                                        blockIndex;
-
-                                                const timestamp =
-                                                    getTimestampFromBlockIndex(
-                                                        blockIndex,
-                                                        zotDateIndex,
-                                                        fromTime,
-                                                        availabilityDates
-                                                    );
-
-                                                // Get the block (array of member IDs available at this timestamp)
-                                                const block =
-                                                    selectedDate
-                                                        .groupAvailability[
-                                                        timestamp
-                                                    ] || [];
-
-                                                // Calculate block color
-                                                let blockColor = "transparent";
-                                                if (hoveredMember) {
-                                                    if (
-                                                        block.includes(
-                                                            hoveredMember
-                                                        )
-                                                    ) {
-                                                        blockColor =
-                                                            "rgba(55, 124, 251)";
-                                                    } else {
-                                                        blockColor =
-                                                            "transparent";
-                                                    }
-                                                } else if (numMembers > 0) {
-                                                    const opacity =
-                                                        block.length /
-                                                        numMembers;
-                                                    blockColor = `rgba(55, 124, 251, ${opacity})`;
-                                                }
-
-                                                const tableCellStyles = cn(
-                                                    isTopOfHour
-                                                        ? "border-t-[1px] border-t-gray-medium"
-                                                        : "",
-                                                    isHalfHour
-                                                        ? "border-t-[1px] border-t-gray-base"
-                                                        : "",
-                                                    isLastRow
-                                                        ? "border-b-[1px]"
-                                                        : "",
-                                                    isSelected
-                                                        ? "outline-dashed outline-2 outline-slate-500"
-                                                        : ""
-                                                );
-
-                                                return (
-                                                    <td
-                                                        key={key}
-                                                        className="px-0 py-0"
-                                                    >
-                                                        <GroupAvailabilityBlock
-                                                            className="group-availability-block block"
-                                                            onClick={() =>
-                                                                handleCellClick(
-                                                                    {
-                                                                        isSelected,
-                                                                        zotDateIndex,
-                                                                        blockIndex,
-                                                                    }
-                                                                )
-                                                            }
-                                                            onHover={() =>
-                                                                handleCellHover(
-                                                                    {
-                                                                        zotDateIndex,
-                                                                        blockIndex,
-                                                                    }
-                                                                )
-                                                            }
-                                                            block={block}
-                                                            blockColor={
-                                                                blockColor
-                                                            }
-                                                            tableCellStyles={
-                                                                tableCellStyles
-                                                            }
-                                                            hoveredMember={
-                                                                hoveredMember
-                                                            }
-                                                        />
-                                                    </td>
-                                                );
-                                            } else {
-                                                return <td key={key}></td>;
-                                            }
-                                        }
-                                    )}
-                                </tr>
-                            );
-                        })}
+                        {availabilityTimeBlocks.map((timeBlock, blockIndex) => (
+                            <GroupAvailabilityRow
+                                key={`block-${timeBlock}`}
+                                timeBlock={timeBlock}
+                                blockIndex={blockIndex}
+                                availabilityTimeBlocksLength={
+                                    availabilityTimeBlocks.length
+                                }
+                                currentPageAvailability={
+                                    currentPageAvailability
+                                }
+                                selectedZotDateIndex={selectedZotDateIndex}
+                                selectedBlockIndex={selectedBlockIndex}
+                                fromTime={fromTime}
+                                availabilityDates={availabilityDates}
+                                numMembers={members.length}
+                                hoveredMember={hoveredMember}
+                                handleCellClick={handleCellClick}
+                                handleCellHover={handleCellHover}
+                            />
+                        ))}
                     </tbody>
                 </table>
 
@@ -416,8 +291,8 @@ export function GroupAvailability({
                 isMobileDrawerOpen={isMobileDrawerOpen}
                 selectedZotDateIndex={selectedZotDateIndex}
                 selectedBlockIndex={selectedBlockIndex}
-                availableMembersOfSelection={availableMembersOfSelection}
-                notAvailableMembersOfSelection={notAvailableMembersOfSelection}
+                availableMembersOfSelection={availableMembers}
+                notAvailableMembersOfSelection={notAvailableMembers}
                 closeMobileDrawer={resetSelection}
                 onMemberHover={handleMemberHover}
             />

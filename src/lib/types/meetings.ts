@@ -33,15 +33,3 @@ export type MeetingTime = {
     startTime: HourMinuteString;
     endTime: HourMinuteString;
 };
-
-export interface CreateMeetingPostParams {
-    title: string;
-    description: string;
-    fromTime: HourMinuteString;
-    toTime: HourMinuteString;
-    timezone: string; // IANA timezone string
-    meetingDates?: string[]; // ISO date strings - now optional
-    sessionId?: string;
-    meetingType: "specificDates" | "recurringWeekly";
-    recurringDays?: number[]; // Array of integers (0-6 for Sun-Sat)
-}

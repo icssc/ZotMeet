@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 import { CalendarBodyDayCell } from "@/components/creation/calendar/calendar-body-day-cell";
-import { ZotDate } from "@/lib/zotdate";
 import { isDatePast } from "@/lib/creation/utils";
+import { ZotDate } from "@/lib/zotdate";
 
 interface CalendarBodyDayProps {
     calendarDay: ZotDate;

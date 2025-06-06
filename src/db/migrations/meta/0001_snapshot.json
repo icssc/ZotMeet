@@ -1,6 +1,6 @@
 {
-  "id": "a2a8fac2-6c2f-4687-93d9-3ef2dbd53a7d",
-  "prevId": "e09ab36a-a8c4-4f8a-a404-c439dfbec6b5",
+  "id": "7687abc7-5c00-42b9-967a-a709c7b9c461",
+  "prevId": "84d75ce1-68c2-4353-8803-b073390c0728",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -197,25 +197,12 @@
           "primaryKey": false,
           "notNull": true
         },
-        "meeting_type": {
-          "name": "meeting_type",
-          "type": "meeting_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'specificDates'"
-        },
-        "recurring_days": {
-          "name": "recurring_days",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
         "dates": {
           "name": "dates",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "created_at": {
           "name": "created_at",
@@ -548,14 +535,6 @@
         "accepted",
         "maybe",
         "declined"
-      ]
-    },
-    "public.meeting_type": {
-      "name": "meeting_type",
-      "schema": "public",
-      "values": [
-        "specificDates",
-        "recurringWeekly"
       ]
     }
   },

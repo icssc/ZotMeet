@@ -1,13 +1,18 @@
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export function GoogleButton() {
     return (
-        <Button
-            asChild
-            className="w-full font-semibold"
+        <form
+            action="/auth/login/google"
+            method="GET"
+            className="w-full"
         >
-            <Link href="/auth/login/google">Sign in with Google</Link>
-        </Button>
+            <Button
+                type="submit"
+                className="w-full font-semibold"
+            >
+                Sign in with Google
+            </Button>
+        </form>
     );
 }

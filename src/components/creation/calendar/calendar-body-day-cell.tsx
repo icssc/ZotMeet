@@ -28,7 +28,8 @@ export function CalendarBodyDayCell({
                         !isSelected && "text-gray-medium",
                         isHighlighted && !isSelected && "bg-opacity-30"
                     ),
-                isPast && "pointer-events-none cursor-default text-gray-base opacity-50"
+                isPast &&
+                    "pointer-events-none cursor-default text-gray-base opacity-50"
             )}
             data-day={calendarDay.getDay()}
             data-month={calendarDay.getMonth()}
