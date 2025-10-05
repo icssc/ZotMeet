@@ -4,7 +4,6 @@ import { getCurrentSession } from "@/lib/auth";
 import {
     getAllMemberAvailability,
     getExistingMeeting,
-    getExistingMeetingDates,
 } from "@/server/data/meeting/queries";
 import { getStudyRooms } from "@actions/studyrooms/action";
 
@@ -55,7 +54,6 @@ export default async function Page({ params }: PageProps) {
     if (!meetingData) {
         notFound();
     }
-    const meetingDates = await getExistingMeetingDates(meetingData.id);
     const allAvailabilties = await getAllMemberAvailability({
         meetingId: meetingData.id,
     });
@@ -93,7 +91,6 @@ export default async function Page({ params }: PageProps) {
         <div className="space-y-2 px-4">
             <AvailabilityBody
                 meetingData={meetingData}
-                meetingDates={meetingDates}
                 userAvailability={userAvailability}
                 allAvailabilties={allAvailabilties}
                 user={session.user}
