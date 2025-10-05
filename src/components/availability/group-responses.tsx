@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { XIcon } from "lucide-react";
@@ -8,8 +9,8 @@ interface GroupResponsesProps {
     isMobileDrawerOpen: boolean;
     selectedZotDateIndex: number | undefined;
     selectedBlockIndex: number | undefined;
-    availableMembersOfSelection: string[];
-    notAvailableMembersOfSelection: string[];
+    availableMembersOfSelection: Member[];
+    notAvailableMembersOfSelection: Member[];
     closeMobileDrawer: VoidFunction;
     onMemberHover: (memberId: string | null) => void;
 }
@@ -102,22 +103,18 @@ export function GroupResponses({
                         </div>
                         <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
                             {availableMembersOfSelection.length > 0 ? (
-                                availableMembersOfSelection.map(
-                                    (availableName) => (
-                                        <li
-                                            key={availableName}
-                                            className="cursor-pointer text-lg text-gray-800"
-                                            onMouseEnter={() =>
-                                                onMemberHover(availableName)
-                                            }
-                                            onMouseLeave={() =>
-                                                onMemberHover(null)
-                                            }
-                                        >
-                                            {availableName}
-                                        </li>
-                                    )
-                                )
+                                availableMembersOfSelection.map((member) => (
+                                    <li
+                                        key={member.memberId}
+                                        className="cursor-pointer text-lg text-gray-800"
+                                        onMouseEnter={() =>
+                                            onMemberHover(member.memberId)
+                                        }
+                                        onMouseLeave={() => onMemberHover(null)}
+                                    >
+                                        {member.displayName}
+                                    </li>
+                                ))
                             ) : (
                                 <li className="text-sm italic text-gray-400">
                                     N/A
@@ -134,22 +131,18 @@ export function GroupResponses({
                         </div>
                         <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
                             {notAvailableMembersOfSelection.length > 0 ? (
-                                notAvailableMembersOfSelection.map(
-                                    (notAvailableName) => (
-                                        <li
-                                            key={notAvailableName}
-                                            className="cursor-pointer text-lg text-gray-400"
-                                            onMouseEnter={() =>
-                                                onMemberHover(notAvailableName)
-                                            }
-                                            onMouseLeave={() =>
-                                                onMemberHover(null)
-                                            }
-                                        >
-                                            {notAvailableName}
-                                        </li>
-                                    )
-                                )
+                                notAvailableMembersOfSelection.map((member) => (
+                                    <li
+                                        key={member.memberId}
+                                        className="cursor-pointer text-lg text-gray-400"
+                                        onMouseEnter={() =>
+                                            onMemberHover(member.memberId)
+                                        }
+                                        onMouseLeave={() => onMemberHover(null)}
+                                    >
+                                        {member.displayName}
+                                    </li>
+                                ))
                             ) : (
                                 <li className="text-sm italic text-gray-400">
                                     N/A

@@ -1,5 +1,8 @@
 import { Creation } from "@/components/creation/creation";
+import { getCurrentSession } from "@/lib/auth";
 
 export default async function Page() {
-    return <Creation />;
+    const { user } = await getCurrentSession();
+
+    return <Creation user={user} />;
 }

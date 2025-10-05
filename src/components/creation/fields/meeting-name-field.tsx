@@ -1,8 +1,6 @@
-import React, { Dispatch, SetStateAction, useEffect, useRef } from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-
-const DEFAULT_MEETING_NAME = "";
 
 interface MeetingNameFieldProps {
     meetingName: string;
@@ -13,16 +11,6 @@ export function MeetingNameField({
     meetingName,
     setMeetingName,
 }: MeetingNameFieldProps) {
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        setMeetingName(DEFAULT_MEETING_NAME);
-
-        if (inputRef.current) {
-            inputRef.current.focus();
-        }
-    }, [setMeetingName]);
-
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setMeetingName(e.target.value);
     };
@@ -35,10 +23,10 @@ export function MeetingNameField({
                     "flex-center w-full appearance-none rounded-none border-x-0 border-t-0 border-gray-base p-1 text-2xl font-light placeholder:text-gray-base md:text-3xl",
                     "focus-visible:ring-0"
                 )}
-                placeholder="Meeting Name"
+                placeholder={"Meeting name"}
                 value={meetingName}
                 onChange={handleChange}
-                ref={inputRef}
+                autoFocus
             />
         </div>
     );
