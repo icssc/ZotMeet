@@ -5,6 +5,7 @@ import {
     getAllMemberAvailability,
     getExistingMeeting,
 } from "@/server/data/meeting/queries";
+import { getStudyRooms } from "@actions/studyrooms/action";
 
 interface PageProps {
     params: {
@@ -70,6 +71,22 @@ export default async function Page({ params }: PageProps) {
             }
         }
     }
+
+    const queryDates = meetingData.dates
+        .map((date) => date.toString())
+        .join(",");
+    const queryTimes =
+        meetingData.fromTime.slice(0, -3) +
+        "-" +
+        meetingData.toTime.slice(0, -3);
+    // Fetches study room data based on the current meeting's dates and times
+    const studyRooms = await getStudyRooms(queryDates, queryTimes);
+
+    if (studyRooms.data.length === 0) {
+        console.log("No study rooms found in range");
+    }
+    //prints all time slots of the first study room result, for reference that the query is correct
+    console.log("Study Rooms Placeholder: ", studyRooms.data[0].slots);
 
     return (
         <div className="space-y-2 px-4">
