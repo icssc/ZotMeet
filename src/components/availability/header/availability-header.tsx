@@ -137,24 +137,43 @@ export function AvailabilityHeader({
                                 </Button>
                             </div>
                         ) : (
-                            <Button
-                                className={cn(
-                                    "flex-center h-8 min-h-fit min-w-fit px-2 md:w-40 md:p-0"
-                                )}
-                                onClick={() => {
-                                    if (!user) {
-                                        setIsAuthModalOpen(true);
-                                        return;
-                                    }
-                                    setAvailabilityView("personal");
-                                }}
-                            >
-                                <span className="flex font-dm-sans">
-                                    {hasAvailability
-                                        ? "Edit Availability"
-                                        : "Add Availability"}
-                                </span>
-                            </Button>
+                            <div className="flex space-x-2 md:space-x-4">
+                                <Button
+                                    className={cn(
+                                        "flex-center h-8 min-h-fit min-w-fit px-2 md:w-40 md:p-0"
+                                    )}
+                                    onClick={() => {
+                                        if (!user) {
+                                            setIsAuthModalOpen(true);
+                                            return;
+                                        }
+                                        setAvailabilityView("personal");
+                                    }}
+                                >
+                                    <span className="flex font-dm-sans">
+                                        {hasAvailability
+                                            ? "Edit Availability"
+                                            : "Add Availability"}
+                                    </span>
+                                </Button>
+                                <Button
+                                    className={cn(
+                                        "flex-center h-8 min-h-fit border border-yellow-600 bg-white px-2 uppercase text-yellow-600 outline md:w-40 md:p-0",
+                                        "hover:border-yellow-600 hover:bg-yellow-600 hover:text-white"
+                                    )}
+                                    onClick={() => {
+                                        if (!user) {
+                                            setIsAuthModalOpen(true);
+                                            return;
+                                        }
+                                        setAvailabilityView("schedule");
+                                    }}
+                                >
+                                    <span className="flex font-dm-sans">
+                                        Schedule Meeting
+                                    </span>
+                                </Button>
+                            </div>
                         )}
                     </div>
                 </div>

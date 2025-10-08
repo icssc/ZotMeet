@@ -2,6 +2,7 @@ import { getTimestampFromBlockIndex } from "@/components/availability/group-avai
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import { generateDateKey } from "@/lib/availability/utils";
+import { SelectionStateType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
@@ -26,6 +27,8 @@ interface GroupAvailabilityRowProps {
         zotDateIndex: number;
         blockIndex: number;
     }) => void;
+    isSchedulingMeeting: boolean;
+    selectionState: SelectionStateType | undefined;
 }
 
 export function GroupAvailabilityRow({
@@ -41,6 +44,8 @@ export function GroupAvailabilityRow({
     hoveredMember,
     handleCellClick,
     handleCellHover,
+    isSchedulingMeeting,
+    selectionState,
 }: GroupAvailabilityRowProps) {
     const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
 
@@ -66,6 +71,9 @@ export function GroupAvailabilityRow({
                     const isSelected =
                         selectedZotDateIndex === zotDateIndex &&
                         selectedBlockIndex === blockIndex;
+                    // console.log(`Rendering cell at zotDateIndex: ${zotDateIndex}, blockIndex: ${blockIndex}`);
+                    // console.log(`selectedZotDateIndex: ${selectedZotDateIndex}, selectedBlockIndex: ${selectedBlockIndex}`);
+                    // console.log(`Cell ${blockIndex} isSelected: ${isSelected}`);
 
                     const timestamp = getTimestampFromBlockIndex(
                         blockIndex,
@@ -80,12 +88,27 @@ export function GroupAvailabilityRow({
 
                     // Calculate block color
                     let blockColor = "transparent";
+                    // console.log(`cell ${blockIndex} hoveredMember: ${hoveredMember}`);
                     if (hoveredMember) {
                         if (block.includes(hoveredMember)) {
                             blockColor = "rgba(55, 124, 251)";
                         } else {
                             blockColor = "transparent";
                         }
+                    } else if (isSchedulingMeeting && selectionState) {
+                        console.log("selectionState:", selectionState);
+                        const isInSelection =
+                            selectionState.earlierDateIndex <= zotDateIndex &&
+                            selectionState.laterDateIndex >= zotDateIndex &&
+                            selectionState.earlierBlockIndex <= blockIndex &&
+                            selectionState.laterBlockIndex >= blockIndex;
+                        if (isInSelection) {
+                            blockColor = "rgba(249, 225, 14, 0.75)";
+                        }
+                    } else if (isSchedulingMeeting && isSelected) {
+                        console.log("cell " + blockIndex + " turned golden");
+                        // If in scheduling mode and no members, show golden block
+                        blockColor = "rgba(249, 225, 14, 0.33)";
                     } else if (numMembers > 0) {
                         const opacity = block.length / numMembers;
                         blockColor = `rgba(55, 124, 251, ${opacity})`;

@@ -9,6 +9,7 @@ import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 export const getTimestampFromBlockIndex = (
     blockIndex: number,
@@ -42,6 +43,7 @@ interface GroupAvailabilityProps {
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
     members: Member[];
+    isSchedulingMeeting: boolean;
 }
 
 export function GroupAvailability({
@@ -50,9 +52,20 @@ export function GroupAvailability({
     availabilityDates,
     currentPageAvailability,
     members,
+    isSchedulingMeeting,
 }: GroupAvailabilityProps) {
+    const {
+        startBlockSelection,
+        setStartBlockSelection,
+        endBlockSelection,
+        setEndBlockSelection,
+        selectionState,
+        setSelectionState,
+    } = useBlockSelectionStore();
+
     const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
         useAvailabilityPaginationStore();
+    console.log(`isSchedulingMeeting: ${isSchedulingMeeting}`);
 
     const isLastPage =
         currentPage ===
@@ -63,6 +76,33 @@ export function GroupAvailability({
     const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>();
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
+
+    useEffect(() => {
+        console.log("startBlockSelection changed:", startBlockSelection);
+        console.log("endBlockSelection changed:", endBlockSelection);
+        console.log("selectionState before setSelectionState:", selectionState);
+        if (startBlockSelection && endBlockSelection) {
+            setSelectionState({
+                earlierDateIndex: Math.min(
+                    startBlockSelection.zotDateIndex,
+                    endBlockSelection.zotDateIndex
+                ),
+                laterDateIndex: Math.max(
+                    startBlockSelection.zotDateIndex,
+                    endBlockSelection.zotDateIndex
+                ),
+                earlierBlockIndex: Math.min(
+                    startBlockSelection.blockIndex,
+                    endBlockSelection.blockIndex
+                ),
+                laterBlockIndex: Math.max(
+                    startBlockSelection.blockIndex,
+                    endBlockSelection.blockIndex
+                ),
+            });
+            console.log("selectionState set to:", selectionState);
+        }
+    }, [startBlockSelection, endBlockSelection, setSelectionState]);
 
     const updateSelection = useCallback(
         ({
@@ -84,7 +124,12 @@ export function GroupAvailability({
         setSelectedZotDateIndex(undefined);
         setSelectedBlockIndex(undefined);
         setHoveredMember(null);
-    }, []);
+
+        // clear store
+        setStartBlockSelection(undefined);
+        setEndBlockSelection(undefined);
+        setSelectionState(undefined);
+    }, [setStartBlockSelection, setEndBlockSelection, setSelectionState]);
 
     const { availableMembers, notAvailableMembers } = useMemo(() => {
         if (
@@ -134,8 +179,15 @@ export function GroupAvailability({
             zotDateIndex: number;
             blockIndex: number;
         }) => {
+            console.log(
+                `handleCellClick called with selectionIsLocked: ${selectionIsLocked}`
+            );
+            console.log(`isSelected: ${isSelected}`);
             if (selectionIsLocked && isSelected) {
                 setSelectionIsLocked(false);
+                // } else if (isSchedulingMeeting) {
+                //     console.log("cell " + blockIndex + " should turn golden");
+                //     updateSelection({ zotDateIndex, blockIndex });
             } else {
                 setSelectionIsLocked(true);
                 updateSelection({ zotDateIndex, blockIndex });
@@ -239,7 +291,7 @@ export function GroupAvailability({
         const member = members.find((m) => m.memberId === memberId);
         setHoveredMember(member ? member.displayName : null);
     };
-
+    console.log(selectionState);
     return (
         <div className="flex flex-row items-start justify-start align-top">
             <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
@@ -274,6 +326,8 @@ export function GroupAvailability({
                                 hoveredMember={hoveredMember}
                                 handleCellClick={handleCellClick}
                                 handleCellHover={handleCellHover}
+                                isSchedulingMeeting={isSchedulingMeeting}
+                                selectionState={selectionState}
                             />
                         ))}
                     </tbody>

@@ -255,13 +255,14 @@ export function AvailabilityBody({
                 onSave={handleSuccessfulSave}
             />
 
-            {availabilityView === "group" ? (
+            {availabilityView === "group" || availabilityView === "schedule" ? (
                 <GroupAvailability
                     availabilityTimeBlocks={availabilityTimeBlocks}
                     fromTime={fromTimeMinutes}
                     availabilityDates={availabilityDates}
                     currentPageAvailability={currentPageAvailability}
                     members={members}
+                    isSchedulingMeeting={availabilityView === "schedule"}
                 />
             ) : (
                 <PersonalAvailability
