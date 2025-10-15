@@ -108,8 +108,7 @@ export function AvailabilityHeader({
                     </Button>
 
                     <div className="flex flex-row justify-end space-x-2">
-                        {availabilityView === "personal" ||
-                        availabilityView === "schedule" ? (
+                        {availabilityView === "personal" ? (
                             <div className="flex space-x-2 md:space-x-4">
                                 <Button
                                     className={cn(

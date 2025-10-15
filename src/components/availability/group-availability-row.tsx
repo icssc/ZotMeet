@@ -182,27 +182,21 @@ export function GroupAvailabilityRow({
 
     const isInDragSelection = (zotDateIndex: number, blockIndex: number) => {
         if (!startBlockSelection || !endBlockSelection) return false;
-        const minDate = Math.min(
-            startBlockSelection.zotDateIndex,
-            endBlockSelection.zotDateIndex
-        );
-        const maxDate = Math.max(
-            startBlockSelection.zotDateIndex,
-            endBlockSelection.zotDateIndex
-        );
-        const minBlock = Math.min(
-            startBlockSelection.blockIndex,
-            endBlockSelection.blockIndex
-        );
-        const maxBlock = Math.max(
-            startBlockSelection.blockIndex,
-            endBlockSelection.blockIndex
-        );
         return (
-            zotDateIndex >= minDate &&
-            zotDateIndex <= maxDate &&
-            blockIndex >= minBlock &&
-            blockIndex <= maxBlock
+            zotDateIndex >= startBlockSelection.zotDateIndex &&
+            zotDateIndex <= endBlockSelection.zotDateIndex &&
+            blockIndex >= startBlockSelection.blockIndex &&
+            blockIndex <= endBlockSelection.blockIndex
+        );
+    };
+
+    const isInSelectionRange = (zotDateIndex: number, blockIndex: number) => {
+        if (!selectionState) return false;
+        return (
+            zotDateIndex >= selectionState.earlierDateIndex &&
+            zotDateIndex <= selectionState.laterDateIndex &&
+            blockIndex >= selectionState.earlierBlockIndex &&
+            blockIndex <= selectionState.laterBlockIndex
         );
     };
 
@@ -250,14 +244,11 @@ export function GroupAvailabilityRow({
                         }
                     } else if (
                         isSchedulingMeeting &&
-                        isInDragSelection(zotDateIndex, blockIndex)
+                        (isInDragSelection(zotDateIndex, blockIndex) ||
+                            isInSelectionRange(zotDateIndex, blockIndex))
                     ) {
-                        // 🟡 Drag highlight
+                        // Drag highlight or persisted selection
                         blockColor = "rgba(249, 225, 14, 0.75)";
-                    } else if (isSchedulingMeeting && isSelected) {
-                        console.log("cell " + blockIndex + " turned golden");
-                        // If in scheduling mode and no members, show golden block
-                        blockColor = "rgba(249, 225, 14, 0.33)";
                     } else if (numMembers > 0) {
                         const opacity = block.length / numMembers;
                         blockColor = `rgba(55, 124, 251, ${opacity})`;
