@@ -6,6 +6,7 @@ import { SelectionStateType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface GroupAvailabilityRowProps {
     timeBlock: number;
@@ -52,6 +53,158 @@ export function GroupAvailabilityRow({
     const isTopOfHour = timeBlock % 60 === 0;
     const isHalfHour = timeBlock % 60 === 30;
     const isLastRow = blockIndex === availabilityTimeBlocksLength - 1;
+    const {
+        startBlockSelection,
+        endBlockSelection,
+        setStartBlockSelection,
+        setEndBlockSelection,
+    } = useBlockSelectionStore();
+
+    const availabilitySelection = {
+        zotDateIndex: selectedZotDateIndex,
+        blockIndex: selectedBlockIndex,
+    };
+
+    // TODO: SEPARATE THESE, AND LET EACH AVAILBILITY USE THEM
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        const touchingElement = document.elementFromPoint(
+            e.touches[0].clientX,
+            e.touches[0].clientY
+        );
+
+        if (!touchingElement) return;
+
+        const touchingDateIndex = parseInt(
+            touchingElement.getAttribute("data-date-index") || "",
+            10
+        );
+        const touchingBlockIndex = parseInt(
+            touchingElement.getAttribute("data-block-index") || "",
+            10
+        );
+
+        if (
+            !isNaN(touchingDateIndex) &&
+            !isNaN(touchingBlockIndex) &&
+            startBlockSelection
+        ) {
+            setEndBlockSelection({
+                zotDateIndex: touchingDateIndex,
+                blockIndex: touchingBlockIndex,
+            });
+        }
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+
+        if (startBlockSelection) {
+            if (
+                availabilitySelection.zotDateIndex !== undefined &&
+                availabilitySelection.blockIndex !== undefined
+            ) {
+                setEndBlockSelection({
+                    zotDateIndex: availabilitySelection.zotDateIndex,
+                    blockIndex: availabilitySelection.blockIndex,
+                });
+            }
+            // setAvailabilities(startBlockSelection);
+        }
+    };
+
+    const handleMouseUp = () => {
+        if (
+            startBlockSelection &&
+            availabilitySelection.zotDateIndex !== undefined &&
+            availabilitySelection.blockIndex !== undefined
+        ) {
+            setEndBlockSelection({
+                zotDateIndex: availabilitySelection.zotDateIndex,
+                blockIndex: availabilitySelection.blockIndex,
+            });
+            // setAvailabilities(startBlockSelection);
+        }
+    };
+
+    const handleMouseDown = () => {
+        if (
+            availabilitySelection.zotDateIndex !== undefined &&
+            availabilitySelection.blockIndex !== undefined
+        ) {
+            setStartBlockSelection({
+                zotDateIndex: availabilitySelection.zotDateIndex,
+                blockIndex: availabilitySelection.blockIndex,
+            });
+            setEndBlockSelection({
+                zotDateIndex: availabilitySelection.zotDateIndex,
+                blockIndex: availabilitySelection.blockIndex,
+            });
+        }
+    };
+
+    const handleMouseMove = () => {
+        if (startBlockSelection) {
+            if (
+                startBlockSelection &&
+                availabilitySelection.zotDateIndex !== undefined &&
+                availabilitySelection.blockIndex !== undefined
+            ) {
+                setEndBlockSelection({
+                    zotDateIndex: availabilitySelection.zotDateIndex,
+                    blockIndex: availabilitySelection.blockIndex,
+                });
+            }
+        }
+    };
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        if (
+            startBlockSelection &&
+            availabilitySelection.zotDateIndex !== undefined &&
+            availabilitySelection.blockIndex !== undefined
+        ) {
+            setStartBlockSelection({
+                zotDateIndex: availabilitySelection.zotDateIndex,
+                blockIndex: availabilitySelection.blockIndex,
+            });
+            setEndBlockSelection({
+                zotDateIndex: availabilitySelection.zotDateIndex,
+                blockIndex: availabilitySelection.blockIndex,
+            });
+        }
+    };
+
+    const isInDragSelection = (zotDateIndex: number, blockIndex: number) => {
+        if (!startBlockSelection || !endBlockSelection) return false;
+        const minDate = Math.min(
+            startBlockSelection.zotDateIndex,
+            endBlockSelection.zotDateIndex
+        );
+        const maxDate = Math.max(
+            startBlockSelection.zotDateIndex,
+            endBlockSelection.zotDateIndex
+        );
+        const minBlock = Math.min(
+            startBlockSelection.blockIndex,
+            endBlockSelection.blockIndex
+        );
+        const maxBlock = Math.max(
+            startBlockSelection.blockIndex,
+            endBlockSelection.blockIndex
+        );
+        return (
+            zotDateIndex >= minDate &&
+            zotDateIndex <= maxDate &&
+            blockIndex >= minBlock &&
+            blockIndex <= maxBlock
+        );
+    };
 
     return (
         <tr>
@@ -95,16 +248,12 @@ export function GroupAvailabilityRow({
                         } else {
                             blockColor = "transparent";
                         }
-                    } else if (isSchedulingMeeting && selectionState) {
-                        console.log("selectionState:", selectionState);
-                        const isInSelection =
-                            selectionState.earlierDateIndex <= zotDateIndex &&
-                            selectionState.laterDateIndex >= zotDateIndex &&
-                            selectionState.earlierBlockIndex <= blockIndex &&
-                            selectionState.laterBlockIndex >= blockIndex;
-                        if (isInSelection) {
-                            blockColor = "rgba(249, 225, 14, 0.75)";
-                        }
+                    } else if (
+                        isSchedulingMeeting &&
+                        isInDragSelection(zotDateIndex, blockIndex)
+                    ) {
+                        // 🟡 Drag highlight
+                        blockColor = "rgba(249, 225, 14, 0.75)";
                     } else if (isSchedulingMeeting && isSelected) {
                         console.log("cell " + blockIndex + " turned golden");
                         // If in scheduling mode and no members, show golden block
@@ -129,6 +278,12 @@ export function GroupAvailabilityRow({
                         <td
                             key={key}
                             className="px-0 py-0"
+                            onMouseDown={() => handleMouseDown()}
+                            onMouseMove={() => handleMouseMove()}
+                            onMouseUp={() => handleMouseUp()}
+                            onTouchStart={(e) => handleTouchStart(e)}
+                            onTouchMove={(e) => handleTouchMove(e)}
+                            onTouchEnd={(e) => handleTouchEnd(e)}
                         >
                             <GroupAvailabilityBlock
                                 className="group-availability-block block"

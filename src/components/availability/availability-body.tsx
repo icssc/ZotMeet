@@ -19,6 +19,7 @@ import type { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { toZonedTime } from "date-fns-tz";
 

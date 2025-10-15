@@ -119,6 +119,23 @@ export function GroupAvailability({
         []
     );
 
+    // Helper to set store selection for scheduling mode (single contiguous range on same date)
+    const setSchedulingSelection = useCallback(
+        (zotDateIndex: number, startBlock: number, endBlock?: number) => {
+            const s = { zotDateIndex, blockIndex: startBlock };
+            const e = { zotDateIndex, blockIndex: endBlock ?? startBlock };
+            setStartBlockSelection(s);
+            setEndBlockSelection(e);
+            setSelectionState({
+                earlierDateIndex: zotDateIndex,
+                laterDateIndex: zotDateIndex,
+                earlierBlockIndex: Math.min(startBlock, endBlock ?? startBlock),
+                laterBlockIndex: Math.max(startBlock, endBlock ?? startBlock),
+            });
+        },
+        [setStartBlockSelection, setEndBlockSelection, setSelectionState]
+    );
+
     const resetSelection = useCallback(() => {
         setIsMobileDrawerOpen(false);
         setSelectedZotDateIndex(undefined);
@@ -171,29 +188,70 @@ export function GroupAvailability({
 
     const handleCellClick = useCallback(
         ({
-            isSelected,
             zotDateIndex,
             blockIndex,
+            isSelected,
         }: {
             isSelected: boolean;
             zotDateIndex: number;
             blockIndex: number;
         }) => {
-            console.log(
-                `handleCellClick called with selectionIsLocked: ${selectionIsLocked}`
-            );
-            console.log(`isSelected: ${isSelected}`);
-            if (selectionIsLocked && isSelected) {
+            // Toggle off when clicking the same selected cell
+            if (isSelected) {
                 setSelectionIsLocked(false);
-                // } else if (isSchedulingMeeting) {
-                //     console.log("cell " + blockIndex + " should turn golden");
-                //     updateSelection({ zotDateIndex, blockIndex });
-            } else {
-                setSelectionIsLocked(true);
-                updateSelection({ zotDateIndex, blockIndex });
+                // clear store
+                setStartBlockSelection(undefined);
+                setEndBlockSelection(undefined);
+                setSelectionState(undefined);
+                setSelectedZotDateIndex(undefined);
+                setSelectedBlockIndex(undefined);
+                return;
             }
+
+            // Scheduling mode: set start (or finalize end if start exists on same date)
+            if (isSchedulingMeeting) {
+                // If a start exists on same date and selection not locked, finalize to create a contiguous range
+                if (
+                    startBlockSelection &&
+                    startBlockSelection.zotDateIndex === zotDateIndex &&
+                    !selectionIsLocked
+                ) {
+                    const start = startBlockSelection.blockIndex;
+                    const end = blockIndex;
+                    // ensure contiguous on same date by setting start/end normalized
+                    setSchedulingSelection(
+                        zotDateIndex,
+                        Math.min(start, end),
+                        Math.max(start, end)
+                    );
+                    setSelectionIsLocked(true);
+                    setSelectedZotDateIndex(zotDateIndex);
+                    setSelectedBlockIndex(Math.min(start, end));
+                    return;
+                }
+
+                // Otherwise set start on this cell
+                setSchedulingSelection(zotDateIndex, blockIndex, blockIndex);
+                setSelectedZotDateIndex(zotDateIndex);
+                setSelectedBlockIndex(blockIndex);
+                setSelectionIsLocked(false);
+                return;
+            }
+
+            // Default (non-scheduling) behavior
+            setSelectionIsLocked(true);
+            updateSelection({ zotDateIndex, blockIndex });
         },
-        [selectionIsLocked, updateSelection]
+        [
+            selectionIsLocked,
+            updateSelection,
+            isSchedulingMeeting,
+            startBlockSelection,
+            setSchedulingSelection,
+            setStartBlockSelection,
+            setEndBlockSelection,
+            setSelectionState,
+        ]
     );
 
     const handleCellHover = useCallback(
