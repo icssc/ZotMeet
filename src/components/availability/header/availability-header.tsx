@@ -175,16 +175,37 @@ export function AvailabilityHeader({
                                 </Button>
                             </div>
                         ) : (
-                            <Button
-                                className={cn(
-                                    "flex-center h-8 min-h-fit border-yellow-500 bg-white px-2 uppercase text-yellow-500 outline md:w-28 md:p-0",
-                                    "hover:border-yellow-500 hover:bg-yellow-500 hover:text-white"
-                                )}
-                                onClick={() => setAvailabilityView("group")}
-                            >
-                                <span className="hidden md:flex">Cancel</span>
-                                <CircleXIcon />
-                            </Button>
+                            <div className="flex space-x-2 md:space-x-4">
+                                <Button
+                                    className={cn(
+                                        "flex-center h-8 min-h-fit border-yellow-500 bg-white px-2 uppercase text-yellow-500 outline md:w-28 md:p-0",
+                                        "hover:border-yellow-500 hover:bg-yellow-500 hover:text-white"
+                                    )}
+                                    onClick={() => setAvailabilityView("group")}
+                                >
+                                    <span className="hidden md:flex">
+                                        Cancel
+                                    </span>
+                                    <CircleXIcon />
+                                </Button>
+                                <Button
+                                    className={cn(
+                                        "flex-center h-8 min-h-fit border border-green-500 bg-white px-2 uppercase text-secondary md:w-24 md:p-0",
+                                        "group hover:border-green-500 hover:bg-green-500"
+                                    )}
+                                    type="submit"
+                                    onClick={() =>
+                                        console.log(
+                                            "Meeting schedule blocks selected: "
+                                        )
+                                    }
+                                >
+                                    <span className="hidden text-green-500 group-hover:text-white md:flex">
+                                        Save
+                                    </span>
+                                    <CircleCheckIcon className="text-green-500 group-hover:text-white" />
+                                </Button>
+                            </div>
                         )}
                     </div>
                 </div>
