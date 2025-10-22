@@ -26,6 +26,7 @@ interface GroupAvailabilityRowProps {
         zotDateIndex: number;
         blockIndex: number;
     }) => void;
+    spacerBeforeDate: boolean[];
 }
 
 export function GroupAvailabilityRow({
@@ -41,6 +42,7 @@ export function GroupAvailabilityRow({
     hoveredMember,
     handleCellClick,
     handleCellHover,
+    spacerBeforeDate,
 }: GroupAvailabilityRowProps) {
     const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
 
@@ -51,13 +53,19 @@ export function GroupAvailabilityRow({
     return (
         <tr>
             <AvailabilityTimeTicks timeBlock={timeBlock} />
-
             {currentPageAvailability.map((selectedDate, pageDateIndex) => {
                 const key = generateDateKey({
                     selectedDate,
+
                     timeBlock,
+
                     pageDateIndex,
                 });
+
+                const cells: React.ReactNode[] = [];
+                if (spacerBeforeDate?.[pageDateIndex]) {
+                    cells.push(<td key={`spacer-${pageDateIndex}`}></td>);
+                }
 
                 if (selectedDate) {
                     const zotDateIndex =
@@ -73,19 +81,14 @@ export function GroupAvailabilityRow({
                         fromTime,
                         availabilityDates
                     );
-
-                    // Get the block (array of member IDs available at this timestamp)
                     const block =
                         selectedDate.groupAvailability[timestamp] || [];
 
-                    // Calculate block color
                     let blockColor = "transparent";
                     if (hoveredMember) {
-                        if (block.includes(hoveredMember)) {
-                            blockColor = "rgba(55, 124, 251)";
-                        } else {
-                            blockColor = "transparent";
-                        }
+                        blockColor = block.includes(hoveredMember)
+                            ? "rgba(55, 124, 251)"
+                            : "transparent";
                     } else if (numMembers > 0) {
                         const opacity = block.length / numMembers;
                         blockColor = `rgba(55, 124, 251, ${opacity})`;
@@ -102,7 +105,7 @@ export function GroupAvailabilityRow({
                             : ""
                     );
 
-                    return (
+                    cells.push(
                         <td
                             key={key}
                             className="px-0 py-0"
@@ -130,8 +133,9 @@ export function GroupAvailabilityRow({
                         </td>
                     );
                 } else {
-                    return <td key={key}></td>;
+                    cells.push(<td key={key}></td>);
                 }
+                return cells;
             })}
         </tr>
     );

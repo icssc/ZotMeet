@@ -24,6 +24,7 @@ interface PersonalAvailabilityProps {
     googleCalendarEvents: GoogleCalendarEvent[];
     user: UserProfile | null;
     onAvailabilityChange: (updatedDates: ZotDate[]) => void;
+    spacerBeforeDate: boolean[];
 }
 
 export function PersonalAvailability({
@@ -34,6 +35,7 @@ export function PersonalAvailability({
     googleCalendarEvents,
     user,
     onAvailabilityChange,
+    spacerBeforeDate,
 }: PersonalAvailabilityProps) {
     const {
         startBlockSelection,
@@ -122,7 +124,6 @@ export function PersonalAvailability({
                     selectionValue
                 );
 
-                // For each block in the selection range
                 for (
                     let blockIdx = earlierBlockIndex;
                     blockIdx <= laterBlockIndex;
@@ -135,13 +136,11 @@ export function PersonalAvailability({
                         availabilityDates
                     );
 
-                    // Initialize empty array if timestamp doesn't exist
                     if (!currentDate.groupAvailability[timestamp]) {
                         currentDate.groupAvailability[timestamp] = [];
                     }
 
                     if (selectionValue) {
-                        // Add user to availability if not already present
                         if (
                             !currentDate.groupAvailability[timestamp].includes(
                                 user?.memberId ?? ""
@@ -165,8 +164,6 @@ export function PersonalAvailability({
             setEndBlockSelection(undefined);
             setSelectionState(undefined);
             setIsStateUnsaved(true);
-
-            // Call the onAvailabilityChange handler with the updated dates
             onAvailabilityChange(updatedDates);
         }
     };
@@ -195,12 +192,11 @@ export function PersonalAvailability({
                     handleClick={prevPage}
                     disabled={isFirstPage}
                 />
-
                 <table className="w-full table-fixed">
                     <AvailabilityTableHeader
                         currentPageAvailability={currentPageAvailability}
+                        spacerBeforeDate={spacerBeforeDate}
                     />
-
                     <tbody>
                         {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
                             const isTopOfHour = timeBlock % 60 === 0;
@@ -214,7 +210,6 @@ export function PersonalAvailability({
                                     <AvailabilityTimeTicks
                                         timeBlock={timeBlock}
                                     />
-
                                     <AvailabilityBlocks
                                         setAvailabilities={setAvailabilities}
                                         isTopOfHour={isTopOfHour}
@@ -230,13 +225,13 @@ export function PersonalAvailability({
                                         processedCellSegments={
                                             processedCellSegments
                                         }
+                                        spacerBeforeDate={spacerBeforeDate}
                                     />
                                 </tr>
                             );
                         })}
                     </tbody>
                 </table>
-
                 <AvailabilityNavButton
                     direction="right"
                     handleClick={() => nextPage(availabilityDates.length)}

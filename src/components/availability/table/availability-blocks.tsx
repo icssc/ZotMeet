@@ -18,6 +18,7 @@ interface AvailabilityBlocksProps {
     itemsPerPage: number;
     currentPageAvailability: ZotDate[];
     processedCellSegments: ProcessedCellEventSegments;
+    spacerBeforeDate: boolean[];
 }
 
 export function AvailabilityBlocks({
@@ -31,6 +32,7 @@ export function AvailabilityBlocks({
     itemsPerPage,
     currentPageAvailability,
     processedCellSegments,
+    spacerBeforeDate,
 }: AvailabilityBlocksProps) {
     return (
         <>
@@ -40,7 +42,15 @@ export function AvailabilityBlocks({
                     timeBlock,
                     pageDateIndex,
                 });
-
+                const cells: React.ReactNode[] = []; // Insert spacer if needed
+                if (spacerBeforeDate?.[pageDateIndex]) {
+                    cells.push(
+                        <td
+                            key={`spacer-${pageDateIndex}`}
+                            className="w-2 bg-transparent p-0"
+                        />
+                    );
+                }
                 if (selectedDate) {
                     const zotDateIndex =
                         pageDateIndex + currentPage * itemsPerPage;
@@ -51,8 +61,7 @@ export function AvailabilityBlocks({
                     const cellKey = generateCellKey(zotDateIndex, blockIndex);
                     const segmentsForCell =
                         processedCellSegments.get(cellKey) || [];
-
-                    return (
+                    cells.push(
                         <AvailabilityBlockCells
                             key={key}
                             blockIndex={blockIndex}
@@ -66,8 +75,9 @@ export function AvailabilityBlocks({
                         />
                     );
                 } else {
-                    return <td key={key}></td>;
+                    cells.push(<td key={key} />);
                 }
+                return cells;
             })}
         </>
     );

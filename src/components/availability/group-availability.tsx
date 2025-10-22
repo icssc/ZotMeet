@@ -9,15 +9,21 @@ import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { differenceInCalendarDays } from "date-fns";
 
 export const getTimestampFromBlockIndex = (
     blockIndex: number,
+
     zotDateIndex: number,
+
     fromTime: number,
+
     availabilityDates: ZotDate[]
 ) => {
     const minutesFromMidnight = fromTime + blockIndex * 15;
+
     const hours = Math.floor(minutesFromMidnight / 60);
+
     const minutes = minutesFromMidnight % 60;
 
     const selectedDate = availabilityDates.at(zotDateIndex);
@@ -27,28 +33,41 @@ export const getTimestampFromBlockIndex = (
     }
 
     const date = new Date(selectedDate.day);
+
     date.setHours(hours);
+
     date.setMinutes(minutes);
+
     date.setSeconds(0);
+
     date.setMilliseconds(0);
 
     const isoString = date.toISOString();
+
     return isoString;
 };
 
 interface GroupAvailabilityProps {
     availabilityTimeBlocks: number[];
+
     fromTime: number;
+
     availabilityDates: ZotDate[];
+
     currentPageAvailability: ZotDate[];
+
     members: Member[];
 }
 
 export function GroupAvailability({
     availabilityTimeBlocks,
+
     fromTime,
+
     availabilityDates,
+
     currentPageAvailability,
+
     members,
 }: GroupAvailabilityProps) {
     const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
@@ -216,8 +235,7 @@ export function GroupAvailability({
         const handleEscKey = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 resetSelection();
-                setSelectionIsLocked(false);
-                // Removes focused outline from previously selected block
+                setSelectionIsLocked(false); // Removes focused outline from previously selected block
                 if (document.activeElement instanceof HTMLElement) {
                     document.activeElement.blur();
                 }
@@ -238,7 +256,21 @@ export function GroupAvailability({
 
         const member = members.find((m) => m.memberId === memberId);
         setHoveredMember(member ? member.displayName : null);
-    };
+    }; // Create an array marking where to insert a spacer column
+
+    const spacerBeforeDate = currentPageAvailability.map((date, index, arr) => {
+        if (index === 0 || !date || !arr[index - 1]) return false;
+
+        const prevDate = arr[index - 1].day;
+        const currentDate = date.day;
+
+        return (
+            differenceInCalendarDays(
+                new Date(currentDate),
+                new Date(prevDate)
+            ) > 1
+        );
+    });
 
     return (
         <div className="flex flex-row items-start justify-start align-top">
@@ -248,12 +280,11 @@ export function GroupAvailability({
                     handleClick={prevPage}
                     disabled={isFirstPage}
                 />
-
                 <table className="w-full table-fixed">
                     <AvailabilityTableHeader
                         currentPageAvailability={currentPageAvailability}
+                        spacerBeforeDate={spacerBeforeDate}
                     />
-
                     <tbody>
                         {availabilityTimeBlocks.map((timeBlock, blockIndex) => (
                             <GroupAvailabilityRow
@@ -274,18 +305,17 @@ export function GroupAvailability({
                                 hoveredMember={hoveredMember}
                                 handleCellClick={handleCellClick}
                                 handleCellHover={handleCellHover}
+                                spacerBeforeDate={spacerBeforeDate}
                             />
                         ))}
                     </tbody>
                 </table>
-
                 <AvailabilityNavButton
                     direction="right"
                     handleClick={() => nextPage(availabilityDates.length)}
                     disabled={isLastPage}
                 />
             </div>
-
             <GroupResponses
                 availabilityDates={availabilityDates}
                 isMobileDrawerOpen={isMobileDrawerOpen}
@@ -296,7 +326,6 @@ export function GroupAvailability({
                 closeMobileDrawer={resetSelection}
                 onMemberHover={handleMemberHover}
             />
-
             <div
                 className={cn("lg:hidden", {
                     "h-96": isMobileDrawerOpen,

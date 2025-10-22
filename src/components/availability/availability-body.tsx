@@ -20,6 +20,7 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
+import { differenceInCalendarDays } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 
 // Helper function to derive initial availability data
@@ -166,6 +167,18 @@ export function AvailabilityBody({
         lastPage,
         numPaddingDates,
     ]);
+    const spacerBeforeDate = currentPageAvailability.map((date, index, arr) => {
+        if (index === 0 || !date || !arr[index - 1]) return false;
+        const prevDate = arr[index - 1].day;
+        const currentDate = date.day;
+
+        return (
+            differenceInCalendarDays(
+                new Date(currentDate),
+                new Date(prevDate)
+            ) > 1
+        );
+    });
 
     const handleUserAvailabilityChange = useCallback(
         (updatedDates: ZotDate[]) => {
@@ -254,7 +267,6 @@ export function AvailabilityBody({
                 onCancel={handleCancelEditing}
                 onSave={handleSuccessfulSave}
             />
-
             {availabilityView === "group" ? (
                 <GroupAvailability
                     availabilityTimeBlocks={availabilityTimeBlocks}
@@ -272,6 +284,7 @@ export function AvailabilityBody({
                     googleCalendarEvents={googleCalendarEvents}
                     user={user}
                     onAvailabilityChange={handleUserAvailabilityChange}
+                    spacerBeforeDate={spacerBeforeDate}
                 />
             )}
         </div>
