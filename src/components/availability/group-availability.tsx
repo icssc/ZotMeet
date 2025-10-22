@@ -308,7 +308,7 @@ export function GroupAvailability({
             );
 
             if (!isOnAvailabilityBlock) {
-                resetSelection();
+                // resetSelection();
                 setSelectionIsLocked(false);
             }
         };
