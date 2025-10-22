@@ -296,9 +296,9 @@ export function GroupAvailability({
                 }
             }
 
-            if (!isOverGrid) {
-                resetSelection();
-            }
+            // if (!isOverGrid) {
+            //     resetSelection();
+            // }
         };
 
         const handleClickOutside = (event: MouseEvent) => {
@@ -308,7 +308,7 @@ export function GroupAvailability({
             );
 
             if (!isOnAvailabilityBlock) {
-                // resetSelection();
+                resetSelection();
                 setSelectionIsLocked(false);
             }
         };

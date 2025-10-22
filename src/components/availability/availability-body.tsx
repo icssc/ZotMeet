@@ -177,6 +177,7 @@ export function AvailabilityBody({
     const handleCancelEditing = useCallback(() => {
         const originalDates = cancelEdit();
         setAvailabilityDates(originalDates);
+        console.log("availability dates: ", originalDates);
     }, [cancelEdit, setAvailabilityDates]);
 
     const handleSuccessfulSave = useCallback(() => {

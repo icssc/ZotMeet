@@ -136,7 +136,7 @@ export function AvailabilityHeader({
                                     <CircleCheckIcon className="text-green-500 group-hover:text-white" />
                                 </Button>
                             </div>
-                        ) : (
+                        ) : availabilityView === "group" ? (
                             <div className="flex space-x-2 md:space-x-4">
                                 <Button
                                     className={cn(
@@ -174,6 +174,17 @@ export function AvailabilityHeader({
                                     </span>
                                 </Button>
                             </div>
+                        ) : (
+                            <Button
+                                className={cn(
+                                    "flex-center h-8 min-h-fit border-yellow-500 bg-white px-2 uppercase text-yellow-500 outline md:w-28 md:p-0",
+                                    "hover:border-yellow-500 hover:bg-yellow-500 hover:text-white"
+                                )}
+                                onClick={() => setAvailabilityView("group")}
+                            >
+                                <span className="hidden md:flex">Cancel</span>
+                                <CircleXIcon />
+                            </Button>
                         )}
                     </div>
                 </div>
