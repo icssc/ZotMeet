@@ -127,6 +127,7 @@ export function GroupAvailabilityRow({
             });
             // setAvailabilities(startBlockSelection);
         }
+        setStartBlockSelection(null);
     };
 
     const handleMouseDown = () => {
