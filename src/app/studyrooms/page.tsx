@@ -1,5 +1,3 @@
-"use server";
-
 import { StudyRooms, StudyRoomsByFilters } from "@/lib/types/studyrooms";
 
 export async function getStudyRooms(dates: string, times: string) {

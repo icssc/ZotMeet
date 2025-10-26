@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
+import { getStudyRooms } from "@/app/studyrooms/page";
 import { AvailabilityBody } from "@/components/availability/availability-body";
 import { getCurrentSession } from "@/lib/auth";
 import {
     getAllMemberAvailability,
     getExistingMeeting,
 } from "@/server/data/meeting/queries";
-import { getStudyRooms } from "@actions/studyrooms/action";
 
 interface PageProps {
     params: {
@@ -85,9 +85,10 @@ export default async function Page({ params }: PageProps) {
     if (studyRooms.data.length === 0) {
         console.log("No study rooms found in range");
     }
-    //prints all time slots of the first study room result, for reference that the query is correct
-    console.log("Study Rooms Placeholder: ", studyRooms.data[0].slots);
-
+    // else {
+    //     //prints all time slots of the first study room result, for reference that the query is correct
+    //     console.log("Study Rooms Placeholder: ", studyRooms.data); // commented out for now
+    // }
     return (
         <div className="space-y-2 px-4">
             <AvailabilityBody
