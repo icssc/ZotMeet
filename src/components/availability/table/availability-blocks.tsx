@@ -47,7 +47,7 @@ export function AvailabilityBlocks({
                     cells.push(
                         <td
                             key={`spacer-${pageDateIndex}`}
-                            className="w-2 bg-transparent p-0"
+                            className="w-2 border-r-[1px] border-gray-medium bg-transparent p-0"
                         />
                     );
                 }

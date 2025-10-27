@@ -64,7 +64,12 @@ export function GroupAvailabilityRow({
 
                 const cells: React.ReactNode[] = [];
                 if (spacerBeforeDate?.[pageDateIndex]) {
-                    cells.push(<td key={`spacer-${pageDateIndex}`}></td>);
+                    cells.push(
+                        <td
+                            key={`spacer-${pageDateIndex}`}
+                            className="w-2 border-r-[1px] border-gray-medium bg-transparent p-0"
+                        />
+                    );
                 }
 
                 if (selectedDate) {
