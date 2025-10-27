@@ -308,8 +308,8 @@ export function GroupAvailability({
             );
 
             if (!isOnAvailabilityBlock) {
-                // resetSelection();
-                setSelectionIsLocked(false);
+                resetSelection();
+                //     setSelectionIsLocked(false);
             }
         };
 

@@ -15,6 +15,8 @@ function setLockedZotDateIndex(index: number | null) {
     lockedZotDateIndex = index;
 }
 
+let isMouseDown = false;
+
 interface GroupAvailabilityRowProps {
     timeBlock: number;
     blockIndex: number;
@@ -137,11 +139,12 @@ export function GroupAvailabilityRow({
                 blockIndex: availabilitySelection.blockIndex,
             });
         }
+        isMouseDown = true;
     };
 
     const handleMouseMove = () => {
         if (
-            startBlockSelection &&
+            isMouseDown &&
             availabilitySelection.zotDateIndex !== undefined &&
             availabilitySelection.blockIndex !== undefined
         ) {
@@ -167,8 +170,8 @@ export function GroupAvailabilityRow({
             });
         }
 
-        setStartBlockSelection(null);
         setLockedZotDateIndex(null);
+        isMouseDown = false;
     };
 
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -312,3 +315,46 @@ export function GroupAvailabilityRow({
         </tr>
     );
 }
+
+// Exported helpers that can be imported in another file
+export const groupAvailabilityHandlers = {
+    handleCancel: () => {
+        const { setStartBlockSelection, setEndBlockSelection } =
+            useBlockSelectionStore.getState();
+        console.log("❌ Global cancel");
+        console.log(
+            "Current selection before cancel:",
+            useBlockSelectionStore.getState()
+        );
+
+        setStartBlockSelection(null);
+        setEndBlockSelection(null);
+        console.log(
+            "Current selection after cancel:",
+            useBlockSelectionStore.getState()
+        );
+        setLockedZotDateIndex(null);
+    },
+    handleSave: async () => {
+        const { startBlockSelection, endBlockSelection } =
+            useBlockSelectionStore.getState();
+
+        if (!startBlockSelection || !endBlockSelection) {
+            console.log("⚠️ No selection to save");
+            return;
+        }
+
+        const payload = {
+            start: startBlockSelection,
+            end: endBlockSelection,
+        };
+
+        try {
+            // Placeholder for DB/API save logic
+            // await fetch("/api/save-selection", { method: "POST", body: JSON.stringify(payload) });
+            console.log("✅ Global save:", payload);
+        } catch (error) {
+            console.error("❌ Save failed:", error);
+        }
+    },
+};

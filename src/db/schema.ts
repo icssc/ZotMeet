@@ -141,6 +141,9 @@ export const meetings = pgTable("meetings", {
         withTimezone: false,
     }).notNull(),
     toTime: time("to_time", { withTimezone: false }).notNull(),
+    scheduledFromTime: time("from_time", { withTimezone: false }),
+    scheduledToTime: time("to_time", { withTimezone: false }),
+    scheduledDate: timestamp("scheduled_date", { mode: "date" }),
     // store IANA timezone as a string for better compatibility
     timezone: text("timezone").notNull(),
     group_id: uuid("group_id").references(() => groups.id, {

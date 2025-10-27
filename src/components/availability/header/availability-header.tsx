@@ -23,6 +23,7 @@ interface AvailabilityHeaderProps {
     user: UserProfile | null;
     availabilityDates: ZotDate[];
     onCancel: () => void;
+    onScheduleCancel: () => void;
     onSave: () => void;
 }
 
@@ -31,6 +32,7 @@ export function AvailabilityHeader({
     user,
     availabilityDates,
     onCancel,
+    onScheduleCancel,
     onSave,
 }: AvailabilityHeaderProps) {
     const {
@@ -181,7 +183,10 @@ export function AvailabilityHeader({
                                         "flex-center h-8 min-h-fit border-yellow-500 bg-white px-2 uppercase text-yellow-500 outline md:w-28 md:p-0",
                                         "hover:border-yellow-500 hover:bg-yellow-500 hover:text-white"
                                     )}
-                                    onClick={() => setAvailabilityView("group")}
+                                    onClick={() => {
+                                        onScheduleCancel();
+                                        setAvailabilityView("group");
+                                    }}
                                 >
                                     <span className="hidden md:flex">
                                         Cancel

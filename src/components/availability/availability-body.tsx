@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GroupAvailability } from "@/components/availability/group-availability";
+import { groupAvailabilityHandlers } from "@/components/availability/group-availability-row";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { SelectMeeting } from "@/db/schema";
@@ -254,6 +255,7 @@ export function AvailabilityBody({
                 user={user}
                 availabilityDates={availabilityDates}
                 onCancel={handleCancelEditing}
+                onScheduleCancel={groupAvailabilityHandlers.handleCancel}
                 onSave={handleSuccessfulSave}
             />
 
