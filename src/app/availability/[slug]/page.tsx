@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { getStudyRooms } from "@/app/studyrooms/page";
 import { AvailabilityBody } from "@/components/availability/availability-body";
 import { getCurrentSession } from "@/lib/auth";
+import { getStudyRooms } from "@/lib/studyrooms/getrooms";
 import {
     getAllMemberAvailability,
     getExistingMeeting,
