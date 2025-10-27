@@ -321,7 +321,6 @@ export const groupAvailabilityHandlers = {
     handleCancel: () => {
         const { setStartBlockSelection, setEndBlockSelection } =
             useBlockSelectionStore.getState();
-        console.log("❌ Global cancel");
         console.log(
             "Current selection before cancel:",
             useBlockSelectionStore.getState()
@@ -340,7 +339,6 @@ export const groupAvailabilityHandlers = {
             useBlockSelectionStore.getState();
 
         if (!startBlockSelection || !endBlockSelection) {
-            console.log("⚠️ No selection to save");
             return;
         }
 
@@ -354,7 +352,7 @@ export const groupAvailabilityHandlers = {
             // await fetch("/api/save-selection", { method: "POST", body: JSON.stringify(payload) });
             console.log("✅ Global save:", payload);
         } catch (error) {
-            console.error("❌ Save failed:", error);
+            console.error("Save failed:", error);
         }
     },
 };
