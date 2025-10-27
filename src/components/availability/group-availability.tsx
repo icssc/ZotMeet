@@ -309,11 +309,7 @@ export function GroupAvailability({
 
             if (!isOnAvailabilityBlock) {
                 resetSelection();
-<<<<<<< HEAD
                 setSelectionIsLocked(false);
-=======
-                //     setSelectionIsLocked(false);
->>>>>>> 07b5912 (feat: ✨ custom onCancel for schedule meeting view)
             }
         };
 
