@@ -8,6 +8,13 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
+// For locking the zotDateIndex during drag selection
+// This could also be a useState
+let lockedZotDateIndex: number | null = null;
+function setLockedZotDateIndex(index: number | null) {
+    lockedZotDateIndex = index;
+}
+
 interface GroupAvailabilityRowProps {
     timeBlock: number;
     blockIndex: number;
@@ -111,7 +118,40 @@ export function GroupAvailabilityRow({
                     blockIndex: availabilitySelection.blockIndex,
                 });
             }
-            // setAvailabilities(startBlockSelection);
+            setStartBlockSelection(null);
+        }
+    };
+
+    const handleMouseDown = () => {
+        if (
+            availabilitySelection.zotDateIndex !== undefined &&
+            availabilitySelection.blockIndex !== undefined
+        ) {
+            setLockedZotDateIndex(availabilitySelection.zotDateIndex); // to ensure that only 1 date is selected
+            setStartBlockSelection({
+                zotDateIndex: availabilitySelection.zotDateIndex,
+                blockIndex: availabilitySelection.blockIndex,
+            });
+            setEndBlockSelection({
+                zotDateIndex: availabilitySelection.zotDateIndex,
+                blockIndex: availabilitySelection.blockIndex,
+            });
+        }
+    };
+
+    const handleMouseMove = () => {
+        if (
+            startBlockSelection &&
+            availabilitySelection.zotDateIndex !== undefined &&
+            availabilitySelection.blockIndex !== undefined
+        ) {
+            // can only drag within the same date column
+            if (availabilitySelection.zotDateIndex === lockedZotDateIndex) {
+                setEndBlockSelection({
+                    zotDateIndex: availabilitySelection.zotDateIndex,
+                    blockIndex: availabilitySelection.blockIndex,
+                });
+            }
         }
     };
 
@@ -125,40 +165,10 @@ export function GroupAvailabilityRow({
                 zotDateIndex: availabilitySelection.zotDateIndex,
                 blockIndex: availabilitySelection.blockIndex,
             });
-            // setAvailabilities(startBlockSelection);
         }
+
         setStartBlockSelection(null);
-    };
-
-    const handleMouseDown = () => {
-        if (
-            availabilitySelection.zotDateIndex !== undefined &&
-            availabilitySelection.blockIndex !== undefined
-        ) {
-            setStartBlockSelection({
-                zotDateIndex: availabilitySelection.zotDateIndex,
-                blockIndex: availabilitySelection.blockIndex,
-            });
-            setEndBlockSelection({
-                zotDateIndex: availabilitySelection.zotDateIndex,
-                blockIndex: availabilitySelection.blockIndex,
-            });
-        }
-    };
-
-    const handleMouseMove = () => {
-        if (startBlockSelection) {
-            if (
-                startBlockSelection &&
-                availabilitySelection.zotDateIndex !== undefined &&
-                availabilitySelection.blockIndex !== undefined
-            ) {
-                setEndBlockSelection({
-                    zotDateIndex: availabilitySelection.zotDateIndex,
-                    blockIndex: availabilitySelection.blockIndex,
-                });
-            }
-        }
+        setLockedZotDateIndex(null);
     };
 
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -219,9 +229,6 @@ export function GroupAvailabilityRow({
                     const isSelected =
                         selectedZotDateIndex === zotDateIndex &&
                         selectedBlockIndex === blockIndex;
-                    // console.log(`Rendering cell at zotDateIndex: ${zotDateIndex}, blockIndex: ${blockIndex}`);
-                    // console.log(`selectedZotDateIndex: ${selectedZotDateIndex}, selectedBlockIndex: ${selectedBlockIndex}`);
-                    // console.log(`Cell ${blockIndex} isSelected: ${isSelected}`);
 
                     const timestamp = getTimestampFromBlockIndex(
                         blockIndex,
@@ -236,7 +243,6 @@ export function GroupAvailabilityRow({
 
                     // Calculate block color
                     let blockColor = "transparent";
-                    // console.log(`cell ${blockIndex} hoveredMember: ${hoveredMember}`);
                     if (hoveredMember) {
                         if (block.includes(hoveredMember)) {
                             blockColor = "rgba(55, 124, 251)";
