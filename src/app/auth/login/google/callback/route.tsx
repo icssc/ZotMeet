@@ -1,11 +1,17 @@
 import { cookies } from "next/headers";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { setSessionTokenCookie } from "@/lib/auth/cookies";
-import { google } from "@/lib/auth/oauth";
+import { oauth } from "@/lib/auth/oauth";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
 import { createGoogleUser } from "@/lib/auth/user";
-import { getUserIdExists } from "@/server/data/user/queries";
+import {
+    getUserEmailExists,
+    getUserIdExists,
+} from "@/server/data/user/queries";
 import { decodeIdToken } from "arctic";
 import type { OAuth2Tokens } from "arctic";
+import { eq } from "drizzle-orm";
 
 export async function GET(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -13,8 +19,8 @@ export async function GET(request: Request): Promise<Response> {
     const state = url.searchParams.get("state");
 
     const cookieStore = await cookies();
-    const storedState = cookieStore.get("google_oauth_state")?.value ?? null;
-    const codeVerifier = cookieStore.get("google_code_verifier")?.value ?? null;
+    const storedState = cookieStore.get("oauth_state")?.value ?? null;
+    const codeVerifier = cookieStore.get("oauth_code_verifier")?.value ?? null;
     const redirectUrl = cookieStore.get("auth_redirect_url")?.value ?? "/";
 
     cookieStore.delete("auth_redirect_url");
@@ -37,7 +43,11 @@ export async function GET(request: Request): Promise<Response> {
 
     let tokens: OAuth2Tokens;
     try {
-        tokens = await google.validateAuthorizationCode(code, codeVerifier);
+        tokens = await oauth.validateAuthorizationCode(
+            "https://auth.icssc.club/token",
+            code,
+            codeVerifier
+        );
     } catch (e) {
         console.log("invalid credentials", e);
         // Invalid code or client credentials
@@ -51,21 +61,24 @@ export async function GET(request: Request): Promise<Response> {
         email: string;
     };
     const accessToken = tokens.accessToken();
-    const refreshToken = tokens.refreshToken();
+    const refreshToken = tokens.hasRefreshToken()
+        ? tokens.refreshToken()
+        : undefined;
     const expiresAt = new Date(Date.now() + 1000 * 60 * 60);
 
-    const googleUserId = claims.sub;
+    const oauthUserId = claims.sub;
     const username = claims.name;
     const email = claims.email;
 
-    const existingUser = await getUserIdExists(googleUserId);
-
-    if (existingUser !== false) {
+    const existingUser = await db.query.users.findFirst({
+        where: eq(users.email, email),
+    });
+    if (existingUser) {
         const sessionToken = generateSessionToken();
-        const session = await createSession(sessionToken, googleUserId, {
-            googleAccessToken: accessToken,
-            googleRefreshToken: refreshToken,
-            googleAccessTokenExpiresAt: expiresAt,
+        const session = await createSession(sessionToken, existingUser.id, {
+            oauthAccessToken: accessToken,
+            oauthRefreshToken: refreshToken,
+            oauthAccessTokenExpiresAt: expiresAt,
         });
         await setSessionTokenCookie(sessionToken, session.expiresAt);
         return new Response(null, {
@@ -75,13 +88,14 @@ export async function GET(request: Request): Promise<Response> {
             },
         });
     }
-    const user = await createGoogleUser(googleUserId, email, username, null);
+
+    const user = await createGoogleUser(oauthUserId, email, username, null);
 
     const sessionToken = generateSessionToken();
     const session = await createSession(sessionToken, user.id, {
-        googleAccessToken: accessToken,
-        googleRefreshToken: refreshToken,
-        googleAccessTokenExpiresAt: expiresAt,
+        oauthAccessToken: accessToken,
+        oauthRefreshToken: refreshToken,
+        oauthAccessTokenExpiresAt: expiresAt,
     });
     await setSessionTokenCookie(sessionToken, session.expiresAt);
     return new Response(null, {

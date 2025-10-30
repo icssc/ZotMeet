@@ -1,17 +1,16 @@
 import { getCurrentSession } from "@/lib/auth";
 import { updateSessionGoogleTokens } from "@/lib/auth/session";
-import { google as googleClient } from "googleapis";
 
-export type ValidateGoogleAccessTokenError =
+export type ValidateOAuthAccessTokenError =
     | "Not authenticated"
-    | "No Google refresh token"
-    | "Failed to refresh Google token";
+    | "No OAuth refresh token"
+    | "Failed to refresh OAuth token";
 
-export type GoogleTokenResult =
+export type OAuthTokenResult =
     | { accessToken: string; error: null }
-    | { accessToken: null; error: ValidateGoogleAccessTokenError };
+    | { accessToken: null; error: ValidateOAuthAccessTokenError };
 
-export async function validateGoogleAccessToken(): Promise<GoogleTokenResult> {
+export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
     const { session } = await getCurrentSession();
 
     if (session === null) {
@@ -19,7 +18,7 @@ export async function validateGoogleAccessToken(): Promise<GoogleTokenResult> {
     }
 
     if (!session.googleRefreshToken) {
-        return { accessToken: null, error: "No Google refresh token" };
+        return { accessToken: null, error: "No OAuth refresh token" };
     }
 
     const now = Date.now();
@@ -30,26 +29,38 @@ export async function validateGoogleAccessToken(): Promise<GoogleTokenResult> {
         return { accessToken: session.googleAccessToken, error: null };
     }
 
-    const auth = new googleClient.auth.OAuth2(
-        process.env.GOOGLE_OAUTH_CLIENT_ID!,
-        process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
-        process.env.GOOGLE_OAUTH_REDIRECT_URI!
-    );
-
-    auth.setCredentials({ refresh_token: session.googleRefreshToken });
-
+    // Generic OAuth2 token refresh using standard token endpoint
     try {
-        const { credentials } = await auth.refreshAccessToken();
+        const tokenEndpoint = process.env.OIDC_TOKEN_ENDPOINT!;
+
+        const response = await fetch(tokenEndpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+                grant_type: "refresh_token",
+                refresh_token: session.googleRefreshToken,
+                client_id: process.env.OIDC_CLIENT_ID!,
+                client_secret: process.env.OIDC_CLIENT_SECRET!,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error("Token refresh failed");
+        }
+
+        const data = await response.json();
 
         await updateSessionGoogleTokens(session.id, {
-            googleAccessToken: credentials.access_token!,
-            googleAccessTokenExpiresAt: new Date(
-                credentials.expiry_date ?? now + 3600 * 1000
+            oauthAccessToken: data.access_token,
+            oauthAccessTokenExpiresAt: new Date(
+                now + (data.expires_in ?? 3600) * 1000
             ),
         });
 
-        return { accessToken: credentials.access_token!, error: null };
+        return { accessToken: data.access_token, error: null };
     } catch {
-        return { accessToken: null, error: "Failed to refresh Google token" };
+        return { accessToken: null, error: "Failed to refresh OAuth token" };
     }
 }

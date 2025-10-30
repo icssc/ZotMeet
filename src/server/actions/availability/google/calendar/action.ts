@@ -10,12 +10,12 @@ export async function fetchGoogleCalendarEvents(
 ): Promise<GoogleCalendarEvent[]> {
     const { accessToken, error } = await validateGoogleAccessToken();
 
-    if (error === "No Google refresh token" || error === "Not authenticated") {
+    if (error === "No OAuth refresh token" || error === "Not authenticated") {
         return [];
     }
 
     if (error || !accessToken) {
-        throw new Error(error ?? "Could not retrieve Google access token");
+        throw new Error(error ?? "Could not retrieve OAuth access token");
     }
 
     const auth = new googleClient.auth.OAuth2();

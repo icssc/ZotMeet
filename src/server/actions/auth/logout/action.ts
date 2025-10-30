@@ -17,5 +17,14 @@ export async function logoutAction() {
     invalidateSession(session.id);
     deleteSessionTokenCookie();
 
+    try {
+        await fetch(`${process.env.OAUTH_ISSUER_URL}/logout`, {
+            method: "POST",
+            credentials: "include",
+        });
+    } catch (error) {
+        console.error("Failed to invalidate IdP session:", error);
+    }
+
     revalidatePath("/", "layout");
 }

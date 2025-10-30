@@ -101,7 +101,7 @@ export async function createGoogleUser(
             .values({
                 userId: googleUserId,
                 providerId: "google",
-                providerUserId: newUser.memberId,
+                providerUserId: googleUserId,
             })
             .returning({
                 memberId: oauthAccounts.providerUserId,

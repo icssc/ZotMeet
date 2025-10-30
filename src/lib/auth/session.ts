@@ -12,9 +12,9 @@ import { eq } from "drizzle-orm";
 const DAYS_MS = 1000 * 60 * 60 * 24;
 
 type OAuthTokenData = {
-    googleAccessToken?: string;
-    googleRefreshToken?: string;
-    googleAccessTokenExpiresAt?: Date;
+    oauthAccessToken?: string;
+    oauthRefreshToken?: string;
+    oauthAccessTokenExpiresAt?: Date;
 };
 
 export function generateSessionToken(): string {
@@ -38,9 +38,9 @@ export async function createSession(
         id: sessionId,
         userId,
         expiresAt: new Date(Date.now() + DAYS_MS * 30),
-        googleAccessToken: options.googleAccessToken,
-        googleRefreshToken: options.googleRefreshToken,
-        googleAccessTokenExpiresAt: options.googleAccessTokenExpiresAt,
+        googleAccessToken: options.oauthAccessToken,
+        googleRefreshToken: options.oauthRefreshToken,
+        googleAccessTokenExpiresAt: options.oauthAccessTokenExpiresAt,
     };
 
     await db.insert(sessions).values(session);
@@ -100,15 +100,15 @@ export async function invalidateSession(sessionId: string): Promise<void> {
 export async function updateSessionGoogleTokens(
     sessionId: string,
     tokens: {
-        googleAccessToken: string;
-        googleAccessTokenExpiresAt: Date;
+        oauthAccessToken: string;
+        oauthAccessTokenExpiresAt: Date;
     }
 ): Promise<void> {
     await db
         .update(sessions)
         .set({
-            googleAccessToken: tokens.googleAccessToken,
-            googleAccessTokenExpiresAt: tokens.googleAccessTokenExpiresAt,
+            googleAccessToken: tokens.oauthAccessToken,
+            googleAccessTokenExpiresAt: tokens.oauthAccessTokenExpiresAt,
         })
         .where(eq(sessions.id, sessionId));
 }
