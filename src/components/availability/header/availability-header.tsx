@@ -18,6 +18,7 @@ import {
     DeleteIcon,
     EditIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface AvailabilityHeaderProps {
     meetingData: SelectMeeting;
@@ -45,6 +46,10 @@ export function AvailabilityHeader({
 
     const handleMeetingExport = () => {
         if (!user) {
+            return;
+        }
+        if (!meetingData.scheduled) {
+            toast.error("Meeting has not been scheduled yet.");
             return;
         }
 
@@ -203,7 +208,6 @@ export function AvailabilityHeader({
                                             return;
                                         }
                                         handleMeetingExport();
-                                        // need to add toast when meeting has not been scheduled yet
                                     }}
                                 >
                                     <img
