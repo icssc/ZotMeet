@@ -48,7 +48,6 @@ export function AvailabilityHeader({
         if (!user) {
             return;
         }
-        console.log("SCHEDULED???", meetingData.scheduled);
         if (!meetingData.scheduled) {
             toast.error("Meeting has not been scheduled yet.");
             return;
