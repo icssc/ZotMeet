@@ -15,9 +15,10 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
-import { saveMeetingSchedule } from "@actions/meeting/schedule/action";
-import { is } from "drizzle-orm";
-import { meet } from "googleapis/build/src/apis/meet";
+import {
+    getScheduledBlockTimes,
+    saveMeetingSchedule,
+} from "@actions/meeting/schedule/action";
 import { CircleCheckIcon, CircleXIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -91,6 +92,12 @@ export function GroupAvailability({
     const [selectionIsLocked, setSelectionIsLocked] = useState(false);
     const [hoveredMember, setHoveredMember] = useState<string | null>(null);
 
+    const [scheduledFromTime, setScheduledFromTime] = useState<string | null>(
+        null
+    );
+    const [scheduledToTime, setScheduledToTime] = useState<string | null>(null);
+    const [scheduledDate, setScheduledDate] = useState<Date | null>(null);
+
     useEffect(() => {
         console.log("startBlockSelection changed:", startBlockSelection);
         console.log("endBlockSelection changed:", endBlockSelection);
@@ -117,6 +124,27 @@ export function GroupAvailability({
             console.log("selectionState set to:", selectionState);
         }
     }, [startBlockSelection, endBlockSelection, setSelectionState]);
+
+    useEffect(() => {
+        async function fetchScheduledTimes() {
+            try {
+                const result = await getScheduledBlockTimes(meetingId);
+                if (result) {
+                    setScheduledFromTime(result.scheduledFromTime ?? null);
+                    setScheduledToTime(result.scheduledToTime ?? null);
+                    setScheduledDate(
+                        result.scheduledDate
+                            ? new Date(result.scheduledDate)
+                            : null
+                    );
+                }
+            } catch (error) {
+                console.error("Error fetching scheduled block times:", error);
+            }
+        }
+
+        fetchScheduledTimes();
+    }, [meetingId]);
 
     const updateSelection = useCallback(
         ({
@@ -366,7 +394,21 @@ export function GroupAvailability({
 
     const formatTimeForPg = (iso: string) => {
         const d = new Date(iso);
-        return d.toISOString().substring(11, 19); // "17:15:00"
+        // Get the local time in PT (Pacific Time), otherwise the golden doesn't show up
+        const options = {
+            timeZone: "America/Los_Angeles",
+            hour12: false,
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        } as const;
+        const formatter = new Intl.DateTimeFormat("en-US", options);
+
+        const parts = formatter.formatToParts(d);
+        const timeParts = Object.fromEntries(
+            parts.map((p) => [p.type, p.value])
+        );
+        return `${timeParts.hour}:${timeParts.minute}:${timeParts.second}`;
     };
 
     const saveScheduledSelection = async () => {
@@ -486,6 +528,9 @@ export function GroupAvailability({
                                         }
                                         selectedBlockIndex={selectedBlockIndex}
                                         fromTime={fromTime}
+                                        scheduledFromTime={scheduledFromTime}
+                                        scheduledToTime={scheduledToTime}
+                                        scheduledDate={scheduledDate}
                                         availabilityDates={availabilityDates}
                                         numMembers={members.length}
                                         hoveredMember={hoveredMember}

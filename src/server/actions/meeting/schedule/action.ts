@@ -37,3 +37,21 @@ export async function saveMeetingSchedule({
         return { error: "Failed to save meeting schedule." };
     }
 }
+
+export async function getScheduledBlockTimes(meetingId: string) {
+    try {
+        const meeting = await getExistingMeeting(meetingId);
+        if (!meeting) {
+            return { error: "Invalid meeting ID" };
+        }
+
+        return {
+            scheduledFromTime: meeting.scheduledFromTime,
+            scheduledToTime: meeting.scheduledToTime,
+            scheduledDate: meeting.scheduledDate,
+        };
+    } catch (error) {
+        console.error("Error fetching scheduled block times:", error);
+        return { error: "Failed to fetch scheduled block times." };
+    }
+}

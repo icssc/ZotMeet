@@ -25,6 +25,9 @@ interface GroupAvailabilityRowProps {
     selectedZotDateIndex: number | undefined;
     selectedBlockIndex: number | undefined;
     fromTime: number;
+    scheduledFromTime: string | null;
+    scheduledToTime: string | null;
+    scheduledDate: Date | null;
     availabilityDates: ZotDate[];
     numMembers: number;
     hoveredMember: string | null;
@@ -49,6 +52,9 @@ export function GroupAvailabilityRow({
     selectedZotDateIndex,
     selectedBlockIndex,
     fromTime,
+    scheduledFromTime,
+    scheduledToTime,
+    scheduledDate,
     availabilityDates,
     numMembers,
     hoveredMember,
@@ -246,22 +252,47 @@ export function GroupAvailabilityRow({
                     const block =
                         selectedDate.groupAvailability[timestamp] || [];
 
-                    // Calculate block color
+                    // --- Calculate block color ---
                     let blockColor = "transparent";
-                    if (hoveredMember) {
-                        if (block.includes(hoveredMember)) {
-                            blockColor = "rgba(55, 124, 251)";
-                        } else {
-                            blockColor = "transparent";
+
+                    // Convert the current block timestamp to a real Date object
+                    const blockDate = new Date(timestamp);
+
+                    // --- 1️⃣ Highlight scheduled time range in gold ---
+                    if (
+                        scheduledDate &&
+                        scheduledFromTime &&
+                        scheduledToTime &&
+                        blockDate.toDateString() ===
+                            scheduledDate.toDateString()
+                    ) {
+                        const scheduledStart = new Date(
+                            `${scheduledDate.toDateString()} ${scheduledFromTime}`
+                        );
+                        const scheduledEnd = new Date(
+                            `${scheduledDate.toDateString()} ${scheduledToTime}`
+                        );
+
+                        if (
+                            blockDate >= scheduledStart &&
+                            blockDate < scheduledEnd
+                        ) {
+                            blockColor = "rgba(249, 225, 14, 0.75)"; // gold highlight
                         }
+                    }
+
+                    // --- 2️⃣ Hover or drag selection overrides (if not already gold) ---
+                    if (hoveredMember) {
+                        blockColor = block.includes(hoveredMember)
+                            ? "rgba(55, 124, 251)"
+                            : "transparent";
                     } else if (
                         isSchedulingMeeting &&
                         (isInDragSelection(zotDateIndex, blockIndex) ||
                             isInSelectionRange(zotDateIndex, blockIndex))
                     ) {
-                        // Drag highlight or persisted selection
                         blockColor = "rgba(249, 225, 14, 0.75)";
-                    } else if (numMembers > 0) {
+                    } else if (numMembers > 0 && blockColor === "transparent") {
                         const opacity = block.length / numMembers;
                         blockColor = `rgba(55, 124, 251, ${opacity})`;
                     }
