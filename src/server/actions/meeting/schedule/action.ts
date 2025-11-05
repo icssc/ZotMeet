@@ -1,19 +1,39 @@
 "use server";
 
-export async function scheduleMeeting(
-    meetingId: string,
-    startIso: string,
-    endIso: string
-) {
-    // Placeholder implementation: in production, update the meetings table to mark scheduled and store times.
-    console.log(
-        `Scheduling meeting ${meetingId} from ${startIso} to ${endIso}`
-    );
+import { db } from "@/db";
+import { meetings } from "@/db/schema";
+import { getExistingMeeting } from "@/server/data/meeting/queries";
+import { eq } from "drizzle-orm";
 
-    return {
-        status: 200,
-        body: {
-            message: "Scheduled (placeholder)",
-        },
-    };
+export async function saveMeetingSchedule({
+    meetingId,
+    scheduledFromTime,
+    scheduledToTime,
+    scheduledDate,
+}: {
+    meetingId: string;
+    scheduledFromTime: string;
+    scheduledToTime: string;
+    scheduledDate: Date;
+}) {
+    try {
+        const meeting = await getExistingMeeting(meetingId);
+        if (!meeting) {
+            return { error: "Invalid meeting ID" };
+        }
+
+        await db
+            .update(meetings)
+            .set({
+                scheduledFromTime,
+                scheduledToTime,
+                scheduledDate,
+                scheduled: true,
+            })
+            .where(eq(meetings.id, meetingId));
+        return { success: true };
+    } catch (error) {
+        console.error("Error saving meeting schedule:", error);
+        return { error: "Failed to save meeting schedule." };
+    }
 }
