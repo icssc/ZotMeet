@@ -87,7 +87,7 @@ export async function getMeetings(memberId: string) {
             scheduled: meetings.scheduled,
             fromTime: meetings.fromTime,
             toTime: meetings.toTime,
-            schedledFromTime: meetings.scheduledFromTime,
+            scheduledFromTime: meetings.scheduledFromTime,
             scheduledToTime: meetings.scheduledToTime,
             scheduledDate: meetings.scheduledDate,
             timezone: meetings.timezone,
