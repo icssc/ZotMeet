@@ -421,10 +421,10 @@ export function GroupAvailability({
     };
 
     return (
-        <div className="flex flex-row items-start justify-start align-top">
-            {/* Conditionally render buttons only when scheduling a meeting */}
+        <div className="flex w-full flex-col">
+            {/* --- Top bar: Cancel/Save buttons --- */}
             {isSchedulingMeeting && (
-                <div className="mt-4 flex space-x-2 md:space-x-4">
+                <div className="mb-2 flex justify-end space-x-2 md:space-x-4">
                     <Button
                         className={cn(
                             "flex-center h-8 min-h-fit border-yellow-500 bg-white px-2 uppercase text-yellow-500 outline md:w-28 md:p-0",
@@ -432,7 +432,6 @@ export function GroupAvailability({
                         )}
                         onClick={() => {
                             groupAvailabilityHandlers.handleCancel();
-                            isSchedulingMeeting = false;
                             setAvailabilityView("group");
                         }}
                     >
@@ -456,68 +455,76 @@ export function GroupAvailability({
                 </div>
             )}
 
-            <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
-                <AvailabilityNavButton
-                    direction="left"
-                    handleClick={prevPage}
-                    disabled={isFirstPage}
-                />
-
-                <table className="w-full table-fixed">
-                    <AvailabilityTableHeader
-                        currentPageAvailability={currentPageAvailability}
+            {/* --- Main calendar + navigation + responses layout --- */}
+            <div className="flex flex-row items-start justify-start align-top">
+                <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
+                    <AvailabilityNavButton
+                        direction="left"
+                        handleClick={prevPage}
+                        disabled={isFirstPage}
                     />
 
-                    <tbody>
-                        {availabilityTimeBlocks.map((timeBlock, blockIndex) => (
-                            <GroupAvailabilityRow
-                                key={`block-${timeBlock}`}
-                                timeBlock={timeBlock}
-                                blockIndex={blockIndex}
-                                availabilityTimeBlocksLength={
-                                    availabilityTimeBlocks.length
-                                }
-                                currentPageAvailability={
-                                    currentPageAvailability
-                                }
-                                selectedZotDateIndex={selectedZotDateIndex}
-                                selectedBlockIndex={selectedBlockIndex}
-                                fromTime={fromTime}
-                                availabilityDates={availabilityDates}
-                                numMembers={members.length}
-                                hoveredMember={hoveredMember}
-                                handleCellClick={handleCellClick}
-                                handleCellHover={handleCellHover}
-                                isSchedulingMeeting={isSchedulingMeeting}
-                                selectionState={selectionState}
-                            />
-                        ))}
-                    </tbody>
-                </table>
+                    <table className="w-full table-fixed">
+                        <AvailabilityTableHeader
+                            currentPageAvailability={currentPageAvailability}
+                        />
+                        <tbody>
+                            {availabilityTimeBlocks.map(
+                                (timeBlock, blockIndex) => (
+                                    <GroupAvailabilityRow
+                                        key={`block-${timeBlock}`}
+                                        timeBlock={timeBlock}
+                                        blockIndex={blockIndex}
+                                        availabilityTimeBlocksLength={
+                                            availabilityTimeBlocks.length
+                                        }
+                                        currentPageAvailability={
+                                            currentPageAvailability
+                                        }
+                                        selectedZotDateIndex={
+                                            selectedZotDateIndex
+                                        }
+                                        selectedBlockIndex={selectedBlockIndex}
+                                        fromTime={fromTime}
+                                        availabilityDates={availabilityDates}
+                                        numMembers={members.length}
+                                        hoveredMember={hoveredMember}
+                                        handleCellClick={handleCellClick}
+                                        handleCellHover={handleCellHover}
+                                        isSchedulingMeeting={
+                                            isSchedulingMeeting
+                                        }
+                                        selectionState={selectionState}
+                                    />
+                                )
+                            )}
+                        </tbody>
+                    </table>
 
-                <AvailabilityNavButton
-                    direction="right"
-                    handleClick={() => nextPage(availabilityDates.length)}
-                    disabled={isLastPage}
+                    <AvailabilityNavButton
+                        direction="right"
+                        handleClick={() => nextPage(availabilityDates.length)}
+                        disabled={isLastPage}
+                    />
+                </div>
+
+                <GroupResponses
+                    availabilityDates={availabilityDates}
+                    isMobileDrawerOpen={isMobileDrawerOpen}
+                    selectedZotDateIndex={selectedZotDateIndex}
+                    selectedBlockIndex={selectedBlockIndex}
+                    availableMembersOfSelection={availableMembers}
+                    notAvailableMembersOfSelection={notAvailableMembers}
+                    closeMobileDrawer={resetSelection}
+                    onMemberHover={handleMemberHover}
+                />
+
+                <div
+                    className={cn("lg:hidden", {
+                        "h-96": isMobileDrawerOpen,
+                    })}
                 />
             </div>
-
-            <GroupResponses
-                availabilityDates={availabilityDates}
-                isMobileDrawerOpen={isMobileDrawerOpen}
-                selectedZotDateIndex={selectedZotDateIndex}
-                selectedBlockIndex={selectedBlockIndex}
-                availableMembersOfSelection={availableMembers}
-                notAvailableMembersOfSelection={notAvailableMembers}
-                closeMobileDrawer={resetSelection}
-                onMemberHover={handleMemberHover}
-            />
-
-            <div
-                className={cn("lg:hidden", {
-                    "h-96": isMobileDrawerOpen,
-                })}
-            />
         </div>
     );
 }
