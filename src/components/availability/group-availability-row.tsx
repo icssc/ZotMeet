@@ -120,7 +120,7 @@ export function GroupAvailabilityRow({
                     blockIndex: availabilitySelection.blockIndex,
                 });
             }
-            setStartBlockSelection(null);
+            setStartBlockSelection(undefined);
         }
     };
 
@@ -164,10 +164,12 @@ export function GroupAvailabilityRow({
             availabilitySelection.zotDateIndex !== undefined &&
             availabilitySelection.blockIndex !== undefined
         ) {
-            setEndBlockSelection({
-                zotDateIndex: availabilitySelection.zotDateIndex,
-                blockIndex: availabilitySelection.blockIndex,
-            });
+            if (availabilitySelection.zotDateIndex === lockedZotDateIndex) {
+                setEndBlockSelection({
+                    zotDateIndex: availabilitySelection.zotDateIndex,
+                    blockIndex: availabilitySelection.blockIndex,
+                });
+            }
         }
 
         setLockedZotDateIndex(null);
@@ -326,8 +328,8 @@ export const groupAvailabilityHandlers = {
             useBlockSelectionStore.getState()
         );
 
-        setStartBlockSelection(null);
-        setEndBlockSelection(null);
+        setStartBlockSelection(undefined);
+        setEndBlockSelection(undefined);
         console.log(
             "Current selection after cancel:",
             useBlockSelectionStore.getState()
