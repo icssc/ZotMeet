@@ -261,6 +261,7 @@ export function AvailabilityBody({
 
             {availabilityView === "group" || availabilityView === "schedule" ? (
                 <GroupAvailability
+                    meetingId={meetingData.id}
                     availabilityTimeBlocks={availabilityTimeBlocks}
                     fromTime={fromTimeMinutes}
                     availabilityDates={availabilityDates}

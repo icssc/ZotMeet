@@ -1,15 +1,25 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { GroupAvailabilityRow } from "@/components/availability/group-availability-row";
+import {
+    groupAvailabilityHandlers,
+    GroupAvailabilityRow,
+} from "@/components/availability/group-availability-row";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
+import { Button } from "@/components/ui/button";
 import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
+import { saveMeetingSchedule } from "@actions/meeting/schedule/action";
+import { is } from "drizzle-orm";
+import { meet } from "googleapis/build/src/apis/meet";
+import { CircleCheckIcon, CircleXIcon } from "lucide-react";
+import { toast } from "sonner";
 
 export const getTimestampFromBlockIndex = (
     blockIndex: number,
@@ -38,6 +48,7 @@ export const getTimestampFromBlockIndex = (
 };
 
 interface GroupAvailabilityProps {
+    meetingId: string;
     availabilityTimeBlocks: number[];
     fromTime: number;
     availabilityDates: ZotDate[];
@@ -47,6 +58,7 @@ interface GroupAvailabilityProps {
 }
 
 export function GroupAvailability({
+    meetingId,
     availabilityTimeBlocks,
     fromTime,
     availabilityDates,
@@ -62,6 +74,8 @@ export function GroupAvailability({
         selectionState,
         setSelectionState,
     } = useBlockSelectionStore();
+
+    const { setAvailabilityView } = useAvailabilityViewStore();
 
     const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
         useAvailabilityPaginationStore();
@@ -308,7 +322,7 @@ export function GroupAvailability({
             );
 
             if (!isOnAvailabilityBlock) {
-                resetSelection();
+                // resetSelection();
                 setSelectionIsLocked(false);
             }
         };
@@ -349,9 +363,99 @@ export function GroupAvailability({
         const member = members.find((m) => m.memberId === memberId);
         setHoveredMember(member ? member.displayName : null);
     };
-    console.log(selectionState);
+
+    const formatTimeForPg = (iso: string) => {
+        const d = new Date(iso);
+        return d.toISOString().substring(11, 19); // "17:15:00"
+    };
+
+    const saveScheduledSelection = async () => {
+        if (!startBlockSelection || !endBlockSelection) {
+            toast.error(
+                "Please select a valid start and end time before saving."
+            );
+            return;
+        }
+
+        const scheduledFromTime = getTimestampFromBlockIndex(
+            startBlockSelection.blockIndex,
+            startBlockSelection.zotDateIndex,
+            fromTime,
+            availabilityDates
+        );
+
+        const scheduledToTime = getTimestampFromBlockIndex(
+            endBlockSelection.blockIndex,
+            endBlockSelection.zotDateIndex,
+            fromTime,
+            availabilityDates
+        );
+
+        if (!scheduledFromTime || !scheduledToTime) {
+            toast.error("Invalid time selection — please try again.");
+            return;
+        }
+
+        const scheduledDate = new Date(
+            availabilityDates[startBlockSelection.zotDateIndex].day
+        );
+
+        try {
+            const { success, error } = await saveMeetingSchedule({
+                meetingId,
+                scheduledFromTime: formatTimeForPg(scheduledFromTime),
+                scheduledToTime: formatTimeForPg(scheduledToTime),
+                scheduledDate: new Date(scheduledFromTime),
+            });
+
+            if (success) {
+                toast.success("Meeting updated successfully!");
+                window.location.reload();
+            } else {
+                toast.error(error ?? "Failed to update meeting.");
+            }
+        } catch (err) {
+            console.error("Error saving meeting schedule:", err);
+            toast.error("Unexpected error occurred while saving.");
+        }
+    };
+
     return (
         <div className="flex flex-row items-start justify-start align-top">
+            {/* Conditionally render buttons only when scheduling a meeting */}
+            {isSchedulingMeeting && (
+                <div className="mt-4 flex space-x-2 md:space-x-4">
+                    <Button
+                        className={cn(
+                            "flex-center h-8 min-h-fit border-yellow-500 bg-white px-2 uppercase text-yellow-500 outline md:w-28 md:p-0",
+                            "hover:border-yellow-500 hover:bg-yellow-500 hover:text-white"
+                        )}
+                        onClick={() => {
+                            groupAvailabilityHandlers.handleCancel();
+                            isSchedulingMeeting = false;
+                            setAvailabilityView("group");
+                        }}
+                    >
+                        <span className="hidden md:flex">Cancel</span>
+                        <CircleXIcon />
+                    </Button>
+
+                    <Button
+                        className={cn(
+                            "flex-center h-8 min-h-fit border border-green-500 bg-white px-2 uppercase text-secondary md:w-24 md:p-0",
+                            "group hover:border-green-500 hover:bg-green-500"
+                        )}
+                        type="button"
+                        onClick={saveScheduledSelection}
+                    >
+                        <span className="hidden text-green-500 group-hover:text-white md:flex">
+                            Save
+                        </span>
+                        <CircleCheckIcon className="text-green-500 group-hover:text-white" />
+                    </Button>
+                </div>
+            )}
+
             <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
                 <AvailabilityNavButton
                     direction="left"
