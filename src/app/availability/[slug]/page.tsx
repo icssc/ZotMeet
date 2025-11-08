@@ -82,9 +82,9 @@ export default async function Page({ params }: PageProps) {
     // Fetches study room data based on the current meeting's dates and times
     const studyRooms = await getStudyRooms(queryDates, queryTimes);
 
-    if (studyRooms.data.length === 0) {
-        console.log("No study rooms found in range");
-    }
+    // if (studyRooms.data.length === 0) {
+    //     console.log("No study rooms found in range");
+    // }
     // else {
     //     //prints all time slots of the first study room result, for reference that the query is correct
     //     console.log("Study Rooms Placeholder: ", studyRooms.data); // commented out for now
