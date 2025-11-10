@@ -4,13 +4,26 @@
 import { SelectMeeting } from "@/db/schema";
 import { Calendar, Clock, UsersIcon } from "lucide-react";
 
-const formatTime = (time: string): string => {
+const getFormattedHourString = (time: string): string => {
     const [hourStr] = time.split(":");
     let hour = parseInt(hourStr, 10);
     const ampm = hour >= 12 ? "PM" : "AM";
     hour = hour % 12;
     hour = hour ? hour : 12;
     return `${hour} ${ampm}`;
+};
+
+const getFormattedHourMinString = (time: string): string => {
+    if (!time) return ""; // handle empty or null strings safely
+
+    const [hourStr, minuteStr = "00"] = time.split(":");
+    let hour = parseInt(hourStr, 10);
+    const minute = parseInt(minuteStr, 10);
+
+    const ampm = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12 || 12; // convert 0 or 12 to 12-hour format
+
+    return `${hour}:${minute.toString().padStart(2, "0")} ${ampm}`;
 };
 
 interface MeetingCardProps {
@@ -80,8 +93,8 @@ export const MeetingCard = ({ meeting }: MeetingCardProps) => {
                         <Clock className="size-4" />
                         <span className="text-nowrap">
                             {scheduledFromTime && scheduledToTime
-                                ? `${formatTime(scheduledFromTime)} - ${formatTime(scheduledToTime)}`
-                                : `${formatTime(fromTime)} - ${formatTime(toTime)}`}
+                                ? `${getFormattedHourMinString(scheduledFromTime)} - ${getFormattedHourMinString(scheduledToTime)}`
+                                : `${getFormattedHourString(fromTime)} - ${getFormattedHourString(toTime)}`}
                         </span>
                     </div>
 
