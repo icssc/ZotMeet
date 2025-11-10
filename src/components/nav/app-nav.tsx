@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { NavMain } from "@/components/nav/nav-main";
 import { NavUser } from "@/components/nav/nav-user";
@@ -14,6 +13,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from "@/components/ui/sidebar";
 import { UserProfile } from "@/lib/auth/user";
 import { CalendarSearchIcon, SquarePlusIcon } from "lucide-react";
@@ -39,23 +39,7 @@ type SidebarComponentProps = React.ComponentProps<typeof Sidebar> & {
 };
 
 export function SidebarComponent({ user, ...props }: SidebarComponentProps) {
-    const [isMobile, setIsMobile] = useState(false);
-
-    const checkWindowSize = useCallback(() => {
-        if (window.innerWidth < 768) {
-            setIsMobile(true);
-        } else {
-            setIsMobile(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        checkWindowSize();
-
-        window.addEventListener("resize", checkWindowSize);
-
-        return () => window.removeEventListener("resize", checkWindowSize);
-    }, [checkWindowSize]);
+    const { isMobile } = useSidebar();
 
     return (
         <Sidebar
