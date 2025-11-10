@@ -97,7 +97,7 @@ const deriveInitialAvailability = ({
     return initialAvailability;
 };
 
-export function AvailabilityBody({
+export function Availability({
     meetingData,
     userAvailability,
     allAvailabilities,

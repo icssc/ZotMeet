@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { AvailabilityBody } from "@/components/availability/availability-body";
+import { Availability } from "@/components/availability/availability";
 import { getCurrentSession } from "@/lib/auth";
 import {
     getAllMemberAvailability,
@@ -49,7 +49,7 @@ export default async function Page({ params }: PageProps) {
 
     return (
         <div className="space-y-2 px-4">
-            <AvailabilityBody
+            <Availability
                 meetingData={meetingData}
                 userAvailability={userAvailability}
                 allAvailabilities={allAvailabilities}
