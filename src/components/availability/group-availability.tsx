@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { GroupAvailabilityRow } from "@/components/availability/group-availability-row";
 import { Member } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
+import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 
 export const getTimestampFromBlockIndex = (
     blockIndex: number,
@@ -39,15 +40,6 @@ interface GroupAvailabilityProps {
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
     members: Member[];
-    // Shared hover state from parent
-    selectedZotDateIndex: number | undefined;
-    selectedBlockIndex: number | undefined;
-    setSelectedZotDateIndex: (index: number | undefined) => void;
-    setSelectedBlockIndex: (index: number | undefined) => void;
-    selectionIsLocked: boolean;
-    setSelectionIsLocked: (locked: boolean) => void;
-    hoveredMember: string | null;
-    setHoveredMember: (member: string | null) => void;
 }
 
 export function GroupAvailability({
@@ -58,15 +50,19 @@ export function GroupAvailability({
     availabilityDates,
     currentPageAvailability,
     members,
-    selectedZotDateIndex,
-    selectedBlockIndex,
-    setSelectedZotDateIndex,
-    setSelectedBlockIndex,
-    selectionIsLocked,
-    setSelectionIsLocked,
-    hoveredMember,
-    setHoveredMember,
 }: GroupAvailabilityProps) {
+    const {
+        selectedZotDateIndex,
+        selectedBlockIndex,
+        setSelectedZotDateIndex,
+        setSelectedBlockIndex,
+        selectionIsLocked,
+        setSelectionIsLocked,
+        hoveredMember,
+        setHoveredMember: _setHoveredMember,
+        resetSelection,
+    } = useGroupSelectionStore();
+
     const [_isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
     const updateSelection = useCallback(
@@ -84,12 +80,10 @@ export function GroupAvailability({
         [setSelectedZotDateIndex, setSelectedBlockIndex]
     );
 
-    const resetSelection = useCallback(() => {
+    const resetSelectionWithDrawer = useCallback(() => {
         setIsMobileDrawerOpen(false);
-        setSelectedZotDateIndex(undefined);
-        setSelectedBlockIndex(undefined);
-        setHoveredMember(null);
-    }, [setSelectedZotDateIndex, setSelectedBlockIndex, setHoveredMember]);
+        resetSelection();
+    }, [resetSelection]);
 
     // const { availableMembers, notAvailableMembers } = useMemo(() => {
     //     if (
@@ -146,7 +140,7 @@ export function GroupAvailability({
                 updateSelection({ zotDateIndex, blockIndex });
             }
         },
-        [selectionIsLocked, updateSelection]
+        [selectionIsLocked, setSelectionIsLocked, updateSelection]
     );
 
     const handleCellHover = useCallback(
@@ -192,7 +186,7 @@ export function GroupAvailability({
             }
 
             if (!isOverGrid) {
-                resetSelection();
+                resetSelectionWithDrawer();
             }
         };
 
@@ -203,7 +197,7 @@ export function GroupAvailability({
             );
 
             if (!isOnAvailabilityBlock) {
-                resetSelection();
+                resetSelectionWithDrawer();
                 setSelectionIsLocked(false);
             }
         };
@@ -215,12 +209,12 @@ export function GroupAvailability({
             document.removeEventListener("mousemove", handleMouseMove);
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [selectionIsLocked, resetSelection]);
+    }, [selectionIsLocked, resetSelectionWithDrawer, setSelectionIsLocked]);
 
     useEffect(() => {
         const handleEscKey = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
-                resetSelection();
+                resetSelectionWithDrawer();
                 setSelectionIsLocked(false);
                 // Removes focused outline from previously selected block
                 if (document.activeElement instanceof HTMLElement) {
@@ -233,7 +227,7 @@ export function GroupAvailability({
         return () => {
             document.removeEventListener("keydown", handleEscKey);
         };
-    }, [resetSelection]);
+    }, [resetSelectionWithDrawer, setSelectionIsLocked]);
 
     // const handleMemberHover = (memberId: string | null) => {
     //     if (memberId === null) {

@@ -115,12 +115,6 @@ export function Availability({
         currentPage ===
         Math.floor((meetingData.dates.length - 1) / itemsPerPage);
 
-    // Group availability hover state (shared across all rows)
-    const [selectedZotDateIndex, setSelectedZotDateIndex] = useState<number>();
-    const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>();
-    const [selectionIsLocked, setSelectionIsLocked] = useState(false);
-    const [hoveredMember, setHoveredMember] = useState<string | null>(null);
-
     const fromTimeMinutes = getTimeFromHourMinuteString(
         meetingData.fromTime as HourMinuteString
     );
@@ -304,28 +298,6 @@ export function Availability({
                                                     currentPageAvailability
                                                 }
                                                 members={members}
-                                                selectedZotDateIndex={
-                                                    selectedZotDateIndex
-                                                }
-                                                selectedBlockIndex={
-                                                    selectedBlockIndex
-                                                }
-                                                setSelectedZotDateIndex={
-                                                    setSelectedZotDateIndex
-                                                }
-                                                setSelectedBlockIndex={
-                                                    setSelectedBlockIndex
-                                                }
-                                                selectionIsLocked={
-                                                    selectionIsLocked
-                                                }
-                                                setSelectionIsLocked={
-                                                    setSelectionIsLocked
-                                                }
-                                                hoveredMember={hoveredMember}
-                                                setHoveredMember={
-                                                    setHoveredMember
-                                                }
                                             />
                                         ) : (
                                             <PersonalAvailability
@@ -362,26 +334,6 @@ export function Availability({
                         disabled={isLastPage}
                     />
                 </div>
-                {/* 
-                {availabilityView === "group" ? (
-                    <GroupAvailability
-                        availabilityTimeBlocks={availabilityTimeBlocks}
-                        fromTime={fromTimeMinutes}
-                        availabilityDates={availabilityDates}
-                        currentPageAvailability={currentPageAvailability}
-                        members={members}
-                    />
-                ) : (
-                    <PersonalAvailability
-                        availabilityTimeBlocks={availabilityTimeBlocks}
-                        fromTime={fromTimeMinutes}
-                        availabilityDates={availabilityDates}
-                        currentPageAvailability={currentPageAvailability}
-                        googleCalendarEvents={googleCalendarEvents}
-                        user={user}
-                        onAvailabilityChange={handleUserAvailabilityChange}
-                    />
-                )} */}
             </div>
         </div>
     );
