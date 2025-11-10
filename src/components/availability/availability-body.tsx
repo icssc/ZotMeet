@@ -6,6 +6,7 @@ import { AvailabilityHeader } from "@/components/availability/header/availabilit
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
+import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import { SelectMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import { UserProfile } from "@/lib/auth/user";
@@ -275,34 +276,54 @@ export function AvailabilityBody({
                         />
 
                         <tbody>
-                            {availabilityView === "group" ? (
-                                <GroupAvailability
-                                    availabilityTimeBlocks={
-                                        availabilityTimeBlocks
-                                    }
-                                    fromTime={fromTimeMinutes}
-                                    availabilityDates={availabilityDates}
-                                    currentPageAvailability={
-                                        currentPageAvailability
-                                    }
-                                    members={members}
-                                />
-                            ) : (
-                                <PersonalAvailability
-                                    availabilityTimeBlocks={
-                                        availabilityTimeBlocks
-                                    }
-                                    fromTime={fromTimeMinutes}
-                                    availabilityDates={availabilityDates}
-                                    currentPageAvailability={
-                                        currentPageAvailability
-                                    }
-                                    googleCalendarEvents={googleCalendarEvents}
-                                    user={user}
-                                    onAvailabilityChange={
-                                        handleUserAvailabilityChange
-                                    }
-                                />
+                            {availabilityTimeBlocks.map(
+                                (timeBlock, blockIndex) => (
+                                    <tr key={`block-${timeBlock}`}>
+                                        <AvailabilityTimeTicks
+                                            timeBlock={timeBlock}
+                                        />
+
+                                        {availabilityView === "group" ? (
+                                            <GroupAvailability
+                                                timeBlock={timeBlock}
+                                                blockIndex={blockIndex}
+                                                availabilityTimeBlocks={
+                                                    availabilityTimeBlocks
+                                                }
+                                                fromTime={fromTimeMinutes}
+                                                availabilityDates={
+                                                    availabilityDates
+                                                }
+                                                currentPageAvailability={
+                                                    currentPageAvailability
+                                                }
+                                                members={members}
+                                            />
+                                        ) : (
+                                            <PersonalAvailability
+                                                timeBlock={timeBlock}
+                                                blockIndex={blockIndex}
+                                                availabilityTimeBlocks={
+                                                    availabilityTimeBlocks
+                                                }
+                                                fromTime={fromTimeMinutes}
+                                                availabilityDates={
+                                                    availabilityDates
+                                                }
+                                                currentPageAvailability={
+                                                    currentPageAvailability
+                                                }
+                                                googleCalendarEvents={
+                                                    googleCalendarEvents
+                                                }
+                                                user={user}
+                                                onAvailabilityChange={
+                                                    handleUserAvailabilityChange
+                                                }
+                                            />
+                                        )}
+                                    </tr>
+                                )
                             )}
                         </tbody>
                     </table>

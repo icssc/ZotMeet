@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
-import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import { useGoogleCalendar } from "@/hooks/use-google-calendar";
 import { UserProfile } from "@/lib/auth/user";
 import type {
@@ -14,6 +13,8 @@ import { ZotDate } from "@/lib/zotdate";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface PersonalAvailabilityProps {
+    timeBlock: number;
+    blockIndex: number;
     availabilityTimeBlocks: number[];
     fromTime: number;
     availabilityDates: ZotDate[];
@@ -24,6 +25,8 @@ interface PersonalAvailabilityProps {
 }
 
 export function PersonalAvailability({
+    timeBlock,
+    blockIndex,
     fromTime,
     availabilityTimeBlocks,
     availabilityDates,
@@ -176,26 +179,14 @@ export function PersonalAvailability({
         };
     }, [isStateUnsaved]);
 
-    return availabilityTimeBlocks.map((timeBlock, blockIndex) => {
-        const isTopOfHour = timeBlock % 60 === 0;
-        const isHalfHour = timeBlock % 60 === 30;
-        const isLastRow = blockIndex === availabilityTimeBlocks.length - 1;
-
-        return (
-            <tr key={`block-${timeBlock}`}>
-                <AvailabilityTimeTicks timeBlock={timeBlock} />
-
-                <AvailabilityBlocks
-                    setAvailabilities={setAvailabilities}
-                    isTopOfHour={isTopOfHour}
-                    isHalfHour={isHalfHour}
-                    isLastRow={isLastRow}
-                    timeBlock={timeBlock}
-                    blockIndex={blockIndex}
-                    currentPageAvailability={currentPageAvailability}
-                    processedCellSegments={processedCellSegments}
-                />
-            </tr>
-        );
-    });
+    return (
+        <AvailabilityBlocks
+            setAvailabilities={setAvailabilities}
+            timeBlock={timeBlock}
+            blockIndex={blockIndex}
+            availabilityTimeBlocksLength={availabilityTimeBlocks.length}
+            currentPageAvailability={currentPageAvailability}
+            processedCellSegments={processedCellSegments}
+        />
+    );
 }

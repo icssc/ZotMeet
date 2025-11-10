@@ -32,6 +32,8 @@ export const getTimestampFromBlockIndex = (
 };
 
 interface GroupAvailabilityProps {
+    timeBlock: number;
+    blockIndex: number;
     availabilityTimeBlocks: number[];
     fromTime: number;
     availabilityDates: ZotDate[];
@@ -40,6 +42,8 @@ interface GroupAvailabilityProps {
 }
 
 export function GroupAvailability({
+    timeBlock,
+    blockIndex,
     availabilityTimeBlocks,
     fromTime,
     availabilityDates,
@@ -228,9 +232,8 @@ export function GroupAvailability({
     //     setHoveredMember(member ? member.displayName : null);
     // };
 
-    return availabilityTimeBlocks.map((timeBlock, blockIndex) => (
+    return (
         <GroupAvailabilityRow
-            key={`block-${timeBlock}`}
             timeBlock={timeBlock}
             blockIndex={blockIndex}
             availabilityTimeBlocksLength={availabilityTimeBlocks.length}
@@ -244,7 +247,7 @@ export function GroupAvailability({
             handleCellClick={handleCellClick}
             handleCellHover={handleCellHover}
         />
-    ));
+    );
 }
 
 {

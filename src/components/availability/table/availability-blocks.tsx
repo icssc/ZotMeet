@@ -10,26 +10,26 @@ import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginatio
 
 interface AvailabilityBlocksProps {
     setAvailabilities: (startBlock: AvailabilityBlockType) => void;
-    isTopOfHour: boolean;
-    isHalfHour: boolean;
-    isLastRow: boolean;
     timeBlock: number;
     blockIndex: number;
+    availabilityTimeBlocksLength: number;
     currentPageAvailability: ZotDate[];
     processedCellSegments: ProcessedCellEventSegments;
 }
 
 export function AvailabilityBlocks({
     setAvailabilities,
-    isTopOfHour,
-    isHalfHour,
-    isLastRow,
     timeBlock,
     blockIndex,
+    availabilityTimeBlocksLength,
     currentPageAvailability,
     processedCellSegments,
 }: AvailabilityBlocksProps) {
     const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
+
+    const isTopOfHour = timeBlock % 60 === 0;
+    const isHalfHour = timeBlock % 60 === 30;
+    const isLastRow = blockIndex === availabilityTimeBlocksLength - 1;
 
     return (
         <>
