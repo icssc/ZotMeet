@@ -39,6 +39,15 @@ interface GroupAvailabilityProps {
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
     members: Member[];
+    // Shared hover state from parent
+    selectedZotDateIndex: number | undefined;
+    selectedBlockIndex: number | undefined;
+    setSelectedZotDateIndex: (index: number | undefined) => void;
+    setSelectedBlockIndex: (index: number | undefined) => void;
+    selectionIsLocked: boolean;
+    setSelectionIsLocked: (locked: boolean) => void;
+    hoveredMember: string | null;
+    setHoveredMember: (member: string | null) => void;
 }
 
 export function GroupAvailability({
@@ -49,12 +58,16 @@ export function GroupAvailability({
     availabilityDates,
     currentPageAvailability,
     members,
+    selectedZotDateIndex,
+    selectedBlockIndex,
+    setSelectedZotDateIndex,
+    setSelectedBlockIndex,
+    selectionIsLocked,
+    setSelectionIsLocked,
+    hoveredMember,
+    setHoveredMember,
 }: GroupAvailabilityProps) {
-    const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
-    const [selectedZotDateIndex, setSelectedZotDateIndex] = useState<number>();
-    const [selectedBlockIndex, setSelectedBlockIndex] = useState<number>();
-    const [selectionIsLocked, setSelectionIsLocked] = useState(false);
-    const [hoveredMember, setHoveredMember] = useState<string | null>(null);
+    const [_isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
     const updateSelection = useCallback(
         ({
@@ -68,7 +81,7 @@ export function GroupAvailability({
             setSelectedZotDateIndex(zotDateIndex);
             setSelectedBlockIndex(blockIndex);
         },
-        []
+        [setSelectedZotDateIndex, setSelectedBlockIndex]
     );
 
     const resetSelection = useCallback(() => {
@@ -76,7 +89,7 @@ export function GroupAvailability({
         setSelectedZotDateIndex(undefined);
         setSelectedBlockIndex(undefined);
         setHoveredMember(null);
-    }, []);
+    }, [setSelectedZotDateIndex, setSelectedBlockIndex, setHoveredMember]);
 
     // const { availableMembers, notAvailableMembers } = useMemo(() => {
     //     if (
