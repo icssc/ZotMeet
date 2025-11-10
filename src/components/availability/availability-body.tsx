@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
+import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
+import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { SelectMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import { UserProfile } from "@/lib/auth/user";
@@ -106,7 +108,11 @@ export function AvailabilityBody({
     user: UserProfile | null;
 }) {
     const { availabilityView, setHasAvailability } = useAvailabilityViewStore();
-    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
+    const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
+        useAvailabilityPaginationStore();
+    const isLastPage =
+        currentPage ===
+        Math.floor((meetingData.dates.length - 1) / itemsPerPage);
 
     const fromTimeMinutes = getTimeFromHourMinuteString(
         meetingData.fromTime as HourMinuteString
@@ -255,25 +261,79 @@ export function AvailabilityBody({
                 onSave={handleSuccessfulSave}
             />
 
-            {availabilityView === "group" ? (
-                <GroupAvailability
-                    availabilityTimeBlocks={availabilityTimeBlocks}
-                    fromTime={fromTimeMinutes}
-                    availabilityDates={availabilityDates}
-                    currentPageAvailability={currentPageAvailability}
-                    members={members}
-                />
-            ) : (
-                <PersonalAvailability
-                    availabilityTimeBlocks={availabilityTimeBlocks}
-                    fromTime={fromTimeMinutes}
-                    availabilityDates={availabilityDates}
-                    currentPageAvailability={currentPageAvailability}
-                    googleCalendarEvents={googleCalendarEvents}
-                    user={user}
-                    onAvailabilityChange={handleUserAvailabilityChange}
-                />
-            )}
+            <div className="flex flex-row items-start justify-start align-top">
+                <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
+                    <AvailabilityNavButton
+                        direction="left"
+                        handleClick={prevPage}
+                        disabled={isFirstPage}
+                    />
+
+                    <table className="w-full table-fixed">
+                        <AvailabilityTableHeader
+                            currentPageAvailability={currentPageAvailability}
+                        />
+
+                        <tbody>
+                            {availabilityView === "group" ? (
+                                <GroupAvailability
+                                    availabilityTimeBlocks={
+                                        availabilityTimeBlocks
+                                    }
+                                    fromTime={fromTimeMinutes}
+                                    availabilityDates={availabilityDates}
+                                    currentPageAvailability={
+                                        currentPageAvailability
+                                    }
+                                    members={members}
+                                />
+                            ) : (
+                                <PersonalAvailability
+                                    availabilityTimeBlocks={
+                                        availabilityTimeBlocks
+                                    }
+                                    fromTime={fromTimeMinutes}
+                                    availabilityDates={availabilityDates}
+                                    currentPageAvailability={
+                                        currentPageAvailability
+                                    }
+                                    googleCalendarEvents={googleCalendarEvents}
+                                    user={user}
+                                    onAvailabilityChange={
+                                        handleUserAvailabilityChange
+                                    }
+                                />
+                            )}
+                        </tbody>
+                    </table>
+
+                    <AvailabilityNavButton
+                        direction="right"
+                        handleClick={() => nextPage(availabilityDates.length)}
+                        disabled={isLastPage}
+                    />
+                </div>
+                {/* 
+                {availabilityView === "group" ? (
+                    <GroupAvailability
+                        availabilityTimeBlocks={availabilityTimeBlocks}
+                        fromTime={fromTimeMinutes}
+                        availabilityDates={availabilityDates}
+                        currentPageAvailability={currentPageAvailability}
+                        members={members}
+                    />
+                ) : (
+                    <PersonalAvailability
+                        availabilityTimeBlocks={availabilityTimeBlocks}
+                        fromTime={fromTimeMinutes}
+                        availabilityDates={availabilityDates}
+                        currentPageAvailability={currentPageAvailability}
+                        googleCalendarEvents={googleCalendarEvents}
+                        user={user}
+                        onAvailabilityChange={handleUserAvailabilityChange}
+                    />
+                )} */}
+            </div>
         </div>
     );
 }
