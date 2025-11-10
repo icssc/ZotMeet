@@ -1,5 +1,5 @@
 import React from "react";
-import { AvailabilityBlockCells } from "@/components/availability/table/availability-block-cells";
+import { AvailabilityBlockCell } from "@/components/availability/table/availability-block-cell";
 import { generateCellKey, generateDateKey } from "@/lib/availability/utils";
 import type {
     AvailabilityBlockType,
@@ -52,7 +52,7 @@ export function AvailabilityBlocks({
                         processedCellSegments.get(cellKey) || [];
 
                     return (
-                        <AvailabilityBlockCells
+                        <AvailabilityBlockCell
                             key={key}
                             blockIndex={blockIndex}
                             isAvailable={isAvailable}
