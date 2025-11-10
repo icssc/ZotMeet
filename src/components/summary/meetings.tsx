@@ -1,17 +1,16 @@
 "use client";
 
 import React, { useCallback, useState } from "react";
-// import {
-//     Tabs,
-//     TabsContent,
-//     TabsList,
-//     TabsTrigger,
-// } from "@/components/custom/tabs";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/custom/tabs";
 import { MeetingsDisplay } from "@/components/summary/meetings-display";
 import { Button } from "@/components/ui/button";
 import { SelectMeeting } from "@/db/schema";
-
-// import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface MeetingsDisplayProps {
     meetings: SelectMeeting[];
@@ -21,19 +20,22 @@ interface MeetingsDisplayProps {
 export const Meetings = ({ meetings, userId }: MeetingsDisplayProps) => {
     const [hostedOnly, setHostedOnly] = useState(false);
 
-    // const scheduledMeetings =
-    //     meetings?.filter((meeting) => meeting.scheduled) || [];
+    const scheduledMeetings =
+        meetings?.filter((meeting) => meeting.scheduled) || [];
     const unscheduledMeetings =
         meetings?.filter((meeting) => !meeting.scheduled) || [];
 
-    // const filteredScheduledMeetings = (
-    //     hostedOnly
-    //         ? scheduledMeetings.filter((meeting) => meeting.hostId === userId)
-    //         : scheduledMeetings
-    // ).sort(
-    //     (a, b) =>
-    //         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    // );
+    const filteredScheduledMeetings = (
+        hostedOnly
+            ? scheduledMeetings.filter((meeting) => meeting.hostId === userId)
+            : scheduledMeetings
+    ).sort(
+        (a, b) =>
+            new Date(b.scheduledDate ?? 0).getTime() -
+                new Date(a.scheduledDate ?? 0).getTime() ||
+            new Date(b.scheduledFromTime ?? 0).getTime() -
+                new Date(a.scheduledFromTime ?? 0).getTime()
+    );
 
     const filteredUnscheduledMeetings = (
         hostedOnly
@@ -65,11 +67,10 @@ export const Meetings = ({ meetings, userId }: MeetingsDisplayProps) => {
                 </Button>
             </div>
 
-            <div className="mt-8">
-                <MeetingsDisplay meetings={filteredUnscheduledMeetings} />
-            </div>
-
-            {/* <Tabs defaultValue="scheduled">
+            <Tabs
+                defaultValue="scheduled"
+                className="pt-4"
+            >
                 <TabsList className="mb-8 space-x-0">
                     <TabsTrigger
                         value="scheduled"
@@ -98,7 +99,7 @@ export const Meetings = ({ meetings, userId }: MeetingsDisplayProps) => {
                 <TabsContent value="unscheduled">
                     <MeetingsDisplay meetings={filteredUnscheduledMeetings} />
                 </TabsContent>
-            </Tabs> */}
+            </Tabs>
         </div>
     );
 };

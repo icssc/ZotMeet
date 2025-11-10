@@ -17,7 +17,7 @@ interface MeetingCardProps {
     meeting: SelectMeeting;
 }
 
-const DateRange = ({ dates }: { dates: string[] }) => {
+const DateRange = ({ dates }: { dates: (string | Date)[] }) => {
     if (!dates || dates.length === 0) return <>No dates specified</>;
 
     if (dates.length === 1) {
@@ -47,7 +47,15 @@ const DateRange = ({ dates }: { dates: string[] }) => {
 };
 
 export const MeetingCard = ({ meeting }: MeetingCardProps) => {
-    const { title, fromTime, toTime, dates } = meeting;
+    const {
+        title,
+        fromTime,
+        toTime,
+        dates,
+        scheduledFromTime,
+        scheduledToTime,
+        scheduledDate,
+    } = meeting;
 
     return (
         <div className="flex items-center gap-4 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-6 pr-8">
@@ -62,14 +70,18 @@ export const MeetingCard = ({ meeting }: MeetingCardProps) => {
                     <div className="flex flex-nowrap items-center gap-x-1">
                         <Calendar className="size-4" />
                         <span className="p text-nowrap">
-                            <DateRange dates={dates} />
+                            <DateRange
+                                dates={scheduledDate ? [scheduledDate] : dates}
+                            />
                         </span>
                     </div>
 
                     <div className="flex flex-nowrap items-center gap-x-1">
                         <Clock className="size-4" />
                         <span className="text-nowrap">
-                            {formatTime(fromTime)} - {formatTime(toTime)}
+                            {scheduledFromTime && scheduledToTime
+                                ? `${formatTime(scheduledFromTime)} - ${formatTime(scheduledToTime)}`
+                                : `${formatTime(fromTime)} - ${formatTime(toTime)}`}
                         </span>
                     </div>
 
