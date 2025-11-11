@@ -18,6 +18,7 @@ interface AvailabilityBlocksProps {
     itemsPerPage: number;
     currentPageAvailability: ZotDate[];
     processedCellSegments: ProcessedCellEventSegments;
+    spacerBeforeDate: boolean[];
 }
 
 export function AvailabilityBlocks({
@@ -31,6 +32,7 @@ export function AvailabilityBlocks({
     itemsPerPage,
     currentPageAvailability,
     processedCellSegments,
+    spacerBeforeDate,
 }: AvailabilityBlocksProps) {
     return (
         <>
@@ -41,33 +43,39 @@ export function AvailabilityBlocks({
                     pageDateIndex,
                 });
 
-                if (selectedDate) {
-                    const zotDateIndex =
-                        pageDateIndex + currentPage * itemsPerPage;
+                const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
 
-                    const isAvailable =
-                        selectedDate.getBlockAvailability(blockIndex);
-
-                    const cellKey = generateCellKey(zotDateIndex, blockIndex);
-                    const segmentsForCell =
-                        processedCellSegments.get(cellKey) || [];
-
-                    return (
-                        <AvailabilityBlockCells
-                            key={key}
-                            blockIndex={blockIndex}
-                            isAvailable={isAvailable}
-                            zotDateIndex={zotDateIndex}
-                            setAvailabilities={setAvailabilities}
-                            isTopOfHour={isTopOfHour}
-                            isHalfHour={isHalfHour}
-                            isLastRow={isLastRow}
-                            eventSegments={segmentsForCell}
-                        />
-                    );
-                } else {
-                    return <td key={key}></td>;
-                }
+                return (
+                    <React.Fragment key={key}>
+                        {spacerBeforeDate[pageDateIndex] && (
+                            <td className="w-2 border-r-[1px] border-gray-medium bg-transparent p-0" />
+                        )}
+                        {selectedDate ? (
+                            <AvailabilityBlockCells
+                                key={key}
+                                blockIndex={blockIndex}
+                                isAvailable={selectedDate.getBlockAvailability(
+                                    blockIndex
+                                )}
+                                zotDateIndex={zotDateIndex}
+                                setAvailabilities={setAvailabilities}
+                                isTopOfHour={isTopOfHour}
+                                isHalfHour={isHalfHour}
+                                isLastRow={isLastRow}
+                                eventSegments={
+                                    processedCellSegments.get(
+                                        generateCellKey(
+                                            zotDateIndex,
+                                            blockIndex
+                                        )
+                                    ) || []
+                                }
+                            />
+                        ) : (
+                            <td key={key} />
+                        )}
+                    </React.Fragment>
+                );
             })}
         </>
     );

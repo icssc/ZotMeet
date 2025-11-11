@@ -1,5 +1,6 @@
 import { HourMinuteString, TimeConstants } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
+import { differenceInCalendarDays } from "date-fns";
 
 export const getTimeFromHourMinuteString = (
     hourMinuteString: HourMinuteString
@@ -22,6 +23,22 @@ export const generateTimeBlocks = (
         timeBlocks.push(startTime + blockIndex * BLOCK_LENGTH);
     }
     return timeBlocks;
+};
+export const spacerBeforeDate = (
+    currentPageAvailability: ZotDate[]
+): boolean[] => {
+    return currentPageAvailability.map((date, index, arr) => {
+        if (index === 0 || !date || !arr[index - 1]) return false;
+        const prevDate = arr[index - 1].day;
+        const currentDate = date.day;
+
+        return (
+            differenceInCalendarDays(
+                new Date(currentDate),
+                new Date(prevDate)
+            ) > 1
+        );
+    });
 };
 
 export const generateDateKey = ({

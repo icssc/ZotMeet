@@ -10,6 +10,7 @@ import { UserProfile } from "@/lib/auth/user";
 import {
     generateTimeBlocks,
     getTimeFromHourMinuteString,
+    spacerBeforeDate,
 } from "@/lib/availability/utils";
 import type {
     GoogleCalendarEvent,
@@ -166,6 +167,18 @@ export function AvailabilityBody({
         lastPage,
         numPaddingDates,
     ]);
+    // const spacerBeforeDate = currentPageAvailability.map((date, index, arr) => {
+    //     if (index === 0 || !date || !arr[index - 1]) return false;
+    //     const prevDate = arr[index - 1].day;
+    //     const currentDate = date.day;
+
+    //     return (
+    //         differenceInCalendarDays(
+    //             new Date(currentDate),
+    //             new Date(prevDate)
+    //         ) > 1
+    //     );
+    // });
 
     const handleUserAvailabilityChange = useCallback(
         (updatedDates: ZotDate[]) => {
@@ -254,7 +267,6 @@ export function AvailabilityBody({
                 onCancel={handleCancelEditing}
                 onSave={handleSuccessfulSave}
             />
-
             {availabilityView === "group" ? (
                 <GroupAvailability
                     availabilityTimeBlocks={availabilityTimeBlocks}
@@ -272,6 +284,7 @@ export function AvailabilityBody({
                     googleCalendarEvents={googleCalendarEvents}
                     user={user}
                     onAvailabilityChange={handleUserAvailabilityChange}
+                    spacerBeforeDate={spacerBeforeDate(currentPageAvailability)}
                 />
             )}
         </div>

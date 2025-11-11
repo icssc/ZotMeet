@@ -5,6 +5,7 @@ import { GroupAvailabilityRow } from "@/components/availability/group-availabili
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
+import { spacerBeforeDate } from "@/lib/availability/utils";
 import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -216,8 +217,7 @@ export function GroupAvailability({
         const handleEscKey = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 resetSelection();
-                setSelectionIsLocked(false);
-                // Removes focused outline from previously selected block
+                setSelectionIsLocked(false); // Removes focused outline from previously selected block
                 if (document.activeElement instanceof HTMLElement) {
                     document.activeElement.blur();
                 }
@@ -238,7 +238,21 @@ export function GroupAvailability({
 
         const member = members.find((m) => m.memberId === memberId);
         setHoveredMember(member ? member.displayName : null);
-    };
+    }; // Create an array marking where to insert a spacer column
+
+    // const spacerBeforeDate = currentPageAvailability.map((date, index, arr) => {
+    //     if (index === 0 || !date || !arr[index - 1]) return false;
+
+    //     const prevDate = arr[index - 1].day;
+    //     const currentDate = date.day;
+
+    //     return (
+    //         differenceInCalendarDays(
+    //             new Date(currentDate),
+    //             new Date(prevDate)
+    //         ) > 1
+    //     );
+    // });
 
     return (
         <div className="flex flex-row items-start justify-start align-top">
@@ -248,12 +262,13 @@ export function GroupAvailability({
                     handleClick={prevPage}
                     disabled={isFirstPage}
                 />
-
                 <table className="w-full table-fixed">
                     <AvailabilityTableHeader
                         currentPageAvailability={currentPageAvailability}
+                        spacerBeforeDate={spacerBeforeDate(
+                            currentPageAvailability
+                        )}
                     />
-
                     <tbody>
                         {availabilityTimeBlocks.map((timeBlock, blockIndex) => (
                             <GroupAvailabilityRow
@@ -274,18 +289,19 @@ export function GroupAvailability({
                                 hoveredMember={hoveredMember}
                                 handleCellClick={handleCellClick}
                                 handleCellHover={handleCellHover}
+                                spacerBeforeDate={spacerBeforeDate(
+                                    currentPageAvailability
+                                )}
                             />
                         ))}
                     </tbody>
                 </table>
-
                 <AvailabilityNavButton
                     direction="right"
                     handleClick={() => nextPage(availabilityDates.length)}
                     disabled={isLastPage}
                 />
             </div>
-
             <GroupResponses
                 availabilityDates={availabilityDates}
                 isMobileDrawerOpen={isMobileDrawerOpen}
@@ -296,7 +312,6 @@ export function GroupAvailability({
                 closeMobileDrawer={resetSelection}
                 onMemberHover={handleMemberHover}
             />
-
             <div
                 className={cn("lg:hidden", {
                     "h-96": isMobileDrawerOpen,
