@@ -40,6 +40,8 @@ export function AvailabilityBlockCells({
         blockIndex: blockIndex,
     };
 
+    // TODO: SEPARATE THESE, AND LET EACH AVAILBILITY USE THEM
+
     const handleTouchMove = (e: React.TouchEvent) => {
         const touchingElement = document.elementFromPoint(
             e.touches[0].clientX,

@@ -51,5 +51,9 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
+            - name: Enforce SST unlock
+              run: pnpm sst unlock --stage staging-$PR_NUM || true
+              continue-on-error: true
+
             - name: Deploy ZotMeet to staging
               run: pnpm db:migrate && pnpm sst deploy --stage staging-$PR_NUM

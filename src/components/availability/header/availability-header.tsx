@@ -11,18 +11,21 @@ import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { saveAvailability } from "@actions/availability/save/action";
+import { meet } from "googleapis/build/src/apis/meet";
 import {
     CircleCheckIcon,
     CircleXIcon,
     DeleteIcon,
     EditIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface AvailabilityHeaderProps {
     meetingData: SelectMeeting;
     user: UserProfile | null;
     availabilityDates: ZotDate[];
     onCancel: () => void;
+    onScheduleCancel: () => void;
     onSave: () => void;
 }
 
@@ -31,6 +34,7 @@ export function AvailabilityHeader({
     user,
     availabilityDates,
     onCancel,
+    onScheduleCancel,
     onSave,
 }: AvailabilityHeaderProps) {
     const {
@@ -40,6 +44,26 @@ export function AvailabilityHeader({
         setAvailabilityView,
     } = useAvailabilityViewStore();
 
+    const handleMeetingExport = () => {
+        if (!user) {
+            return;
+        }
+        if (!meetingData.scheduled) {
+            toast.error("Meeting has not been scheduled yet.");
+            return;
+        }
+
+        const params = new URLSearchParams({
+            action: "TEMPLATE",
+            text: meetingData.title,
+            details: meetingData.description || "",
+            location: "TBD",
+            dates: `${meetingData.scheduledFromTime}/${meetingData.scheduledToTime}`,
+        });
+
+        const calendarUrl = `https://calendar.google.com/calendar/render?${params.toString()}`;
+        window.open(calendarUrl, "_blank");
+    };
     const handleCancel = () => {
         onCancel();
         setAvailabilityView("group");
@@ -136,26 +160,64 @@ export function AvailabilityHeader({
                                     <CircleCheckIcon className="text-green-500 group-hover:text-white" />
                                 </Button>
                             </div>
-                        ) : (
-                            <Button
-                                className={cn(
-                                    "flex-center h-8 min-h-fit min-w-fit px-2 md:w-40 md:p-0"
-                                )}
-                                onClick={() => {
-                                    if (!user) {
-                                        setIsAuthModalOpen(true);
-                                        return;
-                                    }
-                                    setAvailabilityView("personal");
-                                }}
-                            >
-                                <span className="flex font-dm-sans">
-                                    {hasAvailability
-                                        ? "Edit Availability"
-                                        : "Add Availability"}
-                                </span>
-                            </Button>
-                        )}
+                        ) : availabilityView === "group" ? (
+                            <div className="flex space-x-2 md:space-x-4">
+                                <Button
+                                    className={cn(
+                                        "flex-center h-8 min-h-fit min-w-fit px-2 md:w-40 md:p-0"
+                                    )}
+                                    onClick={() => {
+                                        if (!user) {
+                                            setIsAuthModalOpen(true);
+                                            return;
+                                        }
+                                        setAvailabilityView("personal");
+                                    }}
+                                >
+                                    <span className="flex font-dm-sans">
+                                        {hasAvailability
+                                            ? "Edit Availability"
+                                            : "Add Availability"}
+                                    </span>
+                                </Button>
+                                <Button
+                                    className={cn(
+                                        "flex-center h-8 min-h-fit border border-yellow-600 bg-white px-2 uppercase text-yellow-600 outline md:w-40 md:p-0",
+                                        "hover:border-yellow-600 hover:bg-yellow-600 hover:text-white"
+                                    )}
+                                    onClick={() => {
+                                        if (!user) {
+                                            setIsAuthModalOpen(true);
+                                            return;
+                                        }
+                                        setAvailabilityView("schedule");
+                                    }}
+                                >
+                                    <span className="flex font-dm-sans">
+                                        Schedule Meeting
+                                    </span>
+                                </Button>
+                                <Button
+                                    className={cn(
+                                        "flex-center h-8 min-h-fit border border-yellow-600 bg-white px-2 uppercase text-yellow-600 outline md:w-10 md:p-0",
+                                        "hover:border-yellow-600 hover:bg-yellow-600 hover:text-white"
+                                    )}
+                                    onClick={() => {
+                                        if (!user) {
+                                            setIsAuthModalOpen(true);
+                                            return;
+                                        }
+                                        handleMeetingExport();
+                                    }}
+                                >
+                                    <img
+                                        src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Google_Calendar_icon_%282020%29.svg/768px-Google_Calendar_icon_%282020%29.svg.png?20221106121915"
+                                        alt="calendar icon"
+                                        className="h-4 w-4"
+                                    />
+                                </Button>
+                            </div>
+                        ) : null}
                     </div>
                 </div>
             </div>

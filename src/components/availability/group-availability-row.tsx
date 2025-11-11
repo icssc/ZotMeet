@@ -2,9 +2,20 @@ import { getTimestampFromBlockIndex } from "@/components/availability/group-avai
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import { generateDateKey } from "@/lib/availability/utils";
+import { SelectionStateType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
+
+// For locking the zotDateIndex during drag selection
+// This could also be a useState
+let lockedZotDateIndex: number | null = null;
+function setLockedZotDateIndex(index: number | null) {
+    lockedZotDateIndex = index;
+}
+
+let isMouseDown = false;
 
 interface GroupAvailabilityRowProps {
     timeBlock: number;
@@ -14,6 +25,9 @@ interface GroupAvailabilityRowProps {
     selectedZotDateIndex: number | undefined;
     selectedBlockIndex: number | undefined;
     fromTime: number;
+    scheduledFromTime: string | null;
+    scheduledToTime: string | null;
+    scheduledDate: Date | null;
     availabilityDates: ZotDate[];
     numMembers: number;
     hoveredMember: string | null;
@@ -26,6 +40,8 @@ interface GroupAvailabilityRowProps {
         zotDateIndex: number;
         blockIndex: number;
     }) => void;
+    isSchedulingMeeting: boolean;
+    selectionState: SelectionStateType | undefined;
 }
 
 export function GroupAvailabilityRow({
@@ -36,17 +52,175 @@ export function GroupAvailabilityRow({
     selectedZotDateIndex,
     selectedBlockIndex,
     fromTime,
+    scheduledFromTime,
+    scheduledToTime,
+    scheduledDate,
     availabilityDates,
     numMembers,
     hoveredMember,
     handleCellClick,
     handleCellHover,
+    isSchedulingMeeting,
+    selectionState,
 }: GroupAvailabilityRowProps) {
     const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
 
     const isTopOfHour = timeBlock % 60 === 0;
     const isHalfHour = timeBlock % 60 === 30;
     const isLastRow = blockIndex === availabilityTimeBlocksLength - 1;
+    const {
+        startBlockSelection,
+        endBlockSelection,
+        setStartBlockSelection,
+        setEndBlockSelection,
+    } = useBlockSelectionStore();
+
+    const availabilitySelection = {
+        zotDateIndex: selectedZotDateIndex,
+        blockIndex: selectedBlockIndex,
+    };
+
+    // TODO: SEPARATE THESE, AND LET EACH AVAILBILITY USE THEM
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        const touchingElement = document.elementFromPoint(
+            e.touches[0].clientX,
+            e.touches[0].clientY
+        );
+
+        if (!touchingElement) return;
+
+        const touchingDateIndex = parseInt(
+            touchingElement.getAttribute("data-date-index") || "",
+            10
+        );
+        const touchingBlockIndex = parseInt(
+            touchingElement.getAttribute("data-block-index") || "",
+            10
+        );
+
+        if (
+            !isNaN(touchingDateIndex) &&
+            !isNaN(touchingBlockIndex) &&
+            startBlockSelection
+        ) {
+            setEndBlockSelection({
+                zotDateIndex: touchingDateIndex,
+                blockIndex: touchingBlockIndex,
+            });
+        }
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+
+        if (startBlockSelection) {
+            if (
+                availabilitySelection.zotDateIndex !== undefined &&
+                availabilitySelection.blockIndex !== undefined
+            ) {
+                setEndBlockSelection({
+                    zotDateIndex: availabilitySelection.zotDateIndex,
+                    blockIndex: availabilitySelection.blockIndex,
+                });
+            }
+            setStartBlockSelection(undefined);
+        }
+    };
+
+    const handleMouseDown = () => {
+        if (
+            availabilitySelection.zotDateIndex !== undefined &&
+            availabilitySelection.blockIndex !== undefined
+        ) {
+            setLockedZotDateIndex(availabilitySelection.zotDateIndex); // to ensure that only 1 date is selected
+            setStartBlockSelection({
+                zotDateIndex: availabilitySelection.zotDateIndex,
+                blockIndex: availabilitySelection.blockIndex,
+            });
+            setEndBlockSelection({
+                zotDateIndex: availabilitySelection.zotDateIndex,
+                blockIndex: availabilitySelection.blockIndex,
+            });
+        }
+        isMouseDown = true;
+    };
+
+    const handleMouseMove = () => {
+        if (
+            isMouseDown &&
+            availabilitySelection.zotDateIndex !== undefined &&
+            availabilitySelection.blockIndex !== undefined
+        ) {
+            // can only drag within the same date column
+            if (availabilitySelection.zotDateIndex === lockedZotDateIndex) {
+                setEndBlockSelection({
+                    zotDateIndex: availabilitySelection.zotDateIndex,
+                    blockIndex: availabilitySelection.blockIndex,
+                });
+            }
+        }
+    };
+
+    const handleMouseUp = () => {
+        if (
+            startBlockSelection &&
+            availabilitySelection.zotDateIndex !== undefined &&
+            availabilitySelection.blockIndex !== undefined
+        ) {
+            if (availabilitySelection.zotDateIndex === lockedZotDateIndex) {
+                setEndBlockSelection({
+                    zotDateIndex: availabilitySelection.zotDateIndex,
+                    blockIndex: availabilitySelection.blockIndex,
+                });
+            }
+        }
+
+        setLockedZotDateIndex(null);
+        isMouseDown = false;
+    };
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+        if (
+            startBlockSelection &&
+            availabilitySelection.zotDateIndex !== undefined &&
+            availabilitySelection.blockIndex !== undefined
+        ) {
+            setStartBlockSelection({
+                zotDateIndex: availabilitySelection.zotDateIndex,
+                blockIndex: availabilitySelection.blockIndex,
+            });
+            setEndBlockSelection({
+                zotDateIndex: availabilitySelection.zotDateIndex,
+                blockIndex: availabilitySelection.blockIndex,
+            });
+        }
+    };
+
+    const isInDragSelection = (zotDateIndex: number, blockIndex: number) => {
+        if (!startBlockSelection || !endBlockSelection) return false;
+        return (
+            zotDateIndex >= startBlockSelection.zotDateIndex &&
+            zotDateIndex <= endBlockSelection.zotDateIndex &&
+            blockIndex >= startBlockSelection.blockIndex &&
+            blockIndex <= endBlockSelection.blockIndex
+        );
+    };
+
+    const isInSelectionRange = (zotDateIndex: number, blockIndex: number) => {
+        if (!selectionState) return false;
+        return (
+            zotDateIndex >= selectionState.earlierDateIndex &&
+            zotDateIndex <= selectionState.laterDateIndex &&
+            blockIndex >= selectionState.earlierBlockIndex &&
+            blockIndex <= selectionState.laterBlockIndex
+        );
+    };
 
     return (
         <tr>
@@ -78,15 +252,47 @@ export function GroupAvailabilityRow({
                     const block =
                         selectedDate.groupAvailability[timestamp] || [];
 
-                    // Calculate block color
+                    // --- Calculate block color ---
                     let blockColor = "transparent";
-                    if (hoveredMember) {
-                        if (block.includes(hoveredMember)) {
-                            blockColor = "rgba(55, 124, 251)";
-                        } else {
-                            blockColor = "transparent";
+
+                    // Convert the current block timestamp to a real Date object
+                    const blockDate = new Date(timestamp);
+
+                    // --- 1️⃣ Highlight scheduled time range in gold ---
+                    if (
+                        scheduledDate &&
+                        scheduledFromTime &&
+                        scheduledToTime &&
+                        blockDate.toDateString() ===
+                            scheduledDate.toDateString()
+                    ) {
+                        const scheduledStart = new Date(
+                            `${scheduledDate.toDateString()} ${scheduledFromTime}`
+                        );
+                        const scheduledEnd = new Date(
+                            `${scheduledDate.toDateString()} ${scheduledToTime}`
+                        );
+
+                        if (
+                            blockDate >= scheduledStart &&
+                            blockDate < scheduledEnd
+                        ) {
+                            blockColor = "rgba(249, 225, 14, 0.75)"; // gold highlight
                         }
-                    } else if (numMembers > 0) {
+                    }
+
+                    // --- 2️⃣ Hover or drag selection overrides (if not already gold) ---
+                    if (hoveredMember) {
+                        blockColor = block.includes(hoveredMember)
+                            ? "rgba(55, 124, 251)"
+                            : "transparent";
+                    } else if (
+                        isSchedulingMeeting &&
+                        (isInDragSelection(zotDateIndex, blockIndex) ||
+                            isInSelectionRange(zotDateIndex, blockIndex))
+                    ) {
+                        blockColor = "rgba(249, 225, 14, 0.75)";
+                    } else if (numMembers > 0 && blockColor === "transparent") {
                         const opacity = block.length / numMembers;
                         blockColor = `rgba(55, 124, 251, ${opacity})`;
                     }
@@ -106,6 +312,12 @@ export function GroupAvailabilityRow({
                         <td
                             key={key}
                             className="px-0 py-0"
+                            onMouseDown={() => handleMouseDown()}
+                            onMouseMove={() => handleMouseMove()}
+                            onMouseUp={() => handleMouseUp()}
+                            onTouchStart={(e) => handleTouchStart(e)}
+                            onTouchMove={(e) => handleTouchMove(e)}
+                            onTouchEnd={(e) => handleTouchEnd(e)}
                         >
                             <GroupAvailabilityBlock
                                 className="group-availability-block block"
@@ -136,3 +348,44 @@ export function GroupAvailabilityRow({
         </tr>
     );
 }
+
+// Exported helpers that can be imported in another file
+export const groupAvailabilityHandlers = {
+    handleCancel: () => {
+        const { setStartBlockSelection, setEndBlockSelection } =
+            useBlockSelectionStore.getState();
+        console.log(
+            "Current selection before cancel:",
+            useBlockSelectionStore.getState()
+        );
+
+        setStartBlockSelection(undefined);
+        setEndBlockSelection(undefined);
+        console.log(
+            "Current selection after cancel:",
+            useBlockSelectionStore.getState()
+        );
+        setLockedZotDateIndex(null);
+    },
+    handleSave: async () => {
+        const { startBlockSelection, endBlockSelection } =
+            useBlockSelectionStore.getState();
+
+        if (!startBlockSelection || !endBlockSelection) {
+            return;
+        }
+
+        const payload = {
+            start: startBlockSelection,
+            end: endBlockSelection,
+        };
+
+        try {
+            // Placeholder for DB/API save logic
+            // await fetch("/api/save-selection", { method: "POST", body: JSON.stringify(payload) });
+            console.log("✅ Global save:", payload);
+        } catch (error) {
+            console.error("Save failed:", error);
+        }
+    },
+};

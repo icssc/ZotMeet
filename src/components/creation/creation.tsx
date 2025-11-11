@@ -10,6 +10,7 @@ import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
+import { toast } from "sonner";
 
 export function Creation({ user }: { user: UserProfile | null }) {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
@@ -20,6 +21,11 @@ export function Creation({ user }: { user: UserProfile | null }) {
 
     const handleCreation = async () => {
         if (isCreating) return;
+
+        // if (!user) {
+        //     toast.error("You must be logged in to create a meeting.");
+        //     return;
+        // }
         setIsCreating(true);
 
         const newMeeting = {

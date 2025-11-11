@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GroupAvailability } from "@/components/availability/group-availability";
+import { groupAvailabilityHandlers } from "@/components/availability/group-availability-row";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { SelectMeeting } from "@/db/schema";
@@ -19,6 +20,7 @@ import type { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { toZonedTime } from "date-fns-tz";
 
@@ -176,6 +178,7 @@ export function AvailabilityBody({
     const handleCancelEditing = useCallback(() => {
         const originalDates = cancelEdit();
         setAvailabilityDates(originalDates);
+        console.log("availability dates: ", originalDates);
     }, [cancelEdit, setAvailabilityDates]);
 
     const handleSuccessfulSave = useCallback(() => {
@@ -252,16 +255,19 @@ export function AvailabilityBody({
                 user={user}
                 availabilityDates={availabilityDates}
                 onCancel={handleCancelEditing}
+                onScheduleCancel={groupAvailabilityHandlers.handleCancel}
                 onSave={handleSuccessfulSave}
             />
 
-            {availabilityView === "group" ? (
+            {availabilityView === "group" || availabilityView === "schedule" ? (
                 <GroupAvailability
+                    meetingId={meetingData.id}
                     availabilityTimeBlocks={availabilityTimeBlocks}
                     fromTime={fromTimeMinutes}
                     availabilityDates={availabilityDates}
                     currentPageAvailability={currentPageAvailability}
                     members={members}
+                    isSchedulingMeeting={availabilityView === "schedule"}
                 />
             ) : (
                 <PersonalAvailability

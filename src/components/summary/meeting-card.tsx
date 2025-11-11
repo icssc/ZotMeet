@@ -4,7 +4,7 @@
 import { SelectMeeting } from "@/db/schema";
 import { Calendar, Clock, UsersIcon } from "lucide-react";
 
-const formatTime = (time: string): string => {
+const getFormattedHourString = (time: string): string => {
     const [hourStr] = time.split(":");
     let hour = parseInt(hourStr, 10);
     const ampm = hour >= 12 ? "PM" : "AM";
@@ -13,11 +13,24 @@ const formatTime = (time: string): string => {
     return `${hour} ${ampm}`;
 };
 
+const getFormattedHourMinString = (time: string): string => {
+    if (!time) return ""; // handle empty or null strings safely
+
+    const [hourStr, minuteStr = "00"] = time.split(":");
+    let hour = parseInt(hourStr, 10);
+    const minute = parseInt(minuteStr, 10);
+
+    const ampm = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12 || 12; // convert 0 or 12 to 12-hour format
+
+    return `${hour}:${minute.toString().padStart(2, "0")} ${ampm}`;
+};
+
 interface MeetingCardProps {
     meeting: SelectMeeting;
 }
 
-const DateRange = ({ dates }: { dates: string[] }) => {
+const DateRange = ({ dates }: { dates: (string | Date)[] }) => {
     if (!dates || dates.length === 0) return <>No dates specified</>;
 
     if (dates.length === 1) {
@@ -47,7 +60,15 @@ const DateRange = ({ dates }: { dates: string[] }) => {
 };
 
 export const MeetingCard = ({ meeting }: MeetingCardProps) => {
-    const { title, fromTime, toTime, dates } = meeting;
+    const {
+        title,
+        fromTime,
+        toTime,
+        dates,
+        scheduledFromTime,
+        scheduledToTime,
+        scheduledDate,
+    } = meeting;
 
     return (
         <div className="flex items-center gap-4 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-6 pr-8">
@@ -62,14 +83,18 @@ export const MeetingCard = ({ meeting }: MeetingCardProps) => {
                     <div className="flex flex-nowrap items-center gap-x-1">
                         <Calendar className="size-4" />
                         <span className="p text-nowrap">
-                            <DateRange dates={dates} />
+                            <DateRange
+                                dates={scheduledDate ? [scheduledDate] : dates}
+                            />
                         </span>
                     </div>
 
                     <div className="flex flex-nowrap items-center gap-x-1">
                         <Clock className="size-4" />
                         <span className="text-nowrap">
-                            {formatTime(fromTime)} - {formatTime(toTime)}
+                            {scheduledFromTime && scheduledToTime
+                                ? `${getFormattedHourMinString(scheduledFromTime)} - ${getFormattedHourMinString(scheduledToTime)}`
+                                : `${getFormattedHourString(fromTime)} - ${getFormattedHourString(toTime)}`}
                         </span>
                     </div>
 

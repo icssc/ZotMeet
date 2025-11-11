@@ -48,6 +48,9 @@ export const EditModal = ({
             description: meetingData.description || "",
             fromTime: startTime,
             toTime: endTime,
+            scheduledFromTime: null,
+            scheduledToTime: null,
+            scheduledDate: null,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
             dates: selectedDays.map((zotDate) => zotDate.day.toISOString()),
         };
