@@ -124,6 +124,7 @@ export function PersonalAvailability({
                     selectionValue
                 );
 
+                // For each block in the selection range
                 for (
                     let blockIdx = earlierBlockIndex;
                     blockIdx <= laterBlockIndex;
@@ -136,11 +137,13 @@ export function PersonalAvailability({
                         availabilityDates
                     );
 
+                    // Initialize empty array if timestamp doesn't exist
                     if (!currentDate.groupAvailability[timestamp]) {
                         currentDate.groupAvailability[timestamp] = [];
                     }
 
                     if (selectionValue) {
+                        // Add user to availability if not already present
                         if (
                             !currentDate.groupAvailability[timestamp].includes(
                                 user?.memberId ?? ""

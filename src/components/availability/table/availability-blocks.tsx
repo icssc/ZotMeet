@@ -42,42 +42,40 @@ export function AvailabilityBlocks({
                     timeBlock,
                     pageDateIndex,
                 });
-                const cells: React.ReactNode[] = []; // Insert spacer if needed
-                if (spacerBeforeDate?.[pageDateIndex]) {
-                    cells.push(
-                        <td
-                            key={`spacer-${pageDateIndex}`}
-                            className="w-2 border-r-[1px] border-gray-medium bg-transparent p-0"
-                        />
-                    );
-                }
-                if (selectedDate) {
-                    const zotDateIndex =
-                        pageDateIndex + currentPage * itemsPerPage;
 
-                    const isAvailable =
-                        selectedDate.getBlockAvailability(blockIndex);
+                const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
 
-                    const cellKey = generateCellKey(zotDateIndex, blockIndex);
-                    const segmentsForCell =
-                        processedCellSegments.get(cellKey) || [];
-                    cells.push(
-                        <AvailabilityBlockCells
-                            key={key}
-                            blockIndex={blockIndex}
-                            isAvailable={isAvailable}
-                            zotDateIndex={zotDateIndex}
-                            setAvailabilities={setAvailabilities}
-                            isTopOfHour={isTopOfHour}
-                            isHalfHour={isHalfHour}
-                            isLastRow={isLastRow}
-                            eventSegments={segmentsForCell}
-                        />
-                    );
-                } else {
-                    cells.push(<td key={key} />);
-                }
-                return cells;
+                return (
+                    <React.Fragment key={key}>
+                        {spacerBeforeDate[pageDateIndex] && (
+                            <td className="w-2 border-r-[1px] border-gray-medium bg-transparent p-0" />
+                        )}
+                        {selectedDate ? (
+                            <AvailabilityBlockCells
+                                key={key}
+                                blockIndex={blockIndex}
+                                isAvailable={selectedDate.getBlockAvailability(
+                                    blockIndex
+                                )}
+                                zotDateIndex={zotDateIndex}
+                                setAvailabilities={setAvailabilities}
+                                isTopOfHour={isTopOfHour}
+                                isHalfHour={isHalfHour}
+                                isLastRow={isLastRow}
+                                eventSegments={
+                                    processedCellSegments.get(
+                                        generateCellKey(
+                                            zotDateIndex,
+                                            blockIndex
+                                        )
+                                    ) || []
+                                }
+                            />
+                        ) : (
+                            <td key={key} />
+                        )}
+                    </React.Fragment>
+                );
             })}
         </>
     );

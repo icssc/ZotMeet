@@ -5,25 +5,20 @@ import { GroupAvailabilityRow } from "@/components/availability/group-availabili
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
+import { spacerBeforeDate } from "@/lib/availability/utils";
 import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
-import { differenceInCalendarDays } from "date-fns";
 
 export const getTimestampFromBlockIndex = (
     blockIndex: number,
-
     zotDateIndex: number,
-
     fromTime: number,
-
     availabilityDates: ZotDate[]
 ) => {
     const minutesFromMidnight = fromTime + blockIndex * 15;
-
     const hours = Math.floor(minutesFromMidnight / 60);
-
     const minutes = minutesFromMidnight % 60;
 
     const selectedDate = availabilityDates.at(zotDateIndex);
@@ -33,41 +28,28 @@ export const getTimestampFromBlockIndex = (
     }
 
     const date = new Date(selectedDate.day);
-
     date.setHours(hours);
-
     date.setMinutes(minutes);
-
     date.setSeconds(0);
-
     date.setMilliseconds(0);
 
     const isoString = date.toISOString();
-
     return isoString;
 };
 
 interface GroupAvailabilityProps {
     availabilityTimeBlocks: number[];
-
     fromTime: number;
-
     availabilityDates: ZotDate[];
-
     currentPageAvailability: ZotDate[];
-
     members: Member[];
 }
 
 export function GroupAvailability({
     availabilityTimeBlocks,
-
     fromTime,
-
     availabilityDates,
-
     currentPageAvailability,
-
     members,
 }: GroupAvailabilityProps) {
     const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
@@ -258,19 +240,19 @@ export function GroupAvailability({
         setHoveredMember(member ? member.displayName : null);
     }; // Create an array marking where to insert a spacer column
 
-    const spacerBeforeDate = currentPageAvailability.map((date, index, arr) => {
-        if (index === 0 || !date || !arr[index - 1]) return false;
+    // const spacerBeforeDate = currentPageAvailability.map((date, index, arr) => {
+    //     if (index === 0 || !date || !arr[index - 1]) return false;
 
-        const prevDate = arr[index - 1].day;
-        const currentDate = date.day;
+    //     const prevDate = arr[index - 1].day;
+    //     const currentDate = date.day;
 
-        return (
-            differenceInCalendarDays(
-                new Date(currentDate),
-                new Date(prevDate)
-            ) > 1
-        );
-    });
+    //     return (
+    //         differenceInCalendarDays(
+    //             new Date(currentDate),
+    //             new Date(prevDate)
+    //         ) > 1
+    //     );
+    // });
 
     return (
         <div className="flex flex-row items-start justify-start align-top">
@@ -283,7 +265,9 @@ export function GroupAvailability({
                 <table className="w-full table-fixed">
                     <AvailabilityTableHeader
                         currentPageAvailability={currentPageAvailability}
-                        spacerBeforeDate={spacerBeforeDate}
+                        spacerBeforeDate={spacerBeforeDate(
+                            currentPageAvailability
+                        )}
                     />
                     <tbody>
                         {availabilityTimeBlocks.map((timeBlock, blockIndex) => (
@@ -305,7 +289,9 @@ export function GroupAvailability({
                                 hoveredMember={hoveredMember}
                                 handleCellClick={handleCellClick}
                                 handleCellHover={handleCellHover}
-                                spacerBeforeDate={spacerBeforeDate}
+                                spacerBeforeDate={spacerBeforeDate(
+                                    currentPageAvailability
+                                )}
                             />
                         ))}
                     </tbody>
