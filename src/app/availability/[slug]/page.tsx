@@ -13,6 +13,30 @@ interface PageProps {
     };
 }
 
+export async function generateMetadata({ params }: PageProps) {
+    const { slug } = params;
+
+    const meetingData = await getExistingMeeting(slug).catch((e) => {
+        if (e instanceof Error) {
+            console.error(e);
+        }
+
+        notFound();
+    });
+
+    if (!meetingData) {
+        notFound();
+    }
+
+    return {
+        title: {
+            default: "View Meeting Availability",
+            absolute: `Availability for ${meetingData.title}`,
+        },
+        description: `Specify Meeting Availability for ${meetingData.title}`,
+    };
+}
+
 export default async function Page({ params }: PageProps) {
     const { slug } = params;
 
