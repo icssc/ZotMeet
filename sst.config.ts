@@ -25,6 +25,7 @@ export default $config({
                         ? "https://zotmeet.com/auth/login/google/callback"
                         : "http://localhost:3000/auth/login/google/callback",
             },
+            cachePolicy: "e6e88864-aee5-41aa-b393-c48f78e33d2d",
             domain: {
                 name: `${$app.stage === "prod" ? "" : `${$app.stage}.`}zotmeet.com`,
                 dns: sst.aws.dns({
