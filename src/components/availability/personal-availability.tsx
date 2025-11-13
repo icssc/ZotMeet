@@ -3,9 +3,6 @@
 import { useEffect, useState } from "react";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
-import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
-import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
-import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import { useGoogleCalendar } from "@/hooks/use-google-calendar";
 import { UserProfile } from "@/lib/auth/user";
 import type {
@@ -13,10 +10,11 @@ import type {
     GoogleCalendarEvent,
 } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
-import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface PersonalAvailabilityProps {
+    timeBlock: number;
+    blockIndex: number;
     availabilityTimeBlocks: number[];
     fromTime: number;
     availabilityDates: ZotDate[];
@@ -27,6 +25,8 @@ interface PersonalAvailabilityProps {
 }
 
 export function PersonalAvailability({
+    timeBlock,
+    blockIndex,
     fromTime,
     availabilityTimeBlocks,
     availabilityDates,
@@ -43,22 +43,14 @@ export function PersonalAvailability({
         selectionState,
         setSelectionState,
     } = useBlockSelectionStore();
-    const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
-        useAvailabilityPaginationStore();
 
     const [isEditingAvailability, setIsEditingAvailability] = useState(false);
     const [isStateUnsaved, setIsStateUnsaved] = useState(false);
-
-    const isLastPage =
-        currentPage ===
-        Math.floor((availabilityDates.length - 1) / itemsPerPage);
 
     const { processedCellSegments } = useGoogleCalendar({
         googleCalendarEvents,
         currentPageAvailability,
         availabilityTimeBlocks,
-        currentPage,
-        itemsPerPage,
     });
 
     useEffect(() => {
@@ -188,61 +180,13 @@ export function PersonalAvailability({
     }, [isStateUnsaved]);
 
     return (
-        <div className="flex flex-row items-start justify-start align-top">
-            <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
-                <AvailabilityNavButton
-                    direction="left"
-                    handleClick={prevPage}
-                    disabled={isFirstPage}
-                />
-
-                <table className="w-full table-fixed">
-                    <AvailabilityTableHeader
-                        currentPageAvailability={currentPageAvailability}
-                    />
-
-                    <tbody>
-                        {availabilityTimeBlocks.map((timeBlock, blockIndex) => {
-                            const isTopOfHour = timeBlock % 60 === 0;
-                            const isHalfHour = timeBlock % 60 === 30;
-                            const isLastRow =
-                                blockIndex ===
-                                availabilityTimeBlocks.length - 1;
-
-                            return (
-                                <tr key={`block-${timeBlock}`}>
-                                    <AvailabilityTimeTicks
-                                        timeBlock={timeBlock}
-                                    />
-
-                                    <AvailabilityBlocks
-                                        setAvailabilities={setAvailabilities}
-                                        isTopOfHour={isTopOfHour}
-                                        isHalfHour={isHalfHour}
-                                        isLastRow={isLastRow}
-                                        timeBlock={timeBlock}
-                                        blockIndex={blockIndex}
-                                        currentPage={currentPage}
-                                        itemsPerPage={itemsPerPage}
-                                        currentPageAvailability={
-                                            currentPageAvailability
-                                        }
-                                        processedCellSegments={
-                                            processedCellSegments
-                                        }
-                                    />
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-
-                <AvailabilityNavButton
-                    direction="right"
-                    handleClick={() => nextPage(availabilityDates.length)}
-                    disabled={isLastPage}
-                />
-            </div>
-        </div>
+        <AvailabilityBlocks
+            setAvailabilities={setAvailabilities}
+            timeBlock={timeBlock}
+            blockIndex={blockIndex}
+            availabilityTimeBlocksLength={availabilityTimeBlocks.length}
+            currentPageAvailability={currentPageAvailability}
+            processedCellSegments={processedCellSegments}
+        />
     );
 }

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { AvailabilityBody } from "@/components/availability/availability-body";
+import { Availability } from "@/components/availability/availability";
 import { getCurrentSession } from "@/lib/auth";
 import { getStudyRooms } from "@/lib/studyrooms/getrooms";
 import {
@@ -10,30 +10,6 @@ import {
 interface PageProps {
     params: {
         slug: string;
-    };
-}
-
-export async function generateMetadata({ params }: PageProps) {
-    const { slug } = params;
-
-    const meetingData = await getExistingMeeting(slug).catch((e) => {
-        if (e instanceof Error) {
-            console.error(e);
-        }
-
-        notFound();
-    });
-
-    if (!meetingData) {
-        notFound();
-    }
-
-    return {
-        title: {
-            default: "View Meeting Availability",
-            absolute: `Availability for ${meetingData.title}`,
-        },
-        description: `Specify Meeting Availability for ${meetingData.title}`,
     };
 }
 
@@ -91,7 +67,7 @@ export default async function Page({ params }: PageProps) {
     // }
     return (
         <div className="space-y-2 px-4">
-            <AvailabilityBody
+            <Availability
                 meetingData={meetingData}
                 userAvailability={userAvailability}
                 allAvailabilities={allAvailabilities}
