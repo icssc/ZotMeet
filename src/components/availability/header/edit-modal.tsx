@@ -12,7 +12,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { SelectMeeting } from "@/db/schema";
-import { convertTimeToUTC } from "@/lib/availability/utils";
+import { convertTimeFromUTC, convertTimeToUTC } from "@/lib/availability/utils";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { editMeeting } from "@actions/meeting/edit/action";
@@ -29,14 +29,36 @@ export const EditModal = ({
     isOpen,
     handleOpenChange,
 }: EditModalProps) => {
+    const userTimezone = useMemo(
+        () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+        []
+    );
+    const referenceDate = meetingData.dates[0];
+
+    const fromTimeLocal = useMemo(
+        () =>
+            convertTimeFromUTC(
+                meetingData.fromTime,
+                userTimezone,
+                referenceDate
+            ),
+        [meetingData.fromTime, userTimezone, referenceDate]
+    );
+
+    const toTimeLocal = useMemo(
+        () =>
+            convertTimeFromUTC(meetingData.toTime, userTimezone, referenceDate),
+        [meetingData.toTime, userTimezone, referenceDate]
+    );
+
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>(
         meetingData.dates.map((date) => new ZotDate(new Date(date)))
     );
     const [startTime, setStartTime] = useState<HourMinuteString>(
-        meetingData.fromTime as HourMinuteString
+        fromTimeLocal as HourMinuteString
     );
     const [endTime, setEndTime] = useState<HourMinuteString>(
-        meetingData.toTime as HourMinuteString
+        toTimeLocal as HourMinuteString
     );
     const [meetingName, setMeetingName] = useState(meetingData.title);
 

@@ -110,7 +110,8 @@ export function Availability({
     allAvailabilities: MemberMeetingAvailability[];
     user: UserProfile | null;
 }) {
-    const { availabilityView, setHasAvailability } = useAvailabilityViewStore();
+    const { availabilityView } = useAvailabilityViewStore();
+
     const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
         useAvailabilityPaginationStore();
     const isLastPage =
@@ -118,18 +119,25 @@ export function Availability({
         Math.floor((meetingData.dates.length - 1) / itemsPerPage);
 
     // Convert UTC times to user's local timezone for display
-    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const userTimezone = useMemo(
+        () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+        []
+    );
     const referenceDate = meetingData.dates[0];
 
-    const fromTimeLocal = convertTimeFromUTC(
-        meetingData.fromTime,
-        userTimezone,
-        referenceDate
+    const fromTimeLocal = useMemo(
+        () =>
+            convertTimeFromUTC(
+                meetingData.fromTime,
+                userTimezone,
+                referenceDate
+            ),
+        [meetingData.fromTime, userTimezone, referenceDate]
     );
-    const toTimeLocal = convertTimeFromUTC(
-        meetingData.toTime,
-        userTimezone,
-        referenceDate
+    const toTimeLocal = useMemo(
+        () =>
+            convertTimeFromUTC(meetingData.toTime, userTimezone, referenceDate),
+        [meetingData.toTime, userTimezone, referenceDate]
     );
 
     const fromTimeMinutes = getTimeFromHourMinuteString(
@@ -146,7 +154,7 @@ export function Availability({
         GoogleCalendarEvent[]
     >([]);
 
-    const [availabilityDates, setAvailabilityDates] = useState(
+    const [availabilityDates, setAvailabilityDates] = useState(() =>
         deriveInitialAvailability({
             timezone: userTimezone,
             meetingDates: meetingData.dates,
@@ -205,12 +213,6 @@ export function Availability({
     const handleSuccessfulSave = useCallback(() => {
         confirmSave();
     }, [confirmSave]);
-
-    useEffect(() => {
-        if (userAvailability) {
-            setHasAvailability(true);
-        }
-    }, [setHasAvailability, userAvailability]);
 
     useEffect(() => {
         if (availabilityDates.length > 0) {
