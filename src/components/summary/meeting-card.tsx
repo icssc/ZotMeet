@@ -17,7 +17,7 @@ interface MeetingCardProps {
     meeting: SelectMeeting;
 }
 
-const DateRange = ({ dates }: { dates: string[] }) => {
+const DateRange = ({ dates }: { dates: string[] | null }) => {
     if (!dates || dates.length === 0) return <>No dates specified</>;
 
     if (dates.length === 1) {

@@ -10,8 +10,10 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
+import { SessionProvider } from "@/context/SessionContext";
+import { getCurrentSession } from "@/lib/auth";
 import { cn } from "@/lib/utils";
-import { Toaster } from "sonner";
 
 const montserrat = Montserrat({
     subsets: ["latin"],
@@ -42,11 +44,13 @@ export const metadata: Metadata = {
     },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const auth = await getCurrentSession();
+
     return (
         <html lang="en">
             <body
@@ -55,21 +59,22 @@ export default function RootLayout({
                     "bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]"
                 )}
             >
-                <SidebarProvider>
-                    <AppSidebar />
-                    <SidebarInset>
-                        <header className="flex h-16 shrink-0 items-center justify-end gap-2 border-b border-opacity-50 bg-gray-50 drop-shadow-sm md:hidden">
-                            <div className="flex items-center gap-2 px-4">
-                                <SidebarTrigger className="-ml-1" />
+                <SessionProvider value={auth}>
+                    <SidebarProvider>
+                        <AppSidebar />
+                        <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center justify-end gap-2 border-b border-opacity-50 bg-gray-50 drop-shadow-sm md:hidden">
+                                <div className="flex items-center gap-2 px-4">
+                                    <SidebarTrigger className="-ml-1" />
+                                </div>
+                            </header>
+
+                            <div className="h-full rounded-tl-xl bg-gray-50">
+                                {children}
                             </div>
-                        </header>
-
-                        <div className="h-full rounded-tl-xl bg-gray-50">
-                            {children}
-                        </div>
-                    </SidebarInset>
-                </SidebarProvider>
-
+                        </SidebarInset>
+                    </SidebarProvider>
+                </SessionProvider>
                 <Toaster />
             </body>
         </html>
