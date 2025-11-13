@@ -16,11 +16,7 @@ export async function createMeeting(meetingData: InsertMeeting) {
     }
     const hostId = user.memberId;
 
-    if (
-        fromTime >= toTime ||
-        !dates?.length ||
-        new Set(dates).size !== dates.length
-    ) {
+    if (!dates?.length || new Set(dates).size !== dates.length) {
         return { error: "Invalid meeting dates or times." };
     }
 

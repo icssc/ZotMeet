@@ -14,7 +14,7 @@ export async function editMeeting(updatedMeeting: InsertMeeting) {
 
     const { title, dates, fromTime, toTime } = updatedMeeting;
 
-    if (fromTime >= toTime || new Set(dates).size !== dates?.length) {
+    if (new Set(dates).size !== dates?.length) {
         return { error: "Invalid meeting dates or times." };
     }
 

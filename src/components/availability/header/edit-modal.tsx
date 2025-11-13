@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
@@ -13,6 +12,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { SelectMeeting } from "@/db/schema";
+import { convertTimeToUTC } from "@/lib/availability/utils";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { editMeeting } from "@actions/meeting/edit/action";
@@ -29,8 +29,6 @@ export const EditModal = ({
     isOpen,
     handleOpenChange,
 }: EditModalProps) => {
-    const router = useRouter();
-
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>(
         meetingData.dates.map((date) => new ZotDate(new Date(date)))
     );
@@ -43,13 +41,29 @@ export const EditModal = ({
     const [meetingName, setMeetingName] = useState(meetingData.title);
 
     const handleEditClick = async () => {
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const dates = selectedDays.map((zotDate) => zotDate.day.toISOString());
+
+        // Convert times from user's local timezone to UTC
+        const referenceDate = dates[0];
+        const fromTimeUTC = convertTimeToUTC(
+            startTime,
+            userTimezone,
+            referenceDate
+        );
+        const toTimeUTC = convertTimeToUTC(
+            endTime,
+            userTimezone,
+            referenceDate
+        );
+
         const updatedMeetingData = {
             title: meetingName,
             description: meetingData.description || "",
-            fromTime: startTime,
-            toTime: endTime,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            dates: selectedDays.map((zotDate) => zotDate.day.toISOString()),
+            fromTime: fromTimeUTC,
+            toTime: toTimeUTC,
+            timezone: userTimezone,
+            dates,
         };
 
         const updatedMeeting = {
