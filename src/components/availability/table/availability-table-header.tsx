@@ -21,12 +21,12 @@ export function AvailabilityTableHeader({
                     >
                         <div className="flex flex-col">
                             <span className="text-[10px] font-bold uppercase text-gray-500 md:text-xs">
-                                {dateHeader.day.toLocaleDateString("en-US", {
+                                {dateHeader?.day.toLocaleDateString("en-US", {
                                     weekday: "short",
                                 })}
                             </span>
                             <span className="text-center text-[12px] uppercase text-gray-medium md:text-base">
-                                {dateHeader.day.toLocaleDateString("en-US", {
+                                {dateHeader?.day.toLocaleDateString("en-US", {
                                     month: "numeric",
                                     day: "numeric",
                                 })}

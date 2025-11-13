@@ -6,6 +6,7 @@ import { MeetingNameField } from "@/components/creation/fields/meeting-name-fiel
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import { Button } from "@/components/ui/button";
 import type { UserProfile } from "@/lib/auth/user";
+import { convertTimeToUTC } from "@/lib/availability/utils";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -22,13 +23,29 @@ export function Creation({ user }: { user: UserProfile | null }) {
         if (isCreating) return;
         setIsCreating(true);
 
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const dates = selectedDays.map((zotDate) => zotDate.day.toISOString());
+
+        // Convert times from user's local timezone to UTC
+        const referenceDate = dates[0];
+        const fromTimeUTC = convertTimeToUTC(
+            startTime,
+            userTimezone,
+            referenceDate
+        );
+        const toTimeUTC = convertTimeToUTC(
+            endTime,
+            userTimezone,
+            referenceDate
+        );
+
         const newMeeting = {
             title: meetingName,
-            fromTime: startTime,
-            toTime: endTime,
+            fromTime: fromTimeUTC,
+            toTime: toTimeUTC,
             hostId: user?.memberId ?? "",
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            dates: selectedDays.map((zotDate) => zotDate.day.toISOString()),
+            timezone: userTimezone,
+            dates,
             description: "",
         };
 

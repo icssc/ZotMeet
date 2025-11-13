@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import { GroupAvailabilityRow } from "@/components/availability/group-availability-row";
 import { Member } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
@@ -59,11 +59,9 @@ export function GroupAvailability({
         selectionIsLocked,
         setSelectionIsLocked,
         hoveredMember,
-        setHoveredMember: _setHoveredMember,
         resetSelection,
+        setIsMobileDrawerOpen,
     } = useGroupSelectionStore();
-
-    const [_isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
     const updateSelection = useCallback(
         ({
@@ -77,51 +75,13 @@ export function GroupAvailability({
             setSelectedZotDateIndex(zotDateIndex);
             setSelectedBlockIndex(blockIndex);
         },
-        [setSelectedZotDateIndex, setSelectedBlockIndex]
+        [setIsMobileDrawerOpen, setSelectedZotDateIndex, setSelectedBlockIndex]
     );
 
     const resetSelectionWithDrawer = useCallback(() => {
         setIsMobileDrawerOpen(false);
         resetSelection();
-    }, [resetSelection]);
-
-    // const { availableMembers, notAvailableMembers } = useMemo(() => {
-    //     if (
-    //         selectedZotDateIndex === undefined ||
-    //         selectedBlockIndex === undefined
-    //     ) {
-    //         return {
-    //             availableMembers: [],
-    //             notAvailableMembers: members,
-    //         };
-    //     }
-
-    //     const selectedDate = availabilityDates[selectedZotDateIndex];
-    //     const timestamp = getTimestampFromBlockIndex(
-    //         selectedBlockIndex,
-    //         selectedZotDateIndex,
-    //         fromTime,
-    //         availabilityDates
-    //     );
-
-    //     const availableMemberIds =
-    //         selectedDate.groupAvailability[timestamp] || [];
-
-    //     return {
-    //         availableMembers: members.filter((member) =>
-    //             availableMemberIds.includes(member.memberId)
-    //         ),
-    //         notAvailableMembers: members.filter(
-    //             (member) => !availableMemberIds.includes(member.memberId)
-    //         ),
-    //     };
-    // }, [
-    //     selectedZotDateIndex,
-    //     selectedBlockIndex,
-    //     availabilityDates,
-    //     fromTime,
-    //     members,
-    // ]);
+    }, [resetSelection, setIsMobileDrawerOpen]);
 
     const handleCellClick = useCallback(
         ({
@@ -229,16 +189,6 @@ export function GroupAvailability({
         };
     }, [resetSelectionWithDrawer, setSelectionIsLocked]);
 
-    // const handleMemberHover = (memberId: string | null) => {
-    //     if (memberId === null) {
-    //         setHoveredMember(null);
-    //         return;
-    //     }
-
-    //     const member = members.find((m) => m.memberId === memberId);
-    //     setHoveredMember(member ? member.displayName : null);
-    // };
-
     return (
         <GroupAvailabilityRow
             timeBlock={timeBlock}
@@ -255,23 +205,4 @@ export function GroupAvailability({
             handleCellHover={handleCellHover}
         />
     );
-}
-
-{
-    /* <GroupResponses
-    availabilityDates={availabilityDates}
-    isMobileDrawerOpen={isMobileDrawerOpen}
-    selectedZotDateIndex={selectedZotDateIndex}
-    selectedBlockIndex={selectedBlockIndex}
-    availableMembersOfSelection={availableMembers}
-    notAvailableMembersOfSelection={notAvailableMembers}
-    closeMobileDrawer={resetSelection}
-    onMemberHover={handleMemberHover}
-/>
-
-<div
-    className={cn("lg:hidden", {
-        "h-96": isMobileDrawerOpen,
-    })}
-/> */
 }
