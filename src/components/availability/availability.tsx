@@ -44,7 +44,9 @@ const deriveInitialAvailability = ({
     const availabilitiesByDate = new Map<string, string[]>();
     if (userAvailability?.meetingAvailabilities) {
         userAvailability.meetingAvailabilities.forEach((timeStr) => {
-            const dateStr = timeStr.split("T")[0];
+            // Convert UTC timestamp to local date to get the correct day
+            const localDate = new Date(timeStr);
+            const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
 
             if (!availabilitiesByDate.has(dateStr)) {
                 availabilitiesByDate.set(dateStr, []);
@@ -57,7 +59,9 @@ const deriveInitialAvailability = ({
     const timestampsByDate = new Map<string, Map<string, string[]>>();
     for (const member of allAvailabilties) {
         for (const timestamp of member.meetingAvailabilities) {
-            const dateStr = timestamp.split("T")[0];
+            // Convert UTC timestamp to local date to get the correct day
+            const localDate = new Date(timestamp);
+            const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
 
             if (!timestampsByDate.has(dateStr)) {
                 timestampsByDate.set(dateStr, new Map());
@@ -72,8 +76,11 @@ const deriveInitialAvailability = ({
 
     const initialAvailability = meetingDates
         .map((meetingDate) => {
-            const date = toZonedTime(meetingDate, timezone);
-            const dateStr = date.toISOString().split("T")[0];
+            // Extract the date part and create a Date object in LOCAL timezone
+            const dateStr = meetingDate.split("T")[0];
+            const [year, month, day] = dateStr.split("-").map(Number);
+            // Create date at midnight in LOCAL timezone
+            const date = new Date(year, month - 1, day);
 
             const earliestMinutes = availabilityTimeBlocks[0] || 480;
             const latestMinutes =
