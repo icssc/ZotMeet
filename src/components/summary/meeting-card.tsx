@@ -2,6 +2,7 @@
 
 // import { MeetingCardStatus } from "@/components/summary/meeting-card-status";
 import { SelectMeeting } from "@/db/schema";
+import { convertTimeFromUTC } from "@/lib/availability/utils";
 import { Calendar, Clock, UsersIcon } from "lucide-react";
 
 const formatTime = (time: string): string => {
@@ -49,6 +50,17 @@ const DateRange = ({ dates }: { dates: string[] }) => {
 export const MeetingCard = ({ meeting }: MeetingCardProps) => {
     const { title, fromTime, toTime, dates } = meeting;
 
+    // Convert UTC times to user's local timezone
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const referenceDate = dates[0];
+
+    const fromTimeLocal = convertTimeFromUTC(
+        fromTime,
+        userTimezone,
+        referenceDate
+    );
+    const toTimeLocal = convertTimeFromUTC(toTime, userTimezone, referenceDate);
+
     return (
         <div className="flex items-center gap-4 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-6 pr-8">
             <UsersIcon className="size-10 shrink-0 rounded-full border-2 border-gray-200 p-2 text-gray-500" />
@@ -69,7 +81,8 @@ export const MeetingCard = ({ meeting }: MeetingCardProps) => {
                     <div className="flex flex-nowrap items-center gap-x-1">
                         <Clock className="size-4" />
                         <span className="text-nowrap">
-                            {formatTime(fromTime)} - {formatTime(toTime)}
+                            {formatTime(fromTimeLocal)} -{" "}
+                            {formatTime(toTimeLocal)}
                         </span>
                     </div>
 

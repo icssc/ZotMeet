@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GroupAvailability } from "@/components/availability/group-availability";
+import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
@@ -11,6 +12,7 @@ import { SelectMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import { UserProfile } from "@/lib/auth/user";
 import {
+    convertTimeFromUTC,
     generateTimeBlocks,
     getTimeFromHourMinuteString,
 } from "@/lib/availability/utils";
@@ -115,11 +117,26 @@ export function Availability({
         currentPage ===
         Math.floor((meetingData.dates.length - 1) / itemsPerPage);
 
+    // Convert UTC times to user's local timezone for display
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const referenceDate = meetingData.dates[0];
+
+    const fromTimeLocal = convertTimeFromUTC(
+        meetingData.fromTime,
+        userTimezone,
+        referenceDate
+    );
+    const toTimeLocal = convertTimeFromUTC(
+        meetingData.toTime,
+        userTimezone,
+        referenceDate
+    );
+
     const fromTimeMinutes = getTimeFromHourMinuteString(
-        meetingData.fromTime as HourMinuteString
+        fromTimeLocal as HourMinuteString
     );
     const toTimeMinutes = getTimeFromHourMinuteString(
-        meetingData.toTime as HourMinuteString
+        toTimeLocal as HourMinuteString
     );
     const availabilityTimeBlocks = useMemo(
         () => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
@@ -131,7 +148,7 @@ export function Availability({
 
     const [availabilityDates, setAvailabilityDates] = useState(
         deriveInitialAvailability({
-            timezone: meetingData.timezone,
+            timezone: userTimezone,
             meetingDates: meetingData.dates,
             userAvailability,
             allAvailabilties: allAvailabilities,
@@ -334,6 +351,12 @@ export function Availability({
                         disabled={isLastPage}
                     />
                 </div>
+
+                <GroupResponses
+                    availabilityDates={availabilityDates}
+                    fromTime={fromTimeMinutes}
+                    members={members}
+                />
             </div>
         </div>
     );

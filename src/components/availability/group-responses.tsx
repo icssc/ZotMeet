@@ -1,33 +1,83 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { XIcon } from "lucide-react";
 
 interface GroupResponsesProps {
     availabilityDates: ZotDate[];
-    isMobileDrawerOpen: boolean;
-    selectedZotDateIndex: number | undefined;
-    selectedBlockIndex: number | undefined;
-    availableMembersOfSelection: Member[];
-    notAvailableMembersOfSelection: Member[];
-    closeMobileDrawer: VoidFunction;
-    onMemberHover: (memberId: string | null) => void;
+    members: Member[];
+    fromTime: number;
 }
 
 export function GroupResponses({
     availabilityDates,
-    isMobileDrawerOpen,
-    selectedZotDateIndex,
-    selectedBlockIndex,
-    availableMembersOfSelection,
-    notAvailableMembersOfSelection,
-    closeMobileDrawer,
-    onMemberHover,
+    fromTime,
+    members,
 }: GroupResponsesProps) {
+    const { availabilityView } = useAvailabilityViewStore();
+    const {
+        selectedZotDateIndex,
+        selectedBlockIndex,
+        isMobileDrawerOpen,
+        setIsMobileDrawerOpen,
+        setHoveredMember,
+    } = useGroupSelectionStore();
+
     const [blockInfoString, setBlockInfoString] = useState(
         "Select a cell to view"
     );
+
+    const handleMemberHover = (memberId: string | null) => {
+        if (memberId === null) {
+            setHoveredMember(null);
+            return;
+        }
+
+        const member = members.find((m) => m.memberId === memberId);
+        setHoveredMember(member ? member.displayName : null);
+    };
+
+    const { availableMembers, notAvailableMembers } = useMemo(() => {
+        if (
+            selectedZotDateIndex === undefined ||
+            selectedBlockIndex === undefined
+        ) {
+            return {
+                availableMembers: [],
+                notAvailableMembers: members,
+            };
+        }
+
+        const selectedDate = availabilityDates[selectedZotDateIndex];
+        const timestamp = getTimestampFromBlockIndex(
+            selectedBlockIndex,
+            selectedZotDateIndex,
+            fromTime,
+            availabilityDates
+        );
+
+        const availableMemberIds =
+            selectedDate.groupAvailability[timestamp] || [];
+
+        return {
+            availableMembers: members.filter((member) =>
+                availableMemberIds.includes(member.memberId)
+            ),
+            notAvailableMembers: members.filter(
+                (member) => !availableMemberIds.includes(member.memberId)
+            ),
+        };
+    }, [
+        selectedZotDateIndex,
+        selectedBlockIndex,
+        availabilityDates,
+        fromTime,
+        members,
+    ]);
 
     useEffect(() => {
         if (
@@ -61,7 +111,11 @@ export function GroupResponses({
     }, [selectedZotDateIndex, selectedBlockIndex, availabilityDates]);
 
     return (
-        <div>
+        <div
+            className={cn(
+                availabilityView !== "group" && "pointer-events-none invisible"
+            )}
+        >
             <div className="hidden pb-1 pl-8 lg:block">
                 <h3 className="font-montserrat text-xl font-medium">
                     Responders
@@ -88,7 +142,7 @@ export function GroupResponses({
                     </div>
                     <button
                         className="rounded-lg border-[1px] border-slate-400 p-0.5 lg:hidden"
-                        onClick={closeMobileDrawer}
+                        onClick={() => setIsMobileDrawerOpen(false)}
                     >
                         <XIcon className="text-lg text-slate-400" />
                     </button>
@@ -102,15 +156,17 @@ export function GroupResponses({
                             </span>
                         </div>
                         <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
-                            {availableMembersOfSelection.length > 0 ? (
-                                availableMembersOfSelection.map((member) => (
+                            {availableMembers.length > 0 ? (
+                                availableMembers.map((member) => (
                                     <li
                                         key={member.memberId}
                                         className="cursor-pointer text-lg text-gray-800"
                                         onMouseEnter={() =>
-                                            onMemberHover(member.memberId)
+                                            handleMemberHover(member.memberId)
                                         }
-                                        onMouseLeave={() => onMemberHover(null)}
+                                        onMouseLeave={() =>
+                                            handleMemberHover(null)
+                                        }
                                     >
                                         {member.displayName}
                                     </li>
@@ -130,15 +186,17 @@ export function GroupResponses({
                             </span>
                         </div>
                         <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
-                            {notAvailableMembersOfSelection.length > 0 ? (
-                                notAvailableMembersOfSelection.map((member) => (
+                            {notAvailableMembers.length > 0 ? (
+                                notAvailableMembers.map((member) => (
                                     <li
                                         key={member.memberId}
                                         className="cursor-pointer text-lg text-gray-400"
                                         onMouseEnter={() =>
-                                            onMemberHover(member.memberId)
+                                            handleMemberHover(member.memberId)
                                         }
-                                        onMouseLeave={() => onMemberHover(null)}
+                                        onMouseLeave={() =>
+                                            handleMemberHover(null)
+                                        }
                                     >
                                         {member.displayName}
                                     </li>
