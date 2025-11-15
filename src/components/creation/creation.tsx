@@ -69,7 +69,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 
     return (
         <div className="space-y-6 px-4 pb-6">
-            <div className="px-4 pt-8 md:pl-[60px] md:pt-10">
+            <div className="px-4 pt-8 md:pl-[60px] md:pt-8">
                 <h2 className="font-montserrat text-xl font-medium text-gray-dark md:text-2xl">
                     Let&apos;s plan your next meeting.
                 </h2>

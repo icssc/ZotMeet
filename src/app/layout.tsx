@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 
 import AppSidebar from "@/components/nav/app-sidebar";
+import { Banner } from "@/components/ui/banner";
 import {
     SidebarInset,
     SidebarProvider,
@@ -65,6 +66,14 @@ export default function RootLayout({
                         </header>
 
                         <div className="h-full rounded-tl-xl bg-gray-50">
+                            <Banner
+                                chip="ALPHA"
+                                storageKey="creation-alpha-banner-dismissed"
+                                className="mx-4 mt-4"
+                            >
+                                ZotMeet is currently in alpha. You may
+                                experience bugs or unexpected behavior.
+                            </Banner>
                             {children}
                         </div>
                     </SidebarInset>
