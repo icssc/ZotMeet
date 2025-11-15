@@ -15,7 +15,7 @@ import { createMeeting } from "@actions/meeting/create/action";
 export function Creation({ user }: { user: UserProfile | null }) {
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
     const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
-    const [endTime, setEndTime] = useState<HourMinuteString>("13:00:00");
+    const [endTime, setEndTime] = useState<HourMinuteString>("17:00:00");
     const [meetingName, setMeetingName] = useState("");
     const [isCreating, setIsCreating] = useState(false);
 

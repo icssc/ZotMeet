@@ -31,7 +31,7 @@ export function Banner({ chip, storageKey, children, className }: BannerProps) {
     return (
         <div
             className={cn(
-                "relative rounded-lg bg-primary px-4 py-3 text-white shadow-md",
+                "relative rounded-lg bg-primary px-4 py-3 text-white",
                 className
             )}
         >
