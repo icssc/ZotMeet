@@ -12,21 +12,120 @@ import { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { createMeeting } from "@actions/meeting/create/action";
+import {
+    parseAsArrayOf,
+    parseAsString,
+    parseAsStringEnum,
+    useQueryStates,
+} from "nuqs";
 
 export function Creation({ user }: { user: UserProfile | null }) {
-    const [selectedDays, setSelectedDays] = useState<ZotDate[]>([]);
-    const [startTime, setStartTime] = useState<HourMinuteString>("09:00:00");
-    const [endTime, setEndTime] = useState<HourMinuteString>("17:00:00");
-    const [meetingName, setMeetingName] = useState("");
     const [isCreating, setIsCreating] = useState(false);
-    const [meetingType, setMeetingType] =
-        useState<SelectMeeting["meetingType"]>("dates");
+
+    // Use NUQS for URL state management
+    const [urlState, setUrlState] = useQueryStates({
+        meetingName: parseAsString.withDefault(""),
+        startTime: parseAsString.withDefault("09:00:00"),
+        endTime: parseAsString.withDefault("17:00:00"),
+        selectedDates: parseAsArrayOf(parseAsString).withDefault([]),
+        meetingType: parseAsStringEnum(["dates", "days"]).withDefault("dates"),
+        timezone: parseAsString.withDefault("America/Los_Angeles"),
+    });
+
+    // Convert selected dates from ISO strings to ZotDate objects.
+    const selectedDays: ZotDate[] = useMemo(() => {
+        return urlState.selectedDates.map(
+            (isoString) => new ZotDate(new Date(isoString))
+        );
+    }, [urlState.selectedDates]);
+
+    // Helper to update selected days.
+    const setSelectedDays = (
+        daysOrUpdater: React.SetStateAction<ZotDate[]>
+    ) => {
+        const newDays =
+            typeof daysOrUpdater === "function"
+                ? daysOrUpdater(selectedDays)
+                : daysOrUpdater;
+        void setUrlState({
+            selectedDates: newDays.map((d) => d.day.toISOString()),
+        });
+    };
+
+    const meetingName = urlState.meetingName;
+    const setMeetingName = (nameOrUpdater: React.SetStateAction<string>) => {
+        const newName =
+            typeof nameOrUpdater === "function"
+                ? nameOrUpdater(urlState.meetingName)
+                : nameOrUpdater;
+        void setUrlState({ meetingName: newName });
+    };
+
+    const startTime = urlState.startTime as HourMinuteString;
+    const setStartTime = (
+        timeOrUpdater: React.SetStateAction<HourMinuteString>
+    ) => {
+        const newTime =
+            typeof timeOrUpdater === "function"
+                ? timeOrUpdater(urlState.startTime as HourMinuteString)
+                : timeOrUpdater;
+        void setUrlState({ startTime: newTime });
+    };
+
+    const endTime = urlState.endTime as HourMinuteString;
+    const setEndTime = (
+        timeOrUpdater: React.SetStateAction<HourMinuteString>
+    ) => {
+        const newTime =
+            typeof timeOrUpdater === "function"
+                ? timeOrUpdater(urlState.endTime as HourMinuteString)
+                : timeOrUpdater;
+        void setUrlState({ endTime: newTime });
+    };
+
+    const meetingType = urlState.meetingType as SelectMeeting["meetingType"];
+    const setMeetingType = (
+        typeOrUpdater: React.SetStateAction<SelectMeeting["meetingType"]>
+    ) => {
+        const newType =
+            typeof typeOrUpdater === "function"
+                ? typeOrUpdater(
+                      urlState.meetingType as SelectMeeting["meetingType"]
+                  )
+                : typeOrUpdater;
+        void setUrlState({ meetingType: newType });
+    };
 
     const handleCreation = async () => {
         if (isCreating) return;
+
+        // If user is not logged in, redirect to Google sign in.
+        if (!user) {
+            // Construct URL with all parameters.
+            const params = new URLSearchParams();
+            params.set("meetingName", meetingName);
+            params.set("startTime", startTime);
+            params.set("endTime", endTime);
+            params.set(
+                "selectedDates",
+                selectedDays.map((d) => d.day.toISOString()).join(",")
+            );
+            params.set("meetingType", meetingType);
+            params.set("timezone", urlState.timezone);
+
+            // Update URL with all parameters, then redirect.
+            const currentUrl = new URL(window.location.href);
+            currentUrl.search = params.toString();
+            window.history.replaceState({}, "", currentUrl.toString());
+
+            // Redirect to auth.
+            window.location.href = "/auth/login/google";
+            return;
+        }
+
         setIsCreating(true);
 
-        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const userTimezone = "America/Los_Angeles";
         const dates = selectedDays.map((zotDate) => zotDate.day.toISOString());
 
         // Convert times from user's local timezone to UTC
@@ -46,7 +145,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
             title: meetingName,
             fromTime: fromTimeUTC,
             toTime: toTimeUTC,
-            hostId: user?.memberId ?? "",
+            hostId: user.memberId,
             timezone: userTimezone,
             dates,
             description: "",
