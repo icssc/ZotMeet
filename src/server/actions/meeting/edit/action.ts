@@ -12,7 +12,7 @@ export async function editMeeting(updatedMeeting: InsertMeeting) {
         return { error: "You must be logged in to edit a meeting." };
     }
 
-    const { title, dates, fromTime, toTime } = updatedMeeting;
+    const { title, dates, fromTime, toTime, meetingType } = updatedMeeting;
 
     if (new Set(dates).size !== dates?.length) {
         return { error: "Invalid meeting dates or times." };
@@ -29,6 +29,7 @@ export async function editMeeting(updatedMeeting: InsertMeeting) {
             dates,
             fromTime,
             toTime,
+            meetingType,
         })
         .where(eq(meetings.id, updatedMeeting.id));
 

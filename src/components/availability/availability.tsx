@@ -25,7 +25,6 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { toZonedTime } from "date-fns-tz";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -299,6 +298,7 @@ export function Availability({
                     <table className="w-full table-fixed">
                         <AvailabilityTableHeader
                             currentPageAvailability={currentPageAvailability}
+                            meetingType={meetingData.meetingType}
                         />
 
                         <tbody>

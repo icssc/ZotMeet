@@ -31,13 +31,13 @@ export function Banner({ chip, storageKey, children, className }: BannerProps) {
     return (
         <div
             className={cn(
-                "relative rounded-lg bg-primary px-4 py-3 text-white shadow-md",
+                "relative rounded-lg bg-primary px-4 py-3 text-white",
                 className
             )}
         >
             <div className="flex items-center justify-center gap-3 pr-8">
                 {chip && (
-                    <span className="inline-flex items-center rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold">
+                    <span className="hidden items-center rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold lg:inline-flex">
                         {chip}
                     </span>
                 )}
@@ -48,7 +48,7 @@ export function Banner({ chip, storageKey, children, className }: BannerProps) {
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 transition-colors hover:bg-white/10"
                 aria-label="Dismiss banner"
             >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
             </button>
         </div>
     );

@@ -61,6 +61,9 @@ export const EditModal = ({
         toTimeLocal as HourMinuteString
     );
     const [meetingName, setMeetingName] = useState(meetingData.title);
+    const [meetingType, setMeetingType] = useState<
+        SelectMeeting["meetingType"]
+    >(meetingData.meetingType);
 
     const handleEditClick = async () => {
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -86,6 +89,7 @@ export const EditModal = ({
             toTime: toTimeUTC,
             timezone: userTimezone,
             dates,
+            meetingType,
         };
 
         const updatedMeeting = {
@@ -145,6 +149,8 @@ export const EditModal = ({
                     <Calendar
                         selectedDays={selectedDays}
                         setSelectedDays={setSelectedDays}
+                        meetingType={meetingType}
+                        setMeetingType={setMeetingType}
                     />
                 </DialogDescription>
 
