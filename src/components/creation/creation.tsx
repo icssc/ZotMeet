@@ -125,7 +125,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 
         setIsCreating(true);
 
-        const userTimezone = "America/Los_Angeles";
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const dates = selectedDays.map((zotDate) => zotDate.day.toISOString());
 
         // Convert times from user's local timezone to UTC
