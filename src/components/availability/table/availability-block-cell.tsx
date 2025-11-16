@@ -18,7 +18,7 @@ interface AvailabilityBlockCellProps {
     eventSegments: EventSegment[];
 }
 
-export function AvailabilityBlockCells({
+export function AvailabilityBlockCell({
     blockIndex,
     isAvailable,
     zotDateIndex,

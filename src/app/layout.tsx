@@ -5,12 +5,14 @@ import localFont from "next/font/local";
 import "./globals.css";
 
 import AppSidebar from "@/components/nav/app-sidebar";
+import { Banner } from "@/components/ui/banner";
 import {
     SidebarInset,
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 
 const montserrat = Montserrat({
@@ -55,22 +57,32 @@ export default function RootLayout({
                     "bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]"
                 )}
             >
-                <SidebarProvider>
-                    <AppSidebar />
-                    <SidebarInset>
-                        <header className="flex h-16 shrink-0 items-center justify-end gap-2 border-b border-opacity-50 bg-gray-50 drop-shadow-sm md:hidden">
-                            <div className="flex items-center gap-2 px-4">
-                                <SidebarTrigger className="-ml-1" />
+                <NuqsAdapter>
+                    <SidebarProvider>
+                        <AppSidebar />
+                        <SidebarInset>
+                            <header className="flex h-16 shrink-0 items-center justify-end gap-2 border-b border-opacity-50 bg-gray-50 drop-shadow-sm md:hidden">
+                                <div className="flex items-center gap-2 px-4">
+                                    <SidebarTrigger className="-ml-1" />
+                                </div>
+                            </header>
+
+                            <div className="h-full rounded-tl-xl bg-gray-50">
+                                <Banner
+                                    chip="ALPHA"
+                                    storageKey="creation-alpha-banner-dismissed"
+                                    className="mx-4 mt-4"
+                                >
+                                    ZotMeet is currently in alpha. You may
+                                    experience bugs or unexpected behavior.
+                                </Banner>
+                                {children}
                             </div>
-                        </header>
+                        </SidebarInset>
+                    </SidebarProvider>
 
-                        <div className="h-full rounded-tl-xl bg-gray-50">
-                            {children}
-                        </div>
-                    </SidebarInset>
-                </SidebarProvider>
-
-                <Toaster />
+                    <Toaster />
+                </NuqsAdapter>
             </body>
         </html>
     );

@@ -37,6 +37,7 @@
     "lucide-react": "^0.453.0",
     "next": "14.2.15",
     "next-themes": "^0.4.6",
+    "nuqs": "^2.7.3",
     "pg": "^8.13.0",
     "react": "^18",
     "react-dom": "^18",
@@ -66,11 +67,15 @@
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.15",
     "husky": "^9.1.7",
+    "openapi-typescript": "^7.8.0",
     "postcss": "^8",
     "prettier-plugin-tailwindcss": "^0.6.8",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.19.1",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.10.0"
+  },
+  "engines": {
+    "pnpm": "^10.17.0"
   }
 }

@@ -1,16 +1,26 @@
 import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { CalendarBody } from "@/components/creation/calendar/calendar-body";
+import { Week } from "@/components/creation/calendar/week";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SelectMeeting } from "@/db/schema";
 import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 
 interface CalendarProps {
     selectedDays: ZotDate[];
     setSelectedDays: Dispatch<SetStateAction<ZotDate[]>>;
+    meetingType: SelectMeeting["meetingType"];
+    setMeetingType: (type: SelectMeeting["meetingType"]) => void;
 }
 
-export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
+export function Calendar({
+    selectedDays,
+    setSelectedDays,
+    meetingType,
+    setMeetingType,
+}: CalendarProps) {
     const today = new Date();
     const [currentMonth, setCurrentMonth] = useState(today.getMonth());
     const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -93,55 +103,104 @@ export function Calendar({ selectedDays, setSelectedDays }: CalendarProps) {
         });
     };
 
+    const isMeetingTypeDays = meetingType === "days";
+    const title = isMeetingTypeDays
+        ? "Select Days of the Week"
+        : `${monthName} ${currentYear}`;
+
     return (
-        <div className="flex items-center justify-between rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7 md:p-5">
-            <Button
-                onClick={decrementMonth}
-                className="bg-transparent p-3 hover:bg-transparent md:pl-1"
-            >
-                <span className="text-3xl text-gray-500">&lsaquo;</span>
-            </Button>
+        <div className="rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7">
+            <div className="flex flex-col items-start justify-between space-y-4 px-8 pb-6 md:px-16 lg:flex-row lg:items-start lg:space-y-0">
+                <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
+                    {title}
+                </h3>
 
-            <div className="md:px-4">
-                <div className="flex flex-col pb-5 md:pb-6">
-                    <h3 className="text-left font-montserrat text-2xl font-semibold text-gray-dark md:text-3xl">
-                        {monthName} {currentYear}
-                    </h3>
-                </div>
-
-                <table className="w-full table-fixed p-3">
-                    <thead>
-                        <tr>
-                            {WEEKDAYS.map((dayOfWeek) => (
-                                <th
-                                    className="px-0"
-                                    key={dayOfWeek}
-                                >
-                                    <div>
-                                        <p className="w-full text-center text-sm font-light uppercase text-slate-medium md:font-bold">
-                                            {dayOfWeek}
-                                        </p>
-                                    </div>
-                                    <Separator className="my-2 h-[2px] bg-slate-base" />
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-
-                    <CalendarBody
-                        calendarDays={calendarDays}
-                        currentMonth={currentMonth}
-                        updateSelectedRange={updateSelectedRange}
-                    />
-                </table>
+                <Tabs
+                    value={meetingType}
+                    onValueChange={(value) => {
+                        setMeetingType(value as SelectMeeting["meetingType"]);
+                        setSelectedDays([]);
+                    }}
+                >
+                    <TabsList className="bg-background p-1">
+                        <TabsTrigger
+                            value="dates"
+                            className="data-[state=active]:ring-1 data-[state=active]:ring-border"
+                        >
+                            Specific Dates
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="days"
+                            className="data-[state=active]:ring-1 data-[state=active]:ring-border"
+                        >
+                            Days of Week
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
             </div>
 
-            <Button
-                onClick={incrementMonth}
-                className="bg-transparent p-3 hover:bg-transparent md:pr-1"
-            >
-                <span className="text-3xl text-gray-500">&rsaquo;</span>
-            </Button>
+            <div className="flex items-center justify-between">
+                {!isMeetingTypeDays && (
+                    <Button
+                        onClick={decrementMonth}
+                        className="bg-transparent p-3 hover:bg-transparent"
+                    >
+                        <span className="text-3xl text-gray-500">&lsaquo;</span>
+                    </Button>
+                )}
+
+                <div
+                    className={
+                        isMeetingTypeDays
+                            ? "w-full px-3 md:px-10"
+                            : "w-full md:px-4"
+                    }
+                >
+                    <table className="w-full table-fixed p-3">
+                        {isMeetingTypeDays ? (
+                            <Week
+                                selectedDays={selectedDays}
+                                setSelectedDays={setSelectedDays}
+                            />
+                        ) : (
+                            <>
+                                <thead>
+                                    <tr>
+                                        {WEEKDAYS.map((dayOfWeek) => (
+                                            <th
+                                                className="px-0"
+                                                key={dayOfWeek}
+                                            >
+                                                <div>
+                                                    <p className="w-full text-center text-sm font-light uppercase text-slate-medium md:font-bold">
+                                                        {dayOfWeek}
+                                                    </p>
+                                                </div>
+                                                <Separator className="my-2 h-[2px] bg-slate-base" />
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+
+                                <CalendarBody
+                                    calendarDays={calendarDays}
+                                    currentMonth={currentMonth}
+                                    updateSelectedRange={updateSelectedRange}
+                                />
+                            </>
+                        )}
+                    </table>
+                </div>
+
+                {!isMeetingTypeDays && (
+                    <Button
+                        onClick={incrementMonth}
+                        className="bg-transparent p-3 hover:bg-transparent"
+                    >
+                        <span className="text-3xl text-gray-500">&rsaquo;</span>
+                    </Button>
+                )}
+            </div>
         </div>
     );
 }

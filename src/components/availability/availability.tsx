@@ -2,12 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GroupAvailability } from "@/components/availability/group-availability";
+import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
+import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
+import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
+import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import { SelectMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import { UserProfile } from "@/lib/auth/user";
 import {
+    convertTimeFromUTC,
     generateTimeBlocks,
     getTimeFromHourMinuteString,
 } from "@/lib/availability/utils";
@@ -20,7 +25,6 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { toZonedTime } from "date-fns-tz";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -39,7 +43,9 @@ const deriveInitialAvailability = ({
     const availabilitiesByDate = new Map<string, string[]>();
     if (userAvailability?.meetingAvailabilities) {
         userAvailability.meetingAvailabilities.forEach((timeStr) => {
-            const dateStr = timeStr.split("T")[0];
+            // Convert UTC timestamp to local date to get the correct day
+            const localDate = new Date(timeStr);
+            const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
 
             if (!availabilitiesByDate.has(dateStr)) {
                 availabilitiesByDate.set(dateStr, []);
@@ -52,7 +58,9 @@ const deriveInitialAvailability = ({
     const timestampsByDate = new Map<string, Map<string, string[]>>();
     for (const member of allAvailabilties) {
         for (const timestamp of member.meetingAvailabilities) {
-            const dateStr = timestamp.split("T")[0];
+            // Convert UTC timestamp to local date to get the correct day
+            const localDate = new Date(timestamp);
+            const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
 
             if (!timestampsByDate.has(dateStr)) {
                 timestampsByDate.set(dateStr, new Map());
@@ -67,8 +75,11 @@ const deriveInitialAvailability = ({
 
     const initialAvailability = meetingDates
         .map((meetingDate) => {
-            const date = toZonedTime(meetingDate, timezone);
-            const dateStr = date.toISOString().split("T")[0];
+            // Extract the date part and create a Date object in LOCAL timezone
+            const dateStr = meetingDate.split("T")[0];
+            const [year, month, day] = dateStr.split("-").map(Number);
+            // Create date at midnight in LOCAL timezone
+            const date = new Date(year, month - 1, day);
 
             const earliestMinutes = availabilityTimeBlocks[0] || 480;
             const latestMinutes =
@@ -94,7 +105,7 @@ const deriveInitialAvailability = ({
     return initialAvailability;
 };
 
-export function AvailabilityBody({
+export function Availability({
     meetingData,
     userAvailability,
     allAvailabilities,
@@ -105,14 +116,41 @@ export function AvailabilityBody({
     allAvailabilities: MemberMeetingAvailability[];
     user: UserProfile | null;
 }) {
-    const { availabilityView, setHasAvailability } = useAvailabilityViewStore();
-    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
+    const { availabilityView } = useAvailabilityViewStore();
+
+    const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
+        useAvailabilityPaginationStore();
+    const isLastPage =
+        currentPage ===
+        Math.floor((meetingData.dates.length - 1) / itemsPerPage);
+
+    // Convert UTC times to user's local timezone for display
+    const userTimezone = useMemo(
+        () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+        []
+    );
+    const referenceDate = meetingData.dates[0];
+
+    const fromTimeLocal = useMemo(
+        () =>
+            convertTimeFromUTC(
+                meetingData.fromTime,
+                userTimezone,
+                referenceDate
+            ),
+        [meetingData.fromTime, userTimezone, referenceDate]
+    );
+    const toTimeLocal = useMemo(
+        () =>
+            convertTimeFromUTC(meetingData.toTime, userTimezone, referenceDate),
+        [meetingData.toTime, userTimezone, referenceDate]
+    );
 
     const fromTimeMinutes = getTimeFromHourMinuteString(
-        meetingData.fromTime as HourMinuteString
+        fromTimeLocal as HourMinuteString
     );
     const toTimeMinutes = getTimeFromHourMinuteString(
-        meetingData.toTime as HourMinuteString
+        toTimeLocal as HourMinuteString
     );
     const availabilityTimeBlocks = useMemo(
         () => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
@@ -122,9 +160,9 @@ export function AvailabilityBody({
         GoogleCalendarEvent[]
     >([]);
 
-    const [availabilityDates, setAvailabilityDates] = useState(
+    const [availabilityDates, setAvailabilityDates] = useState(() =>
         deriveInitialAvailability({
-            timezone: meetingData.timezone,
+            timezone: userTimezone,
             meetingDates: meetingData.dates,
             userAvailability,
             allAvailabilties: allAvailabilities,
@@ -181,12 +219,6 @@ export function AvailabilityBody({
     const handleSuccessfulSave = useCallback(() => {
         confirmSave();
     }, [confirmSave]);
-
-    useEffect(() => {
-        if (userAvailability) {
-            setHasAvailability(true);
-        }
-    }, [setHasAvailability, userAvailability]);
 
     useEffect(() => {
         if (availabilityDates.length > 0) {
@@ -255,25 +287,86 @@ export function AvailabilityBody({
                 onSave={handleSuccessfulSave}
             />
 
-            {availabilityView === "group" ? (
-                <GroupAvailability
-                    availabilityTimeBlocks={availabilityTimeBlocks}
-                    fromTime={fromTimeMinutes}
+            <div className="flex flex-row items-start justify-start align-top">
+                <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
+                    <AvailabilityNavButton
+                        direction="left"
+                        handleClick={prevPage}
+                        disabled={isFirstPage}
+                    />
+
+                    <table className="w-full table-fixed">
+                        <AvailabilityTableHeader
+                            currentPageAvailability={currentPageAvailability}
+                            meetingType={meetingData.meetingType}
+                        />
+
+                        <tbody>
+                            {availabilityTimeBlocks.map(
+                                (timeBlock, blockIndex) => (
+                                    <tr key={`block-${timeBlock}`}>
+                                        <AvailabilityTimeTicks
+                                            timeBlock={timeBlock}
+                                        />
+
+                                        {availabilityView === "group" ? (
+                                            <GroupAvailability
+                                                timeBlock={timeBlock}
+                                                blockIndex={blockIndex}
+                                                availabilityTimeBlocks={
+                                                    availabilityTimeBlocks
+                                                }
+                                                fromTime={fromTimeMinutes}
+                                                availabilityDates={
+                                                    availabilityDates
+                                                }
+                                                currentPageAvailability={
+                                                    currentPageAvailability
+                                                }
+                                                members={members}
+                                            />
+                                        ) : (
+                                            <PersonalAvailability
+                                                timeBlock={timeBlock}
+                                                blockIndex={blockIndex}
+                                                availabilityTimeBlocks={
+                                                    availabilityTimeBlocks
+                                                }
+                                                fromTime={fromTimeMinutes}
+                                                availabilityDates={
+                                                    availabilityDates
+                                                }
+                                                currentPageAvailability={
+                                                    currentPageAvailability
+                                                }
+                                                googleCalendarEvents={
+                                                    googleCalendarEvents
+                                                }
+                                                user={user}
+                                                onAvailabilityChange={
+                                                    handleUserAvailabilityChange
+                                                }
+                                            />
+                                        )}
+                                    </tr>
+                                )
+                            )}
+                        </tbody>
+                    </table>
+
+                    <AvailabilityNavButton
+                        direction="right"
+                        handleClick={() => nextPage(availabilityDates.length)}
+                        disabled={isLastPage}
+                    />
+                </div>
+
+                <GroupResponses
                     availabilityDates={availabilityDates}
-                    currentPageAvailability={currentPageAvailability}
+                    fromTime={fromTimeMinutes}
                     members={members}
                 />
-            ) : (
-                <PersonalAvailability
-                    availabilityTimeBlocks={availabilityTimeBlocks}
-                    fromTime={fromTimeMinutes}
-                    availabilityDates={availabilityDates}
-                    currentPageAvailability={currentPageAvailability}
-                    googleCalendarEvents={googleCalendarEvents}
-                    user={user}
-                    onAvailabilityChange={handleUserAvailabilityChange}
-                />
-            )}
+            </div>
         </div>
     );
 }

@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
@@ -13,6 +12,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { SelectMeeting } from "@/db/schema";
+import { convertTimeFromUTC, convertTimeToUTC } from "@/lib/availability/utils";
 import { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { editMeeting } from "@actions/meeting/edit/action";
@@ -29,27 +29,67 @@ export const EditModal = ({
     isOpen,
     handleOpenChange,
 }: EditModalProps) => {
-    const router = useRouter();
+    const userTimezone = useMemo(
+        () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+        []
+    );
+    const referenceDate = meetingData.dates[0];
+
+    const fromTimeLocal = useMemo(
+        () =>
+            convertTimeFromUTC(
+                meetingData.fromTime,
+                userTimezone,
+                referenceDate
+            ),
+        [meetingData.fromTime, userTimezone, referenceDate]
+    );
+
+    const toTimeLocal = useMemo(
+        () =>
+            convertTimeFromUTC(meetingData.toTime, userTimezone, referenceDate),
+        [meetingData.toTime, userTimezone, referenceDate]
+    );
 
     const [selectedDays, setSelectedDays] = useState<ZotDate[]>(
         meetingData.dates.map((date) => new ZotDate(new Date(date)))
     );
     const [startTime, setStartTime] = useState<HourMinuteString>(
-        meetingData.fromTime as HourMinuteString
+        fromTimeLocal as HourMinuteString
     );
     const [endTime, setEndTime] = useState<HourMinuteString>(
-        meetingData.toTime as HourMinuteString
+        toTimeLocal as HourMinuteString
     );
     const [meetingName, setMeetingName] = useState(meetingData.title);
+    const [meetingType, setMeetingType] = useState<
+        SelectMeeting["meetingType"]
+    >(meetingData.meetingType);
 
     const handleEditClick = async () => {
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const dates = selectedDays.map((zotDate) => zotDate.day.toISOString());
+
+        // Convert times from user's local timezone to UTC
+        const referenceDate = dates[0];
+        const fromTimeUTC = convertTimeToUTC(
+            startTime,
+            userTimezone,
+            referenceDate
+        );
+        const toTimeUTC = convertTimeToUTC(
+            endTime,
+            userTimezone,
+            referenceDate
+        );
+
         const updatedMeetingData = {
             title: meetingName,
             description: meetingData.description || "",
-            fromTime: startTime,
-            toTime: endTime,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            dates: selectedDays.map((zotDate) => zotDate.day.toISOString()),
+            fromTime: fromTimeUTC,
+            toTime: toTimeUTC,
+            timezone: userTimezone,
+            dates,
+            meetingType,
         };
 
         const updatedMeeting = {
@@ -109,6 +149,8 @@ export const EditModal = ({
                     <Calendar
                         selectedDays={selectedDays}
                         setSelectedDays={setSelectedDays}
+                        meetingType={meetingType}
+                        setMeetingType={setMeetingType}
                     />
                 </DialogDescription>
 

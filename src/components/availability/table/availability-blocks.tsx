@@ -1,37 +1,36 @@
 import React from "react";
-import { AvailabilityBlockCells } from "@/components/availability/table/availability-block-cells";
+import { AvailabilityBlockCell } from "@/components/availability/table/availability-block-cell";
 import { generateCellKey, generateDateKey } from "@/lib/availability/utils";
 import type {
     AvailabilityBlockType,
     ProcessedCellEventSegments,
 } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 
 interface AvailabilityBlocksProps {
     setAvailabilities: (startBlock: AvailabilityBlockType) => void;
-    isTopOfHour: boolean;
-    isHalfHour: boolean;
-    isLastRow: boolean;
     timeBlock: number;
     blockIndex: number;
-    currentPage: number;
-    itemsPerPage: number;
+    availabilityTimeBlocksLength: number;
     currentPageAvailability: ZotDate[];
     processedCellSegments: ProcessedCellEventSegments;
 }
 
 export function AvailabilityBlocks({
     setAvailabilities,
-    isTopOfHour,
-    isHalfHour,
-    isLastRow,
     timeBlock,
     blockIndex,
-    currentPage,
-    itemsPerPage,
+    availabilityTimeBlocksLength,
     currentPageAvailability,
     processedCellSegments,
 }: AvailabilityBlocksProps) {
+    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
+
+    const isTopOfHour = timeBlock % 60 === 0;
+    const isHalfHour = timeBlock % 60 === 30;
+    const isLastRow = blockIndex === availabilityTimeBlocksLength - 1;
+
     return (
         <>
             {currentPageAvailability.map((selectedDate, pageDateIndex) => {
@@ -53,7 +52,7 @@ export function AvailabilityBlocks({
                         processedCellSegments.get(cellKey) || [];
 
                     return (
-                        <AvailabilityBlockCells
+                        <AvailabilityBlockCell
                             key={key}
                             blockIndex={blockIndex}
                             isAvailable={isAvailable}

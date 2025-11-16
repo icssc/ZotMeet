@@ -11,22 +11,21 @@ import type {
     ProcessedCellEventSegments,
 } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 
 interface UseGoogleCalendarProps {
     googleCalendarEvents: GoogleCalendarEvent[];
     currentPageAvailability: ZotDate[];
     availabilityTimeBlocks: number[];
-    currentPage: number;
-    itemsPerPage: number;
 }
 
 export function useGoogleCalendar({
     googleCalendarEvents,
     currentPageAvailability,
     availabilityTimeBlocks,
-    currentPage,
-    itemsPerPage,
 }: UseGoogleCalendarProps) {
+    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
+
     const processedCellSegments = useMemo((): ProcessedCellEventSegments => {
         const segmentsMap = new Map<string, EventSegment[]>();
         if (
@@ -45,9 +44,9 @@ export function useGoogleCalendar({
         return createCellSegments(
             eventsWithLayout,
             currentPageAvailability,
+            availabilityTimeBlocks,
             currentPage,
-            itemsPerPage,
-            availabilityTimeBlocks
+            itemsPerPage
         );
     }, [
         googleCalendarEvents,
@@ -224,9 +223,9 @@ function calculateEventLayout(
 function createCellSegments(
     eventsByDate: Map<string, GoogleCalendarEventLayoutInfo[]>,
     currentPageAvailability: ZotDate[],
+    availabilityTimeBlocks: number[],
     currentPage: number,
-    itemsPerPage: number,
-    availabilityTimeBlocks: number[]
+    itemsPerPage: number
 ): ProcessedCellEventSegments {
     const segmentsMap: ProcessedCellEventSegments = new Map();
 

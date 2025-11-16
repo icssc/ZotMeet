@@ -5,10 +5,9 @@ import { setSessionTokenCookie } from "@/lib/auth/cookies";
 import { oauth } from "@/lib/auth/oauth";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
 import { createGoogleUser } from "@/lib/auth/user";
-import {
-    getUserEmailExists,
-    getUserIdExists,
-} from "@/server/data/user/queries";
+import { convertTimeToUTC } from "@/lib/availability/utils";
+import { createMeetingFromData } from "@/server/actions/meeting/create/action";
+import { getUserById } from "@/server/data/user/queries";
 import { decodeIdToken } from "arctic";
 import type { OAuth2Tokens } from "arctic";
 import { eq } from "drizzle-orm";
@@ -73,6 +72,10 @@ export async function GET(request: Request): Promise<Response> {
     const existingUser = await db.query.users.findFirst({
         where: eq(users.email, email),
     });
+
+    let userId: string;
+    let memberId: string;
+
     if (existingUser) {
         const sessionToken = generateSessionToken();
         const session = await createSession(sessionToken, existingUser.id, {
@@ -81,6 +84,36 @@ export async function GET(request: Request): Promise<Response> {
             oauthAccessTokenExpiresAt: expiresAt,
         });
         await setSessionTokenCookie(sessionToken, session.expiresAt);
+        userId = oauthUserId;
+        const userRecord = await getUserById(oauthUserId);
+
+        if (!userRecord) {
+            return new Response(null, { status: 500 });
+        }
+        memberId = userRecord.memberId;
+    } else {
+        const user = await createGoogleUser(oauthUserId, email, username, null);
+
+        const sessionToken = generateSessionToken();
+        const session = await createSession(sessionToken, user.id, {
+            oauthAccessToken: accessToken,
+            oauthRefreshToken: refreshToken,
+            oauthAccessTokenExpiresAt: expiresAt,
+        });
+
+        await setSessionTokenCookie(sessionToken, session.expiresAt);
+
+        userId = user.id;
+        memberId = user.memberId;
+    }
+
+    let parsedUrl: URL;
+    try {
+        parsedUrl = redirectUrl.startsWith("http")
+            ? new URL(redirectUrl)
+            : new URL(redirectUrl, request.url);
+    } catch (e) {
+        console.error("Failed to parse redirectUrl:", redirectUrl, e);
         return new Response(null, {
             status: 302,
             headers: {
@@ -89,15 +122,86 @@ export async function GET(request: Request): Promise<Response> {
         });
     }
 
-    const user = await createGoogleUser(oauthUserId, email, username, null);
-
     const sessionToken = generateSessionToken();
-    const session = await createSession(sessionToken, user.id, {
+    const session = await createSession(sessionToken, userId, {
         oauthAccessToken: accessToken,
         oauthRefreshToken: refreshToken,
         oauthAccessTokenExpiresAt: expiresAt,
     });
     await setSessionTokenCookie(sessionToken, session.expiresAt);
+
+    const searchParams = parsedUrl.searchParams;
+
+    const meetingName = searchParams.get("meetingName");
+    const startTime = searchParams.get("startTime");
+    const endTime = searchParams.get("endTime");
+    const selectedDatesParam = searchParams.get("selectedDates");
+    const selectedDates = selectedDatesParam
+        ? selectedDatesParam.split(",")
+        : [];
+    const meetingType = searchParams.get("meetingType");
+    const timezone = searchParams.get("timezone") || "America/Los_Angeles";
+
+    // If valid meeting data exists, create the meeting
+    if (
+        meetingName &&
+        startTime &&
+        endTime &&
+        selectedDates.length > 0 &&
+        meetingType
+    ) {
+        try {
+            // Convert times from local to UTC
+            const referenceDate = selectedDates[0];
+            const fromTimeUTC = convertTimeToUTC(
+                startTime,
+                timezone,
+                referenceDate
+            );
+            const toTimeUTC = convertTimeToUTC(
+                endTime,
+                timezone,
+                referenceDate
+            );
+
+            const meetingData = {
+                title: meetingName,
+                fromTime: fromTimeUTC,
+                toTime: toTimeUTC,
+                timezone,
+                dates: selectedDates,
+                description: "",
+                meetingType: meetingType as "dates" | "days",
+            };
+
+            const result = await createMeetingFromData(meetingData, memberId);
+
+            if ("id" in result) {
+                return new Response(null, {
+                    status: 302,
+                    headers: {
+                        Location: `/availability/${result.id}`,
+                    },
+                });
+            } else {
+                // Failed to create meeting, redirect to original URL
+                console.error(
+                    "Auth callback - Failed to create meeting:",
+                    result.error
+                );
+            }
+        } catch (error) {
+            console.error("Auth callback - Error creating meeting:", error);
+            // Fall through to redirect to original URL
+        }
+    } else {
+        console.log(
+            "Auth callback - No valid meeting data found, redirecting to:",
+            redirectUrl
+        );
+    }
+
+    // If no meeting data or creation failed, redirect to original URL
     return new Response(null, {
         status: 302,
         headers: {

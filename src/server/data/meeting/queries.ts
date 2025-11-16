@@ -93,6 +93,7 @@ export async function getMeetings(memberId: string) {
             group_id: meetings.group_id,
             createdAt: meetings.createdAt,
             archived: meetings.archived,
+            meetingType: meetings.meetingType,
         })
         .from(meetings)
         .leftJoin(availabilities, eq(meetings.id, availabilities.meetingId))
