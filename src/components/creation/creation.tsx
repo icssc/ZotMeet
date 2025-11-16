@@ -72,7 +72,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
     }, [selectedDays.length, startTime, endTime, meetingName]);
 
     return (
-        <div className="space-y-6 px-4 pb-6">
+        <div className="space-y-6 px-4">
             <div className="px-4 pt-8 md:pl-[60px] md:pt-8">
                 <h2 className="font-montserrat text-xl font-medium text-gray-dark md:text-2xl">
                     Let&apos;s plan your next meeting.
@@ -106,7 +106,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
                 setMeetingType={setMeetingType}
             />
 
-            <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0">
+            <div className="sticky bottom-0 -ml-4 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t border-border bg-white p-3 md:bottom-4 md:ml-0 md:w-full md:rounded-xl md:border">
                 <p className="text-sm font-bold uppercase text-slate-medium">
                     {selectedDays.length} days selected
                 </p>
