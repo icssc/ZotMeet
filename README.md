@@ -78,7 +78,7 @@ Simple, clean, and efficient meeting scheduling app.
 
 ### Environment Variables
 
-If you need credentials for the `.env` file, contact the project lead ([Sean](https://github.com/seancfong/)).
+If you need credentials for the `.env` file, contact the project lead ([Kyle](https://github.com/kylebtran/)).
 
 After changes to the .env file, run `pnpm run check` to update SvelteKit's auto-generated environment variable types.
 
