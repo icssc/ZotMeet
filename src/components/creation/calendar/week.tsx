@@ -36,7 +36,7 @@ export function Week({ selectedDays, setSelectedDays }: WeekProps) {
                     colSpan={7}
                     className="text-center"
                 >
-                    <div className="grid grid-cols-7 gap-2 p-3">
+                    <div className="grid grid-cols-7 gap-2 pb-2">
                         {WEEKDAYS.map((dayOfWeek, index) => {
                             const anchorDate = ANCHOR_DATES[index];
 

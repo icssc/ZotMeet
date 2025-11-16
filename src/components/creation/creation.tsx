@@ -5,6 +5,7 @@ import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import { Button } from "@/components/ui/button";
+import { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
 import { HourMinuteString } from "@/lib/types/chrono";
@@ -18,6 +19,8 @@ export function Creation({ user }: { user: UserProfile | null }) {
     const [endTime, setEndTime] = useState<HourMinuteString>("17:00:00");
     const [meetingName, setMeetingName] = useState("");
     const [isCreating, setIsCreating] = useState(false);
+    const [meetingType, setMeetingType] =
+        useState<SelectMeeting["meetingType"]>("dates");
 
     const handleCreation = async () => {
         if (isCreating) return;
@@ -47,6 +50,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
             timezone: userTimezone,
             dates,
             description: "",
+            meetingType,
         };
 
         const result = await createMeeting(newMeeting);
@@ -98,6 +102,8 @@ export function Creation({ user }: { user: UserProfile | null }) {
             <Calendar
                 selectedDays={selectedDays}
                 setSelectedDays={setSelectedDays}
+                meetingType={meetingType}
+                setMeetingType={setMeetingType}
             />
 
             <div className="sticky bottom-0 -ml-2 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-t-[1px] bg-white p-3 md:relative md:w-full md:border-t-0 md:bg-transparent md:py-0">

@@ -40,13 +40,13 @@ export type HourMinuteString = `${string}:${string}:${string}`;
 
 // Anchor dates represent the 7 days of the week using reference dates
 export const ANCHOR_DATES: Date[] = [
-    new Date(2023, 0, 1),
-    new Date(2023, 0, 2),
-    new Date(2023, 0, 3),
-    new Date(2023, 0, 4),
-    new Date(2023, 0, 5),
-    new Date(2023, 0, 6),
-    new Date(2023, 0, 7),
+    new Date(Date.UTC(2023, 0, 1)),
+    new Date(Date.UTC(2023, 0, 2)),
+    new Date(Date.UTC(2023, 0, 3)),
+    new Date(Date.UTC(2023, 0, 4)),
+    new Date(Date.UTC(2023, 0, 5)),
+    new Date(Date.UTC(2023, 0, 6)),
+    new Date(Date.UTC(2023, 0, 7)),
 ];
 
 // Check if a date string matches any anchor date

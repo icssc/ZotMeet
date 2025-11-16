@@ -3,6 +3,7 @@
 // import { MeetingCardStatus } from "@/components/summary/meeting-card-status";
 import { SelectMeeting } from "@/db/schema";
 import { convertTimeFromUTC } from "@/lib/availability/utils";
+import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
 import { Calendar, Clock, UsersIcon } from "lucide-react";
 
 const formatTime = (time: string): string => {
@@ -18,9 +19,39 @@ interface MeetingCardProps {
     meeting: SelectMeeting;
 }
 
-const DateRange = ({ dates }: { dates: string[] }) => {
+const DateRange = ({
+    dates,
+    meetingType,
+}: {
+    dates: string[];
+    meetingType: SelectMeeting["meetingType"];
+}) => {
     if (!dates || dates.length === 0) return <>No dates specified</>;
 
+    // Check if this is a days-of-week meeting with anchor dates.
+    if (meetingType === "days") {
+        const weekdayData = dates
+            .map((dateStr) => {
+                const dateString = dateStr.split("T")[0];
+                if (isAnchorDateString(dateString)) {
+                    const date = new Date(dateStr);
+                    const dayIndex = date.getUTCDay();
+                    return { dayIndex, name: WEEKDAYS[dayIndex] };
+                }
+                return null;
+            })
+            .filter(Boolean) as { dayIndex: number; name: string }[];
+
+        if (weekdayData.length > 0) {
+            // Sort by day of week (Sun = 0, Mon = 1, ..., Sat = 6).
+            const sortedWeekdays = weekdayData
+                .sort((a, b) => a.dayIndex - b.dayIndex)
+                .map((day) => day.name);
+            return <>{sortedWeekdays.join(", ")}</>;
+        }
+    }
+
+    // Regular date display for specific dates
     if (dates.length === 1) {
         return (
             <>
@@ -48,7 +79,7 @@ const DateRange = ({ dates }: { dates: string[] }) => {
 };
 
 export const MeetingCard = ({ meeting }: MeetingCardProps) => {
-    const { title, fromTime, toTime, dates } = meeting;
+    const { title, fromTime, toTime, dates, meetingType } = meeting;
 
     // Convert UTC times to user's local timezone
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -74,7 +105,10 @@ export const MeetingCard = ({ meeting }: MeetingCardProps) => {
                     <div className="flex flex-nowrap items-center gap-x-1">
                         <Calendar className="size-4" />
                         <span className="p text-nowrap">
-                            <DateRange dates={dates} />
+                            <DateRange
+                                dates={dates}
+                                meetingType={meetingType}
+                            />
                         </span>
                     </div>
 

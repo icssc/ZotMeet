@@ -6,8 +6,15 @@ import { InsertMeeting, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 
 export async function createMeeting(meetingData: InsertMeeting) {
-    const { title, description, fromTime, toTime, timezone, dates } =
-        meetingData;
+    const {
+        title,
+        description,
+        fromTime,
+        toTime,
+        timezone,
+        dates,
+        meetingType,
+    } = meetingData;
 
     const { user } = await getCurrentSession();
 
@@ -28,6 +35,7 @@ export async function createMeeting(meetingData: InsertMeeting) {
         timezone,
         hostId,
         dates: dates,
+        meetingType: meetingType || "dates",
     };
 
     const [newMeeting] = await db
