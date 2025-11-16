@@ -119,6 +119,7 @@ erDiagram
         string description
         string location
         json dates
+        string meetingType
         boolean scheduled
         time fromTime
         time toTime
