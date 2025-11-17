@@ -78,6 +78,11 @@ export const getAllMemberAvailability = async ({
 };
 
 export async function getMeetings(memberId: string) {
+    const hasAvailability = db
+        .select({ meetingId: availabilities.meetingId })
+        .from(availabilities)
+        .where(eq(availabilities.memberId, memberId));
+
     const userMeetings = await db
         .select({
             id: meetings.id,
@@ -96,13 +101,12 @@ export async function getMeetings(memberId: string) {
             meetingType: meetings.meetingType,
         })
         .from(meetings)
-        .leftJoin(availabilities, eq(meetings.id, availabilities.meetingId))
         .where(
             and(
                 eq(meetings.archived, false),
                 or(
                     eq(meetings.hostId, memberId),
-                    eq(availabilities.memberId, memberId)
+                    sql`${meetings.id} IN ${hasAvailability}`
                 )
             )
         );
