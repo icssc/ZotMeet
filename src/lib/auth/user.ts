@@ -82,25 +82,18 @@ export async function createGoogleUser(
             .returning({
                 id: members.id,
             });
-        const [newUser] = await tx
-            .insert(users)
-            .values({
-                id: googleUserId,
-                memberId: newMember.id,
-                email: email,
-                passwordHash: "",
-                createdAt: new Date(),
-            })
-            .returning({
-                id: users.id,
-                email: users.email,
-                memberId: users.memberId,
-            });
+        await tx.insert(users).values({
+            id: googleUserId,
+            memberId: newMember.id,
+            email: email,
+            passwordHash: "",
+            createdAt: new Date(),
+        });
         const [newGoogleMember] = await tx
             .insert(oauthAccounts)
             .values({
                 userId: googleUserId,
-                providerId: "google",
+                providerId: "oidc",
                 providerUserId: googleUserId,
             })
             .returning({

@@ -21,7 +21,7 @@ export async function logoutAction() {
 
     const logoutUrl = new URL(`${process.env.OIDC_ISSUER_URL}/logout`);
     logoutUrl.searchParams.set(
-        "redirect_to",
+        "post_logout_redirect_uri",
         process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
     );
 

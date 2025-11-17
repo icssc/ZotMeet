@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { oauthAccounts, users } from "@/db/schema";
 import { setSessionTokenCookie } from "@/lib/auth/cookies";
 import { oauth } from "@/lib/auth/oauth";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
@@ -10,7 +10,7 @@ import { createMeetingFromData } from "@/server/actions/meeting/create/action";
 import { getUserById } from "@/server/data/user/queries";
 import { decodeIdToken } from "arctic";
 import type { OAuth2Tokens } from "arctic";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export async function GET(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -23,6 +23,8 @@ export async function GET(request: Request): Promise<Response> {
     const redirectUrl = cookieStore.get("auth_redirect_url")?.value ?? "/";
 
     cookieStore.delete("auth_redirect_url");
+    cookieStore.delete("oauth_state");
+    cookieStore.delete("oauth_code_verifier");
 
     if (
         code === null ||
@@ -91,6 +93,24 @@ export async function GET(request: Request): Promise<Response> {
     let memberId: string;
 
     if (existingUser) {
+        const existingOAuthAccount = await db.query.oauthAccounts.findFirst({
+            where: and(
+                eq(oauthAccounts.userId, existingUser.id),
+                eq(oauthAccounts.providerId, "oidc")
+            ),
+        });
+
+        if (!existingOAuthAccount) {
+            await db.insert(oauthAccounts).values({
+                userId: existingUser.id,
+                providerId: "oidc",
+                providerUserId: oauthUserId,
+            });
+            console.log(
+                `Migrated user ${existingUser.email} from legacy auth to OIDC provider`
+            );
+        }
+
         const sessionToken = generateSessionToken();
         const session = await createSession(sessionToken, existingUser.id, {
             oauthAccessToken: googleAccessToken,
