@@ -31,7 +31,7 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
 
     // Generic OAuth2 token refresh using standard token endpoint
     try {
-        const tokenEndpoint = process.env.OIDC_TOKEN_ENDPOINT!;
+        const tokenEndpoint = `${process.env.OIDC_ISSUER_URL!}/token`;
 
         const response = await fetch(tokenEndpoint, {
             method: "POST",
@@ -42,7 +42,6 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
                 grant_type: "refresh_token",
                 refresh_token: session.googleRefreshToken,
                 client_id: process.env.OIDC_CLIENT_ID!,
-                client_secret: process.env.OIDC_CLIENT_SECRET!,
             }),
         });
 
@@ -50,16 +49,28 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
             throw new Error("Token refresh failed");
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as {
+            google_access_token?: string;
+            google_refresh_token?: string;
+            google_token_expiry?: number;
+        };
+
+        // Extract Google tokens from OIDC refresh response
+        const googleAccessToken = data.google_access_token;
+        const googleTokenExpiry = data.google_token_expiry
+            ? new Date(data.google_token_expiry)
+            : new Date(now + 3600 * 1000);
+
+        if (!googleAccessToken) {
+            throw new Error("No Google access token in refresh response");
+        }
 
         await updateSessionGoogleTokens(session.id, {
-            oauthAccessToken: data.access_token,
-            oauthAccessTokenExpiresAt: new Date(
-                now + (data.expires_in ?? 3600) * 1000
-            ),
+            oauthAccessToken: googleAccessToken,
+            oauthAccessTokenExpiresAt: googleTokenExpiry,
         });
 
-        return { accessToken: data.access_token, error: null };
+        return { accessToken: googleAccessToken, error: null };
     } catch {
         return { accessToken: null, error: "Failed to refresh OAuth token" };
     }

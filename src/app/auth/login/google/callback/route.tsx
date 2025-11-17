@@ -59,11 +59,26 @@ export async function GET(request: Request): Promise<Response> {
         name: string;
         email: string;
     };
-    const accessToken = tokens.accessToken();
-    const refreshToken = tokens.hasRefreshToken()
-        ? tokens.refreshToken()
-        : undefined;
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 60);
+
+    // Extract Google tokens from OIDC response
+    const tokenData = tokens.data as {
+        google_access_token?: string;
+        google_refresh_token?: string;
+        google_token_expiry?: number;
+    };
+
+    const googleAccessToken = tokenData.google_access_token;
+    const googleRefreshToken = tokenData.google_refresh_token;
+    const googleTokenExpiry = tokenData.google_token_expiry
+        ? new Date(tokenData.google_token_expiry)
+        : new Date(Date.now() + 1000 * 60 * 60);
+
+    if (!googleAccessToken || !googleRefreshToken) {
+        console.error(
+            "OAuth Callback - Missing Google tokens in OIDC response:",
+            tokenData
+        );
+    }
 
     const oauthUserId = claims.sub;
     const username = claims.name;
@@ -73,19 +88,17 @@ export async function GET(request: Request): Promise<Response> {
         where: eq(users.email, email),
     });
 
-    let userId: string;
     let memberId: string;
 
     if (existingUser) {
         const sessionToken = generateSessionToken();
         const session = await createSession(sessionToken, existingUser.id, {
-            oauthAccessToken: accessToken,
-            oauthRefreshToken: refreshToken,
-            oauthAccessTokenExpiresAt: expiresAt,
+            oauthAccessToken: googleAccessToken,
+            oauthRefreshToken: googleRefreshToken,
+            oauthAccessTokenExpiresAt: googleTokenExpiry,
         });
         await setSessionTokenCookie(sessionToken, session.expiresAt);
-        userId = oauthUserId;
-        const userRecord = await getUserById(oauthUserId);
+        const userRecord = await getUserById(existingUser.id);
 
         if (!userRecord) {
             return new Response(null, { status: 500 });
@@ -96,14 +109,12 @@ export async function GET(request: Request): Promise<Response> {
 
         const sessionToken = generateSessionToken();
         const session = await createSession(sessionToken, user.id, {
-            oauthAccessToken: accessToken,
-            oauthRefreshToken: refreshToken,
-            oauthAccessTokenExpiresAt: expiresAt,
+            oauthAccessToken: googleAccessToken,
+            oauthRefreshToken: googleRefreshToken,
+            oauthAccessTokenExpiresAt: googleTokenExpiry,
         });
-
         await setSessionTokenCookie(sessionToken, session.expiresAt);
 
-        userId = user.id;
         memberId = user.memberId;
     }
 
@@ -121,14 +132,6 @@ export async function GET(request: Request): Promise<Response> {
             },
         });
     }
-
-    const sessionToken = generateSessionToken();
-    const session = await createSession(sessionToken, userId, {
-        oauthAccessToken: accessToken,
-        oauthRefreshToken: refreshToken,
-        oauthAccessTokenExpiresAt: expiresAt,
-    });
-    await setSessionTokenCookie(sessionToken, session.expiresAt);
 
     const searchParams = parsedUrl.searchParams;
 
