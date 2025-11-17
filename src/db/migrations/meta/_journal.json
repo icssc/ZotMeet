@@ -22,6 +22,13 @@
       "when": 1763211087025,
       "tag": "0002_lonely_mephistopheles",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1763377143537,
+      "tag": "0003_mature_elektra",
+      "breakpoints": true
     }
   ]
 }

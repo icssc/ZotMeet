@@ -104,6 +104,8 @@ export const sessions = pgTable(
         userId: text("user_id")
             .references(() => users.id, { onDelete: "cascade" })
             .notNull(),
+        oidcAccessToken: text("oidc_access_token"),
+        oidcRefreshToken: text("oidc_refresh_token"),
         googleAccessToken: text("google_access_token"),
         googleRefreshToken: text("google_refresh_token"),
         googleAccessTokenExpiresAt: timestamp(

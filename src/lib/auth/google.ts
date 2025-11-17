@@ -17,7 +17,7 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
         return { accessToken: null, error: "Not authenticated" };
     }
 
-    if (!session.googleRefreshToken) {
+    if (!session.oidcRefreshToken) {
         return { accessToken: null, error: "No OAuth refresh token" };
     }
 
@@ -29,9 +29,8 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
         return { accessToken: session.googleAccessToken, error: null };
     }
 
-    // Generic OAuth2 token refresh using standard token endpoint
     try {
-        const tokenEndpoint = `${process.env.OIDC_ISSUER_URL!}/token`;
+        const tokenEndpoint = `${process.env.OIDC_ISSUER_URL}/token`;
 
         const response = await fetch(tokenEndpoint, {
             method: "POST",
@@ -40,7 +39,7 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
             },
             body: new URLSearchParams({
                 grant_type: "refresh_token",
-                refresh_token: session.googleRefreshToken,
+                refresh_token: session.oidcRefreshToken,
                 client_id: process.env.OIDC_CLIENT_ID!,
             }),
         });

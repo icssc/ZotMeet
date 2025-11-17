@@ -12,6 +12,8 @@ import { eq } from "drizzle-orm";
 const DAYS_MS = 1000 * 60 * 60 * 24;
 
 type OAuthTokenData = {
+    oidcAccessToken?: string;
+    oidcRefreshToken?: string;
     oauthAccessToken?: string;
     oauthRefreshToken?: string;
     oauthAccessTokenExpiresAt?: Date;
@@ -38,6 +40,8 @@ export async function createSession(
         id: sessionId,
         userId,
         expiresAt: new Date(Date.now() + DAYS_MS * 30),
+        oidcAccessToken: options.oidcAccessToken,
+        oidcRefreshToken: options.oidcRefreshToken,
         googleAccessToken: options.oauthAccessToken,
         googleRefreshToken: options.oauthRefreshToken,
         googleAccessTokenExpiresAt: options.oauthAccessTokenExpiresAt,

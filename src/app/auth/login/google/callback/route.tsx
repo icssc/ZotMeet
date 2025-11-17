@@ -62,6 +62,9 @@ export async function GET(request: Request): Promise<Response> {
         email: string;
     };
 
+    const oidcAccessToken = tokens.accessToken();
+    const oidcRefreshToken = tokens.refreshToken();
+
     // Extract Google tokens from OIDC response
     const tokenData = tokens.data as {
         google_access_token?: string;
@@ -79,6 +82,12 @@ export async function GET(request: Request): Promise<Response> {
         console.error(
             "OAuth Callback - Missing Google tokens in OIDC response:",
             tokenData
+        );
+    }
+
+    if (!oidcRefreshToken) {
+        console.error(
+            "OAuth Callback - Missing OIDC refresh token in response"
         );
     }
 
@@ -113,6 +122,8 @@ export async function GET(request: Request): Promise<Response> {
 
         const sessionToken = generateSessionToken();
         const session = await createSession(sessionToken, existingUser.id, {
+            oidcAccessToken,
+            oidcRefreshToken,
             oauthAccessToken: googleAccessToken,
             oauthRefreshToken: googleRefreshToken,
             oauthAccessTokenExpiresAt: googleTokenExpiry,
@@ -129,6 +140,8 @@ export async function GET(request: Request): Promise<Response> {
 
         const sessionToken = generateSessionToken();
         const session = await createSession(sessionToken, user.id, {
+            oidcAccessToken,
+            oidcRefreshToken,
             oauthAccessToken: googleAccessToken,
             oauthRefreshToken: googleRefreshToken,
             oauthAccessTokenExpiresAt: googleTokenExpiry,
