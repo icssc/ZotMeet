@@ -23,9 +23,9 @@ env:
     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
     DATABASE_URL: ${{ secrets.PROD_DB_URL }}
-    GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
-    GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
-    GOOGLE_OAUTH_REDIRECT_URI: https://zotmeet.com/auth/login/google/callback
+    # OIDC Configuration
+    OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
+    OIDC_ISSUER_URL: ${{ secrets.OIDC_ISSUER_URL }}
 
 jobs:
     deploy:

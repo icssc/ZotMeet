@@ -1,13 +1,16 @@
 import { cookies } from "next/headers";
+import { db } from "@/db";
+import { oauthAccounts, users } from "@/db/schema";
 import { setSessionTokenCookie } from "@/lib/auth/cookies";
-import { google } from "@/lib/auth/oauth";
+import { oauth } from "@/lib/auth/oauth";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
 import { createGoogleUser } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
 import { createMeetingFromData } from "@/server/actions/meeting/create/action";
-import { getUserById, getUserIdExists } from "@/server/data/user/queries";
+import { getUserById } from "@/server/data/user/queries";
 import { decodeIdToken } from "arctic";
 import type { OAuth2Tokens } from "arctic";
+import { and, eq } from "drizzle-orm";
 
 export async function GET(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -15,11 +18,13 @@ export async function GET(request: Request): Promise<Response> {
     const state = url.searchParams.get("state");
 
     const cookieStore = await cookies();
-    const storedState = cookieStore.get("google_oauth_state")?.value ?? null;
-    const codeVerifier = cookieStore.get("google_code_verifier")?.value ?? null;
+    const storedState = cookieStore.get("oauth_state")?.value ?? null;
+    const codeVerifier = cookieStore.get("oauth_code_verifier")?.value ?? null;
     const redirectUrl = cookieStore.get("auth_redirect_url")?.value ?? "/";
 
     cookieStore.delete("auth_redirect_url");
+    cookieStore.delete("oauth_state");
+    cookieStore.delete("oauth_code_verifier");
 
     if (
         code === null ||
@@ -39,7 +44,11 @@ export async function GET(request: Request): Promise<Response> {
 
     let tokens: OAuth2Tokens;
     try {
-        tokens = await google.validateAuthorizationCode(code, codeVerifier);
+        tokens = await oauth.validateAuthorizationCode(
+            "https://auth.icssc.club/token",
+            code,
+            codeVerifier
+        );
     } catch (e) {
         console.log("invalid credentials", e);
         // Invalid code or client credentials
@@ -52,57 +61,85 @@ export async function GET(request: Request): Promise<Response> {
         name: string;
         email: string;
     };
-    const accessToken = tokens.accessToken();
-    const refreshToken = tokens.refreshToken();
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 60);
 
-    const googleUserId = claims.sub;
+    // Extract Google tokens from OIDC response
+    const tokenData = tokens.data as {
+        google_access_token?: string;
+        google_refresh_token?: string;
+        google_token_expiry?: number;
+    };
+
+    const googleAccessToken = tokenData.google_access_token;
+    const googleRefreshToken = tokenData.google_refresh_token;
+    const googleTokenExpiry = tokenData.google_token_expiry
+        ? new Date(tokenData.google_token_expiry)
+        : new Date(Date.now() + 1000 * 60 * 60);
+
+    if (!googleAccessToken || !googleRefreshToken) {
+        console.error(
+            "OAuth Callback - Missing Google tokens in OIDC response:",
+            tokenData
+        );
+    }
+
+    const oauthUserId = claims.sub;
     const username = claims.name;
     const email = claims.email;
 
-    const existingUser = await getUserIdExists(googleUserId);
+    const existingUser = await db.query.users.findFirst({
+        where: eq(users.email, email),
+    });
 
-    let userId: string;
     let memberId: string;
 
-    if (existingUser !== false) {
+    if (existingUser) {
+        const existingOAuthAccount = await db.query.oauthAccounts.findFirst({
+            where: and(
+                eq(oauthAccounts.userId, existingUser.id),
+                eq(oauthAccounts.providerId, "oidc")
+            ),
+        });
+
+        if (!existingOAuthAccount) {
+            await db.insert(oauthAccounts).values({
+                userId: existingUser.id,
+                providerId: "oidc",
+                providerUserId: oauthUserId,
+            });
+            console.log(
+                `Migrated user ${existingUser.email} from legacy auth to OIDC provider`
+            );
+        }
+
         const sessionToken = generateSessionToken();
-        const session = await createSession(sessionToken, googleUserId, {
-            googleAccessToken: accessToken,
-            googleRefreshToken: refreshToken,
-            googleAccessTokenExpiresAt: expiresAt,
+        const session = await createSession(sessionToken, existingUser.id, {
+            oauthAccessToken: googleAccessToken,
+            oauthRefreshToken: googleRefreshToken,
+            oauthAccessTokenExpiresAt: googleTokenExpiry,
         });
         await setSessionTokenCookie(sessionToken, session.expiresAt);
-        userId = googleUserId;
-        const userRecord = await getUserById(googleUserId);
+        const userRecord = await getUserById(existingUser.id);
 
         if (!userRecord) {
             return new Response(null, { status: 500 });
         }
         memberId = userRecord.memberId;
     } else {
-        const user = await createGoogleUser(
-            googleUserId,
-            email,
-            username,
-            null
-        );
+        const user = await createGoogleUser(oauthUserId, email, username, null);
 
         const sessionToken = generateSessionToken();
         const session = await createSession(sessionToken, user.id, {
-            googleAccessToken: accessToken,
-            googleRefreshToken: refreshToken,
-            googleAccessTokenExpiresAt: expiresAt,
+            oauthAccessToken: googleAccessToken,
+            oauthRefreshToken: googleRefreshToken,
+            oauthAccessTokenExpiresAt: googleTokenExpiry,
         });
         await setSessionTokenCookie(sessionToken, session.expiresAt);
-        userId = user.id;
+
         memberId = user.memberId;
     }
 
-    // Parse the redirect URL for meeting data
     let parsedUrl: URL;
     try {
-        // If redirectUrl is a relative path, construct full URL
         parsedUrl = redirectUrl.startsWith("http")
             ? new URL(redirectUrl)
             : new URL(redirectUrl, request.url);

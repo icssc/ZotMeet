@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { Availability } from "@/components/availability/availability";
 import { getCurrentSession } from "@/lib/auth";
-import { getStudyRooms } from "@/lib/studyrooms/getrooms";
+// import { getStudyRooms } from "@/lib/studyrooms/getrooms";
 import {
     getAllMemberAvailability,
     getExistingMeeting,
@@ -72,15 +72,15 @@ export default async function Page({ params }: PageProps) {
         }
     }
 
-    const queryDates = meetingData.dates
-        .map((date) => date.toString())
-        .join(",");
-    const queryTimes =
-        meetingData.fromTime.slice(0, -3) +
-        "-" +
-        meetingData.toTime.slice(0, -3);
-    // Fetches study room data based on the current meeting's dates and times
-    const studyRooms = await getStudyRooms(queryDates, queryTimes);
+    // const queryDates = meetingData.dates
+    //     .map((date) => date.toString())
+    //     .join(",");
+    // const queryTimes =
+    //     meetingData.fromTime.slice(0, -3) +
+    //     "-" +
+    //     meetingData.toTime.slice(0, -3);
+    // // Fetches study room data based on the current meeting's dates and times
+    // const studyRooms = await getStudyRooms(queryDates, queryTimes);
 
     // if (studyRooms.data.length === 0) {
     //     console.log("No study rooms found in range");

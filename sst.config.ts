@@ -14,20 +14,20 @@ export default $config({
         };
     },
     async run() {
+        const domainName = `${$app.stage === "prod" ? "" : `${$app.stage}.`}zotmeet.com`;
+        const baseUrl = `https://${domainName}`;
+
         new sst.aws.Nextjs("site", {
             environment: {
                 DATABASE_URL: process.env.DATABASE_URL ?? "localhost:3000",
-                GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID!,
-                GOOGLE_OAUTH_CLIENT_SECRET:
-                    process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
-                GOOGLE_OAUTH_REDIRECT_URI:
-                    $app.stage === "prod"
-                        ? "https://zotmeet.com/auth/login/google/callback"
-                        : "http://localhost:3000/auth/login/google/callback",
+                OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID!,
+                OIDC_ISSUER_URL: process.env.OIDC_ISSUER_URL!,
+                GOOGLE_OAUTH_REDIRECT_URI: `${baseUrl}/auth/login/google/callback`,
+                NEXT_PUBLIC_BASE_URL: baseUrl,
             },
             cachePolicy: "e6e88864-aee5-41aa-b393-c48f78e33d2d",
             domain: {
-                name: `${$app.stage === "prod" ? "" : `${$app.stage}.`}zotmeet.com`,
+                name: domainName,
                 dns: sst.aws.dns({
                     zone: "Z0670880YRIE7KPL5SPX",
                 }),
