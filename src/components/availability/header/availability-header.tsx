@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { saveAvailability } from "@actions/availability/save/action";
-import { meet } from "googleapis/build/src/apis/meet";
 import {
     CircleCheckIcon,
     CircleXIcon,
@@ -27,6 +26,38 @@ interface AvailabilityHeaderProps {
     onCancel: () => void;
     onScheduleCancel: () => void;
     onSave: () => void;
+}
+
+function formatDateForGoogleCalendar(
+    date: Date,
+    time: string,
+    timezone: string
+) {
+    // Combine date and time into a Date object
+    const [hours, minutes] = time.split(":").map(Number);
+    const baseDate = new Date(date);
+    baseDate.setHours(hours, minutes, 0, 0);
+
+    // Format the date components in the target timezone
+    const dtf = new Intl.DateTimeFormat("en-GB", {
+        timeZone: timezone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+    });
+
+    const parts = dtf.formatToParts(baseDate);
+    const map: Record<string, string> = {};
+    parts.forEach((p) => {
+        if (p.type !== "literal") map[p.type] = p.value;
+    });
+
+    // Return YYYYMMDDTHHMMSS
+    return `${map.year}${map.month}${map.day}T${map.hour}${map.minute}${map.second}`;
 }
 
 export function AvailabilityHeader({
@@ -51,18 +82,34 @@ export function AvailabilityHeader({
         if (!meetingData.scheduled) {
             toast.error("Meeting has not been scheduled yet.");
             return;
+        } else if (
+            meetingData.scheduledDate &&
+            meetingData.scheduledFromTime &&
+            meetingData.scheduledToTime
+        ) {
+            const startDateTime = formatDateForGoogleCalendar(
+                meetingData.scheduledDate,
+                meetingData.scheduledFromTime,
+                meetingData.timezone
+            );
+            const endDateTime = formatDateForGoogleCalendar(
+                meetingData.scheduledDate,
+                meetingData.scheduledToTime,
+                meetingData.timezone
+            );
+
+            const params = new URLSearchParams({
+                action: "TEMPLATE",
+                text: meetingData.title,
+                details: meetingData.description || "",
+                location: "TBD",
+                dates: `${startDateTime}/${endDateTime}`,
+                ctz: meetingData.timezone,
+            });
+
+            const calendarUrl = `https://calendar.google.com/calendar/render?${params.toString()}`;
+            window.open(calendarUrl, "_blank");
         }
-
-        const params = new URLSearchParams({
-            action: "TEMPLATE",
-            text: meetingData.title,
-            details: meetingData.description || "",
-            location: "TBD",
-            dates: `${meetingData.scheduledFromTime}/${meetingData.scheduledToTime}`,
-        });
-
-        const calendarUrl = `https://calendar.google.com/calendar/render?${params.toString()}`;
-        window.open(calendarUrl, "_blank");
     };
     const handleCancel = () => {
         onCancel();
