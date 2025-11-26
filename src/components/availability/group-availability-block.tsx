@@ -9,6 +9,7 @@ interface GroupAvailabilityBlockProps {
     onHover?: VoidFunction;
     blockColor: string;
     hoveredMember?: string | null;
+    hasSpacerBefore?: boolean;
 }
 
 export const GroupAvailabilityBlock = memo(
@@ -20,6 +21,7 @@ export const GroupAvailabilityBlock = memo(
         onHover,
         blockColor,
         hoveredMember,
+        hasSpacerBefore = false,
     }: GroupAvailabilityBlockProps) => {
         const isMemberAvailable =
             hoveredMember && block && block.includes(hoveredMember);
@@ -29,6 +31,7 @@ export const GroupAvailabilityBlock = memo(
                 className={cn(
                     "h-full w-full border-r-[1px] border-gray-medium transition-opacity duration-200",
                     hoveredMember && !isMemberAvailable && "opacity-30",
+                    hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
                     tableCellStyles,
                     className
                 )}
