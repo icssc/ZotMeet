@@ -1,6 +1,7 @@
+import React from "react";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
-import { generateDateKey } from "@/lib/availability/utils";
+import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
@@ -47,6 +48,8 @@ export function GroupAvailabilityRow({
     const isHalfHour = timeBlock % 60 === 30;
     const isLastRow = blockIndex === availabilityTimeBlocksLength - 1;
 
+    const spacers = spacerBeforeDate(currentPageAvailability);
+
     return currentPageAvailability.map((selectedDate, pageDateIndex) => {
         const key = generateDateKey({
             selectedDate,
@@ -92,34 +95,50 @@ export function GroupAvailabilityRow({
             );
 
             return (
-                <td
-                    key={key}
-                    className="px-0 py-0"
-                >
-                    <GroupAvailabilityBlock
-                        className="group-availability-block block"
-                        onClick={() =>
-                            handleCellClick({
-                                isSelected,
-                                zotDateIndex,
-                                blockIndex,
-                            })
-                        }
-                        onHover={() =>
-                            handleCellHover({
-                                zotDateIndex,
-                                blockIndex,
-                            })
-                        }
-                        block={block}
-                        blockColor={blockColor}
-                        tableCellStyles={tableCellStyles}
-                        hoveredMember={hoveredMember}
-                    />
-                </td>
+                <React.Fragment key={key}>
+                    {spacers[pageDateIndex] && (
+                        <td
+                            className="w-3 md:w-4"
+                            aria-hidden="true"
+                        />
+                    )}
+                    <td className="px-0 py-0">
+                        <GroupAvailabilityBlock
+                            className="group-availability-block block"
+                            onClick={() =>
+                                handleCellClick({
+                                    isSelected,
+                                    zotDateIndex,
+                                    blockIndex,
+                                })
+                            }
+                            onHover={() =>
+                                handleCellHover({
+                                    zotDateIndex,
+                                    blockIndex,
+                                })
+                            }
+                            block={block}
+                            blockColor={blockColor}
+                            tableCellStyles={tableCellStyles}
+                            hoveredMember={hoveredMember}
+                            hasSpacerBefore={spacers[pageDateIndex]}
+                        />
+                    </td>
+                </React.Fragment>
             );
         } else {
-            return <td key={key}></td>;
+            return (
+                <React.Fragment key={key}>
+                    {spacers[pageDateIndex] && (
+                        <td
+                            className="w-3 md:w-4"
+                            aria-hidden="true"
+                        />
+                    )}
+                    <td></td>
+                </React.Fragment>
+            );
         }
     });
 }
