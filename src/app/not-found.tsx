@@ -6,16 +6,19 @@ import { usePathname } from "next/navigation";
 
 export default function NotFound() {
     const isMeeting = usePathname().includes("/availability/");
-    const type = isMeeting ? "meeting" : "page";
+    const typeDes = isMeeting ? "meeting" : "page"; // type for description
+    const typeTitle = isMeeting ? "Meeting" : "Page"; //type for title
 
     return (
         <div className="flex min-h-screen items-center justify-center">
             <div className="flex h-fit w-fit items-center justify-center gap-2 rounded-md border border-blue-400 bg-blue-100 p-16 shadow-sm">
                 <div className="flex flex-col items-center gap-3">
-                    <h2 className="text-2xl font-bold">Oops! Page Not Found</h2>
+                    <h2 className="text-2xl font-bold">
+                        Oops! {typeTitle} Not Found
+                    </h2>
                     <p className="text-gray-600">
-                        The {type} you're looking for doesn't exist or may have
-                        been moved{" "}
+                        The {typeDes} you're looking for doesn't exist or may
+                        have been moved
                     </p>
 
                     <div className="p-7">
