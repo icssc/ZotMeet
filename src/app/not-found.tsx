@@ -17,8 +17,8 @@ export default function NotFound() {
                         Oops! {typeTitle} Not Found
                     </h2>
                     <p className="text-gray-600">
-                        The {typeDes} you're looking for doesn't exist or may
-                        have been moved
+                        The {typeDes} you&apos;re looking for doesn't exist or
+                        may have been moved
                     </p>
 
                     <div className="p-7">
