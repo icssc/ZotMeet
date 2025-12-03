@@ -10,8 +10,8 @@ export default function NotFound() {
                         Oops! Meeting Not Found
                     </h2>
                     <p className="text-gray-600">
-                        The Meeting you're looking for doesn't exist or may have
-                        been moved
+                        The Meeting you&apos;re looking for doesn&apos;t exist
+                        or may have been moved
                     </p>
 
                     <div className="p-7">
