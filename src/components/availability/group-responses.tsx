@@ -142,7 +142,7 @@ export function GroupResponses({
                     </div>
                     <button
                         className="rounded-lg border-[1px] border-slate-400 p-0.5 lg:hidden"
-                        onClick={() => setIsMobileDrawerOpen(true)}
+                        onClick={() => setIsMobileDrawerOpen(false)}
                     >
                         <XIcon className="text-lg text-slate-400" />
                     </button>
