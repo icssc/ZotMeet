@@ -105,7 +105,6 @@ export function CalendarBodyDay({
                 onTouchEnd={handleTouchEnd}
                 onMouseMove={handleMouseMove}
                 onMouseDown={handleMouseDown}
-                onMouseUp={handleMouseUp}
                 className="relative flex w-full cursor-pointer select-none justify-center py-2"
             >
                 <CalendarBodyDayCell
