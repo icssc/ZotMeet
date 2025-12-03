@@ -127,7 +127,7 @@ export function GroupResponses({
 
             <div
                 className={cn(
-                    "fixed bottom-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl border-[1px] border-gray-400 bg-gray-100 bg-opacity-90 transition-transform duration-500 ease-in-out sm:left-auto sm:right-0 sm:w-96 lg:relative lg:right-10 lg:top-0 lg:h-auto lg:w-64 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:bg-opacity-50",
+                    "fixed bottom-0 right-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl border-[1px] border-gray-400 bg-gray-100 bg-opacity-90 transition-transform duration-500 ease-in-out sm:left-auto sm:right-0 sm:w-96 lg:relative lg:right-10 lg:top-0 lg:h-auto lg:w-64 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:bg-opacity-50",
                     isMobileDrawerOpen && "translate-y-0"
                 )}
             >
@@ -142,7 +142,7 @@ export function GroupResponses({
                     </div>
                     <button
                         className="rounded-lg border-[1px] border-slate-400 p-0.5 lg:hidden"
-                        onClick={() => setIsMobileDrawerOpen(false)}
+                        onClick={() => setIsMobileDrawerOpen(true)}
                     >
                         <XIcon className="text-lg text-slate-400" />
                     </button>
