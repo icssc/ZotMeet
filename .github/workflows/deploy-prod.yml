@@ -21,7 +21,6 @@ concurrency:
 env:
     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
     DATABASE_URL: ${{ secrets.PROD_DB_URL }}
     # OIDC Configuration
     OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
@@ -47,4 +46,4 @@ jobs:
 
             - name: Deploy ZotMeet to production
               run: |
-                  STAGE=prod pnpm db:migrate && pnpm sst deploy --stage prod
+                  STAGE=prod pnpm db:migrate && pnpm sst deploy --stage production
