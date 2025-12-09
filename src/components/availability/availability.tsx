@@ -26,6 +26,8 @@ import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginatio
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 
+import { IndividualScheduleView } from "./individual-schedule-view";
+
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
     timezone,
@@ -286,6 +288,7 @@ export function Availability({
                 onCancel={handleCancelEditing}
                 onSave={handleSuccessfulSave}
             />
+            <IndividualScheduleView />
 
             <div className="flex flex-row items-start justify-start align-top">
                 <div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">

@@ -32,6 +32,7 @@ export function GroupResponses({
     );
 
     const handleMemberHover = (memberId: string | null) => {
+        // console.log("MEMBER ID FROM GROUP RESPONSES: ", memberId)
         if (memberId === null) {
             setHoveredMember(null);
             return;
@@ -156,8 +157,8 @@ export function GroupResponses({
                             </span>
                         </div>
                         <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
-                            {availableMembers.length > 0 ? (
-                                availableMembers.map((member) => (
+                            {members.length > 0 ? (
+                                members.map((member) => (
                                     <li
                                         key={member.memberId}
                                         className="cursor-pointer text-lg text-gray-800"
@@ -172,9 +173,7 @@ export function GroupResponses({
                                     </li>
                                 ))
                             ) : (
-                                <li className="text-sm italic text-gray-400">
-                                    N/A
-                                </li>
+                                <li className="text-sm italic text-gray-400"></li>
                             )}
                         </ul>
                     </div>
