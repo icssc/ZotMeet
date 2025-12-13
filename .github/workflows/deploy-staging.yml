@@ -36,8 +36,7 @@ jobs:
 
     environment:
       name: staging-${{ github.event.pull_request.number }}
-      url: https://staging-${{ github.event.pull_request.number
-        }}.zotmeet.com
+      url: https://staging-${{ github.event.pull_request.number }}.zotmeet.com
 
     steps:
       - name: Checkout repository
@@ -49,5 +48,35 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Deploy ZotMeet to staging
-        run: pnpm db:migrate && pnpm sst deploy --stage staging-$PR_NUM
+      - name: Create deployment
+        id: create-deployment
+        uses: chrnorm/deployment-action@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: staging-${{ github.event.pull_request.number }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          description: Staging deployment for PR #${{ github.event.pull_request.number }}
+
+      - name: Migrate database
+        run: pnpm db:migrate
+
+      - name: Deploy to staging
+        id: deploy
+        run: pnpm sst deploy --stage staging-${{ github.event.pull_request.number }}
+
+      - name: Update deployment status (success)
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          deployment-id: ${{ steps.create-deployment.outputs.deployment_id }}
+          state: success
+          environment-url: https://staging-${{ github.event.pull_request.number }}.zotmeet.com
+
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          deployment-id: ${{ steps.create-deployment.outputs.deployment_id }}
+          state: failure
