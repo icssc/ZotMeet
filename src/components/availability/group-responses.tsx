@@ -32,14 +32,13 @@ export function GroupResponses({
     );
 
     const handleMemberHover = (memberId: string | null) => {
-        // console.log("MEMBER ID FROM GROUP RESPONSES: ", memberId)
         if (memberId === null) {
             setHoveredMember(null);
             return;
         }
 
         const member = members.find((m) => m.memberId === memberId);
-        setHoveredMember(member ? member.displayName : null);
+        setHoveredMember(member ? member.memberId : null);
     };
 
     const { availableMembers, notAvailableMembers } = useMemo(() => {

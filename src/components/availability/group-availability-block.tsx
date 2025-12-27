@@ -27,7 +27,7 @@ export const GroupAvailabilityBlock = memo(
         return (
             <button
                 className={cn(
-                    "h-full w-full border-r-[1px] border-gray-medium transition-opacity duration-200",
+                    "h-full w-full border-r-[1px] border-gray-medium",
                     hoveredMember && !isMemberAvailable && "opacity-30",
                     tableCellStyles,
                     className

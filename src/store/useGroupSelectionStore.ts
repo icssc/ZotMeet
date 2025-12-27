@@ -29,6 +29,5 @@ export const useGroupSelectionStore = create<GroupSelectionState>((set) => ({
         set({
             selectedZotDateIndex: undefined,
             selectedBlockIndex: undefined,
-            hoveredMember: null,
         }),
 }));
