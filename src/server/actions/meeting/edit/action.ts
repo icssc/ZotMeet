@@ -22,6 +22,12 @@ export async function editMeeting(updatedMeeting: InsertMeeting) {
         return { error: "Meeting ID is required." };
     }
 
+    if (updatedMeeting.hostId !== user.memberId) {
+        return {
+            error: "Only meeting owner has permission to edit this meeting.",
+        };
+    }
+
     await db
         .update(meetings)
         .set({
