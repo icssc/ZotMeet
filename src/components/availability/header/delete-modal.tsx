@@ -8,16 +8,17 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { SelectMeeting } from "@/db/schema";
 import { archiveMeeting } from "@actions/meeting/archive/action";
 import { toast } from "sonner";
 
 interface DeleteModalProps {
-    meetingId: string;
+    meetingData: SelectMeeting;
     isOpen: boolean;
     handleOpenChange: (open: boolean) => void;
 }
 const DeleteModal = ({
-    meetingId,
+    meetingData,
     isOpen,
     handleOpenChange,
 }: DeleteModalProps) => {
@@ -28,7 +29,7 @@ const DeleteModal = ({
     }
 
     const handleDeleteClick = async () => {
-        const { success, error } = await archiveMeeting(meetingId);
+        const { success, error } = await archiveMeeting(meetingData);
 
         if (success) {
             toast.success("Meeting deleted successfully!");
