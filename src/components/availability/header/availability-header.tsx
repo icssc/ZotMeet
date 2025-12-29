@@ -178,7 +178,7 @@ export function AvailabilityHeader({
             />
 
             <DeleteModal
-                meetingId={meetingData.id}
+                meetingData={meetingData}
                 isOpen={isDeleteModalOpen}
                 handleOpenChange={setIsDeleteModalOpen}
             />
