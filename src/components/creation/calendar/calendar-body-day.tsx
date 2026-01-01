@@ -107,7 +107,7 @@ export function CalendarBodyDay({
                 onMouseDown={handleMouseDown}
                 className="relative flex w-full cursor-pointer select-none justify-center py-2"
                 style={{
-                    touchAction: "none",
+                    touchAction: "pinch-zoom",
                 }}
             >
                 <CalendarBodyDayCell
