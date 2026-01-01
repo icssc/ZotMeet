@@ -16,6 +16,7 @@ interface GroupAvailabilityRowProps {
     availabilityDates: ZotDate[];
     numMembers: number;
     hoveredMember: string | null;
+    selectedMember: string[];
     handleCellClick: (params: {
         isSelected: boolean;
         zotDateIndex: number;
@@ -38,6 +39,7 @@ export function GroupAvailabilityRow({
     availabilityDates,
     numMembers,
     hoveredMember,
+    selectedMember,
     handleCellClick,
     handleCellHover,
 }: GroupAvailabilityRowProps) {
@@ -72,6 +74,7 @@ export function GroupAvailabilityRow({
             const block = selectedDate.groupAvailability[timestamp] || [];
 
             // Calculate block color
+            // Priority: hoveredMember > selectedMember > normal group view
             let blockColor = "transparent";
             if (hoveredMember) {
                 if (block.includes(hoveredMember)) {
@@ -79,7 +82,23 @@ export function GroupAvailabilityRow({
                 } else {
                     blockColor = "transparent";
                 }
+            } else if (selectedMember.length > 0) {
+                // When members are selected (checkboxes checked), show their combined schedules
+                const selectedInBlock = selectedMember.filter((memberId) =>
+                    block.includes(memberId)
+                );
+                if (selectedInBlock.length > 0) {
+                    // Show with opacity based on how many selected members are available
+                    const opacity = Math.min(
+                        0.9,
+                        0.5 + selectedInBlock.length * 0.15
+                    );
+                    blockColor = `rgba(55, 124, 251, ${opacity})`;
+                } else {
+                    blockColor = "transparent";
+                }
             } else if (numMembers > 0) {
+                // Normal group view (no hover, no selections)
                 const opacity = block.length / numMembers;
                 blockColor = `rgba(55, 124, 251, ${opacity})`;
             }
@@ -115,6 +134,7 @@ export function GroupAvailabilityRow({
                         blockColor={blockColor}
                         tableCellStyles={tableCellStyles}
                         hoveredMember={hoveredMember}
+                        selectedMember={selectedMember}
                     />
                 </td>
             );

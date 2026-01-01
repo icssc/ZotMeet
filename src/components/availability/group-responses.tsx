@@ -25,6 +25,8 @@ export function GroupResponses({
         isMobileDrawerOpen,
         setIsMobileDrawerOpen,
         setHoveredMember,
+        selectedMember,
+        toggleSelectedMember,
     } = useGroupSelectionStore();
 
     const [blockInfoString, setBlockInfoString] = useState(
@@ -39,6 +41,11 @@ export function GroupResponses({
 
         const member = members.find((m) => m.memberId === memberId);
         setHoveredMember(member ? member.memberId : null);
+    };
+
+    const handleCheckboxChange = (memberId: string) => {
+        // Toggle the member in the selectedMember array
+        toggleSelectedMember(memberId);
     };
 
     const { availableMembers, notAvailableMembers } = useMemo(() => {
@@ -168,7 +175,32 @@ export function GroupResponses({
                                             handleMemberHover(null)
                                         }
                                     >
-                                        {member.displayName}
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                className="cursor-pointer"
+                                                type="checkbox"
+                                                checked={selectedMember.includes(
+                                                    member.memberId
+                                                )}
+                                                onChange={() =>
+                                                    handleCheckboxChange(
+                                                        member.memberId
+                                                    )
+                                                }
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                            />
+                                            <span
+                                                className={cn(
+                                                    selectedMember.includes(
+                                                        member.memberId
+                                                    ) && "font-semibold"
+                                                )}
+                                            >
+                                                {member.displayName}
+                                            </span>
+                                        </div>
                                     </li>
                                 ))
                             ) : (
@@ -196,7 +228,32 @@ export function GroupResponses({
                                             handleMemberHover(null)
                                         }
                                     >
-                                        {member.displayName}
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                className="cursor-pointer"
+                                                type="checkbox"
+                                                checked={selectedMember.includes(
+                                                    member.memberId
+                                                )}
+                                                onChange={() =>
+                                                    handleCheckboxChange(
+                                                        member.memberId
+                                                    )
+                                                }
+                                                onClick={(e) =>
+                                                    e.stopPropagation()
+                                                }
+                                            />
+                                            <span
+                                                className={cn(
+                                                    selectedMember.includes(
+                                                        member.memberId
+                                                    ) && "font-semibold"
+                                                )}
+                                            >
+                                                {member.displayName}
+                                            </span>
+                                        </div>
                                     </li>
                                 ))
                             ) : (

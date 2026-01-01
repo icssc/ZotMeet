@@ -9,6 +9,7 @@ interface GroupAvailabilityBlockProps {
     onHover?: VoidFunction;
     blockColor: string;
     hoveredMember?: string | null;
+    selectedMember: string[];
 }
 
 export const GroupAvailabilityBlock = memo(
@@ -20,15 +21,29 @@ export const GroupAvailabilityBlock = memo(
         onHover,
         blockColor,
         hoveredMember,
+        selectedMember,
     }: GroupAvailabilityBlockProps) => {
-        const isMemberAvailable =
+        // Check if hovered member is available (for dimming when hovering)
+        const isHoveredMemberAvailable =
             hoveredMember && block && block.includes(hoveredMember);
+
+        // Check if any selected member is available (for dimming when not hovering)
+        const hasSelectedMemberAvailable =
+            !hoveredMember &&
+            selectedMember.length > 0 &&
+            selectedMember.some((memberId) => block.includes(memberId));
 
         return (
             <button
                 className={cn(
                     "h-full w-full border-r-[1px] border-gray-medium",
-                    hoveredMember && !isMemberAvailable && "opacity-30",
+                    // Dim if hovering and hovered member is not available
+                    hoveredMember && !isHoveredMemberAvailable && "opacity-30",
+                    // Dim if not hovering, have selections, but no selected member is available
+                    !hoveredMember &&
+                        selectedMember.length > 0 &&
+                        !hasSelectedMemberAvailable &&
+                        "opacity-30",
                     tableCellStyles,
                     className
                 )}
