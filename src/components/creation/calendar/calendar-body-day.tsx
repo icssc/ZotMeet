@@ -106,6 +106,9 @@ export function CalendarBodyDay({
                 onMouseMove={handleMouseMove}
                 onMouseDown={handleMouseDown}
                 className="relative flex w-full cursor-pointer select-none justify-center py-2"
+                style={{
+                    touchAction: "none",
+                }}
             >
                 <CalendarBodyDayCell
                     isHighlighted={!!isHighlighted}
