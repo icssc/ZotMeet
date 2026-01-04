@@ -10,6 +10,7 @@ import type {
     GoogleCalendarEventLayoutInfo,
     ProcessedCellEventSegments,
 } from "@/lib/types/availability";
+import { isAnchorDateMeeting } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 
@@ -17,15 +18,17 @@ interface UseGoogleCalendarProps {
     googleCalendarEvents: GoogleCalendarEvent[];
     currentPageAvailability: ZotDate[];
     availabilityTimeBlocks: number[];
+    meetingDates: string[];
 }
 
 export function useGoogleCalendar({
     googleCalendarEvents,
     currentPageAvailability,
     availabilityTimeBlocks,
+    meetingDates,
 }: UseGoogleCalendarProps) {
     const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
-
+    const isAnchorMeeting = isAnchorDateMeeting(meetingDates);
     const processedCellSegments = useMemo((): ProcessedCellEventSegments => {
         const segmentsMap = new Map<string, EventSegment[]>();
         if (
@@ -38,7 +41,8 @@ export function useGoogleCalendar({
 
         const eventsByDate = processEventsByDate(
             googleCalendarEvents,
-            currentPageAvailability
+            currentPageAvailability,
+            isAnchorMeeting
         );
         const eventsWithLayout = calculateEventLayout(eventsByDate);
         return createCellSegments(
@@ -54,6 +58,7 @@ export function useGoogleCalendar({
         availabilityTimeBlocks,
         currentPage,
         itemsPerPage,
+        isAnchorMeeting,
     ]);
 
     return { processedCellSegments };
@@ -61,7 +66,8 @@ export function useGoogleCalendar({
 
 function processEventsByDate(
     events: GoogleCalendarEvent[],
-    currentPageAvailability: ZotDate[]
+    currentPageAvailability: ZotDate[],
+    isAnchorMeeting: boolean
 ): Map<string, GoogleCalendarEventLayoutInfo[]> {
     const eventsByDate = new Map<string, GoogleCalendarEventLayoutInfo[]>();
 
@@ -70,14 +76,21 @@ function processEventsByDate(
             continue;
         }
 
-        const currentDateStr = getDatePart(event.start);
-        const zotDateForEvent = currentPageAvailability.find(
-            (zd) => zd && getDatePart(zd.day.toISOString()) === currentDateStr
-        );
+        const eventDateStr = getDatePart(event.start);
+        const eventDayOfWeek = new Date(event.start).getDay();
+        const zotDateForEvent = currentPageAvailability.find((zd) => {
+            if (!zd) return false;
+            if (isAnchorMeeting) {
+                return zd.day.getDay() === eventDayOfWeek;
+            } else {
+                return getDatePart(zd.day.toISOString()) === eventDateStr;
+            }
+        });
 
         if (!zotDateForEvent) {
             continue;
         }
+        const keyDateStr = getDatePart(zotDateForEvent.day.toISOString());
 
         const originalStartMins = getMinutesFromMidnight(event.start);
         const originalEndMins = getMinutesFromMidnight(event.end);
@@ -118,16 +131,16 @@ function processEventsByDate(
             clampedEndMinutes: clampedEnd,
             assignedColumn: 0,
             gridColumnCount: 1, // Represents number of events that will share same cell (isolated cell doesn't know in case of staggered events)
-            startDateString: currentDateStr,
+            startDateString: keyDateStr,
             startBlockIndex: startBlock,
             endBlockIndex: endBlock,
             calendarColor: event.calendarColor,
         };
 
-        if (!eventsByDate.has(currentDateStr)) {
-            eventsByDate.set(currentDateStr, []);
+        if (!eventsByDate.has(keyDateStr)) {
+            eventsByDate.set(keyDateStr, []);
         }
-        const eventsForDate = eventsByDate.get(currentDateStr);
+        const eventsForDate = eventsByDate.get(keyDateStr);
         if (!eventsForDate) {
             continue;
         }

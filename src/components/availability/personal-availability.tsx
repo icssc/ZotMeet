@@ -22,6 +22,7 @@ interface PersonalAvailabilityProps {
     googleCalendarEvents: GoogleCalendarEvent[];
     user: UserProfile | null;
     onAvailabilityChange: (updatedDates: ZotDate[]) => void;
+    meetingDates: string[];
 }
 
 export function PersonalAvailability({
@@ -34,6 +35,7 @@ export function PersonalAvailability({
     googleCalendarEvents,
     user,
     onAvailabilityChange,
+    meetingDates,
 }: PersonalAvailabilityProps) {
     const {
         startBlockSelection,
@@ -51,6 +53,7 @@ export function PersonalAvailability({
         googleCalendarEvents,
         currentPageAvailability,
         availabilityTimeBlocks,
+        meetingDates,
     });
 
     useEffect(() => {

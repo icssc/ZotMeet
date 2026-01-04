@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { Member } from "@/lib/types/availability";
+import {
+    getCurrentWeekDateForAnchor,
+    isAnchorDateMeeting,
+} from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
@@ -11,12 +15,14 @@ interface GroupResponsesProps {
     availabilityDates: ZotDate[];
     members: Member[];
     fromTime: number;
+    meetingDates: string[];
 }
 
 export function GroupResponses({
     availabilityDates,
     fromTime,
     members,
+    meetingDates,
 }: GroupResponsesProps) {
     const { availabilityView } = useAvailabilityViewStore();
     const {
@@ -84,9 +90,13 @@ export function GroupResponses({
             selectedZotDateIndex !== undefined &&
             selectedBlockIndex !== undefined
         ) {
-            const formattedDate = availabilityDates[
-                selectedZotDateIndex
-            ].day.toLocaleDateString("en-US", {
+            const dateToDisplay = availabilityDates[selectedZotDateIndex].day;
+
+            const displayDate = isAnchorDateMeeting(meetingDates)
+                ? getCurrentWeekDateForAnchor(dateToDisplay)
+                : dateToDisplay;
+
+            const formattedDate = displayDate.toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
             });
@@ -108,7 +118,12 @@ export function GroupResponses({
         } else {
             setBlockInfoString("Select a cell to view");
         }
-    }, [selectedZotDateIndex, selectedBlockIndex, availabilityDates]);
+    }, [
+        selectedZotDateIndex,
+        selectedBlockIndex,
+        availabilityDates,
+        meetingDates,
+    ]);
 
     return (
         <div

@@ -21,6 +21,10 @@ import type {
     MemberMeetingAvailability,
 } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
+import {
+    convertAnchorDatesToCurrentWeek,
+    isAnchorDateMeeting,
+} from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
@@ -222,10 +226,16 @@ export function Availability({
 
     useEffect(() => {
         if (availabilityDates.length > 0) {
-            const firstDateISO = availabilityDates[0].day.toISOString();
+            const meetingDateStrings = availabilityDates.map((zd) =>
+                zd.day.toISOString()
+            );
+            const datesToQuery = isAnchorDateMeeting(meetingData.dates)
+                ? convertAnchorDatesToCurrentWeek(meetingData.dates)
+                : meetingDateStrings;
 
-            const lastZotDate = availabilityDates[availabilityDates.length - 1];
-            const lastDateObj = new Date(lastZotDate.day);
+            const firstDateISO = datesToQuery[0];
+
+            const lastDateObj = new Date(datesToQuery[datesToQuery.length - 1]);
             lastDateObj.setHours(23, 59, 59, 999);
             const lastDateISO = lastDateObj.toISOString();
 
@@ -243,7 +253,7 @@ export function Availability({
         } else {
             setGoogleCalendarEvents([]);
         }
-    }, [availabilityDates]);
+    }, [availabilityDates, meetingData.dates]);
 
     const members = useMemo(() => {
         const presentMemberIds = [
@@ -346,6 +356,7 @@ export function Availability({
                                                 onAvailabilityChange={
                                                     handleUserAvailabilityChange
                                                 }
+                                                meetingDates={meetingData.dates}
                                             />
                                         )}
                                     </tr>
@@ -365,6 +376,7 @@ export function Availability({
                     availabilityDates={availabilityDates}
                     fromTime={fromTimeMinutes}
                     members={members}
+                    meetingDates={meetingData.dates}
                 />
             </div>
         </div>
