@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
@@ -6,6 +6,7 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { XIcon } from "lucide-react";
+import { useShallow } from "zustand/shallow";
 
 interface GroupResponsesProps {
     availabilityDates: ZotDate[];
@@ -25,21 +26,26 @@ export function GroupResponses({
         isMobileDrawerOpen,
         setIsMobileDrawerOpen,
         setHoveredMember,
-    } = useGroupSelectionStore();
+    } = useGroupSelectionStore(
+        useShallow((state) => ({
+            selectedZotDateIndex: state.selectedZotDateIndex,
+            selectedBlockIndex: state.selectedBlockIndex,
+            isMobileDrawerOpen: state.isMobileDrawerOpen,
+            setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
+            setHoveredMember: state.setHoveredMember,
+        }))
+    );
 
     const [blockInfoString, setBlockInfoString] = useState(
         "Select a cell to view"
     );
 
-    const handleMemberHover = (memberId: string | null) => {
-        if (memberId === null) {
-            setHoveredMember(null);
-            return;
-        }
-
-        const member = members.find((m) => m.memberId === memberId);
-        setHoveredMember(member ? member.memberId : null);
-    };
+    const handleMemberHover = useCallback(
+        (memberId: string | null) => {
+            setHoveredMember(memberId);
+        },
+        [setHoveredMember]
+    );
 
     const { availableMembers, notAvailableMembers } = useMemo(() => {
         if (

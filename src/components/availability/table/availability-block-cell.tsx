@@ -6,6 +6,7 @@ import type {
 } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
+import { useShallow } from "zustand/shallow";
 
 interface AvailabilityBlockCellProps {
     blockIndex: number;
@@ -32,10 +33,17 @@ export function AvailabilityBlockCell({
 }: AvailabilityBlockCellProps) {
     const {
         startBlockSelection,
+        selectionState,
         setStartBlockSelection,
         setEndBlockSelection,
-        selectionState,
-    } = useBlockSelectionStore();
+    } = useBlockSelectionStore(
+        useShallow((state) => ({
+            startBlockSelection: state.startBlockSelection,
+            selectionState: state.selectionState,
+            setStartBlockSelection: state.setStartBlockSelection,
+            setEndBlockSelection: state.setEndBlockSelection,
+        }))
+    );
 
     const availabilitySelection = {
         zotDateIndex: zotDateIndex,

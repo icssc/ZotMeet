@@ -5,6 +5,7 @@ import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useShallow } from "zustand/shallow";
 
 interface GroupAvailabilityRowProps {
     timeBlock: number;
@@ -42,7 +43,12 @@ export function GroupAvailabilityRow({
     handleCellClick,
     handleCellHover,
 }: GroupAvailabilityRowProps) {
-    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
+    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
+        useShallow((state) => ({
+            currentPage: state.currentPage,
+            itemsPerPage: state.itemsPerPage,
+        }))
+    );
 
     const isTopOfHour = timeBlock % 60 === 0;
     const isHalfHour = timeBlock % 60 === 30;

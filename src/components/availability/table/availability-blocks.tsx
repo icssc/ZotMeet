@@ -11,6 +11,7 @@ import type {
 } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useShallow } from "zustand/shallow";
 
 interface AvailabilityBlocksProps {
     setAvailabilities: (startBlock: AvailabilityBlockType) => void;
@@ -29,7 +30,12 @@ export function AvailabilityBlocks({
     currentPageAvailability,
     processedCellSegments,
 }: AvailabilityBlocksProps) {
-    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
+    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
+        useShallow((state) => ({
+            currentPage: state.currentPage,
+            itemsPerPage: state.itemsPerPage,
+        }))
+    );
 
     const isTopOfHour = timeBlock % 60 === 0;
     const isHalfHour = timeBlock % 60 === 30;

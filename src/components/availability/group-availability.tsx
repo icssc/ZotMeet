@@ -5,6 +5,7 @@ import { GroupAvailabilityRow } from "@/components/availability/group-availabili
 import { Member } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
+import { useShallow } from "zustand/shallow";
 
 export const getTimestampFromBlockIndex = (
     blockIndex: number,
@@ -54,14 +55,26 @@ export function GroupAvailability({
     const {
         selectedZotDateIndex,
         selectedBlockIndex,
+        selectionIsLocked,
+        hoveredMember,
         setSelectedZotDateIndex,
         setSelectedBlockIndex,
-        selectionIsLocked,
         setSelectionIsLocked,
-        hoveredMember,
         resetSelection,
         setIsMobileDrawerOpen,
-    } = useGroupSelectionStore();
+    } = useGroupSelectionStore(
+        useShallow((state) => ({
+            selectedZotDateIndex: state.selectedZotDateIndex,
+            selectedBlockIndex: state.selectedBlockIndex,
+            selectionIsLocked: state.selectionIsLocked,
+            hoveredMember: state.hoveredMember,
+            setSelectedZotDateIndex: state.setSelectedZotDateIndex,
+            setSelectedBlockIndex: state.setSelectedBlockIndex,
+            setSelectionIsLocked: state.setSelectionIsLocked,
+            resetSelection: state.resetSelection,
+            setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
+        }))
+    );
 
     const updateSelection = useCallback(
         ({

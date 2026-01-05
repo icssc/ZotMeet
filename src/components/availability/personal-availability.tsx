@@ -11,6 +11,7 @@ import type {
 } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
+import { useShallow } from "zustand/shallow";
 
 interface PersonalAvailabilityProps {
     timeBlock: number;
@@ -37,12 +38,21 @@ export function PersonalAvailability({
 }: PersonalAvailabilityProps) {
     const {
         startBlockSelection,
-        setStartBlockSelection,
         endBlockSelection,
-        setEndBlockSelection,
         selectionState,
+        setStartBlockSelection,
+        setEndBlockSelection,
         setSelectionState,
-    } = useBlockSelectionStore();
+    } = useBlockSelectionStore(
+        useShallow((state) => ({
+            startBlockSelection: state.startBlockSelection,
+            endBlockSelection: state.endBlockSelection,
+            selectionState: state.selectionState,
+            setStartBlockSelection: state.setStartBlockSelection,
+            setEndBlockSelection: state.setEndBlockSelection,
+            setSelectionState: state.setSelectionState,
+        }))
+    );
 
     const [isEditingAvailability, setIsEditingAvailability] = useState(false);
     const [isStateUnsaved, setIsStateUnsaved] = useState(false);

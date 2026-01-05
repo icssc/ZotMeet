@@ -17,6 +17,7 @@ import {
     DeleteIcon,
     EditIcon,
 } from "lucide-react";
+import { useShallow } from "zustand/shallow";
 
 interface AvailabilityHeaderProps {
     meetingData: SelectMeeting;
@@ -35,10 +36,17 @@ export function AvailabilityHeader({
 }: AvailabilityHeaderProps) {
     const {
         hasAvailability,
-        setHasAvailability,
         availabilityView,
+        setHasAvailability,
         setAvailabilityView,
-    } = useAvailabilityViewStore();
+    } = useAvailabilityViewStore(
+        useShallow((state) => ({
+            hasAvailability: state.hasAvailability,
+            availabilityView: state.availabilityView,
+            setHasAvailability: state.setHasAvailability,
+            setAvailabilityView: state.setAvailabilityView,
+        }))
+    );
 
     const handleCancel = () => {
         onCancel();

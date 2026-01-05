@@ -25,6 +25,7 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
+import { useShallow } from "zustand/shallow";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -116,10 +117,20 @@ export function Availability({
     allAvailabilities: MemberMeetingAvailability[];
     user: UserProfile | null;
 }) {
-    const { availabilityView } = useAvailabilityViewStore();
+    const availabilityView = useAvailabilityViewStore(
+        (state) => state.availabilityView
+    );
 
-    const { currentPage, itemsPerPage, nextPage, prevPage, isFirstPage } =
-        useAvailabilityPaginationStore();
+    const { currentPage, itemsPerPage, isFirstPage, nextPage, prevPage } =
+        useAvailabilityPaginationStore(
+            useShallow((state) => ({
+                currentPage: state.currentPage,
+                itemsPerPage: state.itemsPerPage,
+                isFirstPage: state.isFirstPage,
+                nextPage: state.nextPage,
+                prevPage: state.prevPage,
+            }))
+        );
     const isLastPage =
         currentPage ===
         Math.floor((meetingData.dates.length - 1) / itemsPerPage);
