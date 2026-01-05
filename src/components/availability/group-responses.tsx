@@ -156,9 +156,8 @@ export function GroupResponses({
                 <div className="grid grid-cols-2 lg:flex lg:flex-col lg:gap-10 lg:py-4">
                     <div>
                         <div className="border-b-[1px] border-gray-300 px-8">
-                            <div className="bg-success mr-1 inline-block h-2 w-2 rounded-full" />
                             <span className="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
-                                AVAILABLE
+                                AVAILABLE ({availableMembers.length})
                             </span>
                         </div>
                         <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
@@ -186,9 +185,8 @@ export function GroupResponses({
                     </div>
                     <div>
                         <div className="border-b-[1px] border-gray-300 px-8">
-                            <div className="mr-1 inline-block h-2 w-2 rounded-full bg-gray-400" />
                             <span className="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
-                                NOT AVAILABLE
+                                NOT AVAILABLE ({notAvailableMembers.length})
                             </span>
                         </div>
                         <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
