@@ -160,7 +160,7 @@ export function GroupResponses({
                                 AVAILABLE ({availableMembers.length})
                             </span>
                         </div>
-                        <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
+                        <ul className="h-64 overflow-auto py-2 pl-8">
                             {availableMembers.length > 0 ? (
                                 availableMembers.map((member) => (
                                     <li
@@ -189,7 +189,7 @@ export function GroupResponses({
                                 NOT AVAILABLE ({notAvailableMembers.length})
                             </span>
                         </div>
-                        <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
+                        <ul className="h-64 overflow-auto py-2 pl-8">
                             {notAvailableMembers.length > 0 ? (
                                 notAvailableMembers.map((member) => (
                                     <li
