@@ -44,7 +44,6 @@ export function GroupResponses({
     };
 
     const handleCheckboxChange = (memberId: string) => {
-        // Toggle the member in the selectedMember array
         toggleSelectedMember(memberId);
     };
 
@@ -216,51 +215,41 @@ export function GroupResponses({
                             </span>
                         </div>
                         <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
-                            {notAvailableMembers.length > 0 ? (
-                                notAvailableMembers.map((member) => (
-                                    <li
-                                        key={member.memberId}
-                                        className="cursor-pointer text-lg text-gray-400"
-                                        onMouseEnter={() =>
-                                            handleMemberHover(member.memberId)
-                                        }
-                                        onMouseLeave={() =>
-                                            handleMemberHover(null)
-                                        }
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                className="cursor-pointer"
-                                                type="checkbox"
-                                                checked={selectedMember.includes(
+                            {notAvailableMembers.map((member) => (
+                                <li
+                                    key={member.memberId}
+                                    className="cursor-pointer text-lg text-gray-400"
+                                    onMouseEnter={() =>
+                                        handleMemberHover(member.memberId)
+                                    }
+                                    onMouseLeave={() => handleMemberHover(null)}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            className="cursor-pointer"
+                                            type="checkbox"
+                                            checked={selectedMember.includes(
+                                                member.memberId
+                                            )}
+                                            onChange={() =>
+                                                handleCheckboxChange(
                                                     member.memberId
-                                                )}
-                                                onChange={() =>
-                                                    handleCheckboxChange(
-                                                        member.memberId
-                                                    )
-                                                }
-                                                onClick={(e) =>
-                                                    e.stopPropagation()
-                                                }
-                                            />
-                                            <span
-                                                className={cn(
-                                                    selectedMember.includes(
-                                                        member.memberId
-                                                    ) && "font-semibold"
-                                                )}
-                                            >
-                                                {member.displayName}
-                                            </span>
-                                        </div>
-                                    </li>
-                                ))
-                            ) : (
-                                <li className="text-sm italic text-gray-400">
-                                    N/A
+                                                )
+                                            }
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                        <span
+                                            className={cn(
+                                                selectedMember.includes(
+                                                    member.memberId
+                                                ) && "font-semibold"
+                                            )}
+                                        >
+                                            {member.displayName}
+                                        </span>
+                                    </div>
                                 </li>
-                            )}
+                            ))}
                         </ul>
                     </div>
                 </div>

@@ -86,12 +86,10 @@ export function GroupAvailabilityRow({
                     blockColor = "transparent";
                 }
             } else if (selectedMember.length > 0) {
-                // When members are selected (checkboxes checked), show their combined schedules
                 const selectedInBlock = selectedMember.filter((memberId) =>
                     block.includes(memberId)
                 );
                 if (selectedInBlock.length > 0) {
-                    // Show with opacity based on how many selected members are available
                     const opacity = Math.min(
                         0.9,
                         0.5 + selectedInBlock.length * 0.15
@@ -101,7 +99,6 @@ export function GroupAvailabilityRow({
                     blockColor = "transparent";
                 }
             } else if (numMembers > 0) {
-                // Normal group view (no hover, no selections)
                 const opacity = block.length / numMembers;
                 blockColor = `rgba(55, 124, 251, ${opacity})`;
             }
