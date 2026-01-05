@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
@@ -6,6 +6,7 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { XIcon } from "lucide-react";
+import { useShallow } from "zustand/shallow";
 
 interface GroupResponsesProps {
     availabilityDates: ZotDate[];
@@ -25,21 +26,26 @@ export function GroupResponses({
         isMobileDrawerOpen,
         setIsMobileDrawerOpen,
         setHoveredMember,
-    } = useGroupSelectionStore();
+    } = useGroupSelectionStore(
+        useShallow((state) => ({
+            selectedZotDateIndex: state.selectedZotDateIndex,
+            selectedBlockIndex: state.selectedBlockIndex,
+            isMobileDrawerOpen: state.isMobileDrawerOpen,
+            setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
+            setHoveredMember: state.setHoveredMember,
+        }))
+    );
 
     const [blockInfoString, setBlockInfoString] = useState(
         "Select a cell to view"
     );
 
-    const handleMemberHover = (memberId: string | null) => {
-        if (memberId === null) {
-            setHoveredMember(null);
-            return;
-        }
-
-        const member = members.find((m) => m.memberId === memberId);
-        setHoveredMember(member ? member.memberId : null);
-    };
+    const handleMemberHover = useCallback(
+        (memberId: string | null) => {
+            setHoveredMember(memberId);
+        },
+        [setHoveredMember]
+    );
 
     const { availableMembers, notAvailableMembers } = useMemo(() => {
         if (
@@ -150,12 +156,11 @@ export function GroupResponses({
                 <div className="grid grid-cols-2 lg:flex lg:flex-col lg:gap-10 lg:py-4">
                     <div>
                         <div className="border-b-[1px] border-gray-300 px-8">
-                            <div className="bg-success mr-1 inline-block h-2 w-2 rounded-full" />
                             <span className="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
-                                AVAILABLE
+                                AVAILABLE ({availableMembers.length})
                             </span>
                         </div>
-                        <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
+                        <ul className="h-64 overflow-auto py-2 pl-8">
                             {availableMembers.length > 0 ? (
                                 availableMembers.map((member) => (
                                     <li
@@ -180,12 +185,11 @@ export function GroupResponses({
                     </div>
                     <div>
                         <div className="border-b-[1px] border-gray-300 px-8">
-                            <div className="mr-1 inline-block h-2 w-2 rounded-full bg-gray-400" />
                             <span className="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
-                                NOT AVAILABLE
+                                NOT AVAILABLE ({notAvailableMembers.length})
                             </span>
                         </div>
-                        <ul className="h-64 space-y-2 overflow-auto py-2 pl-8">
+                        <ul className="h-64 overflow-auto py-2 pl-8">
                             {notAvailableMembers.length > 0 ? (
                                 notAvailableMembers.map((member) => (
                                     <li

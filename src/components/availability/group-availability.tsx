@@ -1,10 +1,14 @@
 "use client";
 
-import React, { useCallback, useEffect } from "react";
-import { GroupAvailabilityRow } from "@/components/availability/group-availability-row";
+import React, { useCallback } from "react";
+import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
+import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
 import { Member } from "@/lib/types/availability";
+import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
+import { useShallow } from "zustand/shallow";
 
 export const getTimestampFromBlockIndex = (
     blockIndex: number,
@@ -40,6 +44,7 @@ interface GroupAvailabilityProps {
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
     members: Member[];
+    onMouseLeave: () => void;
 }
 
 export function GroupAvailability({
@@ -50,18 +55,36 @@ export function GroupAvailability({
     availabilityDates,
     currentPageAvailability,
     members,
+    onMouseLeave,
 }: GroupAvailabilityProps) {
+    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
+        useShallow((state) => ({
+            currentPage: state.currentPage,
+            itemsPerPage: state.itemsPerPage,
+        }))
+    );
+
     const {
         selectedZotDateIndex,
         selectedBlockIndex,
+        selectionIsLocked,
+        hoveredMember,
         setSelectedZotDateIndex,
         setSelectedBlockIndex,
-        selectionIsLocked,
         setSelectionIsLocked,
-        hoveredMember,
-        resetSelection,
         setIsMobileDrawerOpen,
-    } = useGroupSelectionStore();
+    } = useGroupSelectionStore(
+        useShallow((state) => ({
+            selectedZotDateIndex: state.selectedZotDateIndex,
+            selectedBlockIndex: state.selectedBlockIndex,
+            selectionIsLocked: state.selectionIsLocked,
+            hoveredMember: state.hoveredMember,
+            setSelectedZotDateIndex: state.setSelectedZotDateIndex,
+            setSelectedBlockIndex: state.setSelectedBlockIndex,
+            setSelectionIsLocked: state.setSelectionIsLocked,
+            setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
+        }))
+    );
 
     const updateSelection = useCallback(
         ({
@@ -77,11 +100,6 @@ export function GroupAvailability({
         },
         [setIsMobileDrawerOpen, setSelectedZotDateIndex, setSelectedBlockIndex]
     );
-
-    const resetSelectionWithDrawer = useCallback(() => {
-        setIsMobileDrawerOpen(false);
-        resetSelection();
-    }, [resetSelection, setIsMobileDrawerOpen]);
 
     const handleCellClick = useCallback(
         ({
@@ -118,91 +136,104 @@ export function GroupAvailability({
         [selectionIsLocked, updateSelection]
     );
 
-    useEffect(() => {
-        const handleMouseMove = (event: MouseEvent) => {
-            if (selectionIsLocked) {
-                return;
-            }
+    const isTopOfHour = timeBlock % 60 === 0;
+    const isHalfHour = timeBlock % 60 === 30;
+    const isLastRow = blockIndex === availabilityTimeBlocks.length - 1;
+    const numMembers = members.length;
 
-            const gridBlocks = document.querySelectorAll(
-                ".group-availability-block"
-            );
-            if (gridBlocks.length === 0) {
-                return;
-            }
+    const spacers = spacerBeforeDate(currentPageAvailability);
 
-            let isOverGrid = false;
-            for (const block of gridBlocks) {
-                const rect = block.getBoundingClientRect();
-                if (
-                    event.clientX >= rect.left &&
-                    event.clientX <= rect.right &&
-                    event.clientY >= rect.top &&
-                    event.clientY <= rect.bottom
-                ) {
-                    isOverGrid = true;
-                    break;
-                }
-            }
+    return currentPageAvailability.map((selectedDate, pageDateIndex) => {
+        const key = generateDateKey({
+            selectedDate,
+            timeBlock,
+            pageDateIndex,
+        });
 
-            if (!isOverGrid) {
-                resetSelectionWithDrawer();
-            }
-        };
+        if (selectedDate) {
+            const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
 
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as Element;
-            const isOnAvailabilityBlock = !!target.closest(
-                ".group-availability-block"
+            const isSelected =
+                selectedZotDateIndex === zotDateIndex &&
+                selectedBlockIndex === blockIndex;
+
+            const timestamp = getTimestampFromBlockIndex(
+                blockIndex,
+                zotDateIndex,
+                fromTime,
+                availabilityDates
             );
 
-            if (!isOnAvailabilityBlock) {
-                resetSelectionWithDrawer();
-                setSelectionIsLocked(false);
-            }
-        };
+            // Get the block (array of member IDs available at this timestamp)
+            const block = selectedDate.groupAvailability[timestamp] || [];
 
-        document.addEventListener("mousemove", handleMouseMove);
-        document.addEventListener("mousedown", handleClickOutside);
-
-        return () => {
-            document.removeEventListener("mousemove", handleMouseMove);
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [selectionIsLocked, resetSelectionWithDrawer, setSelectionIsLocked]);
-
-    useEffect(() => {
-        const handleEscKey = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                resetSelectionWithDrawer();
-                setSelectionIsLocked(false);
-                // Removes focused outline from previously selected block
-                if (document.activeElement instanceof HTMLElement) {
-                    document.activeElement.blur();
+            // Calculate block color
+            let blockColor = "transparent";
+            if (hoveredMember) {
+                if (block.includes(hoveredMember)) {
+                    blockColor = "rgba(55, 124, 251)";
+                } else {
+                    blockColor = "transparent";
                 }
+            } else if (numMembers > 0) {
+                const opacity = block.length / numMembers;
+                blockColor = `rgba(55, 124, 251, ${opacity})`;
             }
-        };
 
-        document.addEventListener("keydown", handleEscKey);
-        return () => {
-            document.removeEventListener("keydown", handleEscKey);
-        };
-    }, [resetSelectionWithDrawer, setSelectionIsLocked]);
+            const tableCellStyles = cn(
+                isTopOfHour ? "border-t-[1px] border-t-gray-medium" : "",
+                isHalfHour ? "border-t-[1px] border-t-gray-base" : "",
+                isLastRow ? "border-b-[1px]" : "",
+                isSelected ? "outline-dashed outline-2 outline-slate-500" : ""
+            );
 
-    return (
-        <GroupAvailabilityRow
-            timeBlock={timeBlock}
-            blockIndex={blockIndex}
-            availabilityTimeBlocksLength={availabilityTimeBlocks.length}
-            currentPageAvailability={currentPageAvailability}
-            selectedZotDateIndex={selectedZotDateIndex}
-            selectedBlockIndex={selectedBlockIndex}
-            fromTime={fromTime}
-            availabilityDates={availabilityDates}
-            numMembers={members.length}
-            hoveredMember={hoveredMember}
-            handleCellClick={handleCellClick}
-            handleCellHover={handleCellHover}
-        />
-    );
+            return (
+                <React.Fragment key={key}>
+                    {spacers[pageDateIndex] && (
+                        <td
+                            className="w-3 md:w-4"
+                            aria-hidden="true"
+                        />
+                    )}
+                    <td className="px-0 py-0">
+                        <GroupAvailabilityBlock
+                            className="group-availability-block block"
+                            onClick={() =>
+                                handleCellClick({
+                                    isSelected,
+                                    zotDateIndex,
+                                    blockIndex,
+                                })
+                            }
+                            onHover={() =>
+                                handleCellHover({
+                                    zotDateIndex,
+                                    blockIndex,
+                                })
+                            }
+                            block={block}
+                            blockColor={blockColor}
+                            tableCellStyles={tableCellStyles}
+                            hoveredMember={hoveredMember}
+                            hasSpacerBefore={spacers[pageDateIndex]}
+                        />
+                    </td>
+                </React.Fragment>
+            );
+        } else {
+            return (
+                // Because these elements are hidden spacers, we consider mouse hovers to be "leaving" the table
+                <React.Fragment key={key}>
+                    {spacers[pageDateIndex] && (
+                        <td
+                            className="w-3 md:w-4"
+                            aria-hidden="true"
+                            onMouseEnter={onMouseLeave}
+                        />
+                    )}
+                    <td onMouseEnter={onMouseLeave}></td>
+                </React.Fragment>
+            );
+        }
+    });
 }
