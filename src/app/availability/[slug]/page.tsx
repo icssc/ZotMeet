@@ -90,7 +90,7 @@ export default async function Page({ params }: PageProps) {
     //     console.log("Study Rooms Placeholder: ", studyRooms.data); // commented out for now
     // }
     return (
-        <div className="space-y-2 px-4">
+        <div className="space-y-2 px-4 pb-20">
             <Availability
                 meetingData={meetingData}
                 userAvailability={userAvailability}

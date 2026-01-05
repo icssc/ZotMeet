@@ -16,6 +16,7 @@ interface AvailabilityBlockCellProps {
     isHalfHour: boolean;
     isLastRow: boolean;
     eventSegments: EventSegment[];
+    hasSpacerBefore?: boolean;
 }
 
 export function AvailabilityBlockCell({
@@ -27,6 +28,7 @@ export function AvailabilityBlockCell({
     isHalfHour,
     isLastRow,
     eventSegments,
+    hasSpacerBefore = false,
 }: AvailabilityBlockCellProps) {
     const {
         startBlockSelection,
@@ -123,7 +125,8 @@ export function AvailabilityBlockCell({
                     "block h-full w-full cursor-row-resize border-r-[1px] border-gray-medium",
                     isTopOfHour && "border-t-[1px] border-t-gray-medium",
                     isHalfHour && "border-t-[1px] border-t-gray-base",
-                    isLastRow && "border-b-[1px]"
+                    isLastRow && "border-b-[1px]",
+                    hasSpacerBefore && "border-l-[1px] border-l-gray-medium"
                 )}
             >
                 <AvailabilityBlock

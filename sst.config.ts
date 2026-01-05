@@ -14,7 +14,7 @@ export default $config({
         };
     },
     async run() {
-        const domainName = `${$app.stage === "prod" ? "" : `${$app.stage}.`}zotmeet.com`;
+        const domainName = `${$app.stage === "production" ? "" : `${$app.stage}.`}zotmeet.com`;
         const baseUrl = `https://${domainName}`;
 
         new sst.aws.Nextjs("site", {

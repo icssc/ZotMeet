@@ -1,6 +1,10 @@
 import React from "react";
 import { AvailabilityBlockCell } from "@/components/availability/table/availability-block-cell";
-import { generateCellKey, generateDateKey } from "@/lib/availability/utils";
+import {
+    generateCellKey,
+    generateDateKey,
+    spacerBeforeDate,
+} from "@/lib/availability/utils";
 import type {
     AvailabilityBlockType,
     ProcessedCellEventSegments,
@@ -31,6 +35,8 @@ export function AvailabilityBlocks({
     const isHalfHour = timeBlock % 60 === 30;
     const isLastRow = blockIndex === availabilityTimeBlocksLength - 1;
 
+    const spacers = spacerBeforeDate(currentPageAvailability);
+
     return (
         <>
             {currentPageAvailability.map((selectedDate, pageDateIndex) => {
@@ -52,20 +58,38 @@ export function AvailabilityBlocks({
                         processedCellSegments.get(cellKey) || [];
 
                     return (
-                        <AvailabilityBlockCell
-                            key={key}
-                            blockIndex={blockIndex}
-                            isAvailable={isAvailable}
-                            zotDateIndex={zotDateIndex}
-                            setAvailabilities={setAvailabilities}
-                            isTopOfHour={isTopOfHour}
-                            isHalfHour={isHalfHour}
-                            isLastRow={isLastRow}
-                            eventSegments={segmentsForCell}
-                        />
+                        <React.Fragment key={key}>
+                            {spacers[pageDateIndex] && (
+                                <td
+                                    className="w-3 md:w-4"
+                                    aria-hidden="true"
+                                />
+                            )}
+                            <AvailabilityBlockCell
+                                blockIndex={blockIndex}
+                                isAvailable={isAvailable}
+                                zotDateIndex={zotDateIndex}
+                                setAvailabilities={setAvailabilities}
+                                isTopOfHour={isTopOfHour}
+                                isHalfHour={isHalfHour}
+                                isLastRow={isLastRow}
+                                eventSegments={segmentsForCell}
+                                hasSpacerBefore={spacers[pageDateIndex]}
+                            />
+                        </React.Fragment>
                     );
                 } else {
-                    return <td key={key}></td>;
+                    return (
+                        <React.Fragment key={key}>
+                            {spacers[pageDateIndex] && (
+                                <td
+                                    className="w-3 md:w-4"
+                                    aria-hidden="true"
+                                />
+                            )}
+                            <td></td>
+                        </React.Fragment>
+                    );
                 }
             })}
         </>
