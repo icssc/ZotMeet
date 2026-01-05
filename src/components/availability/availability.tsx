@@ -24,6 +24,7 @@ import type { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { useShallow } from "zustand/shallow";
 
@@ -120,6 +121,28 @@ export function Availability({
     const availabilityView = useAvailabilityViewStore(
         (state) => state.availabilityView
     );
+
+    const selectionIsLocked = useGroupSelectionStore(
+        (state) => state.selectionIsLocked
+    );
+    const resetSelection = useGroupSelectionStore(
+        (state) => state.resetSelection
+    );
+    const setIsMobileDrawerOpen = useGroupSelectionStore(
+        (state) => state.setIsMobileDrawerOpen
+    );
+
+    const handleMouseLeave = useCallback(() => {
+        if (availabilityView === "group" && !selectionIsLocked) {
+            setIsMobileDrawerOpen(false);
+            resetSelection();
+        }
+    }, [
+        availabilityView,
+        selectionIsLocked,
+        setIsMobileDrawerOpen,
+        resetSelection,
+    ]);
 
     const { currentPage, itemsPerPage, isFirstPage, nextPage, prevPage } =
         useAvailabilityPaginationStore(
@@ -312,7 +335,7 @@ export function Availability({
                             meetingType={meetingData.meetingType}
                         />
 
-                        <tbody>
+                        <tbody onMouseLeave={handleMouseLeave}>
                             {availabilityTimeBlocks.map(
                                 (timeBlock, blockIndex) => (
                                     <tr key={`block-${timeBlock}`}>
@@ -335,6 +358,7 @@ export function Availability({
                                                     currentPageAvailability
                                                 }
                                                 members={members}
+                                                onMouseLeave={handleMouseLeave}
                                             />
                                         ) : (
                                             <PersonalAvailability

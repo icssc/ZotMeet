@@ -27,6 +27,7 @@ interface GroupAvailabilityRowProps {
         zotDateIndex: number;
         blockIndex: number;
     }) => void;
+    onMouseLeave: () => void;
 }
 
 export function GroupAvailabilityRow({
@@ -42,6 +43,7 @@ export function GroupAvailabilityRow({
     hoveredMember,
     handleCellClick,
     handleCellHover,
+    onMouseLeave,
 }: GroupAvailabilityRowProps) {
     const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
         useShallow((state) => ({
@@ -135,14 +137,16 @@ export function GroupAvailabilityRow({
             );
         } else {
             return (
+                // Because these elements are hidden spacers, we consider mouse hovers to be "leaving" the table
                 <React.Fragment key={key}>
                     {spacers[pageDateIndex] && (
                         <td
                             className="w-3 md:w-4"
                             aria-hidden="true"
+                            onMouseEnter={onMouseLeave}
                         />
                     )}
-                    <td></td>
+                    <td onMouseEnter={onMouseLeave}></td>
                 </React.Fragment>
             );
         }

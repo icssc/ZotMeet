@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import { GroupAvailabilityRow } from "@/components/availability/group-availability-row";
 import { Member } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
@@ -41,6 +41,7 @@ interface GroupAvailabilityProps {
     availabilityDates: ZotDate[];
     currentPageAvailability: ZotDate[];
     members: Member[];
+    onMouseLeave: () => void;
 }
 
 export function GroupAvailability({
@@ -51,6 +52,7 @@ export function GroupAvailability({
     availabilityDates,
     currentPageAvailability,
     members,
+    onMouseLeave,
 }: GroupAvailabilityProps) {
     const {
         selectedZotDateIndex,
@@ -60,7 +62,6 @@ export function GroupAvailability({
         setSelectedZotDateIndex,
         setSelectedBlockIndex,
         setSelectionIsLocked,
-        resetSelection,
         setIsMobileDrawerOpen,
     } = useGroupSelectionStore(
         useShallow((state) => ({
@@ -71,7 +72,6 @@ export function GroupAvailability({
             setSelectedZotDateIndex: state.setSelectedZotDateIndex,
             setSelectedBlockIndex: state.setSelectedBlockIndex,
             setSelectionIsLocked: state.setSelectionIsLocked,
-            resetSelection: state.resetSelection,
             setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
         }))
     );
@@ -90,11 +90,6 @@ export function GroupAvailability({
         },
         [setIsMobileDrawerOpen, setSelectedZotDateIndex, setSelectedBlockIndex]
     );
-
-    const resetSelectionWithDrawer = useCallback(() => {
-        setIsMobileDrawerOpen(false);
-        resetSelection();
-    }, [resetSelection, setIsMobileDrawerOpen]);
 
     const handleCellClick = useCallback(
         ({
@@ -131,77 +126,6 @@ export function GroupAvailability({
         [selectionIsLocked, updateSelection]
     );
 
-    useEffect(() => {
-        const handleMouseMove = (event: MouseEvent) => {
-            if (selectionIsLocked) {
-                return;
-            }
-
-            const gridBlocks = document.querySelectorAll(
-                ".group-availability-block"
-            );
-            if (gridBlocks.length === 0) {
-                return;
-            }
-
-            let isOverGrid = false;
-            for (const block of gridBlocks) {
-                const rect = block.getBoundingClientRect();
-                if (
-                    event.clientX >= rect.left &&
-                    event.clientX <= rect.right &&
-                    event.clientY >= rect.top &&
-                    event.clientY <= rect.bottom
-                ) {
-                    isOverGrid = true;
-                    break;
-                }
-            }
-
-            if (!isOverGrid) {
-                resetSelectionWithDrawer();
-            }
-        };
-
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as Element;
-            const isOnAvailabilityBlock = !!target.closest(
-                ".group-availability-block"
-            );
-
-            if (!isOnAvailabilityBlock) {
-                resetSelectionWithDrawer();
-                setSelectionIsLocked(false);
-            }
-        };
-
-        document.addEventListener("mousemove", handleMouseMove);
-        document.addEventListener("mousedown", handleClickOutside);
-
-        return () => {
-            document.removeEventListener("mousemove", handleMouseMove);
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, [selectionIsLocked, resetSelectionWithDrawer, setSelectionIsLocked]);
-
-    useEffect(() => {
-        const handleEscKey = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                resetSelectionWithDrawer();
-                setSelectionIsLocked(false);
-                // Removes focused outline from previously selected block
-                if (document.activeElement instanceof HTMLElement) {
-                    document.activeElement.blur();
-                }
-            }
-        };
-
-        document.addEventListener("keydown", handleEscKey);
-        return () => {
-            document.removeEventListener("keydown", handleEscKey);
-        };
-    }, [resetSelectionWithDrawer, setSelectionIsLocked]);
-
     return (
         <GroupAvailabilityRow
             timeBlock={timeBlock}
@@ -216,6 +140,7 @@ export function GroupAvailability({
             hoveredMember={hoveredMember}
             handleCellClick={handleCellClick}
             handleCellHover={handleCellHover}
+            onMouseLeave={onMouseLeave}
         />
     );
 }
