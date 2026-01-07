@@ -36,6 +36,43 @@ export const getTimestampFromBlockIndex = (
 	return isoString;
 };
 
+function calculateBlockColor({
+    block,
+    hoveredMember,
+    selectedMembers,
+    numMembers,
+}: {
+    block: string[];
+    hoveredMember: string | null;
+    selectedMembers: string[];
+    numMembers: number;
+}): string {
+    if (hoveredMember) {
+        if (block.includes(hoveredMember)) {
+            return "rgba(55, 124, 251)";
+        }
+        return "transparent";
+    }
+
+    if (selectedMembers.length > 0) {
+        const selectedInBlock = selectedMembers.filter((memberId) =>
+            block.includes(memberId)
+        );
+        if (selectedInBlock.length > 0) {
+            const opacity = Math.min(0.9, 0.5 + selectedInBlock.length * 0.15);
+            return `rgba(55, 124, 251, ${opacity})`;
+        }
+        return "transparent";
+    }
+
+    if (numMembers > 0) {
+        const opacity = block.length / numMembers;
+        return `rgba(55, 124, 251, ${opacity})`;
+    }
+
+    return "transparent";
+}
+
 interface GroupAvailabilityProps {
 	timeBlock: number;
 	blockIndex: number;
@@ -64,27 +101,29 @@ export function GroupAvailability({
 		})),
 	);
 
-	const {
-		selectedZotDateIndex,
-		selectedBlockIndex,
-		selectionIsLocked,
-		hoveredMember,
-		setSelectedZotDateIndex,
-		setSelectedBlockIndex,
-		setSelectionIsLocked,
-		setIsMobileDrawerOpen,
-	} = useGroupSelectionStore(
-		useShallow((state) => ({
-			selectedZotDateIndex: state.selectedZotDateIndex,
-			selectedBlockIndex: state.selectedBlockIndex,
-			selectionIsLocked: state.selectionIsLocked,
-			hoveredMember: state.hoveredMember,
-			setSelectedZotDateIndex: state.setSelectedZotDateIndex,
-			setSelectedBlockIndex: state.setSelectedBlockIndex,
-			setSelectionIsLocked: state.setSelectionIsLocked,
-			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
-		})),
-	);
+    const {
+        selectedZotDateIndex,
+        selectedBlockIndex,
+        selectionIsLocked,
+        hoveredMember,
+        selectedMembers,
+        setSelectedZotDateIndex,
+        setSelectedBlockIndex,
+        setSelectionIsLocked,
+        setIsMobileDrawerOpen,
+    } = useGroupSelectionStore(
+        useShallow((state) => ({
+            selectedZotDateIndex: state.selectedZotDateIndex,
+            selectedBlockIndex: state.selectedBlockIndex,
+            selectionIsLocked: state.selectionIsLocked,
+            hoveredMember: state.hoveredMember,
+            selectedMembers: state.selectedMembers,
+            setSelectedZotDateIndex: state.setSelectedZotDateIndex,
+            setSelectedBlockIndex: state.setSelectedBlockIndex,
+            setSelectionIsLocked: state.setSelectionIsLocked,
+            setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
+        }))
+    );
 
 	const updateSelection = useCallback(
 		({
@@ -164,21 +203,14 @@ export function GroupAvailability({
 				availabilityDates,
 			);
 
-			// Get the block (array of member IDs available at this timestamp)
-			const block = selectedDate.groupAvailability[timestamp] || [];
+            const block = selectedDate.groupAvailability[timestamp] || [];
 
-			// Calculate block color
-			let blockColor = "transparent";
-			if (hoveredMember) {
-				if (block.includes(hoveredMember)) {
-					blockColor = "rgba(55, 124, 251)";
-				} else {
-					blockColor = "transparent";
-				}
-			} else if (numMembers > 0) {
-				const opacity = block.length / numMembers;
-				blockColor = `rgba(55, 124, 251, ${opacity})`;
-			}
+            const blockColor = calculateBlockColor({
+                block,
+                hoveredMember,
+                selectedMembers,
+                numMembers,
+            });
 
 			const tableCellStyles = cn(
 				isTopOfHour ? "border-t-[1px] border-t-gray-medium" : "",
@@ -187,50 +219,54 @@ export function GroupAvailability({
 				isSelected ? "outline-dashed outline-2 outline-slate-500" : "",
 			);
 
-			return (
-				<React.Fragment key={key}>
-					{spacers[pageDateIndex] && (
-						<td className="w-3 md:w-4" aria-hidden="true" />
-					)}
-					<td className="px-0 py-0">
-						<GroupAvailabilityBlock
-							className="group-availability-block block"
-							onClick={() =>
-								handleCellClick({
-									isSelected,
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onHover={() =>
-								handleCellHover({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							block={block}
-							blockColor={blockColor}
-							tableCellStyles={tableCellStyles}
-							hoveredMember={hoveredMember}
-							hasSpacerBefore={spacers[pageDateIndex]}
-						/>
-					</td>
-				</React.Fragment>
-			);
-		} else {
-			return (
-				// Because these elements are hidden spacers, we consider mouse hovers to be "leaving" the table
-				<React.Fragment key={key}>
-					{spacers[pageDateIndex] && (
-						<td
-							className="w-3 md:w-4"
-							aria-hidden="true"
-							onMouseEnter={onMouseLeave}
-						/>
-					)}
-					<td onMouseEnter={onMouseLeave}></td>
-				</React.Fragment>
-			);
-		}
-	});
+            return (
+                <React.Fragment key={key}>
+                    {spacers[pageDateIndex] && (
+                        <td
+                            className="w-3 md:w-4"
+                            aria-hidden="true"
+                        />
+                    )}
+                    <td className="px-0 py-0">
+                        <GroupAvailabilityBlock
+                            className="group-availability-block block"
+                            onClick={() =>
+                                handleCellClick({
+                                    isSelected,
+                                    zotDateIndex,
+                                    blockIndex,
+                                })
+                            }
+                            onHover={() =>
+                                handleCellHover({
+                                    zotDateIndex,
+                                    blockIndex,
+                                })
+                            }
+                            block={block}
+                            blockColor={blockColor}
+                            tableCellStyles={tableCellStyles}
+                            hoveredMember={hoveredMember}
+                            selectedMembers={selectedMembers}
+                            hasSpacerBefore={spacers[pageDateIndex]}
+                        />
+                    </td>
+                </React.Fragment>
+            );
+        } else {
+            return (
+                // Because these elements are hidden spacers, we consider mouse hovers to be "leaving" the table
+                <React.Fragment key={key}>
+                    {spacers[pageDateIndex] && (
+                        <td
+                            className="w-3 md:w-4"
+                            aria-hidden="true"
+                            onMouseEnter={onMouseLeave}
+                        />
+                    )}
+                    <td onMouseEnter={onMouseLeave}></td>
+                </React.Fragment>
+            );
+        }
+    });
 }
