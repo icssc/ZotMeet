@@ -15,7 +15,6 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
     const { slug } = params;
-    console.log("Generating metadata for meeting slug:", slug);
 
     const meetingData = await getExistingMeeting(slug).catch((e) => {
         if (e instanceof Error) {
