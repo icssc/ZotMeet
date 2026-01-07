@@ -17,6 +17,7 @@ import {
     DeleteIcon,
     EditIcon,
 } from "lucide-react";
+import { useShallow } from "zustand/shallow";
 
 interface AvailabilityHeaderProps {
     meetingData: SelectMeeting;
@@ -35,10 +36,17 @@ export function AvailabilityHeader({
 }: AvailabilityHeaderProps) {
     const {
         hasAvailability,
-        setHasAvailability,
         availabilityView,
+        setHasAvailability,
         setAvailabilityView,
-    } = useAvailabilityViewStore();
+    } = useAvailabilityViewStore(
+        useShallow((state) => ({
+            hasAvailability: state.hasAvailability,
+            availabilityView: state.availabilityView,
+            setHasAvailability: state.setHasAvailability,
+            setAvailabilityView: state.setAvailabilityView,
+        }))
+    );
 
     const handleCancel = () => {
         onCancel();
@@ -51,6 +59,8 @@ export function AvailabilityHeader({
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    const isOwner = !!user && meetingData.hostId === user.memberId;
 
     const handleSave = async () => {
         if (!user) {
@@ -91,22 +101,25 @@ export function AvailabilityHeader({
                 </h1>
 
                 <div className="flex flex-row items-center gap-x-2">
-                    <Button
-                        onClick={() => setIsEditModalOpen(true)}
-                        variant="outline"
-                        className="flex-center h-full min-h-fit min-w-fit rounded font-dm-sans"
-                    >
-                        <EditIcon className="text-2xl" />
-                    </Button>
+                    {isOwner && (
+                        <>
+                            <Button
+                                onClick={() => setIsEditModalOpen(true)}
+                                variant="outline"
+                                className="flex-center h-full min-h-fit min-w-fit rounded font-dm-sans"
+                            >
+                                <EditIcon className="text-2xl" />
+                            </Button>
 
-                    <Button
-                        onClick={() => setIsDeleteModalOpen(true)}
-                        variant="outline"
-                        className="flex-center h-full min-h-fit min-w-fit rounded font-dm-sans"
-                    >
-                        <DeleteIcon className="text-2xl" />
-                    </Button>
-
+                            <Button
+                                onClick={() => setIsDeleteModalOpen(true)}
+                                variant="outline"
+                                className="flex-center h-full min-h-fit min-w-fit rounded font-dm-sans"
+                            >
+                                <DeleteIcon className="text-2xl" />
+                            </Button>
+                        </>
+                    )}
                     <div className="flex flex-row justify-end space-x-2">
                         {availabilityView === "personal" ? (
                             <div className="flex space-x-2 md:space-x-4">
@@ -173,7 +186,7 @@ export function AvailabilityHeader({
             />
 
             <DeleteModal
-                meetingId={meetingData.id}
+                meetingData={meetingData}
                 isOpen={isDeleteModalOpen}
                 handleOpenChange={setIsDeleteModalOpen}
             />

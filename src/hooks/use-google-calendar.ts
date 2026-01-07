@@ -13,6 +13,7 @@ import type {
 import { isAnchorDateMeeting } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useShallow } from "zustand/shallow";
 
 interface UseGoogleCalendarProps {
     googleCalendarEvents: GoogleCalendarEvent[];
@@ -27,8 +28,15 @@ export function useGoogleCalendar({
     availabilityTimeBlocks,
     meetingDates,
 }: UseGoogleCalendarProps) {
-    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
+  
+    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
+        useShallow((state) => ({
+            currentPage: state.currentPage,
+            itemsPerPage: state.itemsPerPage,
+        }))
+    );
     const isAnchorMeeting = isAnchorDateMeeting(meetingDates);
+
     const processedCellSegments = useMemo((): ProcessedCellEventSegments => {
         const segmentsMap = new Map<string, EventSegment[]>();
         if (
