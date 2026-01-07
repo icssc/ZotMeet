@@ -175,26 +175,18 @@ export function GroupResponses({
                             </span>
                         </div>
                         <ul className="h-64 overflow-auto py-2 pl-8">
-                            {availableMembers.length > 0 ? (
-                                availableMembers.map((member) => (
-                                    <li
-                                        key={member.memberId}
-                                        className="cursor-pointer text-lg text-gray-800"
-                                        onMouseEnter={() =>
-                                            handleMemberHover(member.memberId)
-                                        }
-                                        onMouseLeave={() =>
-                                            handleMemberHover(null)
-                                        }
-                                    >
-                                        {member.displayName}
-                                    </li>
-                                ))
-                            ) : (
-                                <li className="text-sm italic text-gray-400">
-                                    N/A
+                            {availableMembers.map((member) => (
+                                <li
+                                    key={member.memberId}
+                                    className="cursor-pointer text-lg text-gray-800"
+                                    onMouseEnter={() =>
+                                        handleMemberHover(member.memberId)
+                                    }
+                                    onMouseLeave={() => handleMemberHover(null)}
+                                >
+                                    {member.displayName}
                                 </li>
-                            )}
+                            ))}
                         </ul>
                     </div>
                     <div>
@@ -204,38 +196,30 @@ export function GroupResponses({
                             </span>
                         </div>
                         <ul className="h-64 overflow-auto py-2 pl-8">
-                            {notAvailableMembers.length > 0 ? (
-                                notAvailableMembers.map((member) => (
-                                    <li
-                                        key={member.memberId}
-                                        className="cursor-pointer text-lg text-gray-400"
-                                        onMouseEnter={() =>
-                                            handleMemberHover(member.memberId)
-                                        }
-                                        onMouseLeave={() =>
-                                            handleMemberHover(null)
-                                        }
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <Checkbox
-                                                checked={selectedMembers.includes(
+                            {notAvailableMembers.map((member) => (
+                                <li
+                                    key={member.memberId}
+                                    className="cursor-pointer text-lg text-gray-400"
+                                    onMouseEnter={() =>
+                                        handleMemberHover(member.memberId)
+                                    }
+                                    onMouseLeave={() => handleMemberHover(null)}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Checkbox
+                                            checked={selectedMembers.includes(
+                                                member.memberId
+                                            )}
+                                            onCheckedChange={() =>
+                                                handleMemberSelect(
                                                     member.memberId
-                                                )}
-                                                onCheckedChange={() =>
-                                                    handleMemberSelect(
-                                                        member.memberId
-                                                    )
-                                                }
-                                            />
-                                            {member.displayName}
-                                        </div>
-                                    </li>
-                                ))
-                            ) : (
-                                <li className="text-sm italic text-gray-400">
-                                    N/A
+                                                )
+                                            }
+                                        />
+                                        {member.displayName}
+                                    </div>
                                 </li>
-                            )}
+                            ))}
                         </ul>
                     </div>
                 </div>
