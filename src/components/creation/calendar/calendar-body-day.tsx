@@ -33,15 +33,15 @@ export function CalendarBodyDay({
 
     /* Confirms the current highlight selection and updates calendar accordingly */
     const handleEndSelection = () => {
-        if (startDaySelection) {
-            try {
-                setEndDaySelection(calendarDay);
+        try {
+            if (startDaySelection && endDaySelection) {
+                updateSelectedRange(startDaySelection, endDaySelection);
+            } else if (startDaySelection) {
                 updateSelectedRange(startDaySelection, calendarDay);
-            } catch (err) {
-                console.error(err);
             }
+        } catch (err) {
+            console.error(err);
         }
-
         setStartDaySelection(undefined);
         setEndDaySelection(undefined);
     };
@@ -105,7 +105,7 @@ export function CalendarBodyDay({
                 onTouchEnd={handleTouchEnd}
                 onMouseMove={handleMouseMove}
                 onMouseDown={handleMouseDown}
-                className="relative flex w-full cursor-pointer select-none justify-center py-2"
+                className="relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:pinch-zoom]"
             >
                 <CalendarBodyDayCell
                     isHighlighted={!!isHighlighted}
