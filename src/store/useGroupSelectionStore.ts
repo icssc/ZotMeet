@@ -5,7 +5,7 @@ interface GroupSelectionState {
     selectedBlockIndex: number | undefined;
     selectionIsLocked: boolean;
     hoveredMember: string | null;
-    selectedMember: string[];
+    selectedMembers: string[];
     isMobileDrawerOpen: boolean;
     setSelectedZotDateIndex: (index: number | undefined) => void;
     setSelectedBlockIndex: (index: number | undefined) => void;
@@ -22,25 +22,25 @@ export const useGroupSelectionStore = create<GroupSelectionState>((set) => ({
     selectedBlockIndex: undefined,
     selectionIsLocked: false,
     hoveredMember: null,
-    selectedMember: [],
+    selectedMembers: [],
     isMobileDrawerOpen: false,
     setSelectedZotDateIndex: (index) => set({ selectedZotDateIndex: index }),
     setSelectedBlockIndex: (index) => set({ selectedBlockIndex: index }),
     setSelectionIsLocked: (locked) => set({ selectionIsLocked: locked }),
     setHoveredMember: (member) => set({ hoveredMember: member }),
-    setSelectedMember: (members) => set({ selectedMember: members }),
+    setSelectedMember: (members) => set({ selectedMembers: members }),
     toggleSelectedMember: (memberId) =>
         set((state) => {
-            const isSelected = state.selectedMember.includes(memberId);
+            const isSelected = state.selectedMembers.includes(memberId);
             if (isSelected) {
                 return {
-                    selectedMember: state.selectedMember.filter(
+                    selectedMembers: state.selectedMembers.filter(
                         (id) => id !== memberId
                     ),
                 };
             } else {
                 return {
-                    selectedMember: [...state.selectedMember, memberId],
+                    selectedMembers: [...state.selectedMembers, memberId],
                 };
             }
         }),

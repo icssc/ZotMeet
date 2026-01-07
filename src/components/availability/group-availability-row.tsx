@@ -17,7 +17,7 @@ interface GroupAvailabilityRowProps {
     availabilityDates: ZotDate[];
     numMembers: number;
     hoveredMember: string | null;
-    selectedMember: string[];
+    selectedMembers: string[];
     handleCellClick: (params: {
         isSelected: boolean;
         zotDateIndex: number;
@@ -40,7 +40,7 @@ export function GroupAvailabilityRow({
     availabilityDates,
     numMembers,
     hoveredMember,
-    selectedMember,
+    selectedMembers,
     handleCellClick,
     handleCellHover,
 }: GroupAvailabilityRowProps) {
@@ -77,7 +77,7 @@ export function GroupAvailabilityRow({
             const block = selectedDate.groupAvailability[timestamp] || [];
 
             // Calculate block color
-            // Priority: hoveredMember > selectedMember > normal group view
+            // Priority: hoveredMember > selectedMembers > normal group view
             let blockColor = "transparent";
             if (hoveredMember) {
                 if (block.includes(hoveredMember)) {
@@ -85,8 +85,8 @@ export function GroupAvailabilityRow({
                 } else {
                     blockColor = "transparent";
                 }
-            } else if (selectedMember.length > 0) {
-                const selectedInBlock = selectedMember.filter((memberId) =>
+            } else if (selectedMembers.length > 0) {
+                const selectedInBlock = selectedMembers.filter((memberId) =>
                     block.includes(memberId)
                 );
                 if (selectedInBlock.length > 0) {
@@ -138,7 +138,7 @@ export function GroupAvailabilityRow({
                             blockColor={blockColor}
                             tableCellStyles={tableCellStyles}
                             hoveredMember={hoveredMember}
-                            selectedMember={selectedMember}
+                            selectedMembers={selectedMembers}
                             hasSpacerBefore={spacers[pageDateIndex]}
                         />
                     </td>

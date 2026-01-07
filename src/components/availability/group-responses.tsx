@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -25,7 +26,7 @@ export function GroupResponses({
         isMobileDrawerOpen,
         setIsMobileDrawerOpen,
         setHoveredMember,
-        selectedMember,
+        selectedMembers,
         toggleSelectedMember,
     } = useGroupSelectionStore();
 
@@ -175,13 +176,11 @@ export function GroupResponses({
                                         }
                                     >
                                         <div className="flex items-center gap-2">
-                                            <input
-                                                className="cursor-pointer"
-                                                type="checkbox"
-                                                checked={selectedMember.includes(
+                                            <Checkbox
+                                                checked={selectedMembers.includes(
                                                     member.memberId
                                                 )}
-                                                onChange={() =>
+                                                onCheckedChange={() =>
                                                     handleCheckboxChange(
                                                         member.memberId
                                                     )
@@ -192,7 +191,7 @@ export function GroupResponses({
                                             />
                                             <span
                                                 className={cn(
-                                                    selectedMember.includes(
+                                                    selectedMembers.includes(
                                                         member.memberId
                                                     ) && "font-semibold"
                                                 )}
@@ -225,13 +224,11 @@ export function GroupResponses({
                                     onMouseLeave={() => handleMemberHover(null)}
                                 >
                                     <div className="flex items-center gap-2">
-                                        <input
-                                            className="cursor-pointer"
-                                            type="checkbox"
-                                            checked={selectedMember.includes(
+                                        <Checkbox
+                                            checked={selectedMembers.includes(
                                                 member.memberId
                                             )}
-                                            onChange={() =>
+                                            onCheckedChange={() =>
                                                 handleCheckboxChange(
                                                     member.memberId
                                                 )
@@ -240,7 +237,7 @@ export function GroupResponses({
                                         />
                                         <span
                                             className={cn(
-                                                selectedMember.includes(
+                                                selectedMembers.includes(
                                                     member.memberId
                                                 ) && "font-semibold"
                                             )}

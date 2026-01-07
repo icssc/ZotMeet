@@ -61,7 +61,7 @@ export function GroupAvailability({
         hoveredMember,
         resetSelection,
         setIsMobileDrawerOpen,
-        selectedMember,
+        selectedMembers,
     } = useGroupSelectionStore();
 
     const updateSelection = useCallback(
@@ -202,7 +202,7 @@ export function GroupAvailability({
             availabilityDates={availabilityDates}
             numMembers={members.length}
             hoveredMember={hoveredMember}
-            selectedMember={selectedMember}
+            selectedMembers={selectedMembers}
             handleCellClick={handleCellClick}
             handleCellHover={handleCellHover}
         />
