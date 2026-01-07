@@ -160,6 +160,15 @@ export function Availability({
         () => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
         [fromTimeMinutes, toTimeMinutes]
     );
+
+    const convertedDates = useMemo(() => {
+        return isAnchorDateMeeting(meetingData.dates)
+            ? convertAnchorDatesToCurrentWeek(meetingData.dates).map(
+                  (dateStr) => new Date(dateStr)
+              )
+            : meetingData.dates.map((dateStr) => new Date(dateStr));
+    }, [meetingData.dates]);
+
     const [googleCalendarEvents, setGoogleCalendarEvents] = useState<
         GoogleCalendarEvent[]
     >([]);
@@ -225,17 +234,12 @@ export function Availability({
     }, [confirmSave]);
 
     useEffect(() => {
-        if (availabilityDates.length > 0) {
-            const meetingDateStrings = availabilityDates.map((zd) =>
-                zd.day.toISOString()
+        if (availabilityDates.length > 0 && convertedDates.length > 0) {
+            const firstDateISO = convertedDates[0].toISOString();
+
+            const lastDateObj = new Date(
+                convertedDates[convertedDates.length - 1]
             );
-            const datesToQuery = isAnchorDateMeeting(meetingData.dates)
-                ? convertAnchorDatesToCurrentWeek(meetingData.dates)
-                : meetingDateStrings;
-
-            const firstDateISO = datesToQuery[0];
-
-            const lastDateObj = new Date(datesToQuery[datesToQuery.length - 1]);
             lastDateObj.setHours(23, 59, 59, 999);
             const lastDateISO = lastDateObj.toISOString();
 
@@ -253,7 +257,7 @@ export function Availability({
         } else {
             setGoogleCalendarEvents([]);
         }
-    }, [availabilityDates, meetingData.dates]);
+    }, [availabilityDates, convertedDates]);
 
     const members = useMemo(() => {
         const presentMemberIds = [
@@ -376,7 +380,7 @@ export function Availability({
                     availabilityDates={availabilityDates}
                     fromTime={fromTimeMinutes}
                     members={members}
-                    meetingDates={meetingData.dates}
+                    convertedDates={convertedDates}
                 />
             </div>
         </div>
