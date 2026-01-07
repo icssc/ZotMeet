@@ -87,7 +87,3 @@ export function convertAnchorDatesToCurrentWeek(
         return currentWeekDate.toISOString();
     });
 }
-
-export function getDayOfWeekFromDateString(dateString: string): number {
-    return new Date(dateString).getDay();
-}
