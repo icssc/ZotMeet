@@ -174,7 +174,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
         <div className="space-y-6 px-4">
             <div className="px-4 pt-8 md:pl-[60px] md:pt-8">
                 <h2 className="font-montserrat text-xl font-medium text-gray-dark md:text-2xl">
-                    Let&apos;s plan your next meeting.
+                    Let&apos;s plan your next picnic.
                 </h2>
 
                 <h3 className="text-sm font-light text-gray-400 md:text-base">
