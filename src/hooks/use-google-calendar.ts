@@ -12,6 +12,7 @@ import type {
 } from "@/lib/types/availability";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useShallow } from "zustand/shallow";
 
 interface UseGoogleCalendarProps {
     googleCalendarEvents: GoogleCalendarEvent[];
@@ -24,7 +25,12 @@ export function useGoogleCalendar({
     currentPageAvailability,
     availabilityTimeBlocks,
 }: UseGoogleCalendarProps) {
-    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore();
+    const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
+        useShallow((state) => ({
+            currentPage: state.currentPage,
+            itemsPerPage: state.itemsPerPage,
+        }))
+    );
 
     const processedCellSegments = useMemo((): ProcessedCellEventSegments => {
         const segmentsMap = new Map<string, EventSegment[]>();
