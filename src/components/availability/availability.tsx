@@ -34,7 +34,7 @@ import { useShallow } from "zustand/shallow";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
-	timezone,
+	// timezone,
 	meetingDates,
 	userAvailability,
 	allAvailabilties,
@@ -68,10 +68,12 @@ const deriveInitialAvailability = ({
 			const localDate = new Date(timestamp);
 			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
 
-			if (!timestampsByDate.has(dateStr)) {
-				timestampsByDate.set(dateStr, new Map());
+			let dateMap = timestampsByDate.get(dateStr);
+			if (dateMap === undefined) {
+				dateMap = new Map();
+				timestampsByDate.set(dateStr, dateMap);
 			}
-			const dateMap = timestampsByDate.get(dateStr)!;
+
 			if (!dateMap.has(timestamp)) {
 				dateMap.set(timestamp, []);
 			}
@@ -292,25 +294,22 @@ export function Availability({
 			),
 		];
 
-		const allMembers = [
-			...new Set(allAvailabilities.map((member) => member.memberId)),
-		].map((memberId) => {
-			const member = allAvailabilities.find((m) => m.memberId === memberId);
-			return {
-				memberId: member!.memberId,
-				displayName: member!.displayName,
-			};
-		});
+		const allMembers = new Map(
+			allAvailabilities.map(({ memberId, displayName }) => [
+				memberId,
+				{ memberId, displayName },
+			]),
+		);
 
 		if (
 			user &&
 			presentMemberIds.includes(user.memberId) &&
-			!allMembers.some((member) => member.memberId === user.memberId)
+			!allMembers.has(user.memberId)
 		) {
-			allMembers.push(user);
+			allMembers.set(user.memberId, user);
 		}
 
-		return allMembers;
+		return Array.from(allMembers.values());
 	}, [allAvailabilities, availabilityDates, user]);
 
 	return (

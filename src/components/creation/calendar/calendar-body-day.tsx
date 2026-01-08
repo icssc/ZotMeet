@@ -50,7 +50,7 @@ export function CalendarBodyDay({
 	const handleTouchMove = (e: React.TouchEvent<HTMLButtonElement>) => {
 		const touchingElement = document.elementFromPoint(
 			e.touches[0].clientX,
-			e.touches[0].clientY
+			e.touches[0].clientY,
 		);
 
 		if (!touchingElement) return;

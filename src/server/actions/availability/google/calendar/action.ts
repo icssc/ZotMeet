@@ -6,7 +6,7 @@ import { google as googleClient } from "googleapis";
 
 export async function fetchGoogleCalendarEvents(
 	startDate: string,
-	endDate: string,
+	endDate: string
 ): Promise<GoogleCalendarEvent[]> {
 	const { accessToken, error } = await validateGoogleAccessToken();
 
@@ -38,7 +38,7 @@ export async function fetchGoogleCalendarEvents(
 
 				try {
 					const eventsRes = await calendar.events.list({
-						calendarId: cal.id!,
+						calendarId: cal.id,
 						timeMin: startDate,
 						timeMax: endDate,
 						// TODO: Consider if we need to cap results. If we do, pass non-blocking error to alert user.
@@ -53,13 +53,13 @@ export async function fetchGoogleCalendarEvents(
 						start: e.start?.dateTime ?? e.start?.date ?? "",
 						end: e.end?.dateTime ?? e.end?.date ?? "",
 						calendarColor,
-						calendarId: cal.id!,
+						calendarId: cal.id,
 					}));
 				} catch (e) {
 					console.warn(`Failed to fetch events for calendar ${cal.id}`, e);
 					return [];
 				}
-			}),
+			})
 		);
 
 		return eventsPerCalendar.flat();

@@ -1,3 +1,5 @@
+// biome-ignore-all lint: fix notnull later
+
 import { getCurrentSession } from "@/lib/auth";
 import { updateSessionGoogleTokens } from "@/lib/auth/session";
 

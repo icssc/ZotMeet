@@ -23,7 +23,9 @@ export function AvailabilityTableHeader({
 
 				{currentPageAvailability.map((dateHeader, index) => (
 					<React.Fragment key={index}>
-						{spacers[index] && <th className="w-3 md:w-4" aria-hidden="true" />}
+						{spacers[index] && (
+							<th className="w-3 md:w-4" tabIndex={-1} aria-hidden="true" />
+						)}
 						<th className="text-sm font-normal">
 							<div className="flex flex-col">
 								<span className="text-[10px] font-bold uppercase text-gray-500 md:text-xs">

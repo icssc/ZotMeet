@@ -1,5 +1,7 @@
 "use client";
 
+import { logoutAction } from "@actions/auth/logout/action";
+import { ChevronsUpDown, LogOut, User } from "lucide-react";
 import { useState } from "react";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -18,8 +20,6 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import type { UserProfile } from "@/lib/auth/user";
-import { logoutAction } from "@actions/auth/logout/action";
-import { ChevronsUpDown, LogOut, User } from "lucide-react";
 
 type NavUserProps = {
 	user: UserProfile | null;

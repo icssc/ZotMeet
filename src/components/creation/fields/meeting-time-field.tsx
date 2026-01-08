@@ -1,4 +1,4 @@
-import React, { type Dispatch, type SetStateAction, useState } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 import {
 	Select,
 	SelectContent,
@@ -19,12 +19,12 @@ const convertTo24Hour = (hour: number, period: string) => {
 };
 
 const parseHourMinuteString = (
-	time: HourMinuteString,
+	time: HourMinuteString
 ): {
 	hour: number;
 	period: "AM" | "PM";
 } => {
-	const hour = parseInt(time.split(":")[0]);
+	const hour = parseInt(time.split(":")[0], 10);
 	let displayHour = hour;
 	const period = hour >= 12 ? "PM" : "AM";
 
@@ -57,28 +57,28 @@ export const MeetingTimeField = ({
 
 	const [startHour, setStartHour] = useState(initialStartHour);
 	const [startPeriod, setStartPeriod] = useState<"AM" | "PM">(
-		initialStartPeriod,
+		initialStartPeriod
 	);
 	const [endHour, setEndHour] = useState(initialEndHour);
 	const [endPeriod, setEndPeriod] = useState<"AM" | "PM">(initialEndPeriod);
 
 	const handleStartHourChange = (value: string) => {
-		const hour = parseInt(value);
+		const hour = parseInt(value, 10);
 		setStartHour(hour);
 		setStartTime(
-			`${convertTo24Hour(hour, startPeriod)}:00:00` as HourMinuteString,
+			`${convertTo24Hour(hour, startPeriod)}:00:00` as HourMinuteString
 		);
 	};
 
 	const handleStartPeriodChange = (value: string) => {
 		setStartPeriod(value as "AM" | "PM");
 		setStartTime(
-			`${convertTo24Hour(startHour, value)}:00:00` as HourMinuteString,
+			`${convertTo24Hour(startHour, value)}:00:00` as HourMinuteString
 		);
 	};
 
 	const handleEndHourChange = (value: string) => {
-		const hour = parseInt(value);
+		const hour = parseInt(value, 10);
 		setEndHour(hour);
 		setEndTime(`${convertTo24Hour(hour, endPeriod)}:00:00` as HourMinuteString);
 	};

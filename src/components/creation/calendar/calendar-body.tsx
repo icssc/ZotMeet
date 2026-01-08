@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { CalendarBodyDay } from "@/components/creation/calendar/calendar-body-day";
 import type { ZotDate } from "@/lib/zotdate";
 

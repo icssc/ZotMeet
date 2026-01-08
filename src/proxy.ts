@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
 	// Only extend cookie expiration on GET requests since we can be sure

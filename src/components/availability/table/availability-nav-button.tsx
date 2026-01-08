@@ -11,6 +11,7 @@ export const AvailabilityNavButton = memo(
 	({ direction, disabled, handleClick }: AvailabilityNavButtonProps) => {
 		return (
 			<button
+				type="button"
 				onClick={handleClick}
 				className={cn(
 					"p-3 pr-0 disabled:opacity-0 md:pr-1",

@@ -4,6 +4,8 @@ import localFont from "next/font/local";
 
 import "./globals.css";
 
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+import { Toaster } from "sonner";
 import AppSidebar from "@/components/nav/app-sidebar";
 import { Banner } from "@/components/ui/banner";
 import {
@@ -12,8 +14,6 @@ import {
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Toaster } from "sonner";
 
 const montserrat = Montserrat({
 	subsets: ["latin"],

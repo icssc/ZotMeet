@@ -25,7 +25,7 @@ export class ZotDate {
 		latestTime: number = 1440,
 		isSelected: boolean = false,
 		availability: string[] = [],
-		groupAvailability: Record<string, string[]> = {},
+		groupAvailability: Record<string, string[]> = {}
 	) {
 		this.day = day;
 		this.earliestTime = earliestTime;
@@ -61,7 +61,7 @@ export class ZotDate {
 		const date = new Date(ISOString);
 		const minutesFromMidnight = date.getHours() * 60 + date.getMinutes();
 		return Math.floor(
-			(minutesFromMidnight - this.earliestTime) / this.blockLength,
+			(minutesFromMidnight - this.earliestTime) / this.blockLength
 		);
 	}
 
@@ -153,7 +153,7 @@ export class ZotDate {
 		while (currentDate <= laterDate) {
 			if (generatedRange.length > maxRangeIterations) {
 				throw new Error(
-					`Maximum iterations for date selection range exceeded (${maxRangeIterations})`,
+					`Maximum iterations for date selection range exceeded (${maxRangeIterations})`
 				);
 			}
 
@@ -173,7 +173,7 @@ export class ZotDate {
 	static generateZotDates(
 		month: number,
 		year: number,
-		selectedDays?: ZotDate[],
+		selectedDays?: ZotDate[]
 	): ZotDate[][] {
 		const dayOfWeekOfFirst: number = new Date(year, month).getDay();
 		const daysInMonth: number = ZotDate.getDaysInMonth(month, year);
@@ -203,7 +203,7 @@ export class ZotDate {
 						month,
 						year,
 						dayOfWeekOfFirst,
-						dayIndex,
+						dayIndex
 					);
 				} else if (day > daysInMonth) {
 					newDate = ZotDate.calculateNextMonthDate(month, year, nextMonthDay);
@@ -216,9 +216,8 @@ export class ZotDate {
 
 				// Check if day is selected
 				if (
-					selectedDays &&
-					selectedDays.find(
-						(d: ZotDate) => d.compareTo(new ZotDate(newDate)) === 0,
+					selectedDays?.find(
+						(d: ZotDate) => d.compareTo(new ZotDate(newDate)) === 0
 					)
 				) {
 					isSelected = true;
@@ -228,7 +227,7 @@ export class ZotDate {
 					newDate,
 					undefined,
 					undefined,
-					isSelected,
+					isSelected
 				);
 				generatedWeek.push(newZotDate);
 			}
@@ -245,14 +244,14 @@ export class ZotDate {
 	 * @returns a ZotDate object that is represented by the DOM element
 	 */
 	static extractDayFromElement(element: Element): ZotDate | null {
-		const day = parseInt(element.getAttribute("data-day") ?? "");
-		const month = parseInt(element.getAttribute("data-month") ?? "");
-		const year = parseInt(element.getAttribute("data-year") ?? "");
+		const day = parseInt(element.getAttribute("data-day") ?? "", 10);
+		const month = parseInt(element.getAttribute("data-month") ?? "", 10);
+		const year = parseInt(element.getAttribute("data-year") ?? "", 10);
 		const isSelected = element.getAttribute("data-selected") === "true";
 
 		if (
 			[day, month, year, isSelected].every(
-				(attr) => !Number.isNaN(attr) && attr !== null,
+				(attr) => !Number.isNaN(attr) && attr !== null
 			)
 		) {
 			const newDay = new Date(year, month, day);
@@ -281,7 +280,7 @@ export class ZotDate {
 		month: number,
 		year: number,
 		dayOfWeekOfFirst: number,
-		dayIndex: number,
+		dayIndex: number
 	): Date {
 		let previousMonth = month - 1;
 		let yearOfPreviousMonth = year;
@@ -294,7 +293,7 @@ export class ZotDate {
 
 		const daysInPreviousMonth = ZotDate.getDaysInMonth(
 			previousMonth,
-			yearOfPreviousMonth,
+			yearOfPreviousMonth
 		);
 		const dayWithOffset = daysInPreviousMonth - dayOfWeekOfFirst + dayIndex + 1;
 
@@ -317,13 +316,13 @@ export class ZotDate {
 	static calculateNextMonthDate(
 		month: number,
 		year: number,
-		nextMonthDay: number,
+		nextMonthDay: number
 	): Date {
 		let nextMonth = month + 1;
 		let yearOfNextMonth = year;
 
 		// Calculate month after December as January of next year
-		if (nextMonth == 12) {
+		if (nextMonth === 12) {
 			nextMonth = 0;
 			yearOfNextMonth = year + 1;
 		}
@@ -348,7 +347,7 @@ export class ZotDate {
 	 */
 	static toTimeBlockString(
 		minutesFromMidnight: number,
-		abbreviated: boolean,
+		abbreviated: boolean
 	): string {
 		let isAM = true;
 
@@ -368,7 +367,7 @@ export class ZotDate {
 			.toString()
 			.padStart(2, "0");
 
-		return `${hour}${abbreviated ? "" : ":" + formattedMinutes} ${isAM ? "AM" : "PM"}`;
+		return `${hour}${abbreviated ? "" : `:${formattedMinutes}`} ${isAM ? "AM" : "PM"}`;
 	}
 
 	/**
@@ -382,7 +381,7 @@ export class ZotDate {
 		selectedDates: ZotDate[],
 		earliestTime: number = 0,
 		latestTime: number = 1440,
-		blockLength: number = 15,
+		blockLength: number = 15
 	): void {
 		selectedDates.forEach((selectedDate: ZotDate) => {
 			selectedDate.earliestTime = earliestTime;
@@ -410,7 +409,7 @@ export class ZotDate {
 	setBlockAvailabilities(
 		earlierBlockIndex: number,
 		laterBlockIndex: number,
-		selection: boolean,
+		selection: boolean
 	): void {
 		// If setting to available (true)
 		if (selection) {
@@ -451,7 +450,7 @@ export class ZotDate {
 			this.latestTime,
 			this.isSelected,
 			[...this.availability],
-			{ ...this.groupAvailability },
+			{ ...this.groupAvailability }
 		);
 		return clonedDate;
 	}

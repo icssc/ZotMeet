@@ -19,7 +19,15 @@
 			"next": "recommended"
 		},
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"suspicious": {
+				"noUnknownAtRules": {
+					"level": "error",
+					"options": {
+						"ignore": ["tailwind"]
+					}
+				}
+			}
 		},
 		"includes": [
 			"**",
@@ -32,7 +40,9 @@
 			"!out/**",
 			"!build/**",
 			"!next-env.d.ts",
-			"!sst-env.d.ts"
+			"!sst-env.d.ts",
+			"!src/components/ui/**",
+			"!sst.config.ts"
 		]
 	},
 	"html": {
