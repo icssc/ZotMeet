@@ -1,3 +1,5 @@
+@layer theme, base, components, utilities;
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
