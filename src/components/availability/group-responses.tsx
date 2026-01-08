@@ -31,6 +31,7 @@ export function GroupResponses({
         setHoveredMember,
         toggleSelectedMember,
         selectedMembers,
+        isHoveringGrid,
     } = useGroupSelectionStore(
         useShallow((state) => ({
             selectedZotDateIndex: state.selectedZotDateIndex,
@@ -40,6 +41,7 @@ export function GroupResponses({
             setHoveredMember: state.setHoveredMember,
             toggleSelectedMember: state.toggleSelectedMember,
             selectedMembers: state.selectedMembers,
+            isHoveringGrid: state.isHoveringGrid,
         }))
     );
 
@@ -171,35 +173,29 @@ export function GroupResponses({
                     <div>
                         <div className="border-b-[1px] border-gray-300 px-8">
                             <span className="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
-                                AVAILABLE ({availableMembers.length})
+                                AVAILABLE (
+                                {isHoveringGrid
+                                    ? availableMembers.length
+                                    : members.length}
+                                )
                             </span>
                         </div>
+
                         <ul className="h-64 overflow-auto py-2 pl-8">
-                            {availableMembers.map((member) => (
+                            {members.map((member) => (
                                 <li
                                     key={member.memberId}
-                                    className="cursor-pointer text-lg text-gray-800"
-                                    onMouseEnter={() =>
-                                        handleMemberHover(member.memberId)
-                                    }
-                                    onMouseLeave={() => handleMemberHover(null)}
-                                >
-                                    {member.displayName}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div>
-                        <div className="border-b-[1px] border-gray-300 px-8">
-                            <span className="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
-                                NOT AVAILABLE ({notAvailableMembers.length})
-                            </span>
-                        </div>
-                        <ul className="h-64 overflow-auto py-2 pl-8">
-                            {notAvailableMembers.map((member) => (
-                                <li
-                                    key={member.memberId}
-                                    className="cursor-pointer text-lg text-gray-400"
+                                    className={cn(
+                                        "cursor-pointer text-lg",
+                                        isHoveringGrid &&
+                                            notAvailableMembers.some(
+                                                (m) =>
+                                                    m.memberId ===
+                                                    member.memberId
+                                            )
+                                            ? "text-decoration-line: text-gray-medium line-through"
+                                            : ""
+                                    )}
                                     onMouseEnter={() =>
                                         handleMemberHover(member.memberId)
                                     }

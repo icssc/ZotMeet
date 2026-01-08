@@ -47,14 +47,11 @@ function calculateBlockColor({
     selectedMembers: string[];
     numMembers: number;
 }): string {
-    // Priority: Selected members > Hover > Normal view
-    // Selected members take precedence over hover
-
-    if (selectedMembers.length > 0) {
+    if (selectedMembers.length) {
         const selectedInBlock = selectedMembers.filter((memberId) =>
             block.includes(memberId)
         );
-        if (selectedInBlock.length > 0) {
+        if (selectedInBlock.length) {
             const opacity = Math.min(0.9, 0.5 + selectedInBlock.length * 0.15);
             return `rgba(55, 124, 251, ${opacity})`;
         }
@@ -68,7 +65,7 @@ function calculateBlockColor({
         return "transparent";
     }
 
-    if (numMembers > 0) {
+    if (numMembers) {
         const opacity = block.length / numMembers;
         return `rgba(55, 124, 251, ${opacity})`;
     }
@@ -109,22 +106,26 @@ export function GroupAvailability({
         selectedBlockIndex,
         selectionIsLocked,
         hoveredMember,
+        isHoveringGrid,
         selectedMembers,
         setSelectedZotDateIndex,
         setSelectedBlockIndex,
         setSelectionIsLocked,
         setIsMobileDrawerOpen,
+        toggleHoverGrid,
     } = useGroupSelectionStore(
         useShallow((state) => ({
             selectedZotDateIndex: state.selectedZotDateIndex,
             selectedBlockIndex: state.selectedBlockIndex,
             selectionIsLocked: state.selectionIsLocked,
             hoveredMember: state.hoveredMember,
+            isHoveringGrid: state.isHoveringGrid,
             selectedMembers: state.selectedMembers,
             setSelectedZotDateIndex: state.setSelectedZotDateIndex,
             setSelectedBlockIndex: state.setSelectedBlockIndex,
             setSelectionIsLocked: state.setSelectionIsLocked,
             setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
+            toggleHoverGrid: state.toggleHoverGrid,
         }))
     );
 
@@ -163,20 +164,22 @@ export function GroupAvailability({
 		[selectionIsLocked, setSelectionIsLocked, updateSelection],
 	);
 
-	const handleCellHover = useCallback(
-		({
-			zotDateIndex,
-			blockIndex,
-		}: {
-			zotDateIndex: number;
-			blockIndex: number;
-		}) => {
-			if (!selectionIsLocked) {
-				updateSelection({ zotDateIndex, blockIndex });
-			}
-		},
-		[selectionIsLocked, updateSelection],
-	);
+    const handleCellHover = useCallback(
+        ({
+            zotDateIndex,
+            blockIndex,
+        }: {
+            zotDateIndex: number;
+            blockIndex: number;
+        }) => {
+            toggleHoverGrid(true);
+
+            if (!selectionIsLocked) {
+                updateSelection({ zotDateIndex, blockIndex });
+            }
+        },
+        [toggleHoverGrid, selectionIsLocked, updateSelection]
+    );
 
 	const isTopOfHour = timeBlock % 60 === 0;
 	const isHalfHour = timeBlock % 60 === 30;
