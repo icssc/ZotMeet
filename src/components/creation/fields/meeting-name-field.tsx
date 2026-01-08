@@ -1,33 +1,34 @@
-import React, { Dispatch, SetStateAction } from "react";
+import type React from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface MeetingNameFieldProps {
-    meetingName: string;
-    setMeetingName: Dispatch<SetStateAction<string>>;
+	meetingName: string;
+	setMeetingName: Dispatch<SetStateAction<string>>;
 }
 
 export function MeetingNameField({
-    meetingName,
-    setMeetingName,
+	meetingName,
+	setMeetingName,
 }: MeetingNameFieldProps) {
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setMeetingName(e.target.value);
-    };
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setMeetingName(e.target.value);
+	};
 
-    return (
-        <div className="flex flex-row items-center gap-x-4 text-lg text-gray-500">
-            <Input
-                type="text"
-                className={cn(
-                    "flex-center w-full appearance-none rounded-none border-x-0 border-t-0 border-gray-base p-1 text-2xl font-light placeholder:text-gray-base md:text-3xl",
-                    "focus-visible:ring-0"
-                )}
-                placeholder={"Meeting name"}
-                value={meetingName}
-                onChange={handleChange}
-                autoFocus
-            />
-        </div>
-    );
+	return (
+		<div className="flex flex-row items-center gap-x-4 text-gray-500 text-lg">
+			<Input
+				type="text"
+				className={cn(
+					"w-full flex-center appearance-none rounded-none border-gray-base border-x-0 border-t-0 p-1 font-light text-2xl placeholder:text-gray-base md:text-3xl",
+					"focus-visible:ring-0",
+				)}
+				placeholder={"Meeting name"}
+				value={meetingName}
+				onChange={handleChange}
+				autoFocus
+			/>
+		</div>
+	);
 }

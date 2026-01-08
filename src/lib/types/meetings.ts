@@ -7,29 +7,29 @@ export type Meeting = ScheduledMeeting | UnscheduledMeeting;
 export type Attendance = "accepted" | "maybe" | "declined" | undefined;
 
 export type ScheduledMeeting = {
-    name: string;
-    id: number;
-    link: string;
-    date: string;
-    startTime: string;
-    endTime: string;
-    attendance: Attendance;
-    location: string;
+	name: string;
+	id: number;
+	link: string;
+	date: string;
+	startTime: string;
+	endTime: string;
+	attendance: Attendance;
+	location: string;
 };
 
 export type UnscheduledMeeting = {
-    name: string;
-    id: number;
-    link: string;
-    startDate: string;
-    endDate: string;
-    startTime: string;
-    endTime: string;
-    location: string;
-    // hasIndicated: boolean;
+	name: string;
+	id: number;
+	link: string;
+	startDate: string;
+	endDate: string;
+	startTime: string;
+	endTime: string;
+	location: string;
+	// hasIndicated: boolean;
 };
 
 export type MeetingTime = {
-    startTime: HourMinuteString;
-    endTime: HourMinuteString;
+	startTime: HourMinuteString;
+	endTime: HourMinuteString;
 };

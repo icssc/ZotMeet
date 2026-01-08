@@ -7,23 +7,23 @@ import { deleteSessionTokenCookie } from "@/lib/auth/cookies";
 import { invalidateSession } from "@/lib/auth/session";
 
 export async function logoutAction() {
-    const { session } = await getCurrentSession();
-    if (session === null) {
-        return {
-            message: "Not authenticated",
-        };
-    }
+	const { session } = await getCurrentSession();
+	if (session === null) {
+		return {
+			message: "Not authenticated",
+		};
+	}
 
-    invalidateSession(session.id);
-    deleteSessionTokenCookie();
+	invalidateSession(session.id);
+	deleteSessionTokenCookie();
 
-    revalidatePath("/", "layout");
+	revalidatePath("/", "layout");
 
-    const logoutUrl = new URL(`${process.env.OIDC_ISSUER_URL}/logout`);
-    logoutUrl.searchParams.set(
-        "post_logout_redirect_uri",
-        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-    );
+	const logoutUrl = new URL(`${process.env.OIDC_ISSUER_URL}/logout`);
+	logoutUrl.searchParams.set(
+		"post_logout_redirect_uri",
+		process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
+	);
 
-    redirect(logoutUrl.toString());
+	redirect(logoutUrl.toString());
 }

@@ -62,7 +62,7 @@ jobs:
 
       - name: Deploy to staging
         id: deploy
-        run: pnpm sst deploy --stage staging-${{ github.event.pull_request.number }}
+        run: pnpm sst deploy --verbose --stage staging-${{ github.event.pull_request.number }}
 
       - name: Update deployment status (success)
         if: success()
