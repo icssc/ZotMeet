@@ -12,12 +12,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import loginAction, {
-	LoginFormState,
+	type LoginFormState,
 } from "@/server/actions/auth/login/action";
 import { loginFormSchema } from "@/server/actions/auth/login/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import type { z } from "zod";
 
 export default function LoginTabFormContent() {
 	const form = useForm<z.infer<typeof loginFormSchema>>({

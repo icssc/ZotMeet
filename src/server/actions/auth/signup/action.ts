@@ -8,7 +8,7 @@ import { createSession, generateSessionToken } from "@/lib/auth/session";
 import { createUser } from "@/lib/auth/user";
 import { signupFormSchema } from "@actions/auth/signup/schema";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
+import type { z } from "zod";
 
 export type SignupFormState = {
 	message: string;

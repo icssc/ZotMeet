@@ -1,7 +1,7 @@
 // import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
 // import type { AnyZodObject } from "zod";
 
-import { SelectAvailability, SelectMember } from "@/db/schema";
+import type { SelectAvailability, SelectMember } from "@/db/schema";
 
 export type AvailabilityBlockType = {
 	zotDateIndex: number;

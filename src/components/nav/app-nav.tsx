@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import type * as React from "react";
 import Image from "next/image";
 import { NavMain } from "@/components/nav/nav-main";
 import { NavUser } from "@/components/nav/nav-user";
@@ -15,7 +15,7 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { UserProfile } from "@/lib/auth/user";
+import type { UserProfile } from "@/lib/auth/user";
 import { CalendarSearchIcon, SquarePlusIcon } from "lucide-react";
 
 const data = {

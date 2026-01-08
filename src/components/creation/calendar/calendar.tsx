@@ -1,10 +1,10 @@
-import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
+import React, { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import { CalendarBody } from "@/components/creation/calendar/calendar-body";
 import { Week } from "@/components/creation/calendar/week";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SelectMeeting } from "@/db/schema";
+import type { SelectMeeting } from "@/db/schema";
 import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 

@@ -1,7 +1,7 @@
 import React from "react";
-import { SelectMeeting } from "@/db/schema";
+import type { SelectMeeting } from "@/db/schema";
 import { spacerBeforeDate } from "@/lib/availability/utils";
-import { ZotDate } from "@/lib/zotdate";
+import type { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityTableHeaderProps {
 	currentPageAvailability: ZotDate[];

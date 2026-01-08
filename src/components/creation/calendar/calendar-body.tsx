@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { CalendarBodyDay } from "@/components/creation/calendar/calendar-body-day";
-import { ZotDate } from "@/lib/zotdate";
+import type { ZotDate } from "@/lib/zotdate";
 
 interface CalendarBodyProps {
 	calendarDays: ZotDate[][];

@@ -17,7 +17,7 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { UserProfile } from "@/lib/auth/user";
+import type { UserProfile } from "@/lib/auth/user";
 import { logoutAction } from "@actions/auth/logout/action";
 import { ChevronsUpDown, LogOut, User } from "lucide-react";
 

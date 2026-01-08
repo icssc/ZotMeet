@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MeetingCard } from "@/components/summary/meeting-card";
-import { SelectMeeting } from "@/db/schema";
+import type { SelectMeeting } from "@/db/schema";
 
 interface MeetingsDisplayProps {
 	meetings: SelectMeeting[];

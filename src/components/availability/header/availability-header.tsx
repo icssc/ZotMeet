@@ -5,10 +5,10 @@ import { AuthDialog } from "@/components/auth/auth-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
-import { SelectMeeting } from "@/db/schema";
-import { UserProfile } from "@/lib/auth/user";
+import type { SelectMeeting } from "@/db/schema";
+import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
-import { ZotDate } from "@/lib/zotdate";
+import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { saveAvailability } from "@actions/availability/save/action";
 import {

@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import type { InsertSession } from "@/db/schema";
 import { members, sessions, users } from "@/db/schema";
-import { UserProfile, userProfileProjection } from "@/lib/auth/user";
+import { type UserProfile, userProfileProjection } from "@/lib/auth/user";
 import { sha256 } from "@oslojs/crypto/sha2";
 import {
 	encodeBase32LowerCaseNoPadding,

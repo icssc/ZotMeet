@@ -9,7 +9,7 @@ import React, { useCallback, useState } from "react";
 // } from "@/components/custom/tabs";
 import { MeetingsDisplay } from "@/components/summary/meetings-display";
 import { Button } from "@/components/ui/button";
-import { SelectMeeting } from "@/db/schema";
+import type { SelectMeeting } from "@/db/schema";
 
 // import { cn } from "@/lib/utils";
 

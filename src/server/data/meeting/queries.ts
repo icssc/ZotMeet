@@ -7,7 +7,7 @@ import {
 	members,
 	type SelectMeeting,
 } from "@/db/schema";
-import { MemberMeetingAvailability } from "@/lib/types/availability";
+import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import { and, eq, or, sql } from "drizzle-orm";
 
 export async function getExistingMeeting(

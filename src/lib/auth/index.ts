@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import {
-	SessionValidationResult,
+	type SessionValidationResult,
 	validateSessionToken,
 } from "@/lib/auth/session";
 

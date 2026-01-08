@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { CalendarBodyDayCell } from "@/components/creation/calendar/calendar-body-day-cell";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -50,7 +50,7 @@ export function CalendarBodyDay({
 	const handleTouchMove = (e: React.TouchEvent<HTMLButtonElement>) => {
 		const touchingElement = document.elementFromPoint(
 			e.touches[0].clientX,
-			e.touches[0].clientY,
+			e.touches[0].clientY
 		);
 
 		if (!touchingElement) return;
@@ -97,6 +97,7 @@ export function CalendarBodyDay({
 	return (
 		<td onMouseUp={handleMouseUp}>
 			<button
+				type="button"
 				onTouchMove={handleTouchMove}
 				onTouchStart={handleTouchStart}
 				onTouchEnd={handleTouchEnd}

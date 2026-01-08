@@ -8,9 +8,9 @@ import { PersonalAvailability } from "@/components/availability/personal-availab
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import { SelectMeeting } from "@/db/schema";
+import type { SelectMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
-import { UserProfile } from "@/lib/auth/user";
+import type { UserProfile } from "@/lib/auth/user";
 import {
 	convertTimeFromUTC,
 	generateTimeBlocks,

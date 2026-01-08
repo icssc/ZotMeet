@@ -9,7 +9,7 @@ import type {
 	AvailabilityBlockType,
 	ProcessedCellEventSegments,
 } from "@/lib/types/availability";
-import { ZotDate } from "@/lib/zotdate";
+import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useShallow } from "zustand/shallow";
 

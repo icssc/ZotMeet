@@ -1,5 +1,5 @@
-import { HourMinuteString, TimeConstants } from "@/lib/types/chrono";
-import { ZotDate } from "@/lib/zotdate";
+import { type HourMinuteString, TimeConstants } from "@/lib/types/chrono";
+import type { ZotDate } from "@/lib/zotdate";
 import { differenceInCalendarDays } from "date-fns";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 

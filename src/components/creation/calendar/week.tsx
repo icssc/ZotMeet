@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { ANCHOR_DATES, WEEKDAYS } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";

@@ -1,4 +1,5 @@
-import React, { Dispatch, SetStateAction } from "react";
+import type React from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 

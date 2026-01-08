@@ -31,7 +31,8 @@
 			"!.next/**",
 			"!out/**",
 			"!build/**",
-			"!next-env.d.ts"
+			"!next-env.d.ts",
+			"!sst-env.d.ts"
 		]
 	},
 	"html": {

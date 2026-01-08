@@ -1,7 +1,7 @@
 "use client";
 
 // import { MeetingCardStatus } from "@/components/summary/meeting-card-status";
-import { SelectMeeting } from "@/db/schema";
+import type { SelectMeeting } from "@/db/schema";
 import { convertTimeFromUTC } from "@/lib/availability/utils";
 import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
 import { Calendar, Clock, UsersIcon } from "lucide-react";

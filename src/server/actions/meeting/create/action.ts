@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { InsertMeeting, meetings } from "@/db/schema";
+import { type InsertMeeting, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 
 export async function createMeetingFromData(

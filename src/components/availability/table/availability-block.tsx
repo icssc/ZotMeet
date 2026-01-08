@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { SelectionStateType } from "@/lib/types/availability";
+import type { SelectionStateType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 
 interface AvailabilityBlockProps {

@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { meetings, SelectMeeting } from "@/db/schema";
+import { meetings, type SelectMeeting } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 

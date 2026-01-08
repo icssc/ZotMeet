@@ -1,7 +1,7 @@
 "use server";
 
 import { validateGoogleAccessToken } from "@/lib/auth/google";
-import { GoogleCalendarEvent } from "@/lib/types/availability";
+import type { GoogleCalendarEvent } from "@/lib/types/availability";
 import { google as googleClient } from "googleapis";
 
 export async function fetchGoogleCalendarEvents(

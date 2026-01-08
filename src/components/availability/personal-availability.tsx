@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { useGoogleCalendar } from "@/hooks/use-google-calendar";
-import { UserProfile } from "@/lib/auth/user";
+import type { UserProfile } from "@/lib/auth/user";
 import type {
 	AvailabilityBlockType,
 	GoogleCalendarEvent,
 } from "@/lib/types/availability";
-import { ZotDate } from "@/lib/zotdate";
+import type { ZotDate } from "@/lib/zotdate";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 import { useShallow } from "zustand/shallow";
 

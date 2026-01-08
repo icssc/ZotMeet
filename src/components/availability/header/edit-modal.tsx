@@ -11,9 +11,9 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { SelectMeeting } from "@/db/schema";
+import type { SelectMeeting } from "@/db/schema";
 import { convertTimeFromUTC, convertTimeToUTC } from "@/lib/availability/utils";
-import { HourMinuteString } from "@/lib/types/chrono";
+import type { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { editMeeting } from "@actions/meeting/edit/action";
 import { toast } from "sonner";

@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useState } from "react";
+import React, { type Dispatch, type SetStateAction, useState } from "react";
 import {
 	Select,
 	SelectContent,
@@ -6,7 +6,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { HourMinuteString } from "@/lib/types/chrono";
+import type { HourMinuteString } from "@/lib/types/chrono";
 import { ClockIcon } from "lucide-react";
 
 const convertTo24Hour = (hour: number, period: string) => {

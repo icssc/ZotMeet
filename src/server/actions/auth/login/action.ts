@@ -9,7 +9,7 @@ import { createSession, generateSessionToken } from "@/lib/auth/session";
 import { getUserPasswordHash } from "@/lib/auth/user";
 import { loginFormSchema } from "@actions/auth/login/schema";
 import { eq } from "drizzle-orm";
-import { z } from "zod";
+import type { z } from "zod";
 
 export type LoginFormState = {
 	message: string;
