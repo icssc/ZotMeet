@@ -3,4 +3,4 @@ pnpm db:generate
 # Lint and format files
 pnpm lint-staged
 # Add to commit
-git add .
+git add ./src/db/migrations
