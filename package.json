@@ -66,6 +66,7 @@
 		"devmoji": "^2.3.0",
 		"drizzle-kit": "^0.26.2",
 		"husky": "^9.1.7",
+		"lint-staged": "^16.2.7",
 		"openapi-typescript": "^7.8.0",
 		"postcss": "^8",
 		"tailwindcss": "^3.4.1",

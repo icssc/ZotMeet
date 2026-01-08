@@ -1,7 +1,6 @@
 # Generate migration files
 pnpm db:generate
 # Lint and format files
-npx eslint --fix --cache
-npx prettier --write --list-different src/
+pnpm lint-staged
 # Add to commit
 git add .
