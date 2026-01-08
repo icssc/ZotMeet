@@ -1,4 +1,6 @@
+import { archiveMeeting } from "@actions/meeting/archive/action";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -9,8 +11,6 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import type { SelectMeeting } from "@/db/schema";
-import { archiveMeeting } from "@actions/meeting/archive/action";
-import { toast } from "sonner";
 
 interface DeleteModalProps {
 	meetingData: SelectMeeting;

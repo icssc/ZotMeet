@@ -1,6 +1,9 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import type { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
 	Form,
@@ -15,9 +18,6 @@ import signupAction, {
 	type SignupFormState,
 } from "@/server/actions/auth/signup/action";
 import { signupFormSchema } from "@/server/actions/auth/signup/schema";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import type { z } from "zod";
 
 export default function SignupTabFormContent() {
 	const form = useForm<z.infer<typeof signupFormSchema>>({

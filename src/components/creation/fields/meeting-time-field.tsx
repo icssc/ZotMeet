@@ -1,3 +1,4 @@
+import { ClockIcon } from "lucide-react";
 import { type Dispatch, type SetStateAction, useState } from "react";
 import {
 	Select,
@@ -7,7 +8,6 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import type { HourMinuteString } from "@/lib/types/chrono";
-import { ClockIcon } from "lucide-react";
 
 const convertTo24Hour = (hour: number, period: string) => {
 	if (period === "PM" && hour !== 12) {
@@ -19,7 +19,7 @@ const convertTo24Hour = (hour: number, period: string) => {
 };
 
 const parseHourMinuteString = (
-	time: HourMinuteString
+	time: HourMinuteString,
 ): {
 	hour: number;
 	period: "AM" | "PM";
@@ -57,7 +57,7 @@ export const MeetingTimeField = ({
 
 	const [startHour, setStartHour] = useState(initialStartHour);
 	const [startPeriod, setStartPeriod] = useState<"AM" | "PM">(
-		initialStartPeriod
+		initialStartPeriod,
 	);
 	const [endHour, setEndHour] = useState(initialEndHour);
 	const [endPeriod, setEndPeriod] = useState<"AM" | "PM">(initialEndPeriod);
@@ -66,14 +66,14 @@ export const MeetingTimeField = ({
 		const hour = parseInt(value, 10);
 		setStartHour(hour);
 		setStartTime(
-			`${convertTo24Hour(hour, startPeriod)}:00:00` as HourMinuteString
+			`${convertTo24Hour(hour, startPeriod)}:00:00` as HourMinuteString,
 		);
 	};
 
 	const handleStartPeriodChange = (value: string) => {
 		setStartPeriod(value as "AM" | "PM");
 		setStartTime(
-			`${convertTo24Hour(startHour, value)}:00:00` as HourMinuteString
+			`${convertTo24Hour(startHour, value)}:00:00` as HourMinuteString,
 		);
 	};
 

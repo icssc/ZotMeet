@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useShallow } from "zustand/shallow";
 import {
 	generateCellKey,
 	getDatePart,
@@ -13,7 +14,6 @@ import type {
 import { isAnchorDateMeeting } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
-import { useShallow } from "zustand/shallow";
 
 interface UseGoogleCalendarProps {
 	googleCalendarEvents: GoogleCalendarEvent[];

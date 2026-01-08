@@ -1,10 +1,10 @@
-import { cookies, headers } from "next/headers";
-import { oauth } from "@/lib/auth/oauth";
 import {
 	CodeChallengeMethod,
 	generateCodeVerifier,
 	generateState,
 } from "arctic";
+import { cookies, headers } from "next/headers";
+import { oauth } from "@/lib/auth/oauth";
 
 export async function GET(): Promise<Response> {
 	const state = generateState();

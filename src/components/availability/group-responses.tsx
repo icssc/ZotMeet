@@ -1,12 +1,12 @@
+import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useShallow } from "zustand/shallow";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
-import { XIcon } from "lucide-react";
-import { useShallow } from "zustand/shallow";
 
 interface GroupResponsesProps {
 	availabilityDates: ZotDate[];
@@ -35,18 +35,18 @@ export function GroupResponses({
 			isMobileDrawerOpen: state.isMobileDrawerOpen,
 			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
 			setHoveredMember: state.setHoveredMember,
-		}))
+		})),
 	);
 
 	const [blockInfoString, setBlockInfoString] = useState(
-		"Select a cell to view"
+		"Select a cell to view",
 	);
 
 	const handleMemberHover = useCallback(
 		(memberId: string | null) => {
 			setHoveredMember(memberId);
 		},
-		[setHoveredMember]
+		[setHoveredMember],
 	);
 
 	const { availableMembers, notAvailableMembers } = useMemo(() => {
@@ -65,17 +65,17 @@ export function GroupResponses({
 			selectedBlockIndex,
 			selectedZotDateIndex,
 			fromTime,
-			availabilityDates
+			availabilityDates,
 		);
 
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
 
 		return {
 			availableMembers: members.filter((member) =>
-				availableMemberIds.includes(member.memberId)
+				availableMemberIds.includes(member.memberId),
 			),
 			notAvailableMembers: members.filter(
-				(member) => !availableMemberIds.includes(member.memberId)
+				(member) => !availableMemberIds.includes(member.memberId),
 			),
 		};
 	}, [
@@ -102,11 +102,11 @@ export function GroupResponses({
 
 			const startTime = ZotDate.toTimeBlockString(
 				earliestTime + selectedBlockIndex * blockLength,
-				false
+				false,
 			);
 			const endTime = ZotDate.toTimeBlockString(
 				earliestTime + selectedBlockIndex * blockLength + blockLength,
-				false
+				false,
 			);
 			setBlockInfoString(`${formattedDate}, ${startTime} - ${endTime}`);
 		} else {
@@ -122,7 +122,7 @@ export function GroupResponses({
 	return (
 		<div
 			className={cn(
-				availabilityView !== "group" && "pointer-events-none invisible"
+				availabilityView !== "group" && "pointer-events-none invisible",
 			)}
 		>
 			<div className="hidden pb-1 pl-8 lg:block">
@@ -135,7 +135,7 @@ export function GroupResponses({
 			<div
 				className={cn(
 					"fixed bottom-0 right-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl border-[1px] border-gray-400 bg-gray-100 bg-opacity-90 transition-transform duration-500 ease-in-out sm:left-auto sm:right-0 sm:w-96 lg:relative lg:right-10 lg:top-0 lg:h-auto lg:w-64 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:bg-opacity-50",
-					isMobileDrawerOpen && "translate-y-0"
+					isMobileDrawerOpen && "translate-y-0",
 				)}
 			>
 				<div className="flex items-center justify-between px-8 py-4 lg:hidden">

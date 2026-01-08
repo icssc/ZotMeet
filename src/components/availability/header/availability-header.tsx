@@ -1,6 +1,14 @@
 "use client";
 
+import { saveAvailability } from "@actions/availability/save/action";
+import {
+	CircleCheckIcon,
+	CircleXIcon,
+	DeleteIcon,
+	EditIcon,
+} from "lucide-react";
 import { useState } from "react";
+import { useShallow } from "zustand/shallow";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
@@ -10,14 +18,6 @@ import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
-import { saveAvailability } from "@actions/availability/save/action";
-import {
-	CircleCheckIcon,
-	CircleXIcon,
-	DeleteIcon,
-	EditIcon,
-} from "lucide-react";
-import { useShallow } from "zustand/shallow";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;

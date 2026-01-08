@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useShallow } from "zustand/shallow";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { useGoogleCalendar } from "@/hooks/use-google-calendar";
@@ -11,7 +12,6 @@ import type {
 } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
-import { useShallow } from "zustand/shallow";
 
 interface PersonalAvailabilityProps {
 	timeBlock: number;

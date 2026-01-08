@@ -1,10 +1,10 @@
 "use server";
 
+//import { createGuest } from "@/lib/auth/user";
+import { getExistingMeeting } from "@data/meeting/queries";
 import { db } from "@/db";
 import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-//import { createGuest } from "@/lib/auth/user";
-import { getExistingMeeting } from "@data/meeting/queries";
 
 interface saveAvailabilityProps {
 	meetingId: string;

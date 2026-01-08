@@ -1,13 +1,13 @@
-import { db } from "@/db";
-import type { InsertSession } from "@/db/schema";
-import { members, sessions, users } from "@/db/schema";
-import { type UserProfile, userProfileProjection } from "@/lib/auth/user";
 import { sha256 } from "@oslojs/crypto/sha2";
 import {
 	encodeBase32LowerCaseNoPadding,
 	encodeHexLowerCase,
 } from "@oslojs/encoding";
 import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import type { InsertSession } from "@/db/schema";
+import { members, sessions, users } from "@/db/schema";
+import { type UserProfile, userProfileProjection } from "@/lib/auth/user";
 
 const DAYS_MS = 1000 * 60 * 60 * 24;
 

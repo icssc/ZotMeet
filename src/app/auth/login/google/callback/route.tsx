@@ -1,3 +1,6 @@
+import type { OAuth2Tokens } from "arctic";
+import { decodeIdToken } from "arctic";
+import { and, eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "@/db";
 import { oauthAccounts, users } from "@/db/schema";
@@ -8,9 +11,6 @@ import { createGoogleUser } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
 import { createMeetingFromData } from "@/server/actions/meeting/create/action";
 import { getUserById } from "@/server/data/user/queries";
-import { decodeIdToken } from "arctic";
-import type { OAuth2Tokens } from "arctic";
-import { and, eq } from "drizzle-orm";
 
 export async function GET(request: Request): Promise<Response> {
 	const url = new URL(request.url);

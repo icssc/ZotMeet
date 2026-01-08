@@ -1,8 +1,8 @@
+import { create } from "zustand";
 import type {
 	AvailabilityBlockType,
 	SelectionStateType,
 } from "@/lib/types/availability";
-import { create } from "zustand";
 
 interface BlockSelectionState {
 	startBlockSelection: AvailabilityBlockType | undefined;

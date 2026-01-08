@@ -1,5 +1,6 @@
 import "server-only";
 
+import { and, eq, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
 	availabilities,
@@ -8,7 +9,6 @@ import {
 	type SelectMeeting,
 } from "@/db/schema";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
-import { and, eq, or, sql } from "drizzle-orm";
 
 export async function getExistingMeeting(
 	meetingId: string,

@@ -24,8 +24,8 @@ export function CalendarBodyDaySquare({
 					cn(
 						"text-gray-base",
 						isHighlighted && "bg-opacity-30",
-						isSelected && "bg-opacity-50 text-gray-100"
-					)
+						isSelected && "bg-opacity-50 text-gray-100",
+					),
 			)}
 			data-day={calendarDay.getDay()}
 			data-month={calendarDay.getMonth()}

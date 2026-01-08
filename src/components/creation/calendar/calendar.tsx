@@ -28,7 +28,7 @@ export function Calendar({
 	const monthName = MONTHS[currentMonth];
 	const calendarDays = useMemo(
 		() => ZotDate.generateZotDates(currentMonth, currentYear, selectedDays),
-		[currentMonth, currentYear, selectedDays]
+		[currentMonth, currentYear, selectedDays],
 	);
 
 	const decrementMonth = () => {
@@ -65,7 +65,7 @@ export function Calendar({
 	const updateSelectedRange = (startDate: ZotDate, endDate: ZotDate): void => {
 		const highlightedRange: Date[] = ZotDate.generateRange(
 			startDate.day,
-			endDate.day
+			endDate.day,
 		);
 
 		setSelectedDays((alreadySelectedDays: ZotDate[]) => {
@@ -73,20 +73,20 @@ export function Calendar({
 
 			highlightedRange.forEach((highlightedZotDate: Date) => {
 				const foundSelectedDay = alreadySelectedDays.find(
-					(d) => d.compareTo(new ZotDate(highlightedZotDate)) === 0
+					(d) => d.compareTo(new ZotDate(highlightedZotDate)) === 0,
 				);
 
 				// Remove any selected days if the multiselect initiated from an already selected day
 				if (startDate.isSelected && foundSelectedDay) {
 					modifiedSelectedDays = modifiedSelectedDays.filter(
-						(d) => d.compareTo(foundSelectedDay) !== 0
+						(d) => d.compareTo(foundSelectedDay) !== 0,
 					);
 				}
 
 				// Add day to selected days if the multiselect did not initiate from an already selected day
 				if (!startDate.isSelected && !foundSelectedDay) {
 					modifiedSelectedDays.push(
-						new ZotDate(highlightedZotDate, undefined, undefined, true)
+						new ZotDate(highlightedZotDate, undefined, undefined, true),
 					);
 				}
 			});

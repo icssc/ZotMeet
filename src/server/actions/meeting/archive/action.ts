@@ -1,9 +1,9 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { meetings, type SelectMeeting } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { eq } from "drizzle-orm";
 
 export async function archiveMeeting(meetingData: SelectMeeting) {
 	const meetingId = meetingData.id;

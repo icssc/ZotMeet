@@ -1,10 +1,10 @@
 "use client";
 
+import { Calendar, Clock, UsersIcon } from "lucide-react";
 // import { MeetingCardStatus } from "@/components/summary/meeting-card-status";
 import type { SelectMeeting } from "@/db/schema";
 import { convertTimeFromUTC } from "@/lib/availability/utils";
 import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
-import { Calendar, Clock, UsersIcon } from "lucide-react";
 
 const formatTime = (time: string): string => {
 	const [hourStr] = time.split(":");

@@ -1,8 +1,8 @@
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { members, oauthAccounts, users } from "@/db/schema";
 import { generateIdFromEntropySize } from "@/lib/auth/crypto";
 import { hashPassword } from "@/lib/auth/password";
-import { eq } from "drizzle-orm";
 
 // Projection of user table for db queries to limit what is returned
 export const userProfileProjection = {

@@ -1,8 +1,8 @@
 import "server-only";
 
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { availabilities } from "@/db/schema";
-import { and, eq } from "drizzle-orm";
 
 export async function getMemberMeetingAvailability({
 	memberId,

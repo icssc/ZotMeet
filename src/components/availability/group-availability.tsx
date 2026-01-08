@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback } from "react";
+import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
@@ -8,7 +9,6 @@ import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
-import { useShallow } from "zustand/shallow";
 
 export const getTimestampFromBlockIndex = (
 	blockIndex: number,

@@ -1,7 +1,8 @@
 "use client";
 
-import type * as React from "react";
+import { CalendarSearchIcon, SquarePlusIcon } from "lucide-react";
 import Image from "next/image";
+import type * as React from "react";
 import { NavMain } from "@/components/nav/nav-main";
 import { NavUser } from "@/components/nav/nav-user";
 import { Separator } from "@/components/ui/separator";
@@ -16,7 +17,6 @@ import {
 	useSidebar,
 } from "@/components/ui/sidebar";
 import type { UserProfile } from "@/lib/auth/user";
-import { CalendarSearchIcon, SquarePlusIcon } from "lucide-react";
 
 const data = {
 	navMain: [

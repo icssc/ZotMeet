@@ -1,3 +1,4 @@
+import { useShallow } from "zustand/shallow";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
 import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
 import type {
@@ -6,7 +7,6 @@ import type {
 } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
-import { useShallow } from "zustand/shallow";
 
 interface AvailabilityBlockCellProps {
 	blockIndex: number;
@@ -42,7 +42,7 @@ export function AvailabilityBlockCell({
 			selectionState: state.selectionState,
 			setStartBlockSelection: state.setStartBlockSelection,
 			setEndBlockSelection: state.setEndBlockSelection,
-		}))
+		})),
 	);
 
 	const availabilitySelection = {
@@ -53,18 +53,18 @@ export function AvailabilityBlockCell({
 	const handleTouchMove = (e: React.TouchEvent) => {
 		const touchingElement = document.elementFromPoint(
 			e.touches[0].clientX,
-			e.touches[0].clientY
+			e.touches[0].clientY,
 		);
 
 		if (!touchingElement) return;
 
 		const touchingDateIndex = parseInt(
 			touchingElement.getAttribute("data-date-index") || "",
-			10
+			10,
 		);
 		const touchingBlockIndex = parseInt(
 			touchingElement.getAttribute("data-block-index") || "",
-			10
+			10,
 		);
 
 		if (
@@ -132,7 +132,7 @@ export function AvailabilityBlockCell({
 					isTopOfHour && "border-t-[1px] border-t-gray-medium",
 					isHalfHour && "border-t-[1px] border-t-gray-base",
 					isLastRow && "border-b-[1px]",
-					hasSpacerBefore && "border-l-[1px] border-l-gray-medium"
+					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
 				)}
 			>
 				<AvailabilityBlock

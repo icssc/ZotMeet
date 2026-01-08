@@ -1,5 +1,12 @@
 "use client";
 
+import { createMeeting } from "@actions/meeting/create/action";
+import {
+	parseAsArrayOf,
+	parseAsString,
+	parseAsStringEnum,
+	useQueryStates,
+} from "nuqs";
 import { useMemo, useState } from "react";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
@@ -11,13 +18,6 @@ import { convertTimeToUTC } from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
-import { createMeeting } from "@actions/meeting/create/action";
-import {
-	parseAsArrayOf,
-	parseAsString,
-	parseAsStringEnum,
-	useQueryStates,
-} from "nuqs";
 
 export function Creation({ user }: { user: UserProfile | null }) {
 	const [isCreating, setIsCreating] = useState(false);

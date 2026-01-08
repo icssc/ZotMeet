@@ -1,6 +1,6 @@
+import tinycolor from "tinycolor2";
 import type { EventSegment } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
-import tinycolor from "tinycolor2";
 
 interface GoogleCalendarEventSegmentProps {
 	segment: EventSegment;

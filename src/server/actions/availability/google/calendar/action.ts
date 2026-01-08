@@ -1,12 +1,12 @@
 "use server";
 
+import { google as googleClient } from "googleapis";
 import { validateGoogleAccessToken } from "@/lib/auth/google";
 import type { GoogleCalendarEvent } from "@/lib/types/availability";
-import { google as googleClient } from "googleapis";
 
 export async function fetchGoogleCalendarEvents(
 	startDate: string,
-	endDate: string
+	endDate: string,
 ): Promise<GoogleCalendarEvent[]> {
 	const { accessToken, error } = await validateGoogleAccessToken();
 
@@ -59,7 +59,7 @@ export async function fetchGoogleCalendarEvents(
 					console.warn(`Failed to fetch events for calendar ${cal.id}`, e);
 					return [];
 				}
-			})
+			}),
 		);
 
 		return eventsPerCalendar.flat();

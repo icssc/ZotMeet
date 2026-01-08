@@ -1,6 +1,8 @@
 "use client";
 
+import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
@@ -29,8 +31,6 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
-import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { useShallow } from "zustand/shallow";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({

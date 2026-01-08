@@ -1,4 +1,5 @@
 import React from "react";
+import { useShallow } from "zustand/shallow";
 import { AvailabilityBlockCell } from "@/components/availability/table/availability-block-cell";
 import {
 	generateCellKey,
@@ -11,7 +12,6 @@ import type {
 } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
-import { useShallow } from "zustand/shallow";
 
 interface AvailabilityBlocksProps {
 	setAvailabilities: (startBlock: AvailabilityBlockType) => void;
