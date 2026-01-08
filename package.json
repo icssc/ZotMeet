@@ -47,7 +47,7 @@
 		"react-hook-form": "^7.53.1",
 		"server-only": "^0.0.1",
 		"sonner": "^2.0.3",
-		"sst": "3.8.0",
+		"sst": " 3.17.25",
 		"tailwind-merge": "^2.5.4",
 		"tailwindcss-animate": "^1.0.7",
 		"tinycolor2": "^1.6.0",
