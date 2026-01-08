@@ -22,6 +22,8 @@ runs:
         
         - name: Setup Pulumi
           uses: pulumi/actions@v6
+          with:
+              pulumi-version: latest
 
         - name: Get pnpm store directory
           id: pnpm-cache
