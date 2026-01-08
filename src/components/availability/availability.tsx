@@ -128,27 +128,32 @@ export function Availability({
 		(state) => state.availabilityView,
 	);
 
-	const selectionIsLocked = useGroupSelectionStore(
-		(state) => state.selectionIsLocked,
-	);
-	const resetSelection = useGroupSelectionStore(
-		(state) => state.resetSelection,
-	);
-	const setIsMobileDrawerOpen = useGroupSelectionStore(
-		(state) => state.setIsMobileDrawerOpen,
-	);
+    const selectionIsLocked = useGroupSelectionStore(
+        (state) => state.selectionIsLocked
+    );
+    const resetSelection = useGroupSelectionStore(
+        (state) => state.resetSelection
+    );
+    const setIsMobileDrawerOpen = useGroupSelectionStore(
+        (state) => state.setIsMobileDrawerOpen
+    );
+    const toggleHoverGrid = useGroupSelectionStore(
+        (state) => state.toggleHoverGrid
+    );
 
-	const handleMouseLeave = useCallback(() => {
-		if (availabilityView === "group" && !selectionIsLocked) {
-			setIsMobileDrawerOpen(false);
-			resetSelection();
-		}
-	}, [
-		availabilityView,
-		selectionIsLocked,
-		setIsMobileDrawerOpen,
-		resetSelection,
-	]);
+    const handleMouseLeave = useCallback(() => {
+        if (availabilityView === "group" && !selectionIsLocked) {
+            setIsMobileDrawerOpen(false);
+            resetSelection();
+        }
+        toggleHoverGrid(false);
+    }, [
+        availabilityView,
+        selectionIsLocked,
+        setIsMobileDrawerOpen,
+        resetSelection,
+        toggleHoverGrid,
+    ]);
 
 	const { currentPage, itemsPerPage, isFirstPage, nextPage, prevPage } =
 		useAvailabilityPaginationStore(
