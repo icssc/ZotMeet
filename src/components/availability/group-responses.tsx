@@ -12,12 +12,14 @@ interface GroupResponsesProps {
     availabilityDates: ZotDate[];
     members: Member[];
     fromTime: number;
+    anchorNormalizedDate: Date[];
 }
 
 export function GroupResponses({
     availabilityDates,
     fromTime,
     members,
+    anchorNormalizedDate,
 }: GroupResponsesProps) {
     const { availabilityView } = useAvailabilityViewStore();
     const {
@@ -90,9 +92,8 @@ export function GroupResponses({
             selectedZotDateIndex !== undefined &&
             selectedBlockIndex !== undefined
         ) {
-            const formattedDate = availabilityDates[
-                selectedZotDateIndex
-            ].day.toLocaleDateString("en-US", {
+            const displayDate = anchorNormalizedDate[selectedZotDateIndex];
+            const formattedDate = displayDate.toLocaleDateString("en-US", {
                 month: "short",
                 day: "numeric",
             });
@@ -114,7 +115,12 @@ export function GroupResponses({
         } else {
             setBlockInfoString("Select a cell to view");
         }
-    }, [selectedZotDateIndex, selectedBlockIndex, availabilityDates]);
+    }, [
+        selectedZotDateIndex,
+        selectedBlockIndex,
+        availabilityDates,
+        anchorNormalizedDate,
+    ]);
 
     return (
         <div

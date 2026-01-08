@@ -55,3 +55,35 @@ export function isAnchorDateString(dateString: string): boolean {
         (anchorDate) => anchorDate.toISOString().split("T")[0] === dateString
     );
 }
+
+// Check if it is a meeting with an anchor date by using the first date
+export function isAnchorDateMeeting(dates: string[]): boolean {
+    if (dates.length === 0) return false;
+    const firstDateStr = dates[0].split("T")[0];
+    return isAnchorDateString(firstDateStr);
+}
+
+export function getCurrentWeekDateForAnchor(anchorDate: Date): Date {
+    const dayOfWeek = anchorDate.getUTCDay(); // Sun is 0 and Sat is 6
+    const now = new Date();
+    const currentDayOfWeek = now.getDay();
+
+    const diff = dayOfWeek - currentDayOfWeek;
+    const targetDate = new Date(now);
+    targetDate.setDate(now.getDate() + diff);
+
+    // Reset time to match the anchor date's time (midnight)
+    targetDate.setHours(0, 0, 0, 0);
+
+    return targetDate;
+}
+
+export function convertAnchorDatesToCurrentWeek(
+    anchorDateStrings: string[]
+): string[] {
+    return anchorDateStrings.map((dateStr) => {
+        const anchorDate = new Date(dateStr);
+        const currentWeekDate = getCurrentWeekDateForAnchor(anchorDate);
+        return currentWeekDate.toISOString();
+    });
+}

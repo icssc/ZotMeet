@@ -21,6 +21,10 @@ import type {
     MemberMeetingAvailability,
 } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
+import {
+    convertAnchorDatesToCurrentWeek,
+    isAnchorDateMeeting,
+} from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
@@ -190,6 +194,15 @@ export function Availability({
         () => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
         [fromTimeMinutes, toTimeMinutes]
     );
+
+    const anchorNormalizedDate = useMemo(() => {
+        return isAnchorDateMeeting(meetingData.dates)
+            ? convertAnchorDatesToCurrentWeek(meetingData.dates).map(
+                  (dateStr) => new Date(dateStr)
+              )
+            : meetingData.dates.map((dateStr) => new Date(dateStr));
+    }, [meetingData.dates]);
+
     const [googleCalendarEvents, setGoogleCalendarEvents] = useState<
         GoogleCalendarEvent[]
     >([]);
@@ -255,11 +268,12 @@ export function Availability({
     }, [confirmSave]);
 
     useEffect(() => {
-        if (availabilityDates.length > 0) {
-            const firstDateISO = availabilityDates[0].day.toISOString();
+        if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
+            const firstDateISO = anchorNormalizedDate[0].toISOString();
 
-            const lastZotDate = availabilityDates[availabilityDates.length - 1];
-            const lastDateObj = new Date(lastZotDate.day);
+            const lastDateObj = new Date(
+                anchorNormalizedDate[anchorNormalizedDate.length - 1]
+            );
             lastDateObj.setHours(23, 59, 59, 999);
             const lastDateISO = lastDateObj.toISOString();
 
@@ -277,7 +291,7 @@ export function Availability({
         } else {
             setGoogleCalendarEvents([]);
         }
-    }, [availabilityDates]);
+    }, [availabilityDates, anchorNormalizedDate]);
 
     const members = useMemo(() => {
         const presentMemberIds = [
@@ -381,6 +395,7 @@ export function Availability({
                                                 onAvailabilityChange={
                                                     handleUserAvailabilityChange
                                                 }
+                                                meetingDates={meetingData.dates}
                                             />
                                         )}
                                     </tr>
@@ -400,6 +415,7 @@ export function Availability({
                     availabilityDates={availabilityDates}
                     fromTime={fromTimeMinutes}
                     members={members}
+                    anchorNormalizedDate={anchorNormalizedDate}
                 />
             </div>
         </div>
