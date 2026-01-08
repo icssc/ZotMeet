@@ -47,12 +47,8 @@ function calculateBlockColor({
     selectedMembers: string[];
     numMembers: number;
 }): string {
-    if (hoveredMember) {
-        if (block.includes(hoveredMember)) {
-            return "rgba(55, 124, 251)";
-        }
-        return "transparent";
-    }
+    // Priority: Selected members > Hover > Normal view
+    // Selected members take precedence over hover
 
     if (selectedMembers.length > 0) {
         const selectedInBlock = selectedMembers.filter((memberId) =>
@@ -61,6 +57,13 @@ function calculateBlockColor({
         if (selectedInBlock.length > 0) {
             const opacity = Math.min(0.9, 0.5 + selectedInBlock.length * 0.15);
             return `rgba(55, 124, 251, ${opacity})`;
+        }
+        return "transparent";
+    }
+
+    if (hoveredMember) {
+        if (block.includes(hoveredMember)) {
+            return "rgba(55, 124, 251)";
         }
         return "transparent";
     }
@@ -243,11 +246,8 @@ export function GroupAvailability({
                                     blockIndex,
                                 })
                             }
-                            block={block}
                             blockColor={blockColor}
                             tableCellStyles={tableCellStyles}
-                            hoveredMember={hoveredMember}
-                            selectedMembers={selectedMembers}
                             hasSpacerBefore={spacers[pageDateIndex]}
                         />
                     </td>
