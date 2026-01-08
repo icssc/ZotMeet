@@ -1,0 +1,50 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+	"vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+	"files": { "ignoreUnknown": true },
+	"formatter": {
+		"enabled": true,
+		"includes": [
+			"**",
+			"!**/*.md",
+			"!**/*.sql",
+			"!**/*.ico",
+			"!**/*.woff",
+			"!**/db/migrations/**"
+		]
+	},
+	"linter": {
+		"enabled": true,
+		"domains": {
+			"next": "recommended"
+		},
+		"rules": {
+			"recommended": true
+		},
+		"includes": [
+			"**",
+			"!**/tailwind.config.ts",
+			"!.next/**",
+			"!out/**",
+			"!build/**",
+			"!next-env.d.ts",
+			"!.next/**",
+			"!out/**",
+			"!build/**",
+			"!next-env.d.ts"
+		]
+	},
+	"html": {
+		"formatter": {
+			"selfCloseVoidElements": "always"
+		}
+	},
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	}
+}
