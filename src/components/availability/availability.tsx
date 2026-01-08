@@ -195,7 +195,7 @@ export function Availability({
         [fromTimeMinutes, toTimeMinutes]
     );
 
-    const convertedDates = useMemo(() => {
+    const anchorNormalizedDate = useMemo(() => {
         return isAnchorDateMeeting(meetingData.dates)
             ? convertAnchorDatesToCurrentWeek(meetingData.dates).map(
                   (dateStr) => new Date(dateStr)
@@ -268,11 +268,11 @@ export function Availability({
     }, [confirmSave]);
 
     useEffect(() => {
-        if (availabilityDates.length > 0 && convertedDates.length > 0) {
-            const firstDateISO = convertedDates[0].toISOString();
+        if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
+            const firstDateISO = anchorNormalizedDate[0].toISOString();
 
             const lastDateObj = new Date(
-                convertedDates[convertedDates.length - 1]
+                anchorNormalizedDate[anchorNormalizedDate.length - 1]
             );
             lastDateObj.setHours(23, 59, 59, 999);
             const lastDateISO = lastDateObj.toISOString();
@@ -291,7 +291,7 @@ export function Availability({
         } else {
             setGoogleCalendarEvents([]);
         }
-    }, [availabilityDates, convertedDates]);
+    }, [availabilityDates, anchorNormalizedDate]);
 
     const members = useMemo(() => {
         const presentMemberIds = [
@@ -415,7 +415,7 @@ export function Availability({
                     availabilityDates={availabilityDates}
                     fromTime={fromTimeMinutes}
                     members={members}
-                    convertedDates={convertedDates}
+                    anchorNormalizedDate={anchorNormalizedDate}
                 />
             </div>
         </div>

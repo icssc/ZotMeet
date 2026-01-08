@@ -28,7 +28,6 @@ export function useGoogleCalendar({
     availabilityTimeBlocks,
     meetingDates,
 }: UseGoogleCalendarProps) {
-  
     const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
         useShallow((state) => ({
             currentPage: state.currentPage,
