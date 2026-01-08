@@ -1,0 +1,76 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+	"vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+	"files": { "ignoreUnknown": true },
+	"formatter": {
+		"enabled": true,
+		"includes": [
+			"**",
+			"!**/*.md",
+			"!**/*.sql",
+			"!**/*.ico",
+			"!**/*.woff",
+			"!**/db/migrations/**"
+		]
+	},
+	"linter": {
+		"enabled": true,
+		"domains": {
+			"next": "recommended"
+		},
+		"rules": {
+			"recommended": true,
+			"suspicious": {
+				"noUnknownAtRules": {
+					"level": "error",
+					"options": {
+						"ignore": ["tailwind"]
+					}
+				}
+			},
+			"nursery": {
+				"useSortedClasses": {
+					"level": "error",
+					"fix": "safe",
+					"options": {
+						"attributes": ["className"],
+						"functions": ["cn"]
+					}
+				}
+			}
+		},
+		"includes": [
+			"**",
+			"!**/tailwind.config.ts",
+			"!.next/**",
+			"!out/**",
+			"!build/**",
+			"!next-env.d.ts",
+			"!.next/**",
+			"!out/**",
+			"!build/**",
+			"!next-env.d.ts",
+			"!sst-env.d.ts",
+			"!src/components/ui/**",
+			"!sst.config.ts"
+		]
+	},
+	"html": {
+		"formatter": {
+			"selfCloseVoidElements": "always"
+		}
+	},
+	"css": {
+		"parser": {
+			"tailwindDirectives": true
+		}
+	},
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": "on"
+			}
+		}
+	}
+}
