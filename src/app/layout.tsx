@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { DM_Sans, Montserrat } from "next/font/google";
 import localFont from "next/font/local";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
+import { ThemeProvider } from "@mui/material/styles";
 
 import "./globals.css";
 
@@ -12,6 +14,7 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import theme from "@/theme";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 
@@ -58,30 +61,35 @@ export default function RootLayout({
                 )}
             >
                 <NuqsAdapter>
-                    <SidebarProvider>
-                        <AppSidebar />
-                        <SidebarInset>
-                            <header className="flex h-16 shrink-0 items-center justify-end gap-2 border-b border-opacity-50 bg-gray-50 drop-shadow-sm md:hidden">
-                                <div className="flex items-center gap-2 px-4">
-                                    <SidebarTrigger className="-ml-1" />
-                                </div>
-                            </header>
+                    <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+                        <ThemeProvider theme={theme}>
+                            <SidebarProvider>
+                                <AppSidebar />
+                                <SidebarInset>
+                                    <header className="flex h-16 shrink-0 items-center justify-end gap-2 border-b border-opacity-50 bg-gray-50 drop-shadow-sm md:hidden">
+                                        <div className="flex items-center gap-2 px-4">
+                                            <SidebarTrigger className="-ml-1" />
+                                        </div>
+                                    </header>
 
-                            <div className="h-full rounded-tl-xl bg-gray-50">
-                                <Banner
-                                    chip="ALPHA"
-                                    storageKey="creation-alpha-banner-dismissed"
-                                    className="mx-4 mt-4"
-                                >
-                                    ZotMeet is currently in alpha. You may
-                                    experience bugs or unexpected behavior.
-                                </Banner>
-                                {children}
-                            </div>
-                        </SidebarInset>
-                    </SidebarProvider>
+                                    <div className="h-full rounded-tl-xl bg-gray-50">
+                                        <Banner
+                                            chip="ALPHA"
+                                            storageKey="creation-alpha-banner-dismissed"
+                                            className="mx-4 mt-4"
+                                        >
+                                            ZotMeet is currently in alpha. You
+                                            may experience bugs or unexpected
+                                            behavior.
+                                        </Banner>
+                                        {children}
+                                    </div>
+                                </SidebarInset>
+                            </SidebarProvider>
 
-                    <Toaster />
+                            <Toaster />
+                        </ThemeProvider>
+                    </AppRouterCacheProvider>
                 </NuqsAdapter>
             </body>
         </html>
