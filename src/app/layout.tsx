@@ -61,7 +61,7 @@ export default function RootLayout({
 				)}
 			>
 				<NuqsAdapter>
-					<AppRouterCacheProvider options={{ enableCssLayer: true }}>
+					<AppRouterCacheProvider>
 						<ThemeProvider theme={theme}>
 							<SidebarProvider>
 								<AppSidebar />
