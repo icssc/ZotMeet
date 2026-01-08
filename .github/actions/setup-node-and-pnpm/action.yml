@@ -12,7 +12,7 @@ runs:
         - name: Setup Node.js environment
           uses: actions/setup-node@v4
           with:
-              node-version: lts/hydrogen
+              node-version: lts/jod
 
         - name: Install pnpm
           uses: pnpm/action-setup@v4
