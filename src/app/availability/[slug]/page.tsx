@@ -8,12 +8,13 @@ import {
 } from "@/server/data/meeting/queries";
 
 interface PageProps {
-    params: {
+    params: Promise<{
         slug: string;
-    };
+    }>;
 }
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata(props: PageProps) {
+    const params = await props.params;
     const { slug } = params;
 
     const meetingData = await getExistingMeeting(slug).catch((e) => {
@@ -37,7 +38,8 @@ export async function generateMetadata({ params }: PageProps) {
     };
 }
 
-export default async function Page({ params }: PageProps) {
+export default async function Page(props: PageProps) {
+    const params = await props.params;
     const { slug } = params;
 
     if (!slug) {

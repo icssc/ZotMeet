@@ -40,7 +40,7 @@ export async function GET(): Promise<Response> {
         sameSite: "lax",
     });
 
-    const headersList = headers();
+    const headersList = await headers();
     const referer = headersList.get("referer");
 
     if (referer) {
