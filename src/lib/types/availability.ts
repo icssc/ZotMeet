@@ -4,15 +4,15 @@
 import { SelectAvailability, SelectMember } from "@/db/schema";
 
 export type AvailabilityBlockType = {
-    zotDateIndex: number;
-    blockIndex: number;
+	zotDateIndex: number;
+	blockIndex: number;
 };
 
 export type SelectionStateType = {
-    earlierDateIndex: number;
-    laterDateIndex: number;
-    earlierBlockIndex: number;
-    laterBlockIndex: number;
+	earlierDateIndex: number;
+	laterDateIndex: number;
+	earlierBlockIndex: number;
+	laterBlockIndex: number;
 };
 
 //TODO: Guest
@@ -22,58 +22,58 @@ export type SelectionStateType = {
 // }
 
 export type MemberMeetingAvailability = Pick<
-    SelectAvailability,
-    "memberId" | "meetingAvailabilities"
+	SelectAvailability,
+	"memberId" | "meetingAvailabilities"
 > &
-    Pick<SelectMember, "displayName">;
+	Pick<SelectMember, "displayName">;
 
 export type Member = Pick<
-    MemberMeetingAvailability,
-    "memberId" | "displayName"
+	MemberMeetingAvailability,
+	"memberId" | "displayName"
 >;
 
 export interface GoogleCalendarEvent {
-    id: string;
-    summary: string;
-    start: string;
-    end: string;
-    calendarColor: string;
-    calendarId?: string; // For UI calendar list groupings
+	id: string;
+	summary: string;
+	start: string;
+	end: string;
+	calendarColor: string;
+	calendarId?: string; // For UI calendar list groupings
 }
 
 export interface GoogleCalendarEventLayoutInfo {
-    id: string;
-    summary: string;
+	id: string;
+	summary: string;
 
-    originalStartMinutes: number;
-    originalEndMinutes: number;
+	originalStartMinutes: number;
+	originalEndMinutes: number;
 
-    clampedStartMinutes: number;
-    clampedEndMinutes: number;
+	clampedStartMinutes: number;
+	clampedEndMinutes: number;
 
-    assignedColumn: number;
-    gridColumnCount: number;
+	assignedColumn: number;
+	gridColumnCount: number;
 
-    startDateString: string;
-    startBlockIndex: number;
-    endBlockIndex: number;
-    calendarColor: string;
+	startDateString: string;
+	startBlockIndex: number;
+	endBlockIndex: number;
+	calendarColor: string;
 }
 
 export interface EventSegment {
-    eventId: string;
-    summary: string;
-    layoutInfo: GoogleCalendarEventLayoutInfo;
+	eventId: string;
+	summary: string;
+	layoutInfo: GoogleCalendarEventLayoutInfo;
 
-    isStartOfEventInCell: boolean;
-    isEndOfEventInCell: boolean;
+	isStartOfEventInCell: boolean;
+	isEndOfEventInCell: boolean;
 
-    cellAssignedColumn: number;
-    cellGridColumnCount: number;
-    calendarColor: string;
+	cellAssignedColumn: number;
+	cellGridColumnCount: number;
+	calendarColor: string;
 }
 
 export type ProcessedCellEventSegments = Map<
-    string, // Key: `zotDateIndex_blockIndex`
-    EventSegment[]
+	string, // Key: `zotDateIndex_blockIndex`
+	EventSegment[]
 >;

@@ -1,8 +1,8 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
 import {
-    SessionValidationResult,
-    validateSessionToken,
+	SessionValidationResult,
+	validateSessionToken,
 } from "@/lib/auth/session";
 
 // Uses React cache to de-dupe calls to check the current session, per request.
@@ -14,15 +14,15 @@ import {
  * @returns A promise that resolves to a SessionValidationResult object if the user is logged in, or null if the session is invalid.
  */
 export const getCurrentSession = cache(
-    async (): Promise<SessionValidationResult> => {
-        const token = (await cookies()).get("session")?.value ?? null;
+	async (): Promise<SessionValidationResult> => {
+		const token = (await cookies()).get("session")?.value ?? null;
 
-        if (token === null) {
-            return { session: null, user: null };
-        }
+		if (token === null) {
+			return { session: null, user: null };
+		}
 
-        const result = await validateSessionToken(token);
+		const result = await validateSessionToken(token);
 
-        return result;
-    }
+		return result;
+	},
 );

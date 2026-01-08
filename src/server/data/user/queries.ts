@@ -5,30 +5,30 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function getUserIdExists(id: string) {
-    const user = await db.query.users.findFirst({
-        where: eq(users.id, id),
-    });
+	const user = await db.query.users.findFirst({
+		where: eq(users.id, id),
+	});
 
-    return user !== undefined;
+	return user !== undefined;
 }
 
 export async function getUserEmailExists(email: string) {
-    const user = await db.query.users.findFirst({
-        where: eq(users.email, email),
-    });
+	const user = await db.query.users.findFirst({
+		where: eq(users.email, email),
+	});
 
-    return user !== undefined;
+	return user !== undefined;
 }
 
 export async function getUserById(id: string) {
-    const user = await db.query.users.findFirst({
-        where: eq(users.id, id),
-        columns: {
-            id: true,
-            memberId: true,
-            email: true,
-        },
-    });
+	const user = await db.query.users.findFirst({
+		where: eq(users.id, id),
+		columns: {
+			id: true,
+			memberId: true,
+			email: true,
+		},
+	});
 
-    return user ?? null;
+	return user ?? null;
 }

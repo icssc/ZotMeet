@@ -12,59 +12,59 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 export type LoginFormState = {
-    message: string;
-    error: boolean;
+	message: string;
+	error: boolean;
 };
 
 export default async function loginAction(
-    payload: z.infer<typeof loginFormSchema>
+	payload: z.infer<typeof loginFormSchema>,
 ): Promise<LoginFormState> {
-    // TODO: add rate limit + throttling
+	// TODO: add rate limit + throttling
 
-    const parsed = loginFormSchema.safeParse(payload);
+	const parsed = loginFormSchema.safeParse(payload);
 
-    if (!parsed.success) {
-        return {
-            error: true,
-            message: parsed.error.message,
-        };
-    }
+	if (!parsed.success) {
+		return {
+			error: true,
+			message: parsed.error.message,
+		};
+	}
 
-    const { email, password } = parsed.data;
+	const { email, password } = parsed.data;
 
-    const [existingUser] = await db
-        .select({
-            id: users.id,
-        })
-        .from(users)
-        .where(eq(users.email, email));
+	const [existingUser] = await db
+		.select({
+			id: users.id,
+		})
+		.from(users)
+		.where(eq(users.email, email));
 
-    if (!existingUser) {
-        return {
-            error: true,
-            message: "User does not exist",
-        };
-    }
+	if (!existingUser) {
+		return {
+			error: true,
+			message: "User does not exist",
+		};
+	}
 
-    const passwordHash = await getUserPasswordHash(existingUser.id);
-    const isValidPassword = await verifyPasswordHash(passwordHash, password);
+	const passwordHash = await getUserPasswordHash(existingUser.id);
+	const isValidPassword = await verifyPasswordHash(passwordHash, password);
 
-    if (!isValidPassword) {
-        return {
-            error: true,
-            message: "Invalid password",
-        };
-    }
+	if (!isValidPassword) {
+		return {
+			error: true,
+			message: "Invalid password",
+		};
+	}
 
-    const sessionToken = generateSessionToken();
-    const session = await createSession(sessionToken, existingUser.id);
+	const sessionToken = generateSessionToken();
+	const session = await createSession(sessionToken, existingUser.id);
 
-    setSessionTokenCookie(sessionToken, session.expiresAt);
+	setSessionTokenCookie(sessionToken, session.expiresAt);
 
-    revalidatePath("/", "layout");
+	revalidatePath("/", "layout");
 
-    return {
-        error: false,
-        message: "hi",
-    };
+	return {
+		error: false,
+		message: "hi",
+	};
 }

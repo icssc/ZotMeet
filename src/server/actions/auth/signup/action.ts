@@ -11,51 +11,51 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 export type SignupFormState = {
-    message: string;
-    error: boolean;
+	message: string;
+	error: boolean;
 };
 
 export default async function signupAction(
-    payload: z.infer<typeof signupFormSchema>
+	payload: z.infer<typeof signupFormSchema>,
 ): Promise<SignupFormState> {
-    const parsed = signupFormSchema.safeParse(payload);
+	const parsed = signupFormSchema.safeParse(payload);
 
-    if (!parsed.success) {
-        return {
-            error: true,
-            message: parsed.error.message,
-        };
-    }
+	if (!parsed.success) {
+		return {
+			error: true,
+			message: parsed.error.message,
+		};
+	}
 
-    const { email, password, displayName } = parsed.data;
+	const { email, password, displayName } = parsed.data;
 
-    const [existingUser] = await db
-        .select({
-            id: users.id,
-        })
-        .from(users)
-        .where(eq(users.email, email));
+	const [existingUser] = await db
+		.select({
+			id: users.id,
+		})
+		.from(users)
+		.where(eq(users.email, email));
 
-    if (existingUser) {
-        return {
-            error: true,
-            message: "User already exists",
-        };
-    }
+	if (existingUser) {
+		return {
+			error: true,
+			message: "User already exists",
+		};
+	}
 
-    // TODO: add email verification
+	// TODO: add email verification
 
-    const newUser = await createUser(email, displayName, password);
+	const newUser = await createUser(email, displayName, password);
 
-    const sessionToken = generateSessionToken();
-    const session = await createSession(sessionToken, newUser.id);
+	const sessionToken = generateSessionToken();
+	const session = await createSession(sessionToken, newUser.id);
 
-    setSessionTokenCookie(sessionToken, session.expiresAt);
+	setSessionTokenCookie(sessionToken, session.expiresAt);
 
-    revalidatePath("/", "layout");
+	revalidatePath("/", "layout");
 
-    return {
-        error: false,
-        message: "Success",
-    };
+	return {
+		error: false,
+		message: "Success",
+	};
 }

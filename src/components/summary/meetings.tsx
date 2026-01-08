@@ -14,62 +14,59 @@ import { SelectMeeting } from "@/db/schema";
 // import { cn } from "@/lib/utils";
 
 interface MeetingsDisplayProps {
-    meetings: SelectMeeting[];
-    userId: string;
+	meetings: SelectMeeting[];
+	userId: string;
 }
 
 export const Meetings = ({ meetings, userId }: MeetingsDisplayProps) => {
-    const [hostedOnly, setHostedOnly] = useState(false);
+	const [hostedOnly, setHostedOnly] = useState(false);
 
-    // const scheduledMeetings =
-    //     meetings?.filter((meeting) => meeting.scheduled) || [];
-    const unscheduledMeetings =
-        meetings?.filter((meeting) => !meeting.scheduled) || [];
+	// const scheduledMeetings =
+	//     meetings?.filter((meeting) => meeting.scheduled) || [];
+	const unscheduledMeetings =
+		meetings?.filter((meeting) => !meeting.scheduled) || [];
 
-    // const filteredScheduledMeetings = (
-    //     hostedOnly
-    //         ? scheduledMeetings.filter((meeting) => meeting.hostId === userId)
-    //         : scheduledMeetings
-    // ).sort(
-    //     (a, b) =>
-    //         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    // );
+	// const filteredScheduledMeetings = (
+	//     hostedOnly
+	//         ? scheduledMeetings.filter((meeting) => meeting.hostId === userId)
+	//         : scheduledMeetings
+	// ).sort(
+	//     (a, b) =>
+	//         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+	// );
 
-    const filteredUnscheduledMeetings = (
-        hostedOnly
-            ? unscheduledMeetings.filter((meeting) => meeting.hostId === userId)
-            : unscheduledMeetings
-    ).sort(
-        (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+	const filteredUnscheduledMeetings = (
+		hostedOnly
+			? unscheduledMeetings.filter((meeting) => meeting.hostId === userId)
+			: unscheduledMeetings
+	).sort(
+		(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+	);
 
-    const handleClick = useCallback(() => {
-        setHostedOnly((prev) => !prev);
-    }, []);
+	const handleClick = useCallback(() => {
+		setHostedOnly((prev) => !prev);
+	}, []);
 
-    return (
-        <div className="w-full rounded-xl">
-            <div className="flex items-center justify-between">
-                <h1 className="font-montserrat text-3xl font-medium">
-                    Meetings
-                </h1>
+	return (
+		<div className="w-full rounded-xl">
+			<div className="flex items-center justify-between">
+				<h1 className="font-montserrat text-3xl font-medium">Meetings</h1>
 
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex w-32 items-center justify-center font-dm-sans text-xs"
-                    onClick={handleClick}
-                >
-                    {hostedOnly ? "Show All" : "Show Hosted Only"}
-                </Button>
-            </div>
+				<Button
+					variant="outline"
+					size="sm"
+					className="flex w-32 items-center justify-center font-dm-sans text-xs"
+					onClick={handleClick}
+				>
+					{hostedOnly ? "Show All" : "Show Hosted Only"}
+				</Button>
+			</div>
 
-            <div className="mt-8">
-                <MeetingsDisplay meetings={filteredUnscheduledMeetings} />
-            </div>
+			<div className="mt-8">
+				<MeetingsDisplay meetings={filteredUnscheduledMeetings} />
+			</div>
 
-            {/* <Tabs defaultValue="scheduled">
+			{/* <Tabs defaultValue="scheduled">
                 <TabsList className="mb-8 space-x-0">
                     <TabsTrigger
                         value="scheduled"
@@ -99,6 +96,6 @@ export const Meetings = ({ meetings, userId }: MeetingsDisplayProps) => {
                     <MeetingsDisplay meetings={filteredUnscheduledMeetings} />
                 </TabsContent>
             </Tabs> */}
-        </div>
-    );
+		</div>
+	);
 };

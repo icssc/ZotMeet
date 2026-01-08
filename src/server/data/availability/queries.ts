@@ -5,22 +5,22 @@ import { availabilities } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 
 export async function getMemberMeetingAvailability({
-    memberId,
-    meetingId,
+	memberId,
+	meetingId,
 }: {
-    memberId: string;
-    meetingId: string;
+	memberId: string;
+	meetingId: string;
 }) {
-    const availabilityData = await db.query.availabilities.findFirst({
-        where: and(
-            eq(availabilities.memberId, memberId),
-            eq(availabilities.meetingId, meetingId)
-        ),
-    });
+	const availabilityData = await db.query.availabilities.findFirst({
+		where: and(
+			eq(availabilities.memberId, memberId),
+			eq(availabilities.meetingId, meetingId),
+		),
+	});
 
-    if (!availabilityData) {
-        throw new Error("Availability not found");
-    }
+	if (!availabilityData) {
+		throw new Error("Availability not found");
+	}
 
-    return availabilityData;
+	return availabilityData;
 }
