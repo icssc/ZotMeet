@@ -126,22 +126,22 @@ export function GroupResponses({
 			)}
 		>
 			<div className="hidden pb-1 pl-8 lg:block">
-				<h3 className="font-montserrat text-xl font-medium">Responders</h3>
-				<p className="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
+				<h3 className="font-medium font-montserrat text-xl">Responders</h3>
+				<p className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 					{blockInfoString}
 				</p>
 			</div>
 
 			<div
 				className={cn(
-					"fixed bottom-0 right-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl border-[1px] border-gray-400 bg-gray-100 bg-opacity-90 transition-transform duration-500 ease-in-out sm:left-auto sm:right-0 sm:w-96 lg:relative lg:right-10 lg:top-0 lg:h-auto lg:w-64 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:bg-opacity-50",
+					"fixed right-0 bottom-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl border-[1px] border-gray-400 bg-gray-100 bg-opacity-90 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:right-10 lg:h-auto lg:w-64 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:bg-opacity-50",
 					isMobileDrawerOpen && "translate-y-0",
 				)}
 			>
 				<div className="flex items-center justify-between px-8 py-4 lg:hidden">
 					<div>
-						<h3 className="font-montserrat font-medium">Responders</h3>
-						<p className="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
+						<h3 className="font-medium font-montserrat">Responders</h3>
+						<p className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 							{blockInfoString}
 						</p>
 					</div>
@@ -155,8 +155,8 @@ export function GroupResponses({
 				</div>
 				<div className="grid grid-cols-2 lg:flex lg:flex-col lg:gap-10 lg:py-4">
 					<div>
-						<div className="border-b-[1px] border-gray-300 px-8">
-							<span className="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
+						<div className="border-gray-300 border-b-[1px] px-8">
+							<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 								AVAILABLE ({availableMembers.length})
 							</span>
 						</div>
@@ -165,7 +165,7 @@ export function GroupResponses({
 								availableMembers.map((member) => (
 									<li
 										key={member.memberId}
-										className="cursor-pointer text-lg text-gray-800"
+										className="cursor-pointer text-gray-800 text-lg"
 										onMouseEnter={() => handleMemberHover(member.memberId)}
 										onMouseLeave={() => handleMemberHover(null)}
 									>
@@ -173,13 +173,13 @@ export function GroupResponses({
 									</li>
 								))
 							) : (
-								<li className="text-sm italic text-gray-400">N/A</li>
+								<li className="text-gray-400 text-sm italic">N/A</li>
 							)}
 						</ul>
 					</div>
 					<div>
-						<div className="border-b-[1px] border-gray-300 px-8">
-							<span className="font-dm-sans text-xs font-bold uppercase tracking-wide text-slate-400">
+						<div className="border-gray-300 border-b-[1px] px-8">
+							<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 								NOT AVAILABLE ({notAvailableMembers.length})
 							</span>
 						</div>
@@ -188,7 +188,7 @@ export function GroupResponses({
 								notAvailableMembers.map((member) => (
 									<li
 										key={member.memberId}
-										className="cursor-pointer text-lg text-gray-400"
+										className="cursor-pointer text-gray-400 text-lg"
 										onMouseEnter={() => handleMemberHover(member.memberId)}
 										onMouseLeave={() => handleMemberHover(null)}
 									>
@@ -196,7 +196,7 @@ export function GroupResponses({
 									</li>
 								))
 							) : (
-								<li className="text-sm italic text-gray-400">N/A</li>
+								<li className="text-gray-400 text-sm italic">N/A</li>
 							)}
 						</ul>
 					</div>

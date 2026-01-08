@@ -94,7 +94,7 @@ export function AvailabilityHeader({
 	return (
 		<>
 			<div className="flex-between gap-x-2 px-2 pt-8 md:px-4 md:pt-10">
-				<h1 className="line-clamp-1 h-8 truncate font-montserrat text-xl font-medium md:h-fit md:text-3xl">
+				<h1 className="line-clamp-1 h-8 truncate font-medium font-montserrat text-xl md:h-fit md:text-3xl">
 					{meetingData.title}
 				</h1>
 
@@ -104,7 +104,7 @@ export function AvailabilityHeader({
 							<Button
 								onClick={() => setIsEditModalOpen(true)}
 								variant="outline"
-								className="flex-center h-full min-h-fit min-w-fit rounded font-dm-sans"
+								className="h-full min-h-fit min-w-fit flex-center rounded font-dm-sans"
 							>
 								<EditIcon className="text-2xl" />
 							</Button>
@@ -112,7 +112,7 @@ export function AvailabilityHeader({
 							<Button
 								onClick={() => setIsDeleteModalOpen(true)}
 								variant="outline"
-								className="flex-center h-full min-h-fit min-w-fit rounded font-dm-sans"
+								className="h-full min-h-fit min-w-fit flex-center rounded font-dm-sans"
 							>
 								<DeleteIcon className="text-2xl" />
 							</Button>
@@ -123,7 +123,7 @@ export function AvailabilityHeader({
 							<div className="flex space-x-2 md:space-x-4">
 								<Button
 									className={cn(
-										"flex-center h-8 min-h-fit border-yellow-500 bg-white px-2 uppercase text-yellow-500 outline md:w-28 md:p-0",
+										"h-8 min-h-fit flex-center border-yellow-500 bg-white px-2 text-yellow-500 uppercase outline md:w-28 md:p-0",
 										"hover:border-yellow-500 hover:bg-yellow-500 hover:text-white",
 									)}
 									onClick={handleCancel}
@@ -133,7 +133,7 @@ export function AvailabilityHeader({
 								</Button>
 								<Button
 									className={cn(
-										"flex-center h-8 min-h-fit border border-green-500 bg-white px-2 uppercase text-secondary md:w-24 md:p-0",
+										"h-8 min-h-fit flex-center border border-green-500 bg-white px-2 text-secondary uppercase md:w-24 md:p-0",
 										"group hover:border-green-500 hover:bg-green-500",
 									)}
 									type="submit"
@@ -148,7 +148,7 @@ export function AvailabilityHeader({
 						) : (
 							<Button
 								className={cn(
-									"flex-center h-8 min-h-fit min-w-fit px-2 md:w-40 md:p-0",
+									"h-8 min-h-fit min-w-fit flex-center px-2 md:w-40 md:p-0",
 								)}
 								onClick={() => {
 									if (!user) {

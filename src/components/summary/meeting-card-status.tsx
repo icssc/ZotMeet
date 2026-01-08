@@ -40,7 +40,7 @@ export const MeetingCardStatus = () => {
 					<div
 						className={`h-2 w-2 rounded-full ${statusColors[status as keyof typeof statusColors]}`}
 					></div>
-					<p className="font-dm-sans text-xs font-semibold text-gray-500">
+					<p className="font-dm-sans font-semibold text-gray-500 text-xs">
 						{statusDisplay[status as keyof typeof statusDisplay]}
 					</p>
 				</button>
@@ -52,14 +52,14 @@ export const MeetingCardStatus = () => {
 				{statusOptions.map((option) => (
 					<DropdownMenuItem
 						key={option}
-						className={`pl-2 pr-2 ${status === option ? "bg-accent" : ""}`}
+						className={`pr-2 pl-2 ${status === option ? "bg-accent" : ""}`}
 						// onClick={() => handleStatusChange(option)}
 					>
 						<div className="flex items-center gap-2">
 							<div
 								className={`h-2 w-2 rounded-full ${statusColors[option as Exclude<StatusType, "NOT INDICATED">]}`}
 							></div>
-							<span className="font-dm-sans text-xs font-semibold text-gray-500">
+							<span className="font-dm-sans font-semibold text-gray-500 text-xs">
 								{option}
 							</span>
 						</div>

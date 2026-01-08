@@ -26,15 +26,15 @@ export function AvailabilityTableHeader({
 						{spacers[index] && (
 							<th className="w-3 md:w-4" tabIndex={-1} aria-hidden="true" />
 						)}
-						<th className="text-sm font-normal">
+						<th className="font-normal text-sm">
 							<div className="flex flex-col">
-								<span className="text-[10px] font-bold uppercase text-gray-500 md:text-xs">
+								<span className="font-bold text-[10px] text-gray-500 uppercase md:text-xs">
 									{dateHeader?.day.toLocaleDateString("en-US", {
 										weekday: "short",
 									})}
 								</span>
 								{meetingType === "dates" && (
-									<span className="text-center text-[12px] uppercase text-gray-medium md:text-base">
+									<span className="text-center text-[12px] text-gray-medium uppercase md:text-base">
 										{dateHeader?.day.toLocaleDateString("en-US", {
 											month: "numeric",
 											day: "numeric",

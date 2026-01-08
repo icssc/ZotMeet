@@ -12,10 +12,10 @@ export const GroupCard = ({ name }: { name: string }) => {
 						/>
 					))}
 				</div>
-				<h3 className="font-dm-sans text-xl font-medium text-gray-800">
+				<h3 className="font-dm-sans font-medium text-gray-800 text-xl">
 					{name}
 				</h3>
-				<p className="font-dm-sans text-xs font-medium text-gray-500">
+				<p className="font-dm-sans font-medium text-gray-500 text-xs">
 					8 upcoming meetings
 				</p>
 			</div>

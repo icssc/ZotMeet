@@ -50,7 +50,7 @@ export const Meetings = ({ meetings, userId }: MeetingsDisplayProps) => {
 	return (
 		<div className="w-full rounded-xl">
 			<div className="flex items-center justify-between">
-				<h1 className="font-montserrat text-3xl font-medium">Meetings</h1>
+				<h1 className="font-medium font-montserrat text-3xl">Meetings</h1>
 
 				<Button
 					variant="outline"

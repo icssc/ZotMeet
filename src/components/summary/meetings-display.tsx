@@ -10,7 +10,7 @@ export const MeetingsDisplay = ({ meetings }: MeetingsDisplayProps) => {
 	if (meetings.length === 0) {
 		return (
 			<div className="flex items-center gap-4 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-6 pr-8">
-				<h3 className="truncate font-dm-sans text-xl font-medium text-gray-800">
+				<h3 className="truncate font-dm-sans font-medium text-gray-800 text-xl">
 					No meetings found.
 				</h3>
 			</div>

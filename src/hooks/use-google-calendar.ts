@@ -12,7 +12,7 @@ import type {
 	ProcessedCellEventSegments,
 } from "@/lib/types/availability";
 import { isAnchorDateMeeting } from "@/lib/types/chrono";
-import { ZotDate } from "@/lib/zotdate";
+import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 
 interface UseGoogleCalendarProps {

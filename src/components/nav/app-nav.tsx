@@ -61,7 +61,7 @@ export function SidebarComponent({ user, ...props }: SidebarComponentProps) {
 									<Image src="/ZotMeet_BLACK.png" fill alt="ZotMeet logo" />
 								</div>
 								<div className="grid flex-1 text-left text-sm leading-tight">
-									<span className="truncate text-4xl font-semibold">
+									<span className="truncate font-semibold text-4xl">
 										ZotMeet
 									</span>
 								</div>

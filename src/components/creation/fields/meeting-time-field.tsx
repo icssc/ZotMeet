@@ -92,12 +92,12 @@ export const MeetingTimeField = ({
 		<div>
 			<div className="flex flex-row items-center space-x-2 text-slate-medium">
 				<ClockIcon />
-				<p className="text-sm font-semibold uppercase tracking-wide">
+				<p className="font-semibold text-sm uppercase tracking-wide">
 					ANY TIME BETWEEN (PST)
 				</p>
 			</div>
 
-			<div className="flex w-full flex-row items-center space-x-4 pt-2 text-sm text-gray-500">
+			<div className="flex w-full flex-row items-center space-x-4 pt-2 text-gray-500 text-sm">
 				<div className="flex gap-2">
 					<Select
 						value={String(startHour)}

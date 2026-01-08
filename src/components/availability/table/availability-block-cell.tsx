@@ -128,7 +128,7 @@ export function AvailabilityBlockCell({
 				data-date-index={zotDateIndex}
 				data-block-index={blockIndex}
 				className={cn(
-					"block h-full w-full cursor-row-resize border-r-[1px] border-gray-medium [touch-action:pinch-zoom]",
+					"block h-full w-full cursor-row-resize border-gray-medium border-r-[1px] [touch-action:pinch-zoom]",
 					isTopOfHour && "border-t-[1px] border-t-gray-medium",
 					isHalfHour && "border-t-[1px] border-t-gray-base",
 					isLastRow && "border-b-[1px]",

@@ -98,11 +98,11 @@ export const MeetingCard = ({ meeting }: MeetingCardProps) => {
 			<UsersIcon className="size-10 shrink-0 rounded-full border-2 border-gray-200 p-2 text-gray-500" />
 
 			<div className="flex-grow space-y-1">
-				<h3 className="truncate font-dm-sans text-xl font-medium text-gray-800">
+				<h3 className="truncate font-dm-sans font-medium text-gray-800 text-xl">
 					{title}
 				</h3>
 
-				<div className="flex flex-row flex-wrap items-center gap-x-4 font-dm-sans text-sm font-semibold text-gray-500">
+				<div className="flex flex-row flex-wrap items-center gap-x-4 font-dm-sans font-semibold text-gray-500 text-sm">
 					<div className="flex flex-nowrap items-center gap-x-1">
 						<Calendar className="size-4" />
 						<span className="p text-nowrap">
