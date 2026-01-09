@@ -5,7 +5,8 @@ import { db } from "@/db";
 import { 
     groups, 
     type SelectGroup,
-    usersInGroup 
+    usersInGroup,
+    users, 
 } from "@/db/schema";
 
 export async function getExistingGroup(groupId: string): Promise<SelectGroup> {
@@ -34,7 +35,16 @@ export async function getGroupsByUserId(
 		.innerJoin(usersInGroup, eq(groups.id, usersInGroup.groupId))
 		.where(eq(usersInGroup.userId, userId));
 }
-//TODO: get all users in a group
-//TODO: get all groups that a user is in
+
+export async function getUsersInGroup(groupId:string){
+    return await db.select({
+        userId: users.id,
+        memberId: users.memberId,
+        email: users.email,
+    })
+    .from(users)
+    .innerJoin(usersInGroup, eq(users.id, usersInGroup.userId))
+    .where(eq(usersInGroup.groupId,groupId))
+}
 //TODO: get all meetings for a group
 //TODO: is a user in group check
