@@ -56,4 +56,17 @@ export async function getMeetingsByGroupId(
 		where: and(eq(meetings.group_id, groupId), eq(meetings.archived, false)),
 	});
 }
-//TODO: is a user in group check
+
+export async function isUserInGroup({userId, groupId,}: 
+{
+	userId: string;
+	groupId: string;
+}): Promise<boolean> {
+	const userInGroup = await db.query.usersInGroup.findFirst({
+		where: and(
+			eq(usersInGroup.userId, userId),
+			eq(usersInGroup.groupId, groupId),
+		),
+	});
+	return userInGroup !== undefined;
+}
