@@ -33,6 +33,7 @@ import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginatio
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
+import { TimeZoneDropdown } from "./table/availability-timezone";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -171,9 +172,9 @@ export function Availability({
 		currentPage === Math.floor((meetingData.dates.length - 1) / itemsPerPage);
 
 	// Convert UTC times to user's local timezone for display
-	const userTimezone = useMemo(
-		() => Intl.DateTimeFormat().resolvedOptions().timeZone,
-		[],
+
+	const [userTimezone, setUserTimezone] = useState(
+		Intl.DateTimeFormat().resolvedOptions().timeZone,
 	);
 	const referenceDate = meetingData.dates[0];
 
@@ -364,51 +365,55 @@ export function Availability({
 						handleClick={prevPage}
 						disabled={isFirstPage}
 					/>
+					<div>
+						<table className="w-full table-fixed">
+							<AvailabilityTableHeader
+								currentPageAvailability={currentPageAvailability}
+								meetingType={meetingData.meetingType}
+							/>
 
-					<table className="w-full table-fixed">
-						<AvailabilityTableHeader
-							currentPageAvailability={currentPageAvailability}
-							meetingType={meetingData.meetingType}
-						/>
+							<tbody onMouseLeave={handleMouseLeave}>
+								{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
+									<tr key={`block-${timeBlock}`}>
+										<AvailabilityTimeTicks timeBlock={timeBlock} />
 
-						<tbody onMouseLeave={handleMouseLeave}>
-							{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
-								<tr key={`block-${timeBlock}`}>
-									<AvailabilityTimeTicks timeBlock={timeBlock} />
-
-									{availabilityView === "group" ||
+										{availabilityView === "group" ||
 									availabilityView === "schedule" ? (
-										<GroupAvailability
+											<GroupAvailability
 											meetingId={meetingData.id}
-											timeBlock={timeBlock}
-											blockIndex={blockIndex}
-											availabilityTimeBlocks={availabilityTimeBlocks}
-											fromTime={fromTimeMinutes}
-											availabilityDates={availabilityDates}
-											currentPageAvailability={currentPageAvailability}
-											members={members}
-											onMouseLeave={handleMouseLeave}
+												timeBlock={timeBlock}
+												blockIndex={blockIndex}
+												availabilityTimeBlocks={availabilityTimeBlocks}
+												fromTime={fromTimeMinutes}
+												availabilityDates={availabilityDates}
+												currentPageAvailability={currentPageAvailability}
+												members={members}
+												onMouseLeave={handleMouseLeave}
 											isScheduling={availabilityView === "schedule"}
-										/>
-									) : (
-										<PersonalAvailability
-											timeBlock={timeBlock}
-											blockIndex={blockIndex}
-											availabilityTimeBlocks={availabilityTimeBlocks}
-											fromTime={fromTimeMinutes}
-											availabilityDates={availabilityDates}
-											currentPageAvailability={currentPageAvailability}
-											googleCalendarEvents={googleCalendarEvents}
-											user={user}
-											onAvailabilityChange={handleUserAvailabilityChange}
-											meetingDates={meetingData.dates}
-										/>
-									)}
-								</tr>
-							))}
-						</tbody>
-					</table>
-
+											/>
+										) : (
+											<PersonalAvailability
+												timeBlock={timeBlock}
+												blockIndex={blockIndex}
+												availabilityTimeBlocks={availabilityTimeBlocks}
+												fromTime={fromTimeMinutes}
+												availabilityDates={availabilityDates}
+												currentPageAvailability={currentPageAvailability}
+												googleCalendarEvents={googleCalendarEvents}
+												user={user}
+												onAvailabilityChange={handleUserAvailabilityChange}
+												meetingDates={meetingData.dates}
+											/>
+										)}
+									</tr>
+								))}
+							</tbody>
+						</table>
+						<TimeZoneDropdown
+							TimeZone={userTimezone}
+							changeTimeZone={setUserTimezone}
+						/>
+					</div>
 					<AvailabilityNavButton
 						direction="right"
 						handleClick={() => nextPage(availabilityDates.length)}
