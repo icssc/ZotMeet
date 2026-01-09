@@ -1,12 +1,14 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { 
     groups, 
     type SelectGroup,
     usersInGroup,
-    users, 
+    users,
+    meetings,
+    type SelectMeeting 
 } from "@/db/schema";
 
 export async function getExistingGroup(groupId: string): Promise<SelectGroup> {
@@ -46,5 +48,12 @@ export async function getUsersInGroup(groupId:string){
     .innerJoin(usersInGroup, eq(users.id, usersInGroup.userId))
     .where(eq(usersInGroup.groupId,groupId))
 }
-//TODO: get all meetings for a group
+
+export async function getMeetingsByGroupId(
+	groupId: string,
+): Promise<SelectMeeting[]> {
+	return await db.query.meetings.findMany({
+		where: and(eq(meetings.group_id, groupId), eq(meetings.archived, false)),
+	});
+}
 //TODO: is a user in group check
