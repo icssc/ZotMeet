@@ -8,7 +8,7 @@ import { getCurrentSession } from "@/lib/auth";
 
 interface saveAvailabilityProps {
 	meetingId: string;
-	availabilityTimes: string[];
+	availabilityTimes: { availability: string[]; ifNeeded: string[] };
 	displayName?: string;
 }
 
