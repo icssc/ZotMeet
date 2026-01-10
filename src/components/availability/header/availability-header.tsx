@@ -71,7 +71,14 @@ export function AvailabilityHeader({
 
 		const availability = {
 			meetingId: meetingData.id,
-			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
+			availabilityTimes: {
+				availability: availabilityDates.flatMap(
+					(date) => date.availability.availability,
+				),
+				ifNeeded: availabilityDates.flatMap(
+					(date) => date.availability.ifNeeded,
+				),
+			},
 			displayName: user.displayName,
 		};
 

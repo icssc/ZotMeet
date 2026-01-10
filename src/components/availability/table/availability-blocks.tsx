@@ -10,7 +10,7 @@ import type {
 	AvailabilityBlockType,
 	ProcessedCellEventSegments,
 } from "@/lib/types/availability";
-import type { ZotDate } from "@/lib/zotdate";
+import type { AvailabilityType, ZotDate } from "@/lib/zotdate"; // ✅ NEW
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 
 interface AvailabilityBlocksProps {
@@ -20,6 +20,7 @@ interface AvailabilityBlocksProps {
 	availabilityTimeBlocksLength: number;
 	currentPageAvailability: ZotDate[];
 	processedCellSegments: ProcessedCellEventSegments;
+	availabilityKind?: AvailabilityType;
 }
 
 export function AvailabilityBlocks({
@@ -29,6 +30,7 @@ export function AvailabilityBlocks({
 	availabilityTimeBlocksLength,
 	currentPageAvailability,
 	processedCellSegments,
+	availabilityKind = "availability",
 }: AvailabilityBlocksProps) {
 	const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
 		useShallow((state) => ({
@@ -55,7 +57,15 @@ export function AvailabilityBlocks({
 				if (selectedDate) {
 					const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
 
-					const isAvailable = selectedDate.getBlockAvailability(blockIndex);
+					// ✅ IMPORTANT: read from the correct bucket
+					const isAvailable = selectedDate.getBlockAvailability(
+						blockIndex,
+						"availability",
+					);
+					const isIfNeeded = selectedDate.getBlockAvailability(
+						blockIndex,
+						"ifNeeded",
+					);
 
 					const cellKey = generateCellKey(zotDateIndex, blockIndex);
 					const segmentsForCell = processedCellSegments.get(cellKey) || [];
@@ -75,6 +85,8 @@ export function AvailabilityBlocks({
 								isLastRow={isLastRow}
 								eventSegments={segmentsForCell}
 								hasSpacerBefore={spacers[pageDateIndex]}
+								isIfNeeded={isIfNeeded}
+								availabilityKind={availabilityKind} // ✅ NEW (for yellow highlight)
 							/>
 						</React.Fragment>
 					);

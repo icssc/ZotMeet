@@ -6,11 +6,13 @@ import type {
 	EventSegment,
 } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
+import type { AvailabilityType } from "@/lib/zotdate"; // ✅ NEW
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface AvailabilityBlockCellProps {
 	blockIndex: number;
 	isAvailable: boolean;
+	isIfNeeded: boolean;
 	zotDateIndex: number;
 	setAvailabilities: (startBlock: AvailabilityBlockType) => void;
 	isTopOfHour: boolean;
@@ -18,11 +20,13 @@ interface AvailabilityBlockCellProps {
 	isLastRow: boolean;
 	eventSegments: EventSegment[];
 	hasSpacerBefore?: boolean;
+	availabilityKind?: AvailabilityType;
 }
 
 export function AvailabilityBlockCell({
 	blockIndex,
 	isAvailable,
+	isIfNeeded,
 	zotDateIndex,
 	setAvailabilities,
 	isTopOfHour,
@@ -30,6 +34,7 @@ export function AvailabilityBlockCell({
 	isLastRow,
 	eventSegments,
 	hasSpacerBefore = false,
+	availabilityKind = "availability", // ✅ NEW default
 }: AvailabilityBlockCellProps) {
 	const {
 		startBlockSelection,
@@ -137,9 +142,11 @@ export function AvailabilityBlockCell({
 			>
 				<AvailabilityBlock
 					isAvailable={isAvailable}
+					isIfNeeded={isIfNeeded}
 					zotDateIndex={zotDateIndex}
 					blockIndex={blockIndex}
 					selectionState={selectionState}
+					availabilityKind={availabilityKind}
 				/>
 			</button>
 

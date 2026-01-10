@@ -10,7 +10,7 @@ import type {
 	AvailabilityBlockType,
 	GoogleCalendarEvent,
 } from "@/lib/types/availability";
-import type { ZotDate } from "@/lib/zotdate";
+import type { AvailabilityType, ZotDate } from "@/lib/zotdate";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface PersonalAvailabilityProps {
@@ -24,6 +24,7 @@ interface PersonalAvailabilityProps {
 	user: UserProfile | null;
 	onAvailabilityChange: (updatedDates: ZotDate[]) => void;
 	meetingDates: string[];
+	availabilityMode: AvailabilityType;
 }
 
 export function PersonalAvailability({
@@ -37,6 +38,7 @@ export function PersonalAvailability({
 	user,
 	onAvailabilityChange,
 	meetingDates,
+	availabilityMode,
 }: PersonalAvailabilityProps) {
 	const {
 		startBlockSelection,
@@ -90,9 +92,7 @@ export function PersonalAvailability({
 	}, [startBlockSelection, endBlockSelection, setSelectionState]);
 
 	const setAvailabilities = (startBlock: AvailabilityBlockType) => {
-		if (!isEditingAvailability) {
-			setIsEditingAvailability(true);
-		}
+		if (!isEditingAvailability) setIsEditingAvailability(true);
 
 		if (selectionState) {
 			const {
@@ -108,8 +108,10 @@ export function PersonalAvailability({
 			} = startBlock;
 
 			const startSelectionZotDate = availabilityDates[selectionStartDateIndex];
+
 			const selectionValue = !startSelectionZotDate.getBlockAvailability(
 				selectionStartBlockIndex,
+				availabilityMode,
 			);
 
 			const updatedDates = [...availabilityDates];
@@ -120,47 +122,47 @@ export function PersonalAvailability({
 				dateIndex++
 			) {
 				const currentDate = updatedDates[dateIndex];
+
 				currentDate.setBlockAvailabilities(
 					earlierBlockIndex,
 					laterBlockIndex,
 					selectionValue,
+					availabilityMode,
 				);
 
-				// For each block in the selection range
-				for (
-					let blockIdx = earlierBlockIndex;
-					blockIdx <= laterBlockIndex;
-					blockIdx++
-				) {
-					const timestamp = getTimestampFromBlockIndex(
-						blockIdx,
-						dateIndex,
-						fromTime,
-						availabilityDates,
-					);
+				if (availabilityMode === "availability") {
+					for (
+						let blockIdx = earlierBlockIndex;
+						blockIdx <= laterBlockIndex;
+						blockIdx++
+					) {
+						const timestamp = getTimestampFromBlockIndex(
+							blockIdx,
+							dateIndex,
+							fromTime,
+							availabilityDates,
+						);
 
-					// Initialize empty array if timestamp doesn't exist
-					if (!currentDate.groupAvailability[timestamp]) {
-						currentDate.groupAvailability[timestamp] = [];
-					}
-
-					if (selectionValue) {
-						// Add user to availability if not already present
-						if (
-							!currentDate.groupAvailability[timestamp].includes(
-								user?.memberId ?? "",
-							)
-						) {
-							currentDate.groupAvailability[timestamp].push(
-								user?.memberId ?? "",
-							);
+						if (!currentDate.groupAvailability[timestamp]) {
+							currentDate.groupAvailability[timestamp] = [];
 						}
-					} else {
-						// Remove user from availability
-						currentDate.groupAvailability[timestamp] =
-							currentDate.groupAvailability[timestamp].filter(
-								(id) => id !== (user?.memberId ?? ""),
-							);
+
+						if (selectionValue) {
+							if (
+								!currentDate.groupAvailability[timestamp].includes(
+									user?.memberId ?? "",
+								)
+							) {
+								currentDate.groupAvailability[timestamp].push(
+									user?.memberId ?? "",
+								);
+							}
+						} else {
+							currentDate.groupAvailability[timestamp] =
+								currentDate.groupAvailability[timestamp].filter(
+									(id) => id !== (user?.memberId ?? ""),
+								);
+						}
 					}
 				}
 			}
@@ -169,8 +171,6 @@ export function PersonalAvailability({
 			setEndBlockSelection(undefined);
 			setSelectionState(undefined);
 			setIsStateUnsaved(true);
-
-			// Call the onAvailabilityChange handler with the updated dates
 			onAvailabilityChange(updatedDates);
 		}
 	};
@@ -185,10 +185,7 @@ export function PersonalAvailability({
 		};
 
 		window.addEventListener("beforeunload", handleBeforeUnload);
-
-		return () => {
-			window.removeEventListener("beforeunload", handleBeforeUnload);
-		};
+		return () => window.removeEventListener("beforeunload", handleBeforeUnload);
 	}, [isStateUnsaved]);
 
 	return (
@@ -199,6 +196,7 @@ export function PersonalAvailability({
 			availabilityTimeBlocksLength={availabilityTimeBlocks.length}
 			currentPageAvailability={currentPageAvailability}
 			processedCellSegments={processedCellSegments}
+			availabilityKind={availabilityMode}
 		/>
 	);
 }

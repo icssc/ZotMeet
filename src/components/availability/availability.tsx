@@ -3,6 +3,7 @@
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
+import { AvailabilityModeToggle } from "@/components/availability/availability-mode-toggle";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
@@ -27,10 +28,30 @@ import {
 	convertAnchorDatesToCurrentWeek,
 	isAnchorDateMeeting,
 } from "@/lib/types/chrono";
+import type { AvailabilityBuckets, AvailabilityType } from "@/lib/zotdate";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
+
+/**
+ * Backwards-compatible normalizer:
+ * - Old shape: string[]
+ * - New shape: { availability: string[], ifNeeded: string[] }
+ */
+const normalizeMeetingAvailabilities = (raw: unknown): AvailabilityBuckets => {
+	if (Array.isArray(raw)) {
+		return { availability: raw, ifNeeded: [] };
+	}
+	if (raw && typeof raw === "object") {
+		const obj = raw as Partial<AvailabilityBuckets>;
+		return {
+			availability: Array.isArray(obj.availability) ? obj.availability : [],
+			ifNeeded: Array.isArray(obj.ifNeeded) ? obj.ifNeeded : [],
+		};
+	}
+	return { availability: [], ifNeeded: [] };
+};
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -46,25 +67,48 @@ const deriveInitialAvailability = ({
 	allAvailabilties: MemberMeetingAvailability[];
 	availabilityTimeBlocks: number[];
 }) => {
-	const availabilitiesByDate = new Map<string, string[]>();
+	// Store PERSONAL availability buckets by date (availability + ifNeeded)
+	const availabilitiesByDate = new Map<string, AvailabilityBuckets>();
+
+	const ensureBuckets = (dateStr: string): AvailabilityBuckets => {
+		let b = availabilitiesByDate.get(dateStr);
+		if (!b) {
+			b = { availability: [], ifNeeded: [] };
+			availabilitiesByDate.set(dateStr, b);
+		}
+		return b;
+	};
+
+	// --- Personal (logged-in user) ---
 	if (userAvailability?.meetingAvailabilities) {
-		userAvailability.meetingAvailabilities.forEach((timeStr) => {
-			// Convert UTC timestamp to local date to get the correct day
+		const buckets = normalizeMeetingAvailabilities(
+			userAvailability.meetingAvailabilities,
+		);
+
+		// Hard availability
+		buckets.availability.forEach((timeStr) => {
 			const localDate = new Date(timeStr);
 			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
+			ensureBuckets(dateStr).availability.push(timeStr);
+		});
 
-			if (!availabilitiesByDate.has(dateStr)) {
-				availabilitiesByDate.set(dateStr, []);
-			}
-
-			availabilitiesByDate.get(dateStr)?.push(timeStr);
+		// If-needed availability
+		buckets.ifNeeded.forEach((timeStr) => {
+			const localDate = new Date(timeStr);
+			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
+			ensureBuckets(dateStr).ifNeeded.push(timeStr);
 		});
 	}
 
+	// --- Group availability map (currently supports HARD availability only) ---
 	const timestampsByDate = new Map<string, Map<string, string[]>>();
 	for (const member of allAvailabilties) {
-		for (const timestamp of member.meetingAvailabilities) {
-			// Convert UTC timestamp to local date to get the correct day
+		const buckets = normalizeMeetingAvailabilities(
+			member.meetingAvailabilities,
+		);
+
+		// Keep group based on hard availability for now (non-breaking)
+		for (const timestamp of buckets.availability) {
 			const localDate = new Date(timestamp);
 			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
 
@@ -94,7 +138,10 @@ const deriveInitialAvailability = ({
 				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] || 1035) +
 				15;
 
-			const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
+			const dateAvailabilities = availabilitiesByDate.get(dateStr) ?? {
+				availability: [],
+				ifNeeded: [],
+			};
 
 			const dateGroupAvailabilities = Object.fromEntries(
 				timestampsByDate.get(dateStr) || new Map(),
@@ -212,6 +259,9 @@ export function Availability({
 		}),
 	);
 
+	const [availabilityMode, setAvailabilityMode] =
+		useState<AvailabilityType>("availability");
+
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
 	});
@@ -253,6 +303,7 @@ export function Availability({
 		},
 		[],
 	);
+
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
 		setAvailabilityDates(originalDates);
@@ -364,6 +415,7 @@ export function Availability({
 											user={user}
 											onAvailabilityChange={handleUserAvailabilityChange}
 											meetingDates={meetingData.dates}
+											availabilityMode={availabilityMode}
 										/>
 									)}
 								</tr>
@@ -378,12 +430,25 @@ export function Availability({
 					/>
 				</div>
 
-				<GroupResponses
+				{/* <GroupResponses
 					availabilityDates={availabilityDates}
 					fromTime={fromTimeMinutes}
 					members={members}
 					anchorNormalizedDate={anchorNormalizedDate}
-				/>
+				/> */}
+				{availabilityView === "group" ? (
+					<GroupResponses
+						availabilityDates={availabilityDates}
+						fromTime={fromTimeMinutes}
+						members={members}
+						anchorNormalizedDate={anchorNormalizedDate}
+					/>
+				) : (
+					<AvailabilityModeToggle
+						value={availabilityMode}
+						onChange={setAvailabilityMode}
+					/>
+				)}
 			</div>
 		</div>
 	);

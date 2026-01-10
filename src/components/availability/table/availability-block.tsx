@@ -1,25 +1,27 @@
 import { useMemo } from "react";
 import type { SelectionStateType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
+import type { AvailabilityType } from "@/lib/zotdate";
 
 interface AvailabilityBlockProps {
-	isAvailable: boolean;
+	isAvailable: boolean; // base layer
+	isIfNeeded: boolean; // overlay
 	zotDateIndex: number;
 	blockIndex: number;
 	selectionState: SelectionStateType | undefined;
+	availabilityKind?: AvailabilityType;
 }
 
 export function AvailabilityBlock({
 	isAvailable,
+	isIfNeeded,
 	zotDateIndex,
 	blockIndex,
 	selectionState,
+	availabilityKind = "availability",
 }: AvailabilityBlockProps) {
-	/**
-	 * Computes the background color of a single time block cell
-	 */
 	const backgroundColor = useMemo(() => {
-		// Render different background color if user is in middle of making a selection and is in range
+		// selection overlay (drag)
 		if (selectionState) {
 			const {
 				earlierDateIndex,
@@ -27,17 +29,31 @@ export function AvailabilityBlock({
 				earlierBlockIndex,
 				laterBlockIndex,
 			} = selectionState;
+
 			const dateInRange =
 				earlierDateIndex <= zotDateIndex && zotDateIndex <= laterDateIndex;
 			const timeInRange =
 				earlierBlockIndex <= blockIndex && blockIndex <= laterBlockIndex;
 
 			if (dateInRange && timeInRange) {
-				return "bg-[#BFD1F5]";
+				return availabilityKind === "ifNeeded"
+					? "bg-yellow-200"
+					: "bg-[#BFD1F5]";
 			}
 		}
-		return isAvailable ? "bg-primary" : "bg-transparent";
-	}, [selectionState, isAvailable, zotDateIndex, blockIndex]);
+
+		// committed state: ifNeeded wins visually
+		if (isIfNeeded) return "bg-yellow-300";
+		if (isAvailable) return "bg-primary";
+		return "bg-transparent";
+	}, [
+		selectionState,
+		zotDateIndex,
+		blockIndex,
+		availabilityKind,
+		isIfNeeded,
+		isAvailable,
+	]);
 
 	return (
 		<div
