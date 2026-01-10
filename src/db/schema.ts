@@ -187,6 +187,11 @@ export const groupsRelations = relations(groups, ({ many }) => ({
 	meetings: many(meetings),
 }));
 
+type MeetingAvailability = {
+	availability: string[];
+	ifNeeded: string[];
+};
+
 export const availabilities = pgTable(
 	"availabilities",
 	{
@@ -202,9 +207,9 @@ export const availabilities = pgTable(
 		 * @example ["2025-04-11T00:00:00.000Z", "2025-04-12T00:00:00.000Z"]
 		 */
 		meetingAvailabilities: jsonb("meeting_availabilities")
-			.$type<string[]>()
+			.$type<MeetingAvailability>()
 			.notNull()
-			.default([]),
+			.default({ availability: [], ifNeeded: [] }),
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.memberId, table.meetingId] }),

@@ -1,9 +1,16 @@
 import { CalendarConstants } from "@/lib/types/chrono";
 
+export type AvailabilityBuckets = {
+	availability: string[];
+	ifNeeded: string[];
+};
+
+export type AvailabilityType = "availability" | "ifNeeded";
+
 export class ZotDate {
 	readonly day: Date;
 	isSelected: boolean;
-	availability: string[];
+	availability: AvailabilityBuckets;
 	/**
 	 * `groupAvailability` maps a timestring to an array of memberIds that are available for that timestring
 	 */
@@ -24,7 +31,7 @@ export class ZotDate {
 		earliestTime: number = 0,
 		latestTime: number = 1440,
 		isSelected: boolean = false,
-		availability: string[] = [],
+		availability: AvailabilityBuckets = { availability: [], ifNeeded: [] },
 		groupAvailability: Record<string, string[]> = {},
 	) {
 		this.day = day;
@@ -395,9 +402,13 @@ export class ZotDate {
 	 * @param index index of the availability block
 	 * @return the current availability of the block corresponding to the given index
 	 */
-	getBlockAvailability(index: number): boolean {
+
+	getBlockAvailability(
+		index: number,
+		kind: AvailabilityType = "availability",
+	): boolean {
 		const ISOString = this.getISOStringForBlock(index);
-		return this.availability.includes(ISOString);
+		return this.availability[kind].includes(ISOString);
 	}
 
 	/**
@@ -410,32 +421,37 @@ export class ZotDate {
 		earlierBlockIndex: number,
 		laterBlockIndex: number,
 		selection: boolean,
+		kind: AvailabilityType = "availability",
 	): void {
-		// If setting to available (true)
-		if (selection) {
-			// Add ISO strings for each block in the range
-			for (
-				let blockIndex = earlierBlockIndex;
-				blockIndex <= laterBlockIndex;
-				blockIndex++
-			) {
-				const ISOString = this.getISOStringForBlock(blockIndex);
+		const target = kind;
+		const other: AvailabilityType =
+			kind === "availability" ? "ifNeeded" : "availability";
 
-				// Only add if not already present
-				if (!this.availability.includes(ISOString)) {
-					this.availability.push(ISOString);
+		// Precompute the ISO strings for the selected range
+		const rangeISO: string[] = [];
+		for (let i = earlierBlockIndex; i <= laterBlockIndex; i++) {
+			rangeISO.push(this.getISOStringForBlock(i));
+		}
+		const rangeSet = new Set(rangeISO);
+
+		if (selection) {
+			// Add to target
+			for (const iso of rangeISO) {
+				if (!this.availability[target].includes(iso)) {
+					this.availability[target].push(iso);
 				}
 			}
-			// Sort the ISO strings to maintain chronological order
-			this.availability.sort();
-		}
-		// If setting to unavailable (false)
-		else {
-			// Remove ISO strings in the range
-			this.availability = this.availability.filter((ISOString) => {
-				const blockIndex = this.getBlockIndexFromISOString(ISOString);
-				return blockIndex < earlierBlockIndex || blockIndex > laterBlockIndex;
-			});
+			this.availability[target].sort();
+
+			// Remove from the other bucket to enforce mutual exclusivity
+			this.availability[other] = this.availability[other].filter(
+				(iso) => !rangeSet.has(iso),
+			);
+		} else {
+			// Remove only from target
+			this.availability[target] = this.availability[target].filter(
+				(iso) => !rangeSet.has(iso),
+			);
 		}
 	}
 
@@ -449,7 +465,10 @@ export class ZotDate {
 			this.earliestTime,
 			this.latestTime,
 			this.isSelected,
-			[...this.availability],
+			{
+				availability: [...this.availability.availability],
+				ifNeeded: [...this.availability.ifNeeded],
+			},
 			{ ...this.groupAvailability },
 		);
 		return clonedDate;
