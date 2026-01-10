@@ -31,6 +31,11 @@ const data = {
 			url: "/summary",
 			icon: CalendarSearchIcon,
 		},
+		{
+			title: "Groups",
+			url: "/groups/home",
+			icon: SquarePlusIcon,
+		},
 	],
 };
 

@@ -1,10 +1,15 @@
 "use client";
 
 import { createGroup } from "@actions/group/create/action";
+import { useRouter } from "next/navigation";
+import { useQueryState } from "nuqs";
 import React from "react";
 import { Button } from "@/components/ui/button";
 
 export const CreateGroup = () => {
+	const [meetingId, setMeetingId] = useQueryState("id");
+	const router = useRouter();
+
 	const handleClick = async () => {
 		console.log("CLICKED");
 
@@ -16,6 +21,8 @@ export const CreateGroup = () => {
 		} else {
 			//  { id: string }
 			console.log("THE ID", result.id);
+			setMeetingId(result.id);
+			router.push(`/groups/${result.id}`);
 		}
 	};
 
