@@ -37,6 +37,7 @@ export const getTimestampFromBlockIndex = (
 };
 
 interface GroupAvailabilityProps {
+	meetingId: string;
 	timeBlock: number;
 	blockIndex: number;
 	availabilityTimeBlocks: number[];
@@ -45,9 +46,11 @@ interface GroupAvailabilityProps {
 	currentPageAvailability: ZotDate[];
 	members: Member[];
 	onMouseLeave: () => void;
+	isScheduling: boolean;
 }
 
 export function GroupAvailability({
+	meetingId,
 	timeBlock,
 	blockIndex,
 	availabilityTimeBlocks,
@@ -56,6 +59,7 @@ export function GroupAvailability({
 	currentPageAvailability,
 	members,
 	onMouseLeave,
+	isScheduling,
 }: GroupAvailabilityProps) {
 	const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
 		useShallow((state) => ({

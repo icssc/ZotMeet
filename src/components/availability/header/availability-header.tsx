@@ -53,6 +53,17 @@ export function AvailabilityHeader({
 		setAvailabilityView("group");
 	};
 
+	const handleScheduleCancel = () => {
+		// TODO: Clear selected times
+		setAvailabilityView("group");
+	};
+
+	const handleScheduleSave = () => {
+		// TODO: Implement schedule save logic
+		onSave();
+		setAvailabilityView("group");
+	};
+
 	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
 	// const [guestName, setGuestName] = useState("");
 
@@ -145,23 +156,63 @@ export function AvailabilityHeader({
 									<CircleCheckIcon className="text-green-500 group-hover:text-white" />
 								</Button>
 							</div>
+						) : availabilityView === "schedule" ? (
+							<div className="flex space-x-2 md:space-x-4">
+								<Button
+									className={cn(
+										"h-8 min-h-fit flex-center border border-yellow-500 bg-white px-2 text-yellow-500 uppercase md:w-24 md:p-0",
+										"group hover:border-yellow-500 hover:bg-yellow-500 hover:text-white",
+									)}
+									onClick={handleScheduleCancel}
+								>
+									<span className="hidden md:flex">Cancel</span>
+									<CircleXIcon />
+								</Button>
+								<Button
+									className={cn(
+										"h-8 min-h-fit flex-center border border-green-500 bg-white px-2 text-secondary uppercase md:w-24 md:p-0",
+										"group hover:border-green-500 hover:bg-green-500",
+									)}
+									type="submit"
+									onClick={handleScheduleSave}
+								>
+									<span className="hidden text-green-500 group-hover:text-white md:flex">
+										Save
+									</span>
+									<CircleCheckIcon className="text-green-500 group-hover:text-white" />
+								</Button>
+							</div>
 						) : (
-							<Button
-								className={cn(
-									"h-8 min-h-fit min-w-fit flex-center px-2 md:w-40 md:p-0",
+							<div className="flex space-x-2">
+								{isOwner && (
+									<Button
+										className={cn(
+											"h-8 min-h-fit min-w-fit flex-center px-2 md:w-40 md:p-0",
+										)}
+										onClick={() => {
+											setAvailabilityView("schedule");
+										}}
+									>
+										<span className="flex font-dm-sans">Schedule Meeting</span>
+									</Button>
 								)}
-								onClick={() => {
-									if (!user) {
-										setIsAuthModalOpen(true);
-										return;
-									}
-									setAvailabilityView("personal");
-								}}
-							>
-								<span className="flex font-dm-sans">
-									{hasAvailability ? "Edit Availability" : "Add Availability"}
-								</span>
-							</Button>
+								<Button
+									className={cn(
+										"h-8 min-h-fit min-w-fit flex-center px-2 md:w-40 md:p-0",
+									)}
+									onClick={() => {
+										if (!user) {
+											setIsAuthModalOpen(true);
+											return;
+										}
+										setAvailabilityView("personal");
+									}}
+								>
+									<span className="flex font-dm-sans">
+										{hasAvailability ? "Edit Availability" : "Add Availability"}
+									</span>
+								</Button>
+							</div>
 						)}
 					</div>
 				</div>

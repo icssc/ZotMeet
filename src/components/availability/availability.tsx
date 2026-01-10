@@ -341,8 +341,10 @@ export function Availability({
 								<tr key={`block-${timeBlock}`}>
 									<AvailabilityTimeTicks timeBlock={timeBlock} />
 
-									{availabilityView === "group" ? (
+									{availabilityView === "group" ||
+									availabilityView === "schedule" ? (
 										<GroupAvailability
+											meetingId={meetingData.id}
 											timeBlock={timeBlock}
 											blockIndex={blockIndex}
 											availabilityTimeBlocks={availabilityTimeBlocks}
@@ -351,6 +353,7 @@ export function Availability({
 											currentPageAvailability={currentPageAvailability}
 											members={members}
 											onMouseLeave={handleMouseLeave}
+											isScheduling={availabilityView === "schedule"}
 										/>
 									) : (
 										<PersonalAvailability
