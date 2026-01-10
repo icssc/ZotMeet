@@ -1,6 +1,8 @@
 "use client";
 
 import { saveAvailability } from "@actions/availability/save/action";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Switch from "@mui/material/Switch";
 import {
 	CircleCheckIcon,
 	CircleXIcon,
@@ -48,6 +50,14 @@ export function AvailabilityHeader({
 		})),
 	);
 
+	const { overlayGoogleCalendar, setOverlayGoogleCalendar } =
+		useAvailabilityViewStore(
+			useShallow((state) => ({
+				overlayGoogleCalendar: state.overlayGoogleCalendar,
+				setOverlayGoogleCalendar: state.setOverlayGoogleCalendar,
+			})),
+		);
+
 	const handleCancel = () => {
 		onCancel();
 		setAvailabilityView("group");
@@ -88,6 +98,26 @@ export function AvailabilityHeader({
 			}
 		} else {
 			console.error("Error saving availability:", response.body.error);
+		}
+	};
+
+	const handleToggleCalendar = async (
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => {
+		const enabled = event.target.checked;
+		setOverlayGoogleCalendar(enabled);
+
+		if (enabled) {
+			const res = await fetch("/api/auth/google/scopes");
+			const data = await res.json();
+
+			const hasCalendarAccess = data.scopes?.includes(
+				"https://www.googleapis.com/auth/calendar.readonly",
+			);
+
+			if (!hasCalendarAccess) {
+				window.location.href = "/auth/google?add_calendar_scope=1";
+			}
 		}
 	};
 
@@ -144,6 +174,17 @@ export function AvailabilityHeader({
 									</span>
 									<CircleCheckIcon className="text-green-500 group-hover:text-white" />
 								</Button>
+								<FormControlLabel
+									className="ml-2"
+									control={
+										<Switch
+											checked={overlayGoogleCalendar}
+											onChange={handleToggleCalendar}
+											size="small"
+										/>
+									}
+									label="Google Calendar"
+								/>
 							</div>
 						) : (
 							<Button

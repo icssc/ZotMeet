@@ -128,6 +128,10 @@ export function Availability({
 		(state) => state.availabilityView,
 	);
 
+	const overlayGoogleCalendar = useAvailabilityViewStore(
+		(state) => state.overlayGoogleCalendar,
+	);
+
 	const selectionIsLocked = useGroupSelectionStore(
 		(state) => state.selectionIsLocked,
 	);
@@ -201,6 +205,7 @@ export function Availability({
 	const [googleCalendarEvents, setGoogleCalendarEvents] = useState<
 		GoogleCalendarEvent[]
 	>([]);
+	const [hasFetchedCalendar, setHasFetchedCalendar] = useState(false);
 
 	const [availabilityDates, setAvailabilityDates] = useState(() =>
 		deriveInitialAvailability({
@@ -263,27 +268,30 @@ export function Availability({
 	}, [confirmSave]);
 
 	useEffect(() => {
-		if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
-			const firstDateISO = anchorNormalizedDate[0].toISOString();
+		if (!overlayGoogleCalendar) return;
+		if (hasFetchedCalendar) return;
 
-			const lastDateObj = new Date(
-				anchorNormalizedDate[anchorNormalizedDate.length - 1],
-			);
-			lastDateObj.setHours(23, 59, 59, 999);
-			const lastDateISO = lastDateObj.toISOString();
+		if (availabilityDates.length === 0 || anchorNormalizedDate.length === 0)
+			return;
 
-			fetchGoogleCalendarEvents(firstDateISO, lastDateISO)
-				.then((events) => {
-					setGoogleCalendarEvents(events);
-				})
-				.catch((error) => {
-					console.error("Error fetching Google Calendar events:", error);
-					setGoogleCalendarEvents([]);
-				});
-		} else {
-			setGoogleCalendarEvents([]);
-		}
-	}, [availabilityDates, anchorNormalizedDate]);
+		const firstDateISO = anchorNormalizedDate[0].toISOString();
+		const lastDateObj = new Date(
+			anchorNormalizedDate[anchorNormalizedDate.length - 1],
+		);
+		lastDateObj.setHours(23, 59, 59, 999);
+
+		fetchGoogleCalendarEvents(firstDateISO, lastDateObj.toISOString())
+			.then((events) => {
+				setGoogleCalendarEvents(events);
+				setHasFetchedCalendar(true);
+			})
+			.catch(() => setGoogleCalendarEvents([]));
+	}, [
+		overlayGoogleCalendar,
+		availabilityDates,
+		anchorNormalizedDate,
+		hasFetchedCalendar,
+	]);
 
 	const members = useMemo(() => {
 		const presentMemberIds = [
@@ -364,6 +372,7 @@ export function Availability({
 											user={user}
 											onAvailabilityChange={handleUserAvailabilityChange}
 											meetingDates={meetingData.dates}
+											showGoogleCalendar={overlayGoogleCalendar}
 										/>
 									)}
 								</tr>
