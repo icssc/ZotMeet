@@ -37,7 +37,7 @@ import { TimeZoneDropdown } from "./table/availability-timezone";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
-	// timezone,
+	//timezone,
 	meetingDates,
 	userAvailability,
 	allAvailabilties,
@@ -187,11 +187,13 @@ export function Availability({
 		[meetingData.toTime, userTimezone, referenceDate],
 	);
 
-	const fromTimeMinutes = getTimeFromHourMinuteString(
-		fromTimeLocal as HourMinuteString,
+	const fromTimeMinutes = useMemo(
+		() => getTimeFromHourMinuteString(fromTimeLocal as HourMinuteString),
+		[fromTimeLocal],
 	);
-	const toTimeMinutes = getTimeFromHourMinuteString(
-		toTimeLocal as HourMinuteString,
+	const toTimeMinutes = useMemo(
+		() => getTimeFromHourMinuteString(toTimeLocal as HourMinuteString),
+		[toTimeLocal],
 	);
 	const availabilityTimeBlocks = useMemo(
 		() => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
