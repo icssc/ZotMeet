@@ -3,7 +3,6 @@
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { getScheduledMeetings } from "@actions/meeting/schedule/action";
 import { toZonedTime } from "date-fns-tz";
-import { meet } from "googleapis/build/src/apis/meet";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
@@ -55,15 +54,14 @@ const deriveInitialAvailability = ({
 	if (userAvailability?.meetingAvailabilities) {
 		userAvailability.meetingAvailabilities.forEach((timeStr) => {
 			// Convert UTC timestamp to local date to get the correct day
-			const newTimeStr = toZonedTime(timeStr, timezone).toISOString();
-			const localDate = new Date(newTimeStr);
+			const localDate = new Date(timeStr);
 			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
 
 			if (!availabilitiesByDate.has(dateStr)) {
 				availabilitiesByDate.set(dateStr, []);
 			}
 
-			availabilitiesByDate.get(dateStr)?.push(newTimeStr);
+			availabilitiesByDate.get(dateStr)?.push(timeStr);
 		});
 	}
 
@@ -93,8 +91,7 @@ const deriveInitialAvailability = ({
 	const initialAvailability = meetingDates
 		.map((meetingDate) => {
 			// Extract the date part and create a Date object in LOCAL timezone
-			const newDate = toZonedTime(meetingDate, timezone).toISOString();
-			const dateStr = newDate.split("T")[0];
+			const dateStr = meetingDate.split("T")[0];
 			const [year, month, day] = dateStr.split("-").map(Number);
 			// Create date at midnight in LOCAL timezone
 			const date = new Date(year, month - 1, day);
@@ -122,25 +119,7 @@ const deriveInitialAvailability = ({
 
 	return initialAvailability;
 };
-/*
-const convertZotDate = (zotDate: ZotDate[], timezone: string) => {
-	const newDates = zotDate.map((zotDate) => {
-		const newGroupAvailability: Record<string, string[]> = {};
-		Object.keys(zotDate.groupAvailability).forEach((timestamp) => {
-			newGroupAvailability[toZonedTime(timestamp, timezone).toISOString()] = zotDate.groupAvailability[timestamp];
-		})
-		return new ZotDate(
-			zotDate.day,
-			zotDate.earliestTime,
-			zotDate.latestTime,
-			zotDate.isSelected,
-			zotDate.availability.map((timeStr) => toZonedTime(timeStr, timezone).toISOString()),
-			newGroupAvailability
-		);
-	});
-	return newDates;
-};
-*/
+
 export function Availability({
 	meetingData,
 	userAvailability,
@@ -260,8 +239,8 @@ export function Availability({
 	}, [
 		userTimezone,
 		userAvailability,
-		meetingData,
 		allAvailabilities,
+		meetingData.dates,
 		availabilityTimeBlocks,
 	]);
 	const { cancelEdit, confirmSave } = useEditState({
