@@ -1,5 +1,7 @@
 "use client";
 
+
+import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -13,10 +15,12 @@ import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
+// Get the ISO timestamp for a given block index and ZotDate index, considering fromTime and timezone
 export const getTimestampFromBlockIndex = (
 	blockIndex: number,
 	zotDateIndex: number,
 	fromTime: number,
+	timezone: string,
 	availabilityDates: ZotDate[],
 ) => {
 	const minutesFromMidnight = fromTime + blockIndex * 15;
@@ -35,7 +39,7 @@ export const getTimestampFromBlockIndex = (
 	date.setSeconds(0);
 	date.setMilliseconds(0);
 
-	const isoString = date.toISOString();
+	const isoString = fromZonedTime(date, timezone).toISOString();
 	return isoString;
 };
 
@@ -96,6 +100,7 @@ interface GroupAvailabilityProps {
 	availabilityDates: ZotDate[];
 	currentPageAvailability: ZotDate[];
 	members: Member[];
+	timezone: string;
 	onMouseLeave: () => void;
 	isScheduling: boolean;
 }
@@ -108,6 +113,7 @@ export function GroupAvailability({
 	availabilityDates,
 	currentPageAvailability,
 	members,
+	timezone,
 	onMouseLeave,
 	isScheduling,
 }: GroupAvailabilityProps) {
@@ -546,6 +552,7 @@ export function GroupAvailability({
 				blockIndex,
 				zotDateIndex,
 				fromTime,
+				timezone,
 				availabilityDates,
 			);
 

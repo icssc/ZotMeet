@@ -391,6 +391,7 @@ export function Availability({
 												availabilityDates={availabilityDates}
 												currentPageAvailability={currentPageAvailability}
 												members={members}
+												timezone={userTimezone}
 												onMouseLeave={handleMouseLeave}
 											isScheduling={availabilityView === "schedule"}
 											/>
@@ -405,6 +406,7 @@ export function Availability({
 												googleCalendarEvents={googleCalendarEvents}
 												user={user}
 												onAvailabilityChange={handleUserAvailabilityChange}
+												timezone={userTimezone}
 												meetingDates={meetingData.dates}
 											/>
 										)}
