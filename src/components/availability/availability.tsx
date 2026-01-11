@@ -38,7 +38,7 @@ import { TimeZoneDropdown } from "./table/availability-timezone";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
-	timezone,
+	//timezone,
 	meetingDates,
 	userAvailability,
 	allAvailabilties,
@@ -69,9 +69,7 @@ const deriveInitialAvailability = ({
 	for (const member of allAvailabilties) {
 		for (const timestamp of member.meetingAvailabilities) {
 			// Convert UTC timestamp to local date to get the correct day
-			const newTimeStamp = toZonedTime(timestamp, timezone).toISOString();
-
-			const localDate = new Date(newTimeStamp);
+			const localDate = new Date(timestamp);
 			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
 
 			let dateMap = timestampsByDate.get(dateStr);
@@ -80,11 +78,10 @@ const deriveInitialAvailability = ({
 				timestampsByDate.set(dateStr, dateMap);
 			}
 
-			if (!dateMap.has(newTimeStamp)) {
-				dateMap.set(newTimeStamp, []);
+			if (!dateMap.has(timestamp)) {
+				dateMap.set(timestamp, []);
 			}
-
-			dateMap.get(newTimeStamp)?.push(member.memberId);
+			dateMap.get(timestamp)?.push(member.memberId);
 		}
 	}
 
@@ -226,23 +223,6 @@ export function Availability({
 		}),
 	);
 
-	useEffect(() => {
-		setAvailabilityDates(
-			deriveInitialAvailability({
-				timezone: userTimezone,
-				meetingDates: meetingData.dates,
-				userAvailability,
-				allAvailabilties: allAvailabilities,
-				availabilityTimeBlocks,
-			}),
-		);
-	}, [
-		userTimezone,
-		userAvailability,
-		allAvailabilities,
-		meetingData.dates,
-		availabilityTimeBlocks,
-	]);
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
 	});
