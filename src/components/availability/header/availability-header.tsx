@@ -100,29 +100,14 @@ export function AvailabilityHeader({
 			console.error("Error saving availability:", response.body.error);
 		}
 	};
-
-	const handleToggleCalendar = async (
-		event: React.ChangeEvent<HTMLInputElement>,
-	) => {
+	const handleToggleCalendar = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const enabled = event.target.checked;
-		setOverlayGoogleCalendar(enabled);
-		console.log("Toggling Google Calendar overlay:", enabled);
 
-		if (enabled) {
-			const res = await fetch("/api/auth/google/scopes");
-			const data = await res.json();
-
-			const hasCalendarAccess = data.scopes?.includes(
-				"https://www.googleapis.com/auth/calendar.readonly",
-			);
-
-			if (!hasCalendarAccess) {
-				window.location.href = "/auth/google?add_calendar_scope=1";
-				return;
-			}
-
-			setOverlayGoogleCalendar(true);
+		if (!enabled) {
+			setOverlayGoogleCalendar(false);
+			return;
 		}
+		setOverlayGoogleCalendar(true);
 	};
 
 	return (

@@ -280,12 +280,18 @@ export function Availability({
 		);
 		lastDateObj.setHours(23, 59, 59, 999);
 
-		fetchGoogleCalendarEvents(firstDateISO, lastDateObj.toISOString())
-			.then((events) => {
-				setGoogleCalendarEvents(events);
-				setHasFetchedCalendar(true);
-			})
-			.catch(() => setGoogleCalendarEvents([]));
+		fetchGoogleCalendarEvents(firstDateISO, lastDateObj.toISOString()).then(
+			(result) => {
+				if (
+					result.status === "missing_scope" ||
+					result.status === "not_authenticated"
+				) {
+					window.location.href = "/auth/login/google";
+					return;
+				}
+				setGoogleCalendarEvents(result.events);
+			},
+		);
 	}, [
 		overlayGoogleCalendar,
 		availabilityDates,
