@@ -391,6 +391,7 @@ export function Availability({
 					availabilityDates={availabilityDates}
 					fromTime={fromTimeMinutes}
 					members={members}
+					timezone={userTimezone}
 					anchorNormalizedDate={anchorNormalizedDate}
 				/>
 			</div>
