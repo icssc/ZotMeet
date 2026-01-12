@@ -17,24 +17,28 @@ export const TimeZoneDropdown = ({
 		//console.log(TimeZone, changeTimeZone);
 		changeTimeZone(event.target.value);
 	};
+	const GMT_dict: Record<string, string> = {
+		"America/Los_Angeles": "Etc/GMT+8",
+		"America/New_York": "Etc/GMT+5",
+	};
 	return (
-		<FormControl variant="standard" sx={{ m: 1, minWidth: 120 }}>
+		<FormControl variant="standard">
 			<InputLabel id="TimeZone-Switcher-Label">Select Time Zone:</InputLabel>
 			<Select
 				labelId="TimeZone-Switcher-Label"
 				id="TimeZone-Selector"
-				value={TimeZone}
+				value={TimeZone in GMT_dict ? GMT_dict[TimeZone] : TimeZone}
 				onChange={onTimeZoneChange}
 				label="Time Zone"
 			>
-				<MenuItem value={"America/Los_Angeles"}>
-					{" "}
-					(UTC-8) Pacific Standard Time (PST){" "}
-				</MenuItem>
 				<MenuItem value={"Etc/GMT+12"}> (UTC-12) Eniwetok </MenuItem>
 				<MenuItem value={"Etc/GMT+11"}> (UTC-11) Samoa </MenuItem>
 				<MenuItem value={"Etc/GMT+10"}> (UTC-10) Hawaii </MenuItem>
 				<MenuItem value={"Etc/GMT+9"}> (UTC-9) Alaska </MenuItem>
+				<MenuItem value={"Etc/GMT+8"}>
+					{" "}
+					(UTC-8) Pacific Standard Time (PST){" "}
+				</MenuItem>
 				<MenuItem value={"Etc/GMT+7"}>
 					{" "}
 					(UTC-7) Mountain Standard Time (MST){" "}
@@ -43,7 +47,7 @@ export const TimeZoneDropdown = ({
 					{" "}
 					(UTC-6) Central Standard Time (CST)
 				</MenuItem>
-				<MenuItem value={"America/New_York"}>
+				<MenuItem value={"Etc/GMT+5"}>
 					{" "}
 					(UTC-5) Eastern Standard Time (EST){" "}
 				</MenuItem>

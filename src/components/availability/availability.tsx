@@ -414,10 +414,12 @@ export function Availability({
 								))}
 							</tbody>
 						</table>
-						<TimeZoneDropdown
-							TimeZone={userTimezone}
-							changeTimeZone={setUserTimezone}
-						/>
+						<div className="pt-5 pl-10 md:pl-16">
+							<TimeZoneDropdown
+								TimeZone={userTimezone}
+								changeTimeZone={setUserTimezone}
+							/>
+						</div>
 					</div>
 					<AvailabilityNavButton
 						direction="right"
