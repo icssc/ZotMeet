@@ -13,9 +13,6 @@ export async function generateMetadata(props: PageProps) {
 	const params = await props.params;
 	const { slug } = params;
 
-	//check if group is valid here
-	// xxx
-
 	return {};
 }
 
@@ -36,7 +33,7 @@ export default async function Page(props: PageProps) {
 	}
 
 	return (
-		<div>
+		<div className="p-8">
 			<p>hello, this is the homepage for groups</p>
 			<CreateGroup />
 		</div>
