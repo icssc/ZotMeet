@@ -190,6 +190,33 @@ export const groupsRelations = relations(groups, ({ many }) => ({
 export type InsertGroup = InferInsertModel<typeof groups>;
 export type SelectGroup = InferSelectModel<typeof groups>;
 
+export const inviteStatusEnum = pgEnum("invite_status", [
+	"pending",
+	"accepted",
+	"declined",
+	"expired",
+]);
+
+export const groupInvites = pgTable("group_invites", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	groupId: uuid("group_id")
+		.notNull()
+		.references(() => groups.id, { onDelete: "cascade" }),
+	inviteToken: text("invite_token").notNull().unique(),
+	inviteeEmail: text("invitee_email").notNull(),
+	inviterId: text("inviter_id")
+		.notNull()
+		.references(() => users.id, { onDelete: "cascade" }),
+	status: inviteStatusEnum("status").notNull().default("pending"),
+	sentAt: timestamp("sent_at", { mode: "date" }).defaultNow().notNull(),
+	expiresAt: timestamp("expires_at", { mode: "date" }),
+	respondedAt: timestamp("responded_at", { mode: "date" }),
+	userId: text("user_id").references(() => users.id),
+});
+
+export type InsertGroupInvite = InferInsertModel<typeof groupInvites>;
+export type SelectGroupInvite = InferSelectModel<typeof groupInvites>;
+
 export const availabilities = pgTable(
 	"availabilities",
 	{
