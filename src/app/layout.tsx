@@ -8,6 +8,7 @@ import "./globals.css";
 
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
+import { JaggedClipDefs } from "@/components/JaggedClipDefs";
 import AppSidebar from "@/components/nav/app-sidebar";
 import { Banner } from "@/components/ui/banner";
 import {
@@ -60,6 +61,7 @@ export default function RootLayout({
 					"bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]",
 				)}
 			>
+				<JaggedClipDefs />
 				<NuqsAdapter>
 					<AppRouterCacheProvider>
 						<ThemeProvider theme={theme}>

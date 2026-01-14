@@ -137,7 +137,9 @@ export function Calendar({
 						onClick={decrementMonth}
 						className="bg-transparent p-3 hover:bg-transparent"
 					>
-						<span className="text-3xl text-gray-500">&lsaquo;</span>
+						<span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-gray-300 text-gray-500 text-xl hover:border-gray-400">
+							&lsaquo;
+						</span>
 					</Button>
 				)}
 
@@ -184,7 +186,9 @@ export function Calendar({
 						onClick={incrementMonth}
 						className="bg-transparent p-3 hover:bg-transparent"
 					>
-						<span className="text-3xl text-gray-500">&rsaquo;</span>
+						<span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-gray-300 text-gray-500 text-xl hover:border-gray-400">
+							&rsaquo;
+						</span>
 					</Button>
 				)}
 			</div>
