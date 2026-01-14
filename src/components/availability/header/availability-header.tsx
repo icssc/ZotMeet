@@ -133,7 +133,7 @@ export function AvailabilityHeader({
 							<div className="flex space-x-2 md:space-x-4">
 								<Button
 									className={cn(
-										"h-8 min-h-fit flex-center border-yellow-500 bg-white px-2 text-yellow-500 uppercase outline md:w-28 md:p-0",
+										"h-8 min-h-fit flex-center border border-yellow-500 bg-white px-2 text-yellow-500 uppercase md:w-28 md:p-0",
 										"hover:border-yellow-500 hover:bg-yellow-500 hover:text-white",
 									)}
 									onClick={handleCancel}
