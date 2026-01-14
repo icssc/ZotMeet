@@ -26,6 +26,7 @@ export async function fetchGoogleCalendarEvents(
 	}
 
 	if (!scopes?.includes("https://www.googleapis.com/auth/calendar.readonly")) {
+		console.warn("Missing Google Calendar API scope");
 		return { status: "missing_scope" };
 	}
 
