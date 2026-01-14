@@ -1,5 +1,5 @@
 import { differenceInCalendarDays } from "date-fns";
-import { formatInTimeZone, fromZonedTime, toZonedTime } from "date-fns-tz";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { type HourMinuteString, TimeConstants } from "@/lib/types/chrono";
 import type { ZotDate } from "@/lib/zotdate";
 
@@ -63,18 +63,6 @@ export const convertTimeFromUTC = (
 	// Create a UTC date
 	const utcDate = new Date(`${datePart}T${hours}:${minutes}:${seconds}Z`);
 
-	// im pretty sure this code is wrong since getHours always returns in the SYSTEM's
-	/*
-	// Convert to the target timezone
-	const zonedDate = toZonedTime(utcDate, timezone);
-
-	// Format as HH:MM:SS in the target timezone
-	const localHours = zonedDate.getHours().toString().padStart(2, "0");
-	const localMinutes = zonedDate.getMinutes().toString().padStart(2, "0");
-	const localSeconds = zonedDate.getSeconds().toString().padStart(2, "0");
-	console.log(zonedDate, timezone);
-	*/
-	//console.log(formatInTimeZone(utcDate, timezone, "HH:mm:ss"), timezone)
 	return formatInTimeZone(utcDate, timezone, "HH:mm:ss");
 };
 

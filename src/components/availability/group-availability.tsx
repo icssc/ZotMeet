@@ -15,7 +15,6 @@ import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
-// Get the ISO timestamp for a given block index and ZotDate index, considering fromTime and timezone
 export const getTimestampFromBlockIndex = (
 	blockIndex: number,
 	zotDateIndex: number,

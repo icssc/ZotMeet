@@ -2,7 +2,6 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
-import { useState } from "react";
 
 interface TimeZoneProps {
 	TimeZone: string;
@@ -14,15 +13,16 @@ export const TimeZoneDropdown = ({
 	changeTimeZone,
 }: TimeZoneProps) => {
 	const onTimeZoneChange = (event: SelectChangeEvent) => {
-		//console.log(TimeZone, changeTimeZone);
 		changeTimeZone(event.target.value);
 	};
+
 	const GMT_dict: Record<string, string> = {
 		"America/Los_Angeles": "Etc/GMT+8",
 		"America/New_York": "Etc/GMT+5",
 	};
+
 	return (
-		<FormControl variant="standard">
+		<FormControl variant="standard" sx={{ width: 400 }}>
 			<InputLabel id="TimeZone-Switcher-Label">Select Time Zone:</InputLabel>
 			<Select
 				labelId="TimeZone-Switcher-Label"
