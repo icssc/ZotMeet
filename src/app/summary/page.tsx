@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { CreateGroup } from "@/components/summary/CreateGroup";
+import { CreateGroup } from "@/components/groups/create-group";
 import { GroupsDisplay } from "@/components/summary/GroupsDisplay";
 import { Meetings } from "@/components/summary/meetings";
 import { getCurrentSession } from "@/lib/auth";

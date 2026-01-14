@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import React from "react";
-import { CreateGroup } from "@/components/summary/CreateGroup";
+import { CreateGroup } from "@/components/groups/create-group";
 import { getCurrentSession } from "@/lib/auth";
 
 interface PageProps {
