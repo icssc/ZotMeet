@@ -115,7 +115,6 @@ export function GroupAvailabilityRow({
 									blockIndex,
 								})
 							}
-							block={block}
 							blockColor={blockColor}
 							tableCellStyles={tableCellStyles}
 							hoveredMember={hoveredMember}

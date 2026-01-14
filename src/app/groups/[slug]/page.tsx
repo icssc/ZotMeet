@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import React from "react";
 import { CreateGroup } from "@/components/groups/create-group";
 import { getCurrentSession } from "@/lib/auth";
 
@@ -13,7 +12,15 @@ export async function generateMetadata(props: PageProps) {
 	const params = await props.params;
 	const { slug } = params;
 
-	return {};
+	if (slug === "home") {
+		return {
+			title: "Groups - ZotMeet",
+		};
+	}
+
+	return {
+		title: `Group ${slug} - ZotMeet`,
+	};
 }
 
 export default async function Page(props: PageProps) {
@@ -25,17 +32,29 @@ export default async function Page(props: PageProps) {
 	}
 
 	const session = await getCurrentSession();
-	const userAvailability = null;
 
-	//check if user in session (unfinished)
-	if (session.user !== null) {
-		const userId = session.user.memberId;
+	// Route: /groups/home → Show groups home page
+	if (slug === "home") {
+		return (
+			<div className="p-8">
+				<h1 className="mb-4 font-medium font-montserrat text-3xl">Groups</h1>
+				<p className="mb-4 text-gray-600">Create and manage your groups</p>
+				<CreateGroup />
+			</div>
+		);
 	}
 
+	// Route: /groups/[id] → Show group detail page (no validation for now)
+	// slug is treated as a group ID
 	return (
 		<div className="p-8">
-			<p>hello, this is the homepage for groups</p>
-			<CreateGroup />
+			<h1 className="mb-4 font-medium font-montserrat text-3xl">
+				Group: {slug}
+			</h1>
+			<p className="text-gray-600">
+				This is the group detail page for ID: {slug}
+			</p>
+			{/* Add your group content here later */}
 		</div>
 	);
 }
