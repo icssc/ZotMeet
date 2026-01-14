@@ -66,7 +66,6 @@ export const CreateGroup = () => {
 	function CreateGroupPopup() {
 		return (
 			<div className="relative mx-auto mb-4 flex w-full max-w-md flex-shrink-0 flex-col gap-2 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] p-4">
-				{/* Close button in top right corner */}
 				<IconButton
 					onClick={togglePopup}
 					aria-label="close"
@@ -169,7 +168,9 @@ export const CreateGroup = () => {
 
 			{showPopup && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-					<div className="mx-4 w-full max-w-md">{CreateGroupPopup()}</div>
+					<div className="mx-4 w-full max-w-md">
+						<CreateGroupPopup />
+					</div>
 				</div>
 			)}
 		</>
