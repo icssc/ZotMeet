@@ -6,9 +6,7 @@ import {
 import { cookies, headers } from "next/headers";
 import { oauth } from "@/lib/auth/oauth";
 
-export async function GET(request: Request): Promise<Response> {
-	const { searchParams } = new URL(request.url);
-	const promptValue = searchParams.get("prompt") || "none";
+export async function GET(): Promise<Response> {
 	const state = generateState();
 	const codeVerifier = generateCodeVerifier();
 	const url = new URL(
@@ -25,7 +23,6 @@ export async function GET(request: Request): Promise<Response> {
 			],
 		),
 	);
-	url.searchParams.set("prompt", promptValue);
 
 	const cookieStore = await cookies();
 	cookieStore.set("oauth_state", state, {

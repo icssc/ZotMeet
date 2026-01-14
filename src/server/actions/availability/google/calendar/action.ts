@@ -4,30 +4,18 @@ import { google as googleClient } from "googleapis";
 import { validateGoogleAccessToken } from "@/lib/auth/google";
 import type { GoogleCalendarEvent } from "@/lib/types/availability";
 
-export type GoogleCalendarResult =
-	| { status: "ok"; events: GoogleCalendarEvent[] }
-	| { status: "missing_scope" }
-	| { status: "not_authenticated" };
-
 export async function fetchGoogleCalendarEvents(
 	startDate: string,
 	endDate: string,
-): Promise<GoogleCalendarResult> {
-	const { accessToken, scopes, error } = await validateGoogleAccessToken();
+): Promise<GoogleCalendarEvent[]> {
+	const { accessToken, error } = await validateGoogleAccessToken();
 
 	if (error === "No OAuth refresh token" || error === "Not authenticated") {
-		return { status: "not_authenticated" };
+		return [];
 	}
 
-	// Shouldn't happen but just in case
-	if (!accessToken) {
-		console.warn("No Google access token; skipping calendar fetch");
-		return { status: "not_authenticated" };
-	}
-
-	if (!scopes?.includes("https://www.googleapis.com/auth/calendar.readonly")) {
-		console.warn("Missing Google Calendar API scope");
-		return { status: "missing_scope" };
+	if (error || !accessToken) {
+		throw new Error(error ?? "Could not retrieve OAuth access token");
 	}
 
 	const auth = new googleClient.auth.OAuth2();
@@ -74,9 +62,10 @@ export async function fetchGoogleCalendarEvents(
 			}),
 		);
 
-		return { status: "ok", events: eventsPerCalendar.flat() };
+		return eventsPerCalendar.flat();
 	} catch (e) {
 		console.error("Failed to fetch Google Calendar list", e);
-		return { status: "ok", events: [] };
+
+		return [];
 	}
 }
