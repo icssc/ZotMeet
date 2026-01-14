@@ -1,14 +1,14 @@
 import "server-only";
 
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { 
-    groups, 
-    type SelectGroup,
-    usersInGroup,
-    users,
-    meetings,
-    type SelectMeeting 
+import {
+	groups,
+	meetings,
+	type SelectGroup,
+	type SelectMeeting,
+	users,
+	usersInGroup,
 } from "@/db/schema";
 
 export async function getExistingGroup(groupId: string): Promise<SelectGroup> {
@@ -38,15 +38,16 @@ export async function getGroupsByUserId(
 		.where(eq(usersInGroup.userId, userId));
 }
 
-export async function getUsersInGroup(groupId:string){
-    return await db.select({
-        userId: users.id,
-        memberId: users.memberId,
-        email: users.email,
-    })
-    .from(users)
-    .innerJoin(usersInGroup, eq(users.id, usersInGroup.userId))
-    .where(eq(usersInGroup.groupId,groupId))
+export async function getUsersInGroup(groupId: string) {
+	return await db
+		.select({
+			userId: users.id,
+			memberId: users.memberId,
+			email: users.email,
+		})
+		.from(users)
+		.innerJoin(usersInGroup, eq(users.id, usersInGroup.userId))
+		.where(eq(usersInGroup.groupId, groupId));
 }
 
 export async function getMeetingsByGroupId(
@@ -57,8 +58,10 @@ export async function getMeetingsByGroupId(
 	});
 }
 
-export async function isUserInGroup({userId, groupId,}: 
-{
+export async function isUserInGroup({
+	userId,
+	groupId,
+}: {
 	userId: string;
 	groupId: string;
 }): Promise<boolean> {
@@ -69,4 +72,33 @@ export async function isUserInGroup({userId, groupId,}:
 		),
 	});
 	return userInGroup !== undefined;
+}
+
+export async function isGroupCreator({
+	userId,
+	groupId,
+}: {
+	userId: string;
+	groupId: string;
+}): Promise<boolean> {
+	const group = await db.query.groups.findFirst({
+		where: and(eq(groups.id, groupId), eq(groups.createdBy, userId)),
+	});
+	return group !== undefined;
+}
+
+export async function getGroupNameExists(name: string): Promise<boolean> {
+	const group = await db.query.groups.findFirst({
+		where: eq(groups.name, name),
+	});
+	return group !== undefined;
+}
+
+export async function getGroupMemberCount(groupId: string): Promise<number> {
+	const result = await db
+		.select({ count: count() })
+		.from(usersInGroup)
+		.where(eq(usersInGroup.groupId, groupId));
+
+	return result[0]?.count ?? 0;
 }
