@@ -7,9 +7,14 @@ interface GroupAvailabilityBlockProps {
 	tableCellStyles?: string;
 	onClick: VoidFunction;
 	onHover?: VoidFunction;
+	onMouseDown?: VoidFunction;
+	onMouseMove?: VoidFunction;
+	onMouseUp?: VoidFunction;
 	blockColor: string;
 	hoveredMember?: string | null;
 	hasSpacerBefore?: boolean;
+	isScheduled?: boolean;
+	isInSelectionRange?: boolean;
 }
 
 export const GroupAvailabilityBlock = memo(
@@ -19,12 +24,27 @@ export const GroupAvailabilityBlock = memo(
 		className = "",
 		onClick,
 		onHover,
+		onMouseDown,
+		onMouseMove,
+		onMouseUp,
 		blockColor,
 		hoveredMember,
 		hasSpacerBefore = false,
+		isScheduled = false,
+		isInSelectionRange = false,
 	}: GroupAvailabilityBlockProps) => {
 		const isMemberAvailable =
 			hoveredMember && block && block.includes(hoveredMember);
+
+		// Gold color when scheduling takes precedence over group availability colors
+		let finalBackgroundColor = blockColor;
+		if (isInSelectionRange && !isScheduled) {
+			// lighter gold when dragging
+			finalBackgroundColor = "rgba(255, 215, 0, 0.3)";
+		} else if (isScheduled) {
+			// Darker gold when drag ends
+			finalBackgroundColor = "rgba(255, 215, 0, 0.6)";
+		}
 
 		return (
 			<button
@@ -38,10 +58,13 @@ export const GroupAvailabilityBlock = memo(
 				)}
 				onClick={onClick}
 				onMouseEnter={onHover}
+				onMouseDown={onMouseDown}
+				onMouseMove={onMouseMove}
+				onMouseUp={onMouseUp}
 			>
 				<div
 					className={cn("block h-full w-full py-2")}
-					style={{ background: blockColor }}
+					style={{ background: finalBackgroundColor }}
 				/>
 			</button>
 		);
