@@ -168,50 +168,47 @@ export function GroupResponses({
 						<XIcon className="text-lg text-slate-400" />
 					</button>
 				</div>
-				<div className="grid grid-cols-2 lg:flex lg:flex-col lg:gap-10 lg:py-4">
-					<div>
-						<div className="border-gray-300 border-b-[1px] px-8">
-							<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
-								AVAILABLE (
-								{isHoveringGrid ? availableMembers.length : members.length})
-							</span>
-						</div>
 
-						<ul className="overflow-auto py-2 pl-8">
-							{members.map((member) => (
-								<li
-									key={member.memberId}
-									className={cn(
-										"cursor-pointer text-lg",
-										isHoveringGrid &&
-											notAvailableMembers.some(
-												(m) => m.memberId === member.memberId,
-											)
-											? "text-decoration-line: text-gray-medium line-through"
-											: "",
-									)}
-									onMouseEnter={() => handleMemberHover(member.memberId)}
-									onMouseLeave={() => handleMemberHover(null)}
-								>
-									<ul className="flex w-fit items-center gap-2">
-										<Checkbox
-											id={`MEMBER${member.memberId}`}
-											checked={selectedMembers.includes(member.memberId)}
-											onCheckedChange={() =>
-												handleMemberSelect(member.memberId)
-											}
-										/>
-										<Label
-											htmlFor={`MEMBER${member.memberId}`}
-											className="cursor-pointer text-lg"
-										>
-											{member.displayName}
-										</Label>
-									</ul>
-								</li>
-							))}
-						</ul>
+				<div className="flex h-[32rem] grow flex-col">
+					<div className="border-gray-300 border-b-[1px] px-8">
+						<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
+							AVAILABLE (
+							{isHoveringGrid ? availableMembers.length : members.length})
+						</span>
 					</div>
+
+					<ul className="overflow-auto py-2 pl-8">
+						{members.map((member) => (
+							<li
+								key={member.memberId}
+								className={cn(
+									"cursor-pointer text-lg",
+									isHoveringGrid &&
+										notAvailableMembers.some(
+											(m) => m.memberId === member.memberId,
+										)
+										? "text-decoration-line: text-gray-medium line-through"
+										: "",
+								)}
+								onMouseEnter={() => handleMemberHover(member.memberId)}
+								onMouseLeave={() => handleMemberHover(null)}
+							>
+								<ul className="flex w-fit items-center gap-2">
+									<Checkbox
+										id={`MEMBER${member.memberId}`}
+										checked={selectedMembers.includes(member.memberId)}
+										onCheckedChange={() => handleMemberSelect(member.memberId)}
+									/>
+									<Label
+										htmlFor={`MEMBER${member.memberId}`}
+										className="cursor-pointer text-lg"
+									>
+										{member.displayName}
+									</Label>
+								</ul>
+							</li>
+						))}
+					</ul>
 				</div>
 			</div>
 		</div>
