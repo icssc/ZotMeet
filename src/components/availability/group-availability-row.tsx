@@ -117,7 +117,6 @@ export function GroupAvailabilityRow({
 							}
 							blockColor={blockColor}
 							tableCellStyles={tableCellStyles}
-							hoveredMember={hoveredMember}
 							hasSpacerBefore={spacers[pageDateIndex]}
 						/>
 					</td>
