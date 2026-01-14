@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
@@ -8,6 +8,7 @@ import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 
 export const getTimestampFromBlockIndex = (
@@ -86,6 +87,21 @@ export function GroupAvailability({
 		})),
 	);
 
+	const numMembers = members.length;
+	const { enabled: showBestTimes } = useBestTimesToggleStore();
+
+	const maxAvailability = useMemo(() => {
+		if (!showBestTimes || numMembers === 0) return 0;
+
+		let max = 0;
+		availabilityDates.forEach((date) => {
+			Object.values(date.groupAvailability).forEach((memberIds) => {
+				max = Math.max(max, memberIds.length);
+			});
+		});
+		return max;
+	}, [showBestTimes, numMembers, availabilityDates]);
+
 	const updateSelection = useCallback(
 		({
 			zotDateIndex,
@@ -139,7 +155,6 @@ export function GroupAvailability({
 	const isTopOfHour = timeBlock % 60 === 0;
 	const isHalfHour = timeBlock % 60 === 30;
 	const isLastRow = blockIndex === availabilityTimeBlocks.length - 1;
-	const numMembers = members.length;
 
 	const spacers = spacerBeforeDate(currentPageAvailability);
 
@@ -172,12 +187,18 @@ export function GroupAvailability({
 			if (hoveredMember) {
 				if (block.includes(hoveredMember)) {
 					blockColor = "rgba(55, 124, 251)";
-				} else {
-					blockColor = "transparent";
 				}
 			} else if (numMembers > 0) {
-				const opacity = block.length / numMembers;
-				blockColor = `rgba(55, 124, 251, ${opacity})`;
+				if (showBestTimes) {
+					if (block.length === maxAvailability && maxAvailability > 0) {
+						blockColor = "rgba(55, 124, 251, 1)";
+					} else {
+						blockColor = "transparent";
+					}
+				} else {
+					const opacity = block.length / numMembers;
+					blockColor = `rgba(55, 124, 251, ${opacity})`;
+				}
 			}
 
 			const tableCellStyles = cn(

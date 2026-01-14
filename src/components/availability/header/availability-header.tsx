@@ -13,11 +13,13 @@ import { AuthDialog } from "@/components/auth/auth-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
@@ -47,6 +49,14 @@ export function AvailabilityHeader({
 			setAvailabilityView: state.setAvailabilityView,
 		})),
 	);
+
+	const { enabled: showBestTimes, setEnabled: setShowBestTimes } =
+		useBestTimesToggleStore(
+			useShallow((state) => ({
+				enabled: state.enabled,
+				setEnabled: state.setEnabled,
+			})),
+		);
 
 	const handleCancel = () => {
 		onCancel();
@@ -163,6 +173,13 @@ export function AvailabilityHeader({
 								</span>
 							</Button>
 						)}
+						<div className="flex items-center space-x-2">
+							<Switch
+								checked={showBestTimes}
+								onCheckedChange={setShowBestTimes}
+							/>
+							<span className="flex font-dm-sans">Best Times</span>
+						</div>
 					</div>
 				</div>
 			</div>
