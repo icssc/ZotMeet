@@ -65,7 +65,7 @@ export const CreateGroup = () => {
 
 	function CreateGroupPopup() {
 		return (
-			<div className="relative mx-auto mb-4 flex w-full max-w-md flex-col gap-2 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-4">
+			<div className="relative mx-auto mb-4 flex w-full max-w-md flex-shrink-0 flex-col gap-2 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] p-4">
 				{/* Close button in top right corner */}
 				<IconButton
 					onClick={togglePopup}
@@ -96,6 +96,7 @@ export const CreateGroup = () => {
 											placeholder="Group Name *"
 											{...field}
 											disabled={isCreating}
+											className="border-2 border-gray-300 focus-visible:border-gray-500"
 										/>
 									</FormControl>
 									<FormMessage />
@@ -113,6 +114,7 @@ export const CreateGroup = () => {
 											placeholder="Description (optional)"
 											{...field}
 											disabled={isCreating}
+											className="border-2 border-gray-300 focus-visible:border-gray-500"
 										/>
 									</FormControl>
 									<FormMessage />
@@ -162,10 +164,14 @@ export const CreateGroup = () => {
 	const [showPopup, setShowPopup] = useState(false);
 
 	return (
-		<div>
+		<>
 			<Button onClick={togglePopup}>+ Create Group</Button>
 
-			{showPopup && CreateGroupPopup()}
-		</div>
+			{showPopup && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+					<div className="mx-4 w-full max-w-md">{CreateGroupPopup()}</div>
+				</div>
+			)}
+		</>
 	);
 };

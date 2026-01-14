@@ -33,19 +33,17 @@ export default async function Page(props: PageProps) {
 
 	const session = await getCurrentSession();
 
-	// Route: /groups/home → Show groups home page
 	if (slug === "home") {
 		return (
-			<div className="p-8">
+			<div className="relative p-8">
 				<h1 className="mb-4 font-medium font-montserrat text-3xl">Groups</h1>
 				<p className="mb-4 text-gray-600">Create and manage your groups</p>
+
 				<CreateGroup />
 			</div>
 		);
 	}
 
-	// Route: /groups/[id] → Show group detail page (no validation for now)
-	// slug is treated as a group ID
 	return (
 		<div className="p-8">
 			<h1 className="mb-4 font-medium font-montserrat text-3xl">
@@ -54,7 +52,6 @@ export default async function Page(props: PageProps) {
 			<p className="text-gray-600">
 				This is the group detail page for ID: {slug}
 			</p>
-			{/* Add your group content here later */}
 		</div>
 	);
 }
