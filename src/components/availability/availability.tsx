@@ -38,7 +38,6 @@ import { TimeZoneDropdown } from "./table/availability-timezone";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
-	//timezone,
 	meetingDates,
 	userAvailability,
 	allAvailabilties,
@@ -414,7 +413,8 @@ export function Availability({
 								))}
 							</tbody>
 						</table>
-						<div className="pt-5 pl-10 md:pl-16">
+
+						<div className="w-full pt-5 pl-10 md:pl-16">
 							<TimeZoneDropdown
 								TimeZone={userTimezone}
 								changeTimeZone={setUserTimezone}

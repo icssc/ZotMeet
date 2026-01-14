@@ -201,7 +201,6 @@ export function PersonalAvailability({
 			blockIndex={blockIndex}
 			availabilityTimeBlocksLength={availabilityTimeBlocks.length}
 			currentPageAvailability={currentPageAvailability}
-			timezone={timezone}
 			processedCellSegments={processedCellSegments}
 		/>
 	);

@@ -19,7 +19,6 @@ interface AvailabilityBlocksProps {
 	blockIndex: number;
 	availabilityTimeBlocksLength: number;
 	currentPageAvailability: ZotDate[];
-	timezone: string;
 	processedCellSegments: ProcessedCellEventSegments;
 }
 
@@ -29,7 +28,6 @@ export function AvailabilityBlocks({
 	blockIndex,
 	availabilityTimeBlocksLength,
 	currentPageAvailability,
-	timezone,
 	processedCellSegments,
 }: AvailabilityBlocksProps) {
 	const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
