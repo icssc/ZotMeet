@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-export const createGroupSchema = z.object({
+export const updateGroupSchema = z.object({
+	groupId: z.string().uuid({
+		message: "Invalid group ID",
+	}),
 	name: z
 		.string()
 		.min(1, {
@@ -8,7 +11,8 @@ export const createGroupSchema = z.object({
 		})
 		.max(100, {
 			message: "Group name must be less than 100 characters",
-		}),
+		})
+		.optional(),
 	description: z
 		.string()
 		.max(500, {
@@ -17,4 +21,4 @@ export const createGroupSchema = z.object({
 		.optional(),
 });
 
-export type CreateGroupInput = z.infer<typeof createGroupSchema>;
+export type UpdateGroupInput = z.infer<typeof updateGroupSchema>;
