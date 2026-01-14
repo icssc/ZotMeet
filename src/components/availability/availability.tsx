@@ -10,6 +10,7 @@ import { PersonalAvailability } from "@/components/availability/personal-availab
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
+import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import type { UserProfile } from "@/lib/auth/user";
@@ -31,11 +32,9 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
-import { TimeZoneDropdown } from "./table/availability-timezone";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
-	//timezone,
 	meetingDates,
 	userAvailability,
 	allAvailabilties,
@@ -375,7 +374,8 @@ export function Availability({
 								))}
 							</tbody>
 						</table>
-						<div className="pt-5 pl-10 md:pl-16">
+
+						<div className="w-full pt-5 pl-10 md:pl-16">
 							<TimeZoneDropdown
 								TimeZone={userTimezone}
 								changeTimeZone={setUserTimezone}

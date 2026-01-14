@@ -1,6 +1,6 @@
 "use client";
 
-import { fromZonedTime, toZonedTime } from "date-fns-tz";
+import { fromZonedTime } from "date-fns-tz";
 import React, { useCallback } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -11,7 +11,6 @@ import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 
-// Get the ISO timestamp for a given block index and ZotDate index, considering fromTime and timezone
 export const getTimestampFromBlockIndex = (
 	blockIndex: number,
 	zotDateIndex: number,
