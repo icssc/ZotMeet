@@ -1,8 +1,7 @@
 "use client";
 
 import { saveAvailability } from "@actions/availability/save/action";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Switch from "@mui/material/Switch";
+import { FormControlLabel, Switch } from "@mui/material";
 import {
 	CircleCheckIcon,
 	CircleXIcon,
@@ -101,13 +100,7 @@ export function AvailabilityHeader({
 		}
 	};
 	const handleToggleCalendar = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const enabled = event.target.checked;
-
-		if (!enabled) {
-			setOverlayGoogleCalendar(false);
-			return;
-		}
-		setOverlayGoogleCalendar(true);
+		setOverlayGoogleCalendar(event.target.checked);
 	};
 
 	return (

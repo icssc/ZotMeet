@@ -207,7 +207,7 @@ export function Availability({
 	const [googleCalendarEvents, setGoogleCalendarEvents] = useState<
 		GoogleCalendarEvent[]
 	>([]);
-	const [hasFetchedCalendar, setHasFetchedCalendar] = useState(false);
+	// const [hasFetchedCalendar, setHasFetchedCalendar] = useState(false);
 
 	const [availabilityDates, setAvailabilityDates] = useState(() =>
 		deriveInitialAvailability({
@@ -270,8 +270,10 @@ export function Availability({
 	}, [confirmSave]);
 
 	useEffect(() => {
-		if (!overlayGoogleCalendar) return;
-		if (hasFetchedCalendar) return;
+		if (!overlayGoogleCalendar) {
+			return;
+		}
+		// if (hasFetchedCalendar) return;
 
 		if (availabilityDates.length === 0 || anchorNormalizedDate.length === 0)
 			return;
@@ -281,8 +283,6 @@ export function Availability({
 			anchorNormalizedDate[anchorNormalizedDate.length - 1],
 		);
 		lastDateObj.setHours(23, 59, 59, 999);
-
-		console.log("hello outside of fetch");
 
 		fetchGoogleCalendarEvents(firstDateISO, lastDateObj.toISOString()).then(
 			(result) => {
@@ -295,14 +295,14 @@ export function Availability({
 					return;
 				}
 				setGoogleCalendarEvents(result.events);
-				setHasFetchedCalendar(true);
+				// setHasFetchedCalendar(true);
 			},
 		);
 	}, [
 		overlayGoogleCalendar,
 		availabilityDates,
 		anchorNormalizedDate,
-		hasFetchedCalendar,
+		// hasFetchedCalendar,
 		router,
 	]);
 
