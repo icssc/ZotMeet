@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
+import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
@@ -63,8 +64,14 @@ export function AvailabilityHeader({
 		setAvailabilityView("group");
 	};
 
+	const { clearScheduledTimes } = useScheduleSelectionStore(
+		useShallow((state) => ({
+			clearScheduledTimes: state.clearScheduledTimes,
+		})),
+	);
+
 	const handleScheduleCancel = () => {
-		// TODO: Clear selected times
+		clearScheduledTimes();
 		setAvailabilityView("group");
 	};
 
