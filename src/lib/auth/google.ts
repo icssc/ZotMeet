@@ -9,18 +9,34 @@ export type ValidateOAuthAccessTokenError =
 	| "Failed to refresh OAuth token";
 
 export type OAuthTokenResult =
-	| { accessToken: string; error: null }
-	| { accessToken: null; error: ValidateOAuthAccessTokenError };
+	| { accessToken: string; scopes?: string[]; error: null }
+	| { accessToken: null; scopes: null; error: ValidateOAuthAccessTokenError };
+
+export async function fetchGoogleTokenScopes(
+	accessToken: string,
+): Promise<string[]> {
+	const res = await fetch(
+		`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`,
+	);
+
+	if (!res.ok) {
+		return [];
+	}
+
+	const data = await res.json();
+
+	return typeof data.scope === "string" ? data.scope.split(" ") : [];
+}
 
 export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
 	const { session } = await getCurrentSession();
 
 	if (session === null) {
-		return { accessToken: null, error: "Not authenticated" };
+		return { accessToken: null, scopes: null, error: "Not authenticated" };
 	}
 
 	if (!session.oidcRefreshToken) {
-		return { accessToken: null, error: "No OAuth refresh token" };
+		return { accessToken: null, scopes: null, error: "No OAuth refresh token" };
 	}
 
 	const now = Date.now();
@@ -28,7 +44,13 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
 		session.googleAccessToken &&
 		session.googleAccessTokenExpiresAt!.getTime() > now
 	) {
-		return { accessToken: session.googleAccessToken, error: null };
+		const scopes = await fetchGoogleTokenScopes(session.googleAccessToken);
+
+		return {
+			accessToken: session.googleAccessToken,
+			scopes,
+			error: null,
+		};
 	}
 
 	try {
@@ -71,8 +93,14 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
 			oauthAccessTokenExpiresAt: googleTokenExpiry,
 		});
 
-		return { accessToken: googleAccessToken, error: null };
+		const scopes = await fetchGoogleTokenScopes(googleAccessToken);
+
+		return { accessToken: googleAccessToken, scopes, error: null };
 	} catch {
-		return { accessToken: null, error: "Failed to refresh OAuth token" };
+		return {
+			accessToken: null,
+			scopes: null,
+			error: "Failed to refresh OAuth token",
+		};
 	}
 }
