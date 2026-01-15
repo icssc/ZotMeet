@@ -42,11 +42,15 @@ function calculateBlockColor({
 	hoveredMember,
 	selectedMembers,
 	numMembers,
+	showBestTimes,
+	maxAvailability,
 }: {
 	block: string[];
 	hoveredMember: string | null;
 	selectedMembers: string[];
 	numMembers: number;
+	showBestTimes: boolean;
+	maxAvailability: number;
 }): string {
 	if (selectedMembers.length) {
 		const selectedInBlock = selectedMembers.filter((memberId) =>
@@ -62,6 +66,13 @@ function calculateBlockColor({
 	if (hoveredMember) {
 		if (block.includes(hoveredMember)) {
 			return "rgba(55, 124, 251)";
+		}
+		return "transparent";
+	}
+
+	if (showBestTimes) {
+		if (block.length === maxAvailability && maxAvailability > 0) {
+			return "rgba(55, 124, 251, 1)";
 		}
 		return "transparent";
 	}
@@ -229,6 +240,8 @@ export function GroupAvailability({
 				hoveredMember,
 				selectedMembers,
 				numMembers,
+				showBestTimes,
+				maxAvailability,
 			});
 
 			const tableCellStyles = cn(
