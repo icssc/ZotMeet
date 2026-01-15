@@ -36,6 +36,43 @@ export const getTimestampFromBlockIndex = (
 	return isoString;
 };
 
+function calculateBlockColor({
+	block,
+	hoveredMember,
+	selectedMembers,
+	numMembers,
+}: {
+	block: string[];
+	hoveredMember: string | null;
+	selectedMembers: string[];
+	numMembers: number;
+}): string {
+	if (selectedMembers.length) {
+		const selectedInBlock = selectedMembers.filter((memberId) =>
+			block.includes(memberId),
+		);
+		if (selectedInBlock.length) {
+			const proportion = selectedInBlock.length / selectedMembers.length;
+			return `rgba(55, 124, 251, ${proportion})`;
+		}
+		return "transparent";
+	}
+
+	if (hoveredMember) {
+		if (block.includes(hoveredMember)) {
+			return "rgba(55, 124, 251)";
+		}
+		return "transparent";
+	}
+
+	if (numMembers) {
+		const opacity = block.length / numMembers;
+		return `rgba(55, 124, 251, ${opacity})`;
+	}
+
+	return "transparent";
+}
+
 interface GroupAvailabilityProps {
 	timeBlock: number;
 	blockIndex: number;
@@ -69,20 +106,24 @@ export function GroupAvailability({
 		selectedBlockIndex,
 		selectionIsLocked,
 		hoveredMember,
+		selectedMembers,
 		setSelectedZotDateIndex,
 		setSelectedBlockIndex,
 		setSelectionIsLocked,
 		setIsMobileDrawerOpen,
+		toggleHoverGrid,
 	} = useGroupSelectionStore(
 		useShallow((state) => ({
 			selectedZotDateIndex: state.selectedZotDateIndex,
 			selectedBlockIndex: state.selectedBlockIndex,
 			selectionIsLocked: state.selectionIsLocked,
 			hoveredMember: state.hoveredMember,
+			selectedMembers: state.selectedMembers,
 			setSelectedZotDateIndex: state.setSelectedZotDateIndex,
 			setSelectedBlockIndex: state.setSelectedBlockIndex,
 			setSelectionIsLocked: state.setSelectionIsLocked,
 			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
+			toggleHoverGrid: state.toggleHoverGrid,
 		})),
 	);
 
@@ -129,11 +170,13 @@ export function GroupAvailability({
 			zotDateIndex: number;
 			blockIndex: number;
 		}) => {
+			toggleHoverGrid(true);
+
 			if (!selectionIsLocked) {
 				updateSelection({ zotDateIndex, blockIndex });
 			}
 		},
-		[selectionIsLocked, updateSelection],
+		[toggleHoverGrid, selectionIsLocked, updateSelection],
 	);
 
 	const isTopOfHour = timeBlock % 60 === 0;
@@ -164,21 +207,14 @@ export function GroupAvailability({
 				availabilityDates,
 			);
 
-			// Get the block (array of member IDs available at this timestamp)
 			const block = selectedDate.groupAvailability[timestamp] || [];
 
-			// Calculate block color
-			let blockColor = "transparent";
-			if (hoveredMember) {
-				if (block.includes(hoveredMember)) {
-					blockColor = "rgba(55, 124, 251)";
-				} else {
-					blockColor = "transparent";
-				}
-			} else if (numMembers > 0) {
-				const opacity = block.length / numMembers;
-				blockColor = `rgba(55, 124, 251, ${opacity})`;
-			}
+			const blockColor = calculateBlockColor({
+				block,
+				hoveredMember,
+				selectedMembers,
+				numMembers,
+			});
 
 			const tableCellStyles = cn(
 				isTopOfHour ? "border-t-[1px] border-t-gray-medium" : "",
@@ -208,10 +244,8 @@ export function GroupAvailability({
 									blockIndex,
 								})
 							}
-							block={block}
 							blockColor={blockColor}
 							tableCellStyles={tableCellStyles}
-							hoveredMember={hoveredMember}
 							hasSpacerBefore={spacers[pageDateIndex]}
 						/>
 					</td>

@@ -187,6 +187,9 @@ export const groupsRelations = relations(groups, ({ many }) => ({
 	meetings: many(meetings),
 }));
 
+export type InsertGroup = InferInsertModel<typeof groups>;
+export type SelectGroup = InferSelectModel<typeof groups>;
+
 export const availabilities = pgTable(
 	"availabilities",
 	{

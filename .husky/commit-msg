@@ -1,2 +1,2 @@
-pnpm dlx commitlint --edit $1
-pnpm dlx devmoji --edit $1
+pnpm exec commitlint --edit $1
+pnpm exec devmoji --edit $1
