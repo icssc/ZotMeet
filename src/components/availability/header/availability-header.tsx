@@ -13,6 +13,7 @@ import { AuthDialog } from "@/components/auth/auth-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
@@ -57,14 +58,6 @@ export function AvailabilityHeader({
 			})),
 		);
 
-	const { overlayGoogleCalendar, setOverlayGoogleCalendar } =
-		useAvailabilityViewStore(
-			useShallow((state) => ({
-				overlayGoogleCalendar: state.overlayGoogleCalendar,
-				setOverlayGoogleCalendar: state.setOverlayGoogleCalendar,
-			})),
-		);
-
 	const handleCancel = () => {
 		onCancel();
 		setAvailabilityView("group");
@@ -106,16 +99,6 @@ export function AvailabilityHeader({
 		} else {
 			console.error("Error saving availability:", response.body.error);
 		}
-	};
-
-	const handleToggleBestTimes = (
-		event: React.ChangeEvent<HTMLInputElement>,
-	) => {
-		setShowBestTimes(event.target.checked);
-	};
-
-	const handleToggleCalendar = (event: React.ChangeEvent<HTMLInputElement>) => {
-		setOverlayGoogleCalendar(event.target.checked);
 	};
 
 	return (
@@ -171,19 +154,6 @@ export function AvailabilityHeader({
 									</span>
 									<CircleCheckIcon className="text-green-500 group-hover:text-white" />
 								</Button>
-							)}
-							<FormControlLabel
-								className="ml-2"
-								control={
-									<Switch
-										checked={showBestTimes}
-										onChange={handleToggleBestTimes}
-										size="small"
-									/>
-								}
-								label="Best Times"
-							/>
-						</div>
 							</div>
 						) : (
 							<Button
@@ -203,6 +173,13 @@ export function AvailabilityHeader({
 								</span>
 							</Button>
 						)}
+						<div className="flex items-center space-x-2">
+							<Switch
+								checked={showBestTimes}
+								onCheckedChange={setShowBestTimes}
+							/>
+							<span className="flex font-dm-sans">Best Times</span>
+						</div>
 					</div>
 				</div>
 			</div>
