@@ -1,7 +1,6 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
@@ -125,7 +124,6 @@ export function Availability({
 	allAvailabilities: MemberMeetingAvailability[];
 	user: UserProfile | null;
 }) {
-	const router = useRouter();
 	const availabilityView = useAvailabilityViewStore(
 		(state) => state.availabilityView,
 	);
@@ -290,7 +288,7 @@ export function Availability({
 					result.status === "missing_scope" ||
 					result.status === "not_authenticated"
 				) {
-					router.push("/auth/login/google/?prompt=consent");
+					window.location.href = "/auth/login/google/?prompt=consent";
 
 					return;
 				}
@@ -303,7 +301,6 @@ export function Availability({
 		availabilityDates,
 		anchorNormalizedDate,
 		// hasFetchedCalendar,
-		router,
 	]);
 
 	const members = useMemo(() => {
