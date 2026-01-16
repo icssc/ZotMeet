@@ -8,6 +8,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		const response = NextResponse.next();
 		const token = request.cookies.get("session")?.value ?? null;
 
+		// Don't extend cookies during OAuth routes, prevents login loops
+		if (request.nextUrl.pathname.startsWith("/auth/login/google")) {
+			return NextResponse.next();
+		}
+
 		if (token !== null) {
 			response.cookies.set("session", token, {
 				path: "/",
