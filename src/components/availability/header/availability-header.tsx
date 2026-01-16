@@ -14,11 +14,13 @@ import { AuthDialog } from "@/components/auth/auth-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
@@ -174,7 +176,31 @@ export function AvailabilityHeader({
 										{hasAvailability ? "Edit Availability" : "Add Availability"}
 									</span>
 								</Button>
-							)}
+							</div>
+						) : (
+							<Button
+								className={cn(
+									"h-8 min-h-fit min-w-fit flex-center px-2 md:w-40 md:p-0",
+								)}
+								onClick={() => {
+									if (!user) {
+										setIsAuthModalOpen(true);
+										return;
+									}
+									setAvailabilityView("personal");
+								}}
+							>
+								<span className="flex font-dm-sans">
+									{hasAvailability ? "Edit Availability" : "Add Availability"}
+								</span>
+							</Button>
+						)}
+						<div className="flex items-center space-x-2">
+							<Switch
+								checked={showBestTimes}
+								onCheckedChange={setShowBestTimes}
+							/>
+							<span className="flex font-dm-sans">Best Times</span>
 						</div>
 					</div>
 					{availabilityView === "personal" && (

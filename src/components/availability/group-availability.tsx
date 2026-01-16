@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
@@ -8,6 +8,7 @@ import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 
 export const getTimestampFromBlockIndex = (
@@ -41,11 +42,15 @@ function calculateBlockColor({
 	hoveredMember,
 	selectedMembers,
 	numMembers,
+	showBestTimes,
+	maxAvailability,
 }: {
 	block: string[];
 	hoveredMember: string | null;
 	selectedMembers: string[];
 	numMembers: number;
+	showBestTimes: boolean;
+	maxAvailability: number;
 }): string {
 	if (selectedMembers.length) {
 		const selectedInBlock = selectedMembers.filter((memberId) =>
@@ -61,6 +66,13 @@ function calculateBlockColor({
 	if (hoveredMember) {
 		if (block.includes(hoveredMember)) {
 			return "rgba(55, 124, 251)";
+		}
+		return "transparent";
+	}
+
+	if (showBestTimes) {
+		if (block.length === maxAvailability && maxAvailability > 0) {
+			return "rgba(55, 124, 251, 1)";
 		}
 		return "transparent";
 	}
@@ -127,6 +139,21 @@ export function GroupAvailability({
 		})),
 	);
 
+	const numMembers = members.length;
+	const { enabled: showBestTimes } = useBestTimesToggleStore();
+
+	const maxAvailability = useMemo(() => {
+		if (!showBestTimes || numMembers === 0) return 0;
+
+		let max = 0;
+		availabilityDates.forEach((date) => {
+			Object.values(date.groupAvailability).forEach((memberIds) => {
+				max = Math.max(max, memberIds.length);
+			});
+		});
+		return max;
+	}, [showBestTimes, numMembers, availabilityDates]);
+
 	const updateSelection = useCallback(
 		({
 			zotDateIndex,
@@ -182,7 +209,6 @@ export function GroupAvailability({
 	const isTopOfHour = timeBlock % 60 === 0;
 	const isHalfHour = timeBlock % 60 === 30;
 	const isLastRow = blockIndex === availabilityTimeBlocks.length - 1;
-	const numMembers = members.length;
 
 	const spacers = spacerBeforeDate(currentPageAvailability);
 
@@ -214,6 +240,8 @@ export function GroupAvailability({
 				hoveredMember,
 				selectedMembers,
 				numMembers,
+				showBestTimes,
+				maxAvailability,
 			});
 
 			const tableCellStyles = cn(
