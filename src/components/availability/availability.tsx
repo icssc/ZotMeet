@@ -31,6 +31,7 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
+import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -317,6 +318,15 @@ export function Availability({
 		return Array.from(allMembers.values());
 	}, [allAvailabilities, availabilityDates, user]);
 
+	// Expose scheduled times as variables
+	const { scheduledTimes, clearScheduledTimes } = useScheduleSelectionStore(
+		useShallow((state) => ({
+			scheduledTimes: state.scheduledTimes,
+			clearScheduledTimes: state.clearScheduledTimes,
+		})),
+	);
+	// TODO: Could add selection clearing with the escape key
+
 	return (
 		<div className="space-y-6">
 			<AvailabilityHeader
@@ -346,8 +356,10 @@ export function Availability({
 								<tr key={`block-${timeBlock}`}>
 									<AvailabilityTimeTicks timeBlock={timeBlock} />
 
-									{availabilityView === "group" ? (
+									{availabilityView === "group" ||
+									availabilityView === "schedule" ? (
 										<GroupAvailability
+											meetingId={meetingData.id}
 											timeBlock={timeBlock}
 											blockIndex={blockIndex}
 											availabilityTimeBlocks={availabilityTimeBlocks}
@@ -356,6 +368,7 @@ export function Availability({
 											currentPageAvailability={currentPageAvailability}
 											members={members}
 											onMouseLeave={handleMouseLeave}
+											isScheduling={availabilityView === "schedule"}
 										/>
 									) : (
 										<PersonalAvailability
