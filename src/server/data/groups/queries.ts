@@ -52,9 +52,12 @@ export async function getUsersInGroup(groupId: string) {
 
 export async function getMeetingsByGroupId(
 	groupId: string,
+	includeArchived = false,
 ): Promise<SelectMeeting[]> {
 	return await db.query.meetings.findMany({
-		where: and(eq(meetings.group_id, groupId), eq(meetings.archived, false)),
+		where: includeArchived
+			? eq(meetings.group_id, groupId)
+			: and(eq(meetings.group_id, groupId), eq(meetings.archived, false)),
 	});
 }
 

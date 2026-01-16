@@ -5,8 +5,14 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
 import { db } from "@/db";
+import type { SelectGroup } from "@/db/schema";
 import { groups } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import {
+	getExistingGroup,
+	getGroupNameExists,
+	isGroupCreator,
+} from "@/server/data/groups/queries";
 
 export type UpdateGroupState = {
 	success: boolean;
@@ -43,27 +49,34 @@ export async function updateGroup(
 		};
 	}
 
+	let existingGroup: SelectGroup;
 	try {
-		const [existingGroup] = await db
-			.select({
-				id: groups.id,
-				createdBy: groups.createdBy,
-			})
-			.from(groups)
-			.where(eq(groups.id, groupId));
+		existingGroup = await getExistingGroup(groupId);
+	} catch {
+		return {
+			success: false,
+			message: "Group not found.",
+		};
+	}
 
-		if (!existingGroup) {
-			return {
-				success: false,
-				message: "Group not found.",
-			};
-		}
+	try {
+		const isCreator = await isGroupCreator({ userId: user.id, groupId });
 
-		if (existingGroup.createdBy !== user.id) {
+		if (!isCreator) {
 			return {
 				success: false,
 				message: "You do not have permission to update this group.",
 			};
+		}
+
+		if (name && name !== existingGroup.name) {
+			const nameExists = await getGroupNameExists(name);
+			if (nameExists) {
+				return {
+					success: false,
+					message: "A group with this name already exists.",
+				};
+			}
 		}
 
 		const updateData: { name?: string; description?: string | null } = {};
