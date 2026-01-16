@@ -12,10 +12,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 			response.cookies.set("session", token, {
 				path: "/",
 				maxAge: 60 * 60 * 24 * 30,
-				sameSite: "lax",
+				sameSite: "none",
+				secure: true,
 				httpOnly: true,
-				// TODO: check for deployment
-				secure: process.env.NODE_ENV === "production",
+				domain: ".zotmeet.com",
 			});
 		}
 		return response;
