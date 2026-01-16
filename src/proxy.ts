@@ -8,19 +8,14 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		const response = NextResponse.next();
 		const token = request.cookies.get("session")?.value ?? null;
 
-		// Don't extend cookies during OAuth routes, prevents login loops
-		if (request.nextUrl.pathname.startsWith("/auth/login/google")) {
-			return NextResponse.next();
-		}
-
 		if (token !== null) {
 			response.cookies.set("session", token, {
 				path: "/",
 				maxAge: 60 * 60 * 24 * 30,
-				sameSite: "none",
-				secure: true,
+				sameSite: "lax",
 				httpOnly: true,
-				domain: ".zotmeet.com",
+				// TODO: check for deployment
+				secure: process.env.NODE_ENV === "production",
 			});
 		}
 		return response;
