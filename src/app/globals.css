@@ -108,6 +108,108 @@ body {
 	.flex-between {
 		@apply flex items-center justify-between;
 	}
+
+	/* Container needs overflow hidden to clip content */
+	.jagged-table-container {
+		overflow: hidden;
+		background: #fafafa;
+		isolation: isolate;
+	}
+
+	/* Ensure table doesn't overflow the masked area */
+	.jagged-table-container table {
+		isolation: isolate;
+	}
+
+	/* Apply jagged masking to tbody - preserves time column */
+	tbody.calendar-jagged-right {
+		mask-image: url(#jagged-mask-right);
+		-webkit-mask-image: url(#jagged-mask-right);
+		mask-size: 100% 100%;
+		-webkit-mask-size: 100% 100%;
+		mask-composite: source-in;
+		-webkit-mask-composite: source-in;
+	}
+
+	tbody.calendar-jagged-left {
+		mask-image: url(#jagged-mask-left);
+		-webkit-mask-image: url(#jagged-mask-left);
+		mask-size: 100% 100%;
+		-webkit-mask-size: 100% 100%;
+		mask-composite: source-in;
+		-webkit-mask-composite: source-in;
+	}
+
+	tbody.calendar-jagged-both {
+		mask-image: url(#jagged-mask-both);
+		-webkit-mask-image: url(#jagged-mask-both);
+		mask-size: 100% 100%;
+		-webkit-mask-size: 100% 100%;
+		mask-composite: source-in;
+		-webkit-mask-composite: source-in;
+	}
+
+	/* Hide content that extends beyond the masked area */
+	tbody.calendar-jagged-right tr,
+	tbody.calendar-jagged-left tr,
+	tbody.calendar-jagged-both tr {
+		isolation: isolate;
+	}
+
+	/* Hide borders on data cells to prevent them showing through mask */
+	tbody.calendar-jagged-left td:nth-child(2),
+	tbody.calendar-jagged-both td:nth-child(2) {
+		border-left: none;
+	}
+
+	/* Hide the time column's right border when left edge is jagged */
+	tbody.calendar-jagged-left td:first-child,
+	tbody.calendar-jagged-both td:first-child {
+		border-right: none;
+	}
+
+	/* Ensure all cell borders in masked area are hidden */
+	tbody.calendar-jagged-left td,
+	tbody.calendar-jagged-both td,
+	tbody.calendar-jagged-right td {
+		box-shadow: none;
+	}
+
+	/* Allow time column content to overflow without clipping */
+	tbody.calendar-jagged-left td:first-child,
+	tbody.calendar-jagged-both td:first-child,
+	tbody.calendar-jagged-right td:first-child {
+		overflow: visible;
+		min-width: max-content;
+	}
+
+	/* Outline SVG overlay */
+	.calendar-jagged-outline {
+		position: absolute;
+		left: 0;
+		right: 0;
+		width: 100%;
+		pointer-events: none;
+		overflow: visible;
+		z-index: 10;
+	}
+
+	/* Position overlay to match tbody */
+	.relative table + .calendar-jagged-outline {
+		bottom: 0;
+		left: 0;
+		right: 0;
+	}
+
+	path#jagged-right-stroke {
+		stroke: currentcolor;
+		stroke-width: 0.5px;
+	}
+
+	path#jagged-left-stroke {
+		stroke: currentcolor;
+		stroke-width: 0.5px;
+	}
 }
 
 @layer base {

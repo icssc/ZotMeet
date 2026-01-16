@@ -1,7 +1,7 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
@@ -10,6 +10,7 @@ import { PersonalAvailability } from "@/components/availability/personal-availab
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
+import { JaggedOutlineOverlay } from "@/components/JaggedPage";
 import type { SelectMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import type { UserProfile } from "@/lib/auth/user";
@@ -27,6 +28,7 @@ import {
 	convertAnchorDatesToCurrentWeek,
 	isAnchorDateMeeting,
 } from "@/lib/types/chrono";
+import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
@@ -206,6 +208,8 @@ export function Availability({
 	const [googleCalendarEvents, setGoogleCalendarEvents] = useState<
 		GoogleCalendarEvent[]
 	>([]);
+	const tableRef = useRef<HTMLTableElement>(null);
+	const [theadHeight, setTheadHeight] = useState(0);
 
 	const [availabilityDates, setAvailabilityDates] = useState(() =>
 		deriveInitialAvailability({
@@ -268,6 +272,28 @@ export function Availability({
 	}, [confirmSave]);
 
 	useEffect(() => {
+		const updateTheadHeight = () => {
+			if (tableRef.current) {
+				const thead = tableRef.current.querySelector("thead");
+				if (thead) {
+					const height = thead.offsetHeight;
+					setTheadHeight(height);
+				}
+			}
+		};
+
+		// Use requestAnimationFrame to ensure DOM is fully rendered
+		requestAnimationFrame(() => {
+			updateTheadHeight();
+			// Also check after a small delay to catch any async rendering
+			setTimeout(updateTheadHeight, 0);
+		});
+
+		window.addEventListener("resize", updateTheadHeight);
+		return () => window.removeEventListener("resize", updateTheadHeight);
+	}, []);
+
+	useEffect(() => {
 		if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
 			const firstDateISO = anchorNormalizedDate[0].toISOString();
 
@@ -328,53 +354,67 @@ export function Availability({
 			/>
 
 			<div className="flex flex-row items-start justify-start align-top">
-				<div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
+				<div className="flex h-fit items-center gap-1 overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
 					<AvailabilityNavButton
 						direction="left"
 						handleClick={prevPage}
 						disabled={isFirstPage}
 					/>
 
-					<table className="w-full table-fixed">
-						<AvailabilityTableHeader
-							currentPageAvailability={currentPageAvailability}
-							meetingType={meetingData.meetingType}
+					<div className="jagged-table-container relative min-w-0 flex-1">
+						<table ref={tableRef} className="w-full table-fixed">
+							<AvailabilityTableHeader
+								currentPageAvailability={currentPageAvailability}
+								meetingType={meetingData.meetingType}
+							/>
+
+							<tbody
+								onMouseLeave={handleMouseLeave}
+								className={cn("relative", {
+									"calendar-jagged-right": isFirstPage && !isLastPage,
+									"calendar-jagged-left": isLastPage && !isFirstPage,
+									"calendar-jagged-both": !isFirstPage && !isLastPage,
+								})}
+							>
+								{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
+									<tr key={`block-${timeBlock}`}>
+										<AvailabilityTimeTicks timeBlock={timeBlock} />
+
+										{availabilityView === "group" ? (
+											<GroupAvailability
+												timeBlock={timeBlock}
+												blockIndex={blockIndex}
+												availabilityTimeBlocks={availabilityTimeBlocks}
+												fromTime={fromTimeMinutes}
+												availabilityDates={availabilityDates}
+												currentPageAvailability={currentPageAvailability}
+												members={members}
+												onMouseLeave={handleMouseLeave}
+											/>
+										) : (
+											<PersonalAvailability
+												timeBlock={timeBlock}
+												blockIndex={blockIndex}
+												availabilityTimeBlocks={availabilityTimeBlocks}
+												fromTime={fromTimeMinutes}
+												availabilityDates={availabilityDates}
+												currentPageAvailability={currentPageAvailability}
+												googleCalendarEvents={googleCalendarEvents}
+												user={user}
+												onAvailabilityChange={handleUserAvailabilityChange}
+												meetingDates={meetingData.dates}
+											/>
+										)}
+									</tr>
+								))}
+							</tbody>
+						</table>
+						<JaggedOutlineOverlay
+							isFirstPage={isFirstPage}
+							isLastPage={isLastPage}
+							theadHeight={theadHeight}
 						/>
-
-						<tbody onMouseLeave={handleMouseLeave}>
-							{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
-								<tr key={`block-${timeBlock}`}>
-									<AvailabilityTimeTicks timeBlock={timeBlock} />
-
-									{availabilityView === "group" ? (
-										<GroupAvailability
-											timeBlock={timeBlock}
-											blockIndex={blockIndex}
-											availabilityTimeBlocks={availabilityTimeBlocks}
-											fromTime={fromTimeMinutes}
-											availabilityDates={availabilityDates}
-											currentPageAvailability={currentPageAvailability}
-											members={members}
-											onMouseLeave={handleMouseLeave}
-										/>
-									) : (
-										<PersonalAvailability
-											timeBlock={timeBlock}
-											blockIndex={blockIndex}
-											availabilityTimeBlocks={availabilityTimeBlocks}
-											fromTime={fromTimeMinutes}
-											availabilityDates={availabilityDates}
-											currentPageAvailability={currentPageAvailability}
-											googleCalendarEvents={googleCalendarEvents}
-											user={user}
-											onAvailabilityChange={handleUserAvailabilityChange}
-											meetingDates={meetingData.dates}
-										/>
-									)}
-								</tr>
-							))}
-						</tbody>
-					</table>
+					</div>
 
 					<AvailabilityNavButton
 						direction="right"
