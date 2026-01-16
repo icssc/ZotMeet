@@ -14,6 +14,7 @@ interface GroupResponsesProps {
 	availabilityDates: ZotDate[];
 	members: Member[];
 	fromTime: number;
+	timezone: string;
 	anchorNormalizedDate: Date[];
 }
 
@@ -21,6 +22,7 @@ export function GroupResponses({
 	availabilityDates,
 	fromTime,
 	members,
+	timezone,
 	anchorNormalizedDate,
 }: GroupResponsesProps) {
 	const { availabilityView } = useAvailabilityViewStore();
@@ -80,6 +82,7 @@ export function GroupResponses({
 			selectedBlockIndex,
 			selectedZotDateIndex,
 			fromTime,
+			timezone,
 			availabilityDates,
 		);
 
@@ -99,6 +102,7 @@ export function GroupResponses({
 		availabilityDates,
 		fromTime,
 		members,
+		timezone,
 	]);
 
 	useEffect(() => {

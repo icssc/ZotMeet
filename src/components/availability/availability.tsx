@@ -10,6 +10,7 @@ import { PersonalAvailability } from "@/components/availability/personal-availab
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
+import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import type { UserProfile } from "@/lib/auth/user";
@@ -34,7 +35,6 @@ import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
-	// timezone,
 	meetingDates,
 	userAvailability,
 	allAvailabilties,
@@ -169,9 +169,9 @@ export function Availability({
 		currentPage === Math.floor((meetingData.dates.length - 1) / itemsPerPage);
 
 	// Convert UTC times to user's local timezone for display
-	const userTimezone = useMemo(
-		() => Intl.DateTimeFormat().resolvedOptions().timeZone,
-		[],
+
+	const [userTimezone, setUserTimezone] = useState(
+		Intl.DateTimeFormat().resolvedOptions().timeZone,
 	);
 	const referenceDate = meetingData.dates[0];
 
@@ -184,11 +184,13 @@ export function Availability({
 		[meetingData.toTime, userTimezone, referenceDate],
 	);
 
-	const fromTimeMinutes = getTimeFromHourMinuteString(
-		fromTimeLocal as HourMinuteString,
+	const fromTimeMinutes = useMemo(
+		() => getTimeFromHourMinuteString(fromTimeLocal as HourMinuteString),
+		[fromTimeLocal],
 	);
-	const toTimeMinutes = getTimeFromHourMinuteString(
-		toTimeLocal as HourMinuteString,
+	const toTimeMinutes = useMemo(
+		() => getTimeFromHourMinuteString(toTimeLocal as HourMinuteString),
+		[toTimeLocal],
 	);
 	const availabilityTimeBlocks = useMemo(
 		() => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
@@ -334,48 +336,57 @@ export function Availability({
 						handleClick={prevPage}
 						disabled={isFirstPage}
 					/>
+					<div>
+						<table className="w-full table-fixed">
+							<AvailabilityTableHeader
+								currentPageAvailability={currentPageAvailability}
+								meetingType={meetingData.meetingType}
+							/>
 
-					<table className="w-full table-fixed">
-						<AvailabilityTableHeader
-							currentPageAvailability={currentPageAvailability}
-							meetingType={meetingData.meetingType}
-						/>
+							<tbody onMouseLeave={handleMouseLeave}>
+								{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
+									<tr key={`block-${timeBlock}`}>
+										<AvailabilityTimeTicks timeBlock={timeBlock} />
 
-						<tbody onMouseLeave={handleMouseLeave}>
-							{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
-								<tr key={`block-${timeBlock}`}>
-									<AvailabilityTimeTicks timeBlock={timeBlock} />
+										{availabilityView === "group" ? (
+											<GroupAvailability
+												timeBlock={timeBlock}
+												blockIndex={blockIndex}
+												availabilityTimeBlocks={availabilityTimeBlocks}
+												fromTime={fromTimeMinutes}
+												availabilityDates={availabilityDates}
+												currentPageAvailability={currentPageAvailability}
+												members={members}
+												timezone={userTimezone}
+												onMouseLeave={handleMouseLeave}
+											/>
+										) : (
+											<PersonalAvailability
+												timeBlock={timeBlock}
+												blockIndex={blockIndex}
+												availabilityTimeBlocks={availabilityTimeBlocks}
+												fromTime={fromTimeMinutes}
+												availabilityDates={availabilityDates}
+												currentPageAvailability={currentPageAvailability}
+												googleCalendarEvents={googleCalendarEvents}
+												user={user}
+												onAvailabilityChange={handleUserAvailabilityChange}
+												timezone={userTimezone}
+												meetingDates={meetingData.dates}
+											/>
+										)}
+									</tr>
+								))}
+							</tbody>
+						</table>
 
-									{availabilityView === "group" ? (
-										<GroupAvailability
-											timeBlock={timeBlock}
-											blockIndex={blockIndex}
-											availabilityTimeBlocks={availabilityTimeBlocks}
-											fromTime={fromTimeMinutes}
-											availabilityDates={availabilityDates}
-											currentPageAvailability={currentPageAvailability}
-											members={members}
-											onMouseLeave={handleMouseLeave}
-										/>
-									) : (
-										<PersonalAvailability
-											timeBlock={timeBlock}
-											blockIndex={blockIndex}
-											availabilityTimeBlocks={availabilityTimeBlocks}
-											fromTime={fromTimeMinutes}
-											availabilityDates={availabilityDates}
-											currentPageAvailability={currentPageAvailability}
-											googleCalendarEvents={googleCalendarEvents}
-											user={user}
-											onAvailabilityChange={handleUserAvailabilityChange}
-											meetingDates={meetingData.dates}
-										/>
-									)}
-								</tr>
-							))}
-						</tbody>
-					</table>
-
+						<div className="w-full pt-5 pl-10 md:pl-16">
+							<TimeZoneDropdown
+								TimeZone={userTimezone}
+								changeTimeZone={setUserTimezone}
+							/>
+						</div>
+					</div>
 					<AvailabilityNavButton
 						direction="right"
 						handleClick={() => nextPage(availabilityDates.length)}
@@ -387,6 +398,7 @@ export function Availability({
 					availabilityDates={availabilityDates}
 					fromTime={fromTimeMinutes}
 					members={members}
+					timezone={userTimezone}
 					anchorNormalizedDate={anchorNormalizedDate}
 				/>
 			</div>

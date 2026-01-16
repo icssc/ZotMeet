@@ -1,5 +1,5 @@
 import { differenceInCalendarDays } from "date-fns";
-import { fromZonedTime, toZonedTime } from "date-fns-tz";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { type HourMinuteString, TimeConstants } from "@/lib/types/chrono";
 import type { ZotDate } from "@/lib/zotdate";
 
@@ -63,15 +63,7 @@ export const convertTimeFromUTC = (
 	// Create a UTC date
 	const utcDate = new Date(`${datePart}T${hours}:${minutes}:${seconds}Z`);
 
-	// Convert to the target timezone
-	const zonedDate = toZonedTime(utcDate, timezone);
-
-	// Format as HH:MM:SS in the target timezone
-	const localHours = zonedDate.getHours().toString().padStart(2, "0");
-	const localMinutes = zonedDate.getMinutes().toString().padStart(2, "0");
-	const localSeconds = zonedDate.getSeconds().toString().padStart(2, "0");
-
-	return `${localHours}:${localMinutes}:${localSeconds}`;
+	return formatInTimeZone(utcDate, timezone, "HH:mm:ss");
 };
 
 export const BLOCK_LENGTH: number = 15;

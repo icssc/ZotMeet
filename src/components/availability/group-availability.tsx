@@ -1,5 +1,6 @@
 "use client";
 
+import { fromZonedTime } from "date-fns-tz";
 import React, { useCallback } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -14,6 +15,7 @@ export const getTimestampFromBlockIndex = (
 	blockIndex: number,
 	zotDateIndex: number,
 	fromTime: number,
+	timezone: string,
 	availabilityDates: ZotDate[],
 ) => {
 	const minutesFromMidnight = fromTime + blockIndex * 15;
@@ -32,7 +34,7 @@ export const getTimestampFromBlockIndex = (
 	date.setSeconds(0);
 	date.setMilliseconds(0);
 
-	const isoString = date.toISOString();
+	const isoString = fromZonedTime(date, timezone).toISOString();
 	return isoString;
 };
 
@@ -81,6 +83,7 @@ interface GroupAvailabilityProps {
 	availabilityDates: ZotDate[];
 	currentPageAvailability: ZotDate[];
 	members: Member[];
+	timezone: string;
 	onMouseLeave: () => void;
 }
 
@@ -92,6 +95,7 @@ export function GroupAvailability({
 	availabilityDates,
 	currentPageAvailability,
 	members,
+	timezone,
 	onMouseLeave,
 }: GroupAvailabilityProps) {
 	const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
@@ -204,6 +208,7 @@ export function GroupAvailability({
 				blockIndex,
 				zotDateIndex,
 				fromTime,
+				timezone,
 				availabilityDates,
 			);
 
