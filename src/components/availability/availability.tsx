@@ -293,6 +293,9 @@ export function Availability({
 					result.status === "missing_scope" ||
 					result.status === "not_authenticated"
 				) {
+					console.log(
+						"Missing Scope --- Redirecting to Google OAuth for calendar access",
+					);
 					window.location.href = "/auth/login/google/?prompt=consent";
 
 					return;
