@@ -11,9 +11,14 @@ import {
 	usersInGroup,
 } from "@/db/schema";
 
-export async function getExistingGroup(groupId: string): Promise<SelectGroup> {
+export async function getExistingGroup(
+	groupId: string,
+	includeArchived = false,
+): Promise<SelectGroup> {
 	const group = await db.query.groups.findFirst({
-		where: eq(groups.id, groupId),
+		where: includeArchived
+			? eq(groups.id, groupId)
+			: and(eq(groups.id, groupId), eq(groups.archived, false)),
 	});
 
 	if (!group) {
@@ -24,6 +29,7 @@ export async function getExistingGroup(groupId: string): Promise<SelectGroup> {
 
 export async function getGroupsByUserId(
 	userId: string,
+	includeArchived = false,
 ): Promise<SelectGroup[]> {
 	return await db
 		.select({
@@ -32,10 +38,15 @@ export async function getGroupsByUserId(
 			description: groups.description,
 			createdAt: groups.createdAt,
 			createdBy: groups.createdBy,
+			archived: groups.archived,
 		})
 		.from(groups)
 		.innerJoin(usersInGroup, eq(groups.id, usersInGroup.groupId))
-		.where(eq(usersInGroup.userId, userId));
+		.where(
+			includeArchived
+				? eq(usersInGroup.userId, userId)
+				: and(eq(usersInGroup.userId, userId), eq(groups.archived, false)),
+		);
 }
 
 export async function getUsersInGroup(groupId: string) {
@@ -52,9 +63,12 @@ export async function getUsersInGroup(groupId: string) {
 
 export async function getMeetingsByGroupId(
 	groupId: string,
+	includeArchived = false,
 ): Promise<SelectMeeting[]> {
 	return await db.query.meetings.findMany({
-		where: and(eq(meetings.group_id, groupId), eq(meetings.archived, false)),
+		where: includeArchived
+			? eq(meetings.group_id, groupId)
+			: and(eq(meetings.group_id, groupId), eq(meetings.archived, false)),
 	});
 }
 

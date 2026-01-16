@@ -180,6 +180,7 @@ export const groups = pgTable("groups", {
 	description: text("description"),
 	createdAt: timestamp("created_at"),
 	createdBy: text("user_id").references(() => users.id),
+	archived: boolean("archived").default(false).notNull(),
 });
 
 export const groupsRelations = relations(groups, ({ many }) => ({
