@@ -48,7 +48,6 @@ export async function deleteGroup(groupId: string): Promise<DeleteGroupState> {
 		const groupMeetings = await getMeetingsByGroupId(groupId, true);
 		const meetingCount = groupMeetings.length;
 
-		// Soft delete: archive the group and its meetings
 		await db.update(groups).set({ archived: true }).where(eq(groups.id, groupId));
 
 		if (meetingCount > 0) {
