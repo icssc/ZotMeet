@@ -10,7 +10,6 @@ import { groups } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import {
 	getExistingGroup,
-	getGroupNameExists,
 	isGroupCreator,
 } from "@/server/data/groups/queries";
 
@@ -49,9 +48,8 @@ export async function updateGroup(
 		};
 	}
 
-	let existingGroup: SelectGroup;
 	try {
-		existingGroup = await getExistingGroup(groupId);
+		await getExistingGroup(groupId);
 	} catch {
 		return {
 			success: false,
@@ -67,16 +65,6 @@ export async function updateGroup(
 				success: false,
 				message: "You do not have permission to update this group.",
 			};
-		}
-
-		if (name && name !== existingGroup.name) {
-			const nameExists = await getGroupNameExists(name);
-			if (nameExists) {
-				return {
-					success: false,
-					message: "A group with this name already exists.",
-				};
-			}
 		}
 
 		const updateData: { name?: string; description?: string | null } = {};

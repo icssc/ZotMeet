@@ -6,7 +6,6 @@ import type { z } from "zod";
 import { db } from "@/db";
 import { groups, usersInGroup } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { getGroupNameExists } from "@/server/data/groups/queries";
 
 export type CreateGroupState = {
 	success: boolean;
@@ -36,14 +35,6 @@ export async function createGroup(
 	}
 
 	const { name, description } = parsed.data;
-
-	const nameExists = await getGroupNameExists(name);
-	if (nameExists) {
-		return {
-			success: false,
-			message: "A group with this name already exists.",
-		};
-	}
 
 	try {
 		const result = await db.transaction(async (tx) => {

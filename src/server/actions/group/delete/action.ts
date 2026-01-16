@@ -3,7 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { groups } from "@/db/schema";
+import { groups, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import {
 	getExistingGroup,
@@ -45,18 +45,26 @@ export async function deleteGroup(groupId: string): Promise<DeleteGroupState> {
 			};
 		}
 
-		const meetings = await getMeetingsByGroupId(groupId, true);
-		const meetingCount = meetings.length;
+		const groupMeetings = await getMeetingsByGroupId(groupId, true);
+		const meetingCount = groupMeetings.length;
 
-		await db.delete(groups).where(eq(groups.id, groupId));
+		// Soft delete: archive the group and its meetings
+		await db.update(groups).set({ archived: true }).where(eq(groups.id, groupId));
+
+		if (meetingCount > 0) {
+			await db
+				.update(meetings)
+				.set({ archived: true })
+				.where(eq(meetings.group_id, groupId));
+		}
 
 		revalidatePath("/summary");
 		revalidatePath("/groups");
 
 		const message =
 			meetingCount > 0
-				? `Group deleted successfully. ${meetingCount} meeting${meetingCount === 1 ? " has" : "s have"} been deleted.`
-				: "Group deleted successfully.";
+				? `Group archived successfully. ${meetingCount} meeting${meetingCount === 1 ? " has" : "s have"} been archived.`
+				: "Group archived successfully.";
 
 		return {
 			success: true,
