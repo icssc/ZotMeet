@@ -1,6 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
+import type { ElementType } from "react";
 import { Collapsible } from "@/components/ui/collapsible";
 import {
 	SidebarGroup,
@@ -15,7 +16,7 @@ export function NavMain({
 	items: {
 		title: string;
 		url: string;
-		icon: LucideIcon;
+		icon: ElementType;
 		isActive?: boolean;
 		items?: {
 			title: string;
