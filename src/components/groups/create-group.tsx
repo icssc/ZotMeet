@@ -1,11 +1,11 @@
 "use client";
 
 import { createGroup } from "@actions/group/create/action";
+import { createGroupInvite } from "@actions/group/invite/create/action";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { IconButton } from "@mui/material";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
@@ -16,14 +16,12 @@ import {
 	FormControl,
 	FormField,
 	FormItem,
-	FormLabel,
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { createGroupSchema } from "@/server/actions/group/create/schema";
 
 export const CreateGroup = () => {
-	const router = useRouter();
 	const [isCreating, setIsCreating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -39,23 +37,42 @@ export const CreateGroup = () => {
 		setIsCreating(true);
 		setError(null);
 
-		const result = await createGroup(data.name, data.description);
+		const result = await createGroup(data);
 
-		if ("error" in result) {
-			setError(result.error);
+		if (!result.success) {
+			setError(result.message);
 			setIsCreating(false);
 		} else {
-			console.log("Group created with ID:", result.id);
-			//router.push(`/groups/${result.id}`);
+			console.log("Group created with ID:", result.groupId);
+			//router.push(`/groups/${result.groupId}`);
 			setCreatedGroup(true);
-			setTempGroupId(result.id);
+			setTempGroupId(result.groupId || "");
 			setIsCreating(false);
+
+			//create invite link data
+			if (result.groupId) {
+				const groupInvite = await createGroupInvite(
+					result.groupId,
+					"test@yahoo.com",
+					7,
+				);
+				console.log(
+					groupInvite.success,
+					groupInvite.message,
+					groupInvite.inviteToken,
+					groupInvite.inviteUrl,
+				);
+				if (groupInvite.inviteUrl) {
+					setInviteLink(groupInvite.inviteUrl);
+				}
+			}
 		}
 	};
 
 	const handleCopy = async () => {
 		await navigator.clipboard.writeText(
-			`http:zotmeet.com/groups/${tempGroupId}`,
+			//`http:zotmeet.com/invite/${tempGroupId}`,
+			inviteLink,
 		);
 	};
 
@@ -160,6 +177,7 @@ export const CreateGroup = () => {
 
 	const [createdGroup, setCreatedGroup] = useState(false);
 	const [tempGroupId, setTempGroupId] = useState("");
+	const [inviteLink, setInviteLink] = useState("");
 	const [showPopup, setShowPopup] = useState(false);
 
 	return (
