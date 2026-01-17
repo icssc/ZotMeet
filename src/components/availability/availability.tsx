@@ -296,7 +296,7 @@ export function Availability({
 					console.log(
 						"Missing Scope --- Redirecting to Google OAuth for calendar access",
 					);
-					window.location.href = "/auth/login/google/?prompt=consent";
+					window.location.href = "/auth/login/google";
 
 					return;
 				}
