@@ -19,6 +19,7 @@ import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
@@ -54,6 +55,13 @@ export function AvailabilityHeader({
 			useShallow((state) => ({
 				overlayGoogleCalendar: state.overlayGoogleCalendar,
 				setOverlayGoogleCalendar: state.setOverlayGoogleCalendar,
+			})),
+		);
+	const { enabled: showBestTimes, setEnabled: setShowBestTimes } =
+		useBestTimesToggleStore(
+			useShallow((state) => ({
+				enabled: state.enabled,
+				setEnabled: state.setEnabled,
 			})),
 		);
 
@@ -102,6 +110,11 @@ export function AvailabilityHeader({
 	const handleToggleCalendar = (event: React.ChangeEvent<HTMLInputElement>) => {
 		setOverlayGoogleCalendar(event.target.checked);
 	};
+	const handleToggleBestTimes = (
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => {
+		setShowBestTimes(event.target.checked);
+	};
 
 	return (
 		<>
@@ -114,9 +127,15 @@ export function AvailabilityHeader({
 						{isOwner && (
 							<>
 								<Button
-									onClick={() => setIsEditModalOpen(true)}
+									onClick={() => {
+										setIsEditModalOpen(true);
+										handleCancel();
+									}}
 									variant="outline"
-									className="h-full min-h-fit min-w-fit flex-center rounded font-dm-sans"
+									className={cn(
+										"h-8 min-h-fit flex-center border border-yellow-500 bg-white px-2 text-yellow-500 uppercase md:w-28 md:p-0",
+										"hover:border-yellow-500 hover:bg-yellow-500 hover:text-white",
+									)}
 								>
 									<EditIcon className="text-2xl" />
 								</Button>
@@ -175,6 +194,13 @@ export function AvailabilityHeader({
 									</span>
 								</Button>
 							)}
+						</div>
+						<div className="flex items-center space-x-2">
+							<Switch
+								checked={showBestTimes}
+								onChange={handleToggleBestTimes}
+							/>
+							<span className="flex font-dm-sans">Best Times</span>
 						</div>
 					</div>
 					{availabilityView === "personal" && (
