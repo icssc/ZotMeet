@@ -203,19 +203,18 @@ export function AvailabilityHeader({
 							<span className="flex font-dm-sans">Best Times</span>
 						</div>
 					</div>
-					{availabilityView === "personal" && (
-						<FormControlLabel
-							className="ml-2"
-							control={
-								<Switch
-									checked={overlayGoogleCalendar}
-									onChange={handleToggleCalendar}
-									size="small"
-								/>
-							}
-							label="Google Calendar"
-						/>
-					)}
+
+					<FormControlLabel
+						className="ml-2"
+						control={
+							<Switch
+								checked={overlayGoogleCalendar}
+								onChange={handleToggleCalendar}
+								size="small"
+							/>
+						}
+						label="Google Calendar"
+					/>
 				</div>
 			</div>
 
