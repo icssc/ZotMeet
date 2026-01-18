@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
@@ -8,6 +8,7 @@ import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
@@ -37,6 +38,54 @@ export const getTimestampFromBlockIndex = (
 	const isoString = date.toISOString();
 	return isoString;
 };
+
+function calculateBlockColor({
+	block,
+	hoveredMember,
+	selectedMembers,
+	numMembers,
+	showBestTimes,
+	maxAvailability,
+}: {
+	block: string[];
+	hoveredMember: string | null;
+	selectedMembers: string[];
+	numMembers: number;
+	showBestTimes: boolean;
+	maxAvailability: number;
+}): string {
+	if (selectedMembers.length) {
+		const selectedInBlock = selectedMembers.filter((memberId) =>
+			block.includes(memberId),
+		);
+		if (selectedInBlock.length) {
+			const proportion = selectedInBlock.length / selectedMembers.length;
+			return `rgba(55, 124, 251, ${proportion})`;
+		}
+		return "transparent";
+	}
+
+	if (hoveredMember) {
+		if (block.includes(hoveredMember)) {
+			return "rgba(55, 124, 251)";
+		}
+		return "transparent";
+	}
+
+	if (showBestTimes) {
+		if (block.length === maxAvailability && maxAvailability > 0) {
+			return "rgba(55, 124, 251, 1)";
+		}
+		return "transparent";
+	}
+
+	if (numMembers) {
+		const opacity = block.length / numMembers;
+		return `rgba(55, 124, 251, ${opacity})`;
+	}
+
+	return "transparent";
+}
 
 interface GroupAvailabilityProps {
 	meetingId: string;
@@ -74,22 +123,41 @@ export function GroupAvailability({
 		selectedBlockIndex,
 		selectionIsLocked,
 		hoveredMember,
+		selectedMembers,
 		setSelectedZotDateIndex,
 		setSelectedBlockIndex,
 		setSelectionIsLocked,
 		setIsMobileDrawerOpen,
+		toggleHoverGrid,
 	} = useGroupSelectionStore(
 		useShallow((state) => ({
 			selectedZotDateIndex: state.selectedZotDateIndex,
 			selectedBlockIndex: state.selectedBlockIndex,
 			selectionIsLocked: state.selectionIsLocked,
 			hoveredMember: state.hoveredMember,
+			selectedMembers: state.selectedMembers,
 			setSelectedZotDateIndex: state.setSelectedZotDateIndex,
 			setSelectedBlockIndex: state.setSelectedBlockIndex,
 			setSelectionIsLocked: state.setSelectionIsLocked,
 			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
+			toggleHoverGrid: state.toggleHoverGrid,
 		})),
 	);
+
+	const numMembers = members.length;
+	const { enabled: showBestTimes } = useBestTimesToggleStore();
+
+	const maxAvailability = useMemo(() => {
+		if (!showBestTimes || numMembers === 0) return 0;
+
+		let max = 0;
+		availabilityDates.forEach((date) => {
+			Object.values(date.groupAvailability).forEach((memberIds) => {
+				max = Math.max(max, memberIds.length);
+			});
+		});
+		return max;
+	}, [showBestTimes, numMembers, availabilityDates]);
 
 	const {
 		startBlockSelection,
@@ -236,6 +304,8 @@ export function GroupAvailability({
 			zotDateIndex: number;
 			blockIndex: number;
 		}) => {
+			toggleHoverGrid(true);
+
 			if (isScheduling) {
 				// In schedule mode, update end selection for drag
 				if (startBlockSelection) {
@@ -253,6 +323,7 @@ export function GroupAvailability({
 			updateSelection,
 			startBlockSelection,
 			setEndBlockSelection,
+			toggleHoverGrid,
 		],
 	);
 
@@ -367,7 +438,6 @@ export function GroupAvailability({
 	const isTopOfHour = timeBlock % 60 === 0;
 	const isHalfHour = timeBlock % 60 === 30;
 	const isLastRow = blockIndex === availabilityTimeBlocks.length - 1;
-	const numMembers = members.length;
 
 	const spacers = spacerBeforeDate(currentPageAvailability);
 
@@ -392,31 +462,18 @@ export function GroupAvailability({
 				availabilityDates,
 			);
 
-			// Get the block (array of member IDs available at this timestamp)
 			const block = selectedDate.groupAvailability[timestamp] || [];
-
-			// Check if this block is scheduled
-			const blockIsScheduled =
-				isScheduling && timestamp !== "" && isScheduled(timestamp);
-
-			// Calculate block color
-			let blockColor = "transparent";
-
-			if (blockIsScheduled) {
-				blockColor = "rgba(255, 215, 0, 0.6)"; // gold
-			} else {
-				// use the blue heatmap based on group availability.
-				if (hoveredMember) {
-					if (block.includes(hoveredMember)) {
-						blockColor = "rgba(55, 124, 251)";
-					} else {
-						blockColor = "transparent";
-					}
-				} else if (numMembers > 0) {
-					const opacity = block.length / numMembers;
-					blockColor = `rgba(55, 124, 251, ${opacity})`;
-				}
-			}
+			const blockColor =
+				isScheduling && isScheduled(timestamp)
+					? "rgba(255, 215, 0, 0.6)" // gold
+					: calculateBlockColor({
+							block,
+							hoveredMember,
+							selectedMembers,
+							numMembers,
+							showBestTimes,
+							maxAvailability,
+						});
 
 			const tableCellStyles = cn(
 				isTopOfHour ? "border-t-[1px] border-t-gray-medium" : "",
@@ -467,7 +524,6 @@ export function GroupAvailability({
 							block={block}
 							blockColor={blockColor}
 							tableCellStyles={tableCellStyles}
-							hoveredMember={hoveredMember}
 							hasSpacerBefore={spacers[pageDateIndex]}
 						/>
 					</td>

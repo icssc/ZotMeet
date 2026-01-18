@@ -2,7 +2,6 @@ import { memo } from "react";
 import { cn } from "@/lib/utils";
 
 interface GroupAvailabilityBlockProps {
-	block: string[];
 	className?: string;
 	tableCellStyles?: string;
 	onClick: VoidFunction;
@@ -11,7 +10,6 @@ interface GroupAvailabilityBlockProps {
 	onMouseMove?: VoidFunction;
 	onMouseUp?: VoidFunction;
 	blockColor: string;
-	hoveredMember?: string | null;
 	hasSpacerBefore?: boolean;
 	isScheduled?: boolean;
 	isInSelectionRange?: boolean;
@@ -19,7 +17,6 @@ interface GroupAvailabilityBlockProps {
 
 export const GroupAvailabilityBlock = memo(
 	({
-		block,
 		tableCellStyles = "",
 		className = "",
 		onClick,
@@ -28,14 +25,10 @@ export const GroupAvailabilityBlock = memo(
 		onMouseMove,
 		onMouseUp,
 		blockColor,
-		hoveredMember,
 		hasSpacerBefore = false,
 		isScheduled = false,
 		isInSelectionRange = false,
 	}: GroupAvailabilityBlockProps) => {
-		const isMemberAvailable =
-			hoveredMember && block && block.includes(hoveredMember);
-
 		// Gold color when scheduling takes precedence over group availability colors
 		let finalBackgroundColor = blockColor;
 		if (isInSelectionRange && !isScheduled) {
@@ -51,7 +44,6 @@ export const GroupAvailabilityBlock = memo(
 				type="button"
 				className={cn(
 					"h-full w-full border-gray-medium border-r-[1px] transition-opacity duration-200",
-					hoveredMember && !isMemberAvailable && "opacity-30",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
 					tableCellStyles,
 					className,

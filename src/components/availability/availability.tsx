@@ -138,17 +138,22 @@ export function Availability({
 	const setIsMobileDrawerOpen = useGroupSelectionStore(
 		(state) => state.setIsMobileDrawerOpen,
 	);
+	const toggleHoverGrid = useGroupSelectionStore(
+		(state) => state.toggleHoverGrid,
+	);
 
 	const handleMouseLeave = useCallback(() => {
 		if (availabilityView === "group" && !selectionIsLocked) {
 			setIsMobileDrawerOpen(false);
 			resetSelection();
 		}
+		toggleHoverGrid(false);
 	}, [
 		availabilityView,
 		selectionIsLocked,
 		setIsMobileDrawerOpen,
 		resetSelection,
+		toggleHoverGrid,
 	]);
 
 	const { currentPage, itemsPerPage, isFirstPage, nextPage, prevPage } =

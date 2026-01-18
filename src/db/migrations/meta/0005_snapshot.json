@@ -1,6 +1,6 @@
 {
-  "id": "81f378b6-c1d4-4648-adff-d3a77d4ce750",
-  "prevId": "bf14389b-17b1-433c-bc05-c911a4ac7fd5",
+  "id": "50166307-9e6e-47be-870a-e8bb5f2b1a12",
+  "prevId": "81f378b6-c1d4-4648-adff-d3a77d4ce750",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -339,6 +339,62 @@
           ]
         }
       },
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "public.scheduled_meetings": {
+      "name": "scheduled_meetings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "meeting_id": {
+          "name": "meeting_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_date": {
+          "name": "scheduled_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_from_time": {
+          "name": "scheduled_from_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_to_time": {
+          "name": "scheduled_to_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "scheduled_meetings_meeting_id_meetings_id_fk": {
+          "name": "scheduled_meetings_meeting_id_meetings_id_fk",
+          "tableFrom": "scheduled_meetings",
+          "tableTo": "meetings",
+          "columnsFrom": [
+            "meeting_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     },

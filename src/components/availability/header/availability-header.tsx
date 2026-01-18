@@ -13,11 +13,13 @@ import { AuthDialog } from "@/components/auth/auth-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
 interface AvailabilityHeaderProps {
@@ -48,6 +50,14 @@ export function AvailabilityHeader({
 			setAvailabilityView: state.setAvailabilityView,
 		})),
 	);
+
+	const { enabled: showBestTimes, setEnabled: setShowBestTimes } =
+		useBestTimesToggleStore(
+			useShallow((state) => ({
+				enabled: state.enabled,
+				setEnabled: state.setEnabled,
+			})),
+		);
 
 	const handleCancel = () => {
 		onCancel();
@@ -141,7 +151,7 @@ export function AvailabilityHeader({
 							<div className="flex space-x-2 md:space-x-4">
 								<Button
 									className={cn(
-										"h-8 min-h-fit flex-center border-yellow-500 bg-white px-2 text-yellow-500 uppercase outline md:w-28 md:p-0",
+										"h-8 min-h-fit flex-center border border-yellow-500 bg-white px-2 text-yellow-500 uppercase md:w-28 md:p-0",
 										"hover:border-yellow-500 hover:bg-yellow-500 hover:text-white",
 									)}
 									onClick={handleCancel}
@@ -221,6 +231,13 @@ export function AvailabilityHeader({
 								</Button>
 							</div>
 						)}
+						<div className="flex items-center space-x-2">
+							<Switch
+								checked={showBestTimes}
+								onCheckedChange={setShowBestTimes}
+							/>
+							<span className="flex font-dm-sans">Best Times</span>
+						</div>
 					</div>
 				</div>
 			</div>
