@@ -1,6 +1,5 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
 import type { ElementType } from "react";
 import { Collapsible } from "@/components/ui/collapsible";
 import {

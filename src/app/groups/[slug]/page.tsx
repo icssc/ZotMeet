@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { CreateGroup } from "@/components/groups/create-group";
+import { CreateGroup } from "@/components/groups/create-group-popup";
 import { getCurrentSession } from "@/lib/auth";
 
 interface PageProps {
@@ -31,7 +31,11 @@ export default async function Page(props: PageProps) {
 		notFound();
 	}
 
-	const session = await getCurrentSession();
+	const { user } = await getCurrentSession();
+	if (!user) {
+		console.log("user not logged in ");
+		notFound();
+	}
 
 	if (slug === "home") {
 		return (
@@ -39,7 +43,7 @@ export default async function Page(props: PageProps) {
 				<h1 className="mb-4 font-medium font-montserrat text-3xl">Groups</h1>
 				<p className="mb-4 text-gray-600">Create and manage your groups</p>
 
-				<CreateGroup />
+				<CreateGroup email={user.email} />
 			</div>
 		);
 	}

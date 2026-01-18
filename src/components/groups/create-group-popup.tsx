@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import CloseIcon from "@mui/icons-material/Close";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { IconButton } from "@mui/material";
+import { User } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
@@ -21,7 +22,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { createGroupSchema } from "@/server/actions/group/create/schema";
 
-export const CreateGroup = () => {
+interface CreateGroupProps {
+	email: string;
+}
+
+export const CreateGroup = ({ email }: CreateGroupProps) => {
 	const [isCreating, setIsCreating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -51,11 +56,7 @@ export const CreateGroup = () => {
 
 			//create invite link data
 			if (result.groupId) {
-				const groupInvite = await createGroupInvite(
-					result.groupId,
-					"test@yahoo.com",
-					7,
-				);
+				const groupInvite = await createGroupInvite(result.groupId, email, 7);
 				console.log(
 					groupInvite.success,
 					groupInvite.message,

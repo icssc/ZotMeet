@@ -203,7 +203,14 @@ export const groupInvites = pgTable("group_invites", {
 		.notNull()
 		.references(() => groups.id, { onDelete: "cascade" }),
 	inviteToken: text("invite_token").notNull().unique(),
-	inviteeEmail: text("invitee_email").notNull(),
+	/**
+	 * JSON array of email addresses
+	 * @example ["user1@example.com", "user2@example.com"]
+	 */
+	inviteeEmails: jsonb("invitee_emails")
+		.$type<string[]>()
+		.notNull()
+		.default([]),
 	inviterId: text("inviter_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),

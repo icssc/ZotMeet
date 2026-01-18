@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import type { SelectGroupInvite } from "@/db/schema";
+import { InviteDecision } from "@/components/groups/invite-decision";
 import { getCurrentSession } from "@/lib/auth";
 import { getExistingInvite } from "@/server/data/groups/invite-queries";
 
@@ -19,9 +18,8 @@ export default async function Page(props: PageProps) {
 	}
 
 	// Check if invite exists
-	let groupInvite: SelectGroupInvite;
 	try {
-		groupInvite = await getExistingInvite(slug);
+		await getExistingInvite(slug);
 	} catch (_error) {
 		notFound();
 	}
@@ -33,15 +31,8 @@ export default async function Page(props: PageProps) {
 	}
 
 	return (
-		<div className="p-8">
-			<h1 className="mb-4 font-medium font-montserrat text-3xl">
-				Invite to Group
-			</h1>
-			<p className="mb-4 text-gray-600">
-				Invite token: {groupInvite.inviteToken}
-			</p>
-			<Button>Accept</Button>
-			<Button>Decline</Button>
+		<div>
+			<InviteDecision inviteToken={slug} />
 		</div>
 	);
 }
