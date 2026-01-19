@@ -26,19 +26,7 @@ export const GroupAvailabilityBlock = memo(
 		onMouseUp,
 		blockColor,
 		hasSpacerBefore = false,
-		isScheduled = false,
-		isInSelectionRange = false,
 	}: GroupAvailabilityBlockProps) => {
-		// Gold color when scheduling takes precedence over group availability colors
-		let finalBackgroundColor = blockColor;
-		if (isInSelectionRange && !isScheduled) {
-			// lighter gold when dragging
-			finalBackgroundColor = "rgba(255, 215, 0, 0.3)";
-		} else if (isScheduled) {
-			// Darker gold when drag ends
-			finalBackgroundColor = "rgba(255, 215, 0, 0.6)";
-		}
-
 		return (
 			<button
 				type="button"
@@ -56,7 +44,7 @@ export const GroupAvailabilityBlock = memo(
 			>
 				<div
 					className={cn("block h-full w-full py-2")}
-					style={{ background: finalBackgroundColor }}
+					style={{ background: blockColor }}
 				/>
 			</button>
 		);
