@@ -521,7 +521,6 @@ export function GroupAvailability({
 								})
 							}
 							onMouseUp={handleMouseUp}
-							block={block}
 							blockColor={blockColor}
 							tableCellStyles={tableCellStyles}
 							hasSpacerBefore={spacers[pageDateIndex]}
