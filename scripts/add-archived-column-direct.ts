@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
 /**
- * Script to manually add the archived column to the groups table.
- * This bypasses Drizzle's migration system and directly adds the column.
+ * Script to directly add the archived column to the groups table.
+ * This bypasses Drizzle's migration system.
  *
- * Usage: npx tsx scripts/add-archived-column.ts
+ * Usage: npx tsx scripts/add-archived-column-direct.ts
  */
 
 import "dotenv/config";
@@ -39,7 +39,7 @@ async function addArchivedColumn() {
 
 		console.log("❌ Column 'archived' does NOT exist. Adding it now...");
 
-		// Add the column
+		// Add the column directly
 		await client.query(`
 			ALTER TABLE "public"."groups" 
 			ADD COLUMN "archived" boolean DEFAULT false NOT NULL
@@ -76,6 +76,9 @@ async function addArchivedColumn() {
 addArchivedColumn()
 	.then(() => {
 		console.log("\n✅ Script completed successfully.");
+		console.log(
+			"💡 Next step: Fix the _journal.json file so future migrations work.",
+		);
 		process.exit(0);
 	})
 	.catch((error) => {
