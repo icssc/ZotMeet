@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import {
@@ -8,6 +8,7 @@ import {
 	groupInvites,
 	type SelectGroup,
 	type SelectGroupInvite,
+	type SelectGroupInviteResponse,
 	usersInGroup,
 } from "@/db/schema";
 //session
@@ -116,6 +117,11 @@ export type AcceptInviteState = {
 	groupId?: string;
 };
 
+export type DeclineInviteState = {
+	success: boolean;
+	message: string;
+};
+
 export async function acceptInvite(
 	groupInviteToken: string,
 ): Promise<AcceptInviteState> {
@@ -147,13 +153,26 @@ export async function acceptInvite(
 		};
 	}
 
+	// Check if user has already responded to this invite
+	const [existingResponse] = await db
+		.select()
+		.from(groupInviteResponses)
+		.where(
+			and(
+				eq(groupInviteResponses.inviteId, invite.id),
+				eq(groupInviteResponses.userId, user.id),
+			),
+		)
+		.limit(1);
+
 	// Check if user is already in the group
 	const alreadyInGroup = await isUserInGroup({
 		userId: user.id,
 		groupId: invite.groupId,
 	});
 
-	if (alreadyInGroup) {
+	// If already accepted and in group, return success
+	if (existingResponse?.status === "accepted" && alreadyInGroup) {
 		return {
 			success: true,
 			message: "You are already a member of this group.",
@@ -166,20 +185,34 @@ export async function acceptInvite(
 		await db.transaction(async (tx) => {
 			const userEmail = user.email.toLowerCase().trim();
 
-			// Insert response record
-			await tx.insert(groupInviteResponses).values({
-				inviteId: invite.id,
-				userId: user.id,
-				email: userEmail,
-				status: "accepted",
-				respondedAt: new Date(),
-			});
+			// Update existing response or create new one
+			if (existingResponse) {
+				// Update existing response to accepted
+				await tx
+					.update(groupInviteResponses)
+					.set({
+						status: "accepted",
+						respondedAt: new Date(),
+					})
+					.where(eq(groupInviteResponses.id, existingResponse.id));
+			} else {
+				// Insert new response record
+				await tx.insert(groupInviteResponses).values({
+					inviteId: invite.id,
+					userId: user.id,
+					email: userEmail,
+					status: "accepted",
+					respondedAt: new Date(),
+				});
+			}
 
-			// Add user to group
-			await tx.insert(usersInGroup).values({
-				userId: user.id,
-				groupId: invite.groupId,
-			});
+			// Add user to group (only if not already in group)
+			if (!alreadyInGroup) {
+				await tx.insert(usersInGroup).values({
+					userId: user.id,
+					groupId: invite.groupId,
+				});
+			}
 		});
 
 		revalidatePath("/groups");
@@ -196,6 +229,111 @@ export async function acceptInvite(
 		return {
 			success: false,
 			message: "Error joining group :(",
+		};
+	}
+}
+
+export async function declineInvite(
+	groupInviteToken: string,
+): Promise<DeclineInviteState> {
+	//verify auth
+	const { user } = await getCurrentSession();
+	if (!user) {
+		return {
+			success: false,
+			message: "user not logged in",
+		};
+	}
+
+	//verify valid invite
+	let invite: SelectGroupInvite;
+	try {
+		invite = await getExistingInvite(groupInviteToken);
+	} catch (error) {
+		return {
+			success: false,
+			message: "Invite not found!",
+		};
+	}
+
+	// Check if invite has expired
+	if (invite.expiresAt && invite.expiresAt < new Date()) {
+		return {
+			success: false,
+			message: "This invite has expired.",
+		};
+	}
+
+	// Check if user has already responded to this invite
+	const [existingResponse] = await db
+		.select()
+		.from(groupInviteResponses)
+		.where(
+			and(
+				eq(groupInviteResponses.inviteId, invite.id),
+				eq(groupInviteResponses.userId, user.id),
+			),
+		)
+		.limit(1);
+
+	// Check if user is in the group (need to remove them if switching from accepted)
+	const alreadyInGroup = await isUserInGroup({
+		userId: user.id,
+		groupId: invite.groupId,
+	});
+
+	// Create or update decline response record
+	try {
+		await db.transaction(async (tx) => {
+			const userEmail = user.email.toLowerCase().trim();
+
+			// Update existing response or create new one
+			if (existingResponse) {
+				// Update existing response to declined
+				await tx
+					.update(groupInviteResponses)
+					.set({
+						status: "declined",
+						respondedAt: new Date(),
+					})
+					.where(eq(groupInviteResponses.id, existingResponse.id));
+			} else {
+				// Insert new response record
+				await tx.insert(groupInviteResponses).values({
+					inviteId: invite.id,
+					userId: user.id,
+					email: userEmail,
+					status: "declined",
+					respondedAt: new Date(),
+				});
+			}
+
+			// If user was in group (from previous accept), remove them
+			if (alreadyInGroup) {
+				await tx
+					.delete(usersInGroup)
+					.where(
+						and(
+							eq(usersInGroup.userId, user.id),
+							eq(usersInGroup.groupId, invite.groupId),
+						),
+					);
+			}
+		});
+
+		revalidatePath("/groups");
+		revalidatePath(`/groups/${invite.groupId}`);
+		revalidatePath("/summary");
+
+		return {
+			success: true,
+			message: "Invite declined successfully.",
+		};
+	} catch (error) {
+		console.error("Failed to decline invite:", error);
+		return {
+			success: false,
+			message: "Error declining invite :(",
 		};
 	}
 }
