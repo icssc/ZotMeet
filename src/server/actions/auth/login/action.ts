@@ -59,7 +59,7 @@ export default async function loginAction(
 	const sessionToken = generateSessionToken();
 	const session = await createSession(sessionToken, existingUser.id);
 
-	setSessionTokenCookie(sessionToken, session.expiresAt);
+	await setSessionTokenCookie(sessionToken, session.expiresAt);
 
 	revalidatePath("/", "layout");
 

@@ -123,6 +123,10 @@ export async function GET(request: Request): Promise<Response> {
 			oauthAccessTokenExpiresAt: googleTokenExpiry,
 		});
 		await setSessionTokenCookie(sessionToken, session.expiresAt);
+		cookieStore.delete("oauth_state");
+		cookieStore.delete("oauth_code_verifier");
+		cookieStore.delete("auth_redirect_url");
+
 		const userRecord = await getUserById(existingUser.id);
 
 		if (!userRecord) {
@@ -144,10 +148,6 @@ export async function GET(request: Request): Promise<Response> {
 
 		memberId = user.memberId;
 	}
-
-	cookieStore.delete("oauth_state");
-	cookieStore.delete("oauth_code_verifier");
-	cookieStore.delete("auth_redirect_url");
 
 	let parsedUrl: URL;
 	try {
