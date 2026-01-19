@@ -122,7 +122,10 @@ export async function GET(request: Request): Promise<Response> {
 			oauthRefreshToken: googleRefreshToken,
 			oauthAccessTokenExpiresAt: googleTokenExpiry,
 		});
-		await setSessionTokenCookie(sessionToken, session.expiresAt);
+		await setSessionTokenCookie(
+			sessionToken + "| IN CALLBACK",
+			session.expiresAt,
+		);
 		cookieStore.delete("oauth_state");
 		cookieStore.delete("oauth_code_verifier");
 		cookieStore.delete("auth_redirect_url");

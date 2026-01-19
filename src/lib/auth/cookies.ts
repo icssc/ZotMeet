@@ -1,5 +1,4 @@
 import { cookies } from "next/headers";
-import { toast } from "sonner";
 
 export async function setSessionTokenCookie(token: string, expiresAt: Date) {
 	const cookieStore = await cookies();
@@ -14,10 +13,6 @@ export async function setSessionTokenCookie(token: string, expiresAt: Date) {
 		expires: expiresAt,
 		path: "/",
 	});
-
-	const toastString = `In cookies.ts: [COOKIE SET] session: ${token} expiresAt: ${expiresAt.toISOString()} Path:/ SameSite:lax Secure: ${process.env.NODE_ENV === "production"}`;
-
-	toast.success(toastString);
 }
 
 export async function deleteSessionTokenCookie() {

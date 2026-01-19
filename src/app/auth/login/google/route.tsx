@@ -4,7 +4,6 @@ import {
 	generateState,
 } from "arctic";
 import { cookies, headers } from "next/headers";
-import { toast } from "sonner";
 import { deleteSessionTokenCookie } from "@/lib/auth/cookies";
 import { oauth } from "@/lib/auth/oauth";
 
@@ -48,10 +47,6 @@ export async function GET(request: Request): Promise<Response> {
 		maxAge: 60 * 10, // 10 minutes
 		sameSite: "lax",
 	});
-
-	const toastString = `In route.tsx callback: [COOKIE SET] oauth_state and oauth_code_verifier set. Path:/ SameSite:lax Secure: ${process.env.NODE_ENV === "production"}`;
-
-	toast.success(toastString);
 
 	const headersList = await headers();
 	const referer = headersList.get("referer");
