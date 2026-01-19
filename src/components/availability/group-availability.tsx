@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
@@ -186,9 +186,6 @@ export function GroupAvailability({
 			})),
 		);
 
-	// Track if we're dragging to prevent onClick from firing after drag
-	const isDraggingRef = useRef(false);
-
 	// update start and end block selection state
 	useEffect(() => {
 		if (startBlockSelection && endBlockSelection) {
@@ -248,51 +245,32 @@ export function GroupAvailability({
 
 	const handleCellClick = useCallback(
 		({
-			isSelected,
 			zotDateIndex,
 			blockIndex,
 		}: {
-			isSelected: boolean;
 			zotDateIndex: number;
 			blockIndex: number;
 		}) => {
-			console.log("handling click");
-			// Don't handle click if we just finished a drag
-			if (isDraggingRef.current) {
-				isDraggingRef.current = false;
-				return;
-			}
-
-			if (isScheduling) {
-				console.log("isScheduling");
-				const timestamp = getTimestampFromBlockIndex(
-					blockIndex,
-					zotDateIndex,
-					fromTime,
-					availabilityDates,
-				);
-				console.log(timestamp);
-				if (timestamp) {
-					toggleScheduledTime(timestamp);
-					console.log("toggled off timestamp");
-				}
-			} else {
-				if (selectionIsLocked && isSelected) {
+			if (!isScheduling) {
+				if (selectionIsLocked) {
 					setSelectionIsLocked(false);
 				} else {
 					setSelectionIsLocked(true);
 					updateSelection({ zotDateIndex, blockIndex });
 				}
+				return;
 			}
+
+			setStartBlockSelection({ zotDateIndex, blockIndex });
+			setEndBlockSelection({ zotDateIndex, blockIndex });
 		},
 		[
 			isScheduling,
 			selectionIsLocked,
 			setSelectionIsLocked,
 			updateSelection,
-			fromTime,
-			availabilityDates,
-			toggleScheduledTime,
+			setStartBlockSelection,
+			setEndBlockSelection,
 		],
 	);
 
@@ -336,7 +314,6 @@ export function GroupAvailability({
 			blockIndex: number;
 		}) => {
 			if (isScheduling) {
-				isDraggingRef.current = false;
 				setStartBlockSelection({ zotDateIndex, blockIndex });
 				setEndBlockSelection({ zotDateIndex, blockIndex });
 			}
@@ -353,7 +330,6 @@ export function GroupAvailability({
 			blockIndex: number;
 		}) => {
 			if (isScheduling && startBlockSelection) {
-				isDraggingRef.current = true;
 				setEndBlockSelection({ zotDateIndex, blockIndex });
 			}
 		},
@@ -403,13 +379,14 @@ export function GroupAvailability({
 				const firstTimestamp = timestamps[0];
 				const isFirstScheduled = isScheduled(firstTimestamp);
 
-				// If first is scheduled, remove all; otherwise add all
+				// if first timestamp is scheduled, we are un-scheduling the whole range
 				if (isFirstScheduled) {
 					timestamps.forEach((ts) => {
 						if (isScheduled(ts)) {
 							toggleScheduledTime(ts);
 						}
 					});
+					// else we are scheduling the whole range
 				} else {
 					addScheduledTimeRange(timestamps);
 				}
@@ -497,7 +474,6 @@ export function GroupAvailability({
 							)}
 							onClick={() =>
 								handleCellClick({
-									isSelected,
 									zotDateIndex,
 									blockIndex,
 								})
