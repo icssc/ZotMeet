@@ -48,7 +48,10 @@ export async function deleteGroup(groupId: string): Promise<DeleteGroupState> {
 		const groupMeetings = await getMeetingsByGroupId(groupId, true);
 		const meetingCount = groupMeetings.length;
 
-		await db.update(groups).set({ archived: true }).where(eq(groups.id, groupId));
+		await db
+			.update(groups)
+			.set({ archived: true })
+			.where(eq(groups.id, groupId));
 
 		if (meetingCount > 0) {
 			await db

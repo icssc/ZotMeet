@@ -8,10 +8,7 @@ import { db } from "@/db";
 import type { SelectGroup } from "@/db/schema";
 import { groups } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import {
-	getExistingGroup,
-	isGroupCreator,
-} from "@/server/data/groups/queries";
+import { getExistingGroup, isGroupCreator } from "@/server/data/groups/queries";
 
 export type UpdateGroupState = {
 	success: boolean;
