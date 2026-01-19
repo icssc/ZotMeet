@@ -7,6 +7,8 @@ on:
     types:
       - closed
       - labeled
+  repository_dispatch:
+    types: [remove-command]
 
 permissions:
   id-token: write
@@ -15,7 +17,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
   cancel-in-progress: true
 
 env:
@@ -23,21 +25,23 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
   DATABASE_URL: ${{ secrets.DEV_DB_URL }}
-  PR_NUM: ${{ github.event.pull_request.number }}
+  PR_NUM: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
 
 jobs:
   destroy:
-    if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
+    if: github.event_name == 'repository_dispatch' || (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
 
     runs-on: ubuntu-latest
 
     environment:
-      name: staging-${{ github.event.pull_request.number }}
-      url: https://staging-${{ github.event.pull_request.number }}.zotmeet.com
+      name: staging-${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
+      url: https://staging-${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}.zotmeet.com
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.event.client_payload.pull_request.head.sha }}
 
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
@@ -59,5 +63,13 @@ jobs:
         uses: strumwolf/delete-deployment-environment@v2.3.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          environment: staging-${{ github.event.pull_request.number }}
+          environment: staging-${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
           onlyDeactivateDeployments: true
+
+      - name: Add reaction to comment
+        if: github.event_name == 'repository_dispatch'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+          reactions: rocket
