@@ -1,4 +1,4 @@
-import { getGroupsByUserId } from "@data/groups/queries";
+import { getGroupsByUserId, isUserInGroup } from "@data/groups/queries";
 import { notFound } from "next/navigation";
 import { CreateGroup } from "@/components/groups/create-group-popup";
 import { getCurrentSession } from "@/lib/auth";
@@ -58,14 +58,18 @@ export default async function Page(props: PageProps) {
 		);
 	}
 
-	return (
-		<div className="p-8">
-			<h1 className="mb-4 font-medium font-montserrat text-3xl">
-				Group: {slug}
-			</h1>
-			<p className="text-gray-600">
-				This is the group detail page for ID: {slug}
-			</p>
-		</div>
-	);
+	// work in progress, need to investigate why react doesn't like passing a slug to query db
+	const userInGroup = await isUserInGroup(user.id, slug);
+	if (userInGroup) {
+		return (
+			<div className="p-8">
+				<h1 className="mb-4 font-medium font-montserrat text-3xl">
+					Group: {slug}
+				</h1>
+				<p className="text-gray-600">
+					This is the group detail page for ID: {slug}
+				</p>
+			</div>
+		);
+	}
 }
