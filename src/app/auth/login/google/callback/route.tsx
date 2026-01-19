@@ -96,8 +96,6 @@ export async function GET(request: Request): Promise<Response> {
 	let memberId: string;
 
 	if (existingUser) {
-		cookieStore.delete("session");
-
 		const existingOAuthAccount = await db.query.oauthAccounts.findFirst({
 			where: and(
 				eq(oauthAccounts.userId, existingUser.id),
@@ -132,8 +130,6 @@ export async function GET(request: Request): Promise<Response> {
 		}
 		memberId = userRecord.memberId;
 	} else {
-		cookieStore.delete("session");
-
 		const user = await createGoogleUser(oauthUserId, email, username, null);
 
 		const sessionToken = generateSessionToken();
