@@ -16,11 +16,13 @@ async function handleAccept(inviteToken: string) {
 	alert(result.message);
 }
 
+/*
 async function handleDecline(inviteToken: string) {
 	const result = await declineInvite(inviteToken);
 	console.log(result);
 	alert(result.message);
 }
+    */
 
 export const InviteDecision = ({ inviteToken }: InviteDecisionProps) => {
 	return (
@@ -31,7 +33,9 @@ export const InviteDecision = ({ inviteToken }: InviteDecisionProps) => {
 				</h1>
 				<p className="mb-4 text-gray-600">Invite token: {inviteToken}</p>
 				<Button onClick={() => handleAccept(inviteToken)}>Accept</Button>
-				<Button onClick={() => handleDecline(inviteToken)}>Decline</Button>
+				{/*
+                <Button onClick={() => handleDecline(inviteToken)}>Decline</Button>
+                */}
 			</div>
 		</div>
 	);

@@ -1,3 +1,4 @@
+import { getGroupsByUserId } from "@data/groups/queries";
 import { notFound } from "next/navigation";
 import { CreateGroup } from "@/components/groups/create-group-popup";
 import { getCurrentSession } from "@/lib/auth";
@@ -37,13 +38,22 @@ export default async function Page(props: PageProps) {
 		notFound();
 	}
 
+	const usersInGroup = await getGroupsByUserId(user.id);
+
 	if (slug === "home") {
 		return (
 			<div className="relative p-8">
 				<h1 className="mb-4 font-medium font-montserrat text-3xl">Groups</h1>
 				<p className="mb-4 text-gray-600">Create and manage your groups</p>
 
-				<CreateGroup email={user.email} />
+				<div className="">
+					<p className="">Your Groups: </p>
+					{usersInGroup.map((u, index) => (
+						<p key={u.id}>{u.name}</p>
+					))}
+
+					<CreateGroup email={user.email} />
+				</div>
 			</div>
 		);
 	}

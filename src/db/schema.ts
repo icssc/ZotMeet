@@ -48,7 +48,6 @@ export const membersRelations = relations(members, ({ one, many }) => ({
 export type InsertMember = InferInsertModel<typeof members>;
 export type SelectMember = InferSelectModel<typeof members>;
 
-// Users encompasses Members who have created an account.
 export const users = pgTable("users", {
 	id: text("id").primaryKey(),
 	memberId: uuid("member_id")
@@ -206,10 +205,8 @@ export const groupInvites = pgTable("group_invites", {
 	inviterId: text("inviter_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
-	status: inviteStatusEnum("status").notNull().default("pending"),
 	sentAt: timestamp("sent_at", { mode: "date" }).defaultNow().notNull(),
 	expiresAt: timestamp("expires_at", { mode: "date" }),
-	userId: text("user_id").references(() => users.id), // group creator
 });
 
 export const groupInviteResponses = pgTable("group_invite_responses", {
