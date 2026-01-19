@@ -28,6 +28,9 @@ export async function GET(request: Request): Promise<Response> {
 	url.searchParams.set("prompt", promptValue);
 
 	const cookieStore = await cookies();
+
+	cookieStore.delete("session");
+
 	cookieStore.set("oauth_state", state, {
 		path: "/",
 		httpOnly: true,
