@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import {
+	groupInviteResponses,
 	groupInvites,
 	type SelectGroup,
 	type SelectGroupInvite,
@@ -29,7 +30,8 @@ export type CreateInviteState = {
 
 export async function createGroupInvite(
 	groupId: string,
-	inviteeEmails: string | string[],
+	// future: for private invites
+	// inviteeEmails: string | string[],
 	expiresInDays?: number,
 ): Promise<CreateInviteState> {
 	//check auth
@@ -41,34 +43,14 @@ export async function createGroupInvite(
 		};
 	}
 
-	const emails = Array.isArray(inviteeEmails) ? inviteeEmails : [inviteeEmails];
-
-	// Validate emails
-	if (emails.length === 0) {
-		return {
-			success: false,
-			message: "At least one email address is required.",
-		};
-	}
-
-	// Validate each email
-	for (const email of emails) {
-		if (!email || !email.includes("@")) {
-			return {
-				success: false,
-				message: `Invalid email address: ${email}`,
-			};
-		}
-	}
-
 	//check if group exists
-	let _group: SelectGroup;
+	let group: SelectGroup;
 	try {
-		_group = await getExistingGroup(groupId);
+		group = await getExistingGroup(groupId);
 	} catch (_error) {
 		return {
 			success: false,
-			message: "group not found",
+			message: "Group not found",
 		};
 	}
 
@@ -94,15 +76,12 @@ export async function createGroupInvite(
 
 	// Insert Invite to DB
 	try {
-		// Normalize all emails (lowercase, trim)
-		const normalizedEmails = emails.map((email) => email.toLowerCase().trim());
-
 		const [newInvite] = await db
 			.insert(groupInvites)
 			.values({
 				groupId,
 				inviteToken,
-				inviteeEmails: normalizedEmails, // Array of emails
+				//inviteeEmails,
 				inviterId: user.id,
 				expiresAt,
 				sentAt: new Date(),
@@ -110,7 +89,7 @@ export async function createGroupInvite(
 			.returning({ inviteToken: groupInvites.inviteToken }); //  CRITICAL
 
 		revalidatePath("/groups");
-		revalidatePath(`/groups/${groupId}`); //
+		revalidatePath(`/groups/${groupId}`);
 
 		const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 		const inviteUrl = `${baseUrl}/invite/${newInvite.inviteToken}`;
@@ -131,7 +110,6 @@ export async function createGroupInvite(
 	}
 }
 
-//typedef
 export type AcceptInviteState = {
 	success: boolean;
 	message: string;
@@ -154,17 +132,10 @@ export async function acceptInvite(
 	let invite: SelectGroupInvite;
 	try {
 		invite = await getExistingInvite(groupInviteToken);
-	} catch (_error) {
+	} catch (error) {
 		return {
 			success: false,
 			message: "Invite not found!",
-		};
-	}
-
-	if (invite.status !== "pending") {
-		return {
-			success: false,
-			message: "Invite already responded",
 		};
 	}
 
@@ -176,17 +147,6 @@ export async function acceptInvite(
 		};
 	}
 
-	/*
-	for specific email invites
-	// Verify email matches (check if user's email is in the inviteeEmails array)
-	if (!invite.inviteeEmails.includes(user.email.toLowerCase())) {
-		return {
-			success: false,
-			message: "This invite was sent to a different email address.",
-		};
-	}
-	*/
-
 	// Check if user is already in the group
 	const alreadyInGroup = await isUserInGroup({
 		userId: user.id,
@@ -194,25 +154,6 @@ export async function acceptInvite(
 	});
 
 	if (alreadyInGroup) {
-		// Still update the invite status even if already in group
-		const userEmail = user.email.toLowerCase().trim();
-		const updatedEmails = invite.inviteeEmails.includes(userEmail)
-			? invite.inviteeEmails
-			: [...invite.inviteeEmails, userEmail];
-
-		await db
-			.update(groupInvites)
-			.set({
-				status: "accepted",
-				respondedAt: new Date(),
-				userId: user.id,
-				inviteeEmails: updatedEmails,
-			})
-			.where(eq(groupInvites.inviteToken, groupInviteToken));
-
-		revalidatePath("/groups");
-		revalidatePath(`/groups/${invite.groupId}`);
-
 		return {
 			success: true,
 			message: "You are already a member of this group.",
@@ -224,22 +165,17 @@ export async function acceptInvite(
 	try {
 		await db.transaction(async (tx) => {
 			const userEmail = user.email.toLowerCase().trim();
-			const updatedEmails = invite.inviteeEmails.includes(userEmail)
-				? invite.inviteeEmails
-				: [...invite.inviteeEmails, userEmail];
 
-			//update invite status
-			await tx
-				.update(groupInvites)
-				.set({
-					status: "accepted",
-					respondedAt: new Date(),
-					userId: user.id,
-					inviteeEmails: updatedEmails,
-				})
-				.where(eq(groupInvites.inviteToken, groupInviteToken));
+			// Insert response record
+			await tx.insert(groupInviteResponses).values({
+				inviteId: invite.id,
+				userId: user.id,
+				email: userEmail,
+				status: "accepted",
+				respondedAt: new Date(),
+			});
 
-			//add user to group
+			// Add user to group
 			await tx.insert(usersInGroup).values({
 				userId: user.id,
 				groupId: invite.groupId,

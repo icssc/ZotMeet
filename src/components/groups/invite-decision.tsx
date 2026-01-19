@@ -13,7 +13,7 @@ async function handleAccept(inviteToken: string) {
 		console.log("SOMETHING WENT WRONG");
 	}
 
-	console.log("IT WORKED ", result);
+	console.log(result);
 }
 
 export const InviteDecision = ({ inviteToken }: InviteDecisionProps) => {

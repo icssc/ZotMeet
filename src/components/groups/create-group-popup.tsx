@@ -56,7 +56,7 @@ export const CreateGroup = ({ email }: CreateGroupProps) => {
 
 			//create invite link data
 			if (result.groupId) {
-				const groupInvite = await createGroupInvite(result.groupId, email, 7);
+				const groupInvite = await createGroupInvite(result.groupId, 7);
 				console.log(
 					groupInvite.success,
 					groupInvite.message,

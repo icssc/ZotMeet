@@ -203,26 +203,37 @@ export const groupInvites = pgTable("group_invites", {
 		.notNull()
 		.references(() => groups.id, { onDelete: "cascade" }),
 	inviteToken: text("invite_token").notNull().unique(),
-	/**
-	 * JSON array of email addresses
-	 * @example ["user1@example.com", "user2@example.com"]
-	 */
-	inviteeEmails: jsonb("invitee_emails")
-		.$type<string[]>()
-		.notNull()
-		.default([]),
 	inviterId: text("inviter_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
 	status: inviteStatusEnum("status").notNull().default("pending"),
 	sentAt: timestamp("sent_at", { mode: "date" }).defaultNow().notNull(),
 	expiresAt: timestamp("expires_at", { mode: "date" }),
+	userId: text("user_id").references(() => users.id), // group creator
+});
+
+export const groupInviteResponses = pgTable("group_invite_responses", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	inviteId: uuid("invite_id")
+		.notNull()
+		.references(() => groupInvites.id, { onDelete: "cascade" }),
+	userId: text("user_id")
+		.notNull()
+		.references(() => users.id, { onDelete: "cascade" }),
+	email: text("email").notNull(),
+	status: inviteStatusEnum("status").notNull().default("pending"),
 	respondedAt: timestamp("responded_at", { mode: "date" }),
-	userId: text("user_id").references(() => users.id),
 });
 
 export type InsertGroupInvite = InferInsertModel<typeof groupInvites>;
 export type SelectGroupInvite = InferSelectModel<typeof groupInvites>;
+
+export type InsertGroupInviteResponse = InferInsertModel<
+	typeof groupInviteResponses
+>;
+export type SelectGroupInviteResponse = InferSelectModel<
+	typeof groupInviteResponses
+>;
 
 export const availabilities = pgTable(
 	"availabilities",

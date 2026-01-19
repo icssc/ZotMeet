@@ -20,20 +20,3 @@ export async function getExistingInvite(
 
 	return invite;
 }
-
-/*
-export async function getInviteStatus(
-	token: string,
-): Promise<SelectGroupInvite["status"]>{
-	const [invite] = await db
-		.select()
-		.from(groupInvites)
-		.where(eq(groupInvites.inviteToken, token))
-		.limit(1);
-
-	if(!invite){
-		throw new Error("Invite not found")
-	}
-	return invite.status;
-}
-*/
