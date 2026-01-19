@@ -22,6 +22,9 @@ export async function GET(request: Request): Promise<Response> {
 	const codeVerifier = cookieStore.get("oauth_code_verifier")?.value ?? null;
 	const redirectUrl = cookieStore.get("auth_redirect_url")?.value ?? "/";
 
+	cookieStore.delete("session");
+	cookieStore.delete({ name: "session", path: "/" });
+
 	if (
 		code === null ||
 		state === null ||
@@ -122,10 +125,15 @@ export async function GET(request: Request): Promise<Response> {
 			oauthRefreshToken: googleRefreshToken,
 			oauthAccessTokenExpiresAt: googleTokenExpiry,
 		});
+
+		cookieStore.delete("session");
+		cookieStore.delete({ name: "session", path: "/" });
+
 		await setSessionTokenCookie(
 			sessionToken + "| IN CALLBACK",
 			session.expiresAt,
 		);
+
 		cookieStore.delete("oauth_state");
 		cookieStore.delete("oauth_code_verifier");
 		cookieStore.delete("auth_redirect_url");
@@ -147,6 +155,9 @@ export async function GET(request: Request): Promise<Response> {
 			oauthRefreshToken: googleRefreshToken,
 			oauthAccessTokenExpiresAt: googleTokenExpiry,
 		});
+
+		cookieStore.delete("session");
+		cookieStore.delete({ name: "session", path: "/" });
 		await setSessionTokenCookie(sessionToken, session.expiresAt);
 
 		memberId = user.memberId;
