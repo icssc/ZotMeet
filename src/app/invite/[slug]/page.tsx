@@ -17,14 +17,12 @@ export default async function Page(props: PageProps) {
 		notFound();
 	}
 
-	// Check if invite exists
 	try {
 		await getExistingInvite(slug);
 	} catch (_error) {
 		notFound();
 	}
 
-	// Check if user in session
 	const session = await getCurrentSession();
 	if (!session) {
 		notFound();
