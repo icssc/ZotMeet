@@ -59,17 +59,17 @@ export default async function Page(props: PageProps) {
 	}
 
 	// work in progress, need to investigate why react doesn't like passing a slug to query db
-	const userInGroup = await isUserInGroup(user.id, slug);
-	if (userInGroup) {
-		return (
-			<div className="p-8">
-				<h1 className="mb-4 font-medium font-montserrat text-3xl">
-					Group: {slug}
-				</h1>
-				<p className="text-gray-600">
-					This is the group detail page for ID: {slug}
-				</p>
-			</div>
-		);
-	}
+	//const userInGroup = await isUserInGroup(user.id, slug);
+	//if (userInGroup) {
+	return (
+		<div className="p-8">
+			<h1 className="mb-4 font-medium font-montserrat text-3xl">
+				Group: {slug}
+			</h1>
+			<p className="text-gray-600">
+				This is the group detail page for ID: {slug}
+			</p>
+		</div>
+	);
+	//}
 }
