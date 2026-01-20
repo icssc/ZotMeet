@@ -530,7 +530,9 @@ export function GroupAvailability({
 	const isTopOfHour = timeBlock % 60 === 0;
 	const isHalfHour = timeBlock % 60 === 30;
 	const isLastRow = blockIndex === availabilityTimeBlocks.length - 1;
-
+	const numMembers = members.length;
+	//console.log(currentPageAvailability);
+	//ZotDate: contains day, availabilities
 	const spacers = spacerBeforeDate(currentPageAvailability);
 
 	return currentPageAvailability.map((selectedDate, pageDateIndex) => {
