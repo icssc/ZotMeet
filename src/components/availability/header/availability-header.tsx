@@ -1,7 +1,10 @@
 "use client";
 
 import { saveAvailability } from "@actions/availability/save/action";
-import { saveScheduledMeeting } from "@actions/meeting/schedule/action";
+import {
+	deleteScheduledTimeBlock,
+	saveScheduledTimeBlock,
+} from "@actions/meeting/schedule/action";
 import {
 	CircleCheckIcon,
 	CircleXIcon,
@@ -65,10 +68,10 @@ export function AvailabilityHeader({
 		setAvailabilityView("group");
 	};
 
-	const { pendingTimes, commitPendingTimes, clearPendingTimes } =
+	const { pendingAdds, commitPendingTimes, clearPendingTimes } =
 		useScheduleSelectionStore(
 			useShallow((state) => ({
-				pendingTimes: state.pendingTimes,
+				pendingAdds: state.pendingAdds,
 				commitPendingTimes: state.commitPendingTimes,
 				clearPendingTimes: state.clearPendingTimes,
 			})),
@@ -81,22 +84,44 @@ export function AvailabilityHeader({
 
 	const handleScheduleSave = async () => {
 		try {
-			for (const timestamp of pendingTimes) {
-				const date = new Date(timestamp);
+			const { pendingAdds, pendingRemovals } =
+				useScheduleSelectionStore.getState();
 
+			// Remove pending removals
+			for (const timestamp of pendingRemovals) {
+				const date = new Date(timestamp);
 				const scheduledDate = new Date(
 					date.getFullYear(),
 					date.getMonth(),
 					date.getDate(),
 				);
-
 				const scheduledFromTime = date.toTimeString().slice(0, 8); // HH:mm:ss
-
 				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
 					.toTimeString()
 					.slice(0, 8);
 
-				await saveScheduledMeeting({
+				await deleteScheduledTimeBlock({
+					meetingId: meetingData.id,
+					scheduledDate,
+					scheduledFromTime,
+					scheduledToTime,
+				});
+			}
+
+			// Add new pending times
+			for (const timestamp of pendingAdds) {
+				const date = new Date(timestamp);
+				const scheduledDate = new Date(
+					date.getFullYear(),
+					date.getMonth(),
+					date.getDate(),
+				);
+				const scheduledFromTime = date.toTimeString().slice(0, 8); // HH:mm:ss
+				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
+					.toTimeString()
+					.slice(0, 8);
+
+				await saveScheduledTimeBlock({
 					meetingId: meetingData.id,
 					scheduledDate,
 					scheduledFromTime,

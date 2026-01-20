@@ -191,7 +191,7 @@ export function GroupAvailability({
 		(state) => state.scheduledTimes.size,
 	);
 	const pendingSize = useScheduleSelectionStore(
-		(state) => state.pendingTimes.size,
+		(state) => state.pendingAdds.size,
 	);
 
 	// update start and end block selection state
