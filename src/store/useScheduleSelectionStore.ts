@@ -9,6 +9,7 @@ interface ScheduleSelectionState {
 	togglePendingTime: (timestamp: string) => void;
 	clearPendingTimes: () => void;
 	isScheduled: (timestamp: string) => boolean;
+	hydrateScheduledTimes: (timestamps: string[]) => void;
 }
 
 export const useScheduleSelectionStore = create<ScheduleSelectionState>(
@@ -71,6 +72,13 @@ export const useScheduleSelectionStore = create<ScheduleSelectionState>(
 			return (
 				state.scheduledTimes.has(timestamp) || state.pendingTimes.has(timestamp)
 			);
+		},
+
+		hydrateScheduledTimes: (timestamps: string[]) => {
+			set({
+				scheduledTimes: new Set(timestamps),
+				pendingTimes: new Set(), // clear pending on load
+			});
 		},
 	}),
 );
