@@ -36,28 +36,23 @@ export const TimeZoneDropdown = ({
 				<MenuItem value={"Etc/GMT+10"}> (UTC-10) Hawaii </MenuItem>
 				<MenuItem value={"Etc/GMT+9"}> (UTC-9) Alaska </MenuItem>
 				<MenuItem value={"Etc/GMT+8"}>
-					{" "}
-					(UTC-8) Pacific Standard Time (PST){" "}
+					(UTC-8) Pacific Standard Time (PST)
 				</MenuItem>
 				<MenuItem value={"Etc/GMT+7"}>
-					{" "}
-					(UTC-7) Mountain Standard Time (MST){" "}
+					(UTC-7) Mountain Standard Time (MST)
 				</MenuItem>
 				<MenuItem value={"Etc/GMT+6"}>
-					{" "}
 					(UTC-6) Central Standard Time (CST)
 				</MenuItem>
 				<MenuItem value={"Etc/GMT+5"}>
-					{" "}
-					(UTC-5) Eastern Standard Time (EST){" "}
+					(UTC-5) Eastern Standard Time (EST)
 				</MenuItem>
 				<MenuItem value={"Etc/GMT+4"}> (UTC-4) Atlantic/Canada </MenuItem>
 				<MenuItem value={"Etc/GMT+3"}> (UTC-3) Brazil, Buenos Aries </MenuItem>
 				<MenuItem value={"Etc/GMT+2"}> (UTC-2) Mid-Atlantic </MenuItem>
 				<MenuItem value={"Etc/GMT+1"}> (UTC-1) Cape Verdes </MenuItem>
 				<MenuItem value={"Etc/GMT"}>
-					{" "}
-					(UTC-0) Greenwich Mean Time, Dublin{" "}
+					(UTC-0) Greenwich Mean Time, Dublin
 				</MenuItem>
 				<MenuItem value={"Etc/GMT-1"}> (UTC+1) Berlin, Rome </MenuItem>
 				<MenuItem value={"Etc/GMT-2"}> (UTC+2) Cairo </MenuItem>
@@ -69,16 +64,13 @@ export const TimeZoneDropdown = ({
 				<MenuItem value={"Etc/GMT-8"}> (UTC+8) Hong Kong, Beijing </MenuItem>
 				<MenuItem value={"Etc/GMT-9"}> (UTC+9) Tokyo, Osaka </MenuItem>
 				<MenuItem value={"Etc/GMT-10"}>
-					{" "}
-					(UTC+10) Sydney, Melbourne, Guam{" "}
+					(UTC+10) Sydney, Melbourne, Guam
 				</MenuItem>
 				<MenuItem value={"Etc/GMT-11"}>
-					{" "}
-					(UTC+11) Magadan, Soloman Islands{" "}
+					(UTC+11) Magadan, Soloman Islands
 				</MenuItem>
 				<MenuItem value={"Etc/GMT-12"}>
-					{" "}
-					(UTC+12) Fiji, Wellington, Auckland{" "}
+					(UTC+12) Fiji, Wellington, Auckland
 				</MenuItem>
 			</Select>
 		</FormControl>

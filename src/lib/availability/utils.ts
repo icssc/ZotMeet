@@ -73,13 +73,22 @@ export const generateTimeBlocks = (
 	endTime: number,
 ): number[] => {
 	const timeBlocks: number[] = [];
-	const minuteRange = Math.abs(endTime - startTime);
+	var range = endTime - startTime;
+	if (endTime < startTime) {
+		range = endTime + 1440 - startTime;
+	}
+	const minuteRange = Math.abs(range);
 	const totalBlocks = Math.floor(minuteRange / BLOCK_LENGTH);
 
+	const newTime = [];
 	for (let blockIndex = 0; blockIndex < totalBlocks; blockIndex++) {
-		timeBlocks.push(startTime + blockIndex * BLOCK_LENGTH);
+		if (startTime + blockIndex * BLOCK_LENGTH > 1440) {
+			newTime.push(startTime + blockIndex * BLOCK_LENGTH);
+		} else {
+			timeBlocks.push(startTime + blockIndex * BLOCK_LENGTH);
+		}
 	}
-	return timeBlocks;
+	return [...newTime, ...timeBlocks];
 };
 
 export const generateDateKey = ({

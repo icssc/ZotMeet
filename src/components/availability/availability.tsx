@@ -376,7 +376,7 @@ export function Availability({
 
 							<tbody onMouseLeave={handleMouseLeave}>
 								{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
-									<tr key={`block-${timeBlock}`}>
+									<tr key={`block-${blockIndex}`}>
 										<AvailabilityTimeTicks timeBlock={timeBlock} />
 
 										{availabilityView === "group" ||
