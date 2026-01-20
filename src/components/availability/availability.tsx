@@ -318,13 +318,6 @@ export function Availability({
 		return Array.from(allMembers.values());
 	}, [allAvailabilities, availabilityDates, user]);
 
-	// Expose scheduled times as variables
-	const { scheduledTimes, clearScheduledTimes } = useScheduleSelectionStore(
-		useShallow((state) => ({
-			scheduledTimes: state.scheduledTimes,
-			clearScheduledTimes: state.clearScheduledTimes,
-		})),
-	);
 	// TODO: Could add selection clearing with the escape key
 
 	return (
