@@ -177,11 +177,11 @@ export function GroupAvailability({
 		})),
 	);
 
-	const { toggleScheduledTime, addScheduledTimeRange, isScheduled } =
+	const { togglePendingTime, addPendingTimeRange, isScheduled } =
 		useScheduleSelectionStore(
 			useShallow((state) => ({
-				toggleScheduledTime: state.toggleScheduledTime,
-				addScheduledTimeRange: state.addScheduledTimeRange,
+				togglePendingTime: state.togglePendingTime,
+				addPendingTimeRange: state.addPendingTimeRange,
 				isScheduled: state.isScheduled,
 			})),
 		);
@@ -383,12 +383,12 @@ export function GroupAvailability({
 				if (isFirstScheduled) {
 					timestamps.forEach((ts) => {
 						if (isScheduled(ts)) {
-							toggleScheduledTime(ts);
+							togglePendingTime(ts);
 						}
 					});
 					// else we are scheduling the whole range
 				} else {
-					addScheduledTimeRange(timestamps);
+					addPendingTimeRange(timestamps);
 				}
 
 				// Reset selection
@@ -405,8 +405,8 @@ export function GroupAvailability({
 		fromTime,
 		availabilityDates,
 		isScheduled,
-		toggleScheduledTime,
-		addScheduledTimeRange,
+		togglePendingTime,
+		addPendingTimeRange,
 		setStartBlockSelection,
 		setEndBlockSelection,
 		setSelectionState,
@@ -497,10 +497,10 @@ export function GroupAvailability({
 
 				if (isFirstScheduled) {
 					timestamps.forEach((ts) => {
-						if (isScheduled(ts)) toggleScheduledTime(ts);
+						if (isScheduled(ts)) togglePendingTime(ts);
 					});
 				} else {
-					addScheduledTimeRange(timestamps);
+					addPendingTimeRange(timestamps);
 				}
 
 				setStartBlockSelection(undefined);
@@ -538,17 +538,16 @@ export function GroupAvailability({
 			);
 
 			const block = selectedDate.groupAvailability[timestamp] || [];
-			const blockColor =
-				isScheduling && isScheduled(timestamp)
-					? "rgba(255, 215, 0, 0.6)" // gold
-					: calculateBlockColor({
-							block,
-							hoveredMember,
-							selectedMembers,
-							numMembers,
-							showBestTimes,
-							maxAvailability,
-						});
+			const blockColor = isScheduled(timestamp)
+				? "rgba(255, 215, 0, 0.6)" // gold
+				: calculateBlockColor({
+						block,
+						hoveredMember,
+						selectedMembers,
+						numMembers,
+						showBestTimes,
+						maxAvailability,
+					});
 
 			const tableCellStyles = cn(
 				isTopOfHour ? "border-t-[1px] border-t-gray-medium" : "",

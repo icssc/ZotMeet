@@ -1,6 +1,7 @@
 "use client";
 
 import { saveAvailability } from "@actions/availability/save/action";
+import { saveScheduledMeeting } from "@actions/meeting/schedule/action";
 import {
 	CircleCheckIcon,
 	CircleXIcon,
@@ -64,21 +65,51 @@ export function AvailabilityHeader({
 		setAvailabilityView("group");
 	};
 
-	const { clearScheduledTimes } = useScheduleSelectionStore(
-		useShallow((state) => ({
-			clearScheduledTimes: state.clearScheduledTimes,
-		})),
-	);
+	const { pendingTimes, commitPendingTimes, clearPendingTimes } =
+		useScheduleSelectionStore(
+			useShallow((state) => ({
+				pendingTimes: state.pendingTimes,
+				commitPendingTimes: state.commitPendingTimes,
+				clearPendingTimes: state.clearPendingTimes,
+			})),
+		);
 
 	const handleScheduleCancel = () => {
-		clearScheduledTimes();
+		clearPendingTimes();
 		setAvailabilityView("group");
 	};
 
-	const handleScheduleSave = () => {
-		// TODO: Implement schedule save logic
-		onSave();
-		setAvailabilityView("group");
+	const handleScheduleSave = async () => {
+		try {
+			for (const timestamp of pendingTimes) {
+				const date = new Date(timestamp);
+
+				const scheduledDate = new Date(
+					date.getFullYear(),
+					date.getMonth(),
+					date.getDate(),
+				);
+
+				const scheduledFromTime = date.toTimeString().slice(0, 8); // HH:mm:ss
+
+				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
+					.toTimeString()
+					.slice(0, 8);
+
+				await saveScheduledMeeting({
+					meetingId: meetingData.id,
+					scheduledDate,
+					scheduledFromTime,
+					scheduledToTime,
+				});
+			}
+
+			// Move pending to scheduled after successful save
+			commitPendingTimes();
+			setAvailabilityView("group");
+		} catch (error) {
+			console.error("Failed to save meeting blocks", error);
+		}
 	};
 
 	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
