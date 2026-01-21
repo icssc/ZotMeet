@@ -6,7 +6,7 @@ import type {
 	EventSegment,
 } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
-import type { AvailabilityType } from "@/lib/zotdate"; // ✅ NEW
+import type { AvailabilityType } from "@/lib/zotdate";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface AvailabilityBlockCellProps {
@@ -34,7 +34,7 @@ export function AvailabilityBlockCell({
 	isLastRow,
 	eventSegments,
 	hasSpacerBefore = false,
-	availabilityKind = "availability", // ✅ NEW default
+	availabilityKind = "availability",
 }: AvailabilityBlockCellProps) {
 	const {
 		startBlockSelection,

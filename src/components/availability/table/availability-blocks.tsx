@@ -10,7 +10,7 @@ import type {
 	AvailabilityBlockType,
 	ProcessedCellEventSegments,
 } from "@/lib/types/availability";
-import type { AvailabilityType, ZotDate } from "@/lib/zotdate"; // ✅ NEW
+import type { AvailabilityType, ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 
 interface AvailabilityBlocksProps {
@@ -57,7 +57,6 @@ export function AvailabilityBlocks({
 				if (selectedDate) {
 					const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
 
-					// ✅ IMPORTANT: read from the correct bucket
 					const isAvailable = selectedDate.getBlockAvailability(
 						blockIndex,
 						"availability",
@@ -86,7 +85,7 @@ export function AvailabilityBlocks({
 								eventSegments={segmentsForCell}
 								hasSpacerBefore={spacers[pageDateIndex]}
 								isIfNeeded={isIfNeeded}
-								availabilityKind={availabilityKind} // ✅ NEW (for yellow highlight)
+								availabilityKind={availabilityKind}
 							/>
 						</React.Fragment>
 					);

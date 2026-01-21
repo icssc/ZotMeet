@@ -94,85 +94,82 @@ export function PersonalAvailability({
 	const setAvailabilities = (startBlock: AvailabilityBlockType) => {
 		if (!isEditingAvailability) setIsEditingAvailability(true);
 
-		if (selectionState) {
-			const {
-				earlierDateIndex,
-				laterDateIndex,
+		if (!selectionState) return;
+
+		const {
+			earlierDateIndex,
+			laterDateIndex,
+			earlierBlockIndex,
+			laterBlockIndex,
+		} = selectionState;
+
+		const {
+			zotDateIndex: selectionStartDateIndex,
+			blockIndex: selectionStartBlockIndex,
+		} = startBlock;
+
+		const startSelectionZotDate = availabilityDates[selectionStartDateIndex];
+
+		const selectionValue = !startSelectionZotDate.getBlockAvailability(
+			selectionStartBlockIndex,
+			availabilityMode,
+		);
+
+		const updatedDates = availabilityDates.map((d) => d.clone());
+
+		for (
+			let dateIndex = earlierDateIndex;
+			dateIndex <= laterDateIndex;
+			dateIndex++
+		) {
+			const currentDate = updatedDates[dateIndex];
+
+			currentDate.setBlockAvailabilities(
 				earlierBlockIndex,
 				laterBlockIndex,
-			} = selectionState;
-
-			const {
-				zotDateIndex: selectionStartDateIndex,
-				blockIndex: selectionStartBlockIndex,
-			} = startBlock;
-
-			const startSelectionZotDate = availabilityDates[selectionStartDateIndex];
-
-			const selectionValue = !startSelectionZotDate.getBlockAvailability(
-				selectionStartBlockIndex,
+				selectionValue,
 				availabilityMode,
 			);
 
-			const updatedDates = [...availabilityDates];
+			if (availabilityMode === "availability") {
+				for (
+					let blockIdx = earlierBlockIndex;
+					blockIdx <= laterBlockIndex;
+					blockIdx++
+				) {
+					const timestamp = getTimestampFromBlockIndex(
+						blockIdx,
+						dateIndex,
+						fromTime,
+						availabilityDates,
+					);
 
-			for (
-				let dateIndex = earlierDateIndex;
-				dateIndex <= laterDateIndex;
-				dateIndex++
-			) {
-				const currentDate = updatedDates[dateIndex];
+					const existing = currentDate.groupAvailability[timestamp] ?? [];
 
-				currentDate.setBlockAvailabilities(
-					earlierBlockIndex,
-					laterBlockIndex,
-					selectionValue,
-					availabilityMode,
-				);
-
-				if (availabilityMode === "availability") {
-					for (
-						let blockIdx = earlierBlockIndex;
-						blockIdx <= laterBlockIndex;
-						blockIdx++
-					) {
-						const timestamp = getTimestampFromBlockIndex(
-							blockIdx,
-							dateIndex,
-							fromTime,
-							availabilityDates,
-						);
-
-						if (!currentDate.groupAvailability[timestamp]) {
-							currentDate.groupAvailability[timestamp] = [];
-						}
-
-						if (selectionValue) {
-							if (
-								!currentDate.groupAvailability[timestamp].includes(
-									user?.memberId ?? "",
-								)
-							) {
-								currentDate.groupAvailability[timestamp].push(
-									user?.memberId ?? "",
-								);
-							}
+					if (selectionValue) {
+						if (!existing.includes(user?.memberId ?? "")) {
+							currentDate.groupAvailability[timestamp] = [
+								...existing,
+								user?.memberId ?? "",
+							];
 						} else {
-							currentDate.groupAvailability[timestamp] =
-								currentDate.groupAvailability[timestamp].filter(
-									(id) => id !== (user?.memberId ?? ""),
-								);
+							currentDate.groupAvailability[timestamp] = existing;
 						}
+					} else {
+						currentDate.groupAvailability[timestamp] = existing.filter(
+							(id) => id !== (user?.memberId ?? ""),
+						);
 					}
 				}
 			}
-
-			setStartBlockSelection(undefined);
-			setEndBlockSelection(undefined);
-			setSelectionState(undefined);
-			setIsStateUnsaved(true);
-			onAvailabilityChange(updatedDates);
 		}
+
+		setStartBlockSelection(undefined);
+		setEndBlockSelection(undefined);
+		setSelectionState(undefined);
+		setIsStateUnsaved(true);
+
+		onAvailabilityChange(updatedDates);
 	};
 
 	useEffect(() => {

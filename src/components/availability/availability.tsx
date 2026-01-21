@@ -28,7 +28,11 @@ import {
 	convertAnchorDatesToCurrentWeek,
 	isAnchorDateMeeting,
 } from "@/lib/types/chrono";
-import type { AvailabilityBuckets, AvailabilityType } from "@/lib/zotdate";
+import type {
+	AvailabilityEntry,
+	AvailabilityType,
+	MeetingAvailability,
+} from "@/lib/zotdate";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
@@ -39,18 +43,54 @@ import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
  * - Old shape: string[]
  * - New shape: { availability: string[], ifNeeded: string[] }
  */
-const normalizeMeetingAvailabilities = (raw: unknown): AvailabilityBuckets => {
+const normalizeMeetingAvailabilities = (raw: unknown): MeetingAvailability => {
 	if (Array.isArray(raw)) {
-		return { availability: raw, ifNeeded: [] };
+		if (raw.every((x) => typeof x === "string")) {
+			return (raw as string[]).map((time) => ({
+				time,
+				availabilityType: "availability",
+			}));
+		}
+
+		return (raw as unknown[])
+			.map((x) => {
+				if (!x || typeof x !== "object") return null;
+				const obj = x as Partial<AvailabilityEntry>;
+				if (typeof obj.time !== "string") return null;
+				if (
+					obj.availabilityType !== "availability" &&
+					obj.availabilityType !== "ifNeeded"
+				)
+					return null;
+				return { time: obj.time, availabilityType: obj.availabilityType };
+			})
+			.filter((x): x is AvailabilityEntry => x !== null);
 	}
+
 	if (raw && typeof raw === "object") {
-		const obj = raw as Partial<AvailabilityBuckets>;
-		return {
-			availability: Array.isArray(obj.availability) ? obj.availability : [],
-			ifNeeded: Array.isArray(obj.ifNeeded) ? obj.ifNeeded : [],
-		};
+		const obj = raw as Partial<{ availability: unknown; ifNeeded: unknown }>;
+
+		const availability = Array.isArray(obj.availability)
+			? (obj.availability.filter((x) => typeof x === "string") as string[])
+			: [];
+
+		const ifNeeded = Array.isArray(obj.ifNeeded)
+			? (obj.ifNeeded.filter((x) => typeof x === "string") as string[])
+			: [];
+
+		return [
+			...availability.map((time) => ({
+				time,
+				availabilityType: "availability" as const,
+			})),
+			...ifNeeded.map((time) => ({
+				time,
+				availabilityType: "ifNeeded" as const,
+			})),
+		];
 	}
-	return { availability: [], ifNeeded: [] };
+
+	return [];
 };
 
 // Helper function to derive initial availability data
@@ -67,60 +107,57 @@ const deriveInitialAvailability = ({
 	allAvailabilties: MemberMeetingAvailability[];
 	availabilityTimeBlocks: number[];
 }) => {
-	// Store PERSONAL availability buckets by date (availability + ifNeeded)
-	const availabilitiesByDate = new Map<string, AvailabilityBuckets>();
+	const availabilitiesByDate = new Map<string, MeetingAvailability>();
 
-	const ensureBuckets = (dateStr: string): AvailabilityBuckets => {
-		let b = availabilitiesByDate.get(dateStr);
-		if (!b) {
-			b = { availability: [], ifNeeded: [] };
-			availabilitiesByDate.set(dateStr, b);
+	const ensureList = (dateStr: string): MeetingAvailability => {
+		let list = availabilitiesByDate.get(dateStr);
+		if (!list) {
+			list = [];
+			availabilitiesByDate.set(dateStr, list);
 		}
-		return b;
+		return list;
 	};
 
 	// --- Personal (logged-in user) ---
 	if (userAvailability?.meetingAvailabilities) {
-		const buckets = normalizeMeetingAvailabilities(
+		const entries = normalizeMeetingAvailabilities(
 			userAvailability.meetingAvailabilities,
 		);
 
-		// Hard availability
-		buckets.availability.forEach((timeStr) => {
-			const localDate = new Date(timeStr);
-			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
-			ensureBuckets(dateStr).availability.push(timeStr);
-		});
-
-		// If-needed availability
-		buckets.ifNeeded.forEach((timeStr) => {
-			const localDate = new Date(timeStr);
-			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
-			ensureBuckets(dateStr).ifNeeded.push(timeStr);
-		});
+		for (const entry of entries) {
+			const localDate = new Date(entry.time);
+			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD
+			ensureList(dateStr).push(entry);
+		}
 	}
 
-	// --- Group availability map (currently supports HARD availability only) ---
-	const timestampsByDate = new Map<string, Map<string, string[]>>();
+	// --- Group availability maps (hard + ifNeeded) ---
+	const hardByDate = new Map<string, Map<string, string[]>>();
+	const ifNeededByDate = new Map<string, Map<string, string[]>>();
+
 	for (const member of allAvailabilties) {
-		const buckets = normalizeMeetingAvailabilities(
+		const entries = normalizeMeetingAvailabilities(
 			member.meetingAvailabilities,
 		);
 
-		// Keep group based on hard availability for now (non-breaking)
-		for (const timestamp of buckets.availability) {
+		for (const entry of entries) {
+			const timestamp = entry.time;
 			const localDate = new Date(timestamp);
-			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
+			const dateStr = localDate.toLocaleDateString("en-CA");
 
-			let dateMap = timestampsByDate.get(dateStr);
-			if (dateMap === undefined) {
+			const targetOuter =
+				entry.availabilityType === "ifNeeded" ? ifNeededByDate : hardByDate;
+
+			let dateMap = targetOuter.get(dateStr);
+			if (!dateMap) {
 				dateMap = new Map();
-				timestampsByDate.set(dateStr, dateMap);
+				targetOuter.set(dateStr, dateMap);
 			}
 
 			if (!dateMap.has(timestamp)) {
 				dateMap.set(timestamp, []);
 			}
+
 			dateMap.get(timestamp)?.push(member.memberId);
 		}
 	}
@@ -130,7 +167,6 @@ const deriveInitialAvailability = ({
 			// Extract the date part and create a Date object in LOCAL timezone
 			const dateStr = meetingDate.split("T")[0];
 			const [year, month, day] = dateStr.split("-").map(Number);
-			// Create date at midnight in LOCAL timezone
 			const date = new Date(year, month - 1, day);
 
 			const earliestMinutes = availabilityTimeBlocks[0] || 480;
@@ -138,21 +174,32 @@ const deriveInitialAvailability = ({
 				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] || 1035) +
 				15;
 
-			const dateAvailabilities = availabilitiesByDate.get(dateStr) ?? {
-				availability: [],
-				ifNeeded: [],
-			};
+			const dateAvailabilities = availabilitiesByDate.get(dateStr) ?? [];
+
+			const seen = new Set<string>();
+			const deduped = dateAvailabilities.filter((e) => {
+				const key = `${e.time}|${e.availabilityType}`;
+				if (seen.has(key)) return false;
+				seen.add(key);
+				return true;
+			});
 
 			const dateGroupAvailabilities = Object.fromEntries(
-				timestampsByDate.get(dateStr) || new Map(),
+				hardByDate.get(dateStr) || new Map(),
 			);
+
+			const dateGroupIfNeededAvailabilities = Object.fromEntries(
+				ifNeededByDate.get(dateStr) || new Map(),
+			);
+
 			return new ZotDate(
 				date,
 				earliestMinutes,
 				latestMinutes,
 				false,
-				dateAvailabilities,
+				deduped,
 				dateGroupAvailabilities,
+				dateGroupIfNeededAvailabilities,
 			);
 		})
 		.sort((a, b) => a.day.getTime() - b.day.getTime());
@@ -299,7 +346,7 @@ export function Availability({
 
 	const handleUserAvailabilityChange = useCallback(
 		(updatedDates: ZotDate[]) => {
-			setAvailabilityDates(updatedDates);
+			setAvailabilityDates(updatedDates.map((d) => d.clone()));
 		},
 		[],
 	);
@@ -311,6 +358,9 @@ export function Availability({
 
 	const handleSuccessfulSave = useCallback(() => {
 		confirmSave();
+		requestAnimationFrame(() => {
+			window.location.reload();
+		});
 	}, [confirmSave]);
 
 	useEffect(() => {

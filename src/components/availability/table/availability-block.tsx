@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 import type { AvailabilityType } from "@/lib/zotdate";
 
 interface AvailabilityBlockProps {
-	isAvailable: boolean; // base layer
-	isIfNeeded: boolean; // overlay
+	isAvailable: boolean;
+	isIfNeeded: boolean;
 	zotDateIndex: number;
 	blockIndex: number;
 	selectionState: SelectionStateType | undefined;

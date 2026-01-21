@@ -65,20 +65,25 @@ export function AvailabilityHeader({
 	const handleSave = async () => {
 		if (!user) {
 			// setIsGuestDialogOpen(true);
-
 			return;
 		}
 
+		// availabilityDates: ZotDate[]
+		const availabilityTimes = availabilityDates.flatMap(
+			(date) => date.availability,
+		);
+
+		const seen = new Set<string>();
+		const dedupedAvailabilityTimes = availabilityTimes.filter((entry) => {
+			const key = `${entry.time}|${entry.availabilityType}`;
+			if (seen.has(key)) return false;
+			seen.add(key);
+			return true;
+		});
+
 		const availability = {
 			meetingId: meetingData.id,
-			availabilityTimes: {
-				availability: availabilityDates.flatMap(
-					(date) => date.availability.availability,
-				),
-				ifNeeded: availabilityDates.flatMap(
-					(date) => date.availability.ifNeeded,
-				),
-			},
+			availabilityTimes: dedupedAvailabilityTimes,
 			displayName: user.displayName,
 		};
 
