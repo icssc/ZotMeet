@@ -17,6 +17,7 @@ export class ZotDate {
 	 * `groupAvailability` maps a timestring to an array of memberIds that are available for that timestring
 	 */
 	groupAvailability: Record<string, string[]>;
+	groupIfNeededAvailability: Record<string, string[]>;
 	blockLength: number;
 	// Times represented as minutes past midnight
 	earliestTime: number;
@@ -35,6 +36,7 @@ export class ZotDate {
 		isSelected: boolean = false,
 		availability: MeetingAvailability = [],
 		groupAvailability: Record<string, string[]> = {},
+		groupIfNeededAvailability: Record<string, string[]> = {},
 	) {
 		this.day = day;
 		this.earliestTime = earliestTime;
@@ -43,6 +45,7 @@ export class ZotDate {
 		this.blockLength = 15;
 		this.availability = availability;
 		this.groupAvailability = groupAvailability;
+		this.groupIfNeededAvailability = groupIfNeededAvailability;
 	}
 
 	/**
@@ -472,15 +475,28 @@ export class ZotDate {
 	 * @returns A new ZotDate instance with the same properties
 	 */
 	clone(): ZotDate {
-		const clonedDate = new ZotDate(
+		const clonedGroupAvailability: Record<string, string[]> =
+			Object.fromEntries(
+				Object.entries(this.groupAvailability).map(([k, v]) => [k, [...v]]),
+			);
+
+		const clonedGroupIfNeededAvailability: Record<string, string[]> =
+			Object.fromEntries(
+				Object.entries(this.groupIfNeededAvailability).map(([k, v]) => [
+					k,
+					[...v],
+				]),
+			);
+
+		return new ZotDate(
 			new Date(this.day),
 			this.earliestTime,
 			this.latestTime,
 			this.isSelected,
 			this.availability.map((e) => ({ ...e })),
-			{ ...this.groupAvailability },
+			clonedGroupAvailability,
+			clonedGroupIfNeededAvailability,
 		);
-		return clonedDate;
 	}
 
 	/**
