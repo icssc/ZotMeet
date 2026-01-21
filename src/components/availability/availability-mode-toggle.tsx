@@ -1,5 +1,7 @@
 "use client";
 
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import type * as React from "react";
 import type { AvailabilityType } from "@/lib/zotdate";
 
@@ -24,62 +26,86 @@ export function AvailabilityModeToggle({
 	const availabilityLabel = labels?.availability ?? "Available";
 	const ifNeededLabel = labels?.ifNeeded ?? "If needed";
 
+	const handleChange = (
+		_event: React.MouseEvent<HTMLElement>,
+		next: AvailabilityType | null,
+	) => {
+		if (!next) return;
+		onChange(next);
+	};
+
 	return (
-		<fieldset
-			className={[
-				"inline-flex items-center rounded-xl bg-neutral-100 p-1",
-				disabled ? "opacity-60" : "",
-				className,
-			].join(" ")}
-			aria-label="Availability mode"
-		>
-			<ToggleButton
-				isActive={value === "availability"}
-				onClick={() => onChange("availability")}
+		<div className={className} style={{ display: "inline-flex" }}>
+			<ToggleButtonGroup
+				value={value}
+				exclusive
+				onChange={handleChange}
 				disabled={disabled}
+				aria-label="Availability mode"
+				sx={{
+					// Outer pill container
+					display: "inline-flex",
+					alignItems: "center",
+					justifyContent: "center",
+					p: "4px",
+					borderRadius: "16px",
+					backgroundColor: "rgb(245 245 245)",
+					overflow: "hidden",
+
+					// Remove MUI default group borders
+					"& .MuiToggleButtonGroup-grouped": {
+						margin: 0,
+						border: 0,
+						borderRadius: "12px !important",
+					},
+
+					// Make both buttons same size so the pill doesn't look off-center
+					width: 360, // adjust if you want it wider/narrower
+					"& .MuiToggleButton-root": {
+						flex: 1,
+						textTransform: "none",
+						fontWeight: 500,
+						fontSize: "1rem",
+						py: 1.25,
+					},
+				}}
 			>
-				{availabilityLabel}
-			</ToggleButton>
+				<ToggleButton
+					value="availability"
+					aria-label="Available"
+					sx={{
+						color: "rgb(82 82 82)",
+						"&.Mui-selected": {
+							backgroundColor: "#fff",
+							color: "#b45309",
+							boxShadow: "0 0 0 1px rgba(251, 191, 36, 0.8) inset",
+						},
+						"&.Mui-selected:hover": {
+							backgroundColor: "#fff",
+						},
+					}}
+				>
+					{availabilityLabel}
+				</ToggleButton>
 
-			<ToggleButton
-				isActive={value === "ifNeeded"}
-				onClick={() => onChange("ifNeeded")}
-				disabled={disabled}
-			>
-				{ifNeededLabel}
-			</ToggleButton>
-		</fieldset>
-	);
-}
-
-type ToggleButtonProps = {
-	isActive: boolean;
-	onClick: () => void;
-	disabled: boolean;
-	children: React.ReactNode;
-};
-
-function ToggleButton({
-	isActive,
-	onClick,
-	disabled,
-	children,
-}: ToggleButtonProps) {
-	return (
-		<button
-			type="button"
-			onClick={onClick}
-			disabled={disabled}
-			aria-pressed={isActive}
-			className={[
-				"min-w-[140px] rounded-lg px-6 py-2 font-medium text-sm transition-colors",
-				"focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2",
-				isActive
-					? "bg-white text-amber-700 ring-1 ring-amber-400"
-					: "bg-transparent text-neutral-500 hover:text-neutral-700",
-			].join(" ")}
-		>
-			{children}
-		</button>
+				<ToggleButton
+					value="ifNeeded"
+					aria-label="If needed"
+					sx={{
+						color: "rgb(82 82 82)",
+						"&.Mui-selected": {
+							backgroundColor: "#fff",
+							color: "#b45309",
+							boxShadow: "0 0 0 1px rgba(251, 191, 36, 0.8) inset",
+						},
+						"&.Mui-selected:hover": {
+							backgroundColor: "#fff",
+						},
+					}}
+				>
+					{ifNeededLabel}
+				</ToggleButton>
+			</ToggleButtonGroup>
+		</div>
 	);
 }
