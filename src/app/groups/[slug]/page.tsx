@@ -1,5 +1,5 @@
 import { getGroupsByUserId, isUserInGroup } from "@data/groups/queries";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CreateGroup } from "@/components/groups/create-group-popup";
 import { getCurrentSession } from "@/lib/auth";
 
@@ -34,8 +34,7 @@ export default async function Page(props: PageProps) {
 
 	const { user } = await getCurrentSession();
 	if (!user) {
-		console.log("user not logged in ");
-		notFound();
+		redirect("/");
 	}
 
 	const usersInGroup = await getGroupsByUserId(user.id);
