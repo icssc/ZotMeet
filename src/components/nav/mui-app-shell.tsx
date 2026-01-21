@@ -16,22 +16,18 @@ export function MuiAppShell({ user, children }: MuiAppShellProps) {
 
 	return (
 		<Box sx={{ display: "flex", minHeight: "100vh" }}>
-			{/* Desktop: Show Drawer */}
 			{!isMobile && <MuiDrawer user={user} />}
 
-			{/* Main Content */}
 			<Box
 				component="main"
 				sx={{
 					flexGrow: 1,
 					width: "100%",
-					pb: isMobile ? 8 : 0, // Add padding bottom for mobile nav
+					pb: isMobile ? 8 : 0,
 				}}
 			>
 				{children}
 			</Box>
-
-			{/* Mobile: Show Bottom Navigation */}
 			{isMobile && <MuiBottomNav />}
 		</Box>
 	);
