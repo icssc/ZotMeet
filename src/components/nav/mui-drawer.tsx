@@ -24,6 +24,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { AuthDialog } from "@/components/auth/auth-dialog";
 import type { UserProfile } from "@/lib/auth/user";
 import { logoutAction } from "@/server/actions/auth/logout/action";
 
@@ -44,6 +45,7 @@ type MuiDrawerProps = {
 export function MuiDrawer({ user }: MuiDrawerProps) {
 	const [open, setOpen] = useState(false);
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const [authDialogOpen, setAuthDialogOpen] = useState(false);
 	const pathname = usePathname();
 	const menuOpen = Boolean(anchorEl);
 
@@ -158,87 +160,91 @@ export function MuiDrawer({ user }: MuiDrawerProps) {
 				})}
 			</List>
 
-			{/* User Menu at Bottom */}
-			{user && (
-				<Box sx={{ p: 1 }}>
-					<Box
-						onClick={handleUserMenuClick}
-						sx={{
-							display: "flex",
-							alignItems: "center",
-							gap: 2,
-							p: 1.5,
-							cursor: "pointer",
-							borderRadius: 2,
-							"&:hover": {
-								bgcolor: "rgba(0, 0, 0, 0.08)",
-							},
-							justifyContent: open ? "flex-start" : "center",
-						}}
-					>
-						<Avatar
+			{/* User Menu / Login at Bottom */}
+			<Box sx={{ p: 1 }}>
+				{user ? (
+					<>
+						<Box
+							onClick={handleUserMenuClick}
 							sx={{
-								width: 32,
-								height: 32,
-								bgcolor: "rgba(0, 0, 0, 0.1)",
-								color: "rgba(0, 0, 0, 0.6)",
+								display: "flex",
+								alignItems: "center",
+								gap: 2,
+								p: 1.5,
+								cursor: "pointer",
+								borderRadius: 2,
+								"&:hover": {
+									bgcolor: "rgba(0, 0, 0, 0.08)",
+								},
+								justifyContent: open ? "flex-start" : "center",
 							}}
 						>
-							<Person />
-						</Avatar>
-						{open && (
-							<Box sx={{ flexGrow: 1, minWidth: 0 }}>
-								<Typography
-									variant="body2"
-									sx={{
-										fontWeight: 600,
-										overflow: "hidden",
-										textOverflow: "ellipsis",
-										whiteSpace: "nowrap",
-									}}
-								>
-									{user.displayName}
-								</Typography>
-								<Typography
-									variant="caption"
-									sx={{
-										color: "text.secondary",
-										overflow: "hidden",
-										textOverflow: "ellipsis",
-										whiteSpace: "nowrap",
-										display: "block",
-									}}
-								>
-									{user.email}
-								</Typography>
-							</Box>
-						)}
-					</Box>
+							<Avatar
+								sx={{
+									width: 32,
+									height: 32,
+									bgcolor: "rgba(0, 0, 0, 0.1)",
+									color: "rgba(0, 0, 0, 0.6)",
+								}}
+							>
+								<Person />
+							</Avatar>
+							{open && (
+								<Box sx={{ flexGrow: 1, minWidth: 0 }}>
+									<Typography
+										variant="body2"
+										sx={{
+											fontWeight: 600,
+											overflow: "hidden",
+											textOverflow: "ellipsis",
+											whiteSpace: "nowrap",
+										}}
+									>
+										{user.displayName}
+									</Typography>
+									<Typography
+										variant="caption"
+										sx={{
+											color: "text.secondary",
+											overflow: "hidden",
+											textOverflow: "ellipsis",
+											whiteSpace: "nowrap",
+											display: "block",
+										}}
+									>
+										{user.email}
+									</Typography>
+								</Box>
+							)}
+						</Box>
 
-					<Menu
-						anchorEl={anchorEl}
-						open={menuOpen}
-						onClose={handleUserMenuClose}
-						anchorOrigin={{
-							vertical: "top",
-							horizontal: "right",
-						}}
-						transformOrigin={{
-							vertical: "bottom",
-							horizontal: "left",
-						}}
-					>
-						<MenuItem
-							component={Link}
-							href="/profile"
-							onClick={handleUserMenuClose}
+						<Menu
+							anchorEl={anchorEl}
+							open={menuOpen}
+							onClose={handleUserMenuClose}
+							anchorOrigin={{
+								vertical: "top",
+								horizontal: "right",
+							}}
+							transformOrigin={{
+								vertical: "bottom",
+								horizontal: "left",
+							}}
 						>
-							<Person sx={{ mr: 1 }} /> Profile
-						</MenuItem>
-						<MenuItem onClick={handleLogout}>Log out</MenuItem>
-					</Menu>
-				</Box>
-			)}
+							<MenuItem
+								component={Link}
+								href="/profile"
+								onClick={handleUserMenuClose}
+							>
+								<Person sx={{ mr: 1 }} /> Profile
+							</MenuItem>
+							<MenuItem onClick={handleLogout}>Log out</MenuItem>
+						</Menu>
+					</>
+				) : (
+					<AuthDialog open={authDialogOpen} setOpen={setAuthDialogOpen} />
+				)}
+			</Box>
 		</Drawer>
 	);
 }
