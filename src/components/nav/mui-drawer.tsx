@@ -44,7 +44,6 @@ type MuiDrawerProps = {
 export function MuiDrawer({ user }: MuiDrawerProps) {
 	const [open, setOpen] = useState(false);
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-	const [authDialogOpen, setAuthDialogOpen] = useState(false);
 	const pathname = usePathname();
 	const menuOpen = Boolean(anchorEl);
 
@@ -240,7 +239,7 @@ export function MuiDrawer({ user }: MuiDrawerProps) {
 						</Menu>
 					</>
 				) : (
-					<AuthDialog open={authDialogOpen} setOpen={setAuthDialogOpen} />
+					<AuthDialog />
 				)}
 			</Box>
 		</Drawer>
