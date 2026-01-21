@@ -6,9 +6,12 @@ import { db } from "@/db";
 import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 
-interface saveAvailabilityProps {
+interface SaveAvailabilityProps {
 	meetingId: string;
-	availabilityTimes: { availability: string[]; ifNeeded: string[] };
+	availabilityTimes: {
+		time: string;
+		availabilityType: "availability" | "ifNeeded";
+	}[];
 	displayName?: string;
 }
 
@@ -16,7 +19,7 @@ export async function saveAvailability({
 	meetingId,
 	availabilityTimes,
 	displayName: _displayName,
-}: saveAvailabilityProps) {
+}: SaveAvailabilityProps) {
 	try {
 		const { user } = await getCurrentSession();
 

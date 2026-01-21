@@ -1,16 +1,18 @@
 import { CalendarConstants } from "@/lib/types/chrono";
 
-export type AvailabilityBuckets = {
-	availability: string[];
-	ifNeeded: string[];
+export type AvailabilityType = "availability" | "ifNeeded";
+
+export type AvailabilityEntry = {
+	time: string;
+	availabilityType: AvailabilityType;
 };
 
-export type AvailabilityType = "availability" | "ifNeeded";
+export type MeetingAvailability = AvailabilityEntry[];
 
 export class ZotDate {
 	readonly day: Date;
 	isSelected: boolean;
-	availability: AvailabilityBuckets;
+	availability: MeetingAvailability;
 	/**
 	 * `groupAvailability` maps a timestring to an array of memberIds that are available for that timestring
 	 */
@@ -31,7 +33,7 @@ export class ZotDate {
 		earliestTime: number = 0,
 		latestTime: number = 1440,
 		isSelected: boolean = false,
-		availability: AvailabilityBuckets = { availability: [], ifNeeded: [] },
+		availability: MeetingAvailability = [],
 		groupAvailability: Record<string, string[]> = {},
 	) {
 		this.day = day;
@@ -408,7 +410,10 @@ export class ZotDate {
 		kind: AvailabilityType = "availability",
 	): boolean {
 		const ISOString = this.getISOStringForBlock(index);
-		return this.availability[kind].includes(ISOString);
+		// return this.availability[kind].includes(ISOString);
+		return this.availability.some(
+			(entry) => entry.availabilityType === kind && entry.time === ISOString,
+		);
 	}
 
 	/**
@@ -435,24 +440,31 @@ export class ZotDate {
 		const rangeSet = new Set(rangeISO);
 
 		if (selection) {
-			// Add to target
+			const existingTargetTimes = new Set(
+				this.availability
+					.filter((e) => e.availabilityType === target)
+					.map((e) => e.time),
+			);
+
 			for (const iso of rangeISO) {
-				if (!this.availability[target].includes(iso)) {
-					this.availability[target].push(iso);
+				if (!existingTargetTimes.has(iso)) {
+					this.availability.push({ time: iso, availabilityType: target });
 				}
 			}
-			this.availability[target].sort();
 
-			// Remove from the other bucket to enforce mutual exclusivity
-			this.availability[other] = this.availability[other].filter(
-				(iso) => !rangeSet.has(iso),
+			this.availability = this.availability.filter(
+				(e) => !(e.availabilityType === other && rangeSet.has(e.time)),
 			);
 		} else {
-			// Remove only from target
-			this.availability[target] = this.availability[target].filter(
-				(iso) => !rangeSet.has(iso),
+			this.availability = this.availability.filter(
+				(e) => !(e.availabilityType === target && rangeSet.has(e.time)),
 			);
 		}
+
+		this.availability.sort((a, b) => {
+			if (a.time !== b.time) return a.time.localeCompare(b.time);
+			return a.availabilityType.localeCompare(b.availabilityType);
+		});
 	}
 
 	/**
@@ -465,10 +477,7 @@ export class ZotDate {
 			this.earliestTime,
 			this.latestTime,
 			this.isSelected,
-			{
-				availability: [...this.availability.availability],
-				ifNeeded: [...this.availability.ifNeeded],
-			},
+			this.availability.map((e) => ({ ...e })),
 			{ ...this.groupAvailability },
 		);
 		return clonedDate;
