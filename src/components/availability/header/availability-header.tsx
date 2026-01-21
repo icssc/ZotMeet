@@ -76,7 +76,9 @@ export function AvailabilityHeader({
 		const seen = new Set<string>();
 		const dedupedAvailabilityTimes = availabilityTimes.filter((entry) => {
 			const key = `${entry.time}|${entry.availabilityType}`;
-			if (seen.has(key)) return false;
+			if (seen.has(key)) {
+				return false;
+			}
 			seen.add(key);
 			return true;
 		});

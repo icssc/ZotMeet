@@ -21,7 +21,9 @@ export const getTimestampFromBlockIndex = (
 	const minutes = minutesFromMidnight % 60;
 
 	const selectedDate = availabilityDates.at(zotDateIndex);
-	if (!selectedDate) return "";
+	if (!selectedDate) {
+		return "";
+	}
 
 	const date = new Date(selectedDate.day);
 	date.setHours(hours);

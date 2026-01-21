@@ -54,14 +54,22 @@ const normalizeMeetingAvailabilities = (raw: unknown): MeetingAvailability => {
 
 		return (raw as unknown[])
 			.map((x) => {
-				if (!x || typeof x !== "object") return null;
+				if (!x || typeof x !== "object") {
+					return null;
+				}
 				const obj = x as Partial<AvailabilityEntry>;
-				if (typeof obj.time !== "string") return null;
+
+				if (typeof obj.time !== "string") {
+					return null;
+				}
+
 				if (
 					obj.availabilityType !== "availability" &&
 					obj.availabilityType !== "ifNeeded"
-				)
+				) {
 					return null;
+				}
+
 				return { time: obj.time, availabilityType: obj.availabilityType };
 			})
 			.filter((x): x is AvailabilityEntry => x !== null);
@@ -179,7 +187,9 @@ const deriveInitialAvailability = ({
 			const seen = new Set<string>();
 			const deduped = dateAvailabilities.filter((e) => {
 				const key = `${e.time}|${e.availabilityType}`;
-				if (seen.has(key)) return false;
+				if (seen.has(key)) {
+					return false;
+				}
 				seen.add(key);
 				return true;
 			});

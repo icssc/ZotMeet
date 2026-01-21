@@ -43,8 +43,12 @@ export function AvailabilityBlock({
 		}
 
 		// committed state: ifNeeded wins visually
-		if (isIfNeeded) return "bg-yellow-300";
-		if (isAvailable) return "bg-primary";
+		if (isIfNeeded) {
+			return "bg-yellow-300";
+		}
+		if (isAvailable) {
+			return "bg-primary";
+		}
 		return "bg-transparent";
 	}, [
 		selectionState,

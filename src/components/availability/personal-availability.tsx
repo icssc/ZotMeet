@@ -92,9 +92,13 @@ export function PersonalAvailability({
 	}, [startBlockSelection, endBlockSelection, setSelectionState]);
 
 	const setAvailabilities = (startBlock: AvailabilityBlockType) => {
-		if (!isEditingAvailability) setIsEditingAvailability(true);
+		if (!isEditingAvailability) {
+			setIsEditingAvailability(true);
+		}
 
-		if (!selectionState) return;
+		if (!selectionState) {
+			return;
+		}
 
 		const {
 			earlierDateIndex,

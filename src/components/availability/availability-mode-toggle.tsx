@@ -30,7 +30,9 @@ export function AvailabilityModeToggle({
 		_event: React.MouseEvent<HTMLElement>,
 		next: AvailabilityType | null,
 	) => {
-		if (!next) return;
+		if (!next) {
+			return;
+		}
 		onChange(next);
 	};
 
