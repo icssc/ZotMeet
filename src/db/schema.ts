@@ -162,6 +162,23 @@ export const meetings = pgTable("meetings", {
 	archived: boolean("archived").default(false).notNull(),
 });
 
+export const scheduledMeetings = pgTable("scheduled_meetings", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	meetingId: uuid("meeting_id")
+		.notNull()
+		.references(() => meetings.id, { onDelete: "cascade" }),
+	scheduledDate: timestamp("scheduled_date", {
+		withTimezone: false,
+		mode: "date",
+	}).notNull(),
+	scheduledFromTime: time("scheduled_from_time", {
+		withTimezone: false,
+	}).notNull(),
+	scheduledToTime: time("scheduled_to_time", {
+		withTimezone: false,
+	}).notNull(),
+});
+
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
 	groups: one(groups, {
 		fields: [meetings.group_id],

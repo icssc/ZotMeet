@@ -1,6 +1,7 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
+import { getScheduledMeetings } from "@actions/meeting/schedule/action";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
@@ -31,6 +32,7 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
+import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -317,6 +319,34 @@ export function Availability({
 		return Array.from(allMembers.values());
 	}, [allAvailabilities, availabilityDates, user]);
 
+	const hydrateScheduledTimes = useScheduleSelectionStore(
+		(state) => state.hydrateScheduledTimes,
+	);
+	useEffect(() => {
+		async function hydrate() {
+			const rows = await getScheduledMeetings(meetingData.id);
+
+			if (!Array.isArray(rows)) return;
+
+			const timestamps: string[] = [];
+
+			for (const row of rows) {
+				const date = new Date(row.scheduledDate);
+				const [h, m, s] = row.scheduledFromTime.split(":").map(Number);
+
+				date.setHours(h, m, s, 0);
+
+				timestamps.push(date.toISOString());
+			}
+
+			hydrateScheduledTimes(timestamps);
+		}
+
+		hydrate();
+	}, [meetingData.id, hydrateScheduledTimes]);
+
+	// TODO: Could add selection clearing with the escape key
+
 	return (
 		<div className="space-y-6">
 			<AvailabilityHeader
@@ -346,8 +376,10 @@ export function Availability({
 								<tr key={`block-${timeBlock}`}>
 									<AvailabilityTimeTicks timeBlock={timeBlock} />
 
-									{availabilityView === "group" ? (
+									{availabilityView === "group" ||
+									availabilityView === "schedule" ? (
 										<GroupAvailability
+											meetingId={meetingData.id}
 											timeBlock={timeBlock}
 											blockIndex={blockIndex}
 											availabilityTimeBlocks={availabilityTimeBlocks}
@@ -356,6 +388,7 @@ export function Availability({
 											currentPageAvailability={currentPageAvailability}
 											members={members}
 											onMouseLeave={handleMouseLeave}
+											isScheduling={availabilityView === "schedule"}
 										/>
 									) : (
 										<PersonalAvailability
