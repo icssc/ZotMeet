@@ -184,11 +184,7 @@ export function AvailabilityHeader({
 				</div>
 			</div>
 
-			<AuthDialog
-				open={isAuthModalOpen}
-				setOpen={setIsAuthModalOpen}
-				trigger={false}
-			/>
+			<AuthDialog />
 
 			<EditModal
 				meetingData={meetingData}
