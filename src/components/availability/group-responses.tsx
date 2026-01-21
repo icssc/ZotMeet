@@ -22,6 +22,7 @@ export function GroupResponses({
 	anchorNormalizedDate,
 }: GroupResponsesProps) {
 	const { availabilityView } = useAvailabilityViewStore();
+
 	const {
 		selectedZotDateIndex,
 		selectedBlockIndex,
@@ -49,42 +50,60 @@ export function GroupResponses({
 		[setHoveredMember],
 	);
 
-	const { availableMembers, notAvailableMembers } = useMemo(() => {
-		if (
-			selectedZotDateIndex === undefined ||
-			selectedBlockIndex === undefined
-		) {
+	const { availableMembers, notAvailableMembers, ifNeededOnlySet } =
+		useMemo(() => {
+			if (
+				selectedZotDateIndex === undefined ||
+				selectedBlockIndex === undefined
+			) {
+				return {
+					availableMembers: [],
+					notAvailableMembers: members,
+					ifNeededOnlySet: new Set<string>(),
+				};
+			}
+
+			const selectedDate = availabilityDates[selectedZotDateIndex];
+
+			const timestamp = getTimestampFromBlockIndex(
+				selectedBlockIndex,
+				selectedZotDateIndex,
+				fromTime,
+				availabilityDates,
+			);
+
+			const availableIds = selectedDate.groupAvailability?.[timestamp] ?? [];
+
+			const ifNeededIds =
+				selectedDate.groupIfNeededAvailability?.[timestamp] ?? [];
+
+			const availableSet = new Set(availableIds);
+
+			const combinedAvailableSet = new Set<string>([
+				...availableIds,
+				...ifNeededIds,
+			]);
+
+			const ifNeededOnlySet = new Set<string>(
+				ifNeededIds.filter((id) => !availableSet.has(id)),
+			);
+
 			return {
-				availableMembers: [],
-				notAvailableMembers: members,
+				availableMembers: members.filter((m) =>
+					combinedAvailableSet.has(m.memberId),
+				),
+				notAvailableMembers: members.filter(
+					(m) => !combinedAvailableSet.has(m.memberId),
+				),
+				ifNeededOnlySet,
 			};
-		}
-
-		const selectedDate = availabilityDates[selectedZotDateIndex];
-		const timestamp = getTimestampFromBlockIndex(
-			selectedBlockIndex,
+		}, [
 			selectedZotDateIndex,
-			fromTime,
+			selectedBlockIndex,
 			availabilityDates,
-		);
-
-		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
-
-		return {
-			availableMembers: members.filter((member) =>
-				availableMemberIds.includes(member.memberId),
-			),
-			notAvailableMembers: members.filter(
-				(member) => !availableMemberIds.includes(member.memberId),
-			),
-		};
-	}, [
-		selectedZotDateIndex,
-		selectedBlockIndex,
-		availabilityDates,
-		fromTime,
-		members,
-	]);
+			fromTime,
+			members,
+		]);
 
 	useEffect(() => {
 		if (
@@ -108,6 +127,7 @@ export function GroupResponses({
 				earliestTime + selectedBlockIndex * blockLength + blockLength,
 				false,
 			);
+
 			setBlockInfoString(`${formattedDate}, ${startTime} - ${endTime}`);
 		} else {
 			setBlockInfoString("Select a cell to view");
@@ -153,13 +173,16 @@ export function GroupResponses({
 						<XIcon className="text-lg text-slate-400" />
 					</button>
 				</div>
+
 				<div className="grid grid-cols-2 lg:flex lg:flex-col lg:gap-10 lg:py-4">
 					<div>
-						<div className="border-gray-300 border-b-[1px] px-8">
+						<div className="flex items-baseline justify-between border-gray-300 border-b-[1px] px-8">
 							<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 								AVAILABLE ({availableMembers.length})
 							</span>
+							<span className="text-slate-400 text-xs">* = if needed</span>
 						</div>
+
 						<ul className="h-64 overflow-auto py-2 pl-8">
 							{availableMembers.length > 0 ? (
 								availableMembers.map((member) => (
@@ -170,6 +193,7 @@ export function GroupResponses({
 										onMouseLeave={() => handleMemberHover(null)}
 									>
 										{member.displayName}
+										{ifNeededOnlySet.has(member.memberId) ? " *" : ""}
 									</li>
 								))
 							) : (
@@ -177,12 +201,14 @@ export function GroupResponses({
 							)}
 						</ul>
 					</div>
+
 					<div>
 						<div className="border-gray-300 border-b-[1px] px-8">
 							<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 								NOT AVAILABLE ({notAvailableMembers.length})
 							</span>
 						</div>
+
 						<ul className="h-64 overflow-auto py-2 pl-8">
 							{notAvailableMembers.length > 0 ? (
 								notAvailableMembers.map((member) => (
