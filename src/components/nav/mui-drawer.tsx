@@ -35,7 +35,6 @@ const navItems = [
 	{ title: "New Meeting", url: "/", icon: AddCircleOutline },
 	{ title: "Summary", url: "/summary", icon: CalendarMonth },
 	{ title: "Groups", url: "/groups", icon: Groups },
-	{ title: "Profile", url: "/profile", icon: Person },
 ];
 
 type MuiDrawerProps = {
@@ -160,7 +159,6 @@ export function MuiDrawer({ user }: MuiDrawerProps) {
 				})}
 			</List>
 
-			{/* User Menu / Login at Bottom */}
 			<Box sx={{ p: 1 }}>
 				{user ? (
 					<>
