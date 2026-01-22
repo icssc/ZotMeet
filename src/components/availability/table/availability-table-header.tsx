@@ -1,19 +1,49 @@
 import React from "react";
 import type { SelectMeeting } from "@/db/schema";
 import { spacerBeforeDate } from "@/lib/availability/utils";
-import type { ZotDate } from "@/lib/zotdate";
+import { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityTableHeaderProps {
 	currentPageAvailability: ZotDate[];
 	meetingType: SelectMeeting["meetingType"];
+	timeblocks: number[];
 }
 
 export function AvailabilityTableHeader({
 	currentPageAvailability,
 	meetingType,
+	timeblocks,
 }: AvailabilityTableHeaderProps) {
-	const spacers = spacerBeforeDate(currentPageAvailability);
-
+	//extra day calculation for day spillover
+	//put in here to prevent infinite adding, recalculates everytime something changes
+	let doesntNeedDay = true;
+	let past = timeblocks[0];
+	timeblocks.forEach((minutes, index) => {
+		if (index !== 0 && minutes - past !== 15) {
+			doesntNeedDay = false;
+		}
+		past = timeblocks[index];
+	});
+	const newBlocks = structuredClone(currentPageAvailability);
+	let dayIndex = currentPageAvailability.length - 1;
+	while (currentPageAvailability[dayIndex] == null) {
+		dayIndex -= 1;
+	}
+	if (!doesntNeedDay) {
+		const prevDay = currentPageAvailability[dayIndex];
+		console.log(currentPageAvailability);
+		const newDay = new Date(prevDay.day);
+		newDay.setDate(newDay.getDate() + 1);
+		newBlocks[dayIndex + 1] = new ZotDate(
+			newDay,
+			prevDay.earliestTime,
+			prevDay.latestTime,
+			false,
+			[],
+			{},
+		);
+	}
+	const spacers = spacerBeforeDate(newBlocks);
 	return (
 		<thead>
 			<tr>
@@ -21,7 +51,7 @@ export function AvailabilityTableHeader({
 					<span className="sr-only">Time</span>
 				</th>
 
-				{currentPageAvailability.map((dateHeader, index) => (
+				{newBlocks.map((dateHeader, index) => (
 					<React.Fragment key={index}>
 						{spacers[index] && (
 							<th className="w-3 md:w-4" tabIndex={-1} aria-hidden="true" />
