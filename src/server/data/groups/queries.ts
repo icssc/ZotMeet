@@ -101,6 +101,23 @@ export async function isGroupCreator({
 	return group !== undefined;
 }
 
+export async function isGroupAdmin({
+	userId,
+	groupId,
+}: {
+	userId: string;
+	groupId: string;
+}): Promise<boolean> {
+	const userInGroup = await db.query.usersInGroup.findFirst({
+		where: and(
+			eq(usersInGroup.userId, userId),
+			eq(usersInGroup.groupId, groupId),
+			eq(usersInGroup.isAdmin, true),
+		),
+	});
+	return userInGroup !== undefined;
+}
+
 export async function getGroupNameExists(name: string): Promise<boolean> {
 	const group = await db.query.groups.findFirst({
 		where: eq(groups.name, name),
