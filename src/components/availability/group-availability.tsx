@@ -31,14 +31,17 @@ export const getTimestampFromBlockIndex = (
 	if (!selectedDate) {
 		return "";
 	}
-
+	//console.log(selectedDate.day)
 	const date = new Date(selectedDate.day);
+	//console.log(date)
 	date.setHours(hours);
 	date.setMinutes(minutes);
 	date.setSeconds(0);
 	date.setMilliseconds(0);
-
+	//console.log(date)
+	console.log(fromTime);
 	const isoString = fromZonedTime(date, timezone).toISOString();
+	console.log(isoString);
 	return isoString;
 };
 
@@ -116,6 +119,29 @@ export function GroupAvailability({
 	onMouseLeave,
 	isScheduling,
 }: GroupAvailabilityProps) {
+	//counts number of days in availibilityTimeBlocks that is in the before (calculates the time offset for formatting)
+	const datesBefore = React.useMemo(() => {
+		if (availabilityTimeBlocks.length === 0) return 0;
+
+		let count = 1;
+		let prev = availabilityTimeBlocks[0];
+
+		for (let i = 1; i < availabilityTimeBlocks.length; i++) {
+			if (availabilityTimeBlocks[i] - prev !== 15) {
+				break;
+			}
+			count++;
+			prev = availabilityTimeBlocks[i];
+		}
+
+		// If all blocks are continuous, reset to 0
+		if (count === availabilityTimeBlocks.length - 1) {
+			return 0;
+		}
+
+		return count;
+	}, [availabilityTimeBlocks]);
+
 	const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
@@ -534,14 +560,12 @@ export function GroupAvailability({
 	//console.log(currentPageAvailability);
 	//ZotDate: contains day, availabilities
 	const spacers = spacerBeforeDate(currentPageAvailability);
-
 	return currentPageAvailability.map((selectedDate, pageDateIndex) => {
 		const key = generateDateKey({
 			selectedDate,
 			timeBlock,
 			pageDateIndex,
 		});
-
 		if (selectedDate) {
 			const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
 
@@ -549,13 +573,24 @@ export function GroupAvailability({
 				selectedZotDateIndex === zotDateIndex &&
 				selectedBlockIndex === blockIndex;
 
-			const timestamp = getTimestampFromBlockIndex(
+			//now shifts the block index correctly
+			let timestamp = getTimestampFromBlockIndex(
 				blockIndex,
 				zotDateIndex,
-				fromTime,
+				availabilityTimeBlocks[0],
 				timezone,
 				availabilityDates,
 			);
+			if (datesBefore !== 0 && blockIndex >= datesBefore) {
+				timestamp = getTimestampFromBlockIndex(
+					blockIndex - datesBefore,
+					zotDateIndex,
+					fromTime,
+					timezone,
+					availabilityDates,
+				);
+				console.log(fromTime);
+			}
 
 			const block = selectedDate.groupAvailability[timestamp] || [];
 			const blockColor = isScheduled(timestamp)
