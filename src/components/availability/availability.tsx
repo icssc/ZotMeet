@@ -322,7 +322,6 @@ export function Availability({
 
 		return Array.from(allMembers.values());
 	}, [allAvailabilities, availabilityDates, user]);
-	console.log(meetingData.toTime);
 
 	let doesntNeedDay = true;
 	let past = availabilityTimeBlocks[0];
@@ -348,7 +347,6 @@ export function Availability({
 	);
 
 	const userDay = formatInTimeZone(lastUTCDateTime, userTimezone, "yyyy-MM-dd");
-	console.log(utcDay, userDay);
 	if (utcDay !== userDay) {
 		doesntNeedDay = false;
 	}

@@ -167,11 +167,6 @@ export function GroupAvailability({
 			prev = availabilityTimeBlocks[i];
 		}
 
-		// If all blocks are continuous, reset to 0
-		if (count === availabilityTimeBlocks.length) {
-			return 0;
-		}
-
 		return count;
 	}, [availabilityTimeBlocks]);
 	const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(

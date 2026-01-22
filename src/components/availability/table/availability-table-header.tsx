@@ -35,6 +35,7 @@ export function AvailabilityTableHeader({
 			{},
 		);
 	}
+
 	const spacers = spacerBeforeDate(newBlocks);
 	return (
 		<thead>
