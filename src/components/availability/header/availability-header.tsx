@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
-import { AuthDialog } from "@/components/auth/auth-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
@@ -183,8 +182,6 @@ export function AvailabilityHeader({
 					</div>
 				</div>
 			</div>
-
-			<AuthDialog />
 
 			<EditModal
 				meetingData={meetingData}
