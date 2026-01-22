@@ -1,4 +1,4 @@
-import { getGroupsByUserId, isUserInGroup } from "@data/groups/queries";
+import { getGroupsByUserId /*, isUserInGroup  */ } from "@data/groups/queries";
 import { notFound, redirect } from "next/navigation";
 import { CreateGroup } from "@/components/groups/create-group-popup";
 import { getCurrentSession } from "@/lib/auth";
@@ -8,7 +8,7 @@ interface PageProps {
 		slug: string;
 	}>;
 }
-
+/*
 export async function generateMetadata(props: PageProps) {
 	const params = await props.params;
 	const { slug } = params;
@@ -22,7 +22,7 @@ export async function generateMetadata(props: PageProps) {
 	return {
 		title: `Group ${slug} - ZotMeet`,
 	};
-}
+} */
 
 export default async function Page(props: PageProps) {
 	const params = await props.params;
@@ -39,7 +39,7 @@ export default async function Page(props: PageProps) {
 
 	const usersInGroup = await getGroupsByUserId(user.id);
 
-	if (slug === "home") {
+	if (slug === "home")
 		return (
 			<div className="relative p-8">
 				<h1 className="mb-4 font-medium font-montserrat text-3xl">Groups</h1>
@@ -47,7 +47,7 @@ export default async function Page(props: PageProps) {
 
 				<div className="">
 					<p className="">Your Groups: </p>
-					{usersInGroup.map((u, index) => (
+					{usersInGroup.map((u) => (
 						<p key={u.id}>{u.name}</p>
 					))}
 
@@ -55,7 +55,6 @@ export default async function Page(props: PageProps) {
 				</div>
 			</div>
 		);
-	}
 
 	// work in progress, need to investigate why react doesn't like passing a slug to query db
 	//const userInGroup = await isUserInGroup(user.id, slug);

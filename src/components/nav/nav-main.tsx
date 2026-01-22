@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ElementType } from "react";
 import { Collapsible } from "@/components/ui/collapsible";
 import {
@@ -34,10 +35,16 @@ export function NavMain({
 								tooltip={item.title}
 								className="h-12 rounded-xl px-4 py-2 hover:bg-gray-300 active:bg-gray-300/80"
 							>
-								<a href={item.url} className="space-x-4 text-gray-600">
+								<Link
+									href={item.url}
+									className="space-x-4 text-gray-600"
+									onClick={() => {
+										console.log("Navigating to:", item.url);
+									}}
+								>
 									<item.icon className="min-h-6 max-w-fit grow" />
 									<span className="text-xl">{item.title}</span>
-								</a>
+								</Link>
 							</SidebarMenuButton>
 						</SidebarMenuItem>
 					</Collapsible>
