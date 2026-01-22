@@ -254,6 +254,7 @@ export const usersInGroup = pgTable(
 		groupId: uuid("group_id")
 			.notNull()
 			.references(() => groups.id, { onDelete: "cascade" }),
+		isAdmin: boolean("is_admin").default(false).notNull(),
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.groupId, table.userId] }),
