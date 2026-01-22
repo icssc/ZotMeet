@@ -83,7 +83,8 @@ export const generateTimeBlocks = (
 	const newTime = [];
 	for (let blockIndex = 0; blockIndex < totalBlocks; blockIndex++) {
 		if (startTime + blockIndex * BLOCK_LENGTH >= 1440) {
-			newTime.push((startTime + blockIndex * BLOCK_LENGTH) % 1440);
+			console.log(startTime + blockIndex * BLOCK_LENGTH);
+			newTime.push(startTime + blockIndex * BLOCK_LENGTH);
 		} else {
 			timeBlocks.push(startTime + blockIndex * BLOCK_LENGTH);
 		}
