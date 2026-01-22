@@ -6,24 +6,17 @@ import { ZotDate } from "@/lib/zotdate";
 interface AvailabilityTableHeaderProps {
 	currentPageAvailability: ZotDate[];
 	meetingType: SelectMeeting["meetingType"];
-	timeblocks: number[];
+	doesntNeedDay: boolean;
 }
 
+//TODO: redo the calculation on the doesntNeedDay to incorporate when the time completely shifts
 export function AvailabilityTableHeader({
 	currentPageAvailability,
 	meetingType,
-	timeblocks,
+	doesntNeedDay,
 }: AvailabilityTableHeaderProps) {
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
-	let doesntNeedDay = true;
-	let past = timeblocks[0];
-	timeblocks.forEach((minutes, index) => {
-		if (index !== 0 && minutes - past !== 15) {
-			doesntNeedDay = false;
-		}
-		past = timeblocks[index];
-	});
 	const newBlocks = structuredClone(currentPageAvailability);
 	let dayIndex = currentPageAvailability.length - 1;
 	while (currentPageAvailability[dayIndex] == null) {
@@ -31,7 +24,6 @@ export function AvailabilityTableHeader({
 	}
 	if (!doesntNeedDay) {
 		const prevDay = currentPageAvailability[dayIndex];
-		console.log(currentPageAvailability);
 		const newDay = new Date(prevDay.day);
 		newDay.setDate(newDay.getDate() + 1);
 		newBlocks[dayIndex + 1] = new ZotDate(

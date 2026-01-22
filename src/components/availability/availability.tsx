@@ -3,6 +3,7 @@
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { getScheduledMeetings } from "@actions/meeting/schedule/action";
 import { toZonedTime } from "date-fns-tz";
+import { formatInTimeZone } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
@@ -321,6 +322,36 @@ export function Availability({
 
 		return Array.from(allMembers.values());
 	}, [allAvailabilities, availabilityDates, user]);
+	console.log(meetingData.toTime);
+
+	let doesntNeedDay = true;
+	let past = availabilityTimeBlocks[0];
+	availabilityTimeBlocks.forEach((minutes, index) => {
+		if (index !== 0 && minutes - past !== 15) {
+			doesntNeedDay = false;
+		}
+		past = availabilityTimeBlocks[index];
+	});
+
+	const lastUTCDateTime = useMemo(() => {
+		const day = new Date(availabilityDates[availabilityDates.length - 1].day);
+		const hours = Math.floor(currentPageAvailability[0].latestTime / 60);
+		const minutes = currentPageAvailability[0].latestTime % 60;
+		day.setHours(hours, minutes, 0, 0);
+		return day;
+	}, [availabilityDates, currentPageAvailability]);
+
+	const utcDay = formatInTimeZone(
+		lastUTCDateTime,
+		Intl.DateTimeFormat().resolvedOptions().timeZone,
+		"yyyy-MM-dd",
+	);
+
+	const userDay = formatInTimeZone(lastUTCDateTime, userTimezone, "yyyy-MM-dd");
+	console.log(utcDay, userDay);
+	if (utcDay !== userDay) {
+		doesntNeedDay = false;
+	}
 
 	const hydrateScheduledTimes = useScheduleSelectionStore(
 		(state) => state.hydrateScheduledTimes,
@@ -372,7 +403,7 @@ export function Availability({
 							<AvailabilityTableHeader
 								currentPageAvailability={currentPageAvailability}
 								meetingType={meetingData.meetingType}
-								timeblocks={availabilityTimeBlocks}
+								doesntNeedDay={doesntNeedDay}
 							/>
 
 							<tbody onMouseLeave={handleMouseLeave}>
@@ -393,7 +424,8 @@ export function Availability({
 												members={members}
 												timezone={userTimezone}
 												onMouseLeave={handleMouseLeave}
-											isScheduling={availabilityView === "schedule"}
+												doesntNeedDay={doesntNeedDay}
+												isScheduling={availabilityView === "schedule"}
 											/>
 										) : (
 											<PersonalAvailability

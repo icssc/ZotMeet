@@ -22,7 +22,7 @@ export const getTimestampFromBlockIndex = (
 	timezone: string,
 	availabilityDates: ZotDate[],
 ) => {
-	const totalMinutes = fromTime + blockIndex * 15;
+	const totalMinutes = (fromTime % 1440) + blockIndex * 15;
 	const dayOffset = Math.floor(totalMinutes / 1440);
 	const minutesFromMidnight = totalMinutes % 1440;
 
@@ -100,6 +100,7 @@ interface GroupAvailabilityProps {
 	timezone: string;
 	onMouseLeave: () => void;
 	isScheduling: boolean;
+	doesntNeedDay: boolean;
 }
 
 export function GroupAvailability({
@@ -113,17 +114,12 @@ export function GroupAvailability({
 	timezone,
 	onMouseLeave,
 	isScheduling,
+	doesntNeedDay,
 }: GroupAvailabilityProps) {
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
-	let doesntNeedDay = true;
-	let past = availabilityTimeBlocks[0];
-	availabilityTimeBlocks.forEach((minutes, index) => {
-		if (index !== 0 && minutes - past !== 15) {
-			doesntNeedDay = false;
-		}
-		past = availabilityTimeBlocks[index];
-	});
+	//TODO: redo the calculation on the doesntNeedDay to incorporate day
+
 	const newBlocks = structuredClone(currentPageAvailability);
 	let dayIndex = currentPageAvailability.length - 1;
 	const newAvailDates = structuredClone(availabilityDates);
@@ -132,7 +128,7 @@ export function GroupAvailability({
 	}
 	if (!doesntNeedDay) {
 		const prevDay = currentPageAvailability[dayIndex];
-		console.log(currentPageAvailability);
+		//console.log(currentPageAvailability);
 		const newDay = new Date(prevDay.day);
 		newDay.setDate(newDay.getDate() + 1);
 		newBlocks[dayIndex + 1] = new ZotDate(
