@@ -1,5 +1,5 @@
 {
-  "id": "62da707a-4b7c-40f3-8441-9195ba2aa999",
+  "id": "cac78df6-859c-4f1c-aecf-3e8cfec306e2",
   "prevId": "21451459-a651-4b96-877f-14b58d424bf6",
   "version": "7",
   "dialect": "postgresql",
@@ -74,167 +74,6 @@
         }
       },
       "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "public.group_invite_responses": {
-      "name": "group_invite_responses",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "invite_id": {
-          "name": "invite_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "email": {
-          "name": "email",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "status": {
-          "name": "status",
-          "type": "invite_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'pending'"
-        },
-        "responded_at": {
-          "name": "responded_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "group_invite_responses_invite_id_group_invites_id_fk": {
-          "name": "group_invite_responses_invite_id_group_invites_id_fk",
-          "tableFrom": "group_invite_responses",
-          "tableTo": "group_invites",
-          "columnsFrom": [
-            "invite_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "group_invite_responses_user_id_users_id_fk": {
-          "name": "group_invite_responses_user_id_users_id_fk",
-          "tableFrom": "group_invite_responses",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "public.group_invites": {
-      "name": "group_invites",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "group_id": {
-          "name": "group_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "invite_token": {
-          "name": "invite_token",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "inviter_id": {
-          "name": "inviter_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sent_at": {
-          "name": "sent_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "expires_at": {
-          "name": "expires_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "group_invites_group_id_groups_id_fk": {
-          "name": "group_invites_group_id_groups_id_fk",
-          "tableFrom": "group_invites",
-          "tableTo": "groups",
-          "columnsFrom": [
-            "group_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "group_invites_inviter_id_users_id_fk": {
-          "name": "group_invites_inviter_id_users_id_fk",
-          "tableFrom": "group_invites",
-          "tableTo": "users",
-          "columnsFrom": [
-            "inviter_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "group_invites_invite_token_unique": {
-          "name": "group_invites_invite_token_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "invite_token"
-          ]
-        }
-      },
       "checkConstraints": {}
     },
     "public.groups": {
@@ -503,6 +342,62 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "public.scheduled_meetings": {
+      "name": "scheduled_meetings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "meeting_id": {
+          "name": "meeting_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_date": {
+          "name": "scheduled_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_from_time": {
+          "name": "scheduled_from_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_to_time": {
+          "name": "scheduled_to_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "scheduled_meetings_meeting_id_meetings_id_fk": {
+          "name": "scheduled_meetings_meeting_id_meetings_id_fk",
+          "tableFrom": "scheduled_meetings",
+          "tableTo": "meetings",
+          "columnsFrom": [
+            "meeting_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "public.sessions": {
       "name": "sessions",
       "schema": "",
@@ -717,16 +612,6 @@
         "accepted",
         "maybe",
         "declined"
-      ]
-    },
-    "public.invite_status": {
-      "name": "invite_status",
-      "schema": "public",
-      "values": [
-        "pending",
-        "accepted",
-        "declined",
-        "expired"
       ]
     },
     "public.meeting_type": {
