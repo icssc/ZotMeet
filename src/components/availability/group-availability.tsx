@@ -22,7 +22,10 @@ export const getTimestampFromBlockIndex = (
 	timezone: string,
 	availabilityDates: ZotDate[],
 ) => {
-	const minutesFromMidnight = fromTime + blockIndex * 15;
+	const totalMinutes = fromTime + blockIndex * 15;
+	const dayOffset = Math.floor(totalMinutes / 1440);
+	const minutesFromMidnight = totalMinutes % 1440;
+
 	const hours = Math.floor(minutesFromMidnight / 60);
 	const minutes = minutesFromMidnight % 60;
 
@@ -31,18 +34,10 @@ export const getTimestampFromBlockIndex = (
 	if (!selectedDate) {
 		return "";
 	}
-	//console.log(selectedDate.day)
 	const date = new Date(selectedDate.day);
-	//console.log(date)
-	date.setHours(hours);
-	date.setMinutes(minutes);
-	date.setSeconds(0);
-	date.setMilliseconds(0);
-	//console.log(date)
-	console.log(fromTime);
-	const isoString = fromZonedTime(date, timezone).toISOString();
-	console.log(isoString);
-	return isoString;
+	date.setHours(hours, minutes, 0, 0);
+	date.setDate(date.getDate() + dayOffset);
+	return fromZonedTime(date, timezone).toISOString();
 };
 
 function calculateBlockColor({
@@ -135,13 +130,12 @@ export function GroupAvailability({
 		}
 
 		// If all blocks are continuous, reset to 0
-		if (count === availabilityTimeBlocks.length - 1) {
+		if (count === availabilityTimeBlocks.length) {
 			return 0;
 		}
 
 		return count;
 	}, [availabilityTimeBlocks]);
-
 	const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
@@ -560,6 +554,7 @@ export function GroupAvailability({
 	//console.log(currentPageAvailability);
 	//ZotDate: contains day, availabilities
 	const spacers = spacerBeforeDate(currentPageAvailability);
+	//console.log(currentPageAvailability)
 	return currentPageAvailability.map((selectedDate, pageDateIndex) => {
 		const key = generateDateKey({
 			selectedDate,
@@ -573,7 +568,7 @@ export function GroupAvailability({
 				selectedZotDateIndex === zotDateIndex &&
 				selectedBlockIndex === blockIndex;
 
-			//now shifts the block index correctly
+			//basically treating the table as 2 different tables, one for the "before time" and one for the after
 			let timestamp = getTimestampFromBlockIndex(
 				blockIndex,
 				zotDateIndex,
@@ -589,7 +584,18 @@ export function GroupAvailability({
 					timezone,
 					availabilityDates,
 				);
-				console.log(fromTime);
+			}
+			let block = selectedDate.groupAvailability[timestamp] || [];
+
+			if (
+				datesBefore !== 0 &&
+				blockIndex < datesBefore &&
+				pageDateIndex - 1 >= 0
+			) {
+				block =
+					currentPageAvailability[pageDateIndex - 1].groupAvailability[
+						timestamp
+					] || [];
 			}
 
 			const block = selectedDate.groupAvailability[timestamp] || [];
