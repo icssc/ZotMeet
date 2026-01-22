@@ -272,8 +272,6 @@ export function Availability({
 		confirmSave();
 	}, [confirmSave]);
 
-	//USED TO OFFSET THE BLOCKINDEX FOR THE NEXT DAY FOR FROM TIME TO WORK CORRECTLY, SLOPULAR CODE
-
 	useEffect(() => {
 		if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
 			const firstDateISO = anchorNormalizedDate[0].toISOString();
@@ -374,6 +372,7 @@ export function Availability({
 							<AvailabilityTableHeader
 								currentPageAvailability={currentPageAvailability}
 								meetingType={meetingData.meetingType}
+								timeblocks={availabilityTimeBlocks}
 							/>
 
 							<tbody onMouseLeave={handleMouseLeave}>
