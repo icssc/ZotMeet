@@ -48,6 +48,7 @@ Simple, clean, and efficient meeting scheduling app.
 - [Node.js](https://nodejs.org/en/)
 - [pnpm](https://pnpm.io)
   - Just run `npm i -g pnpm` to install.
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) 
 
 ### Local Setup
 
@@ -55,18 +56,40 @@ Simple, clean, and efficient meeting scheduling app.
 2. Navigate to the root directory and install the dependencies.
    1. `cd ZotMeet`
    2. `pnpm install`
-3. Start the development server
+3. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+4. Make sure Docker Desktop is running, then set up the database:
+   ```bash
+   pnpm db:setup
+   ```
+5. Start the development server
    1. `pnpm dev` (run `pnpm dev --host` if you want to access the server from other devices on your network)
-4. The app should be viewable at `localhost:3000` by default. Changes to the code will automatically update the page. If you ran `pnpm dev --host`, you can access the app from other devices on your network at `host-ip:3000`.
+6. The app should be viewable at `localhost:3000` by default.
 
-### Local Database Setup
+### Database Commands
 
-1. Go to the [Postgres official website](https://www.postgresql.org/download/) and download the database for your specific OS. \([Here](https://www.postgresql.org/docs/16/tutorial-start.html) is more information, if you get stuck)
-2. While running the setup, ensure that pgAdmin is downloaded alongside Postgres itself
-3. Once connected to the Postgres Server, Right click on databases -> create -> database, and name it `zotmeet`.
-4. In the ZotMeet project root directory, `pnpm db:generate` will generate any updated database migrations.
-5. Create a .env file, and set `DATABASE_URL=postgres://yourusername:yourpassword@localhost:5432/zotmeet`
-6. Run `pnpm db:migrate` to apply all the migration changes to your local database.
+| Command | Description |
+|---------|-------------|
+| `pnpm db:setup` | Start database and run migrations (first time setup) |
+| `pnpm db:start` | Start the PostgreSQL container |
+| `pnpm db:stop` | Stop the PostgreSQL container (data persists) |
+| `pnpm db:reset` | Reset database - removes all data and re-runs migrations |
+| `pnpm db:generate` | Generate new migrations from schema changes |
+| `pnpm db:migrate` | Apply pending migrations |
+| `pnpm db:studio` | Open Drizzle Studio to browse your database |
+
+
+### Local Database Setup (Manual - Alternative)
+
+If you prefer to install PostgreSQL directly without Docker:
+
+1. Go to the [Postgres official website](https://www.postgresql.org/download/) and download the database for your specific OS. ([Here](https://www.postgresql.org/docs/16/tutorial-start.html) is more information, if you get stuck)
+2. While running the setup, ensure that pgAdmin is downloaded alongside Postgres itself.
+3. Once connected to the Postgres Server, right-click on databases -> create -> database, and name it `zotmeet`.
+4. Create a `.env` file and set `DATABASE_URL=postgres://yourusername:yourpassword@localhost:5432/zotmeet`
+5. Run `pnpm db:migrate` to apply all the migration changes to your local database.
 
 ### Committing Changes
 
