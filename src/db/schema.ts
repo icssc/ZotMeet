@@ -25,6 +25,11 @@ export const attendanceEnum = pgEnum("attendance", [
 	"declined",
 ]);
 
+export const groupRoleValues = ["member", "admin"] as const;
+export type GroupRole = (typeof groupRoleValues)[number];
+
+export const groupRoleEnum = pgEnum("group_role", ["member", "admin"]);
+
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = pgTable(
 	"members",
@@ -254,7 +259,7 @@ export const usersInGroup = pgTable(
 		groupId: uuid("group_id")
 			.notNull()
 			.references(() => groups.id, { onDelete: "cascade" }),
-		isAdmin: boolean("is_admin").default(false).notNull(),
+		role: groupRoleEnum("role").default("member").notNull(),
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.groupId, table.userId] }),

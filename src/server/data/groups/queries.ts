@@ -112,7 +112,7 @@ export async function isGroupAdmin({
 		where: and(
 			eq(usersInGroup.userId, userId),
 			eq(usersInGroup.groupId, groupId),
-			eq(usersInGroup.isAdmin, true),
+			eq(usersInGroup.role, "admin"),
 		),
 	});
 	return userInGroup !== undefined;

@@ -55,7 +55,7 @@ export async function createGroup(
 			await tx.insert(usersInGroup).values({
 				userId: user.id,
 				groupId: newGroup.id,
-				isAdmin: true,
+				role: "admin",
 			});
 
 			return newGroup;
