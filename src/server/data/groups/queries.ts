@@ -3,6 +3,7 @@ import "server-only";
 import { and, count, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
+	GroupRole,
 	groups,
 	meetings,
 	type SelectGroup,
@@ -99,6 +100,23 @@ export async function isGroupCreator({
 		where: and(eq(groups.id, groupId), eq(groups.createdBy, userId)),
 	});
 	return group !== undefined;
+}
+
+export async function isGroupAdmin({
+	userId,
+	groupId,
+}: {
+	userId: string;
+	groupId: string;
+}): Promise<boolean> {
+	const userInGroup = await db.query.usersInGroup.findFirst({
+		where: and(
+			eq(usersInGroup.userId, userId),
+			eq(usersInGroup.groupId, groupId),
+			eq(usersInGroup.role, GroupRole.ADMIN),
+		),
+	});
+	return userInGroup !== undefined;
 }
 
 export async function getGroupNameExists(name: string): Promise<boolean> {
