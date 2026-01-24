@@ -12,7 +12,7 @@ import { usePathname, useRouter } from "next/navigation";
 const navItems = [
 	{ label: "New", value: "/", icon: AddCircleOutline },
 	{ label: "Summary", value: "/summary", icon: CalendarMonth },
-	{ label: "Groups", value: "/groups", icon: Groups },
+	{ label: "Groups", value: "/groups/home", icon: Groups },
 	{ label: "Profile", value: "/profile", icon: Person },
 ];
 

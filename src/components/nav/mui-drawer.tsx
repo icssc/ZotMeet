@@ -34,7 +34,7 @@ const miniDrawerWidth = 72;
 const navItems = [
 	{ title: "New Meeting", url: "/", icon: AddCircleOutline },
 	{ title: "Summary", url: "/summary", icon: CalendarMonth },
-	{ title: "Groups", url: "/groups", icon: Groups },
+	{ title: "Groups", url: "/groups/home", icon: Groups },
 ];
 
 type MuiDrawerProps = {
