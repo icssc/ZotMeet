@@ -4,7 +4,7 @@ import { createGroupSchema } from "@actions/group/create/schema";
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
 import { db } from "@/db";
-import { groups, usersInGroup } from "@/db/schema";
+import { GroupRole, groups, usersInGroup } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 
 export type CreateGroupState = {
@@ -55,7 +55,7 @@ export async function createGroup(
 			await tx.insert(usersInGroup).values({
 				userId: user.id,
 				groupId: newGroup.id,
-				role: "admin",
+				role: GroupRole.ADMIN,
 			});
 
 			return newGroup;

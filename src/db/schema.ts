@@ -25,10 +25,21 @@ export const attendanceEnum = pgEnum("attendance", [
 	"declined",
 ]);
 
-export const groupRoleValues = ["member", "admin"] as const;
-export type GroupRole = (typeof groupRoleValues)[number];
+export enum GroupRole {
+	MEMBER = "member",
+	ADMIN = "admin",
+}
 
-export const groupRoleEnum = pgEnum("group_role", ["member", "admin"]);
+export function enumToPgEnum<T extends Record<string, string>>(
+	myEnum: T,
+): [T[keyof T], ...T[keyof T][]] {
+	return Object.values(myEnum).map((value: string) => value) as [
+		T[keyof T],
+		...T[keyof T][],
+	];
+}
+
+export const groupRoleEnum = pgEnum("group_role", enumToPgEnum(GroupRole));
 
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = pgTable(
@@ -259,7 +270,7 @@ export const usersInGroup = pgTable(
 		groupId: uuid("group_id")
 			.notNull()
 			.references(() => groups.id, { onDelete: "cascade" }),
-		role: groupRoleEnum("role").default("member").notNull(),
+		role: groupRoleEnum("role").default(GroupRole.MEMBER).notNull(),
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.groupId, table.userId] }),

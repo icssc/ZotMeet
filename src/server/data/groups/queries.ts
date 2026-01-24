@@ -3,6 +3,7 @@ import "server-only";
 import { and, count, eq } from "drizzle-orm";
 import { db } from "@/db";
 import {
+	GroupRole,
 	groups,
 	meetings,
 	type SelectGroup,
@@ -112,7 +113,7 @@ export async function isGroupAdmin({
 		where: and(
 			eq(usersInGroup.userId, userId),
 			eq(usersInGroup.groupId, groupId),
-			eq(usersInGroup.role, "admin"),
+			eq(usersInGroup.role, GroupRole.ADMIN),
 		),
 	});
 	return userInGroup !== undefined;
