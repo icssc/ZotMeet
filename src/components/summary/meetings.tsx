@@ -1,17 +1,17 @@
 "use client";
 
 import { useCallback, useState } from "react";
-// import {
-//     Tabs,
-//     TabsContent,
-//     TabsList,
-//     TabsTrigger,
-// } from "@/components/custom/tabs";
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "@/components/custom/tabs";
 import { MeetingsDisplay } from "@/components/summary/meetings-display";
 import { Button } from "@/components/ui/button";
 import type { SelectMeeting } from "@/db/schema";
 
-// import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface MeetingsDisplayProps {
 	meetings: SelectMeeting[];
@@ -21,19 +21,18 @@ interface MeetingsDisplayProps {
 export const Meetings = ({ meetings, userId }: MeetingsDisplayProps) => {
 	const [hostedOnly, setHostedOnly] = useState(false);
 
-	// const scheduledMeetings =
-	//     meetings?.filter((meeting) => meeting.scheduled) || [];
+	const scheduledMeetings =
+		meetings?.filter((meeting) => meeting.scheduled) || [];
 	const unscheduledMeetings =
 		meetings?.filter((meeting) => !meeting.scheduled) || [];
 
-	// const filteredScheduledMeetings = (
-	//     hostedOnly
-	//         ? scheduledMeetings.filter((meeting) => meeting.hostId === userId)
-	//         : scheduledMeetings
-	// ).sort(
-	//     (a, b) =>
-	//         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-	// );
+	const filteredScheduledMeetings = (
+		hostedOnly
+			? scheduledMeetings.filter((meeting) => meeting.hostId === userId)
+			: scheduledMeetings
+	).sort(
+		(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+	);
 
 	const filteredUnscheduledMeetings = (
 		hostedOnly
@@ -62,40 +61,36 @@ export const Meetings = ({ meetings, userId }: MeetingsDisplayProps) => {
 				</Button>
 			</div>
 
-			<div className="mt-8">
-				<MeetingsDisplay meetings={filteredUnscheduledMeetings} />
-			</div>
+			<Tabs defaultValue="unscheduled">
+				<TabsList className="mb-8 space-x-0">
+					<TabsTrigger
+						value="unscheduled"
+						className={cn(
+							"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-montserrat text-lg duration-0",
+							"data-[state=active]:border-orange-500",
+						)}
+					>
+						Unscheduled
+					</TabsTrigger>
+					<TabsTrigger
+						value="scheduled"
+						className={cn(
+							"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-montserrat text-lg duration-0",
+							"data-[state=active]:border-orange-500",
+						)}
+					>
+						Scheduled
+					</TabsTrigger>
+				</TabsList>
 
-			{/* <Tabs defaultValue="scheduled">
-                <TabsList className="mb-8 space-x-0">
-                    <TabsTrigger
-                        value="scheduled"
-                        className={cn(
-                            "border-0 border-b-2 border-neutral-300 p-4 pb-0 font-montserrat text-lg duration-0",
-                            "data-[state=active]:border-orange-500"
-                        )}
-                    >
-                        Scheduled
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="unscheduled"
-                        className={cn(
-                            "border-0 border-b-2 border-neutral-300 p-4 pb-0 font-montserrat text-lg duration-0",
-                            "data-[state=active]:border-orange-500"
-                        )}
-                    >
-                        Unscheduled
-                    </TabsTrigger>
-                </TabsList>
+				<TabsContent value="scheduled">
+					<MeetingsDisplay meetings={filteredScheduledMeetings} />
+				</TabsContent>
 
-                <TabsContent value="scheduled">
-                    <MeetingsDisplay meetings={filteredScheduledMeetings} />
-                </TabsContent>
-
-                <TabsContent value="unscheduled">
-                    <MeetingsDisplay meetings={filteredUnscheduledMeetings} />
-                </TabsContent>
-            </Tabs> */}
+				<TabsContent value="unscheduled">
+					<MeetingsDisplay meetings={filteredUnscheduledMeetings} />
+				</TabsContent>
+			</Tabs>
 		</div>
 	);
 };
