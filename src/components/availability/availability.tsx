@@ -1,7 +1,6 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { getScheduledMeetings } from "@actions/meeting/schedule/action";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
@@ -11,7 +10,7 @@ import { PersonalAvailability } from "@/components/availability/personal-availab
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
-import type { SelectMeeting } from "@/db/schema";
+import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import type { UserProfile } from "@/lib/auth/user";
 import {
@@ -120,11 +119,13 @@ export function Availability({
 	userAvailability,
 	allAvailabilities,
 	user,
+	scheduledBlocks,
 }: {
 	meetingData: SelectMeeting;
 	userAvailability: MemberMeetingAvailability | null;
 	allAvailabilities: MemberMeetingAvailability[];
 	user: UserProfile | null;
+	scheduledBlocks: SelectScheduledMeeting[];
 }) {
 	const availabilityView = useAvailabilityViewStore(
 		(state) => state.availabilityView,
@@ -319,31 +320,21 @@ export function Availability({
 		return Array.from(allMembers.values());
 	}, [allAvailabilities, availabilityDates, user]);
 
-	const hydrateScheduledTimes = useScheduleSelectionStore(
-		(state) => state.hydrateScheduledTimes,
-	);
 	useEffect(() => {
-		async function hydrate() {
-			const rows = await getScheduledMeetings(meetingData.id);
+		const timestamps: string[] = [];
 
-			if (!Array.isArray(rows)) return;
+		for (const block of scheduledBlocks) {
+			const date = new Date(block.scheduledDate);
+			const [h, m, s] = block.scheduledFromTime.split(":").map(Number);
 
-			const timestamps: string[] = [];
+			date.setHours(h, m, s, 0);
 
-			for (const row of rows) {
-				const date = new Date(row.scheduledDate);
-				const [h, m, s] = row.scheduledFromTime.split(":").map(Number);
-
-				date.setHours(h, m, s, 0);
-
-				timestamps.push(date.toISOString());
-			}
-
-			hydrateScheduledTimes(timestamps);
+			timestamps.push(date.toISOString());
 		}
 
-		hydrate();
-	}, [meetingData.id, hydrateScheduledTimes]);
+		// add DB timestamps to the state
+		useScheduleSelectionStore.getState().hydrateScheduledTimes(timestamps);
+	}, [scheduledBlocks]);
 
 	// TODO: Could add selection clearing with the escape key
 
