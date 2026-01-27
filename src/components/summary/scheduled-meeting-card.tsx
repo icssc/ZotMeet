@@ -21,6 +21,9 @@ const formatTime = (time: string): string => {
 	const minutes = parseInt(time.split(":")[1], 10);
 	const ampm = hour >= 12 ? "PM" : "AM";
 	hour = hour % 12 || 12;
+	if (minutes === 0) {
+		return `${hour} ${ampm}`;
+	}
 	return `${hour}:${minutes.toString().padStart(2, "0")} ${ampm}`;
 };
 
