@@ -80,17 +80,6 @@ Simple, clean, and efficient meeting scheduling app.
 | `pnpm db:migrate` | Apply pending migrations |
 | `pnpm db:studio` | Open Drizzle Studio to browse your database |
 
-
-### Local Database Setup (Manual - Alternative)
-
-If you prefer to install PostgreSQL directly without Docker:
-
-1. Go to the [Postgres official website](https://www.postgresql.org/download/) and download the database for your specific OS. ([Here](https://www.postgresql.org/docs/16/tutorial-start.html) is more information, if you get stuck)
-2. While running the setup, ensure that pgAdmin is downloaded alongside Postgres itself.
-3. Once connected to the Postgres Server, right-click on databases -> create -> database, and name it `zotmeet`.
-4. Create a `.env` file and set `DATABASE_URL=postgres://yourusername:yourpassword@localhost:5432/zotmeet`
-5. Run `pnpm db:migrate` to apply all the migration changes to your local database.
-
 ### Committing Changes
 
 - Follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) specification when writing commit messages.
