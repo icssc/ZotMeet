@@ -119,38 +119,40 @@ export function GroupAvailability({
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
 	//TODO: redo the calculation on the doesntNeedDay to incorporate day
-
-	const newBlocks = structuredClone(currentPageAvailability);
-	let dayIndex = currentPageAvailability.length - 1;
-	const newAvailDates = structuredClone(availabilityDates);
-	while (currentPageAvailability[dayIndex] == null) {
-		dayIndex -= 1;
-	}
-	if (!doesntNeedDay) {
-		const prevDay = currentPageAvailability[dayIndex];
-		//console.log(currentPageAvailability);
-		const newDay = new Date(prevDay.day);
-		newDay.setDate(newDay.getDate() + 1);
-		newBlocks[dayIndex + 1] = new ZotDate(
-			newDay,
-			prevDay.earliestTime,
-			prevDay.latestTime,
-			false,
-			[],
-			{},
-		);
-
-		newAvailDates.push(
-			new ZotDate(
+	const { newBlocks, newAvailDates } = useMemo(() => {
+		const newBlocks = structuredClone(currentPageAvailability);
+		let dayIndex = currentPageAvailability.length - 1;
+		const newAvailDates = structuredClone(availabilityDates);
+		while (currentPageAvailability[dayIndex] == null) {
+			dayIndex -= 1;
+		}
+		if (!doesntNeedDay) {
+			const prevDay = currentPageAvailability[dayIndex];
+			//console.log(currentPageAvailability);
+			const newDay = new Date(prevDay.day);
+			newDay.setDate(newDay.getDate() + 1);
+			newBlocks[dayIndex + 1] = new ZotDate(
 				newDay,
 				prevDay.earliestTime,
 				prevDay.latestTime,
 				false,
 				[],
 				{},
-			),
-		);
-	}
+			);
+
+			newAvailDates.push(
+				new ZotDate(
+					newDay,
+					prevDay.earliestTime,
+					prevDay.latestTime,
+					false,
+					[],
+					{},
+				),
+			);
+		}
+		return { newBlocks, newAvailDates };
+	}, [currentPageAvailability, doesntNeedDay, availabilityDates]);
 
 	//counts number of days in availibilityTimeBlocks that is in the before (calculates the time offset for formatting)
 	const datesBefore = React.useMemo(() => {
@@ -245,13 +247,14 @@ export function GroupAvailability({
 		);
 	// to load scheduled time blocks when meeting is loaded
 	// Forces re-render when scheduled or pending times change
+	/*
 	const scheduledSize = useScheduleSelectionStore(
 		(state) => state.scheduledTimes.size,
 	);
 	const pendingSize = useScheduleSelectionStore(
 		(state) => state.pendingAdds.size,
 	);
-
+	*/
 	// update start and end block selection state
 	useEffect(() => {
 		if (startBlockSelection && endBlockSelection) {
