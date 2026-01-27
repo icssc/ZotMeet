@@ -73,7 +73,6 @@ export const users = pgTable("users", {
 		})
 		.notNull(),
 	email: text("email").unique().notNull(),
-	passwordHash: text("password_hash"),
 	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
@@ -179,6 +178,23 @@ export const meetings = pgTable("meetings", {
 	archived: boolean("archived").default(false).notNull(),
 });
 
+export const scheduledMeetings = pgTable("scheduled_meetings", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	meetingId: uuid("meeting_id")
+		.notNull()
+		.references(() => meetings.id, { onDelete: "cascade" }),
+	scheduledDate: timestamp("scheduled_date", {
+		withTimezone: false,
+		mode: "date",
+	}).notNull(),
+	scheduledFromTime: time("scheduled_from_time", {
+		withTimezone: false,
+	}).notNull(),
+	scheduledToTime: time("scheduled_to_time", {
+		withTimezone: false,
+	}).notNull(),
+});
+
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
 	groups: one(groups, {
 		fields: [meetings.group_id],
@@ -196,12 +212,16 @@ export const groups = pgTable("groups", {
 	description: text("description"),
 	createdAt: timestamp("created_at"),
 	createdBy: text("user_id").references(() => users.id),
+	archived: boolean("archived").default(false).notNull(),
 });
 
 export const groupsRelations = relations(groups, ({ many }) => ({
 	usersInGroups: many(usersInGroup),
 	meetings: many(meetings),
 }));
+
+export type InsertGroup = InferInsertModel<typeof groups>;
+export type SelectGroup = InferSelectModel<typeof groups>;
 
 export const availabilities = pgTable(
 	"availabilities",
