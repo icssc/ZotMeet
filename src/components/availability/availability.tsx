@@ -437,6 +437,7 @@ export function Availability({
 												user={user}
 												onAvailabilityChange={handleUserAvailabilityChange}
 												timezone={userTimezone}
+												doesntNeedDay={doesntNeedDay}
 												meetingDates={meetingData.dates}
 											/>
 										)}
@@ -464,7 +465,10 @@ export function Availability({
 					fromTime={fromTimeMinutes}
 					members={members}
 					timezone={userTimezone}
+					availabilityTimeBlocks={availabilityTimeBlocks}
+					currentPageAvailability={currentPageAvailability}
 					anchorNormalizedDate={anchorNormalizedDate}
+					doesntNeedDay={doesntNeedDay}
 				/>
 			</div>
 		</div>
