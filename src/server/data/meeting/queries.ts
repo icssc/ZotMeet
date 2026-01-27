@@ -7,6 +7,7 @@ import {
 	meetings,
 	members,
 	type SelectMeeting,
+	scheduledMeetings,
 } from "@/db/schema";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 
@@ -112,4 +113,20 @@ export async function getMeetings(memberId: string) {
 		);
 
 	return userMeetings;
+}
+
+/**
+ * Fetch scheduled blocks for a meeting from scheduled_meetings table
+ */
+export async function getScheduledTimeBlocks(meetingId: string) {
+	const rows = await db
+		.select()
+		.from(scheduledMeetings)
+		.where(eq(scheduledMeetings.meetingId, meetingId));
+
+	if (!rows) {
+		throw new Error("Scheduled blocks not found");
+	}
+
+	return rows; // array of scheduled blocks
 }
