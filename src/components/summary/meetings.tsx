@@ -9,16 +9,21 @@ import {
 } from "@/components/custom/tabs";
 import { MeetingsDisplay } from "@/components/summary/meetings-display";
 import { Button } from "@/components/ui/button";
-import type { SelectMeeting } from "@/db/schema";
+import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 
 import { cn } from "@/lib/utils";
 
 interface MeetingsDisplayProps {
 	meetings: SelectMeeting[];
 	userId: string;
+	scheduledTimeBlocksByMeetingId?: Record<string, SelectScheduledMeeting[]>;
 }
 
-export const Meetings = ({ meetings, userId }: MeetingsDisplayProps) => {
+export const Meetings = ({
+	meetings,
+	userId,
+	scheduledTimeBlocksByMeetingId,
+}: MeetingsDisplayProps) => {
 	const [hostedOnly, setHostedOnly] = useState(false);
 
 	const scheduledMeetings =
@@ -84,7 +89,10 @@ export const Meetings = ({ meetings, userId }: MeetingsDisplayProps) => {
 				</TabsList>
 
 				<TabsContent value="scheduled">
-					<MeetingsDisplay meetings={filteredScheduledMeetings} />
+					<MeetingsDisplay
+						meetings={filteredScheduledMeetings}
+						scheduledTimeBlocks={scheduledTimeBlocksByMeetingId}
+					/>
 				</TabsContent>
 
 				<TabsContent value="unscheduled">
