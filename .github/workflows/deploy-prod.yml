@@ -3,56 +3,49 @@
 name: Deploy to production
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
 
 permissions:
-  id-token: write
-  contents: read
-  deployments: write
-  pull-requests: write
+    id-token: write
+    contents: read
+    deployments: write
+    pull-requests: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 env:
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  DATABASE_URL: ${{ secrets.PROD_DB_URL }}
-  # OIDC Configuration
-  OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
-  OIDC_ISSUER_URL: ${{ secrets.OIDC_ISSUER_URL }}
+    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    DATABASE_URL: ${{ secrets.PROD_DB_URL }}
+    # OIDC Configuration
+    OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
+    OIDC_ISSUER_URL: ${{ secrets.OIDC_ISSUER_URL }}
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    deploy:
+        runs-on: ubuntu-latest
 
-    environment:
-      name: production
-      url: https://zotmeet.com
+        environment:
+            name: production
+            url: https://zotmeet.com
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-      - name: Setup Node.js and pnpm
-        uses: ./.github/actions/setup-node-and-pnpm
+            - name: Setup Node.js and pnpm
+              uses: ./.github/actions/setup-node-and-pnpm
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
-      - name: Migrate database
-        run: pnpm db:migrate
+            - name: Migrate database
+              run: pnpm db:migrate
 
-      # TODO (@KevinWu098): Remove this stage once SST fixes compat with Pulumi
-      # https://github.com/anomalyco/sst/issues/6314
-      - name: Setup Pulumi
-        uses: pulumi/actions@v5
-        with:
-          pulumi-version: 3.138.0 # Any version < 3.214.0 works
-
-      - name: Deploy to production
-        run: STAGE=prod pnpm sst deploy --stage production
+            - name: Deploy to production
+              run: STAGE=prod pnpm sst deploy --stage production
