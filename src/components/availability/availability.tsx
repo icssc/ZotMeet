@@ -465,10 +465,7 @@ export function Availability({
 					fromTime={fromTimeMinutes}
 					members={members}
 					timezone={userTimezone}
-					availabilityTimeBlocks={availabilityTimeBlocks}
-					currentPageAvailability={currentPageAvailability}
 					anchorNormalizedDate={anchorNormalizedDate}
-					doesntNeedDay={doesntNeedDay}
 				/>
 			</div>
 		</div>

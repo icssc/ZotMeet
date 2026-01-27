@@ -15,10 +15,7 @@ interface GroupResponsesProps {
 	members: Member[];
 	fromTime: number;
 	timezone: string;
-	availabilityTimeBlocks: number[];
-	currentPageAvailability: ZotDate[];
 	anchorNormalizedDate: Date[];
-	doesntNeedDay: boolean;
 }
 
 export function GroupResponses({
@@ -26,42 +23,8 @@ export function GroupResponses({
 	fromTime,
 	members,
 	timezone,
-	availabilityTimeBlocks,
-	currentPageAvailability,
 	anchorNormalizedDate,
-	doesntNeedDay,
 }: GroupResponsesProps) {
-	const newBlocks = structuredClone(currentPageAvailability);
-	let dayIndex = currentPageAvailability.length - 1;
-	const newAvailDates = structuredClone(availabilityDates);
-	while (currentPageAvailability[dayIndex] == null) {
-		dayIndex -= 1;
-	}
-	if (!doesntNeedDay) {
-		const prevDay = currentPageAvailability[dayIndex];
-		//console.log(currentPageAvailability);
-		const newDay = new Date(prevDay.day);
-		newDay.setDate(newDay.getDate() + 1);
-		newBlocks[dayIndex + 1] = new ZotDate(
-			newDay,
-			prevDay.earliestTime,
-			prevDay.latestTime,
-			false,
-			[],
-			{},
-		);
-
-		newAvailDates.push(
-			new ZotDate(
-				newDay,
-				prevDay.earliestTime,
-				prevDay.latestTime,
-				false,
-				[],
-				{},
-			),
-		);
-	}
 	const { availabilityView } = useAvailabilityViewStore();
 	const {
 		selectedZotDateIndex,
@@ -102,22 +65,7 @@ export function GroupResponses({
 		},
 		[toggleSelectedMember],
 	);
-	const datesBefore = useMemo(() => {
-		if (availabilityTimeBlocks.length === 0) return 0;
 
-		let count = 1;
-		let prev = availabilityTimeBlocks[0];
-
-		for (let i = 1; i < availabilityTimeBlocks.length; i++) {
-			if (availabilityTimeBlocks[i] - prev !== 15) {
-				break;
-			}
-			count++;
-			prev = availabilityTimeBlocks[i];
-		}
-
-		return count;
-	}, [availabilityTimeBlocks]);
 	const { availableMembers, notAvailableMembers } = useMemo(() => {
 		if (
 			selectedZotDateIndex === undefined ||
@@ -129,23 +77,14 @@ export function GroupResponses({
 			};
 		}
 
-		const selectedDate = newBlocks[selectedZotDateIndex];
-		let timestamp = getTimestampFromBlockIndex(
+		const selectedDate = availabilityDates[selectedZotDateIndex];
+		const timestamp = getTimestampFromBlockIndex(
 			selectedBlockIndex,
 			selectedZotDateIndex,
-			availabilityTimeBlocks[0],
+			fromTime,
 			timezone,
-			newAvailDates,
+			availabilityDates,
 		);
-		if (datesBefore !== 0 && selectedBlockIndex >= datesBefore) {
-			timestamp = getTimestampFromBlockIndex(
-				selectedBlockIndex - datesBefore,
-				selectedZotDateIndex,
-				fromTime,
-				timezone,
-				availabilityDates,
-			);
-		}
 
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
 
@@ -161,10 +100,6 @@ export function GroupResponses({
 		selectedZotDateIndex,
 		selectedBlockIndex,
 		availabilityDates,
-		availabilityTimeBlocks,
-		newAvailDates,
-		datesBefore,
-		newBlocks,
 		fromTime,
 		members,
 		timezone,
