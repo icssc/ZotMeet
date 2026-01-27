@@ -1,9 +1,8 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { getScheduledMeetings } from "@actions/meeting/schedule/action";
-import { toZonedTime } from "date-fns-tz";
 import { formatInTimeZone } from "date-fns-tz";
+import { getScheduledMeetings } from "@actions/meeting/schedule/action";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
@@ -396,63 +395,51 @@ export function Availability({
 						handleClick={prevPage}
 						disabled={isFirstPage}
 					/>
-					<div>
-						<table className="w-full table-fixed">
-							<AvailabilityTableHeader
-								currentPageAvailability={currentPageAvailability}
-								meetingType={meetingData.meetingType}
-								doesntNeedDay={doesntNeedDay}
-							/>
 
-							<tbody onMouseLeave={handleMouseLeave}>
-								{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
-									<tr key={`block-${blockIndex}`}>
-										<AvailabilityTimeTicks timeBlock={timeBlock} />
+					<table className="w-full table-fixed">
+						<AvailabilityTableHeader
+							currentPageAvailability={currentPageAvailability}
+							meetingType={meetingData.meetingType}
+						/>
 
-										{availabilityView === "group" ||
+						<tbody onMouseLeave={handleMouseLeave}>
+							{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
+								<tr key={`block-${timeBlock}`}>
+									<AvailabilityTimeTicks timeBlock={timeBlock} />
+
+									{availabilityView === "group" ||
 									availabilityView === "schedule" ? (
-											<GroupAvailability
+										<GroupAvailability
 											meetingId={meetingData.id}
-												timeBlock={timeBlock}
-												blockIndex={blockIndex}
-												availabilityTimeBlocks={availabilityTimeBlocks}
-												fromTime={fromTimeMinutes}
-												availabilityDates={availabilityDates}
-												currentPageAvailability={currentPageAvailability}
-												members={members}
-												timezone={userTimezone}
-												onMouseLeave={handleMouseLeave}
-												doesntNeedDay={doesntNeedDay}
-												isScheduling={availabilityView === "schedule"}
-											/>
-										) : (
-											<PersonalAvailability
-												timeBlock={timeBlock}
-												blockIndex={blockIndex}
-												availabilityTimeBlocks={availabilityTimeBlocks}
-												fromTime={fromTimeMinutes}
-												availabilityDates={availabilityDates}
-												currentPageAvailability={currentPageAvailability}
-												googleCalendarEvents={googleCalendarEvents}
-												user={user}
-												onAvailabilityChange={handleUserAvailabilityChange}
-												timezone={userTimezone}
-												doesntNeedDay={doesntNeedDay}
-												meetingDates={meetingData.dates}
-											/>
-										)}
-									</tr>
-								))}
-							</tbody>
-						</table>
+											timeBlock={timeBlock}
+											blockIndex={blockIndex}
+											availabilityTimeBlocks={availabilityTimeBlocks}
+											fromTime={fromTimeMinutes}
+											availabilityDates={availabilityDates}
+											currentPageAvailability={currentPageAvailability}
+											members={members}
+											onMouseLeave={handleMouseLeave}
+											isScheduling={availabilityView === "schedule"}
+										/>
+									) : (
+										<PersonalAvailability
+											timeBlock={timeBlock}
+											blockIndex={blockIndex}
+											availabilityTimeBlocks={availabilityTimeBlocks}
+											fromTime={fromTimeMinutes}
+											availabilityDates={availabilityDates}
+											currentPageAvailability={currentPageAvailability}
+											googleCalendarEvents={googleCalendarEvents}
+											user={user}
+											onAvailabilityChange={handleUserAvailabilityChange}
+											meetingDates={meetingData.dates}
+										/>
+									)}
+								</tr>
+							))}
+						</tbody>
+					</table>
 
-						<div className="w-full pt-5 pl-10 md:pl-16">
-							<TimeZoneDropdown
-								TimeZone={userTimezone}
-								changeTimeZone={setUserTimezone}
-							/>
-						</div>
-					</div>
 					<AvailabilityNavButton
 						direction="right"
 						handleClick={() => nextPage(availabilityDates.length)}

@@ -432,7 +432,6 @@ export function GroupAvailability({
 						blockIdx,
 						dateIndex,
 						fromTime,
-						timezone,
 						availabilityDates,
 					);
 					if (timestamp) {
@@ -471,7 +470,6 @@ export function GroupAvailability({
 		selectionState,
 		fromTime,
 		availabilityDates,
-		timezone,
 		isScheduled,
 		togglePendingTime,
 		addPendingTimeRange,
@@ -557,7 +555,6 @@ export function GroupAvailability({
 						blockIdx,
 						dateIndex,
 						fromTime,
-						timezone,
 						availabilityDates,
 					);
 					if (timestamp) timestamps.push(timestamp);
@@ -586,6 +583,7 @@ export function GroupAvailability({
 	const isTopOfHour = timeBlock % 60 === 0;
 	const isHalfHour = timeBlock % 60 === 30;
 	const isLastRow = blockIndex === availabilityTimeBlocks.length - 1;
+	const numMembers = members.length;
 	//console.log(currentPageAvailability);
 	//ZotDate: contains day, availabilities
 	const spacers = spacerBeforeDate(newBlocks);
@@ -631,6 +629,7 @@ export function GroupAvailability({
 				block = newBlocks[pageDateIndex - 1].groupAvailability[timestamp] || [];
 			}
 
+			const block = selectedDate.groupAvailability[timestamp] || [];
 			const blockColor = isScheduled(timestamp)
 				? "rgba(255, 215, 0, 0.6)" // gold
 				: calculateBlockColor({
