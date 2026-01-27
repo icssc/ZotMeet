@@ -10,7 +10,7 @@ import type {
 	AvailabilityBlockType,
 	GoogleCalendarEvent,
 } from "@/lib/types/availability";
-import { ZotDate } from "@/lib/zotdate";
+import type { ZotDate } from "@/lib/zotdate";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface PersonalAvailabilityProps {
@@ -24,7 +24,6 @@ interface PersonalAvailabilityProps {
 	user: UserProfile | null;
 	onAvailabilityChange: (updatedDates: ZotDate[]) => void;
 	timezone: string;
-	doesntNeedDay: boolean;
 	meetingDates: string[];
 }
 
@@ -39,40 +38,8 @@ export function PersonalAvailability({
 	user,
 	onAvailabilityChange,
 	timezone,
-	doesntNeedDay,
 	meetingDates,
 }: PersonalAvailabilityProps) {
-	const newBlocks = structuredClone(currentPageAvailability);
-	let dayIndex = currentPageAvailability.length - 1;
-	const newAvailDates = structuredClone(availabilityDates);
-	while (currentPageAvailability[dayIndex] == null) {
-		dayIndex -= 1;
-	}
-	if (!doesntNeedDay) {
-		const prevDay = currentPageAvailability[dayIndex];
-		//console.log(currentPageAvailability);
-		const newDay = new Date(prevDay.day);
-		newDay.setDate(newDay.getDate() + 1);
-		newBlocks[dayIndex + 1] = new ZotDate(
-			newDay,
-			prevDay.earliestTime,
-			prevDay.latestTime,
-			false,
-			[],
-			{},
-		);
-
-		newAvailDates.push(
-			new ZotDate(
-				newDay,
-				prevDay.earliestTime,
-				prevDay.latestTime,
-				false,
-				[],
-				{},
-			),
-		);
-	}
 	const {
 		startBlockSelection,
 		endBlockSelection,
@@ -233,7 +200,7 @@ export function PersonalAvailability({
 			timeBlock={timeBlock}
 			blockIndex={blockIndex}
 			availabilityTimeBlocksLength={availabilityTimeBlocks.length}
-			currentPageAvailability={newBlocks}
+			currentPageAvailability={currentPageAvailability}
 			processedCellSegments={processedCellSegments}
 		/>
 	);
