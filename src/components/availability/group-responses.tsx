@@ -2,6 +2,8 @@ import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -30,6 +32,9 @@ export function GroupResponses({
 		isMobileDrawerOpen,
 		setIsMobileDrawerOpen,
 		setHoveredMember,
+		toggleSelectedMember,
+		selectedMembers,
+		isHoveringGrid,
 	} = useGroupSelectionStore(
 		useShallow((state) => ({
 			selectedZotDateIndex: state.selectedZotDateIndex,
@@ -37,6 +42,9 @@ export function GroupResponses({
 			isMobileDrawerOpen: state.isMobileDrawerOpen,
 			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
 			setHoveredMember: state.setHoveredMember,
+			toggleSelectedMember: state.toggleSelectedMember,
+			selectedMembers: state.selectedMembers,
+			isHoveringGrid: state.isHoveringGrid,
 		})),
 	);
 
@@ -49,6 +57,13 @@ export function GroupResponses({
 			setHoveredMember(memberId);
 		},
 		[setHoveredMember],
+	);
+
+	const handleMemberSelect = useCallback(
+		(memberId: string) => {
+			toggleSelectedMember(memberId);
+		},
+		[toggleSelectedMember],
 	);
 
 	const { availableMembers, notAvailableMembers } = useMemo(() => {
@@ -157,53 +172,47 @@ export function GroupResponses({
 						<XIcon className="text-lg text-slate-400" />
 					</button>
 				</div>
-				<div className="grid grid-cols-2 lg:flex lg:flex-col lg:gap-10 lg:py-4">
-					<div>
-						<div className="border-gray-300 border-b-[1px] px-8">
-							<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
-								AVAILABLE ({availableMembers.length})
-							</span>
-						</div>
-						<ul className="h-64 overflow-auto py-2 pl-8">
-							{availableMembers.length > 0 ? (
-								availableMembers.map((member) => (
-									<li
-										key={member.memberId}
-										className="cursor-pointer text-gray-800 text-lg"
-										onMouseEnter={() => handleMemberHover(member.memberId)}
-										onMouseLeave={() => handleMemberHover(null)}
+
+				<div className="flex h-[32rem] grow flex-col">
+					<div className="border-gray-300 border-b-[1px] px-8">
+						<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
+							AVAILABLE (
+							{isHoveringGrid ? availableMembers.length : members.length})
+						</span>
+					</div>
+
+					<ul className="overflow-auto py-2 pl-8">
+						{members.map((member) => (
+							<li
+								key={member.memberId}
+								className={cn(
+									"cursor-pointer text-lg",
+									isHoveringGrid &&
+										notAvailableMembers.some(
+											(m) => m.memberId === member.memberId,
+										)
+										? "text-decoration-line: text-gray-medium line-through"
+										: "",
+								)}
+								onMouseEnter={() => handleMemberHover(member.memberId)}
+								onMouseLeave={() => handleMemberHover(null)}
+							>
+								<ul className="flex w-fit items-center gap-2">
+									<Checkbox
+										id={`MEMBER${member.memberId}`}
+										checked={selectedMembers.includes(member.memberId)}
+										onCheckedChange={() => handleMemberSelect(member.memberId)}
+									/>
+									<Label
+										htmlFor={`MEMBER${member.memberId}`}
+										className="cursor-pointer text-lg"
 									>
 										{member.displayName}
-									</li>
-								))
-							) : (
-								<li className="text-gray-400 text-sm italic">N/A</li>
-							)}
-						</ul>
-					</div>
-					<div>
-						<div className="border-gray-300 border-b-[1px] px-8">
-							<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
-								NOT AVAILABLE ({notAvailableMembers.length})
-							</span>
-						</div>
-						<ul className="h-64 overflow-auto py-2 pl-8">
-							{notAvailableMembers.length > 0 ? (
-								notAvailableMembers.map((member) => (
-									<li
-										key={member.memberId}
-										className="cursor-pointer text-gray-400 text-lg"
-										onMouseEnter={() => handleMemberHover(member.memberId)}
-										onMouseLeave={() => handleMemberHover(null)}
-									>
-										{member.displayName}
-									</li>
-								))
-							) : (
-								<li className="text-gray-400 text-sm italic">N/A</li>
-							)}
-						</ul>
-					</div>
+									</Label>
+								</ul>
+							</li>
+						))}
+					</ul>
 				</div>
 			</div>
 		</div>

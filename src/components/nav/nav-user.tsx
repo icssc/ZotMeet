@@ -2,7 +2,6 @@
 
 import { logoutAction } from "@actions/auth/logout/action";
 import { ChevronsUpDown, LogOut, User } from "lucide-react";
-import { useState } from "react";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -28,13 +27,11 @@ type NavUserProps = {
 export function NavUser({ user }: NavUserProps) {
 	const { isMobile } = useSidebar();
 
-	const [open, setOpen] = useState(false);
-
 	return (
 		<SidebarMenu>
 			{user === null ? (
 				<SidebarMenuItem>
-					<AuthDialog open={open} setOpen={setOpen} />
+					<AuthDialog />
 				</SidebarMenuItem>
 			) : (
 				<SidebarMenuItem>

@@ -49,6 +49,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # TODO (@KevinWu098): Remove this stage once SST fixes compat with Pulumi
+      # https://github.com/anomalyco/sst/issues/6314
+      - name: Setup Pulumi
+        uses: pulumi/actions@v5
+        with:
+          pulumi-version: 3.138.0 # Any version < 3.214.0 works
+
       - name: Destroy ZotMeet staging build
         run: pnpm sst remove --stage staging-$PR_NUM
 
