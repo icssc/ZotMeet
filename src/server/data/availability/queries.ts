@@ -1,6 +1,5 @@
 import "server-only";
 
-import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { availabilities } from "@/db/schema";
 
@@ -12,10 +11,10 @@ export async function getMemberMeetingAvailability({
 	meetingId: string;
 }) {
 	const availabilityData = await db.query.availabilities.findFirst({
-		where: and(
-			eq(availabilities.memberId, memberId),
-			eq(availabilities.meetingId, meetingId),
-		),
+		where: {
+			memberId,
+			meetingId,
+		},
 	});
 
 	if (!availabilityData) {

@@ -1,12 +1,11 @@
 import "server-only";
 
-import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 
 export async function getUserIdExists(id: string) {
 	const user = await db.query.users.findFirst({
-		where: eq(users.id, id),
+		where: { id },
 	});
 
 	return user !== undefined;
@@ -14,7 +13,7 @@ export async function getUserIdExists(id: string) {
 
 export async function getUserEmailExists(email: string) {
 	const user = await db.query.users.findFirst({
-		where: eq(users.email, email),
+		where: { email },
 	});
 
 	return user !== undefined;
@@ -22,7 +21,7 @@ export async function getUserEmailExists(email: string) {
 
 export async function getUserById(id: string) {
 	const user = await db.query.users.findFirst({
-		where: eq(users.id, id),
+		where: { id },
 		columns: {
 			id: true,
 			memberId: true,

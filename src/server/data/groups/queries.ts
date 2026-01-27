@@ -17,9 +17,7 @@ export async function getExistingGroup(
 	includeArchived = false,
 ): Promise<SelectGroup> {
 	const group = await db.query.groups.findFirst({
-		where: includeArchived
-			? eq(groups.id, groupId)
-			: and(eq(groups.id, groupId), eq(groups.archived, false)),
+		where: includeArchived ? { id: groupId } : { id: groupId, archived: false },
 	});
 
 	if (!group) {
@@ -68,8 +66,8 @@ export async function getMeetingsByGroupId(
 ): Promise<SelectMeeting[]> {
 	return await db.query.meetings.findMany({
 		where: includeArchived
-			? eq(meetings.group_id, groupId)
-			: and(eq(meetings.group_id, groupId), eq(meetings.archived, false)),
+			? { group_id: groupId }
+			: { group_id: groupId, archived: false },
 	});
 }
 
@@ -81,10 +79,10 @@ export async function isUserInGroup({
 	groupId: string;
 }): Promise<boolean> {
 	const userInGroup = await db.query.usersInGroup.findFirst({
-		where: and(
-			eq(usersInGroup.userId, userId),
-			eq(usersInGroup.groupId, groupId),
-		),
+		where: {
+			userId,
+			groupId,
+		},
 	});
 	return userInGroup !== undefined;
 }
@@ -97,7 +95,7 @@ export async function isGroupCreator({
 	groupId: string;
 }): Promise<boolean> {
 	const group = await db.query.groups.findFirst({
-		where: and(eq(groups.id, groupId), eq(groups.createdBy, userId)),
+		where: { id: groupId, createdBy: userId },
 	});
 	return group !== undefined;
 }
@@ -110,18 +108,18 @@ export async function isGroupAdmin({
 	groupId: string;
 }): Promise<boolean> {
 	const userInGroup = await db.query.usersInGroup.findFirst({
-		where: and(
-			eq(usersInGroup.userId, userId),
-			eq(usersInGroup.groupId, groupId),
-			eq(usersInGroup.role, GroupRole.ADMIN),
-		),
+		where: {
+			userId,
+			groupId,
+			role: GroupRole.ADMIN,
+		},
 	});
 	return userInGroup !== undefined;
 }
 
 export async function getGroupNameExists(name: string): Promise<boolean> {
 	const group = await db.query.groups.findFirst({
-		where: eq(groups.name, name),
+		where: { name },
 	});
 	return group !== undefined;
 }
