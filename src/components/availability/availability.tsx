@@ -377,7 +377,6 @@ export function Availability({
 	}, [meetingData.id, hydrateScheduledTimes]);
 
 	// TODO: Could add selection clearing with the escape key
-
 	return (
 		<div className="space-y-6">
 			<AvailabilityHeader
@@ -395,58 +394,58 @@ export function Availability({
 						handleClick={prevPage}
 						disabled={isFirstPage}
 					/>
+					<div>
+						<table className="w-full table-fixed">
+							<AvailabilityTableHeader
+								currentPageAvailability={currentPageAvailability}
+								meetingType={meetingData.meetingType}
+								doesntNeedDay={doesntNeedDay}
+							/>
+							<tbody onMouseLeave={handleMouseLeave}>
+								{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
+									<tr key={`block-${timeBlock}`}>
+										<AvailabilityTimeTicks timeBlock={timeBlock} />
 
-					<table className="w-full table-fixed">
-						<AvailabilityTableHeader
-							currentPageAvailability={currentPageAvailability}
-							meetingType={meetingData.meetingType}
-							doesntNeedDay={doesntNeedDay}
-						/>
-						<tbody onMouseLeave={handleMouseLeave}>
-							{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
-								<tr key={`block-${timeBlock}`}>
-									<AvailabilityTimeTicks timeBlock={timeBlock} />
-
-									{availabilityView === "group" ||
-									availabilityView === "schedule" ? (
-										<GroupAvailability
-											meetingId={meetingData.id}
-											timeBlock={timeBlock}
-											blockIndex={blockIndex}
-											availabilityTimeBlocks={availabilityTimeBlocks}
-											fromTime={fromTimeMinutes}
-											availabilityDates={availabilityDates}
-											currentPageAvailability={currentPageAvailability}
-											members={members}
-											timezone={userTimezone}
-											onMouseLeave={handleMouseLeave}
-											isScheduling={availabilityView === "schedule"}
-											doesntNeedDay={doesntNeedDay}
-										/>
-									) : (
-										<PersonalAvailability
-											timeBlock={timeBlock}
-											blockIndex={blockIndex}
-											availabilityTimeBlocks={availabilityTimeBlocks}
-											fromTime={fromTimeMinutes}
-											availabilityDates={availabilityDates}
-											currentPageAvailability={currentPageAvailability}
-											googleCalendarEvents={googleCalendarEvents}
-											user={user}
-											onAvailabilityChange={handleUserAvailabilityChange}
-											timezone={userTimezone}
-											meetingDates={meetingData.dates}
-										/>
-									)}
-								</tr>
-							))}
-						</tbody>
+										{availabilityView === "group" ||
+										availabilityView === "schedule" ? (
+											<GroupAvailability
+												meetingId={meetingData.id}
+												timeBlock={timeBlock}
+												blockIndex={blockIndex}
+												availabilityTimeBlocks={availabilityTimeBlocks}
+												fromTime={fromTimeMinutes}
+												availabilityDates={availabilityDates}
+												currentPageAvailability={currentPageAvailability}
+												members={members}
+												timezone={userTimezone}
+												onMouseLeave={handleMouseLeave}
+												isScheduling={availabilityView === "schedule"}
+												doesntNeedDay={doesntNeedDay}
+											/>
+										) : (
+											<PersonalAvailability
+												timeBlock={timeBlock}
+												blockIndex={blockIndex}
+												availabilityTimeBlocks={availabilityTimeBlocks}
+												fromTime={fromTimeMinutes}
+												availabilityDates={availabilityDates}
+												currentPageAvailability={currentPageAvailability}
+												googleCalendarEvents={googleCalendarEvents}
+												user={user}
+												onAvailabilityChange={handleUserAvailabilityChange}
+												timezone={userTimezone}
+												meetingDates={meetingData.dates}
+											/>
+										)}
+									</tr>
+								))}
+							</tbody>
+						</table>
 						<TimeZoneDropdown
 							TimeZone={userTimezone}
 							changeTimeZone={setUserTimezone}
 						/>
-					</table>
-
+					</div>
 					<AvailabilityNavButton
 						direction="right"
 						handleClick={() => nextPage(availabilityDates.length)}

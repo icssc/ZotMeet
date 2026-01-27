@@ -36,6 +36,7 @@ export const getTimestampFromBlockIndex = (
 	const date = new Date(selectedDate.day);
 	date.setHours(hours, minutes, 0, 0);
 	date.setDate(date.getDate() + dayOffset);
+	//console.log(date, fromZonedTime(date, timezone).toISOString())
 	return fromZonedTime(date, timezone).toISOString();
 };
 
@@ -118,10 +119,15 @@ export function GroupAvailability({
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
 	//TODO: redo the calculation on the doesntNeedDay to incorporate day
-
-	const newBlocks = structuredClone(currentPageAvailability);
+	const newBlocks = currentPageAvailability.map((date, index) => {
+		if (date) {
+			return new ZotDate(date);
+		} else {
+			return currentPageAvailability[index];
+		}
+	});
 	let dayIndex = currentPageAvailability.length - 1;
-	const newAvailDates = structuredClone(availabilityDates);
+	const newAvailDates = availabilityDates.map((date) => new ZotDate(date));
 	while (currentPageAvailability[dayIndex] == null) {
 		dayIndex -= 1;
 	}
@@ -432,7 +438,7 @@ export function GroupAvailability({
 						dateIndex,
 						fromTime,
 						timezone,
-						availabilityDates,
+						newAvailDates,
 					);
 					if (timestamp) {
 						timestamps.push(timestamp);
@@ -469,7 +475,7 @@ export function GroupAvailability({
 		endBlockSelection,
 		selectionState,
 		fromTime,
-		availabilityDates,
+		newAvailDates,
 		timezone,
 		isScheduled,
 		togglePendingTime,
@@ -557,7 +563,7 @@ export function GroupAvailability({
 						dateIndex,
 						fromTime,
 						timezone,
-						availabilityDates,
+						newAvailDates,
 					);
 					if (timestamp) timestamps.push(timestamp);
 				}
@@ -589,7 +595,9 @@ export function GroupAvailability({
 	//console.log(currentPageAvailability);
 	//ZotDate: contains day, availabilities
 	const spacers = spacerBeforeDate(newBlocks);
-	//console.log(currentPageAvailability)
+	const totalMinutes = availabilityTimeBlocks[0] + blockIndex * 15;
+
+	const dayOffset = Math.floor(totalMinutes / 1440);
 	return newBlocks.map((selectedDate, pageDateIndex) => {
 		const key = generateDateKey({
 			selectedDate,
@@ -610,23 +618,24 @@ export function GroupAvailability({
 				timezone,
 				newAvailDates,
 			);
+
 			if (datesBefore !== 0 && blockIndex >= datesBefore) {
 				timestamp = getTimestampFromBlockIndex(
 					blockIndex - datesBefore,
 					zotDateIndex,
 					fromTime,
 					timezone,
-					availabilityDates,
+					newAvailDates,
 				);
 			}
 
 			//similarly, block is recomputed to check the day before IF it crosses into the next day
 			let block = selectedDate.groupAvailability[timestamp] || [];
-
 			if (
 				datesBefore !== 0 &&
 				blockIndex < datesBefore &&
-				pageDateIndex - 1 >= 0
+				pageDateIndex !== 0 &&
+				dayOffset >= 1
 			) {
 				block = newBlocks[pageDateIndex - 1].groupAvailability[timestamp] || [];
 			}
