@@ -187,12 +187,9 @@ export function GroupAvailability({
 		);
 	// to load scheduled time blocks when meeting is loaded
 	// Forces re-render when scheduled or pending times change
-	const scheduledSize = useScheduleSelectionStore(
-		(state) => state.scheduledTimes.size,
-	);
-	const pendingSize = useScheduleSelectionStore(
-		(state) => state.pendingAdds.size,
-	);
+
+	useScheduleSelectionStore((state) => state.scheduledTimes.size);
+	useScheduleSelectionStore((state) => state.pendingAdds.size);
 
 	// update start and end block selection state
 	useEffect(() => {
