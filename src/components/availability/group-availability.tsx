@@ -1,7 +1,6 @@
 "use client";
 
-
-import { fromZonedTime, toZonedTime } from "date-fns-tz";
+import { fromZonedTime } from "date-fns-tz";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -202,11 +201,10 @@ export function GroupAvailability({
 		})),
 	);
 
-	const numMembers = members.length;
 	const { enabled: showBestTimes } = useBestTimesToggleStore();
 
 	const maxAvailability = useMemo(() => {
-		if (!showBestTimes || numMembers === 0) return 0;
+		if (!showBestTimes || members.length === 0) return 0;
 
 		let max = 0;
 		availabilityDates.forEach((date) => {
@@ -215,7 +213,7 @@ export function GroupAvailability({
 			});
 		});
 		return max;
-	}, [showBestTimes, numMembers, availabilityDates]);
+	}, [showBestTimes, members, availabilityDates]);
 
 	const {
 		startBlockSelection,
@@ -245,13 +243,14 @@ export function GroupAvailability({
 		);
 	// to load scheduled time blocks when meeting is loaded
 	// Forces re-render when scheduled or pending times change
+	/*
 	const scheduledSize = useScheduleSelectionStore(
 		(state) => state.scheduledTimes.size,
 	);
 	const pendingSize = useScheduleSelectionStore(
 		(state) => state.pendingAdds.size,
 	);
-
+*/
 	// update start and end block selection state
 	useEffect(() => {
 		if (startBlockSelection && endBlockSelection) {
@@ -432,6 +431,7 @@ export function GroupAvailability({
 						blockIdx,
 						dateIndex,
 						fromTime,
+						timezone,
 						availabilityDates,
 					);
 					if (timestamp) {
@@ -470,6 +470,7 @@ export function GroupAvailability({
 		selectionState,
 		fromTime,
 		availabilityDates,
+		timezone,
 		isScheduled,
 		togglePendingTime,
 		addPendingTimeRange,
@@ -555,6 +556,7 @@ export function GroupAvailability({
 						blockIdx,
 						dateIndex,
 						fromTime,
+						timezone,
 						availabilityDates,
 					);
 					if (timestamp) timestamps.push(timestamp);
@@ -629,7 +631,6 @@ export function GroupAvailability({
 				block = newBlocks[pageDateIndex - 1].groupAvailability[timestamp] || [];
 			}
 
-			const block = selectedDate.groupAvailability[timestamp] || [];
 			const blockColor = isScheduled(timestamp)
 				? "rgba(255, 215, 0, 0.6)" // gold
 				: calculateBlockColor({

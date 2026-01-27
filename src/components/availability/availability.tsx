@@ -1,8 +1,8 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { formatInTimeZone } from "date-fns-tz";
 import { getScheduledMeetings } from "@actions/meeting/schedule/action";
+import { formatInTimeZone } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
@@ -400,8 +400,8 @@ export function Availability({
 						<AvailabilityTableHeader
 							currentPageAvailability={currentPageAvailability}
 							meetingType={meetingData.meetingType}
+							doesntNeedDay={doesntNeedDay}
 						/>
-
 						<tbody onMouseLeave={handleMouseLeave}>
 							{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
 								<tr key={`block-${timeBlock}`}>
@@ -418,8 +418,10 @@ export function Availability({
 											availabilityDates={availabilityDates}
 											currentPageAvailability={currentPageAvailability}
 											members={members}
+											timezone={userTimezone}
 											onMouseLeave={handleMouseLeave}
 											isScheduling={availabilityView === "schedule"}
+											doesntNeedDay={doesntNeedDay}
 										/>
 									) : (
 										<PersonalAvailability
@@ -432,12 +434,17 @@ export function Availability({
 											googleCalendarEvents={googleCalendarEvents}
 											user={user}
 											onAvailabilityChange={handleUserAvailabilityChange}
+											timezone={userTimezone}
 											meetingDates={meetingData.dates}
 										/>
 									)}
 								</tr>
 							))}
 						</tbody>
+						<TimeZoneDropdown
+							TimeZone={userTimezone}
+							changeTimeZone={setUserTimezone}
+						/>
 					</table>
 
 					<AvailabilityNavButton
