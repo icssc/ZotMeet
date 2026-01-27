@@ -85,7 +85,7 @@ export function GroupResponses({
 			timezone,
 			availabilityDates,
 		);
-
+		console.log(selectedDate.groupAvailability, timestamp);
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
 
 		return {
