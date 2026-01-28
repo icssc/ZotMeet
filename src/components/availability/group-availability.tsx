@@ -635,7 +635,7 @@ export function GroupAvailability({
 				datesBefore !== 0 &&
 				blockIndex < datesBefore &&
 				pageDateIndex !== 0 &&
-				dayOffset >= 1
+				(!doesntNeedDay || dayOffset >= 1)
 			) {
 				block = newBlocks[pageDateIndex - 1].groupAvailability[timestamp] || [];
 			}
