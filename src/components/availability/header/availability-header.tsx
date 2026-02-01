@@ -11,6 +11,7 @@ import {
 	DeleteIcon,
 	EditIcon,
 } from "lucide-react";
+import { redirect } from "next/navigation";
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { AuthDialog } from "@/components/auth/auth-dialog";
@@ -281,7 +282,7 @@ export function AvailabilityHeader({
 									onClick={() => {
 										if (!user) {
 											setIsAuthModalOpen(true);
-											return;
+											redirect("/auth/login/google");
 										}
 										setChangeableTimezone(false);
 										setTimezone(
