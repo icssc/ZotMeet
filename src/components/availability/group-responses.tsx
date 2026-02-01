@@ -28,7 +28,6 @@ export function GroupResponses({
 	timezone,
 	anchorNormalizedDate,
 	currentPageAvailability,
-	availabilityTimeBlocks,
 	doesntNeedDay,
 }: GroupResponsesProps) {
 	const newBlocks = currentPageAvailability.map((date, index) => {
@@ -128,7 +127,7 @@ export function GroupResponses({
 			timezone,
 			newAvailDates,
 		);
-		console.log(selectedDate.groupAvailability, timestamp);
+		//console.log(selectedDate.groupAvailability, timestamp);
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
 
 		return {
@@ -153,7 +152,8 @@ export function GroupResponses({
 			selectedZotDateIndex !== undefined &&
 			selectedBlockIndex !== undefined
 		) {
-			const displayDate = anchorNormalizedDate[selectedZotDateIndex];
+			const displayDate = newAvailDates[selectedZotDateIndex].day;
+
 			const formattedDate = displayDate.toLocaleDateString("en-US", {
 				month: "short",
 				day: "numeric",
@@ -174,12 +174,7 @@ export function GroupResponses({
 		} else {
 			setBlockInfoString("Select a cell to view");
 		}
-	}, [
-		selectedZotDateIndex,
-		selectedBlockIndex,
-		newAvailDates,
-		anchorNormalizedDate,
-	]);
+	}, [selectedZotDateIndex, selectedBlockIndex, newAvailDates]);
 
 	return (
 		<div
