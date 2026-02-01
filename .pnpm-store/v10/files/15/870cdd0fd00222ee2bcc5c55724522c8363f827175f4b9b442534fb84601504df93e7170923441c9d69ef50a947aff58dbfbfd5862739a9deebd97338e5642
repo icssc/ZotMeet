@@ -1,2 +1,0 @@
-import { anonRole, authUid, authUsers, authenticatedRole, postgresRole, realtimeMessages, realtimeTopic, serviceRole, supabaseAuthAdminRole } from "./rls.cjs";
-export { anonRole, authUid, authUsers, authenticatedRole, postgresRole, realtimeMessages, realtimeTopic, serviceRole, supabaseAuthAdminRole };

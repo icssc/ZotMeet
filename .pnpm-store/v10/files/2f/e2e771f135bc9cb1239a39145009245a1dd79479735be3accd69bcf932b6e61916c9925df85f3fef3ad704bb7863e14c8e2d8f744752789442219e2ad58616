@@ -1,1 +1,0 @@
-{"version":3,"file":"view-common.js","names":[],"sources":["../../src/sqlite-core/view-common.ts"],"sourcesContent":["export const SQLiteViewConfig = Symbol.for('drizzle:SQLiteViewConfig');\n"],"mappings":";AAAA,MAAa,mBAAmB,OAAO,IAAI,2BAA2B"}

@@ -1,6 +1,0 @@
-const require_chunk = require('./chunk-CdAKIUsw.js');
-require('./ddl-SsGc2gVn.js');
-require('./grammar-B2XVJ90y.js');
-const require_snapshot = require('./snapshot-BG6vPgbm.js');
-
-exports.toJsonSnapshot = require_snapshot.toJsonSnapshot;

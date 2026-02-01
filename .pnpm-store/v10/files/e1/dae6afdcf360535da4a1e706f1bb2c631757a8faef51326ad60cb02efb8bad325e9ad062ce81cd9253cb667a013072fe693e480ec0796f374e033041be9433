@@ -1,3 +1,0 @@
-import { QueryResults, XataHttpClient, XataHttpPreparedQuery, XataHttpQueryResultHKT, XataHttpSession, XataHttpSessionOptions, XataTransaction } from "./session.js";
-import { XataDriverOptions, XataHttpDatabase, XataHttpDriver, drizzle } from "./driver.js";
-export { QueryResults, XataDriverOptions, XataHttpClient, XataHttpDatabase, XataHttpDriver, XataHttpPreparedQuery, XataHttpQueryResultHKT, XataHttpSession, XataHttpSessionOptions, XataTransaction, drizzle };

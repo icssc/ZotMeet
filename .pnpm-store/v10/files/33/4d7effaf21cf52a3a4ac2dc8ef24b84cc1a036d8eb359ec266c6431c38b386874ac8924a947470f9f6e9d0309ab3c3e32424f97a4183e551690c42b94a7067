@@ -1,3 +1,0 @@
-import { PrismaMySqlPreparedQuery, PrismaMySqlPreparedQueryHKT, PrismaMySqlQueryResultHKT, PrismaMySqlSession, PrismaMySqlSessionOptions } from "./session.js";
-import { PrismaMySqlConfig, PrismaMySqlDatabase, drizzle } from "./driver.js";
-export { PrismaMySqlConfig, PrismaMySqlDatabase, PrismaMySqlPreparedQuery, PrismaMySqlPreparedQueryHKT, PrismaMySqlQueryResultHKT, PrismaMySqlSession, PrismaMySqlSessionOptions, drizzle };

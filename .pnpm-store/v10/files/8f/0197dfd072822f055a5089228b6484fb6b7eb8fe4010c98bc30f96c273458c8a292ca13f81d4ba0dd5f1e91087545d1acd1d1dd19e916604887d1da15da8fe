@@ -1,1 +1,0 @@
-{"version":3,"file":"view-common.js","names":[],"sources":["../../src/pg-core/view-common.ts"],"sourcesContent":["export const PgViewConfig = Symbol.for('drizzle:PgViewConfig');\n\nexport const PgMaterializedViewConfig = Symbol.for('drizzle:PgMaterializedViewConfig');\n"],"mappings":";AAAA,MAAa,eAAe,OAAO,IAAI,uBAAuB;AAE9D,MAAa,2BAA2B,OAAO,IAAI,mCAAmC"}

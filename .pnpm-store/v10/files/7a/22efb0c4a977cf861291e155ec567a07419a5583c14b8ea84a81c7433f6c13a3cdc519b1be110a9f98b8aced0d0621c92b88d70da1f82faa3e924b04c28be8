@@ -1,1 +1,0 @@
-{"version":3,"file":"v7.d.ts","names":["NuqsAdapter: AdapterProvider","useOptimisticSearchParams: () => URLSearchParams"],"sources":["../../../src/adapters/react-router/v7.ts"],"sourcesContent":[],"mappings":";;;;;;cAUaA,aAAa;cACbC,iCAAiC"}

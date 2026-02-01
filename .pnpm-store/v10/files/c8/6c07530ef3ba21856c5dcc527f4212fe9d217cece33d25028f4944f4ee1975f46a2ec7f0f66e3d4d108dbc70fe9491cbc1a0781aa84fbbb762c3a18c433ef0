@@ -1,3 +1,0 @@
-import { MySql2Client, MySql2PreparedQuery, MySql2PreparedQueryHKT, MySql2QueryResultHKT, MySql2Session, MySql2SessionOptions, MySql2Transaction, MySqlQueryResult, MySqlQueryResultType, MySqlRawQueryResult } from "./session.cjs";
-import { AnyMySql2Connection, MySql2Database, MySql2Driver, MySql2DrizzleConfig, MySqlDatabase, MySqlDriverOptions, drizzle } from "./driver.cjs";
-export { AnyMySql2Connection, MySql2Client, MySql2Database, MySql2Driver, MySql2DrizzleConfig, MySql2PreparedQuery, MySql2PreparedQueryHKT, MySql2QueryResultHKT, MySql2Session, MySql2SessionOptions, MySql2Transaction, MySqlDatabase, MySqlDriverOptions, MySqlQueryResult, MySqlQueryResultType, MySqlRawQueryResult, drizzle };

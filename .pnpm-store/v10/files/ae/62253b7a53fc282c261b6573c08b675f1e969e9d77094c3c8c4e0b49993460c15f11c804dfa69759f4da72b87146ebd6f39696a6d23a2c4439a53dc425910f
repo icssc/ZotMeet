@@ -1,5 +1,0 @@
-//#region src/migrator.utils.d.ts
-declare function formatToMillis(dateStr: string): number;
-//#endregion
-export { formatToMillis };
-//# sourceMappingURL=migrator.utils.d.ts.map

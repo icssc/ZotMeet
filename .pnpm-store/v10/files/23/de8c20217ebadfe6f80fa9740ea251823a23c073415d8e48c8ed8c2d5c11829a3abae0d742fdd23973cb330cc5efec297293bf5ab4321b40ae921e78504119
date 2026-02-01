@@ -1,9 +1,0 @@
-import { NodeMsSqlDatabase } from "./driver.cjs";
-import * as __migrator_ts10 from "../migrator.cjs";
-import { MigrationConfig } from "../migrator.cjs";
-
-//#region src/node-mssql/migrator.d.ts
-declare function migrate<TSchema extends Record<string, unknown>>(db: NodeMsSqlDatabase<TSchema>, config: MigrationConfig): Promise<void | __migrator_ts10.MigratorInitFailResponse>;
-//#endregion
-export { migrate };
-//# sourceMappingURL=migrator.d.cts.map

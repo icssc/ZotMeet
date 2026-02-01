@@ -1,6 +1,0 @@
-const require_chunk = require('./chunk-CdAKIUsw.js');
-require('./grammar-B2XVJ90y.js');
-const require_views = require('./views-BA7qJeG7.js');
-
-exports.postgresSchemaError = require_views.postgresSchemaError;
-exports.postgresSchemaWarning = require_views.postgresSchemaWarning;
