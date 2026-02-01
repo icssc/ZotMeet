@@ -4,6 +4,7 @@ import { useShallow } from "zustand/shallow";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { newBlocksAndAvail } from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -30,43 +31,11 @@ export function GroupResponses({
 	currentPageAvailability,
 	doesntNeedDay,
 }: GroupResponsesProps) {
-	const newBlocks = currentPageAvailability.map((date, index) => {
-		if (date) {
-			return new ZotDate(date);
-		} else {
-			return currentPageAvailability[index];
-		}
-	});
-	let dayIndex = currentPageAvailability.length - 1;
-	const newAvailDates = availabilityDates.map((date) => new ZotDate(date));
-	while (currentPageAvailability[dayIndex] == null) {
-		dayIndex -= 1;
-	}
-	if (!doesntNeedDay) {
-		const prevDay = currentPageAvailability[dayIndex];
-		//console.log(currentPageAvailability);
-		const newDay = new Date(prevDay.day);
-		newDay.setDate(newDay.getDate() + 1);
-		newBlocks[dayIndex + 1] = new ZotDate(
-			newDay,
-			prevDay.earliestTime,
-			prevDay.latestTime,
-			false,
-			[],
-			{},
-		);
-
-		newAvailDates.push(
-			new ZotDate(
-				newDay,
-				prevDay.earliestTime,
-				prevDay.latestTime,
-				false,
-				[],
-				{},
-			),
-		);
-	}
+	const [newBlocks, newAvailDates] = newBlocksAndAvail(
+		currentPageAvailability,
+		availabilityDates,
+		doesntNeedDay,
+	);
 
 	const { availabilityView } = useAvailabilityViewStore();
 	const {
@@ -127,7 +96,6 @@ export function GroupResponses({
 			timezone,
 			newAvailDates,
 		);
-		//console.log(selectedDate.groupAvailability, timestamp);
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
 
 		return {

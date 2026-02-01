@@ -1,7 +1,7 @@
 import { differenceInCalendarDays } from "date-fns";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { type HourMinuteString, TimeConstants } from "@/lib/types/chrono";
-import type { ZotDate } from "@/lib/zotdate";
+import { ZotDate } from "@/lib/zotdate";
 
 export const getTimeFromHourMinuteString = (
 	hourMinuteString: HourMinuteString,
@@ -136,4 +136,48 @@ export const spacerBeforeDate = (
 			differenceInCalendarDays(new Date(currentDate), new Date(prevDate)) > 1
 		);
 	});
+};
+
+export const newBlocksAndAvail = (
+	currentPageAvailability: ZotDate[],
+	availabilityDates: ZotDate[],
+	doesntNeedDay: boolean,
+): [ZotDate[], ZotDate[]] => {
+	const newBlocks = currentPageAvailability.map((date, index) => {
+		if (date) {
+			return new ZotDate(date);
+		} else {
+			return currentPageAvailability[index];
+		}
+	});
+	let dayIndex = currentPageAvailability.length - 1;
+	const newAvailDates = availabilityDates.map((date) => new ZotDate(date));
+	while (currentPageAvailability[dayIndex] == null) {
+		dayIndex -= 1;
+	}
+	if (!doesntNeedDay) {
+		const prevDay = currentPageAvailability[dayIndex];
+		const newDay = new Date(prevDay.day);
+		newDay.setDate(newDay.getDate() + 1);
+		newBlocks[dayIndex + 1] = new ZotDate(
+			newDay,
+			prevDay.earliestTime,
+			prevDay.latestTime,
+			false,
+			[],
+			{},
+		);
+
+		newAvailDates.push(
+			new ZotDate(
+				newDay,
+				prevDay.earliestTime,
+				prevDay.latestTime,
+				false,
+				[],
+				{},
+			),
+		);
+	}
+	return [newBlocks, newAvailDates];
 };

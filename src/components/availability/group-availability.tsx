@@ -4,10 +4,14 @@ import { fromZonedTime } from "date-fns-tz";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
-import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
+import {
+	generateDateKey,
+	newBlocksAndAvail,
+	spacerBeforeDate,
+} from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
-import { ZotDate } from "@/lib/zotdate";
+import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
@@ -36,7 +40,6 @@ export const getTimestampFromBlockIndex = (
 	const date = new Date(selectedDate.day);
 	date.setHours(hours, minutes, 0, 0);
 	date.setDate(date.getDate() + dayOffset);
-	//console.log(date, fromZonedTime(date, timezone).toISOString())
 	return fromZonedTime(date, timezone).toISOString();
 };
 
@@ -119,44 +122,11 @@ export function GroupAvailability({
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
 	//TODO: redo the calculation on the doesntNeedDay to incorporate day
-	const newBlocks = currentPageAvailability.map((date, index) => {
-		if (date) {
-			return new ZotDate(date);
-		} else {
-			return currentPageAvailability[index];
-		}
-	});
-	let dayIndex = currentPageAvailability.length - 1;
-	const newAvailDates = availabilityDates.map((date) => new ZotDate(date));
-	while (currentPageAvailability[dayIndex] == null) {
-		dayIndex -= 1;
-	}
-	if (!doesntNeedDay) {
-		const prevDay = currentPageAvailability[dayIndex];
-		//console.log(currentPageAvailability);
-		const newDay = new Date(prevDay.day);
-		newDay.setDate(newDay.getDate() + 1);
-		newBlocks[dayIndex + 1] = new ZotDate(
-			newDay,
-			prevDay.earliestTime,
-			prevDay.latestTime,
-			false,
-			[],
-			{},
-		);
-
-		newAvailDates.push(
-			new ZotDate(
-				newDay,
-				prevDay.earliestTime,
-				prevDay.latestTime,
-				false,
-				[],
-				{},
-			),
-		);
-	}
-
+	const [newBlocks, newAvailDates] = newBlocksAndAvail(
+		currentPageAvailability,
+		availabilityDates,
+		doesntNeedDay,
+	);
 	//counts number of days in availibilityTimeBlocks that is in the before (calculates the time offset for formatting)
 	const datesBefore = React.useMemo(() => {
 		if (availabilityTimeBlocks.length === 0) return 0;
@@ -592,7 +562,6 @@ export function GroupAvailability({
 	const isHalfHour = timeBlock % 60 === 30;
 	const isLastRow = blockIndex === availabilityTimeBlocks.length - 1;
 	const numMembers = members.length;
-	//console.log(currentPageAvailability);
 	//ZotDate: contains day, availabilities
 	const spacers = spacerBeforeDate(newBlocks);
 	const totalMinutes = availabilityTimeBlocks[0] + blockIndex * 15;
