@@ -1,0 +1,27 @@
+import { GelColumn, GelColumnBuilder } from "./common.cjs";
+import { entityKind } from "../../entity.cjs";
+import { ColumnBaseConfig } from "../../column.cjs";
+import { AnyGelTable } from "../table.cjs";
+
+//#region src/gel-core/columns/real.d.ts
+declare class GelRealBuilder extends GelColumnBuilder<{
+  dataType: 'number float';
+  data: number;
+  driverParam: number;
+}, {
+  length: number | undefined;
+}> {
+  static readonly [entityKind]: string;
+  constructor(name: string, length?: number);
+}
+declare class GelReal<T extends ColumnBaseConfig<'number float' | 'number ufloat'>> extends GelColumn<T> {
+  static readonly [entityKind]: string;
+  constructor(table: AnyGelTable<{
+    name: T['tableName'];
+  }>, config: GelRealBuilder['config']);
+  getSQLType(): string;
+}
+declare function real(name?: string): GelRealBuilder;
+//#endregion
+export { GelReal, GelRealBuilder, real };
+//# sourceMappingURL=real.d.cts.map

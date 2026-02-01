@@ -1,0 +1,56 @@
+const require_rolldown_runtime = require('../_virtual/rolldown_runtime.cjs');
+const require_effect_postgres_session = require('./session.cjs');
+let __entity_ts = require("../entity.cjs");
+let ___relations_ts = require("../_relations.cjs");
+___relations_ts = require_rolldown_runtime.__toESM(___relations_ts);
+let __logger_ts = require("../logger.cjs");
+let __pg_core_dialect_ts = require("../pg-core/dialect.cjs");
+let __pg_core_effect_db_ts = require("../pg-core/effect/db.cjs");
+
+//#region src/effect-postgres/driver.ts
+var EffectPgDatabase = class extends __pg_core_effect_db_ts.PgEffectDatabase {
+	static [__entity_ts.entityKind] = "EffectPgDatabase";
+};
+function construct(client, config = {}) {
+	const dialect = new __pg_core_dialect_ts.PgDialect({ casing: config.casing });
+	let logger;
+	if (config.logger === true) logger = new __logger_ts.DefaultLogger();
+	else if (config.logger !== false) logger = config.logger;
+	let schema;
+	if (config.schema) {
+		const tablesConfig = ___relations_ts.extractTablesRelationalConfig(config.schema, ___relations_ts.createTableRelationsHelpers);
+		schema = {
+			fullSchema: config.schema,
+			schema: tablesConfig.tables,
+			tableNamesMap: tablesConfig.tableNamesMap
+		};
+	}
+	const relations = config.relations ?? {};
+	const db = new EffectPgDatabase(dialect, new require_effect_postgres_session.EffectPgSession(client, dialect, relations, schema, {
+		logger,
+		cache: config.cache
+	}), relations, schema);
+	db.$client = client;
+	db.$cache = config.cache;
+	if (db.$cache) db.$cache["invalidate"] = config.cache?.onMutate;
+	return db;
+}
+function drizzle(client, config) {
+	return construct(client, config);
+}
+(function(_drizzle) {
+	function mock(config) {
+		return construct({}, config);
+	}
+	_drizzle.mock = mock;
+})(drizzle || (drizzle = {}));
+
+//#endregion
+exports.EffectPgDatabase = EffectPgDatabase;
+Object.defineProperty(exports, 'drizzle', {
+  enumerable: true,
+  get: function () {
+    return drizzle;
+  }
+});
+//# sourceMappingURL=driver.cjs.map

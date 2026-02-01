@@ -1,0 +1,10 @@
+{
+  "name": "sst-darwin-arm64",
+  "version": "3.17.25",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ]
+}

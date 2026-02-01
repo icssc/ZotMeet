@@ -1,0 +1,79 @@
+{
+  "name": "@mui/material-nextjs",
+  "version": "7.3.6",
+  "author": "MUI Team",
+  "description": "Collection of utilities for integration between Material UI and Next.js.",
+  "keywords": [
+    "react",
+    "next",
+    "material-ui"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mui/material-ui.git",
+    "directory": "packages/mui-material-nextjs"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mui/material-ui/issues"
+  },
+  "homepage": "https://mui.com/material-ui/guides/nextjs/",
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/mui-org"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.28.4"
+  },
+  "peerDependencies": {
+    "@emotion/cache": "^11.11.0",
+    "@emotion/react": "^11.11.4",
+    "@emotion/server": "^11.11.0",
+    "@types/react": "^17.0.0 || ^18.0.0 || ^19.0.0",
+    "next": "^13.0.0 || ^14.0.0 || ^15.0.0 || ^16.0.0",
+    "react": "^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    },
+    "@emotion/cache": {
+      "optional": true
+    },
+    "@emotion/server": {
+      "optional": true
+    }
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "type": "commonjs",
+  "exports": {
+    "./package.json": "./package.json",
+    "./v13-pagesRouter": {
+      "require": {
+        "types": "./v13-pagesRouter/index.d.ts",
+        "default": "./v13-pagesRouter/index.js"
+      },
+      "default": {
+        "types": "./esm/v13-pagesRouter/index.d.ts",
+        "default": "./esm/v13-pagesRouter/index.js"
+      }
+    },
+    "./*": {
+      "require": {
+        "types": "./*/index.d.ts",
+        "default": "./*/index.js"
+      },
+      "default": {
+        "types": "./esm/*/index.d.ts",
+        "default": "./esm/*/index.js"
+      }
+    },
+    "./esm": null
+  }
+}

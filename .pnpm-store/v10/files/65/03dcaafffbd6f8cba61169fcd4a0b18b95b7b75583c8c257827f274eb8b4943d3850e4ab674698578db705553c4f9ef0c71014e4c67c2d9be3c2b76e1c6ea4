@@ -1,0 +1,10 @@
+import { PgliteDatabase } from "./driver.cjs";
+import * as __migrator_ts5 from "../migrator.cjs";
+import { MigrationConfig } from "../migrator.cjs";
+import { AnyRelations } from "../relations.cjs";
+
+//#region src/pglite/migrator.d.ts
+declare function migrate<TSchema extends Record<string, unknown>, TRelations extends AnyRelations>(db: PgliteDatabase<TSchema, TRelations>, config: MigrationConfig): Promise<void | __migrator_ts5.MigratorInitFailResponse>;
+//#endregion
+export { migrate };
+//# sourceMappingURL=migrator.d.cts.map

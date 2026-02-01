@@ -1,0 +1,718 @@
+const require_grammar = require('./grammar-B2XVJ90y.js');
+
+//#region src/dialects/dialect.ts
+const commonConfig = {
+	schema: "string?",
+	table: "string?",
+	name: "string"
+};
+function matchesFilters(item, filter) {
+	for (const [k, v] of Object.entries(filter)) {
+		if (v === void 0) continue;
+		const target = item[k];
+		if (v && typeof v === "object" && v.CONTAINS !== void 0) {
+			if (!Array.isArray(target)) return false;
+			if (!target.find((e) => isEqual(e, v.CONTAINS))) return false;
+		} else if (!isEqual(target, v)) return false;
+	}
+	return true;
+}
+function filterCollection(collection, filter) {
+	return collection.filter((e) => matchesFilters(e, filter));
+}
+function getCompositeKey(row) {
+	return `${row.schema ?? ""}:${row.table ?? ""}:${row.name}:${row.entityType}`;
+}
+function findCompositeKey(dataSource, target) {
+	const targetKey = getCompositeKey(target);
+	return dataSource.find((e) => getCompositeKey(e) === targetKey);
+}
+function findCompositeKeys(dataSource, target) {
+	const targetKey = getCompositeKey(target);
+	return dataSource.filter((e) => getCompositeKey(e) === targetKey);
+}
+const generateInsert = (configs, store, type) => {
+	let nulls = type ? Object.fromEntries(Object.keys(configs[type]).filter((e) => !commonConfig[e] || !commonConfig[e].endsWith("?")).map((e) => [e, null])) : void 0;
+	return (input, uniques) => {
+		const filteredElement = Object.fromEntries(Object.entries(input).filter(([_, value]) => value !== void 0));
+		const localType = type ?? filteredElement.entityType;
+		const mapped = {
+			...nulls ?? Object.fromEntries(Object.keys(configs[localType]).map((e) => [e, null])),
+			...filteredElement,
+			entityType: localType
+		};
+		const conflict = uniques ? store.collection.find((e) => {
+			if (e.entityType !== mapped.entityType) return false;
+			for (const k of uniques) if (k in mapped && !isEqual(mapped[k], e[k])) return false;
+			return true;
+		}) : findCompositeKey(store.collection, mapped);
+		if (conflict) return {
+			status: "CONFLICT",
+			data: conflict
+		};
+		store.collection.push(mapped);
+		return {
+			status: "OK",
+			data: mapped
+		};
+	};
+};
+const generateList = (store, type) => {
+	return (where) => {
+		const from = type ? filterCollection(store.collection, { entityType: type }) : store.collection;
+		if (!where) return from;
+		return filterCollection(from, where);
+	};
+};
+const generateOne = (store, type) => {
+	return (where) => {
+		const from = type ? filterCollection(store.collection, { entityType: type }) : store.collection;
+		if (!where) return from[0] ?? null;
+		return filterCollection(from, where)[0] ?? null;
+	};
+};
+const generateUpdate = (store, type) => {
+	return ({ set, where }) => {
+		const filter = type ? {
+			...where,
+			entityType: type
+		} : where;
+		const targets = filter ? filterCollection(store.collection, filter) : store.collection;
+		const entries = Object.entries(set);
+		const newItems = [];
+		let i = 0;
+		const dupes = [];
+		for (const item of targets) {
+			const newItem = { ...item };
+			for (const [k, v] of entries) {
+				if (!(k in item)) continue;
+				const target = item[k];
+				newItem[k] = typeof v === "function" ? Array.isArray(target) ? target.map(v) : v(target) : v;
+			}
+			const dupe = findCompositeKeys(store.collection, newItem).filter((e) => e !== item);
+			dupes.push(...dupe.filter((e) => !dupes.find((d) => d === e)));
+			if (!dupe.length) newItems.push({
+				item: newItem,
+				index: i++
+			});
+		}
+		if (dupes.length) return {
+			status: "CONFLICT",
+			data: dupes
+		};
+		for (const { index, item } of newItems) Object.assign(targets[index], item);
+		return {
+			status: "OK",
+			data: targets
+		};
+	};
+};
+const generateDelete = (store, type) => {
+	return (where) => {
+		const updatedCollection = [];
+		const deleted = [];
+		const filter = type ? {
+			...where,
+			entityType: type
+		} : where;
+		if (!filter) {
+			store.collection = updatedCollection;
+			return deleted;
+		}
+		store.collection.forEach((e) => {
+			if (matchesFilters(e, filter)) deleted.push(e);
+			else updatedCollection.push(e);
+		});
+		store.collection = updatedCollection;
+		return deleted;
+	};
+};
+const generateHasDiff = (lengths) => {
+	return (input) => {
+		const length = lengths[input.entityType];
+		return Object.keys(input).length > length;
+	};
+};
+function validate(data, schema, deep = false) {
+	if (typeof data !== "object" || data === null) return false;
+	for (const k of Array.from(new Set([...Object.keys(data), ...Object.keys(schema)]))) {
+		if (!deep && k === "entityType") continue;
+		if (!schema[k]) return false;
+		if (schema[k] === "string[]") {
+			if (!Array.isArray(data[k])) return false;
+			if (!data[k].every((e) => typeof e === "string")) return false;
+		} else if (typeof schema[k] === "string") {
+			const isNullable = schema[k].endsWith("?");
+			if (data[k] === null && !isNullable) return false;
+			if (data[k] !== null && typeof data[k] !== removeQuestionMark(schema[k])) return false;
+		} else if (Array.isArray(schema[k])) if (typeof schema[k][0] === "string") {
+			if (!schema[k].some((e) => e === data[k])) return false;
+		} else {
+			if (!Array.isArray(data[k])) return false;
+			if (!data[k].every((e) => validate(e, schema[k][0]), true)) return false;
+		}
+		else if (data[k] !== null && !validate(data[k], schema[k], true)) return false;
+	}
+	return true;
+}
+const generateValidate = (configs, type) => {
+	return ((data) => {
+		if (typeof data !== "object" || data === null) return false;
+		const localType = type ?? data.entityType;
+		if (typeof localType !== "string" || data.entityType !== localType) return false;
+		const config = configs[localType];
+		if (!config) return false;
+		return validate(data, config);
+	});
+};
+function initSchemaProcessors({ entities }, store, common, extraConfigs) {
+	const entries = Object.entries(entities);
+	const extraKeys = 4;
+	const lengths = Object.fromEntries(Object.entries(common ? extraConfigs : entities).map(([k, v]) => {
+		return [k, Object.keys(v).filter((e) => e in commonConfig).length + extraKeys];
+	}));
+	return Object.fromEntries(entries.map(([k, _v]) => {
+		return [k, {
+			push: generateInsert(common ? extraConfigs : entities, store, common ? void 0 : k),
+			list: generateList(store, common ? void 0 : k),
+			one: generateOne(store, common ? void 0 : k),
+			update: generateUpdate(store, common ? void 0 : k),
+			delete: generateDelete(store, common ? void 0 : k),
+			validate: generateValidate(common ? extraConfigs : entities, common ? void 0 : k),
+			hasDiff: generateHasDiff(lengths)
+		}];
+	}));
+}
+const ignoreChanges = {
+	entityType: true,
+	name: true,
+	schema: true,
+	table: true
+};
+function isEqual(a, b) {
+	if (typeof a !== typeof b) return false;
+	if (Array.isArray(a) && Array.isArray(b)) {
+		if (a.length !== b.length) return false;
+		return a.every((v, i) => isEqual(v, b[i]));
+	}
+	if (typeof a === "object") {
+		if (a === b) return true;
+		if ((a === null || b === null) && a !== b) return false;
+		return Array.from(new Set([...Object.keys(a), ...Object.keys(b)])).every((k) => isEqual(a[k], b[k]));
+	}
+	return a === b;
+}
+function sanitizeRow(row) {
+	return Object.fromEntries(Object.entries(row).filter(([k, _v]) => !ignoreChanges[k]));
+}
+function getRowCommons(row) {
+	const res = {};
+	for (const k of Object.keys(commonConfig)) {
+		if (row[k] === void 0 || row[k] === null) continue;
+		res[k] = row[k];
+	}
+	return res;
+}
+function _diff(dbOld, dbNew, collection, mode) {
+	collection = collection ?? "entities";
+	mode = mode ?? "all";
+	const leftEntities = dbOld.entities.list(collection === "entities" ? void 0 : { entityType: collection });
+	const rightEntities = dbNew.entities.list(collection === "entities" ? void 0 : { entityType: collection });
+	const left = {};
+	const right = {};
+	for (const row of leftEntities) left[getCompositeKey(row)] = row;
+	for (const row of rightEntities) right[getCompositeKey(row)] = row;
+	const created = [];
+	const dropped = [];
+	const altered = [];
+	for (const [key, oldRow] of Object.entries(left)) {
+		const newRow = right[key];
+		if (!newRow) {
+			if (mode === "all" || mode === "drop" || mode === "createdrop") dropped.push({
+				$diffType: "drop",
+				entityType: oldRow.entityType,
+				...getRowCommons(oldRow),
+				...sanitizeRow(oldRow)
+			});
+		} else if (mode === "all" || mode === "alter") {
+			const changes = {};
+			let isChanged = false;
+			for (const [k, _v] of Object.entries(oldRow)) {
+				if (ignoreChanges[k]) continue;
+				if (!isEqual(oldRow[k], newRow[k])) {
+					isChanged = true;
+					changes[k] = {
+						from: oldRow[k],
+						to: newRow[k]
+					};
+				}
+			}
+			if (isChanged) altered.push({
+				$diffType: "alter",
+				entityType: newRow.entityType,
+				...getRowCommons(newRow),
+				...changes,
+				$left: oldRow,
+				$right: newRow
+			});
+		}
+		delete right[key];
+	}
+	if (mode === "all" || mode === "create" || mode === "createdrop") for (const newRow of Object.values(right)) created.push({
+		$diffType: "create",
+		entityType: newRow.entityType,
+		...getRowCommons(newRow),
+		...sanitizeRow(newRow)
+	});
+	return [
+		...created,
+		...dropped,
+		...altered
+	];
+}
+function diff(dbOld, dbNew, collection) {
+	return _diff(dbOld, dbNew, collection, "createdrop");
+}
+(function(_diff2) {
+	function all(dbOld, dbNew, collection) {
+		return _diff(dbOld, dbNew, collection, "all");
+	}
+	_diff2.all = all;
+	function creates(dbOld, dbNew, collection) {
+		return _diff(dbOld, dbNew, collection, "create");
+	}
+	_diff2.creates = creates;
+	function drops(dbOld, dbNew, collection) {
+		return _diff(dbOld, dbNew, collection, "drop");
+	}
+	_diff2.drops = drops;
+	function alters(dbOld, dbNew, collection) {
+		return _diff(dbOld, dbNew, collection, "alter");
+	}
+	_diff2.alters = alters;
+})(diff || (diff = {}));
+function removeQuestionMark(str) {
+	if (!str.endsWith("?")) return str;
+	return str.slice(0, str.length - 1);
+}
+var SimpleDb = class {
+	_ = {
+		diffs: {},
+		store: { collection: [] }
+	};
+	entities;
+	constructor(definition) {
+		const entries = Object.entries(definition);
+		const configs = Object.fromEntries(entries.map(([type, def]) => {
+			if (type === "entities" || type === "_") throw new Error(`Illegal entity type name: "${type}"`);
+			const cloneDef = {};
+			Object.entries(def).forEach(([fieldName, fieldValue]) => {
+				cloneDef[fieldName] = fieldValue;
+				if (fieldValue === "required") {
+					if (!(fieldName in commonConfig)) throw new Error(`Type value "required" is only applicable to common keys [ ${Object.keys(commonConfig).map((e) => `"${e}"`).join(", ")} ], used on: "${fieldName}"`);
+					cloneDef[fieldName] = removeQuestionMark(commonConfig[fieldName]);
+				} else if (fieldName in commonConfig) throw new Error(`Used forbidden key "${fieldName}" in entity "${type}"`);
+			});
+			for (const k in commonConfig) {
+				if (commonConfig[k].endsWith("?")) continue;
+				cloneDef[k] = commonConfig[k];
+			}
+			return [type, cloneDef];
+		}));
+		this._.entities = configs;
+		this.entities = initSchemaProcessors({
+			...this._,
+			entities: { entities: commonConfig }
+		}, this._.store, true, this._.entities).entities;
+	}
+};
+function create(definition) {
+	const db = new SimpleDb(definition);
+	const processors = initSchemaProcessors(db._, db._.store, false);
+	for (const [k, v] of Object.entries(processors)) db[k] = v;
+	return db;
+}
+
+//#endregion
+//#region src/dialects/postgres/ddl.ts
+const createDDL = () => {
+	return create({
+		schemas: {},
+		tables: {
+			schema: "required",
+			isRlsEnabled: "boolean"
+		},
+		enums: {
+			schema: "required",
+			values: "string[]"
+		},
+		columns: {
+			schema: "required",
+			table: "required",
+			type: "string",
+			typeSchema: "string?",
+			notNull: "boolean",
+			dimensions: "number",
+			default: "string?",
+			generated: {
+				type: ["stored"],
+				as: "string"
+			},
+			identity: {
+				name: "string",
+				type: ["always", "byDefault"],
+				increment: "string?",
+				minValue: "string?",
+				maxValue: "string?",
+				startWith: "string?",
+				cache: "number?",
+				cycle: "boolean?"
+			}
+		},
+		indexes: {
+			schema: "required",
+			table: "required",
+			nameExplicit: "boolean",
+			columns: [{
+				value: "string",
+				isExpression: "boolean",
+				asc: "boolean",
+				nullsFirst: "boolean",
+				opclass: {
+					name: "string",
+					default: "boolean"
+				}
+			}],
+			isUnique: "boolean",
+			where: "string?",
+			with: "string",
+			method: "string",
+			concurrently: "boolean"
+		},
+		fks: {
+			schema: "required",
+			table: "required",
+			nameExplicit: "boolean",
+			columns: "string[]",
+			schemaTo: "string",
+			tableTo: "string",
+			columnsTo: "string[]",
+			onUpdate: [
+				"NO ACTION",
+				"RESTRICT",
+				"SET NULL",
+				"CASCADE",
+				"SET DEFAULT",
+				null
+			],
+			onDelete: [
+				"NO ACTION",
+				"RESTRICT",
+				"SET NULL",
+				"CASCADE",
+				"SET DEFAULT",
+				null
+			]
+		},
+		pks: {
+			schema: "required",
+			table: "required",
+			columns: "string[]",
+			nameExplicit: "boolean"
+		},
+		uniques: {
+			schema: "required",
+			table: "required",
+			nameExplicit: "boolean",
+			columns: "string[]",
+			nullsNotDistinct: "boolean"
+		},
+		checks: {
+			schema: "required",
+			table: "required",
+			value: "string"
+		},
+		sequences: {
+			schema: "required",
+			incrementBy: "string?",
+			minValue: "string?",
+			maxValue: "string?",
+			startWith: "string?",
+			cacheSize: "number?",
+			cycle: "boolean?"
+		},
+		roles: {
+			superuser: "boolean?",
+			createDb: "boolean?",
+			createRole: "boolean?",
+			inherit: "boolean?",
+			canLogin: "boolean?",
+			replication: "boolean?",
+			bypassRls: "boolean?",
+			connLimit: "number?",
+			password: "string?",
+			validUntil: "string?"
+		},
+		privileges: {
+			grantor: "string",
+			grantee: "string",
+			schema: "required",
+			table: "required",
+			type: [
+				"ALL",
+				"SELECT",
+				"INSERT",
+				"UPDATE",
+				"DELETE",
+				"TRUNCATE",
+				"REFERENCES",
+				"TRIGGER"
+			],
+			isGrantable: "boolean"
+		},
+		policies: {
+			schema: "required",
+			table: "required",
+			as: ["PERMISSIVE", "RESTRICTIVE"],
+			for: [
+				"ALL",
+				"SELECT",
+				"INSERT",
+				"UPDATE",
+				"DELETE"
+			],
+			roles: "string[]",
+			using: "string?",
+			withCheck: "string?"
+		},
+		views: {
+			schema: "required",
+			definition: "string?",
+			with: {
+				checkOption: [
+					"local",
+					"cascaded",
+					null
+				],
+				securityBarrier: "boolean?",
+				securityInvoker: "boolean?",
+				fillfactor: "number?",
+				toastTupleTarget: "number?",
+				parallelWorkers: "number?",
+				autovacuumEnabled: "boolean?",
+				vacuumIndexCleanup: [
+					"auto",
+					"off",
+					"on",
+					null
+				],
+				vacuumTruncate: "boolean?",
+				autovacuumVacuumThreshold: "number?",
+				autovacuumVacuumScaleFactor: "number?",
+				autovacuumVacuumCostDelay: "number?",
+				autovacuumVacuumCostLimit: "number?",
+				autovacuumFreezeMinAge: "number?",
+				autovacuumFreezeMaxAge: "number?",
+				autovacuumFreezeTableAge: "number?",
+				autovacuumMultixactFreezeMinAge: "number?",
+				autovacuumMultixactFreezeMaxAge: "number?",
+				autovacuumMultixactFreezeTableAge: "number?",
+				logAutovacuumMinDuration: "number?",
+				userCatalogTable: "boolean?"
+			},
+			withNoData: "boolean?",
+			using: "string?",
+			tablespace: "string?",
+			materialized: "boolean"
+		}
+	});
+};
+const tableFromDDL = (table, ddl) => {
+	const filter = {
+		schema: table.schema,
+		table: table.name
+	};
+	const columns = ddl.columns.list(filter);
+	const pk = ddl.pks.one(filter);
+	const fks = ddl.fks.list(filter);
+	const uniques = ddl.uniques.list(filter);
+	const checks = ddl.checks.list(filter);
+	const indexes = ddl.indexes.list(filter);
+	const policies = ddl.policies.list(filter);
+	return {
+		...table,
+		columns,
+		pk,
+		fks,
+		uniques,
+		checks,
+		indexes,
+		policies
+	};
+};
+const interimToDDL = (schema) => {
+	const ddl = createDDL();
+	const errors = [];
+	for (const it of schema.schemas) if (ddl.schemas.push(it).status === "CONFLICT") errors.push({
+		type: "schema_name_duplicate",
+		name: it.name
+	});
+	for (const it of schema.enums) {
+		const res = ddl.enums.push(it);
+		if (new Set(it.values).size !== it.values.length) errors.push({
+			type: "enum_values_duplicate",
+			schema: it.schema,
+			name: it.name
+		});
+		if (res.status === "CONFLICT") errors.push({
+			type: "enum_name_duplicate",
+			schema: it.schema,
+			name: it.name
+		});
+	}
+	for (const it of schema.tables) if (ddl.tables.push(it).status === "CONFLICT") errors.push({
+		type: "table_name_duplicate",
+		schema: it.schema,
+		name: it.name
+	});
+	for (const column of schema.columns) {
+		const { pk: _1, pkName: _2, unique: _3, uniqueName: _4, uniqueNullsNotDistinct: _5, ...rest } = column;
+		if (ddl.columns.push(rest).status === "CONFLICT") errors.push({
+			type: "column_name_duplicate",
+			schema: column.schema,
+			table: column.table,
+			name: column.name
+		});
+	}
+	for (const it of schema.indexes) {
+		const { forPK: _1, forUnique: _2, ...rest } = it;
+		if (ddl.indexes.push(rest).status === "CONFLICT") errors.push({
+			type: "index_duplicate",
+			schema: it.schema,
+			table: it.table,
+			name: it.name
+		});
+	}
+	for (const it of schema.fks) if (ddl.fks.push(it).status === "CONFLICT") errors.push({
+		type: "constraint_name_duplicate",
+		schema: it.schema,
+		table: it.table,
+		name: it.name
+	});
+	for (const it of schema.pks) if (ddl.pks.push(it).status === "CONFLICT") errors.push({
+		type: "constraint_name_duplicate",
+		schema: it.schema,
+		table: it.table,
+		name: it.name
+	});
+	for (const column of schema.columns.filter((it) => it.pk)) {
+		const name = column.pkName !== null ? column.pkName : require_grammar.defaultNameForPK(column.table);
+		if (ddl.pks.one({
+			schema: column.schema,
+			table: column.table
+		}) !== null) continue;
+		ddl.pks.push({
+			schema: column.schema,
+			table: column.table,
+			name,
+			nameExplicit: column.pkName !== null,
+			columns: [column.name]
+		});
+	}
+	for (const it of schema.uniques) if (ddl.uniques.push(it).status === "CONFLICT") errors.push({
+		type: "constraint_name_duplicate",
+		schema: it.schema,
+		table: it.table,
+		name: it.name
+	});
+	for (const column of schema.columns.filter((it) => it.unique)) {
+		const name = column.uniqueName !== null ? column.uniqueName : require_grammar.defaultNameForUnique(column.table, column.name);
+		if (ddl.uniques.one({
+			schema: column.schema,
+			table: column.table,
+			columns: [column.name]
+		}) !== null) continue;
+		ddl.uniques.push({
+			schema: column.schema,
+			table: column.table,
+			name,
+			nameExplicit: column.uniqueName !== null,
+			nullsNotDistinct: column.uniqueNullsNotDistinct,
+			columns: [column.name]
+		});
+	}
+	for (const it of schema.checks) if (ddl.checks.push(it).status === "CONFLICT") errors.push({
+		type: "constraint_name_duplicate",
+		schema: it.schema,
+		table: it.table,
+		name: it.name
+	});
+	for (const it of schema.sequences) if (ddl.sequences.push(it).status === "CONFLICT") errors.push({
+		type: "sequence_name_duplicate",
+		schema: it.schema,
+		name: it.name
+	});
+	for (const it of schema.roles) if (ddl.roles.push(it).status === "CONFLICT") errors.push({
+		type: "role_duplicate",
+		name: it.name
+	});
+	for (const it of schema.privileges) if (ddl.privileges.push(it).status === "CONFLICT") errors.push({
+		type: "privilege_duplicate",
+		name: it.name
+	});
+	for (const it of schema.policies) if (ddl.policies.push(it).status === "CONFLICT") errors.push({
+		type: "policy_duplicate",
+		schema: it.schema,
+		table: it.table,
+		policy: it.name
+	});
+	for (const it of schema.views) if (ddl.views.push(it).status === "CONFLICT") errors.push({
+		type: "view_name_duplicate",
+		schema: it.schema,
+		name: it.name
+	});
+	for (const it of ddl.entities.list()) {
+		let err = false;
+		if (!ddl.entities.validate(it)) {
+			console.log("invalid entity:", it);
+			err = true;
+		}
+		if (err) throw new Error();
+	}
+	return {
+		ddl,
+		errors
+	};
+};
+
+//#endregion
+Object.defineProperty(exports, 'create', {
+  enumerable: true,
+  get: function () {
+    return create;
+  }
+});
+Object.defineProperty(exports, 'createDDL', {
+  enumerable: true,
+  get: function () {
+    return createDDL;
+  }
+});
+Object.defineProperty(exports, 'diff', {
+  enumerable: true,
+  get: function () {
+    return diff;
+  }
+});
+Object.defineProperty(exports, 'interimToDDL', {
+  enumerable: true,
+  get: function () {
+    return interimToDDL;
+  }
+});
+Object.defineProperty(exports, 'tableFromDDL', {
+  enumerable: true,
+  get: function () {
+    return tableFromDDL;
+  }
+});

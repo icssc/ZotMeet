@@ -1,0 +1,1 @@
+{"version":3,"file":"table.utils.js","names":[],"sources":["../src/table.utils.ts"],"sourcesContent":["/** @internal */\nexport const TableName = Symbol.for('drizzle:Name');\n"],"mappings":";;AACA,MAAa,YAAY,OAAO,IAAI,eAAe"}

@@ -1,0 +1,55 @@
+{
+	"name": "@radix-ui/rect",
+	"version": "1.1.0",
+	"requiresBuild": false,
+	"files": {
+		"README.md": {
+			"checkedAt": 1769490691612,
+			"integrity": "sha512-KogKGw4cLHi6DaJWNT18TUGWEWXyHCa6dSx3Fd/XgDwYBtqNOXqmoD4I5K8f6ZWsDjPm4kHQs/0q3X9lk8YB7g==",
+			"mode": 420,
+			"size": 168
+		},
+		"dist/index.d.mts": {
+			"checkedAt": 1769490691614,
+			"integrity": "sha512-OgFXlZRS914ZGxY6NHZEVA5+2IvJ6CUQZb2gA5wldlAnwjRaZoSumHl9omxnCd4tiaKftYnR/lfeK6Iv398wSg==",
+			"mode": 420,
+			"size": 562
+		},
+		"dist/index.d.ts": {
+			"checkedAt": 1769490691614,
+			"integrity": "sha512-OgFXlZRS914ZGxY6NHZEVA5+2IvJ6CUQZb2gA5wldlAnwjRaZoSumHl9omxnCd4tiaKftYnR/lfeK6Iv398wSg==",
+			"mode": 420,
+			"size": 562
+		},
+		"dist/index.js": {
+			"checkedAt": 1769490691614,
+			"integrity": "sha512-iGVFquRJKKoK2i0kcTYpkKZ55Cgs6oIpLvf9xqbplmNAi3piXpPie0ZELY4Dk9eO7UUkBabFYT8T089JCk9I7g==",
+			"mode": 420,
+			"size": 2669
+		},
+		"dist/index.js.map": {
+			"checkedAt": 1769490691615,
+			"integrity": "sha512-ZqOpNZggaOFcbRa756G8s8h6A3vT39nCGZruRzorzJX531wSxME5QsN3Iat/6UICq7qcxtYrWmiPFI7IRrbSsA==",
+			"mode": 420,
+			"size": 4871
+		},
+		"dist/index.mjs": {
+			"checkedAt": 1769490691615,
+			"integrity": "sha512-gJ5aZOvuOGf1NaoBrFN96F2JE7fOGG42r9D8ZQD0ujjLjBVpMoVswMGBPAra4cc4EBuyNgQkevpicyhtBDAZZA==",
+			"mode": 420,
+			"size": 1726
+		},
+		"dist/index.mjs.map": {
+			"checkedAt": 1769490691615,
+			"integrity": "sha512-LS5xjHt1SuAtLzCxNjVxgLdYNUgeJsajL50SRNZebNJyB0XAxzRiTWiqWKb1rORL86LzeN2sguTU0z7x3PqHkA==",
+			"mode": 420,
+			"size": 4685
+		},
+		"package.json": {
+			"checkedAt": 1769490691616,
+			"integrity": "sha512-qDWZ+3vZCotdO/6vENNsFJi3fExrmKslC6jYOxFfo0YE6/Xoe6FwMY8MCJ+cJGu4toI0GaPtgmtC1nPHxDabNA==",
+			"mode": 420,
+			"size": 813
+		}
+	}
+}

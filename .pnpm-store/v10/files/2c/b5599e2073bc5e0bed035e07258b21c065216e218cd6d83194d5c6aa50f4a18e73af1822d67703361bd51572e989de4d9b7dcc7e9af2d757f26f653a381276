@@ -1,0 +1,35 @@
+const require_chunk = require('./chunk-CdAKIUsw.js');
+
+//#region src/ext/api-sqlite.ts
+const startStudioServer = async (imports, credentials, options) => {
+	const { is } = require("drizzle-orm");
+	const { SQLiteTable } = require("drizzle-orm/sqlite-core");
+	const { Relations } = require("drizzle-orm/_relations");
+	const { drizzleForSQLite, prepareServer } = await Promise.resolve().then(() => require("./studio-CkbYOAmM.js"));
+	const sqliteSchema = {};
+	const relations = {};
+	Object.entries(imports).forEach(([k, t]) => {
+		if (is(t, SQLiteTable)) {
+			const schema = "public";
+			sqliteSchema[schema] = sqliteSchema[schema] || {};
+			sqliteSchema[schema][k] = t;
+		}
+		if (is(t, Relations)) relations[k] = t;
+	});
+	const server = await prepareServer(await drizzleForSQLite(credentials, sqliteSchema, relations, [], options?.casing));
+	const host = options?.host || "127.0.0.1";
+	const port = options?.port || 4983;
+	server.start({
+		host,
+		port,
+		key: options?.key,
+		cert: options?.cert,
+		cb: (err) => {
+			if (err) console.error(err);
+			else console.log(`Studio is running at ${options?.key ? "https" : "http"}://${host}:${port}`);
+		}
+	});
+};
+
+//#endregion
+exports.startStudioServer = startStudioServer;

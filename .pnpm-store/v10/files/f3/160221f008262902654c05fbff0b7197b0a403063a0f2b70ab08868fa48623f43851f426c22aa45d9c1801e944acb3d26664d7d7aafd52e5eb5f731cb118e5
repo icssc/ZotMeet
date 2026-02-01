@@ -1,0 +1,1 @@
+{"version":3,"file":"view-common.js","names":[],"sources":["../../src/mssql-core/view-common.ts"],"sourcesContent":["export const MsSqlViewConfig = Symbol.for('drizzle:MsSqlViewConfig');\n"],"mappings":";AAAA,MAAa,kBAAkB,OAAO,IAAI,0BAA0B"}

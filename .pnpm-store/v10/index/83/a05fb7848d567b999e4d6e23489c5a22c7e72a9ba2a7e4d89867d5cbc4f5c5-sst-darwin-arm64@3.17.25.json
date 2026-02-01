@@ -1,0 +1,19 @@
+{
+	"name": "sst-darwin-arm64",
+	"version": "3.17.25",
+	"requiresBuild": false,
+	"files": {
+		"bin/sst": {
+			"checkedAt": 1769490691799,
+			"integrity": "sha512-Hraf7d37qGBVXlXp/XJFZvGP+277eDPzeYAHxIv6uZm6hFZTPGGshtfpaGutmt8G11d7Q+UPrcIq5h46Stf94g==",
+			"mode": 493,
+			"size": 80877026
+		},
+		"package.json": {
+			"checkedAt": 1769490691814,
+			"integrity": "sha512-1d+1cya5nCp/Cd89bjfotbUC4Bc4jsFuHh1Y0xNCpB5VTiMM3s+l9DG+ABenjcHbfOF/c4UGXcnn36LukHrLbg==",
+			"mode": 420,
+			"size": 112
+		}
+	}
+}

@@ -1,0 +1,24 @@
+import { EffectPgQueryResultHKT } from "./session.cjs";
+import { entityKind } from "../entity.cjs";
+import { DrizzleConfig } from "../utils.cjs";
+import { AnyRelations, EmptyRelations } from "../relations.cjs";
+import { PgClient } from "@effect/sql-pg/PgClient";
+import { EffectCache } from "../cache/core/cache-effect.cjs";
+import { PgEffectDatabase } from "../pg-core/effect/db.cjs";
+
+//#region src/effect-postgres/driver.d.ts
+declare class EffectPgDatabase<TFullSchema extends Record<string, unknown> = Record<string, never>, TRelations extends AnyRelations = EmptyRelations> extends PgEffectDatabase<EffectPgQueryResultHKT, TFullSchema, TRelations> {
+  static readonly [entityKind]: string;
+}
+type EffectDrizzleConfig<TSchema extends Record<string, unknown> = Record<string, never>, TRelations extends AnyRelations = EmptyRelations> = Omit<DrizzleConfig<TSchema, TRelations>, 'cache'> & {
+  cache?: EffectCache | undefined;
+};
+declare function drizzle<TSchema extends Record<string, unknown> = Record<string, never>, TRelations extends AnyRelations = EmptyRelations>(client: PgClient, config?: EffectDrizzleConfig<TSchema, TRelations>): EffectPgDatabase<TSchema, TRelations> & {
+  $client: PgClient;
+};
+declare namespace drizzle {
+  function mock<TSchema extends Record<string, unknown> = Record<string, never>, TRelations extends AnyRelations = EmptyRelations>(config?: EffectDrizzleConfig<TSchema, TRelations>): EffectPgDatabase<TSchema, TRelations>;
+}
+//#endregion
+export { EffectDrizzleConfig, EffectPgDatabase, drizzle };
+//# sourceMappingURL=driver.d.cts.map

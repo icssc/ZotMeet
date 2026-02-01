@@ -1,0 +1,128 @@
+import { PgAsyncDatabase } from "./db.js";
+import { PgBasePreparedQuery, PgSession } from "../session.js";
+import { entityKind, is } from "../../entity.js";
+import { tracer } from "../../tracing.js";
+import { assertUnreachable } from "../../utils.js";
+import { sql } from "../../sql/sql.js";
+import { NoopCache, strategyFor } from "../../cache/core/cache.js";
+import { DrizzleQueryError, TransactionRollbackError } from "../../errors.js";
+
+//#region src/pg-core/async/session.ts
+var PgAsyncPreparedQuery = class extends PgBasePreparedQuery {
+	static [entityKind] = "PgAsyncPreparedQuery";
+	constructor(query, cache, queryMetadata, cacheConfig) {
+		super(query);
+		this.cache = cache;
+		this.queryMetadata = queryMetadata;
+		this.cacheConfig = cacheConfig;
+		if (cache && cache.strategy() === "all" && cacheConfig === void 0) this.cacheConfig = {
+			enabled: true,
+			autoInvalidate: true
+		};
+		if (!this.cacheConfig?.enabled) this.cacheConfig = void 0;
+	}
+	/** @internal */
+	authToken;
+	/** @internal */
+	setToken(token) {
+		this.authToken = token;
+		return this;
+	}
+	/** @internal */
+	async queryWithCache(queryString, params, query) {
+		const cacheStrat = this.cache !== void 0 && !is(this.cache, NoopCache) ? await strategyFor(queryString, params, this.queryMetadata, this.cacheConfig) : { type: "skip" };
+		if (cacheStrat.type === "skip") return query().catch((e) => {
+			throw new DrizzleQueryError(queryString, params, e);
+		});
+		const cache = this.cache;
+		if (cacheStrat.type === "invalidate") return Promise.all([query(), cache.onMutate({ tables: cacheStrat.tables })]).then((res) => res[0]).catch((e) => {
+			throw new DrizzleQueryError(queryString, params, e);
+		});
+		if (cacheStrat.type === "try") {
+			const { tables, key, isTag, autoInvalidate, config } = cacheStrat;
+			const fromCache = await cache.get(key, tables, isTag, autoInvalidate);
+			if (fromCache === void 0) {
+				const result = await query().catch((e) => {
+					throw new DrizzleQueryError(queryString, params, e);
+				});
+				await cache.put(key, result, autoInvalidate ? tables : [], isTag, config);
+				return result;
+			}
+			return fromCache;
+		}
+		assertUnreachable(cacheStrat);
+	}
+};
+var PgAsyncSession = class extends PgSession {
+	static [entityKind] = "PgAsyncSession";
+	constructor(dialect) {
+		super(dialect);
+	}
+	/** @internal */
+	execute(query, token) {
+		return tracer.startActiveSpan("drizzle.operation", () => {
+			return tracer.startActiveSpan("drizzle.prepareQuery", () => {
+				return this.prepareQuery(this.dialect.sqlToQuery(query), void 0, void 0, false);
+			}).setToken(token).execute();
+		});
+	}
+	all(query) {
+		return this.prepareQuery(this.dialect.sqlToQuery(query), void 0, void 0, false).all();
+	}
+};
+var PgAsyncTransaction = class extends PgAsyncDatabase {
+	static [entityKind] = "PgAsyncTransaction";
+	constructor(dialect, session, relations, schema, nestedIndex = 0, parseRqbJson) {
+		super(dialect, session, relations, schema, parseRqbJson);
+		this.relations = relations;
+		this.schema = schema;
+		this.nestedIndex = nestedIndex;
+	}
+	rollback() {
+		throw new TransactionRollbackError();
+	}
+	/** @internal */
+	getTransactionConfigSQL(config) {
+		const chunks = [];
+		if (config.isolationLevel) chunks.push(`isolation level ${config.isolationLevel}`);
+		if (config.accessMode) chunks.push(config.accessMode);
+		if (typeof config.deferrable === "boolean") chunks.push(config.deferrable ? "deferrable" : "not deferrable");
+		return sql.raw(chunks.join(" "));
+	}
+	setTransaction(config) {
+		return this.session.execute(sql`set transaction ${this.getTransactionConfigSQL(config)}`);
+	}
+};
+async function migrate(migrations, session, config) {
+	const migrationsTable = typeof config === "string" ? "__drizzle_migrations" : config.migrationsTable ?? "__drizzle_migrations";
+	const migrationsSchema = typeof config === "string" ? "drizzle" : config.migrationsSchema ?? "drizzle";
+	const migrationTableCreate = sql`
+			CREATE TABLE IF NOT EXISTS ${sql.identifier(migrationsSchema)}.${sql.identifier(migrationsTable)} (
+				id SERIAL PRIMARY KEY,
+				hash text NOT NULL,
+				created_at bigint
+			)
+		`;
+	await session.execute(sql`CREATE SCHEMA IF NOT EXISTS ${sql.identifier(migrationsSchema)}`);
+	await session.execute(migrationTableCreate);
+	const dbMigrations = await session.all(sql`select id, hash, created_at from ${sql.identifier(migrationsSchema)}.${sql.identifier(migrationsTable)} order by created_at desc limit 1`);
+	if (typeof config === "object" && config.init) {
+		if (dbMigrations.length) return { exitCode: "databaseMigrations" };
+		if (migrations.length > 1) return { exitCode: "localMigrations" };
+		const [migration] = migrations;
+		if (!migration) return;
+		await session.execute(sql`insert into ${sql.identifier(migrationsSchema)}.${sql.identifier(migrationsTable)} ("hash", "created_at") values(${migration.hash}, ${migration.folderMillis})`);
+		return;
+	}
+	const lastDbMigration = dbMigrations[0];
+	await session.transaction(async (tx) => {
+		for (const migration of migrations) if (!lastDbMigration || Number(lastDbMigration.created_at) < migration.folderMillis) {
+			for (const stmt of migration.sql) await tx.execute(sql.raw(stmt));
+			await tx.execute(sql`insert into ${sql.identifier(migrationsSchema)}.${sql.identifier(migrationsTable)} ("hash", "created_at") values(${migration.hash}, ${migration.folderMillis})`);
+		}
+	});
+}
+
+//#endregion
+export { PgAsyncPreparedQuery, PgAsyncSession, PgAsyncTransaction, migrate };
+//# sourceMappingURL=session.js.map

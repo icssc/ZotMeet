@@ -1,0 +1,47 @@
+import { SingleStoreTable } from "../table.js";
+import { SingleStoreDialect } from "../dialect.js";
+import { PreparedQueryHKTBase, PreparedQueryKind, SingleStorePreparedQueryConfig, SingleStoreSession } from "../session.js";
+import { entityKind } from "../../entity.js";
+import { KnownKeysOnly } from "../../utils.js";
+import { Query } from "../../sql/sql.js";
+import * as V1 from "../../_relations.js";
+import { QueryPromise } from "../../query-promise.js";
+
+//#region src/singlestore-core/query-builders/_query.d.ts
+declare class _RelationalQueryBuilder<TPreparedQueryHKT extends PreparedQueryHKTBase, TSchema extends V1.TablesRelationalConfig, TFields extends V1.TableRelationalConfig> {
+  private fullSchema;
+  private schema;
+  private tableNamesMap;
+  private table;
+  private tableConfig;
+  private dialect;
+  private session;
+  static readonly [entityKind]: string;
+  constructor(fullSchema: Record<string, unknown>, schema: TSchema, tableNamesMap: Record<string, string>, table: SingleStoreTable, tableConfig: V1.TableRelationalConfig, dialect: SingleStoreDialect, session: SingleStoreSession);
+  findMany<TConfig extends V1.DBQueryConfig<'many', true, TSchema, TFields>>(config?: KnownKeysOnly<TConfig, V1.DBQueryConfig<'many', true, TSchema, TFields>>): SingleStoreRelationalQuery<TPreparedQueryHKT, V1.BuildQueryResult<TSchema, TFields, TConfig>[]>;
+  findFirst<TSelection extends Omit<V1.DBQueryConfig<'many', true, TSchema, TFields>, 'limit'>>(config?: KnownKeysOnly<TSelection, Omit<V1.DBQueryConfig<'many', true, TSchema, TFields>, 'limit'>>): SingleStoreRelationalQuery<TPreparedQueryHKT, V1.BuildQueryResult<TSchema, TFields, TSelection> | undefined>;
+}
+declare class SingleStoreRelationalQuery<TPreparedQueryHKT extends PreparedQueryHKTBase, TResult> extends QueryPromise<TResult> {
+  private fullSchema;
+  private schema;
+  private tableNamesMap;
+  private table;
+  private tableConfig;
+  private dialect;
+  private session;
+  private config;
+  private queryMode;
+  static readonly [entityKind]: string;
+  protected $brand: 'SingleStoreRelationalQuery';
+  constructor(fullSchema: Record<string, unknown>, schema: V1.TablesRelationalConfig, tableNamesMap: Record<string, string>, table: SingleStoreTable, tableConfig: V1.TableRelationalConfig, dialect: SingleStoreDialect, session: SingleStoreSession, config: V1.DBQueryConfig<'many', true> | true, queryMode: 'many' | 'first');
+  prepare(): PreparedQueryKind<TPreparedQueryHKT, SingleStorePreparedQueryConfig & {
+    execute: TResult;
+  }, true>;
+  private _getQuery;
+  private _toSQL;
+  toSQL(): Query;
+  execute(): Promise<TResult>;
+}
+//#endregion
+export { SingleStoreRelationalQuery, _RelationalQueryBuilder };
+//# sourceMappingURL=_query.d.ts.map

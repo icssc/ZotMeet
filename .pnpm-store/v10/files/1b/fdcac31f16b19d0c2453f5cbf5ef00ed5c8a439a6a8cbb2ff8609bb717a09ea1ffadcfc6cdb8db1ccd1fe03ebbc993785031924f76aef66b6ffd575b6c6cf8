@@ -1,0 +1,671 @@
+const require_chunk = require('./chunk-CdAKIUsw.js');
+const require_ddl = require('./ddl-SsGc2gVn.js');
+const require_utils = require('./utils-D2E5ChQ0.js');
+const require_types = require('./types-KQgd7P_m.js');
+let crypto = require("crypto");
+
+//#region src/dialects/simpleValidator.ts
+const array = (validate) => {
+	return {
+		type: {},
+		validate
+	};
+};
+const validatorFor = (schema, path) => {
+	const validators = {};
+	for (const [key, value] of Object.entries(schema)) if (value === "string") validators[key] = (it) => {
+		return typeof it === "string" ? null : `Field '${path}${key}' must be a string`;
+	};
+	else if (value === "number") validators[key] = (it) => {
+		return typeof it === "number" ? null : `Field '${path}${key}' must be a number`;
+	};
+	else if (value === "boolean") validators[key] = (it) => {
+		return typeof it === "boolean" ? null : `Field '${path}${key}' must be a boolean`;
+	};
+	else if (value === "array") validators[key] = (it) => {
+		return Array.isArray(it) ? null : `Field '${path}${key}' must be an array`;
+	};
+	else if (value === "record") validators[key] = (it) => {
+		return typeof it === "object" ? null : `Field '${path}${key}' must be an object`;
+	};
+	else if (Array.isArray(value)) validators[key] = (it) => {
+		const msg = value.length === 1 ? `Field '${key}' must be exactly '${path}${value[0]}'` : `Field '${key}' must be exactly either of ['${value.join(", ")}']`;
+		return value.some((entry) => entry === it) ? null : msg;
+	};
+	else if (typeof value === "object") if ("type" in value && typeof value["type"] === "object" && Object.keys(value["type"]).length === 0) validators[key] = (it) => {
+		if (!Array.isArray(it)) return `Field '${path}${key}' must be an array`;
+		for (let item of it) if (!value["validate"](item)) return `${path}${key} array contains invalid value:\n${JSON.stringify(item, null, 2)}`;
+		return null;
+	};
+	else {
+		const validateRecord = validatorFor(value, `${key}.`);
+		validators[key] = (it) => {
+			if (it === null) return null;
+			return validateRecord(it);
+		};
+	}
+	const validate = (input) => {
+		const errors = [];
+		for (const [key, validate$1] of Object.entries(validators)) {
+			const value = input[key];
+			if (value === void 0) {
+				errors.push(`Missing required field: ${path}${key}`);
+				continue;
+			}
+			const res = validate$1(value, path);
+			if (!res) continue;
+			if (typeof res === "string") errors.push(res);
+			else errors.push(...res);
+		}
+		return errors;
+	};
+	return validate;
+};
+function validator(schema) {
+	const validate = validatorFor(schema, "");
+	return {
+		shape: {},
+		strict: (input) => {
+			if (validate(input).length > 0) throw new Error("Validation failed");
+			return input;
+		},
+		parse: (input) => {
+			const errors = validate(input);
+			const success = errors.length === 0;
+			return {
+				success,
+				data: success ? input : null,
+				errors: errors.length > 0 ? errors : void 0
+			};
+		}
+	};
+}
+
+//#endregion
+//#region src/dialects/postgres/snapshot.ts
+const indexV2 = require_types.objectType({
+	name: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), require_types.objectType({ name: require_types.stringType() })),
+	isUnique: require_types.booleanType()
+}).strict();
+const columnV2 = require_types.objectType({
+	name: require_types.stringType(),
+	type: require_types.stringType(),
+	primaryKey: require_types.booleanType(),
+	notNull: require_types.booleanType(),
+	default: require_types.anyType().optional(),
+	references: require_types.stringType().optional()
+}).strict();
+const tableV2 = require_types.objectType({
+	name: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), columnV2),
+	indexes: require_types.recordType(require_types.stringType(), indexV2)
+}).strict();
+const enumSchemaV1 = require_types.objectType({
+	name: require_types.stringType(),
+	values: require_types.recordType(require_types.stringType(), require_types.stringType())
+}).strict();
+const enumSchema = require_types.objectType({
+	name: require_types.stringType(),
+	schema: require_types.stringType(),
+	values: require_types.stringType().array()
+}).strict();
+const pgSchemaV2 = require_types.objectType({
+	version: require_types.literalType("2"),
+	tables: require_types.recordType(require_types.stringType(), tableV2),
+	enums: require_types.recordType(require_types.stringType(), enumSchemaV1)
+}).strict();
+const references = require_types.objectType({
+	foreignKeyName: require_types.stringType(),
+	table: require_types.stringType(),
+	column: require_types.stringType(),
+	onDelete: require_types.stringType().optional(),
+	onUpdate: require_types.stringType().optional()
+}).strict();
+const columnV1 = require_types.objectType({
+	name: require_types.stringType(),
+	type: require_types.stringType(),
+	primaryKey: require_types.booleanType(),
+	notNull: require_types.booleanType(),
+	default: require_types.anyType().optional(),
+	references: references.optional()
+}).strict();
+const tableV1 = require_types.objectType({
+	name: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), columnV1),
+	indexes: require_types.recordType(require_types.stringType(), indexV2)
+}).strict();
+const pgSchemaV1 = require_types.objectType({
+	version: require_types.literalType("1"),
+	tables: require_types.recordType(require_types.stringType(), tableV1),
+	enums: require_types.recordType(require_types.stringType(), enumSchemaV1)
+}).strict();
+const indexColumn = require_types.objectType({
+	expression: require_types.stringType(),
+	isExpression: require_types.booleanType(),
+	asc: require_types.booleanType(),
+	nulls: require_types.stringType().optional(),
+	opclass: require_types.stringType().optional()
+});
+const index = require_types.objectType({
+	name: require_types.stringType(),
+	columns: indexColumn.array(),
+	isUnique: require_types.booleanType(),
+	with: require_types.recordType(require_types.stringType(), require_types.anyType()).optional(),
+	method: require_types.stringType().default("btree"),
+	where: require_types.stringType().optional(),
+	concurrently: require_types.booleanType().default(false)
+}).strict();
+const indexV4 = require_types.objectType({
+	name: require_types.stringType(),
+	columns: require_types.stringType().array(),
+	isUnique: require_types.booleanType(),
+	with: require_types.recordType(require_types.stringType(), require_types.stringType()).optional(),
+	method: require_types.stringType().default("btree"),
+	where: require_types.stringType().optional(),
+	concurrently: require_types.booleanType().default(false)
+}).strict();
+const indexV5 = require_types.objectType({
+	name: require_types.stringType(),
+	columns: require_types.stringType().array(),
+	isUnique: require_types.booleanType(),
+	with: require_types.recordType(require_types.stringType(), require_types.stringType()).optional(),
+	method: require_types.stringType().default("btree"),
+	where: require_types.stringType().optional(),
+	concurrently: require_types.booleanType().default(false)
+}).strict();
+const indexV6 = require_types.objectType({
+	name: require_types.stringType(),
+	columns: require_types.stringType().array(),
+	isUnique: require_types.booleanType(),
+	with: require_types.recordType(require_types.stringType(), require_types.stringType()).optional(),
+	method: require_types.stringType().default("btree"),
+	where: require_types.stringType().optional(),
+	concurrently: require_types.booleanType().default(false)
+}).strict();
+const fk = require_types.objectType({
+	name: require_types.stringType(),
+	tableFrom: require_types.stringType(),
+	columnsFrom: require_types.stringType().array(),
+	tableTo: require_types.stringType(),
+	schemaTo: require_types.stringType().optional(),
+	columnsTo: require_types.stringType().array(),
+	onUpdate: require_types.stringType().optional(),
+	onDelete: require_types.stringType().optional()
+}).strict();
+const sequenceSchema = require_types.objectType({
+	name: require_types.stringType(),
+	increment: require_types.stringType().optional(),
+	minValue: require_types.stringType().optional(),
+	maxValue: require_types.stringType().optional(),
+	startWith: require_types.stringType().optional(),
+	cache: require_types.stringType().optional(),
+	cycle: require_types.booleanType().optional(),
+	schema: require_types.stringType()
+}).strict();
+const identitySchema = sequenceSchema.omit({ schema: true }).merge(require_types.objectType({ type: require_types.enumType(["always", "byDefault"]) }));
+const roleSchema = require_types.objectType({
+	name: require_types.stringType(),
+	createDb: require_types.booleanType().optional(),
+	createRole: require_types.booleanType().optional(),
+	inherit: require_types.booleanType().optional()
+}).strict();
+const sequenceSquashed = require_types.objectType({
+	name: require_types.stringType(),
+	schema: require_types.stringType(),
+	values: require_types.stringType()
+}).strict();
+const columnV7 = require_types.objectType({
+	name: require_types.stringType(),
+	type: require_types.stringType(),
+	typeSchema: require_types.stringType().optional(),
+	primaryKey: require_types.booleanType(),
+	notNull: require_types.booleanType(),
+	default: require_types.anyType().optional(),
+	isUnique: require_types.anyType().optional(),
+	uniqueName: require_types.stringType().optional(),
+	nullsNotDistinct: require_types.booleanType().optional()
+}).strict();
+const column = require_types.objectType({
+	name: require_types.stringType(),
+	type: require_types.stringType(),
+	typeSchema: require_types.stringType().optional(),
+	primaryKey: require_types.booleanType(),
+	notNull: require_types.booleanType(),
+	default: require_types.anyType().optional(),
+	generated: require_types.objectType({
+		type: require_types.literalType("stored"),
+		as: require_types.stringType()
+	}).optional(),
+	identity: identitySchema.optional()
+}).strict();
+const checkConstraint = require_types.objectType({
+	name: require_types.stringType(),
+	value: require_types.stringType()
+}).strict();
+const columnSquashed = require_types.objectType({
+	name: require_types.stringType(),
+	type: require_types.stringType(),
+	typeSchema: require_types.stringType().optional(),
+	primaryKey: require_types.booleanType(),
+	notNull: require_types.booleanType(),
+	default: require_types.anyType().optional(),
+	isUnique: require_types.anyType().optional(),
+	uniqueName: require_types.stringType().optional(),
+	nullsNotDistinct: require_types.booleanType().optional(),
+	generated: require_types.objectType({
+		type: require_types.literalType("stored"),
+		as: require_types.stringType()
+	}).optional(),
+	identity: require_types.stringType().optional()
+}).strict();
+const tableV3 = require_types.objectType({
+	name: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), column),
+	indexes: require_types.recordType(require_types.stringType(), index),
+	foreignKeys: require_types.recordType(require_types.stringType(), fk)
+}).strict();
+const compositePK = require_types.objectType({
+	name: require_types.stringType(),
+	columns: require_types.stringType().array()
+}).strict();
+const uniqueConstraint = require_types.objectType({
+	name: require_types.stringType(),
+	columns: require_types.stringType().array(),
+	nullsNotDistinct: require_types.booleanType()
+}).strict();
+const policy = require_types.objectType({
+	name: require_types.stringType(),
+	as: require_types.enumType(["PERMISSIVE", "RESTRICTIVE"]).optional(),
+	for: require_types.enumType([
+		"ALL",
+		"SELECT",
+		"INSERT",
+		"UPDATE",
+		"DELETE"
+	]).optional(),
+	to: require_types.stringType().array().optional(),
+	using: require_types.stringType().optional(),
+	withCheck: require_types.stringType().optional(),
+	on: require_types.stringType().optional(),
+	schema: require_types.stringType().optional()
+}).strict();
+const policySquashed = require_types.objectType({
+	name: require_types.stringType(),
+	values: require_types.stringType()
+}).strict();
+const viewWithOption = require_types.objectType({
+	checkOption: require_types.enumType(["local", "cascaded"]).optional(),
+	securityBarrier: require_types.booleanType().optional(),
+	securityInvoker: require_types.booleanType().optional()
+}).strict();
+const matViewWithOption = require_types.objectType({
+	fillfactor: require_types.numberType().optional(),
+	toastTupleTarget: require_types.numberType().optional(),
+	parallelWorkers: require_types.numberType().optional(),
+	autovacuumEnabled: require_types.booleanType().optional(),
+	vacuumIndexCleanup: require_types.enumType([
+		"auto",
+		"off",
+		"on"
+	]).optional(),
+	vacuumTruncate: require_types.booleanType().optional(),
+	autovacuumVacuumThreshold: require_types.numberType().optional(),
+	autovacuumVacuumScaleFactor: require_types.numberType().optional(),
+	autovacuumVacuumCostDelay: require_types.numberType().optional(),
+	autovacuumVacuumCostLimit: require_types.numberType().optional(),
+	autovacuumFreezeMinAge: require_types.numberType().optional(),
+	autovacuumFreezeMaxAge: require_types.numberType().optional(),
+	autovacuumFreezeTableAge: require_types.numberType().optional(),
+	autovacuumMultixactFreezeMinAge: require_types.numberType().optional(),
+	autovacuumMultixactFreezeMaxAge: require_types.numberType().optional(),
+	autovacuumMultixactFreezeTableAge: require_types.numberType().optional(),
+	logAutovacuumMinDuration: require_types.numberType().optional(),
+	userCatalogTable: require_types.booleanType().optional()
+}).strict();
+const mergedViewWithOption = viewWithOption.merge(matViewWithOption).strict();
+const view = require_types.objectType({
+	name: require_types.stringType(),
+	schema: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), column),
+	definition: require_types.stringType().optional(),
+	materialized: require_types.booleanType(),
+	with: mergedViewWithOption.optional(),
+	isExisting: require_types.booleanType(),
+	withNoData: require_types.booleanType().optional(),
+	using: require_types.stringType().optional(),
+	tablespace: require_types.stringType().optional()
+}).strict();
+const tableV4 = require_types.objectType({
+	name: require_types.stringType(),
+	schema: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), column),
+	indexes: require_types.recordType(require_types.stringType(), indexV4),
+	foreignKeys: require_types.recordType(require_types.stringType(), fk)
+}).strict();
+const tableV5 = require_types.objectType({
+	name: require_types.stringType(),
+	schema: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), column),
+	indexes: require_types.recordType(require_types.stringType(), indexV5),
+	foreignKeys: require_types.recordType(require_types.stringType(), fk),
+	compositePrimaryKeys: require_types.recordType(require_types.stringType(), compositePK),
+	uniqueConstraints: require_types.recordType(require_types.stringType(), uniqueConstraint).default({})
+}).strict();
+const tableV6 = require_types.objectType({
+	name: require_types.stringType(),
+	schema: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), column),
+	indexes: require_types.recordType(require_types.stringType(), indexV6),
+	foreignKeys: require_types.recordType(require_types.stringType(), fk),
+	compositePrimaryKeys: require_types.recordType(require_types.stringType(), compositePK),
+	uniqueConstraints: require_types.recordType(require_types.stringType(), uniqueConstraint).default({})
+}).strict();
+const tableV7 = require_types.objectType({
+	name: require_types.stringType(),
+	schema: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), columnV7),
+	indexes: require_types.recordType(require_types.stringType(), index),
+	foreignKeys: require_types.recordType(require_types.stringType(), fk),
+	compositePrimaryKeys: require_types.recordType(require_types.stringType(), compositePK),
+	uniqueConstraints: require_types.recordType(require_types.stringType(), uniqueConstraint).default({})
+}).strict();
+const table = require_types.objectType({
+	name: require_types.stringType(),
+	schema: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), column),
+	indexes: require_types.recordType(require_types.stringType(), index),
+	foreignKeys: require_types.recordType(require_types.stringType(), fk),
+	compositePrimaryKeys: require_types.recordType(require_types.stringType(), compositePK),
+	uniqueConstraints: require_types.recordType(require_types.stringType(), uniqueConstraint).default({}),
+	policies: require_types.recordType(require_types.stringType(), policy).default({}),
+	checkConstraints: require_types.recordType(require_types.stringType(), checkConstraint).default({}),
+	isRLSEnabled: require_types.booleanType().default(false).optional()
+}).strict();
+const schemaHash = require_types.objectType({
+	id: require_types.stringType(),
+	prevIds: require_types.arrayType(require_types.stringType())
+});
+const schemaHashV7 = require_types.objectType({
+	id: require_types.stringType(),
+	prevId: require_types.stringType()
+});
+const kitInternals = require_types.objectType({ tables: require_types.recordType(require_types.stringType(), require_types.objectType({ columns: require_types.recordType(require_types.stringType(), require_types.objectType({
+	isArray: require_types.booleanType().optional(),
+	dimensions: require_types.numberType().optional(),
+	rawType: require_types.stringType().optional(),
+	isDefaultAnExpression: require_types.booleanType().optional()
+}).optional()) }).optional()) }).optional();
+const pgSchemaInternalV3 = require_types.objectType({
+	version: require_types.literalType("3"),
+	dialect: require_types.literalType("pg"),
+	tables: require_types.recordType(require_types.stringType(), tableV3),
+	enums: require_types.recordType(require_types.stringType(), enumSchemaV1)
+}).strict();
+const pgSchemaInternalV4 = require_types.objectType({
+	version: require_types.literalType("4"),
+	dialect: require_types.literalType("pg"),
+	tables: require_types.recordType(require_types.stringType(), tableV4),
+	enums: require_types.recordType(require_types.stringType(), enumSchemaV1),
+	schemas: require_types.recordType(require_types.stringType(), require_types.stringType())
+}).strict();
+const pgSchemaInternalV5 = require_types.objectType({
+	version: require_types.literalType("5"),
+	dialect: require_types.literalType("pg"),
+	tables: require_types.recordType(require_types.stringType(), tableV5),
+	enums: require_types.recordType(require_types.stringType(), enumSchemaV1),
+	schemas: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	_meta: require_types.objectType({
+		schemas: require_types.recordType(require_types.stringType(), require_types.stringType()),
+		tables: require_types.recordType(require_types.stringType(), require_types.stringType()),
+		columns: require_types.recordType(require_types.stringType(), require_types.stringType())
+	}),
+	internal: kitInternals
+}).strict();
+const pgSchemaInternalV6 = require_types.objectType({
+	version: require_types.literalType("6"),
+	dialect: require_types.literalType("postgresql"),
+	tables: require_types.recordType(require_types.stringType(), tableV6),
+	enums: require_types.recordType(require_types.stringType(), enumSchema),
+	schemas: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	_meta: require_types.objectType({
+		schemas: require_types.recordType(require_types.stringType(), require_types.stringType()),
+		tables: require_types.recordType(require_types.stringType(), require_types.stringType()),
+		columns: require_types.recordType(require_types.stringType(), require_types.stringType())
+	}),
+	internal: kitInternals
+}).strict();
+const pgSchemaExternal = require_types.objectType({
+	version: require_types.literalType("5"),
+	dialect: require_types.literalType("pg"),
+	tables: require_types.arrayType(table),
+	enums: require_types.arrayType(enumSchemaV1),
+	schemas: require_types.arrayType(require_types.objectType({ name: require_types.stringType() })),
+	_meta: require_types.objectType({
+		schemas: require_types.recordType(require_types.stringType(), require_types.stringType()),
+		tables: require_types.recordType(require_types.stringType(), require_types.stringType()),
+		columns: require_types.recordType(require_types.stringType(), require_types.stringType())
+	})
+}).strict();
+const pgSchemaInternalV7 = require_types.objectType({
+	version: require_types.literalType("7"),
+	dialect: require_types.literalType("postgresql"),
+	tables: require_types.recordType(require_types.stringType(), tableV7),
+	enums: require_types.recordType(require_types.stringType(), enumSchema),
+	schemas: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	sequences: require_types.recordType(require_types.stringType(), sequenceSchema),
+	_meta: require_types.objectType({
+		schemas: require_types.recordType(require_types.stringType(), require_types.stringType()),
+		tables: require_types.recordType(require_types.stringType(), require_types.stringType()),
+		columns: require_types.recordType(require_types.stringType(), require_types.stringType())
+	}),
+	internal: kitInternals
+}).strict();
+const pgSchemaInternal = require_types.objectType({
+	version: require_types.literalType("7"),
+	dialect: require_types.literalType("postgresql"),
+	tables: require_types.recordType(require_types.stringType(), table),
+	enums: require_types.recordType(require_types.stringType(), enumSchema),
+	schemas: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	views: require_types.recordType(require_types.stringType(), view).default({}),
+	sequences: require_types.recordType(require_types.stringType(), sequenceSchema).default({}),
+	roles: require_types.recordType(require_types.stringType(), roleSchema).default({}),
+	policies: require_types.recordType(require_types.stringType(), policy).default({}),
+	_meta: require_types.objectType({
+		schemas: require_types.recordType(require_types.stringType(), require_types.stringType()),
+		tables: require_types.recordType(require_types.stringType(), require_types.stringType()),
+		columns: require_types.recordType(require_types.stringType(), require_types.stringType())
+	}),
+	internal: kitInternals
+}).strict();
+const tableSquashed = require_types.objectType({
+	name: require_types.stringType(),
+	schema: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), columnSquashed),
+	indexes: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	foreignKeys: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	compositePrimaryKeys: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	uniqueConstraints: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	policies: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	checkConstraints: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	isRLSEnabled: require_types.booleanType().default(false)
+}).strict();
+const tableSquashedV4 = require_types.objectType({
+	name: require_types.stringType(),
+	schema: require_types.stringType(),
+	columns: require_types.recordType(require_types.stringType(), column),
+	indexes: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	foreignKeys: require_types.recordType(require_types.stringType(), require_types.stringType())
+}).strict();
+const pgSchemaSquashedV4 = require_types.objectType({
+	version: require_types.literalType("4"),
+	dialect: require_types.literalType("pg"),
+	tables: require_types.recordType(require_types.stringType(), tableSquashedV4),
+	enums: require_types.recordType(require_types.stringType(), enumSchemaV1),
+	schemas: require_types.recordType(require_types.stringType(), require_types.stringType())
+}).strict();
+const pgSchemaSquashedV6 = require_types.objectType({
+	version: require_types.literalType("6"),
+	dialect: require_types.literalType("postgresql"),
+	tables: require_types.recordType(require_types.stringType(), tableSquashed),
+	enums: require_types.recordType(require_types.stringType(), enumSchema),
+	schemas: require_types.recordType(require_types.stringType(), require_types.stringType())
+}).strict();
+const pgSchemaSquashed = require_types.objectType({
+	version: require_types.literalType("7"),
+	dialect: require_types.literalType("postgresql"),
+	tables: require_types.recordType(require_types.stringType(), tableSquashed),
+	enums: require_types.recordType(require_types.stringType(), enumSchema),
+	schemas: require_types.recordType(require_types.stringType(), require_types.stringType()),
+	views: require_types.recordType(require_types.stringType(), view),
+	sequences: require_types.recordType(require_types.stringType(), sequenceSquashed),
+	roles: require_types.recordType(require_types.stringType(), roleSchema).default({}),
+	policies: require_types.recordType(require_types.stringType(), policySquashed).default({})
+}).strict();
+const pgSchemaV3 = pgSchemaInternalV3.merge(schemaHash);
+const pgSchemaV4 = pgSchemaInternalV4.merge(schemaHash);
+const pgSchemaV5 = pgSchemaInternalV5.merge(schemaHash);
+const pgSchemaV6 = pgSchemaInternalV6.merge(schemaHash);
+const pgSchemaV7 = pgSchemaInternal.merge(schemaHashV7);
+const pgSchema = pgSchemaInternal.merge(schemaHash);
+const toJsonSnapshot = (ddl$1, prevIds, renames) => {
+	return {
+		dialect: "postgres",
+		id: (0, crypto.randomUUID)(),
+		prevIds,
+		version: "8",
+		ddl: ddl$1.entities.list(),
+		renames
+	};
+};
+const ddl = require_ddl.createDDL();
+const snapshotValidator = validator({
+	version: ["8"],
+	dialect: ["postgres"],
+	id: "string",
+	prevIds: array((_) => true),
+	ddl: array((it) => {
+		const res = ddl.entities.validate(it);
+		if (!res) console.log(it);
+		return res;
+	}),
+	renames: array((_) => true)
+});
+const drySnapshot = snapshotValidator.strict({
+	version: "8",
+	dialect: "postgres",
+	id: require_utils.originUUID,
+	prevIds: [],
+	ddl: [],
+	renames: []
+});
+
+//#endregion
+Object.defineProperty(exports, 'array', {
+  enumerable: true,
+  get: function () {
+    return array;
+  }
+});
+Object.defineProperty(exports, 'identitySchema', {
+  enumerable: true,
+  get: function () {
+    return identitySchema;
+  }
+});
+Object.defineProperty(exports, 'kitInternals', {
+  enumerable: true,
+  get: function () {
+    return kitInternals;
+  }
+});
+Object.defineProperty(exports, 'mergedViewWithOption', {
+  enumerable: true,
+  get: function () {
+    return mergedViewWithOption;
+  }
+});
+Object.defineProperty(exports, 'pgSchemaInternal', {
+  enumerable: true,
+  get: function () {
+    return pgSchemaInternal;
+  }
+});
+Object.defineProperty(exports, 'pgSchemaInternalV3', {
+  enumerable: true,
+  get: function () {
+    return pgSchemaInternalV3;
+  }
+});
+Object.defineProperty(exports, 'pgSchemaInternalV4', {
+  enumerable: true,
+  get: function () {
+    return pgSchemaInternalV4;
+  }
+});
+Object.defineProperty(exports, 'pgSchemaInternalV5', {
+  enumerable: true,
+  get: function () {
+    return pgSchemaInternalV5;
+  }
+});
+Object.defineProperty(exports, 'pgSchemaInternalV6', {
+  enumerable: true,
+  get: function () {
+    return pgSchemaInternalV6;
+  }
+});
+Object.defineProperty(exports, 'policy', {
+  enumerable: true,
+  get: function () {
+    return policy;
+  }
+});
+Object.defineProperty(exports, 'policySquashed', {
+  enumerable: true,
+  get: function () {
+    return policySquashed;
+  }
+});
+Object.defineProperty(exports, 'roleSchema', {
+  enumerable: true,
+  get: function () {
+    return roleSchema;
+  }
+});
+Object.defineProperty(exports, 'sequenceSchema', {
+  enumerable: true,
+  get: function () {
+    return sequenceSchema;
+  }
+});
+Object.defineProperty(exports, 'sequenceSquashed', {
+  enumerable: true,
+  get: function () {
+    return sequenceSquashed;
+  }
+});
+Object.defineProperty(exports, 'snapshotValidator', {
+  enumerable: true,
+  get: function () {
+    return snapshotValidator;
+  }
+});
+Object.defineProperty(exports, 'toJsonSnapshot', {
+  enumerable: true,
+  get: function () {
+    return toJsonSnapshot;
+  }
+});
+Object.defineProperty(exports, 'validator', {
+  enumerable: true,
+  get: function () {
+    return validator;
+  }
+});
+Object.defineProperty(exports, 'view', {
+  enumerable: true,
+  get: function () {
+    return view;
+  }
+});

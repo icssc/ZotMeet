@@ -1,0 +1,9 @@
+import { NodeCockroachDatabase } from "./driver.js";
+import * as __migrator_ts21 from "../migrator.js";
+import { MigrationConfig } from "../migrator.js";
+
+//#region src/cockroach/migrator.d.ts
+declare function migrate<TSchema extends Record<string, unknown>>(db: NodeCockroachDatabase<TSchema>, config: MigrationConfig): Promise<void | __migrator_ts21.MigratorInitFailResponse>;
+//#endregion
+export { migrate };
+//# sourceMappingURL=migrator.d.ts.map

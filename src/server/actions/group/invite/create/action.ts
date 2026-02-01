@@ -11,11 +11,8 @@ import {
 	type SelectGroupInviteResponse,
 	usersInGroup,
 } from "@/db/schema";
-//session
-//db functions
 import { getCurrentSession } from "@/lib/auth";
 import { getExistingInvite } from "@/server/data/groups/invite-queries";
-//good prac to read through queries to see what func we can use
 import {
 	getExistingGroup,
 	isGroupCreator,
@@ -104,9 +101,14 @@ export async function createGroupInvite(
 		};
 	} catch (error) {
 		console.error("Failed to create invite:", error);
+		const isProduction =
+			process.env.NODE_ENV === "production" &&
+			!process.env.NEXT_PUBLIC_BASE_URL?.includes("staging");
+		const errorDetail =
+			!isProduction && error instanceof Error ? ` (${error.message})` : "";
 		return {
 			success: false,
-			message: "Failed to create invite. Please try again.",
+			message: `Failed to create invite. Please try again.${errorDetail}`,
 		};
 	}
 }

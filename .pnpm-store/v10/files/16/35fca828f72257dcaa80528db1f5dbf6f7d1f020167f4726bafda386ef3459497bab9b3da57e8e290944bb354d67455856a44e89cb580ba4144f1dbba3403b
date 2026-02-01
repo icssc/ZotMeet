@@ -1,0 +1,48 @@
+import { bigintT } from "./bigintT.cjs";
+import { boolean } from "./boolean.cjs";
+import { bytes } from "./bytes.cjs";
+import { customType } from "./custom.cjs";
+import { dateDuration } from "./date-duration.cjs";
+import { decimal } from "./decimal.cjs";
+import { doublePrecision } from "./double-precision.cjs";
+import { duration } from "./duration.cjs";
+import { integer } from "./integer.cjs";
+import { json } from "./json.cjs";
+import { localDate } from "./localdate.cjs";
+import { localTime } from "./localtime.cjs";
+import { real } from "./real.cjs";
+import { relDuration } from "./relative-duration.cjs";
+import { smallint } from "./smallint.cjs";
+import { text } from "./text.cjs";
+import { timestamp } from "./timestamp.cjs";
+import { timestamptz } from "./timestamptz.cjs";
+import { uuid } from "./uuid.cjs";
+import { bigint } from "./bigint.cjs";
+
+//#region src/gel-core/columns/all.d.ts
+declare function getGelColumnBuilders(): {
+  localDate: typeof localDate;
+  localTime: typeof localTime;
+  decimal: typeof decimal;
+  dateDuration: typeof dateDuration;
+  bigintT: typeof bigintT;
+  duration: typeof duration;
+  relDuration: typeof relDuration;
+  bytes: typeof bytes;
+  customType: typeof customType;
+  bigint: typeof bigint;
+  boolean: typeof boolean;
+  doublePrecision: typeof doublePrecision;
+  integer: typeof integer;
+  json: typeof json;
+  real: typeof real;
+  smallint: typeof smallint;
+  text: typeof text;
+  timestamptz: typeof timestamptz;
+  uuid: typeof uuid;
+  timestamp: typeof timestamp;
+};
+type GelColumnsBuilders = ReturnType<typeof getGelColumnBuilders>;
+//#endregion
+export { GelColumnsBuilders, getGelColumnBuilders };
+//# sourceMappingURL=all.d.cts.map

@@ -1,0 +1,457 @@
+const require_chunk = require('./chunk-CdAKIUsw.js');
+const require_ddl = require('./ddl-SsGc2gVn.js');
+const require_utils = require('./utils-D2E5ChQ0.js');
+const require_grammar = require('./grammar-B2XVJ90y.js');
+
+//#region src/dialects/postgres/versions.ts
+const upToV8 = (it) => {
+	if (Number(it.version) < 7) return upToV8(updateUpToV7(it));
+	const json = it;
+	const hints = [];
+	const ddl = require_ddl.createDDL();
+	for (const schema of Object.values(json.schemas)) ddl.schemas.push({ name: schema });
+	if (json.sequences) for (const seq of Object.values(json.sequences)) ddl.sequences.push({
+		schema: seq.schema,
+		name: seq.name,
+		startWith: seq.startWith ?? null,
+		incrementBy: seq.increment ?? null,
+		minValue: seq.minValue ?? null,
+		maxValue: seq.maxValue ?? null,
+		cacheSize: seq.cache ? Number(seq.cache) : null,
+		cycle: seq.cycle ?? null
+	});
+	for (const table of Object.values(json.tables)) {
+		const schema = table.schema || "public";
+		const isRlsEnabled = table.isRLSEnabled || Object.keys(table.policies ?? {}).length > 0 || Object.values(json.policies ?? {}).some((it$1) => it$1.on === table.name && (it$1.schema ?? "public") === schema);
+		ddl.tables.push({
+			schema,
+			name: table.name,
+			isRlsEnabled
+		});
+		for (const column of Object.values(table.columns)) {
+			if (column.primaryKey) ddl.pks.push({
+				schema,
+				table: table.name,
+				columns: [column.name],
+				name: require_grammar.defaultNameForPK(table.name),
+				nameExplicit: false
+			});
+			const [baseType, dimensions] = extractBaseTypeAndDimensions(column.type);
+			let fixedType = baseType.startsWith("numeric(") ? baseType.replace(", ", ",") : baseType;
+			ddl.columns.push({
+				schema,
+				table: table.name,
+				name: column.name,
+				type: fixedType,
+				notNull: column.notNull,
+				typeSchema: column.typeSchema ?? null,
+				dimensions,
+				generated: column.generated ?? null,
+				identity: column.identity ? {
+					name: column.identity.name,
+					type: column.identity.type,
+					startWith: column.identity.startWith ?? null,
+					minValue: column.identity.minValue ?? null,
+					maxValue: column.identity.maxValue ?? null,
+					increment: column.identity.increment ?? null,
+					cache: column.identity.cache ? Number(column.identity.cache) : null,
+					cycle: column.identity.cycle ?? null
+				} : null,
+				default: typeof column.default === "undefined" ? null : require_grammar.trimDefaultValueSuffix(String(column.default))
+			});
+		}
+		if (table.compositePrimaryKeys) for (const pk of Object.values(table.compositePrimaryKeys)) {
+			const nameExplicit = `${table.name}_${pk.columns.join("_")}_pk` !== pk.name;
+			if (!nameExplicit) hints.push(`update pk name: ${pk.name} -> ${require_grammar.defaultNameForPK(table.name)}`);
+			ddl.pks.push({
+				schema,
+				table: table.name,
+				name: pk.name,
+				columns: pk.columns,
+				nameExplicit
+			});
+		}
+		if (table.uniqueConstraints) for (const unique of Object.values(table.uniqueConstraints)) {
+			const nameExplicit = `${table.name}_${unique.columns.join("_")}_unique` !== unique.name;
+			if (!nameExplicit) hints.push(`update unique name: ${unique.name} -> ${require_grammar.defaultNameForUnique(table.name, ...unique.columns)}`);
+			ddl.uniques.push({
+				schema,
+				table: table.name,
+				columns: unique.columns,
+				name: unique.name,
+				nameExplicit,
+				nullsNotDistinct: unique.nullsNotDistinct ?? require_grammar.defaults.nullsNotDistinct
+			});
+		}
+		for (const check of Object.values(table.checkConstraints ?? {})) ddl.checks.push({
+			schema,
+			table: table.name,
+			name: check.name,
+			value: check.value
+		});
+		for (const idx of Object.values(table.indexes)) {
+			const columns = idx.columns.map((it$1) => {
+				return {
+					value: it$1.expression,
+					isExpression: it$1.isExpression,
+					asc: it$1.asc,
+					nullsFirst: it$1.nulls ? it$1.nulls !== "last" : false,
+					opclass: it$1.opclass ? {
+						name: it$1.opclass,
+						default: false
+					} : null
+				};
+			});
+			const nameExplicit = columns.some((it$1) => it$1.isExpression === true) || `${table.name}_${columns.map((it$1) => it$1.value).join("_")}_index` !== idx.name;
+			if (!nameExplicit) hints.push(`rename index name: ${idx.name} -> ${require_grammar.defaultNameForIndex(table.name, idx.columns.map((x) => x.expression))}`);
+			ddl.indexes.push({
+				schema,
+				table: table.name,
+				name: idx.name,
+				columns,
+				isUnique: idx.isUnique,
+				method: idx.method,
+				concurrently: idx.concurrently,
+				where: idx.where ?? null,
+				with: idx.with && Object.keys(idx.with).length > 0 ? Object.entries(idx.with).map((it$1) => `${it$1[0]}=${it$1[1]}`).join(",") : "",
+				nameExplicit
+			});
+		}
+		for (const fk of Object.values(table.foreignKeys)) {
+			const nameExplicit = `${fk.tableFrom}_${fk.columnsFrom.join("_")}_${fk.tableTo}_${fk.columnsTo.join("_")}_fk` !== fk.name;
+			const name = fk.name.length < 63 ? fk.name : fk.name.slice(0, 63);
+			ddl.fks.push({
+				schema,
+				name,
+				nameExplicit,
+				table: fk.tableFrom,
+				columns: fk.columnsFrom,
+				schemaTo: fk.schemaTo || "public",
+				tableTo: fk.tableTo,
+				columnsTo: fk.columnsTo,
+				onDelete: fk.onDelete?.toUpperCase() ?? "NO ACTION",
+				onUpdate: fk.onUpdate?.toUpperCase() ?? "NO ACTION"
+			});
+		}
+		for (const policy of Object.values(table.policies ?? {})) ddl.policies.push({
+			schema,
+			table: table.name,
+			name: policy.name,
+			as: policy.as ?? "PERMISSIVE",
+			for: policy.for ?? "ALL",
+			roles: policy.to ?? [],
+			using: policy.using ?? null,
+			withCheck: policy.withCheck ?? null
+		});
+	}
+	for (const en of Object.values(json.enums)) ddl.enums.push({
+		schema: en.schema,
+		name: en.name,
+		values: en.values
+	});
+	for (const role of Object.values(json.roles ?? {})) ddl.roles.push({
+		name: role.name,
+		createRole: role.createRole,
+		createDb: role.createDb,
+		inherit: role.inherit,
+		bypassRls: null,
+		canLogin: null,
+		connLimit: null,
+		password: null,
+		replication: null,
+		superuser: null,
+		validUntil: null
+	});
+	for (const policy of Object.values(json.policies ?? {})) ddl.policies.push({
+		schema: policy.schema ?? "public",
+		table: policy.on,
+		name: policy.name,
+		as: policy.as ?? "PERMISSIVE",
+		roles: policy.to ?? [],
+		for: policy.for ?? "ALL",
+		using: policy.using ?? null,
+		withCheck: policy.withCheck ?? null
+	});
+	for (const v of Object.values(json.views ?? {})) {
+		if (v.isExisting) continue;
+		const opt = v.with;
+		ddl.views.push({
+			schema: v.schema,
+			name: v.name,
+			definition: v.definition ?? null,
+			tablespace: v.tablespace ?? null,
+			withNoData: v.withNoData ?? null,
+			using: v.using ?? null,
+			with: opt ? {
+				checkOption: require_grammar.getOrNull(opt, "checkOption"),
+				securityBarrier: require_grammar.getOrNull(opt, "securityBarrier"),
+				securityInvoker: require_grammar.getOrNull(opt, "securityInvoker"),
+				autovacuumEnabled: require_grammar.getOrNull(opt, "autovacuumEnabled"),
+				autovacuumFreezeMaxAge: require_grammar.getOrNull(opt, "autovacuumFreezeMaxAge"),
+				autovacuumFreezeMinAge: require_grammar.getOrNull(opt, "autovacuumFreezeMinAge"),
+				autovacuumFreezeTableAge: require_grammar.getOrNull(opt, "autovacuumFreezeTableAge"),
+				autovacuumMultixactFreezeMaxAge: require_grammar.getOrNull(opt, "autovacuumMultixactFreezeMaxAge"),
+				autovacuumMultixactFreezeMinAge: require_grammar.getOrNull(opt, "autovacuumMultixactFreezeMinAge"),
+				autovacuumMultixactFreezeTableAge: require_grammar.getOrNull(opt, "autovacuumMultixactFreezeTableAge"),
+				autovacuumVacuumCostDelay: require_grammar.getOrNull(opt, "autovacuumVacuumCostDelay"),
+				autovacuumVacuumCostLimit: require_grammar.getOrNull(opt, "autovacuumVacuumCostLimit"),
+				autovacuumVacuumScaleFactor: require_grammar.getOrNull(opt, "autovacuumVacuumScaleFactor"),
+				autovacuumVacuumThreshold: require_grammar.getOrNull(opt, "autovacuumVacuumThreshold"),
+				fillfactor: require_grammar.getOrNull(opt, "fillfactor"),
+				logAutovacuumMinDuration: require_grammar.getOrNull(opt, "logAutovacuumMinDuration"),
+				parallelWorkers: require_grammar.getOrNull(opt, "parallelWorkers"),
+				toastTupleTarget: require_grammar.getOrNull(opt, "toastTupleTarget"),
+				userCatalogTable: require_grammar.getOrNull(opt, "userCatalogTable"),
+				vacuumIndexCleanup: require_grammar.getOrNull(opt, "vacuumIndexCleanup"),
+				vacuumTruncate: require_grammar.getOrNull(opt, "vacuumTruncate")
+			} : null,
+			materialized: v.materialized
+		});
+	}
+	const renames = [
+		...Object.entries(json._meta.tables).map(([k, v]) => `${v}->${k}`),
+		...Object.entries(json._meta.schemas).map(([k, v]) => `${v}->${k}`),
+		...Object.entries(json._meta.columns).map(([k, v]) => `${v}->${k}`)
+	];
+	return {
+		snapshot: {
+			id: json.id,
+			prevIds: [json.prevId],
+			version: "8",
+			dialect: "postgres",
+			ddl: ddl.entities.list(),
+			renames
+		},
+		hints
+	};
+};
+const extractBaseTypeAndDimensions = (it) => {
+	const dimensionRegex = /\[[^\]]*\]/g;
+	const count = (it.match(dimensionRegex) || []).length;
+	return [it.replace(dimensionRegex, ""), count];
+};
+const updateUpToV7 = (it) => {
+	if (Number(it.version) < 6) return updateUpToV7(updateUpToV6(it));
+	const schema = it;
+	const tables = Object.fromEntries(Object.entries(schema.tables).map((it$1) => {
+		const table = it$1[1];
+		const mappedIndexes = Object.fromEntries(Object.entries(table.indexes).map((idx) => {
+			const { columns, ...rest } = idx[1];
+			const mappedColumns = columns.map((it$2) => {
+				return {
+					expression: it$2,
+					isExpression: false,
+					asc: true,
+					nulls: "last",
+					opClass: void 0
+				};
+			});
+			return [idx[0], {
+				columns: mappedColumns,
+				with: {},
+				...rest
+			}];
+		}));
+		return [it$1[0], {
+			...table,
+			indexes: mappedIndexes,
+			policies: {},
+			isRLSEnabled: false,
+			checkConstraints: {}
+		}];
+	}));
+	return {
+		...schema,
+		version: "7",
+		dialect: "postgresql",
+		sequences: {},
+		tables,
+		policies: {},
+		views: {},
+		roles: {}
+	};
+};
+const updateUpToV6 = (it) => {
+	if (Number(it.version) < 5) return updateUpToV6(updateToV5(it));
+	const schema = it;
+	const tables = Object.fromEntries(Object.entries(schema.tables).map((it$1) => {
+		const table = it$1[1];
+		return [`${table.schema || "public"}.${table.name}`, table];
+	}));
+	const enums = Object.fromEntries(Object.entries(schema.enums).map((it$1) => {
+		const en = it$1[1];
+		return [`public.${en.name}`, {
+			name: en.name,
+			schema: "public",
+			values: Object.values(en.values)
+		}];
+	}));
+	return {
+		...schema,
+		version: "6",
+		dialect: "postgresql",
+		tables,
+		enums
+	};
+};
+const updateToV5 = (it) => {
+	if (Number(it.version) < 4) throw new Error("Snapshot version <4");
+	const obj = it;
+	const mappedTables = {};
+	for (const [key, table] of Object.entries(obj.tables)) {
+		const mappedColumns = {};
+		for (const [ckey, column] of Object.entries(table.columns)) {
+			let newDefault = column.default;
+			let newType = column.type;
+			if (column.type.toLowerCase() === "date") {
+				if (typeof column.default !== "undefined") if (column.default.startsWith("'") && column.default.endsWith("'")) newDefault = `'${column.default.substring(1, column.default.length - 1).split("T")[0]}'`;
+				else newDefault = column.default.split("T")[0];
+			} else if (column.type.toLowerCase().startsWith("timestamp")) {
+				if (typeof column.default !== "undefined") if (column.default.startsWith("'") && column.default.endsWith("'")) newDefault = `'${column.default.substring(1, column.default.length - 1).replace("T", " ").slice(0, 23)}'`;
+				else newDefault = column.default.replace("T", " ").slice(0, 23);
+				newType = column.type.toLowerCase().replace("timestamp (", "timestamp(");
+			} else if (column.type.toLowerCase().startsWith("time")) newType = column.type.toLowerCase().replace("time (", "time(");
+			else if (column.type.toLowerCase().startsWith("interval")) newType = column.type.toLowerCase().replace(" (", "(");
+			mappedColumns[ckey] = {
+				...column,
+				default: newDefault,
+				type: newType
+			};
+		}
+		mappedTables[key] = {
+			...table,
+			columns: mappedColumns,
+			compositePrimaryKeys: {},
+			uniqueConstraints: {}
+		};
+	}
+	return {
+		version: "5",
+		dialect: obj.dialect,
+		id: obj.id,
+		prevIds: obj.prevIds,
+		tables: mappedTables,
+		enums: obj.enums,
+		schemas: obj.schemas,
+		_meta: {
+			schemas: {},
+			tables: {},
+			columns: {}
+		}
+	};
+};
+
+//#endregion
+//#region src/ext/api-postgres.ts
+const generateDrizzleJson = async (imports, prevId, schemaFilters, casing) => {
+	const { prepareEntityFilter } = await Promise.resolve().then(() => require("./pull-utils-CrV6D2HD.js"));
+	const { postgresSchemaError, postgresSchemaWarning } = await Promise.resolve().then(() => require("./views-BBN9LqYh.js"));
+	const { toJsonSnapshot } = await Promise.resolve().then(() => require("./snapshot-BYJnEA9-.js"));
+	const { fromDrizzleSchema, fromExports } = await Promise.resolve().then(() => require("./drizzle-DrG0_f4e.js"));
+	const { extractPostgresExisting } = await Promise.resolve().then(() => require("./drizzle-C5dbiai5.js"));
+	const prepared = fromExports(imports);
+	const existing = extractPostgresExisting(prepared.schemas, prepared.views, prepared.matViews);
+	const { schema: interim, errors, warnings } = fromDrizzleSchema(prepared, casing, prepareEntityFilter("postgresql", {
+		schemas: schemaFilters ?? [],
+		tables: [],
+		entities: void 0,
+		extensions: []
+	}, existing));
+	const { ddl, errors: err2 } = require_ddl.interimToDDL(interim);
+	if (warnings.length > 0) console.log(warnings.map((it) => postgresSchemaWarning(it)).join("\n\n"));
+	if (errors.length > 0) {
+		console.log(errors.map((it) => postgresSchemaError(it)).join("\n"));
+		process.exit(1);
+	}
+	if (err2.length > 0) {
+		console.log(err2.map((it) => postgresSchemaError(it)).join("\n"));
+		process.exit(1);
+	}
+	return toJsonSnapshot(ddl, prevId ? [prevId] : [require_utils.originUUID], []);
+};
+const generateMigration = async (prev, cur) => {
+	const { resolver } = await Promise.resolve().then(() => require("./prompts-4ijwXPKB.js"));
+	const { ddlDiff } = await Promise.resolve().then(() => require("./diff-Cm7kIF-O.js"));
+	const from = require_ddl.createDDL();
+	const to = require_ddl.createDDL();
+	for (const it of prev.ddl) from.entities.push(it);
+	for (const it of cur.ddl) to.entities.push(it);
+	const { sqlStatements } = await ddlDiff(from, to, resolver("schema"), resolver("enum"), resolver("sequence"), resolver("policy"), resolver("role"), resolver("privilege"), resolver("table"), resolver("column"), resolver("view"), resolver("unique"), resolver("index"), resolver("check"), resolver("primary key"), resolver("foreign key"), "default");
+	return sqlStatements;
+};
+const pushSchema = async (imports, drizzleInstance, casing, entitiesConfig, migrationsConfig) => {
+	const { prepareEntityFilter } = await Promise.resolve().then(() => require("./pull-utils-CrV6D2HD.js"));
+	const { resolver } = await Promise.resolve().then(() => require("./prompts-4ijwXPKB.js"));
+	const { fromDatabaseForDrizzle } = await Promise.resolve().then(() => require("./introspect-NQfgH1Vi.js"));
+	const { fromDrizzleSchema, fromExports } = await Promise.resolve().then(() => require("./drizzle-DrG0_f4e.js"));
+	const { suggestions } = await Promise.resolve().then(() => require("./push-postgres-B6GaSkUT.js"));
+	const { extractPostgresExisting } = await Promise.resolve().then(() => require("./drizzle-C5dbiai5.js"));
+	const { ddlDiff } = await Promise.resolve().then(() => require("./diff-Cm7kIF-O.js"));
+	const { sql } = require("drizzle-orm");
+	const migrations = {
+		schema: migrationsConfig?.schema || "drizzle",
+		table: migrationsConfig?.table || "__drizzle_migrations"
+	};
+	const db = { query: async (query, _params) => {
+		return (await drizzleInstance.execute(sql.raw(query))).rows;
+	} };
+	const prepared = fromExports(imports);
+	const filter = prepareEntityFilter("postgresql", entitiesConfig ?? {
+		tables: [],
+		schemas: [],
+		extensions: [],
+		entities: void 0
+	}, extractPostgresExisting(prepared.schemas, prepared.views, prepared.matViews));
+	const prev = await fromDatabaseForDrizzle(db, filter, () => {}, migrations);
+	const { schema: cur } = fromDrizzleSchema(prepared, casing, filter);
+	const { ddl: from, errors: _err1 } = require_ddl.interimToDDL(prev);
+	const { ddl: to, errors: _err2 } = require_ddl.interimToDDL(cur);
+	const { sqlStatements, statements } = await ddlDiff(from, to, resolver("schema"), resolver("enum"), resolver("sequence"), resolver("policy"), resolver("role"), resolver("privilege"), resolver("table"), resolver("column"), resolver("view"), resolver("unique"), resolver("index"), resolver("check"), resolver("primary key"), resolver("foreign key"), "push");
+	const hints = await suggestions(db, statements);
+	return {
+		sqlStatements,
+		hints,
+		apply: async () => {
+			const losses = hints.map((x) => x.statement).filter((x) => typeof x !== "undefined");
+			for (const st of losses) await db.query(st);
+			for (const st of sqlStatements) await db.query(st);
+		}
+	};
+};
+const startStudioServer = async (imports, credentials, options) => {
+	const { is } = require("drizzle-orm");
+	const { PgTable, getTableConfig } = require("drizzle-orm/pg-core");
+	const { Relations } = require("drizzle-orm/_relations");
+	const { drizzleForPostgres, prepareServer } = await Promise.resolve().then(() => require("./studio-CkbYOAmM.js"));
+	const pgSchema = {};
+	const relations = {};
+	Object.entries(imports).forEach(([k, t]) => {
+		if (is(t, PgTable)) {
+			const schema = getTableConfig(t).schema || "public";
+			pgSchema[schema] = pgSchema[schema] || {};
+			pgSchema[schema][k] = t;
+		}
+		if (is(t, Relations)) relations[k] = t;
+	});
+	const server = await prepareServer(await drizzleForPostgres(credentials, pgSchema, relations, [], options?.casing));
+	const host = options?.host || "127.0.0.1";
+	const port = options?.port || 4983;
+	server.start({
+		host,
+		port,
+		key: options?.key,
+		cert: options?.cert,
+		cb: (err) => {
+			if (err) console.error(err);
+			else console.log(`Studio is running at ${options?.key ? "https" : "http"}://${host}:${port}`);
+		}
+	});
+};
+const up = upToV8;
+
+//#endregion
+exports.generateDrizzleJson = generateDrizzleJson;
+exports.generateMigration = generateMigration;
+exports.pushSchema = pushSchema;
+exports.startStudioServer = startStudioServer;
+exports.up = up;

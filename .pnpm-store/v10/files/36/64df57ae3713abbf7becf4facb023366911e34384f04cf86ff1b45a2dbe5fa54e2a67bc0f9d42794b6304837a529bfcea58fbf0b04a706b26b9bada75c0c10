@@ -1,0 +1,10 @@
+import { SingleStoreDriverDatabase } from "./driver.js";
+import * as __migrator_ts2 from "../migrator.js";
+import { MigrationConfig } from "../migrator.js";
+import { AnyRelations } from "../relations.js";
+
+//#region src/singlestore/migrator.d.ts
+declare function migrate<TSchema extends Record<string, unknown>, TRelations extends AnyRelations>(db: SingleStoreDriverDatabase<TSchema, TRelations>, config: MigrationConfig): Promise<void | __migrator_ts2.MigratorInitFailResponse>;
+//#endregion
+export { migrate };
+//# sourceMappingURL=migrator.d.ts.map

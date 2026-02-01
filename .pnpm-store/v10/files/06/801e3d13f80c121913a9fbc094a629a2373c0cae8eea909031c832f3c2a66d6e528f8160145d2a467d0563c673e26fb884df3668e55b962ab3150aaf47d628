@@ -1,0 +1,1 @@
+{"version":3,"file":"view-common.cjs","names":[],"sources":["../../src/gel-core/view-common.ts"],"sourcesContent":["export const GelViewConfig = Symbol.for('drizzle:GelViewConfig');\n\nexport const GelMaterializedViewConfig = Symbol.for('drizzle:GelMaterializedViewConfig');\n"],"mappings":";;AAAA,MAAa,gBAAgB,OAAO,IAAI,wBAAwB;AAEhE,MAAa,4BAA4B,OAAO,IAAI,oCAAoC"}

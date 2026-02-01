@@ -1,0 +1,65 @@
+import { Subquery } from "./subquery.cjs";
+import { Cache } from "./cache/core/cache.cjs";
+import { Logger } from "./logger.cjs";
+import { AnyRelations, EmptyRelations } from "./relations.cjs";
+import { Table } from "./table.cjs";
+import { Param, SQL, View } from "./sql/sql.cjs";
+import { AnyColumn } from "./column.cjs";
+
+//#region src/utils.d.ts
+declare function haveSameKeys(left: Record<string, unknown>, right: Record<string, unknown>): boolean;
+type UpdateSet = Record<string, SQL | Param | AnyColumn | null | undefined>;
+type OneOrMany<T> = T | T[];
+type Update<T, TUpdate> = { [K in Exclude<keyof T, keyof TUpdate>]: T[K] } & TUpdate;
+type Simplify<T> = { [K in keyof T]: T[K] } & {};
+type Not<T extends boolean> = T extends true ? false : true;
+type IsNever<T> = [T] extends [never] ? true : false;
+type IsUnion<T, U extends T = T> = (T extends any ? (U extends T ? false : true) : never) extends false ? false : true;
+type SingleKeyObject<T, TError extends string, K$1 = keyof T> = IsNever<K$1> extends true ? never : IsUnion<K$1> extends true ? DrizzleTypeError<TError> : T;
+type FromSingleKeyObject<T, Result, TError extends string, K$1 = keyof T> = IsNever<K$1> extends true ? never : IsUnion<K$1> extends true ? DrizzleTypeError<TError> : Result;
+type SimplifyMappedType<T> = [T] extends [unknown] ? T : never;
+type ShallowRecord<K$1 extends keyof any, T> = SimplifyMappedType<{ [P in K$1]: T }>;
+type Assume<T, U> = T extends U ? T : U;
+type Equal<X, Y> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? true : false;
+interface DrizzleTypeError<T extends string> {
+  $drizzleTypeError: T;
+}
+type ValueOrArray<T> = T | T[];
+type Or<T1, T2> = T1 extends true ? true : T2 extends true ? true : false;
+type IfThenElse<If, Then, Else> = If extends true ? Then : Else;
+type PromiseOf<T> = T extends Promise<infer U> ? U : T;
+type Writable<T> = { -readonly [P in keyof T]: T[P] };
+type NonArray<T> = T extends any[] ? never : T;
+/**
+ * @deprecated
+ * Use `getColumns` instead
+ */
+declare function getTableColumns<T extends Table>(table: T): T['_']['columns'];
+declare function getViewSelectedFields<T extends View>(view: T): T['_']['selectedFields'];
+declare function getColumns<T extends Table | View | Subquery>(table: T): T extends Table ? T['_']['columns'] : T extends View ? T['_']['selectedFields'] : T extends Subquery ? T['_']['selectedFields'] : never;
+type ColumnsWithTable<TTableName extends string, TForeignTableName extends string, TColumns extends AnyColumn<{
+  tableName: TTableName;
+}>[]> = { [Key in keyof TColumns]: AnyColumn<{
+  tableName: TForeignTableName;
+}> };
+type Casing = 'snake_case' | 'camelCase';
+interface DrizzleConfig<TSchema extends Record<string, unknown> = Record<string, never>, TRelationConfigs extends AnyRelations = EmptyRelations> {
+  logger?: boolean | Logger | undefined;
+  schema?: TSchema | undefined;
+  casing?: Casing | undefined;
+  relations?: TRelationConfigs | undefined;
+  cache?: Cache | undefined;
+}
+type ValidateShape<T, ValidShape, TResult = T> = T extends ValidShape ? Exclude<keyof T, keyof ValidShape> extends never ? TResult : DrizzleTypeError<`Invalid key(s): ${Exclude<(keyof T) & (string | number | bigint | boolean | null | undefined), keyof ValidShape>}`> : never;
+type KnownKeysOnly<T, U> = { [K in keyof T]: K extends keyof U ? T[K] : never };
+type IsAny<T> = 0 extends (1 & T) ? true : false;
+type IfNotImported<T, Y, N> = unknown extends T ? Y : N;
+type ImportTypeError<TPackageName extends string> = `Please install \`${TPackageName}\` to allow Drizzle ORM to connect to the database`;
+type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Keys extends any ? Required<Pick<T, Keys>> & Partial<Omit<T, Keys>> : never;
+declare function isConfig(data: any): boolean;
+type NeonAuthToken = string | (() => string | Promise<string>);
+declare const textDecoder: TextDecoder | null;
+declare function assertUnreachable(_x: never | undefined): never;
+//#endregion
+export { Assume, Casing, ColumnsWithTable, DrizzleConfig, DrizzleTypeError, Equal, FromSingleKeyObject, IfNotImported, IfThenElse, ImportTypeError, IsAny, IsNever, IsUnion, KnownKeysOnly, NeonAuthToken, NonArray, Not, OneOrMany, Or, PromiseOf, RequireAtLeastOne, ShallowRecord, Simplify, SimplifyMappedType, SingleKeyObject, Update, UpdateSet, ValidateShape, ValueOrArray, Writable, assertUnreachable, getColumns, getTableColumns, getViewSelectedFields, haveSameKeys, isConfig, textDecoder };
+//# sourceMappingURL=utils.d.cts.map

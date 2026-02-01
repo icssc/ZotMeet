@@ -1,0 +1,25 @@
+{
+	"name": "@mui/core-downloads-tracker",
+	"version": "7.3.6",
+	"requiresBuild": false,
+	"files": {
+		"package.json": {
+			"checkedAt": 1769490687792,
+			"integrity": "sha512-HrS4uf+W13iQc1BlRkjZlEmdoH07aKDOKn5R+Jn9ICpGUxze0ZL5SZ33ghJ50g9HfJE3QzQIave8w3TLKTzNnQ==",
+			"mode": 420,
+			"size": 675
+		},
+		"README.md": {
+			"checkedAt": 1769490687793,
+			"integrity": "sha512-js6KygpcTPmTX6A0Km56pWwI+NNl7phTlhj8USuMesWq3Oz9khHV6HQwBIAuDbgou5M1MtPPa2vvDFHPy5rh1A==",
+			"mode": 420,
+			"size": 306
+		},
+		"LICENSE": {
+			"checkedAt": 1769490687795,
+			"integrity": "sha512-hEIJyjYB1+c0sxVoHjCZWQLKoOG5uNgAILlxeEOGI1xyrd2X68hwK8LaJRVnbJvBnkFRsr+DPvBK80QoBOZWfQ==",
+			"mode": 420,
+			"size": 1078
+		}
+	}
+}

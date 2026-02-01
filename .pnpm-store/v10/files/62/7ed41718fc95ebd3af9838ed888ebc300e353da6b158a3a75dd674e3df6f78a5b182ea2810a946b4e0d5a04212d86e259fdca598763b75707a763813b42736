@@ -1,0 +1,100 @@
+const require_rolldown_runtime = require('../_virtual/rolldown_runtime.cjs');
+let __entity_ts = require("../entity.cjs");
+let __utils_ts = require("../utils.cjs");
+let __sql_sql_ts = require("../sql/sql.cjs");
+let __logger_ts = require("../logger.cjs");
+let effect = require("effect");
+let __effect_core_errors_ts = require("../effect-core/errors.cjs");
+let __pg_core_effect_session_ts = require("../pg-core/effect/session.cjs");
+
+//#region src/effect-postgres/session.ts
+var EffectPgPreparedQuery = class extends __pg_core_effect_session_ts.PgEffectPreparedQuery {
+	static [__entity_ts.entityKind] = "EffectPgPreparedQuery";
+	constructor(client, queryString, params, logger, cache, queryMetadata, cacheConfig, fields, name, _isResponseInArrayMode, customResultMapper, isRqbV2Query) {
+		super({
+			sql: queryString,
+			params
+		}, cache, queryMetadata, cacheConfig);
+		this.client = client;
+		this.queryString = queryString;
+		this.params = params;
+		this.logger = logger;
+		this.fields = fields;
+		this._isResponseInArrayMode = _isResponseInArrayMode;
+		this.customResultMapper = customResultMapper;
+		this.isRqbV2Query = isRqbV2Query;
+	}
+	execute(placeholderValues) {
+		if (this.isRqbV2Query) return this.executeRqbV2(placeholderValues);
+		const { query, logger, customResultMapper, fields, joinsNotNullableMap, client } = this;
+		const params = (0, __sql_sql_ts.fillPlaceholders)(query.params, placeholderValues ?? {});
+		logger.logQuery(query.sql, params);
+		if (!fields && !customResultMapper) return this.queryWithCache(query.sql, params, this.client.unsafe(query.sql, params).withoutTransform);
+		return this.queryWithCache(query.sql, params, client.unsafe(query.sql, params).values).pipe(effect.Effect.andThen((rows) => {
+			if (customResultMapper) return customResultMapper(rows);
+			return rows.map((row) => (0, __utils_ts.mapResultRow)(fields, row, joinsNotNullableMap));
+		}));
+	}
+	executeRqbV2(placeholderValues) {
+		const { query, logger, customResultMapper, client } = this;
+		const params = (0, __sql_sql_ts.fillPlaceholders)(query.params, placeholderValues ?? {});
+		logger.logQuery(query.sql, params);
+		return client.unsafe(query.sql, params).withoutTransform.pipe(effect.Effect.andThen((v) => customResultMapper(v))).pipe(effect.Effect.catchAll((e) => {
+			return effect.Effect.fail(new __effect_core_errors_ts.TaggedDrizzleQueryError(query.sql, params, e instanceof Error ? e : void 0));
+		}));
+	}
+	all(placeholderValues) {
+		const { query, logger, client } = this;
+		const params = (0, __sql_sql_ts.fillPlaceholders)(query.params, placeholderValues ?? {});
+		logger.logQuery(query.sql, params);
+		return this.queryWithCache(query.sql, params, client.unsafe(query.sql, params).withoutTransform);
+	}
+	/** @internal */
+	isResponseInArrayMode() {
+		return this._isResponseInArrayMode;
+	}
+};
+var EffectPgSession = class extends __pg_core_effect_session_ts.PgEffectSession {
+	static [__entity_ts.entityKind] = "EffectPgSession";
+	logger;
+	cache;
+	constructor(client, dialect, relations, schema, options = {}) {
+		super(dialect);
+		this.client = client;
+		this.relations = relations;
+		this.schema = schema;
+		this.logger = options.logger ?? new __logger_ts.NoopLogger();
+		this.cache = options.cache;
+	}
+	prepareQuery(query, fields, name, isResponseInArrayMode, customResultMapper, queryMetadata, cacheConfig) {
+		return new EffectPgPreparedQuery(this.client, query.sql, query.params, this.logger, this.cache, queryMetadata, cacheConfig, fields, name, isResponseInArrayMode, customResultMapper, false);
+	}
+	prepareRelationalQuery(query, fields, name, customResultMapper) {
+		return new EffectPgPreparedQuery(this.client, query.sql, query.params, this.logger, this.cache, void 0, void 0, fields, name, false, customResultMapper, true);
+	}
+	execute(query) {
+		return this.prepareQuery(this.dialect.sqlToQuery(query), void 0, void 0, false).execute();
+	}
+	all(query) {
+		return this.prepareQuery(this.dialect.sqlToQuery(query), void 0, void 0, false).all();
+	}
+	transaction(transaction) {
+		const { dialect, relations, schema } = this;
+		const session = this;
+		return this.client.withTransaction(effect.Effect.gen(function* () {
+			return yield* transaction(new EffectPgTransaction(dialect, session, relations, schema));
+		}));
+	}
+};
+var EffectPgTransaction = class extends __pg_core_effect_session_ts.PgEffectTransaction {
+	static [__entity_ts.entityKind] = "EffectPgTransaction";
+	transaction(transaction) {
+		return this.session.transaction(transaction);
+	}
+};
+
+//#endregion
+exports.EffectPgPreparedQuery = EffectPgPreparedQuery;
+exports.EffectPgSession = EffectPgSession;
+exports.EffectPgTransaction = EffectPgTransaction;
+//# sourceMappingURL=session.cjs.map

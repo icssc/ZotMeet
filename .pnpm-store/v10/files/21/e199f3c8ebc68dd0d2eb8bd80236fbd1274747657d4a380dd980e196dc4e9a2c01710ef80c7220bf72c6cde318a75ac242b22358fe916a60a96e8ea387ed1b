@@ -1,0 +1,17 @@
+import { BunMySqlDatabase } from "./mysql/driver.cjs";
+import { BunSQLDatabase } from "./postgres/driver.cjs";
+import { BunSQLiteDatabase } from "./sqlite/driver.cjs";
+import * as __migrator_ts14 from "../migrator.cjs";
+import { MigrationConfig } from "../migrator.cjs";
+import { AnyRelations } from "../relations.cjs";
+
+//#region src/bun-sql/migrator.d.ts
+declare function migrate<TSchema extends Record<string, unknown>, TRelations extends AnyRelations>(db: BunSQLDatabase<TSchema, TRelations>, config: MigrationConfig): Promise<void | __migrator_ts14.MigratorInitFailResponse>;
+declare namespace migrate {
+  function postgres<TSchema extends Record<string, unknown>, TRelations extends AnyRelations>(db: BunSQLDatabase<TSchema, TRelations>, config: MigrationConfig): Promise<void | __migrator_ts14.MigratorInitFailResponse>;
+  function sqlite<TSchema extends Record<string, unknown>, TRelations extends AnyRelations>(db: BunSQLiteDatabase<TSchema, TRelations>, config: MigrationConfig): Promise<void | __migrator_ts14.MigratorInitFailResponse>;
+  function mysql<TSchema extends Record<string, unknown>, TRelations extends AnyRelations>(db: BunMySqlDatabase<TSchema, TRelations>, config: MigrationConfig): Promise<void | __migrator_ts14.MigratorInitFailResponse>;
+}
+//#endregion
+export { migrate };
+//# sourceMappingURL=migrator.d.cts.map

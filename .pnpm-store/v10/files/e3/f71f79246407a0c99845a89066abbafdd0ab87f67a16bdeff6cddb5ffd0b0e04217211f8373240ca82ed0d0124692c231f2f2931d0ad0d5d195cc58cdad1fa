@@ -1,0 +1,37 @@
+const require_rolldown_runtime = require('../../_virtual/rolldown_runtime.cjs');
+const require_mysql_core_columns_common = require('./common.cjs');
+let __entity_ts = require("../../entity.cjs");
+let __utils_ts = require("../../utils.cjs");
+
+//#region src/mysql-core/columns/tinyint.ts
+var MySqlTinyIntBuilder = class extends require_mysql_core_columns_common.MySqlColumnBuilderWithAutoIncrement {
+	static [__entity_ts.entityKind] = "MySqlTinyIntBuilder";
+	constructor(name, config) {
+		super(name, config?.unsigned ? "number uint8" : "number int8", "MySqlTinyInt");
+		this.config.unsigned = config ? config.unsigned : false;
+	}
+	/** @internal */
+	build(table) {
+		return new MySqlTinyInt(table, this.config);
+	}
+};
+var MySqlTinyInt = class extends require_mysql_core_columns_common.MySqlColumnWithAutoIncrement {
+	static [__entity_ts.entityKind] = "MySqlTinyInt";
+	getSQLType() {
+		return `tinyint${this.config.unsigned ? " unsigned" : ""}`;
+	}
+	mapFromDriverValue(value) {
+		if (typeof value === "string") return Number(value);
+		return value;
+	}
+};
+function tinyint(a, b) {
+	const { name, config } = (0, __utils_ts.getColumnNameAndConfig)(a, b);
+	return new MySqlTinyIntBuilder(name, config);
+}
+
+//#endregion
+exports.MySqlTinyInt = MySqlTinyInt;
+exports.MySqlTinyIntBuilder = MySqlTinyIntBuilder;
+exports.tinyint = tinyint;
+//# sourceMappingURL=tinyint.cjs.map

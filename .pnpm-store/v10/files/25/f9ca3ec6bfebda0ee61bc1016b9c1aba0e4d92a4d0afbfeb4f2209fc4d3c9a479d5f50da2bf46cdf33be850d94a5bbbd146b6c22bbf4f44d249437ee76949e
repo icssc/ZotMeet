@@ -1,0 +1,24 @@
+import { PgRaw } from "../query-builders/raw.cjs";
+import { entityKind } from "../../entity.cjs";
+import { Query, SQL, SQLWrapper } from "../../sql/sql.cjs";
+import { PreparedQuery } from "../../session.cjs";
+import { RunnableQuery } from "../../runnable-query.cjs";
+import { TaggedDrizzleQueryError } from "../../effect-core/errors.cjs";
+import { Effect } from "effect/Effect";
+import { QueryEffect } from "../../effect-core/query-effect.cjs";
+
+//#region src/pg-core/effect/raw.d.ts
+interface PgEffectRaw<TResult> extends QueryEffect<TResult>, RunnableQuery<TResult, 'pg'>, SQLWrapper {}
+declare class PgEffectRaw<TResult> extends PgRaw<TResult> implements RunnableQuery<TResult, 'pg'> {
+  execute: () => Effect<TResult, TaggedDrizzleQueryError>;
+  static readonly [entityKind]: string;
+  readonly _: {
+    readonly dialect: 'pg';
+    readonly result: TResult;
+  };
+  constructor(execute: () => Effect<TResult, TaggedDrizzleQueryError>, sql: SQL, query: Query, mapBatchResult: (result: unknown) => unknown);
+  _prepare(): PreparedQuery;
+}
+//#endregion
+export { PgEffectRaw };
+//# sourceMappingURL=raw.d.cts.map

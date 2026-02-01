@@ -1,0 +1,45 @@
+import { MySqlColumn } from "./columns/common.js";
+import { Check } from "./checks.js";
+import { ForeignKey } from "./foreign-keys.js";
+import { PrimaryKey } from "./primary-keys.js";
+import { UniqueConstraint } from "./unique-constraint.js";
+import { MySqlTable } from "./table.js";
+import { Index } from "./indexes.js";
+import { MySqlViewBase } from "./view-base.js";
+import { IndexForHint } from "./query-builders/select.js";
+import { MySqlView } from "./view.js";
+import "./index.js";
+import { Subquery } from "../subquery.js";
+import * as __sql_sql_ts0 from "../sql/sql.js";
+import { SQL } from "../sql/sql.js";
+
+//#region src/mysql-core/utils.d.ts
+declare function extractUsedTable(table: MySqlTable | Subquery | MySqlViewBase | SQL): string[];
+declare function getTableConfig(table: MySqlTable): {
+  columns: MySqlColumn<any, {}>[];
+  indexes: Index[];
+  foreignKeys: ForeignKey[];
+  checks: Check[];
+  primaryKeys: PrimaryKey[];
+  uniqueConstraints: UniqueConstraint[];
+  name: string;
+  schema: string | undefined;
+  baseName: string;
+};
+declare function getViewConfig<TName extends string = string, TExisting extends boolean = boolean>(view: MySqlView<TName, TExisting>): {
+  algorithm?: "undefined" | "merge" | "temptable";
+  sqlSecurity?: "definer" | "invoker";
+  withCheckOption?: "cascaded" | "local";
+  name: TName;
+  originalName: TName;
+  schema: string | undefined;
+  selectedFields: __sql_sql_ts0.ColumnsSelection;
+  isExisting: TExisting;
+  query: TExisting extends true ? undefined : SQL<unknown>;
+  isAlias: boolean;
+};
+declare function convertIndexToString(indexes: IndexForHint[]): string[];
+declare function toArray<T>(value: T | T[]): T[];
+//#endregion
+export { convertIndexToString, extractUsedTable, getTableConfig, getViewConfig, toArray };
+//# sourceMappingURL=utils.d.ts.map

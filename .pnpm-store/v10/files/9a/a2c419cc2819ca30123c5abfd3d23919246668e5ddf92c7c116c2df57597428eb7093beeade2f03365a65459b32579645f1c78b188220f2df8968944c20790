@@ -1,0 +1,73 @@
+const require_rolldown_runtime = require('../_virtual/rolldown_runtime.cjs');
+let react = require("react");
+let __migrator_utils_ts = require("../migrator.utils.cjs");
+
+//#region src/op-sqlite/migrator.ts
+async function readMigrationFiles({ migrations }) {
+	const migrationQueries = [];
+	const sortedMigrations = Object.keys(migrations).sort();
+	for (const key of sortedMigrations) {
+		const query = migrations[key];
+		if (!query) throw new Error(`Missing migration: ${key}`);
+		try {
+			const result = query.split("--> statement-breakpoint").map((it) => {
+				return it;
+			});
+			const migrationDate = (0, __migrator_utils_ts.formatToMillis)(key.slice(0, 14));
+			migrationQueries.push({
+				sql: result,
+				bps: true,
+				folderMillis: migrationDate,
+				hash: ""
+			});
+		} catch {
+			throw new Error(`Failed to parse migration: ${key}`);
+		}
+	}
+	return migrationQueries;
+}
+async function migrate(db, config) {
+	const migrations = await readMigrationFiles(config);
+	return await db.dialect.migrate(migrations, db.session);
+}
+const useMigrations = (db, migrations) => {
+	const initialState = {
+		success: false,
+		error: void 0
+	};
+	const fetchReducer = (state$1, action) => {
+		switch (action.type) {
+			case "migrating": return { ...initialState };
+			case "migrated": return {
+				...initialState,
+				success: action.payload
+			};
+			case "error": return {
+				...initialState,
+				error: action.payload
+			};
+			default: return state$1;
+		}
+	};
+	const [state, dispatch] = (0, react.useReducer)(fetchReducer, initialState);
+	(0, react.useEffect)(() => {
+		dispatch({ type: "migrating" });
+		migrate(db, migrations).then(() => {
+			dispatch({
+				type: "migrated",
+				payload: true
+			});
+		}).catch((error) => {
+			dispatch({
+				type: "error",
+				payload: error
+			});
+		});
+	}, []);
+	return state;
+};
+
+//#endregion
+exports.migrate = migrate;
+exports.useMigrations = useMigrations;
+//# sourceMappingURL=migrator.cjs.map

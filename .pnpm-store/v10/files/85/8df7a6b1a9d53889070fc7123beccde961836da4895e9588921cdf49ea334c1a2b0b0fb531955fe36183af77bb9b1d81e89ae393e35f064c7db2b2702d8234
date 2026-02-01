@@ -1,0 +1,875 @@
+const require_chunk = require('./chunk-CdAKIUsw.js');
+const require_utils = require('./utils-D2E5ChQ0.js');
+const require_grammar = require('./grammar-B2XVJ90y.js');
+
+//#region ../node_modules/.pnpm/camelcase@7.0.1/node_modules/camelcase/index.js
+const UPPERCASE = /[\p{Lu}]/u;
+const LOWERCASE = /[\p{Ll}]/u;
+const LEADING_CAPITAL = /^[\p{Lu}](?![\p{Lu}])/gu;
+const IDENTIFIER = /([\p{Alpha}\p{N}_]|$)/u;
+const SEPARATORS = /[_.\- ]+/;
+const LEADING_SEPARATORS = /* @__PURE__ */ new RegExp("^" + SEPARATORS.source);
+const SEPARATORS_AND_IDENTIFIER = new RegExp(SEPARATORS.source + IDENTIFIER.source, "gu");
+const NUMBERS_AND_IDENTIFIER = new RegExp("\\d+" + IDENTIFIER.source, "gu");
+const preserveCamelCase = (string, toLowerCase, toUpperCase, preserveConsecutiveUppercase$1) => {
+	let isLastCharLower = false;
+	let isLastCharUpper = false;
+	let isLastLastCharUpper = false;
+	let isLastLastCharPreserved = false;
+	for (let index = 0; index < string.length; index++) {
+		const character = string[index];
+		isLastLastCharPreserved = index > 2 ? string[index - 3] === "-" : true;
+		if (isLastCharLower && UPPERCASE.test(character)) {
+			string = string.slice(0, index) + "-" + string.slice(index);
+			isLastCharLower = false;
+			isLastLastCharUpper = isLastCharUpper;
+			isLastCharUpper = true;
+			index++;
+		} else if (isLastCharUpper && isLastLastCharUpper && LOWERCASE.test(character) && (!isLastLastCharPreserved || preserveConsecutiveUppercase$1)) {
+			string = string.slice(0, index - 1) + "-" + string.slice(index - 1);
+			isLastLastCharUpper = isLastCharUpper;
+			isLastCharUpper = false;
+			isLastCharLower = true;
+		} else {
+			isLastCharLower = toLowerCase(character) === character && toUpperCase(character) !== character;
+			isLastLastCharUpper = isLastCharUpper;
+			isLastCharUpper = toUpperCase(character) === character && toLowerCase(character) !== character;
+		}
+	}
+	return string;
+};
+const preserveConsecutiveUppercase = (input, toLowerCase) => {
+	LEADING_CAPITAL.lastIndex = 0;
+	return input.replace(LEADING_CAPITAL, (m1) => toLowerCase(m1));
+};
+const postProcess = (input, toUpperCase) => {
+	SEPARATORS_AND_IDENTIFIER.lastIndex = 0;
+	NUMBERS_AND_IDENTIFIER.lastIndex = 0;
+	return input.replace(SEPARATORS_AND_IDENTIFIER, (_, identifier) => toUpperCase(identifier)).replace(NUMBERS_AND_IDENTIFIER, (m) => toUpperCase(m));
+};
+function camelCase(input, options) {
+	if (!(typeof input === "string" || Array.isArray(input))) throw new TypeError("Expected the input to be `string | string[]`");
+	options = {
+		pascalCase: false,
+		preserveConsecutiveUppercase: false,
+		...options
+	};
+	if (Array.isArray(input)) input = input.map((x) => x.trim()).filter((x) => x.length).join("-");
+	else input = input.trim();
+	if (input.length === 0) return "";
+	const toLowerCase = options.locale === false ? (string) => string.toLowerCase() : (string) => string.toLocaleLowerCase(options.locale);
+	const toUpperCase = options.locale === false ? (string) => string.toUpperCase() : (string) => string.toLocaleUpperCase(options.locale);
+	if (input.length === 1) {
+		if (SEPARATORS.test(input)) return "";
+		return options.pascalCase ? toUpperCase(input) : toLowerCase(input);
+	}
+	if (input !== toLowerCase(input)) input = preserveCamelCase(input, toLowerCase, toUpperCase, options.preserveConsecutiveUppercase);
+	input = input.replace(LEADING_SEPARATORS, "");
+	input = options.preserveConsecutiveUppercase ? preserveConsecutiveUppercase(input, toLowerCase) : toLowerCase(input);
+	if (options.pascalCase) input = toUpperCase(input.charAt(0)) + input.slice(1);
+	return postProcess(input, toUpperCase);
+}
+
+//#endregion
+//#region src/dialects/postgres/introspect.ts
+const fromDatabase = async (db, filter = () => true, progressCallback = () => {}, queryCallback = () => {}) => {
+	const schemas = [];
+	const enums = [];
+	const tables = [];
+	const columns = [];
+	const indexes = [];
+	const pks = [];
+	const fks = [];
+	const uniques = [];
+	const checks = [];
+	const sequences = [];
+	const roles = [];
+	const privileges = [];
+	const policies = [];
+	const views = [];
+	const viewColumns = [];
+	const accessMethodsQuery = db.query(`SELECT oid, amname as name FROM pg_catalog.pg_am WHERE amtype OPERATOR(pg_catalog.=) 't' ORDER BY pg_catalog.lower(amname);`).then((rows) => {
+		queryCallback("accessMethods", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("accessMethods", [], err);
+		throw err;
+	});
+	const tablespacesQuery = db.query(`SELECT oid, spcname as "name" FROM pg_catalog.pg_tablespace ORDER BY pg_catalog.lower(spcname)`).then((rows) => {
+		queryCallback("tablespaces", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("tablespaces", [], err);
+		throw err;
+	});
+	const namespacesQuery = db.query("SELECT oid, nspname as name FROM pg_catalog.pg_namespace ORDER BY pg_catalog.lower(nspname)").then((rows) => {
+		queryCallback("namespaces", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("namespaces", [], err);
+		throw err;
+	});
+	const defaultsQuery = db.query(`
+		SELECT
+			adrelid AS "tableId",
+			adnum AS "ordinality",
+			pg_catalog.pg_get_expr(adbin, adrelid) AS "expression"
+		FROM
+			pg_catalog.pg_attrdef;
+	`).then((rows) => {
+		queryCallback("defaults", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("defaults", [], err);
+		throw err;
+	});
+	const [ams, tablespaces, namespaces, defaultsList] = await Promise.all([
+		accessMethodsQuery,
+		tablespacesQuery,
+		namespacesQuery,
+		defaultsQuery
+	]);
+	const { other: filteredNamespaces } = namespaces.reduce((acc, it) => {
+		if (require_grammar.isSystemNamespace(it.name)) acc.system.push(it);
+		else acc.other.push(it);
+		return acc;
+	}, {
+		system: [],
+		other: []
+	});
+	const filteredNamespacesStringForSQL = filteredNamespaces.map((ns) => `'${ns.name}'`).join(",");
+	schemas.push(...filteredNamespaces.map((it) => ({
+		entityType: "schemas",
+		name: it.name
+	})));
+	const tablesList = filteredNamespacesStringForSQL ? await db.query(`
+			SELECT
+				pg_class.oid,
+				nspname as "schema",
+				relname AS "name",
+				relkind AS "kind",
+				relam as "accessMethod",
+				reloptions::text[] as "options",
+				reltablespace as "tablespaceid",
+				relrowsecurity AS "rlsEnabled",
+				CASE
+					WHEN relkind OPERATOR(pg_catalog.=) 'v' OR relkind OPERATOR(pg_catalog.=) 'm'
+						THEN pg_catalog.pg_get_viewdef(pg_class.oid, true)
+					ELSE null
+				END as "definition"
+			FROM
+				pg_catalog.pg_class
+			JOIN pg_catalog.pg_namespace ON pg_namespace.oid OPERATOR(pg_catalog.=) relnamespace
+			WHERE
+				relkind IN ('r', 'p', 'v', 'm')
+				AND nspname IN (${filteredNamespacesStringForSQL})
+			ORDER BY pg_catalog.lower(nspname), pg_catalog.lower(relname);
+		`).then((rows) => {
+		queryCallback("tables", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("tables", [], err);
+		throw err;
+	}) : [];
+	const viewsList = tablesList.filter((it) => {
+		it.schema = require_utils.trimChar(it.schema, "\"");
+		return it.kind === "v" || it.kind === "m";
+	});
+	const filteredTables = tablesList.filter((it) => {
+		it.schema = require_utils.trimChar(it.schema, "\"");
+		return it.kind === "r" || it.kind === "p";
+	});
+	const filteredTableIds = filteredTables.map((it) => it.oid);
+	const viewsIds = viewsList.map((it) => it.oid);
+	const filteredViewsAndTableIds = [...filteredTableIds, ...viewsIds];
+	const filterByTableIds = filteredTableIds.length > 0 ? `(${filteredTableIds.join(",")})` : "";
+	const filterByTableAndViewIds = filteredViewsAndTableIds.length > 0 ? `(${filteredViewsAndTableIds.join(",")})` : "";
+	for (const table of filteredTables) tables.push({
+		entityType: "tables",
+		schema: require_utils.trimChar(table.schema, "'"),
+		name: table.name,
+		isRlsEnabled: table.rlsEnabled
+	});
+	const dependQuery = db.query(`SELECT
+			objid as oid,
+			refobjid as "tableId",
+			refobjsubid as "ordinality",
+			deptype
+		FROM
+			pg_catalog.pg_depend
+		WHERE ${filterByTableIds ? ` refobjid IN ${filterByTableIds}` : "false"};`).then((rows) => {
+		queryCallback("depend", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("depend", [], err);
+		throw err;
+	});
+	const enumsQuery = filteredNamespacesStringForSQL ? db.query(`SELECT
+				pg_type.oid as "oid",
+				typname as "name",
+				nspname as "schema",
+				pg_type.typarray as "arrayTypeId",
+				pg_enum.enumsortorder AS "ordinality",
+				pg_enum.enumlabel AS "value"
+			FROM
+				pg_catalog.pg_type
+			JOIN pg_catalog.pg_enum ON pg_enum.enumtypid OPERATOR(pg_catalog.=) pg_type.oid
+			JOIN pg_catalog.pg_namespace ON pg_namespace.oid OPERATOR(pg_catalog.=) pg_type.typnamespace
+			WHERE
+				pg_type.typtype OPERATOR(pg_catalog.=) 'e'
+				AND nspname IN (${filteredNamespacesStringForSQL})
+			ORDER BY pg_type.oid, pg_enum.enumsortorder
+		`).then((rows) => {
+		queryCallback("enums", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("enums", [], err);
+		throw err;
+	}) : [];
+	const serialsQuery = db.query(`SELECT
+				oid,
+				adrelid as "tableId",
+				adnum as "ordinality",
+				pg_catalog.pg_get_expr(adbin, adrelid) as "expression"
+			FROM
+				pg_catalog.pg_attrdef
+			WHERE ${filterByTableIds ? ` adrelid IN ${filterByTableIds}` : "false"}
+		`).then((rows) => {
+		queryCallback("serials", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("serials", [], err);
+		throw err;
+	});
+	const sequencesQuery = filteredNamespacesStringForSQL ? db.query(`SELECT 
+			nspname as "schema",
+			relname as "name",
+			seqrelid as "oid",
+			seqstart as "startWith", 
+			seqmin as "minValue", 
+			seqmax as "maxValue", 
+			seqincrement as "incrementBy", 
+			seqcycle as "cycle", 
+			seqcache as "cacheSize" 
+		FROM pg_catalog.pg_sequence
+		JOIN pg_catalog.pg_class ON pg_sequence.seqrelid OPERATOR(pg_catalog.=) pg_class.oid
+		JOIN pg_catalog.pg_namespace ON pg_namespace.oid OPERATOR(pg_catalog.=) pg_class.relnamespace
+		WHERE nspname IN (${filteredNamespacesStringForSQL})
+		ORDER BY pg_catalog.lower(nspname), pg_catalog.lower(relname);
+	`).then((rows) => {
+		queryCallback("sequences", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("sequences", [], err);
+		throw err;
+	}) : [];
+	const policiesQuery = db.query(`SELECT 
+			schemaname as "schema", 
+			tablename as "table", 
+			policyname as "name", 
+			permissive as "as", 
+			roles as "to", 
+			cmd as "for", 
+			qual as "using", 
+			with_check as "withCheck" 
+		FROM pg_catalog.pg_policies
+		ORDER BY
+			pg_catalog.lower(schemaname),
+			pg_catalog.lower(tablename),
+			pg_catalog.lower(policyname);
+	`).then((rows) => {
+		queryCallback("policies", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("policies", [], err);
+		throw err;
+	});
+	const rolesQuery = db.query(`SELECT
+			rolname,
+			rolsuper,
+			rolinherit,
+			rolcreaterole,
+			rolcreatedb,
+			rolcanlogin,
+			rolreplication,
+			rolconnlimit,
+			rolvaliduntil,
+			rolbypassrls
+		FROM pg_catalog.pg_roles
+		ORDER BY pg_catalog.lower(rolname);`).then((rows) => {
+		queryCallback("roles", rows, null);
+		return rows;
+	}).catch((error) => {
+		queryCallback("roles", [], error);
+		throw error;
+	});
+	const privilegesQuery = filteredNamespacesStringForSQL ? db.query(`
+		SELECT
+			grantor,
+			grantee,
+			table_schema AS "schema",
+			table_name AS "table",
+			privilege_type AS "type",
+			CASE is_grantable WHEN 'YES' THEN true ELSE false END AS "isGrantable"
+		FROM information_schema.role_table_grants
+		WHERE table_schema IN (${filteredNamespacesStringForSQL})
+		ORDER BY
+			pg_catalog.lower(table_schema),
+			pg_catalog.lower(table_name),
+			pg_catalog.lower(grantee);
+	`).then((rows) => {
+		queryCallback("privileges", rows, null);
+		return rows;
+	}).catch((error) => {
+		queryCallback("privileges", [], error);
+		throw error;
+	}) : [];
+	const constraintsQuery = db.query(`
+		SELECT
+			oid,
+			connamespace AS "schemaId",
+			conrelid AS "tableId",
+			conname AS "name",
+			contype AS "type", 
+			pg_catalog.pg_get_constraintdef(oid) AS "definition",
+			conindid AS "indexId",
+			conkey AS "columnsOrdinals",
+			confrelid AS "tableToId",
+			confkey AS "columnsToOrdinals",
+			confupdtype AS "onUpdate",
+			confdeltype AS "onDelete"
+		FROM
+			pg_catalog.pg_constraint
+		WHERE ${filterByTableIds ? ` conrelid IN ${filterByTableIds}` : "false"}
+		ORDER BY conrelid, contype, pg_catalog.lower(conname);
+  `).then((rows) => {
+		queryCallback("constraints", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("constraints", [], err);
+		throw err;
+	});
+	const columnsQuery = db.query(`SELECT
+			attrelid AS "tableId",
+			relkind AS "kind",
+			attname AS "name",
+			attnum AS "ordinality",
+			attnotnull AS "notNull",
+			CASE 
+        		WHEN attndims > 0 THEN attndims
+        		WHEN t.typcategory = 'A' THEN 1  -- If it's an array type, default to 1 dimension
+        		ELSE 0
+    		END as "dimensions",
+			atttypid as "typeId",
+			attgenerated as "generatedType", 
+			attidentity as "identityType",
+			pg_catalog.format_type(atttypid, atttypmod) as "type",
+			CASE
+				WHEN attidentity IN ('a', 'd') or attgenerated OPERATOR(pg_catalog.=) 's' THEN (
+					SELECT
+						pg_catalog.row_to_json(c.*)
+					FROM
+						(
+							SELECT
+								pg_catalog.pg_get_serial_sequence('"' OPERATOR(pg_catalog.||) "table_schema" OPERATOR(pg_catalog.||) '"."' OPERATOR(pg_catalog.||) "table_name" OPERATOR(pg_catalog.||) '"', "attname")::regclass::oid as "seqId",
+								"identity_generation" AS generation,
+								"identity_start" AS "start",
+								"identity_increment" AS "increment",
+								"identity_maximum" AS "max",
+								"identity_minimum" AS "min",
+								"identity_cycle" AS "cycle",
+								"generation_expression" AS "expression"
+							FROM
+								information_schema.columns c
+							WHERE
+								c.column_name OPERATOR(pg_catalog.=) attname
+								AND c.table_schema OPERATOR(pg_catalog.=) nspname
+								AND c.table_name OPERATOR(pg_catalog.=) cls.relname
+						) c
+					)
+				ELSE NULL
+			END AS "metadata"
+		FROM
+			pg_catalog.pg_attribute attr
+			JOIN pg_catalog.pg_class cls ON cls.oid OPERATOR(pg_catalog.=) attr.attrelid
+			JOIN pg_catalog.pg_namespace nsp ON nsp.oid OPERATOR(pg_catalog.=) cls.relnamespace
+			JOIN pg_catalog.pg_type t ON t.oid OPERATOR(pg_catalog.=) attr.atttypid
+		WHERE
+		${filterByTableAndViewIds ? ` attrelid IN ${filterByTableAndViewIds}` : "false"}
+			AND attnum OPERATOR(pg_catalog.>) 0
+			AND attisdropped OPERATOR(pg_catalog.=) FALSE
+		ORDER BY attnum;
+	`).then((rows) => {
+		queryCallback("columns", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("columns", [], err);
+		throw err;
+	});
+	const [dependList, enumsList, serialsList, sequencesList, policiesList, rolesList, privilegesList, constraintsList, columnsList] = await Promise.all([
+		dependQuery,
+		enumsQuery,
+		serialsQuery,
+		sequencesQuery,
+		policiesQuery,
+		rolesQuery,
+		privilegesQuery,
+		constraintsQuery,
+		columnsQuery
+	]);
+	const groupedEnums = enumsList.reduce((acc, it) => {
+		if (!(it.oid in acc)) acc[it.oid] = {
+			oid: it.oid,
+			schema: it.schema,
+			name: it.name,
+			values: [it.value]
+		};
+		else acc[it.oid].values.push(it.value);
+		return acc;
+	}, {});
+	const groupedArrEnums = enumsList.reduce((acc, it) => {
+		if (!(it.arrayTypeId in acc)) acc[it.arrayTypeId] = {
+			oid: it.oid,
+			schema: it.schema,
+			name: it.name,
+			values: [it.value]
+		};
+		else acc[it.arrayTypeId].values.push(it.value);
+		return acc;
+	}, {});
+	for (const it of Object.values(groupedEnums)) enums.push({
+		entityType: "enums",
+		schema: it.schema,
+		name: it.name,
+		values: it.values
+	});
+	for (const seq of sequencesList) {
+		const depend = dependList.find((it) => Number(it.oid) === Number(seq.oid));
+		if (depend && (depend.deptype === "a" || depend.deptype === "i")) continue;
+		sequences.push({
+			entityType: "sequences",
+			schema: seq.schema,
+			name: seq.name,
+			startWith: require_grammar.stringFromDatabaseIdentityProperty(seq.startWith),
+			minValue: require_grammar.stringFromDatabaseIdentityProperty(seq.minValue),
+			maxValue: require_grammar.stringFromDatabaseIdentityProperty(seq.maxValue),
+			incrementBy: require_grammar.stringFromDatabaseIdentityProperty(seq.incrementBy),
+			cycle: seq.cycle,
+			cacheSize: Number(require_grammar.stringFromDatabaseIdentityProperty(seq.cacheSize) ?? 1)
+		});
+	}
+	for (const dbRole of rolesList) roles.push({
+		entityType: "roles",
+		name: dbRole.rolname,
+		superuser: dbRole.rolsuper,
+		inherit: dbRole.rolinherit,
+		createRole: dbRole.rolcreaterole,
+		createDb: dbRole.rolcreatedb,
+		canLogin: dbRole.rolcanlogin,
+		replication: dbRole.rolreplication,
+		connLimit: dbRole.rolconnlimit,
+		password: null,
+		validUntil: dbRole.rolvaliduntil,
+		bypassRls: dbRole.rolbypassrls
+	});
+	for (const privilege of privilegesList) privileges.push({
+		entityType: "privileges",
+		name: `${privilege.grantor}_${privilege.grantee}_${privilege.schema}_${privilege.table}_${privilege.type}`,
+		grantor: privilege.grantor,
+		grantee: privilege.grantee,
+		schema: privilege.schema,
+		table: privilege.table,
+		type: privilege.type,
+		isGrantable: privilege.isGrantable
+	});
+	for (const it of policiesList) policies.push({
+		entityType: "policies",
+		schema: it.schema,
+		table: it.table,
+		name: it.name,
+		as: it.as,
+		for: it.for,
+		roles: typeof it.to === "string" ? it.to.slice(1, -1).split(",") : it.to,
+		using: it.using ?? null,
+		withCheck: it.withCheck ?? null
+	});
+	for (const column of columnsList.filter((x) => x.kind === "r" || x.kind === "p")) {
+		const type = column.type;
+		if (!(type === "smallint" || type === "bigint" || type === "integer")) continue;
+		const expr = serialsList.find((it) => Number(it.tableId) === Number(column.tableId) && it.ordinality === column.ordinality);
+		if (expr) {
+			const table = tablesList.find((it) => Number(it.oid) === Number(column.tableId));
+			column.type = require_grammar.isSerialExpression(expr.expression, table.schema) ? type === "bigint" ? "bigserial" : type === "integer" ? "serial" : "smallserial" : type;
+		}
+	}
+	for (const column of columnsList.filter((x) => x.kind === "r" || x.kind === "p")) {
+		const table = tablesList.find((it) => Number(it.oid) === Number(column.tableId));
+		const enumType = column.typeId in groupedEnums ? groupedEnums[column.typeId] : column.typeId in groupedArrEnums ? groupedArrEnums[column.typeId] : null;
+		let columnTypeMapped = enumType ? enumType.name : column.type.replaceAll("[]", "");
+		columnTypeMapped = columnTypeMapped.replace("character varying", "varchar").replace(" without time zone", "").replace("character", "char").replace("geometry(Point", "geometry(point");
+		columnTypeMapped = require_utils.trimChar(columnTypeMapped, "\"");
+		const columnDefault = defaultsList.find((it) => Number(it.tableId) === Number(column.tableId) && it.ordinality === column.ordinality);
+		const defaultValue = require_grammar.defaultForColumn(columnTypeMapped, columnDefault?.expression, column.dimensions, Boolean(enumType));
+		const unique = constraintsList.find((it) => {
+			return it.type === "u" && Number(it.tableId) === Number(column.tableId) && it.columnsOrdinals.length === 1 && it.columnsOrdinals.includes(column.ordinality);
+		}) ?? null;
+		const pk = constraintsList.find((it) => {
+			return it.type === "p" && Number(it.tableId) === Number(column.tableId) && it.columnsOrdinals.length === 1 && it.columnsOrdinals.includes(column.ordinality);
+		}) ?? null;
+		const metadata = column.metadata;
+		if (column.generatedType === "s" && (!metadata || !metadata.expression)) throw new Error(`Generated ${table.schema}.${table.name}.${column.name} columns missing expression: \n${JSON.stringify(column.metadata)}`);
+		if (column.identityType !== "" && !metadata) throw new Error(`Identity ${table.schema}.${table.name}.${column.name} columns missing metadata: \n${JSON.stringify(column.metadata)}`);
+		const sequence = metadata?.seqId ? sequencesList.find((it) => Number(it.oid) === Number(metadata.seqId)) ?? null : null;
+		columns.push({
+			entityType: "columns",
+			schema: table.schema,
+			table: table.name,
+			name: column.name,
+			type: columnTypeMapped,
+			typeSchema: enumType ? enumType.schema ?? "public" : null,
+			dimensions: column.dimensions,
+			default: column.generatedType === "s" ? null : defaultValue,
+			unique: !!unique,
+			uniqueName: unique ? unique.name : null,
+			uniqueNullsNotDistinct: unique?.definition.includes("NULLS NOT DISTINCT") ?? false,
+			notNull: column.notNull,
+			pk: pk !== null,
+			pkName: pk !== null ? pk.name : null,
+			generated: column.generatedType === "s" ? {
+				type: "stored",
+				as: metadata.expression
+			} : null,
+			identity: column.identityType !== "" ? {
+				type: column.identityType === "a" ? "always" : "byDefault",
+				name: sequence?.name ?? "",
+				increment: require_grammar.stringFromDatabaseIdentityProperty(metadata?.increment),
+				minValue: require_grammar.stringFromDatabaseIdentityProperty(metadata?.min),
+				maxValue: require_grammar.stringFromDatabaseIdentityProperty(metadata?.max),
+				startWith: require_grammar.stringFromDatabaseIdentityProperty(metadata?.start),
+				cycle: metadata?.cycle === "YES",
+				cache: Number(require_grammar.stringFromDatabaseIdentityProperty(sequence?.cacheSize ?? 1))
+			} : null
+		});
+	}
+	for (const unique of constraintsList.filter((it) => it.type === "u")) {
+		const table = tablesList.find((it) => Number(it.oid) === Number(unique.tableId));
+		const schema = namespaces.find((it) => Number(it.oid) === Number(unique.schemaId));
+		const columns$1 = unique.columnsOrdinals.map((it) => {
+			return columnsList.find((column) => Number(column.tableId) === Number(unique.tableId) && column.ordinality === it).name;
+		});
+		uniques.push({
+			entityType: "uniques",
+			schema: schema.name,
+			table: table.name,
+			name: unique.name,
+			nameExplicit: true,
+			columns: columns$1,
+			nullsNotDistinct: unique.definition.includes("NULLS NOT DISTINCT")
+		});
+	}
+	for (const pk of constraintsList.filter((it) => it.type === "p")) {
+		const table = tablesList.find((it) => Number(it.oid) === Number(pk.tableId));
+		const schema = namespaces.find((it) => Number(it.oid) === Number(pk.schemaId));
+		const columns$1 = pk.columnsOrdinals.map((it) => {
+			return columnsList.find((column) => Number(column.tableId) === Number(pk.tableId) && column.ordinality === it).name;
+		});
+		pks.push({
+			entityType: "pks",
+			schema: schema.name,
+			table: table.name,
+			name: pk.name,
+			columns: columns$1,
+			nameExplicit: true
+		});
+	}
+	for (const fk of constraintsList.filter((it) => it.type === "f")) {
+		const table = tablesList.find((it) => Number(it.oid) === Number(fk.tableId));
+		const schema = namespaces.find((it) => Number(it.oid) === Number(fk.schemaId));
+		const tableTo = tablesList.find((it) => Number(it.oid) === Number(fk.tableToId));
+		const columns$1 = fk.columnsOrdinals.map((it) => {
+			return columnsList.find((column) => Number(column.tableId) === Number(fk.tableId) && column.ordinality === it).name;
+		});
+		const columnsTo = fk.columnsToOrdinals.map((it) => {
+			return columnsList.find((column) => Number(column.tableId) === Number(fk.tableToId) && column.ordinality === it).name;
+		});
+		fks.push({
+			entityType: "fks",
+			schema: schema.name,
+			table: table.name,
+			name: fk.name,
+			nameExplicit: true,
+			columns: columns$1,
+			tableTo: tableTo.name,
+			schemaTo: tableTo.schema,
+			columnsTo,
+			onUpdate: require_grammar.parseOnType(fk.onUpdate),
+			onDelete: require_grammar.parseOnType(fk.onDelete)
+		});
+	}
+	for (const check of constraintsList.filter((it) => it.type === "c")) {
+		const table = tablesList.find((it) => Number(it.oid) === Number(check.tableId));
+		const schema = namespaces.find((it) => Number(it.oid) === Number(check.schemaId));
+		checks.push({
+			entityType: "checks",
+			schema: schema.name,
+			table: table.name,
+			name: check.name,
+			value: check.definition.startsWith("CHECK (") ? check.definition.slice(7, -1) : check.definition
+		});
+	}
+	const idxs = await db.query(`
+      SELECT
+        pg_class.oid,
+        nspname as "schema",
+        relname AS "name",
+        am.amname AS "accessMethod",
+        reloptions AS "with",
+        pg_catalog.row_to_json(metadata.*) as "metadata"
+      FROM
+        pg_catalog.pg_class
+      JOIN pg_catalog.pg_am am ON am.oid OPERATOR(pg_catalog.=) pg_class.relam
+	  JOIN pg_catalog.pg_namespace nsp ON nsp.oid OPERATOR(pg_catalog.=) pg_class.relnamespace
+      JOIN LATERAL (
+        SELECT
+          pg_catalog.pg_get_expr(indexprs, indrelid) AS "expression",
+          pg_catalog.pg_get_expr(indpred, indrelid) AS "where",
+          indrelid::int AS "tableId",
+          indkey::int[] as "columnOrdinals",
+          indoption::int[] as "options",
+          indisunique as "isUnique",
+          indisprimary as "isPrimary",
+		  array(
+			SELECT
+			  pg_catalog.json_build_object(
+				'oid', opclass.oid,
+				'name', pg_am.amname,
+				'default', pg_opclass.opcdefault
+			  )
+			FROM
+			  pg_catalog.unnest(indclass) WITH ORDINALITY AS opclass(oid, ordinality)
+			JOIN pg_catalog.pg_opclass ON opclass.oid OPERATOR(pg_catalog.=) pg_opclass.oid
+			JOIN pg_catalog.pg_am ON pg_opclass.opcmethod OPERATOR(pg_catalog.=) pg_am.oid
+			ORDER BY opclass.ordinality
+		  ) as "opclasses"
+        FROM
+          pg_catalog.pg_index
+        WHERE
+          pg_index.indexrelid OPERATOR(pg_catalog.=) pg_class.oid
+      ) metadata ON TRUE
+      WHERE
+        relkind OPERATOR(pg_catalog.=) 'i'
+		AND ${filterByTableIds ? `metadata."tableId" IN ${filterByTableIds}` : "false"}
+	  ORDER BY pg_catalog.lower(nspname), pg_catalog.lower(relname);
+    `).then((rows) => {
+		queryCallback("indexes", rows, null);
+		return rows;
+	}).catch((err) => {
+		queryCallback("indexes", [], err);
+		throw err;
+	});
+	for (const idx of idxs) {
+		const { metadata } = idx;
+		const forUnique = metadata.isUnique && constraintsList.some((x) => x.type === "u" && Number(x.indexId) === Number(idx.oid));
+		const forPK = metadata.isPrimary && constraintsList.some((x) => x.type === "p" && Number(x.indexId) === Number(idx.oid));
+		const expr = require_utils.splitExpressions(metadata.expression);
+		const table = tablesList.find((it) => Number(it.oid) === Number(idx.metadata.tableId));
+		const nonColumnsCount = metadata.columnOrdinals.reduce((acc, it) => {
+			if (it === 0) acc += 1;
+			return acc;
+		}, 0);
+		if (expr.length !== nonColumnsCount) throw new Error(`expression split doesn't match non-columns count: [${metadata.columnOrdinals.join(", ")}] '${metadata.expression}':${expr.length}:${nonColumnsCount}`);
+		const opts = metadata.options.map((it) => {
+			return {
+				descending: (it & 1) === 1,
+				nullsFirst: (it & 2) === 2
+			};
+		});
+		const res = [];
+		let k = 0;
+		for (let i = 0; i < metadata.columnOrdinals.length; i++) {
+			const ordinal = metadata.columnOrdinals[i];
+			if (ordinal === 0) {
+				res.push({
+					type: "expression",
+					value: expr[k],
+					options: opts[i],
+					opclass: metadata.opclasses[i]
+				});
+				k += 1;
+			} else {
+				const column = columnsList.find((column$1) => {
+					return Number(column$1.tableId) === Number(metadata.tableId) && column$1.ordinality === ordinal;
+				});
+				if (!column) throw new Error(`missing column: ${metadata.tableId}:${ordinal}`);
+				const options = opts[i];
+				const opclass = metadata.opclasses[i];
+				if (options && opclass) res.push({
+					type: "column",
+					value: column,
+					options: opts[i],
+					opclass: metadata.opclasses[i]
+				});
+			}
+		}
+		const columns$1 = res.map((it) => {
+			return {
+				asc: !it.options.descending,
+				nullsFirst: it.options.nullsFirst,
+				opclass: it.opclass.default ? null : {
+					name: it.opclass.name,
+					default: it.opclass.default
+				},
+				isExpression: it.type === "expression",
+				value: it.type === "expression" ? it.value : it.value.name
+			};
+		});
+		indexes.push({
+			entityType: "indexes",
+			schema: idx.schema,
+			table: table.name,
+			name: idx.name,
+			nameExplicit: true,
+			method: idx.accessMethod,
+			isUnique: metadata.isUnique,
+			with: idx.with?.join(", ") ?? "",
+			where: idx.metadata.where,
+			columns: columns$1,
+			concurrently: false,
+			forUnique,
+			forPK
+		});
+	}
+	for (const it of columnsList.filter((x) => x.kind === "m" || x.kind === "v")) {
+		const view = viewsList.find((x) => Number(x.oid) === Number(it.tableId));
+		const typeDimensions = it.type.split("[]").length - 1;
+		const enumType = it.typeId in groupedEnums ? groupedEnums[it.typeId] : it.typeId in groupedArrEnums ? groupedArrEnums[it.typeId] : null;
+		let columnTypeMapped = enumType ? enumType.name : it.type.replace("[]", "");
+		columnTypeMapped = require_utils.trimChar(columnTypeMapped, "\"");
+		if (columnTypeMapped.startsWith("numeric(")) columnTypeMapped = columnTypeMapped.replace(",", ", ");
+		columnTypeMapped = columnTypeMapped.replace("character varying", "varchar").replace(" without time zone", "").replace("character", "char").replace("geometry(Point)", "geometry(point)");
+		columnTypeMapped += "[]".repeat(it.dimensions);
+		viewColumns.push({
+			schema: view.schema,
+			view: view.name,
+			name: it.name,
+			type: columnTypeMapped,
+			typeDimensions,
+			notNull: it.notNull,
+			dimensions: it.dimensions,
+			typeSchema: enumType ? enumType.schema : null
+		});
+	}
+	for (const view of viewsList) {
+		const accessMethod = Number(view.accessMethod) === 0 ? null : ams.find((it) => Number(it.oid) === Number(view.accessMethod));
+		const tablespace = Number(view.tablespaceid) === 0 ? null : tablespaces.find((it) => Number(it.oid) === Number(view.tablespaceid)).name;
+		const definition = require_grammar.parseViewDefinition(view.definition);
+		const withOpts = require_grammar.wrapRecord(view.options?.reduce((acc, it) => {
+			const opt = it.split("=");
+			if (opt.length !== 2) throw new Error(`Unexpected view option: ${it}`);
+			const key = camelCase(opt[0].trim());
+			acc[key] = opt[1].trim();
+			return acc;
+		}, {}) ?? {});
+		const opts = {
+			checkOption: withOpts.literal("checkOption", ["local", "cascaded"]),
+			securityBarrier: withOpts.bool("securityBarrier"),
+			securityInvoker: withOpts.bool("securityInvoker"),
+			fillfactor: withOpts.num("fillfactor"),
+			toastTupleTarget: withOpts.num("toastTupleTarget"),
+			parallelWorkers: withOpts.num("parallelWorkers"),
+			autovacuumEnabled: withOpts.bool("autovacuumEnabled"),
+			vacuumIndexCleanup: withOpts.literal("vacuumIndexCleanup", [
+				"auto",
+				"on",
+				"off"
+			]),
+			vacuumTruncate: withOpts.bool("vacuumTruncate"),
+			autovacuumVacuumThreshold: withOpts.num("autovacuumVacuumThreshold"),
+			autovacuumVacuumScaleFactor: withOpts.num("autovacuumVacuumScaleFactor"),
+			autovacuumVacuumCostDelay: withOpts.num("autovacuumVacuumCostDelay"),
+			autovacuumVacuumCostLimit: withOpts.num("autovacuumVacuumCostLimit"),
+			autovacuumFreezeMinAge: withOpts.num("autovacuumFreezeMinAge"),
+			autovacuumFreezeMaxAge: withOpts.num("autovacuumFreezeMaxAge"),
+			autovacuumFreezeTableAge: withOpts.num("autovacuumFreezeTableAge"),
+			autovacuumMultixactFreezeMinAge: withOpts.num("autovacuumMultixactFreezeMinAge"),
+			autovacuumMultixactFreezeMaxAge: withOpts.num("autovacuumMultixactFreezeMaxAge"),
+			autovacuumMultixactFreezeTableAge: withOpts.num("autovacuumMultixactFreezeTableAge"),
+			logAutovacuumMinDuration: withOpts.num("logAutovacuumMinDuration"),
+			userCatalogTable: withOpts.bool("userCatalogTable")
+		};
+		const hasNonNullOpt = Object.values(opts).some((x) => x !== null);
+		views.push({
+			entityType: "views",
+			schema: view.schema,
+			name: view.name,
+			definition,
+			with: hasNonNullOpt ? opts : null,
+			materialized: view.kind === "m",
+			tablespace,
+			using: accessMethod?.name ?? null,
+			withNoData: null
+		});
+	}
+	progressCallback("tables", filteredTables.length, "done");
+	progressCallback("columns", columnsList.length, "done");
+	progressCallback("checks", checks.length, "done");
+	progressCallback("indexes", indexes.length, "fetching");
+	progressCallback("views", viewsList.length, "done");
+	progressCallback("fks", fks.length, "done");
+	progressCallback("enums", Object.keys(groupedEnums).length, "done");
+	progressCallback("policies", policiesList.length, "done");
+	const resultSchemas = schemas.filter((x) => filter({
+		type: "schema",
+		name: x.name
+	}));
+	const resultTables = tables.filter((x) => filter({
+		type: "table",
+		schema: x.schema,
+		name: x.name
+	}));
+	const resultEnums = enums.filter((x) => resultSchemas.some((s) => s.name === x.schema));
+	const resultColumns = columns.filter((x) => resultTables.some((t) => t.schema === x.schema && t.name === x.table));
+	const resultIndexes = indexes.filter((x) => resultTables.some((t) => t.schema === x.schema && t.name === x.table));
+	const resultPKs = pks.filter((x) => resultTables.some((t) => t.schema === x.schema && t.name === x.table));
+	const resultFKs = fks.filter((x) => resultTables.some((t) => t.schema === x.schema && t.name === x.table));
+	const resultUniques = uniques.filter((x) => resultTables.some((t) => t.schema === x.schema && t.name === x.table));
+	const resultChecks = checks.filter((x) => resultTables.some((t) => t.schema === x.schema && t.name === x.table));
+	const resultSequences = sequences.filter((x) => resultSchemas.some((t) => t.name === x.schema));
+	const resultRoles = roles.filter((x) => filter({
+		type: "role",
+		name: x.name
+	}));
+	const resultViews = views.filter((x) => filter({
+		type: "table",
+		schema: x.schema,
+		name: x.name
+	}));
+	return {
+		schemas: resultSchemas,
+		tables: resultTables,
+		enums: resultEnums,
+		columns: resultColumns,
+		indexes: resultIndexes,
+		pks: resultPKs,
+		fks: resultFKs,
+		uniques: resultUniques,
+		checks: resultChecks,
+		sequences: resultSequences,
+		roles: resultRoles,
+		privileges,
+		policies,
+		views: resultViews,
+		viewColumns: viewColumns.filter((x) => resultViews.some((v) => v.schema === x.schema && v.name === x.view))
+	};
+};
+const fromDatabaseForDrizzle = async (db, filter, progressCallback = () => {}, migrations) => {
+	const res = await fromDatabase(db, filter, progressCallback);
+	res.schemas = res.schemas.filter((it) => it.name !== "public");
+	res.indexes = res.indexes.filter((it) => !it.forPK && !it.forUnique);
+	res.privileges = [];
+	require_grammar.filterMigrationsSchema(res, migrations);
+	return res;
+};
+
+//#endregion
+exports.fromDatabaseForDrizzle = fromDatabaseForDrizzle;

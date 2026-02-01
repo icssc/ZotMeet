@@ -1,0 +1,15 @@
+{
+  "name": "@tsconfig/bun",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tsconfig/bases.git",
+    "directory": "bases"
+  },
+  "license": "MIT",
+  "description": "A base TSConfig for working with Bun.",
+  "keywords": [
+    "tsconfig",
+    "bun"
+  ],
+  "version": "1.0.7"
+}

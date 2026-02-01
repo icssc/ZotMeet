@@ -1,0 +1,129 @@
+const require_rolldown_runtime = require('../../_virtual/rolldown_runtime.cjs');
+const require_pg_core_session = require('../session.cjs');
+const require_pg_core_effect_db = require('./db.cjs');
+let __entity_ts = require("../../entity.cjs");
+let __utils_ts = require("../../utils.cjs");
+let __sql_sql_ts = require("../../sql/sql.cjs");
+let __cache_core_cache_ts = require("../../cache/core/cache.cjs");
+let effect = require("effect");
+let __effect_core_errors_ts = require("../../effect-core/errors.cjs");
+
+//#region src/pg-core/effect/session.ts
+var PgEffectPreparedQuery = class extends require_pg_core_session.PgBasePreparedQuery {
+	static [__entity_ts.entityKind] = "PgEffectPreparedQuery";
+	constructor(query, cache, queryMetadata, cacheConfig) {
+		super(query);
+		this.cache = cache;
+		this.queryMetadata = queryMetadata;
+		this.cacheConfig = cacheConfig;
+		if (cache && cache.strategy() === "all" && cacheConfig === void 0) this.cacheConfig = {
+			enabled: true,
+			autoInvalidate: true
+		};
+		if (!this.cacheConfig?.enabled) this.cacheConfig = void 0;
+	}
+	queryWithCache(queryString, params, query) {
+		const { cache, cacheConfig, queryMetadata } = this;
+		return effect.Effect.gen(function* () {
+			const cacheStrat = cache && !(0, __entity_ts.is)(cache.wrapped, __cache_core_cache_ts.NoopCache) ? yield* effect.Effect.tryPromise(() => (0, __cache_core_cache_ts.strategyFor)(queryString, params, queryMetadata, cacheConfig)) : { type: "skip" };
+			if (cacheStrat.type === "skip") return yield* query;
+			if (cacheStrat.type === "invalidate") {
+				const result = yield* query;
+				yield* cache.onMutate({ tables: cacheStrat.tables });
+				return result;
+			}
+			if (cacheStrat.type === "try") {
+				const { tables, key, isTag, autoInvalidate, config } = cacheStrat;
+				const fromCache = yield* cache.get(key, tables, isTag, autoInvalidate);
+				if (typeof fromCache !== "undefined") return fromCache;
+				const result = yield* query;
+				yield* cache.put(key, result, autoInvalidate ? tables : [], isTag, config);
+				return result;
+			}
+			(0, __utils_ts.assertUnreachable)(cacheStrat);
+		}).pipe(effect.Effect.catchAll((e) => {
+			return effect.Effect.fail(new __effect_core_errors_ts.TaggedDrizzleQueryError(queryString, params, e instanceof Error ? e : void 0));
+		}));
+	}
+};
+var PgEffectSession = class extends require_pg_core_session.PgSession {
+	static [__entity_ts.entityKind] = "PgEffectSession";
+	constructor(dialect) {
+		super(dialect);
+	}
+	execute(query) {
+		const { sql: sql$1, params } = this.dialect.sqlToQuery(query);
+		return this.prepareQuery({
+			sql: sql$1,
+			params
+		}, void 0, void 0, false).execute();
+	}
+	all(query) {
+		const { sql: sql$1, params } = this.dialect.sqlToQuery(query);
+		return this.prepareQuery({
+			sql: sql$1,
+			params
+		}, void 0, void 0, false).all();
+	}
+};
+var PgEffectTransaction = class extends require_pg_core_effect_db.PgEffectDatabase {
+	static [__entity_ts.entityKind] = "PgEffectTransaction";
+	constructor(dialect, session, relations, schema, nestedIndex = 0, parseRqbJson) {
+		super(dialect, session, relations, schema, parseRqbJson);
+		this.relations = relations;
+		this.schema = schema;
+		this.nestedIndex = nestedIndex;
+	}
+	rollback() {
+		return effect.Effect.fail(new __effect_core_errors_ts.TaggedTransactionRollbackError());
+	}
+	/** @internal */
+	getTransactionConfigSQL(config) {
+		const chunks = [];
+		if (config.isolationLevel) chunks.push(`isolation level ${config.isolationLevel}`);
+		if (config.accessMode) chunks.push(config.accessMode);
+		if (typeof config.deferrable === "boolean") chunks.push(config.deferrable ? "deferrable" : "not deferrable");
+		return __sql_sql_ts.sql.raw(chunks.join(" "));
+	}
+	setTransaction(config) {
+		return this.session.execute(__sql_sql_ts.sql`set transaction ${this.getTransactionConfigSQL(config)}`);
+	}
+};
+function migrate(migrations, session, config) {
+	return effect.Effect.gen(function* () {
+		const migrationsTable = typeof config === "string" ? "__drizzle_migrations" : config.migrationsTable ?? "__drizzle_migrations";
+		const migrationsSchema = typeof config === "string" ? "drizzle" : config.migrationsSchema ?? "drizzle";
+		const migrationTableCreate = __sql_sql_ts.sql`
+			CREATE TABLE IF NOT EXISTS ${__sql_sql_ts.sql.identifier(migrationsSchema)}.${__sql_sql_ts.sql.identifier(migrationsTable)} (
+				id SERIAL PRIMARY KEY,
+				hash text NOT NULL,
+				created_at bigint
+			)
+		`;
+		yield* session.execute(__sql_sql_ts.sql`CREATE SCHEMA IF NOT EXISTS ${__sql_sql_ts.sql.identifier(migrationsSchema)}`);
+		yield* session.execute(migrationTableCreate);
+		const dbMigrations = yield* session.all(__sql_sql_ts.sql`select id, hash, created_at from ${__sql_sql_ts.sql.identifier(migrationsSchema)}.${__sql_sql_ts.sql.identifier(migrationsTable)} order by created_at desc limit 1`);
+		if (typeof config === "object" && config.init) {
+			if (dbMigrations.length) return { exitCode: "databaseMigrations" };
+			if (migrations.length > 1) return { exitCode: "localMigrations" };
+			const [migration] = migrations;
+			if (!migration) return;
+			yield* session.execute(__sql_sql_ts.sql`insert into ${__sql_sql_ts.sql.identifier(migrationsSchema)}.${__sql_sql_ts.sql.identifier(migrationsTable)} ("hash", "created_at") values(${migration.hash}, ${migration.folderMillis})`);
+			return;
+		}
+		const lastDbMigration = dbMigrations[0];
+		yield* session.transaction((tx) => effect.Effect.gen(function* () {
+			for (const migration of migrations) if (!lastDbMigration || Number(lastDbMigration.created_at) < migration.folderMillis) {
+				for (const stmt of migration.sql) yield* tx.execute(__sql_sql_ts.sql.raw(stmt));
+				yield* tx.execute(__sql_sql_ts.sql`insert into ${__sql_sql_ts.sql.identifier(migrationsSchema)}.${__sql_sql_ts.sql.identifier(migrationsTable)} ("hash", "created_at") values(${migration.hash}, ${migration.folderMillis})`);
+			}
+		}));
+	});
+}
+
+//#endregion
+exports.PgEffectPreparedQuery = PgEffectPreparedQuery;
+exports.PgEffectSession = PgEffectSession;
+exports.PgEffectTransaction = PgEffectTransaction;
+exports.migrate = migrate;
+//# sourceMappingURL=session.cjs.map

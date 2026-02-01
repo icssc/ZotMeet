@@ -1,0 +1,1 @@
+{"version":3,"file":"column-common.js","names":[],"sources":["../src/column-common.ts"],"sourcesContent":["export const OriginalColumn = Symbol.for('drizzle:OriginalColumn');\n"],"mappings":";AAAA,MAAa,iBAAiB,OAAO,IAAI,yBAAyB"}

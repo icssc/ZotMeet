@@ -1,0 +1,1 @@
+{"version":3,"file":"v6-LJ62O3wp.d.ts","names":["NuqsAdapter: AdapterProvider","useOptimisticSearchParams: () => URLSearchParams"],"sources":["../src/adapters/react-router/v6.ts"],"sourcesContent":[],"mappings":";;;cAUaA,aAAa;cACbC,iCAAiC"}

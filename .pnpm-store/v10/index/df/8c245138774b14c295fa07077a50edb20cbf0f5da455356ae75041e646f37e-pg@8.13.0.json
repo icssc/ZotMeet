@@ -1,0 +1,127 @@
+{
+	"name": "pg",
+	"version": "8.13.0",
+	"requiresBuild": false,
+	"files": {
+		"LICENSE": {
+			"checkedAt": 1769490673293,
+			"integrity": "sha512-deIXW9Mn1d54xCJyQjMwDaueAOH1K6DlvcJhc24W15Nb/chR8VqHdiIrQcyQZpqqvMk/GtHkrxebEREGz9MdmA==",
+			"mode": 420,
+			"size": 1077
+		},
+		"lib/client.js": {
+			"checkedAt": 1769490673294,
+			"integrity": "sha512-EkSSYi1dvL3vyItVY8fZR4PKPxUigzOZHLAdBLJsYhjXgH6B++5LkYn4vVHLARyU5XBqlXpZBTupSbL7d2T2dw==",
+			"mode": 420,
+			"size": 18363
+		},
+		"lib/native/client.js": {
+			"checkedAt": 1769490673296,
+			"integrity": "sha512-H5/xVzBgaOjeAurJIrc2BxXed9cu3M+ZUYHXYPOvx4cGudqWUIsU9zm4ApUBK/5i98CpbF9JqTs7+I7qXYCHEw==",
+			"mode": 420,
+			"size": 7995
+		},
+		"lib/connection-parameters.js": {
+			"checkedAt": 1769490673298,
+			"integrity": "sha512-N9Ffyq0rRPFqMVkuQHtsnTaoOHuLnO3fniTNysKEVUgxaQCPd2feVxSMzenCOU2k962bQMCUnLG7ZYGJwBOGAA==",
+			"mode": 420,
+			"size": 5228
+		},
+		"lib/connection.js": {
+			"checkedAt": 1769490673300,
+			"integrity": "sha512-6WNHP6loIPBMtoAXuFRcEk+BIR7xvb0d7IZDPAoEXTA1a0Zfab5JRGA32O0O15qE+cBBiuSUaTZ/7Tgzd3oTjg==",
+			"mode": 420,
+			"size": 5163
+		},
+		"lib/defaults.js": {
+			"checkedAt": 1769490673301,
+			"integrity": "sha512-Z//qaCwYs0xbJwxu7h9h26Mqetxebszju7dzsHpv2zUXh0u72CMjxo8AAl9lEI5V2mWEHQI1VMgLvommWr+Aog==",
+			"mode": 420,
+			"size": 2420
+		},
+		"lib/index.js": {
+			"checkedAt": 1769490673302,
+			"integrity": "sha512-VDMdhOcg+t1we4TF1DT0jw+8n5YbEc5Jj34s0yLjLIPkqGxMYdy0+TSSrhFrV6zKYV7MQxVJ97R7tPXdYV8knA==",
+			"mode": 420,
+			"size": 1519
+		},
+		"lib/native/index.js": {
+			"checkedAt": 1769490673304,
+			"integrity": "sha512-ufgQvpoCqelneIoTVZvhPofAgN3B4j5iMkKR+BV2nOxq8gkjZPi+aALHCfvFu0g7pUR4+newdgy41R4Cx/hPZQ==",
+			"mode": 420,
+			"size": 50
+		},
+		"lib/native/query.js": {
+			"checkedAt": 1769490673304,
+			"integrity": "sha512-VHqd9q8A3ozhp2TIn/CsvflEHRy9xVDxTkkf7KISLRu0xPvSuqMWUkLB93bwNM4I5G9U77IC/ahcdhCNxNgqYA==",
+			"mode": 420,
+			"size": 4844
+		},
+		"lib/query.js": {
+			"checkedAt": 1769490673305,
+			"integrity": "sha512-H3k7TNkpjPG1awUuB60MG4EacIo4mDDsDhJ6sNDgRkbocf9yD2fOx4k117YjypAIh6BOEQSR0YxePbogQ9lGtg==",
+			"mode": 420,
+			"size": 6425
+		},
+		"lib/result.js": {
+			"checkedAt": 1769490673306,
+			"integrity": "sha512-oG3aUXzqsR/Rj9Ps1KNZTQG5/cAX7Ym46aJic9r1lLdPn0dUSKYbXngr/TfTY9NmWamTwEWyhUyLYYJazURzxg==",
+			"mode": 420,
+			"size": 2713
+		},
+		"lib/crypto/sasl.js": {
+			"checkedAt": 1769490673307,
+			"integrity": "sha512-+jGKDFqmbsKCkUATKQrfrzWuhQ0x3I0TxWKVMTJU9lABeryyfK+C4msFgZMqE1PbcoKhA+WIJa2ewMx4S5zH/g==",
+			"mode": 420,
+			"size": 6105
+		},
+		"lib/stream.js": {
+			"checkedAt": 1769490673309,
+			"integrity": "sha512-xze9d8n5/Qk+5+WRkMvBeViBqvDN8g/FhLyoGtOD92LNcz4eYd1pWOIJAulUaDOoYq77sAtZqLHWcwBM4pGJ+w==",
+			"mode": 420,
+			"size": 2050
+		},
+		"lib/type-overrides.js": {
+			"checkedAt": 1769490673309,
+			"integrity": "sha512-HRcFRRSdr316zqysEs6GOo5TNvOjddCbiVyYCfXgttIyaBQhY6lu6a69D5tr23YEHyPZgWEN2LSNTVq1jc1NnQ==",
+			"mode": 420,
+			"size": 768
+		},
+		"lib/crypto/utils-legacy.js": {
+			"checkedAt": 1769490673310,
+			"integrity": "sha512-W88sxHYANUFFUMgJbfSuAwhsUuoL3GnmjN7QfeiRYW70H6xaMenyDu8t/Kba6JBA6W/Dq1iBi+h9reTXdl8Wfw==",
+			"mode": 420,
+			"size": 1022
+		},
+		"lib/crypto/utils-webcrypto.js": {
+			"checkedAt": 1769490673312,
+			"integrity": "sha512-lcz6qXbrWjTgJkXocx/aHI5hADOGk4vnXOnIfAsAJJGwGYaLbyYnT//sieTKU+5LgOwR7uiE70Dy1GNvIiq96w==",
+			"mode": 420,
+			"size": 2496
+		},
+		"lib/crypto/utils.js": {
+			"checkedAt": 1769490673312,
+			"integrity": "sha512-uO7mwnbWJ/HII/hQ/X7l3Ml291E5SqRJqPs+/axSx7Veb83c3or4H1yPUnBYynEfkMJPUrplY2AKlcOrFX21pA==",
+			"mode": 420,
+			"size": 341
+		},
+		"lib/utils.js": {
+			"checkedAt": 1769490673313,
+			"integrity": "sha512-CTMzUbMqwyZPJldp8Gp3n9BXnbyzQLCql2DdL85EqsllmKGEv0DzR8ocbXZLgYBEF8RzIrSWcecuLEBJjTZkGQ==",
+			"mode": 420,
+			"size": 5261
+		},
+		"package.json": {
+			"checkedAt": 1769490673317,
+			"integrity": "sha512-vlxkFw+jfZRyPwZBxrqN2pnjRQF8RmyHLROA6PVrSstm4oBxjn7I8q4mu5QA+U7qkStxo2yi0vget/Ers3k4uA==",
+			"mode": 420,
+			"size": 1346
+		},
+		"README.md": {
+			"checkedAt": 1769490673318,
+			"integrity": "sha512-Ko5UBjfOWXHjHPUt3oUWvqg5r36ZwCoqh9aaKJpzEPPhMN/oEJ4WJCkdkYG+/6n6XNHuQyEFJJ7TxoHbwcNz/A==",
+			"mode": 420,
+			"size": 4083
+		}
+	}
+}

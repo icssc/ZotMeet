@@ -1,0 +1,9 @@
+import { NodeMsSqlDatabase } from "./driver.js";
+import * as __migrator_ts14 from "../migrator.js";
+import { MigrationConfig } from "../migrator.js";
+
+//#region src/node-mssql/migrator.d.ts
+declare function migrate<TSchema extends Record<string, unknown>>(db: NodeMsSqlDatabase<TSchema>, config: MigrationConfig): Promise<void | __migrator_ts14.MigratorInitFailResponse>;
+//#endregion
+export { migrate };
+//# sourceMappingURL=migrator.d.ts.map

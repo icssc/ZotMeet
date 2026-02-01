@@ -1,0 +1,37 @@
+import { SQLiteAsyncDialect } from "../dialect.js";
+import { entityKind } from "../../entity.js";
+import * as __sql_sql_ts5 from "../../sql/sql.js";
+import { SQL, SQLWrapper } from "../../sql/sql.js";
+import { QueryPromise } from "../../query-promise.js";
+import { PreparedQuery } from "../../session.js";
+import { RunnableQuery } from "../../runnable-query.js";
+
+//#region src/sqlite-core/query-builders/raw.d.ts
+type SQLiteRawAction = 'all' | 'get' | 'values' | 'run';
+interface SQLiteRawConfig {
+  action: SQLiteRawAction;
+}
+interface SQLiteRaw<TResult> extends QueryPromise<TResult>, RunnableQuery<TResult, 'sqlite'>, SQLWrapper {}
+declare class SQLiteRaw<TResult> extends QueryPromise<TResult> implements RunnableQuery<TResult, 'sqlite'>, SQLWrapper, PreparedQuery {
+  execute: () => Promise<TResult>;
+  private dialect;
+  private mapBatchResult;
+  static readonly [entityKind]: string;
+  readonly _: {
+    readonly dialect: 'sqlite';
+    readonly result: TResult;
+  };
+  constructor(execute: () => Promise<TResult>, /** @internal */
+  getSQL: () => SQL, action: SQLiteRawAction, dialect: SQLiteAsyncDialect, mapBatchResult: (result: unknown) => unknown);
+  getQuery(): {
+    method: SQLiteRawAction;
+    typings?: __sql_sql_ts5.QueryTypingsValue[];
+    sql: string;
+    params: unknown[];
+  };
+  mapResult(result: unknown, isFromBatch?: boolean): unknown;
+  _prepare(): PreparedQuery;
+}
+//#endregion
+export { SQLiteRaw, SQLiteRawConfig };
+//# sourceMappingURL=raw.d.ts.map

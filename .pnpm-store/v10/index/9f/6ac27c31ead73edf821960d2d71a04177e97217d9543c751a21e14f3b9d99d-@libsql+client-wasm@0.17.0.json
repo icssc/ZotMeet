@@ -1,0 +1,127 @@
+{
+	"name": "@libsql/client-wasm",
+	"version": "0.17.0",
+	"requiresBuild": false,
+	"files": {
+		"LICENSE": {
+			"checkedAt": 1769490694515,
+			"integrity": "sha512-0eBuCZkrG/YOAjfG1dV/4Byi+z+YDgyFsZPHsJhRmznl7KDT0S+AtQC5/D0QCf2rDGTOoTmRTPS3YYMYRmRCvw==",
+			"mode": 420,
+			"size": 1063
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/bin/index.js": {
+			"checkedAt": 1769490694515,
+			"integrity": "sha512-r1BqLVLsKNW15wBCGCkHjeQWFAE8Tzdwsohfgep3pcEMcuohZQ52hokgAnFEoeD+UxMrAeT/kDznc2Iprnyu4Q==",
+			"mode": 493,
+			"size": 1456
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/sqlite-wasm/jswasm/sqlite3-opfs-async-proxy.js": {
+			"checkedAt": 1769490694517,
+			"integrity": "sha512-hVDBLswE18+98AQa+bQk3aAc3ty3/y9refkpWs2WqHD6+Q/5ZRUlHGm8QPj4EfwKBElezfxAmudsQrNPqZIAPQ==",
+			"mode": 420,
+			"size": 33204
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/sqlite-wasm/jswasm/sqlite3-worker1-promiser-bundler-friendly.js": {
+			"checkedAt": 1769490694518,
+			"integrity": "sha512-LfrrXMBBzVT0msh8533ek+ESmlP1d9RqQFtC2tusT0B7uk1tlPyT6LJgiDPVnT3s/C5vsm4MVdktK88UHPcPFA==",
+			"mode": 420,
+			"size": 4525
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/sqlite-wasm/jswasm/sqlite3-worker1-promiser.js": {
+			"checkedAt": 1769490694518,
+			"integrity": "sha512-zGRibwyfLMMut6tEVLgrTRrXZjZF17/SZnmmDpqWvKKke0fsbBA8u3O7n2BxSCDNZNMviGERmcpXsegwwPnirg==",
+			"mode": 420,
+			"size": 4903
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/sqlite-wasm/jswasm/sqlite3-worker1.js": {
+			"checkedAt": 1769490694518,
+			"integrity": "sha512-6Z593FpNhzdSjRctPOB/d6pgHDQwbeEU+eAzqyAaMXg/VS2c0Z6TXfiTGc4qVMmVzOXnbupDc7wVYNsoR/0fvA==",
+			"mode": 420,
+			"size": 1751
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/sqlite-wasm/jswasm/sqlite3.js": {
+			"checkedAt": 1769490694519,
+			"integrity": "sha512-1gnOrSJoZrcIsDm+dL6+qTYTRhJKfaSXrKxVAJZEew8Sumbi6eYaL9XzQZ02H9mkgSv/yb+BvnemDD85PdG0pg==",
+			"mode": 420,
+			"size": 409328
+		},
+		"lib-esm/wasm.js": {
+			"checkedAt": 1769490694520,
+			"integrity": "sha512-qz+vrns0jHQAerOiwDDd4xSNabSvNveifCk6w1oygZhsAdL852ECYtYgkdQsMbexq3a0InvNNH73yw4q7FPoEQ==",
+			"mode": 420,
+			"size": 12223
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/package.json": {
+			"checkedAt": 1769490694521,
+			"integrity": "sha512-enRuisbSl9HCV1pPjNzhCsjrAs+i6XMb4jV8rci5nOK8jkqqAYnVZqRBCyvqmgfEfnUSRgujwtMvUHm6bKELMA==",
+			"mode": 420,
+			"size": 1689
+		},
+		"package.json": {
+			"checkedAt": 1769490694521,
+			"integrity": "sha512-vzmUUd610T+WfaMWNpe9sssFQwsbN7jWhJiL/vsHGUepVNT/tdQO+gZh9weJm98Syg1l/tv1W6Mmko9zwCwxvg==",
+			"mode": 420,
+			"size": 2084
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/README.md": {
+			"checkedAt": 1769490694522,
+			"integrity": "sha512-JES/1BrakwI29jaje2muixyQsN0mlstl7uhM6TjjEqCMlHuK+kAqlrEKCkf8pCQD+k8SrAZNHHEUXY+9q/TSWA==",
+			"mode": 420,
+			"size": 596
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/index.mjs": {
+			"checkedAt": 1769490694522,
+			"integrity": "sha512-UjaQHeuH/oaDJhOdXZz/Elzhp5Kxi3rrf3mwlFAiH7rQZIxryEJ5tgm3VzMTTjCNM2lvJGMJHdEP8vRr5QFiyw==",
+			"mode": 420,
+			"size": 305
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/node.mjs": {
+			"checkedAt": 1769490694522,
+			"integrity": "sha512-LdEgNe9hlkxDeXSi63G35/4OzvIsftWS7FubQvKQiPUCPAocMgjbomiPK9iUH4vkF+Uk+sIZkKnNcmijNPF8vw==",
+			"mode": 420,
+			"size": 121
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/sqlite-wasm/jswasm/sqlite3-bundler-friendly.mjs": {
+			"checkedAt": 1769490694523,
+			"integrity": "sha512-Itw359TKO3M4r1Xa+wQFRrVaQjcYI5FiNoNw2qMzgZ9RruYNiNlS9SVwTvgN8fLrn5LmHLADEQlkUxD5nINDFA==",
+			"mode": 420,
+			"size": 408466
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/sqlite-wasm/jswasm/sqlite3-node.mjs": {
+			"checkedAt": 1769490694525,
+			"integrity": "sha512-OInkXCdoj1pykORDyKlWjztkE2nO4ez2nOy74Vr1wJZFdxin/Xoq+m20WADNmLZ+PHTLtF03xwEmTW0U4CUqHg==",
+			"mode": 420,
+			"size": 354507
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/sqlite-wasm/jswasm/sqlite3-worker1-bundler-friendly.mjs": {
+			"checkedAt": 1769490694526,
+			"integrity": "sha512-oQ05hvuiJeJxSJ8c+ZcUDif0xNM1a61gcpI0situs4LVowmnPtVN3Bu45scXicp5XwBzERkkVQxaSc/OcVz2mg==",
+			"mode": 420,
+			"size": 1529
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/sqlite-wasm/jswasm/sqlite3.mjs": {
+			"checkedAt": 1769490694526,
+			"integrity": "sha512-vTtLqKkmR0D0YDLH0lOs2cx12U6nI1gRIHV247faGcJiDR6vN0tJ3xoOVZQm3XKuYGDCn8pGYFt1C7soxcxIyQ==",
+			"mode": 420,
+			"size": 408580
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/index.d.ts": {
+			"checkedAt": 1769490694527,
+			"integrity": "sha512-CumLMLnZrNP1Vqw9PQ857gw9ldV0CMODQMwbB+Gjm/Vp5ZHPkgjoyUWuwYRnTN21jRXs7ejgPAuGixKkQi8gdA==",
+			"mode": 420,
+			"size": 282949
+		},
+		"lib-esm/wasm.d.ts": {
+			"checkedAt": 1769490694527,
+			"integrity": "sha512-FSQOnw+MnI2cJmNOPS+APG8idaaR0xFXgd4vMo3jkBlw6CE6JLBjFcVLDJO/UAgp5iign362/ji1oqYIsXEOSQ==",
+			"mode": 420,
+			"size": 1544
+		},
+		"node_modules/@libsql/libsql-wasm-experimental/sqlite-wasm/jswasm/sqlite3.wasm": {
+			"checkedAt": 1769490694534,
+			"integrity": "sha512-H4/1IsBrkzzO5hNwxajr3Nzx4ne3DfS0s6ax9O4z8DbamZlDkA4h+sBOjV/bRUQEgywDOF+x+OLf9JP6iRihug==",
+			"mode": 420,
+			"size": 3600206
+		}
+	}
+}

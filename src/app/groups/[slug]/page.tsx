@@ -8,21 +8,6 @@ interface PageProps {
 		slug: string;
 	}>;
 }
-/*
-export async function generateMetadata(props: PageProps) {
-	const params = await props.params;
-	const { slug } = params;
-
-	if (slug === "home") {
-		return {
-			title: "Groups - ZotMeet",
-		};
-	}
-
-	return {
-		title: `Group ${slug} - ZotMeet`,
-	};
-} */
 
 export default async function Page(props: PageProps) {
 	const params = await props.params;
@@ -56,9 +41,6 @@ export default async function Page(props: PageProps) {
 			</div>
 		);
 
-	// work in progress, need to investigate why react doesn't like passing a slug to query db
-	//const userInGroup = await isUserInGroup(user.id, slug);
-	//if (userInGroup) {
 	return (
 		<div className="p-8">
 			<h1 className="mb-4 font-medium font-montserrat text-3xl">

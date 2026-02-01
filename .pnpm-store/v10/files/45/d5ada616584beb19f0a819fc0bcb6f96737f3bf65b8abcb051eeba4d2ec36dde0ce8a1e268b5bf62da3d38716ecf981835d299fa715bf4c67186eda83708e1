@@ -1,0 +1,61 @@
+import { Check } from "./checks.js";
+import { ForeignKey } from "./foreign-keys.js";
+import { GelPolicy } from "./policies.js";
+import { PrimaryKey } from "./primary-keys.js";
+import { UniqueConstraint } from "./unique-constraint.js";
+import { GelTable } from "./table.js";
+import { Index } from "./indexes.js";
+import { AnyGelColumn, GelColumn } from "./columns/common.js";
+import "./columns/index.js";
+import { GelViewBase } from "./view-base.js";
+import { GelMaterializedView, GelMaterializedViewWithConfig, GelView, ViewWithConfig } from "./view.js";
+import "./index.js";
+import { Subquery } from "../subquery.js";
+import * as __sql_sql_ts6 from "../sql/sql.js";
+import { SQL } from "../sql/sql.js";
+
+//#region src/gel-core/utils.d.ts
+declare function getTableConfig<TTable extends GelTable>(table: TTable): {
+  columns: GelColumn<any, {}>[];
+  indexes: Index[];
+  foreignKeys: ForeignKey[];
+  checks: Check[];
+  primaryKeys: PrimaryKey[];
+  uniqueConstraints: UniqueConstraint[];
+  name: string;
+  schema: string | undefined;
+  policies: GelPolicy[];
+  enableRLS: boolean;
+};
+declare function extractUsedTable(table: GelTable | Subquery | GelViewBase | SQL): string[];
+declare function getViewConfig<TName extends string = string, TExisting extends boolean = boolean>(view: GelView<TName, TExisting>): {
+  with?: ViewWithConfig;
+  name: TName;
+  originalName: TName;
+  schema: string | undefined;
+  selectedFields: __sql_sql_ts6.ColumnsSelection;
+  isExisting: TExisting;
+  query: TExisting extends true ? undefined : SQL<unknown>;
+  isAlias: boolean;
+};
+declare function getMaterializedViewConfig<TName extends string = string, TExisting extends boolean = boolean>(view: GelMaterializedView<TName, TExisting>): {
+  with?: GelMaterializedViewWithConfig;
+  using?: string;
+  tablespace?: string;
+  withNoData?: boolean;
+  name: TName;
+  originalName: TName;
+  schema: string | undefined;
+  selectedFields: __sql_sql_ts6.ColumnsSelection;
+  isExisting: TExisting;
+  query: TExisting extends true ? undefined : SQL<unknown>;
+  isAlias: boolean;
+};
+type ColumnsWithTable<TTableName extends string, TForeignTableName extends string, TColumns extends AnyGelColumn<{
+  tableName: TTableName;
+}>[]> = { [Key in keyof TColumns]: AnyGelColumn<{
+  tableName: TForeignTableName;
+}> };
+//#endregion
+export { ColumnsWithTable, extractUsedTable, getMaterializedViewConfig, getTableConfig, getViewConfig };
+//# sourceMappingURL=utils.d.ts.map

@@ -1,0 +1,12 @@
+import { TaggedDrizzleQueryError } from "../effect-core/errors.cjs";
+import { EffectPgDatabase } from "./driver.cjs";
+import * as __migrator_ts8 from "../migrator.cjs";
+import { MigrationConfig } from "../migrator.cjs";
+import { AnyRelations } from "../relations.cjs";
+import * as effect_Effect0 from "effect/Effect";
+
+//#region src/effect-postgres/migrator.d.ts
+declare function migrate<TSchema extends Record<string, unknown>, TRelations extends AnyRelations>(db: EffectPgDatabase<TSchema, TRelations>, config: MigrationConfig): effect_Effect0.Effect<void | __migrator_ts8.MigratorInitFailResponse, TaggedDrizzleQueryError, never>;
+//#endregion
+export { migrate };
+//# sourceMappingURL=migrator.d.cts.map

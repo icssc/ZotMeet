@@ -1,0 +1,31 @@
+{
+	"name": "@next/env",
+	"version": "16.1.1",
+	"requiresBuild": false,
+	"files": {
+		"dist/index.js": {
+			"checkedAt": 1769490687994,
+			"integrity": "sha512-Ho/QgQ3Qukp5mVZWqUGUNOYYSTt6rHjl/gg6HABhX2mGpUmb28HhWWFyoqYO0mFNKWBEQ+ilzRav+8Lws+qOcw==",
+			"mode": 420,
+			"size": 9949
+		},
+		"package.json": {
+			"checkedAt": 1769490687994,
+			"integrity": "sha512-yAJ19xZiOpi9rANz6W5pZ3XNCyna3RXql2GnvXWTD0BoS6j+Pw1Bsa+D3hvdSQ9PzZppUFyfTjsBuMNfu+26Hg==",
+			"mode": 420,
+			"size": 967
+		},
+		"README.md": {
+			"checkedAt": 1769490687995,
+			"integrity": "sha512-p965KeA5im29aTPTEK6Ik9XWfbxRNsog2TESTNdbkdZj7hEKmGUixae/kuHKKCXBw0D2pWpKjC2kECmPB/4nIQ==",
+			"mode": 420,
+			"size": 84
+		},
+		"dist/index.d.ts": {
+			"checkedAt": 1769490687995,
+			"integrity": "sha512-sMmOOwG26QmBKV7gSzBNt8Rq3XXDADdpwF3F8hJJD6McuwM2265OpDLTRRjwO0R6GBiCUvjjbhGpU1T+JgWxVQ==",
+			"mode": 420,
+			"size": 811
+		}
+	}
+}
