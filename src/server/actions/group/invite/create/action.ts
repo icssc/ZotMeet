@@ -128,7 +128,16 @@ export async function acceptInvite(
 	groupInviteToken: string,
 ): Promise<AcceptInviteState> {
 	//verify auth
-	const { user } = await getCurrentSession();
+	let user: { id: string; email: string | null } | null;
+	try {
+		const session = await getCurrentSession();
+		user = session.user;
+	} catch {
+		return {
+			success: false,
+			message: "Session error. Please sign in again.",
+		};
+	}
 	if (!user) {
 		return {
 			success: false,
@@ -140,7 +149,7 @@ export async function acceptInvite(
 	let invite: SelectGroupInvite;
 	try {
 		invite = await getExistingInvite(groupInviteToken);
-	} catch (error) {
+	} catch {
 		return {
 			success: false,
 			message: "Invite not found!",
@@ -185,7 +194,7 @@ export async function acceptInvite(
 	//add user to group
 	try {
 		await db.transaction(async (tx) => {
-			const userEmail = user.email.toLowerCase().trim();
+			const userEmail = (user.email ?? "").toLowerCase().trim();
 
 			// Update existing response or create new one
 			if (existingResponse) {
@@ -239,7 +248,16 @@ export async function declineInvite(
 	groupInviteToken: string,
 ): Promise<DeclineInviteState> {
 	//verify auth
-	const { user } = await getCurrentSession();
+	let user: { id: string; email: string | null } | null;
+	try {
+		const session = await getCurrentSession();
+		user = session.user;
+	} catch {
+		return {
+			success: false,
+			message: "Session error. Please sign in again.",
+		};
+	}
 	if (!user) {
 		return {
 			success: false,
@@ -251,7 +269,7 @@ export async function declineInvite(
 	let invite: SelectGroupInvite;
 	try {
 		invite = await getExistingInvite(groupInviteToken);
-	} catch (error) {
+	} catch {
 		return {
 			success: false,
 			message: "Invite not found!",
@@ -287,7 +305,7 @@ export async function declineInvite(
 	// Create or update decline response record
 	try {
 		await db.transaction(async (tx) => {
-			const userEmail = user.email.toLowerCase().trim();
+			const userEmail = (user.email ?? "").toLowerCase().trim();
 
 			// Update existing response or create new one
 			if (existingResponse) {

@@ -23,14 +23,18 @@ export default async function Page(props: PageProps) {
 		notFound();
 	}
 
-	const session = await getCurrentSession();
-	if (!session) {
+	try {
+		const { user } = await getCurrentSession();
+		if (!user) {
+			notFound();
+		}
+
+		return (
+			<div>
+				<InviteDecision inviteToken={slug} />
+			</div>
+		);
+	} catch (_error) {
 		notFound();
 	}
-
-	return (
-		<div>
-			<InviteDecision inviteToken={slug} />
-		</div>
-	);
 }
