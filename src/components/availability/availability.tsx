@@ -325,7 +325,11 @@ export function Availability({
 	let doesntNeedDay = true;
 	let past = availabilityTimeBlocks[0];
 	availabilityTimeBlocks.forEach((minutes, index) => {
-		if (index !== 0 && minutes - past !== 15) {
+		if (
+			index !== 0 &&
+			minutes - past !== 15 &&
+			index !== availabilityTimeBlocks.length - 1
+		) {
 			doesntNeedDay = false;
 		}
 		past = availabilityTimeBlocks[index];
@@ -346,7 +350,8 @@ export function Availability({
 	);
 
 	const userDay = formatInTimeZone(lastUTCDateTime, userTimezone, "yyyy-MM-dd");
-	if (utcDay !== userDay) {
+	const userHour = Number(formatInTimeZone(lastUTCDateTime, userTimezone, "H"));
+	if (utcDay !== userDay && userHour !== 0) {
 		doesntNeedDay = false;
 	}
 
@@ -459,6 +464,9 @@ export function Availability({
 					members={members}
 					timezone={userTimezone}
 					anchorNormalizedDate={anchorNormalizedDate}
+					currentPageAvailability={currentPageAvailability}
+					availabilityTimeBlocks={availabilityTimeBlocks}
+					doesntNeedDay={doesntNeedDay}
 				/>
 			</div>
 		</div>

@@ -16,6 +16,9 @@ interface GroupResponsesProps {
 	fromTime: number;
 	timezone: string;
 	anchorNormalizedDate: Date[];
+	currentPageAvailability: ZotDate[];
+	availabilityTimeBlocks: number[];
+	doesntNeedDay: boolean;
 }
 
 export function GroupResponses({
@@ -24,7 +27,48 @@ export function GroupResponses({
 	members,
 	timezone,
 	anchorNormalizedDate,
+	currentPageAvailability,
+	availabilityTimeBlocks,
+	doesntNeedDay,
 }: GroupResponsesProps) {
+	const newBlocks = currentPageAvailability.map((date, index) => {
+		if (date) {
+			return new ZotDate(date);
+		} else {
+			return currentPageAvailability[index];
+		}
+	});
+	let dayIndex = currentPageAvailability.length - 1;
+	const newAvailDates = availabilityDates.map((date) => new ZotDate(date));
+	while (currentPageAvailability[dayIndex] == null) {
+		dayIndex -= 1;
+	}
+	if (!doesntNeedDay) {
+		const prevDay = currentPageAvailability[dayIndex];
+		//console.log(currentPageAvailability);
+		const newDay = new Date(prevDay.day);
+		newDay.setDate(newDay.getDate() + 1);
+		newBlocks[dayIndex + 1] = new ZotDate(
+			newDay,
+			prevDay.earliestTime,
+			prevDay.latestTime,
+			false,
+			[],
+			{},
+		);
+
+		newAvailDates.push(
+			new ZotDate(
+				newDay,
+				prevDay.earliestTime,
+				prevDay.latestTime,
+				false,
+				[],
+				{},
+			),
+		);
+	}
+
 	const { availabilityView } = useAvailabilityViewStore();
 	const {
 		selectedZotDateIndex,
@@ -76,14 +120,13 @@ export function GroupResponses({
 				notAvailableMembers: members,
 			};
 		}
-
-		const selectedDate = availabilityDates[selectedZotDateIndex];
+		const selectedDate = newAvailDates[selectedZotDateIndex];
 		const timestamp = getTimestampFromBlockIndex(
 			selectedBlockIndex,
 			selectedZotDateIndex,
 			fromTime,
 			timezone,
-			availabilityDates,
+			newAvailDates,
 		);
 		console.log(selectedDate.groupAvailability, timestamp);
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
@@ -99,7 +142,7 @@ export function GroupResponses({
 	}, [
 		selectedZotDateIndex,
 		selectedBlockIndex,
-		availabilityDates,
+		newAvailDates,
 		fromTime,
 		members,
 		timezone,
@@ -116,8 +159,8 @@ export function GroupResponses({
 				day: "numeric",
 			});
 
-			const earliestTime = availabilityDates[selectedZotDateIndex].earliestTime;
-			const blockLength = availabilityDates[selectedZotDateIndex].blockLength;
+			const earliestTime = newAvailDates[selectedZotDateIndex].earliestTime;
+			const blockLength = newAvailDates[selectedZotDateIndex].blockLength;
 
 			const startTime = ZotDate.toTimeBlockString(
 				earliestTime + selectedBlockIndex * blockLength,
@@ -134,7 +177,7 @@ export function GroupResponses({
 	}, [
 		selectedZotDateIndex,
 		selectedBlockIndex,
-		availabilityDates,
+		newAvailDates,
 		anchorNormalizedDate,
 	]);
 
