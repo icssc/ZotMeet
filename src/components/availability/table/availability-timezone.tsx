@@ -6,18 +6,24 @@ import Select, { type SelectChangeEvent } from "@mui/material/Select";
 interface TimeZoneProps {
 	TimeZone: string;
 	changeTimeZone: (tz: string) => void;
+	changeableTimezone: boolean;
 }
 
 export const TimeZoneDropdown = ({
 	TimeZone,
 	changeTimeZone,
+	changeableTimezone,
 }: TimeZoneProps) => {
 	const onTimeZoneChange = (event: SelectChangeEvent) => {
 		changeTimeZone(event.target.value);
 	};
 
 	return (
-		<FormControl variant="standard" sx={{ width: 400 }}>
+		<FormControl
+			variant="standard"
+			disabled={!changeableTimezone}
+			sx={{ width: 400 }}
+		>
 			<InputLabel id="TimeZone-Switcher-Label">Select Time Zone:</InputLabel>
 			<Select
 				labelId="TimeZone-Switcher-Label"

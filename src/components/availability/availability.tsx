@@ -176,6 +176,7 @@ export function Availability({
 	const [userTimezone, setUserTimezone] = useState(
 		Intl.DateTimeFormat().resolvedOptions().timeZone,
 	);
+	const [changeableTimezone, setChangeableTimezone] = useState(true);
 	const referenceDate = meetingData.dates[0];
 
 	const fromTimeLocal = useMemo(
@@ -390,6 +391,8 @@ export function Availability({
 				availabilityDates={availabilityDates}
 				onCancel={handleCancelEditing}
 				onSave={handleSuccessfulSave}
+				setChangeableTimezone={setChangeableTimezone}
+				setTimezone={setUserTimezone}
 			/>
 
 			<div className="flex flex-row items-start justify-start align-top">
@@ -449,6 +452,7 @@ export function Availability({
 						<TimeZoneDropdown
 							TimeZone={userTimezone}
 							changeTimeZone={setUserTimezone}
+							changeableTimezone={changeableTimezone}
 						/>
 					</div>
 					<AvailabilityNavButton
