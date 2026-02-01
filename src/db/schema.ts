@@ -222,6 +222,7 @@ export const groupInvites = pgTable("group_invites", {
 	inviterId: text("inviter_id")
 		.notNull()
 		.references(() => users.id, { onDelete: "cascade" }),
+	inviteeEmail: text("invitee_email").notNull().default(""),
 	sentAt: timestamp("sent_at", { mode: "date" }).defaultNow().notNull(),
 	expiresAt: timestamp("expires_at", { mode: "date" }),
 });

@@ -79,8 +79,8 @@ export async function createGroupInvite(
 			.values({
 				groupId,
 				inviteToken,
-				//inviteeEmails,
 				inviterId: user.id,
+				inviteeEmail: "",
 				expiresAt,
 				sentAt: new Date(),
 			})

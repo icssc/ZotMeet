@@ -69,6 +69,8 @@ export const CreateGroup = ({ email }: CreateGroupProps) => {
 				);
 				if (groupInvite.inviteUrl) {
 					setInviteLink(groupInvite.inviteUrl);
+				} else if (!groupInvite.success) {
+					setError(groupInvite.message);
 				}
 			}
 		}

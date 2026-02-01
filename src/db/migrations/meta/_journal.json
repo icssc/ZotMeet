@@ -57,6 +57,20 @@
       "when": 1769987311289,
       "tag": "0007_smiling_roughhouse",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1769987400000,
+      "tag": "0008_add_invitee_email_to_group_invites",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1769987692940,
+      "tag": "0009_loose_praxagora",
+      "breakpoints": true
     }
   ]
 }
