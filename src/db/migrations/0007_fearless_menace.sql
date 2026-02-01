@@ -1,0 +1,1 @@
+ALTER TABLE "users_in_group" ADD COLUMN "is_admin" boolean DEFAULT false NOT NULL;

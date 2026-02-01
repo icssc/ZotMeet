@@ -8,7 +8,11 @@ import { db } from "@/db";
 import type { SelectGroup } from "@/db/schema";
 import { groups } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { getExistingGroup, isGroupCreator } from "@/server/data/groups/queries";
+import {
+	getExistingGroup,
+	isGroupAdmin,
+	isGroupCreator,
+} from "@/server/data/groups/queries";
 
 export type UpdateGroupState = {
 	success: boolean;
@@ -55,9 +59,12 @@ export async function updateGroup(
 	}
 
 	try {
-		const isCreator = await isGroupCreator({ userId: user.id, groupId });
+		const [isCreator, isAdmin] = await Promise.all([
+			isGroupCreator({ userId: user.id, groupId }),
+			isGroupAdmin({ userId: user.id, groupId }),
+		]);
 
-		if (!isCreator) {
+		if (!isCreator && !isAdmin) {
 			return {
 				success: false,
 				message: "You do not have permission to update this group.",

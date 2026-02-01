@@ -45,3 +45,6 @@ next-env.d.ts
 
 #anteaterapi types
 src/lib/types/anteater-api-types.ts
+
+# Docker
+docker-compose.override.yml
