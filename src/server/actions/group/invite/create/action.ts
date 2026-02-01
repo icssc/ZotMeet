@@ -164,35 +164,34 @@ export async function acceptInvite(
 		};
 	}
 
-	// Check if user has already responded to this invite
-	const [existingResponse] = await db
-		.select()
-		.from(groupInviteResponses)
-		.where(
-			and(
-				eq(groupInviteResponses.inviteId, invite.id),
-				eq(groupInviteResponses.userId, user.id),
-			),
-		)
-		.limit(1);
-
-	// Check if user is already in the group
-	const alreadyInGroup = await isUserInGroup({
-		userId: user.id,
-		groupId: invite.groupId,
-	});
-
-	// If already accepted and in group, return success
-	if (existingResponse?.status === "accepted" && alreadyInGroup) {
-		return {
-			success: true,
-			message: "You are already a member of this group.",
-			groupId: invite.groupId,
-		};
-	}
-
-	//add user to group
 	try {
+		const [existingResponse] = await db
+			.select()
+			.from(groupInviteResponses)
+			.where(
+				and(
+					eq(groupInviteResponses.inviteId, invite.id),
+					eq(groupInviteResponses.userId, user.id),
+				),
+			)
+			.limit(1);
+
+		// Check if user is already in the group
+		const alreadyInGroup = await isUserInGroup({
+			userId: user.id,
+			groupId: invite.groupId,
+		});
+
+		// If already accepted and in group, return success
+		if (existingResponse?.status === "accepted" && alreadyInGroup) {
+			return {
+				success: true,
+				message: "You are already a member of this group.",
+				groupId: invite.groupId,
+			};
+		}
+
+		//add user to group
 		await db.transaction(async (tx) => {
 			const userEmail = (user.email ?? "").toLowerCase().trim();
 
@@ -237,9 +236,14 @@ export async function acceptInvite(
 		};
 	} catch (error) {
 		console.error("Failed to accept invite:", error);
+		const isProduction =
+			process.env.NODE_ENV === "production" &&
+			!process.env.NEXT_PUBLIC_BASE_URL?.includes("staging");
+		const errorDetail =
+			!isProduction && error instanceof Error ? ` (${error.message})` : "";
 		return {
 			success: false,
-			message: "Error joining group :(",
+			message: `Error joining group. Please try again.${errorDetail}`,
 		};
 	}
 }
@@ -284,32 +288,27 @@ export async function declineInvite(
 		};
 	}
 
-	// Check if user has already responded to this invite
-	const [existingResponse] = await db
-		.select()
-		.from(groupInviteResponses)
-		.where(
-			and(
-				eq(groupInviteResponses.inviteId, invite.id),
-				eq(groupInviteResponses.userId, user.id),
-			),
-		)
-		.limit(1);
-
-	// Check if user is in the group (need to remove them if switching from accepted)
-	const alreadyInGroup = await isUserInGroup({
-		userId: user.id,
-		groupId: invite.groupId,
-	});
-
-	// Create or update decline response record
 	try {
+		const [existingResponse] = await db
+			.select()
+			.from(groupInviteResponses)
+			.where(
+				and(
+					eq(groupInviteResponses.inviteId, invite.id),
+					eq(groupInviteResponses.userId, user.id),
+				),
+			)
+			.limit(1);
+
+		const alreadyInGroup = await isUserInGroup({
+			userId: user.id,
+			groupId: invite.groupId,
+		});
+
 		await db.transaction(async (tx) => {
 			const userEmail = (user.email ?? "").toLowerCase().trim();
 
-			// Update existing response or create new one
 			if (existingResponse) {
-				// Update existing response to declined
 				await tx
 					.update(groupInviteResponses)
 					.set({
@@ -318,7 +317,6 @@ export async function declineInvite(
 					})
 					.where(eq(groupInviteResponses.id, existingResponse.id));
 			} else {
-				// Insert new response record
 				await tx.insert(groupInviteResponses).values({
 					inviteId: invite.id,
 					userId: user.id,
@@ -328,7 +326,6 @@ export async function declineInvite(
 				});
 			}
 
-			// If user was in group (from previous accept), remove them
 			if (alreadyInGroup) {
 				await tx
 					.delete(usersInGroup)
@@ -351,9 +348,14 @@ export async function declineInvite(
 		};
 	} catch (error) {
 		console.error("Failed to decline invite:", error);
+		const isProduction =
+			process.env.NODE_ENV === "production" &&
+			!process.env.NEXT_PUBLIC_BASE_URL?.includes("staging");
+		const errorDetail =
+			!isProduction && error instanceof Error ? ` (${error.message})` : "";
 		return {
 			success: false,
-			message: "Error declining invite :(",
+			message: `Error declining invite. Please try again.${errorDetail}`,
 		};
 	}
 }

@@ -1,6 +1,6 @@
 {
-  "id": "124f6ee0-3d8e-431a-a584-e1b16080bd62",
-  "prevId": "e4662289-bed4-4424-bb3e-e142dfc21035",
+  "id": "79a9e751-eb0e-4b09-8c73-13ed0487e97d",
+  "prevId": "124f6ee0-3d8e-431a-a584-e1b16080bd62",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -728,6 +728,14 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "group_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'member'"
         }
       },
       "indexes": {},
@@ -780,6 +788,14 @@
         "accepted",
         "maybe",
         "declined"
+      ]
+    },
+    "public.group_role": {
+      "name": "group_role",
+      "schema": "public",
+      "values": [
+        "member",
+        "admin"
       ]
     },
     "public.invite_status": {

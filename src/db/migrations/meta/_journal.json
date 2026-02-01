@@ -64,6 +64,13 @@
       "when": 1769142785048,
       "tag": "0008_change_isadmin_to_role_enum",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1769988909983,
+      "tag": "0009_funny_cerise",
+      "breakpoints": true
     }
   ]
 }
