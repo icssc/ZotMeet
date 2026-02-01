@@ -71,6 +71,13 @@
       "when": 1769988909983,
       "tag": "0009_funny_cerise",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1769989000000,
+      "tag": "0010_ensure_group_invite_responses",
+      "breakpoints": true
     }
   ]
 }
