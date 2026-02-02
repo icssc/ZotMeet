@@ -4,13 +4,13 @@ import MenuItem from "@mui/material/MenuItem";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
 
 interface TimeZoneProps {
-	TimeZone: string;
+	timeZone: string;
 	changeTimeZone: (tz: string) => void;
 	changeableTimezone: boolean;
 }
 
 export const TimeZoneDropdown = ({
-	TimeZone,
+	timeZone,
 	changeTimeZone,
 	changeableTimezone,
 }: TimeZoneProps) => {
@@ -28,7 +28,7 @@ export const TimeZoneDropdown = ({
 			<Select
 				labelId="TimeZone-Switcher-Label"
 				id="TimeZone-Selector"
-				value={TimeZone}
+				value={timeZone}
 				onChange={onTimeZoneChange}
 				label="Time Zone"
 			>

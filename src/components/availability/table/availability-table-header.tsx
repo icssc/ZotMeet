@@ -1,7 +1,7 @@
 import React from "react";
 import type { SelectMeeting } from "@/db/schema";
-import { spacerBeforeDate } from "@/lib/availability/utils";
-import { ZotDate } from "@/lib/zotdate";
+import { newBlocksAndAvail, spacerBeforeDate } from "@/lib/availability/utils";
+import type { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityTableHeaderProps {
 	currentPageAvailability: ZotDate[];
@@ -17,24 +17,11 @@ export function AvailabilityTableHeader({
 }: AvailabilityTableHeaderProps) {
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
-	const newBlocks = structuredClone(currentPageAvailability);
-	let dayIndex = currentPageAvailability.length - 1;
-	while (currentPageAvailability[dayIndex] == null) {
-		dayIndex -= 1;
-	}
-	if (!doesntNeedDay) {
-		const prevDay = currentPageAvailability[dayIndex];
-		const newDay = new Date(prevDay.day);
-		newDay.setDate(newDay.getDate() + 1);
-		newBlocks[dayIndex + 1] = new ZotDate(
-			newDay,
-			prevDay.earliestTime,
-			prevDay.latestTime,
-			false,
-			[],
-			{},
-		);
-	}
+	const [newBlocks, newAvailDates] = newBlocksAndAvail(
+		currentPageAvailability,
+		null,
+		doesntNeedDay,
+	);
 
 	const spacers = spacerBeforeDate(newBlocks);
 	return (

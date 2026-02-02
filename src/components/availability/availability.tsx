@@ -12,6 +12,7 @@ import { PersonalAvailability } from "@/components/availability/personal-availab
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
+import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import type { UserProfile } from "@/lib/auth/user";
@@ -34,7 +35,6 @@ import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginatio
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
-import { TimeZoneDropdown } from "./table/availability-timezone";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -450,7 +450,7 @@ export function Availability({
 							</tbody>
 						</table>
 						<TimeZoneDropdown
-							TimeZone={userTimezone}
+							timeZone={userTimezone}
 							changeTimeZone={setUserTimezone}
 							changeableTimezone={changeableTimezone}
 						/>

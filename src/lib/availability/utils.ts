@@ -140,7 +140,7 @@ export const spacerBeforeDate = (
 
 export const newBlocksAndAvail = (
 	currentPageAvailability: ZotDate[],
-	availabilityDates: ZotDate[],
+	availabilityDates: ZotDate[] | null,
 	doesntNeedDay: boolean,
 ): [ZotDate[], ZotDate[]] => {
 	const newBlocks = currentPageAvailability.map((date, index) => {
@@ -150,11 +150,16 @@ export const newBlocksAndAvail = (
 			return currentPageAvailability[index];
 		}
 	});
+
 	let dayIndex = currentPageAvailability.length - 1;
-	const newAvailDates = availabilityDates.map((date) => new ZotDate(date));
 	while (currentPageAvailability[dayIndex] == null) {
 		dayIndex -= 1;
 	}
+	let newAvailDates: ZotDate[] = [];
+	if (availabilityDates) {
+		newAvailDates = availabilityDates.map((date) => new ZotDate(date));
+	}
+
 	if (!doesntNeedDay) {
 		const prevDay = currentPageAvailability[dayIndex];
 		const newDay = new Date(prevDay.day);
@@ -167,17 +172,18 @@ export const newBlocksAndAvail = (
 			[],
 			{},
 		);
-
-		newAvailDates.push(
-			new ZotDate(
-				newDay,
-				prevDay.earliestTime,
-				prevDay.latestTime,
-				false,
-				[],
-				{},
-			),
-		);
+		if (availabilityDates) {
+			newAvailDates.push(
+				new ZotDate(
+					newDay,
+					prevDay.earliestTime,
+					prevDay.latestTime,
+					false,
+					[],
+					{},
+				),
+			);
+		}
 	}
 	return [newBlocks, newAvailDates];
 };
