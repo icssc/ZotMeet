@@ -9,29 +9,15 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
+import {
+	formatDateToUSNumeric,
+	formatTimeWithHoursAndMins,
+} from "@/lib/availability/utils";
 
 interface ScheduledMeetingCardProps {
 	meeting: SelectMeeting;
 	scheduledTimeBlocks?: SelectScheduledMeeting[];
 }
-
-const formatTime = (time: string): string => {
-	const [hourStr] = time.split(":");
-	let hour = parseInt(hourStr, 10);
-	const minutes = parseInt(time.split(":")[1], 10);
-	const ampm = hour >= 12 ? "PM" : "AM";
-	hour = hour % 12 || 12;
-	if (minutes === 0) {
-		return `${hour} ${ampm}`;
-	}
-	return `${hour}:${minutes.toString().padStart(2, "0")} ${ampm}`;
-};
-
-const formatDate = (date: Date) =>
-	date.toLocaleDateString("en-US", {
-		month: "numeric",
-		day: "numeric",
-	});
 
 interface TimeInterval {
 	from: string;
@@ -123,7 +109,9 @@ export const ScheduledMeetingCard = ({
 					<div className="flex flex-row flex-wrap items-center gap-x-4 font-dm-sans font-semibold text-gray-500 text-sm">
 						<div className="flex flex-nowrap items-center gap-x-1">
 							<Calendar className="size-4" />
-							<span className="p text-nowrap">{formatDate(firstDay.date)}</span>
+							<span className="p text-nowrap">
+								{formatDateToUSNumeric(firstDay.date)}
+							</span>
 						</div>
 
 						<div className="flex flex-nowrap items-center gap-x-1">
@@ -132,7 +120,7 @@ export const ScheduledMeetingCard = ({
 								{mergeContiguousTimeBlocks(firstDay.blocks)
 									.map(
 										(interval) =>
-											`${formatTime(interval.from)} - ${formatTime(interval.to)}`,
+											`${formatTimeWithHoursAndMins(interval.from)} - ${formatTimeWithHoursAndMins(interval.to)}`,
 									)
 									.join(", ")}
 							</span>
@@ -159,7 +147,7 @@ export const ScheduledMeetingCard = ({
 					{blocksByDate.map(({ dateKey, date, blocks }) => (
 						<div key={dateKey} className="space-y-1">
 							<div className="font-dm-sans font-semibold text-gray-700">
-								{formatDate(date)}
+								{formatDateToUSNumeric(date)}
 							</div>
 
 							<div className="flex flex-wrap gap-2 text-gray-600 text-sm">
@@ -168,7 +156,8 @@ export const ScheduledMeetingCard = ({
 										key={index}
 										className="rounded-md bg-gray-100 px-2 py-1"
 									>
-										{formatTime(interval.from)}–{formatTime(interval.to)}
+										{formatTimeWithHoursAndMins(interval.from)}–
+										{formatTimeWithHoursAndMins(interval.to)}
 									</span>
 								))}
 							</div>

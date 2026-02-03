@@ -1,6 +1,9 @@
 import React from "react";
 import type { SelectMeeting } from "@/db/schema";
-import { spacerBeforeDate } from "@/lib/availability/utils";
+import {
+	formatDateToUSNumeric,
+	spacerBeforeDate,
+} from "@/lib/availability/utils";
 import type { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityTableHeaderProps {
@@ -35,10 +38,7 @@ export function AvailabilityTableHeader({
 								</span>
 								{meetingType === "dates" && (
 									<span className="text-center text-[12px] text-gray-medium uppercase md:text-base">
-										{dateHeader?.day.toLocaleDateString("en-US", {
-											month: "numeric",
-											day: "numeric",
-										})}
+										{dateHeader?.day && formatDateToUSNumeric(dateHeader.day)}
 									</span>
 								)}
 							</div>
