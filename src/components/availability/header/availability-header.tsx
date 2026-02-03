@@ -32,6 +32,8 @@ interface AvailabilityHeaderProps {
 	availabilityDates: ZotDate[];
 	onCancel: () => void;
 	onSave: () => void;
+	setChangeableTimezone: (can: boolean) => void;
+	setTimezone: (timezone: string) => void;
 }
 
 export function AvailabilityHeader({
@@ -40,6 +42,8 @@ export function AvailabilityHeader({
 	availabilityDates,
 	onCancel,
 	onSave,
+	setChangeableTimezone,
+	setTimezone,
 }: AvailabilityHeaderProps) {
 	const {
 		hasAvailability,
@@ -65,6 +69,7 @@ export function AvailabilityHeader({
 
 	const handleCancel = () => {
 		onCancel();
+		setChangeableTimezone(true);
 		setAvailabilityView("group");
 	};
 
@@ -152,7 +157,7 @@ export function AvailabilityHeader({
 
 			return;
 		}
-
+		setChangeableTimezone(true);
 		const availability = {
 			meetingId: meetingData.id,
 			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
@@ -278,6 +283,10 @@ export function AvailabilityHeader({
 											setIsAuthModalOpen(true);
 											return;
 										}
+										setChangeableTimezone(false);
+										setTimezone(
+											Intl.DateTimeFormat().resolvedOptions().timeZone,
+										);
 										setAvailabilityView("personal");
 									}}
 								>
@@ -298,7 +307,7 @@ export function AvailabilityHeader({
 				</div>
 			</div>
 
-			{/* <AuthDialog /> */}
+			{/*<AuthDialog />*/}
 
 			<EditModal
 				meetingData={meetingData}

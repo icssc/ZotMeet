@@ -1,7 +1,7 @@
 import { differenceInCalendarDays } from "date-fns";
-import { fromZonedTime, toZonedTime } from "date-fns-tz";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { type HourMinuteString, TimeConstants } from "@/lib/types/chrono";
-import type { ZotDate } from "@/lib/zotdate";
+import { ZotDate } from "@/lib/zotdate";
 
 export const getTimeFromHourMinuteString = (
 	hourMinuteString: HourMinuteString,
@@ -63,15 +63,7 @@ export const convertTimeFromUTC = (
 	// Create a UTC date
 	const utcDate = new Date(`${datePart}T${hours}:${minutes}:${seconds}Z`);
 
-	// Convert to the target timezone
-	const zonedDate = toZonedTime(utcDate, timezone);
-
-	// Format as HH:MM:SS in the target timezone
-	const localHours = zonedDate.getHours().toString().padStart(2, "0");
-	const localMinutes = zonedDate.getMinutes().toString().padStart(2, "0");
-	const localSeconds = zonedDate.getSeconds().toString().padStart(2, "0");
-
-	return `${localHours}:${localMinutes}:${localSeconds}`;
+	return formatInTimeZone(utcDate, timezone, "HH:mm:ss");
 };
 
 export const BLOCK_LENGTH: number = 15;
@@ -81,13 +73,22 @@ export const generateTimeBlocks = (
 	endTime: number,
 ): number[] => {
 	const timeBlocks: number[] = [];
-	const minuteRange = Math.abs(endTime - startTime);
+	var range = endTime - startTime;
+	if (endTime < startTime) {
+		range = endTime + 1440 - startTime;
+	}
+	const minuteRange = Math.abs(range);
 	const totalBlocks = Math.floor(minuteRange / BLOCK_LENGTH);
 
+	const newTime = [];
 	for (let blockIndex = 0; blockIndex < totalBlocks; blockIndex++) {
-		timeBlocks.push(startTime + blockIndex * BLOCK_LENGTH);
+		if (startTime + blockIndex * BLOCK_LENGTH >= 1440) {
+			newTime.push(startTime + blockIndex * BLOCK_LENGTH);
+		} else {
+			timeBlocks.push(startTime + blockIndex * BLOCK_LENGTH);
+		}
 	}
-	return timeBlocks;
+	return [...newTime, ...timeBlocks];
 };
 
 export const generateDateKey = ({
@@ -135,6 +136,56 @@ export const spacerBeforeDate = (
 			differenceInCalendarDays(new Date(currentDate), new Date(prevDate)) > 1
 		);
 	});
+};
+
+export const newZonedPageAvailAndDates = (
+	currentPageAvailability: ZotDate[],
+	availabilityDates: ZotDate[] | null,
+	doesntNeedDay: boolean,
+): [ZotDate[], ZotDate[]] => {
+	const newBlocks = currentPageAvailability.map((date, index) => {
+		if (date) {
+			return new ZotDate(date);
+		} else {
+			return currentPageAvailability[index];
+		}
+	});
+
+	let dayIndex = currentPageAvailability.length - 1;
+	while (currentPageAvailability[dayIndex] == null) {
+		dayIndex -= 1;
+	}
+	let newAvailDates: ZotDate[] = [];
+	if (availabilityDates) {
+		newAvailDates = availabilityDates.map((date) => new ZotDate(date));
+	}
+
+	if (!doesntNeedDay) {
+		const prevDay = currentPageAvailability[dayIndex];
+		const newDay = new Date(prevDay.day);
+		newDay.setDate(newDay.getDate() + 1);
+		newBlocks[dayIndex + 1] = new ZotDate(
+			newDay,
+			prevDay.earliestTime,
+			prevDay.latestTime,
+			false,
+			[],
+			{},
+		);
+		if (availabilityDates) {
+			newAvailDates.push(
+				new ZotDate(
+					newDay,
+					prevDay.earliestTime,
+					prevDay.latestTime,
+					false,
+					[],
+					{},
+				),
+			);
+		}
+	}
+	return [newBlocks, newAvailDates];
 };
 
 export const formatTimeWithHoursAndMins = (time: string): string => {
