@@ -1,6 +1,9 @@
 import React from "react";
 import type { SelectMeeting } from "@/db/schema";
-import { newBlocksAndAvail, spacerBeforeDate } from "@/lib/availability/utils";
+import {
+	newZonedPageAvailAndDates,
+	spacerBeforeDate,
+} from "@/lib/availability/utils";
 import type { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityTableHeaderProps {
@@ -9,7 +12,6 @@ interface AvailabilityTableHeaderProps {
 	doesntNeedDay: boolean;
 }
 
-//TODO: redo the calculation on the doesntNeedDay to incorporate when the time completely shifts
 export function AvailabilityTableHeader({
 	currentPageAvailability,
 	meetingType,
@@ -17,7 +19,7 @@ export function AvailabilityTableHeader({
 }: AvailabilityTableHeaderProps) {
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
-	const [newBlocks, newAvailDates] = newBlocksAndAvail(
+	const [newBlocks, newAvailDates] = newZonedPageAvailAndDates(
 		currentPageAvailability,
 		null,
 		doesntNeedDay,

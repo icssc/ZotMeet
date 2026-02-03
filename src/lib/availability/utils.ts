@@ -138,7 +138,7 @@ export const spacerBeforeDate = (
 	});
 };
 
-export const newBlocksAndAvail = (
+export const newZonedPageAvailAndDates = (
 	currentPageAvailability: ZotDate[],
 	availabilityDates: ZotDate[] | null,
 	doesntNeedDay: boolean,

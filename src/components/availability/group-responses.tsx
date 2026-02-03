@@ -4,7 +4,7 @@ import { useShallow } from "zustand/shallow";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { newBlocksAndAvail } from "@/lib/availability/utils";
+import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -31,7 +31,7 @@ export function GroupResponses({
 	currentPageAvailability,
 	doesntNeedDay,
 }: GroupResponsesProps) {
-	const [newBlocks, newAvailDates] = newBlocksAndAvail(
+	const [newBlocks, newAvailDates] = newZonedPageAvailAndDates(
 		currentPageAvailability,
 		availabilityDates,
 		doesntNeedDay,

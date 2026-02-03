@@ -307,7 +307,7 @@ export function AvailabilityHeader({
 				</div>
 			</div>
 
-			<AuthDialog />
+			{/*<AuthDialog />*/}
 
 			<EditModal
 				meetingData={meetingData}

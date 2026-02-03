@@ -6,7 +6,7 @@ import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import {
 	generateDateKey,
-	newBlocksAndAvail,
+	newZonedPageAvailAndDates,
 	spacerBeforeDate,
 } from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
@@ -121,8 +121,7 @@ export function GroupAvailability({
 }: GroupAvailabilityProps) {
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
-	//TODO: redo the calculation on the doesntNeedDay to incorporate day
-	const [newBlocks, newAvailDates] = newBlocksAndAvail(
+	const [newBlocks, newAvailDates] = newZonedPageAvailAndDates(
 		currentPageAvailability,
 		availabilityDates,
 		doesntNeedDay,
