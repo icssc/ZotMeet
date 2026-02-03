@@ -1,19 +1,31 @@
 import React from "react";
 import type { SelectMeeting } from "@/db/schema";
-import { spacerBeforeDate } from "@/lib/availability/utils";
+import {
+	newZonedPageAvailAndDates,
+	spacerBeforeDate,
+} from "@/lib/availability/utils";
 import type { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityTableHeaderProps {
 	currentPageAvailability: ZotDate[];
 	meetingType: SelectMeeting["meetingType"];
+	doesntNeedDay: boolean;
 }
 
 export function AvailabilityTableHeader({
 	currentPageAvailability,
 	meetingType,
+	doesntNeedDay,
 }: AvailabilityTableHeaderProps) {
-	const spacers = spacerBeforeDate(currentPageAvailability);
+	//extra day calculation for day spillover
+	//put in here to prevent infinite adding, recalculates everytime something changes
+	const [newBlocks, newAvailDates] = newZonedPageAvailAndDates(
+		currentPageAvailability,
+		null,
+		doesntNeedDay,
+	);
 
+	const spacers = spacerBeforeDate(newBlocks);
 	return (
 		<thead>
 			<tr>
@@ -21,7 +33,7 @@ export function AvailabilityTableHeader({
 					<span className="sr-only">Time</span>
 				</th>
 
-				{currentPageAvailability.map((dateHeader, index) => (
+				{newBlocks.map((dateHeader, index) => (
 					<React.Fragment key={index}>
 						{spacers[index] && (
 							<th className="w-3 md:w-4" tabIndex={-1} aria-hidden="true" />
