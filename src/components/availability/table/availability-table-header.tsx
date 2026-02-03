@@ -1,6 +1,7 @@
 import React from "react";
 import type { SelectMeeting } from "@/db/schema";
 import {
+	formatDateToUSNumeric,
 	newZonedPageAvailAndDates,
 	spacerBeforeDate,
 } from "@/lib/availability/utils";
@@ -47,10 +48,7 @@ export function AvailabilityTableHeader({
 								</span>
 								{meetingType === "dates" && (
 									<span className="text-center text-[12px] text-gray-medium uppercase md:text-base">
-										{dateHeader?.day.toLocaleDateString("en-US", {
-											month: "numeric",
-											day: "numeric",
-										})}
+										{dateHeader?.day && formatDateToUSNumeric(dateHeader.day)}
 									</span>
 								)}
 							</div>
