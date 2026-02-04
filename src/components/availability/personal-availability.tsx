@@ -23,6 +23,7 @@ interface PersonalAvailabilityProps {
 	googleCalendarEvents: GoogleCalendarEvent[];
 	user: UserProfile | null;
 	onAvailabilityChange: (updatedDates: ZotDate[]) => void;
+	timezone: string;
 	meetingDates: string[];
 }
 
@@ -36,6 +37,7 @@ export function PersonalAvailability({
 	googleCalendarEvents,
 	user,
 	onAvailabilityChange,
+	timezone,
 	meetingDates,
 }: PersonalAvailabilityProps) {
 	const {
@@ -136,6 +138,7 @@ export function PersonalAvailability({
 						blockIdx,
 						dateIndex,
 						fromTime,
+						timezone,
 						availabilityDates,
 					);
 

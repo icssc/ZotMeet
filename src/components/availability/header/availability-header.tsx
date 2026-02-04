@@ -11,6 +11,7 @@ import {
 	DeleteIcon,
 	EditIcon,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { AuthDialog } from "@/components/auth/auth-dialog";
@@ -32,6 +33,8 @@ interface AvailabilityHeaderProps {
 	availabilityDates: ZotDate[];
 	onCancel: () => void;
 	onSave: () => void;
+	setChangeableTimezone: (can: boolean) => void;
+	setTimezone: (timezone: string) => void;
 }
 
 export function AvailabilityHeader({
@@ -40,7 +43,11 @@ export function AvailabilityHeader({
 	availabilityDates,
 	onCancel,
 	onSave,
+	setChangeableTimezone,
+	setTimezone,
 }: AvailabilityHeaderProps) {
+	const router = useRouter();
+
 	const {
 		hasAvailability,
 		availabilityView,
@@ -65,6 +72,7 @@ export function AvailabilityHeader({
 
 	const handleCancel = () => {
 		onCancel();
+		setChangeableTimezone(true);
 		setAvailabilityView("group");
 	};
 
@@ -151,7 +159,7 @@ export function AvailabilityHeader({
 
 			return;
 		}
-
+		setChangeableTimezone(true);
 		const availability = {
 			meetingId: meetingData.id,
 			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
@@ -275,8 +283,13 @@ export function AvailabilityHeader({
 									onClick={() => {
 										if (!user) {
 											setIsAuthModalOpen(true);
+											router.push("/auth/login/google");
 											return;
 										}
+										setChangeableTimezone(false);
+										setTimezone(
+											Intl.DateTimeFormat().resolvedOptions().timeZone,
+										);
 										setAvailabilityView("personal");
 									}}
 								>
@@ -297,7 +310,7 @@ export function AvailabilityHeader({
 				</div>
 			</div>
 
-			<AuthDialog />
+			{/*<AuthDialog />*/}
 
 			<EditModal
 				meetingData={meetingData}
