@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { CalendarBodyDayCell } from "@/components/creation/calendar/calendar-body-day-cell";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -21,6 +22,8 @@ export function CalendarBodyDay({
 	currentMonth,
 	updateSelectedRange,
 }: CalendarBodyDayProps) {
+	const isDraggingRef = useRef(false);
+
 	const isHighlighted =
 		startDaySelection &&
 		endDaySelection &&
@@ -29,7 +32,7 @@ export function CalendarBodyDay({
 	const isCurrentMonth = currentMonth === calendarDay.getMonth();
 
 	/* Confirms the current highlight selection and updates calendar accordingly */
-	const handleEndSelection = () => {
+	const handleEndSelection = useCallback(() => {
 		try {
 			if (startDaySelection && endDaySelection) {
 				updateSelectedRange(startDaySelection, endDaySelection);
@@ -41,7 +44,14 @@ export function CalendarBodyDay({
 		}
 		setStartDaySelection(undefined);
 		setEndDaySelection(undefined);
-	};
+	}, [
+		startDaySelection,
+		endDaySelection,
+		updateSelectedRange,
+		calendarDay,
+		setStartDaySelection,
+		setEndDaySelection,
+	]);
 
 	/**
 	 * Updates the current highlight selection whenever a mobile user drags on the calendar
@@ -84,18 +94,48 @@ export function CalendarBodyDay({
 		}
 	};
 
-	const handleMouseUp = () => {
-		if (startDaySelection) {
-			handleEndSelection();
-		}
-	};
-
 	const handleMouseDown = () => {
+		isDraggingRef.current = true;
 		setStartDaySelection(calendarDay);
 	};
 
+	// global mouse event listeners for drag tracking
+	useEffect(() => {
+		if (!startDaySelection) return;
+
+		const handleGlobalMouseMove = (e: MouseEvent) => {
+			if (!isDraggingRef.current) return;
+
+			const element = document.elementFromPoint(e.clientX, e.clientY);
+			if (!element) return;
+
+			const touchingDay = element.getAttribute("data-day");
+			if (touchingDay) {
+				const day = ZotDate.extractDayFromElement(element);
+				if (day) {
+					setEndDaySelection(day);
+				}
+			}
+		};
+
+		const handleGlobalMouseUp = () => {
+			if (isDraggingRef.current) {
+				isDraggingRef.current = false;
+				handleEndSelection();
+			}
+		};
+
+		document.addEventListener("mousemove", handleGlobalMouseMove);
+		document.addEventListener("mouseup", handleGlobalMouseUp);
+
+		return () => {
+			document.removeEventListener("mousemove", handleGlobalMouseMove);
+			document.removeEventListener("mouseup", handleGlobalMouseUp);
+		};
+	}, [startDaySelection, handleEndSelection, setEndDaySelection]);
+
 	return (
-		<td onMouseUp={handleMouseUp}>
+		<td>
 			<button
 				type="button"
 				onTouchMove={handleTouchMove}
