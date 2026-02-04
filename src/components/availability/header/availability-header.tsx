@@ -11,6 +11,7 @@ import {
 	DeleteIcon,
 	EditIcon,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { AuthDialog } from "@/components/auth/auth-dialog";
@@ -45,6 +46,8 @@ export function AvailabilityHeader({
 	setChangeableTimezone,
 	setTimezone,
 }: AvailabilityHeaderProps) {
+	const router = useRouter();
+
 	const {
 		hasAvailability,
 		availabilityView,
@@ -281,6 +284,7 @@ export function AvailabilityHeader({
 									onClick={() => {
 										if (!user) {
 											setIsAuthModalOpen(true);
+											router.push("/auth/login/google");
 											return;
 										}
 										setChangeableTimezone(false);
