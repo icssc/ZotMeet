@@ -455,10 +455,12 @@ export function GroupAvailability({
 	]);
 
 	const handleTouchStart = (e: React.TouchEvent) => {
+		if (!isScheduling) {
+			return;
+		}
 		if (e.cancelable) {
 			e.preventDefault();
 		}
-		if (!isScheduling) return;
 
 		const touch = e.touches[0];
 		const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -503,10 +505,13 @@ export function GroupAvailability({
 	};
 
 	const handleTouchEnd = (e: React.TouchEvent) => {
+		if (!isScheduling) {
+			return;
+		}
+
 		if (e.cancelable) {
 			e.preventDefault();
 		}
-		if (!isScheduling) return;
 
 		if (startBlockSelection && endBlockSelection && selectionState) {
 			const {
