@@ -194,6 +194,8 @@ export const scheduledMeetings = pgTable("scheduled_meetings", {
 	}).notNull(),
 });
 
+export type SelectScheduledMeeting = InferSelectModel<typeof scheduledMeetings>;
+
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
 	groups: one(groups, {
 		fields: [meetings.group_id],

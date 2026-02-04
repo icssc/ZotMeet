@@ -5,6 +5,7 @@ import { getCurrentSession } from "@/lib/auth";
 import {
 	getAllMemberAvailability,
 	getExistingMeeting,
+	getScheduledTimeBlocks,
 } from "@/server/data/meeting/queries";
 
 interface PageProps {
@@ -61,6 +62,8 @@ export default async function Page(props: PageProps) {
 		meetingId: meetingData.id,
 	});
 
+	const scheduledBlocks = await getScheduledTimeBlocks(meetingData.id);
+
 	const session = await getCurrentSession();
 	let userAvailability = null;
 
@@ -98,6 +101,7 @@ export default async function Page(props: PageProps) {
 				userAvailability={userAvailability}
 				allAvailabilities={allAvailabilities}
 				user={session.user}
+				scheduledBlocks={scheduledBlocks}
 			/>
 		</div>
 	);

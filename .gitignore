@@ -2,7 +2,7 @@
 
 # dependencies
 /node_modules
-/.pnpm-store
+.pnpm-store
 /.pnp
 .pnp.js
 .yarn/install-state.gz
