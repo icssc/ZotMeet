@@ -113,6 +113,21 @@ export const sessions = pgTable(
 export type SelectSession = InferSelectModel<typeof sessions>;
 export type InsertSession = InferInsertModel<typeof sessions>;
 
+export const groups = pgTable("groups", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	name: text("name").notNull(),
+	description: text("description"),
+	createdAt: timestamp("created_at"),
+	createdBy: text("user_id").references(() => users.id),
+	archived: boolean("archived").default(false).notNull(),
+});
+
+export type InsertGroup = InferInsertModel<typeof groups>;
+export type SelectGroup = InferSelectModel<typeof groups>;
+
+
+
+
 export const meetingTypeEnum = pgEnum("meeting_type", ["dates", "days"]);
 
 export const meetings = pgTable("meetings", {
@@ -159,20 +174,11 @@ export const scheduledMeetings = pgTable("scheduled_meetings", {
 	}).notNull(),
 });
 
+export type InsertScheduledMeeting = InferInsertModel<typeof scheduledMeetings>;
+export type SelectScheduledMeeting = InferSelectModel<typeof scheduledMeetings>;
+
 export type InsertMeeting = InferInsertModel<typeof meetings>;
 export type SelectMeeting = InferSelectModel<typeof meetings>;
-
-export const groups = pgTable("groups", {
-	id: uuid("id").defaultRandom().primaryKey(),
-	name: text("name").notNull(),
-	description: text("description"),
-	createdAt: timestamp("created_at"),
-	createdBy: text("user_id").references(() => users.id),
-	archived: boolean("archived").default(false).notNull(),
-});
-
-export type InsertGroup = InferInsertModel<typeof groups>;
-export type SelectGroup = InferSelectModel<typeof groups>;
 
 export const availabilities = pgTable(
 	"availabilities",
