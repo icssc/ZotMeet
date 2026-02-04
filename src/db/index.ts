@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 import { drizzle } from "drizzle-orm/node-postgres";
-import { relations } from "@/db/relations";
+import * as relations from "@/db/relations";
 import * as schema from "./schema";
 
 if (!process.env.DATABASE_URL) {
