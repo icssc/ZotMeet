@@ -1,5 +1,6 @@
 "use client";
 
+import { addMeetingToGoogleCalendar } from "@actions/availability/google/calendar/action";
 import { saveAvailability } from "@actions/availability/save/action";
 import {
 	deleteScheduledTimeBlock,
@@ -13,6 +14,7 @@ import {
 	EditIcon,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useShallow } from "zustand/shallow";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
@@ -301,7 +303,23 @@ export function AvailabilityHeader({
 										className={cn(
 											"h-8 min-h-fit min-w-fit flex-center px-2 md:w-40 md:p-0",
 										)}
-										// onClick={handleAddToGoogleCalendar}
+										onClick={async () => {
+											const { success, error } =
+												await addMeetingToGoogleCalendar({
+													meetingId: meetingData.id,
+													meetingTitle: meetingData.title,
+													meetingDescription: meetingData.description,
+													meetingLocation: meetingData.location,
+													timezone: meetingData.timezone,
+												});
+											if (success) {
+												toast.success(
+													"Meeting successfully added to Google Calendar!",
+												);
+											} else {
+												toast.error(error);
+											}
+										}}
 									>
 										<GoogleIcon />
 										<span className="flex font-dm-sans">Add to Calendar</span>
