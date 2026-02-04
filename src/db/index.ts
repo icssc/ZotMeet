@@ -1,7 +1,6 @@
 import "dotenv/config";
 
 import { drizzle } from "drizzle-orm/node-postgres";
-import * as relations from "@/db/relations";
 import * as schema from "./schema";
 
 if (!process.env.DATABASE_URL) {
@@ -9,5 +8,5 @@ if (!process.env.DATABASE_URL) {
 }
 
 export const db = drizzle(process.env.DATABASE_URL, {
-	schema: { ...schema, ...relations },
+	schema,
 });
