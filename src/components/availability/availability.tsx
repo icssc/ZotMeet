@@ -260,27 +260,10 @@ export function Availability({
 		},
 		[],
 	);
-
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
-		const cleanedDates = originalDates.map((zotDate) => {
-			const cloned = zotDate.clone();
-			cloned.groupAvailability = Object.fromEntries(
-				Object.entries(cloned.groupAvailability)
-					.map(([timestamp, memberIds]) => [
-						timestamp,
-						memberIds.filter(
-							(memberId) =>
-								cloned.availability.includes(timestamp) ||
-								memberId !== user?.memberId,
-						),
-					])
-					.filter(([, memberIds]) => memberIds.length > 0),
-			);
-			return cloned;
-		});
-		setAvailabilityDates(cleanedDates);
-	}, [cancelEdit, user?.memberId]);
+		setAvailabilityDates(originalDates);
+	}, [cancelEdit]);
 
 	const handleSuccessfulSave = useCallback(() => {
 		confirmSave();
