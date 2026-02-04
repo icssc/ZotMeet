@@ -27,11 +27,10 @@ export function GroupResponses({
 	fromTime,
 	members,
 	timezone,
-	anchorNormalizedDate,
 	currentPageAvailability,
 	doesntNeedDay,
 }: GroupResponsesProps) {
-	const [newBlocks, newAvailDates] = newZonedPageAvailAndDates(
+	const [_newBlocks, newAvailDates] = newZonedPageAvailAndDates(
 		currentPageAvailability,
 		availabilityDates,
 		doesntNeedDay,
@@ -93,7 +92,6 @@ export function GroupResponses({
 			selectedBlockIndex,
 			selectedZotDateIndex,
 			fromTime,
-			timezone,
 			newAvailDates,
 		);
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
@@ -112,7 +110,6 @@ export function GroupResponses({
 		newAvailDates,
 		fromTime,
 		members,
-		timezone,
 	]);
 
 	useEffect(() => {
