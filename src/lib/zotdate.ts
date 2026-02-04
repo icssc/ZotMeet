@@ -1,13 +1,23 @@
 import { CalendarConstants } from "@/lib/types/chrono";
 
+export type AvailabilityType = "availability" | "ifNeeded";
+
+export type AvailabilityEntry = {
+	time: string;
+	availabilityType: AvailabilityType;
+};
+
+export type MeetingAvailability = AvailabilityEntry[];
+
 export class ZotDate {
 	readonly day: Date;
 	isSelected: boolean;
-	availability: string[];
+	availability: MeetingAvailability;
 	/**
 	 * `groupAvailability` maps a timestring to an array of memberIds that are available for that timestring
 	 */
 	groupAvailability: Record<string, string[]>;
+	groupIfNeededAvailability: Record<string, string[]>;
 	blockLength: number;
 	// Times represented as minutes past midnight
 	earliestTime: number;
@@ -24,29 +34,32 @@ export class ZotDate {
 		earliestTime: number = 0,
 		latestTime: number = 1440,
 		isSelected: boolean = false,
-		availability: string[] = [],
+		availability: MeetingAvailability = [],
 		groupAvailability: Record<string, string[]> = {},
+		groupIfNeededAvailability: Record<string, string[]> = {},
 	) {
 		if (day instanceof ZotDate) {
 			this.day = new Date(day.day);
 			this.earliestTime = day.earliestTime;
 			this.latestTime = day.latestTime;
 			this.isSelected = day.isSelected;
-			this.blockLength = 15;
+			this.blockLength = day.blockLength ?? 15;
+
 			this.availability = [...day.availability];
 			this.groupAvailability = structuredClone(day.groupAvailability);
+			this.groupIfNeededAvailability = structuredClone(
+				day.groupIfNeededAvailability,
+			);
 		} else {
-			if (day) {
-				this.day = day;
-			} else {
-				this.day = new Date();
-			}
+			this.day = day ?? new Date();
 			this.earliestTime = earliestTime;
 			this.latestTime = latestTime;
 			this.isSelected = isSelected;
 			this.blockLength = 15;
+
 			this.availability = availability;
 			this.groupAvailability = groupAvailability;
+			this.groupIfNeededAvailability = groupIfNeededAvailability;
 		}
 	}
 
@@ -409,9 +422,16 @@ export class ZotDate {
 	 * @param index index of the availability block
 	 * @return the current availability of the block corresponding to the given index
 	 */
-	getBlockAvailability(index: number): boolean {
+
+	getBlockAvailability(
+		index: number,
+		kind: AvailabilityType = "availability",
+	): boolean {
 		const ISOString = this.getISOStringForBlock(index);
-		return this.availability.includes(ISOString);
+		// return this.availability[kind].includes(ISOString);
+		return this.availability.some(
+			(entry) => entry.availabilityType === kind && entry.time === ISOString,
+		);
 	}
 
 	/**
@@ -424,33 +444,45 @@ export class ZotDate {
 		earlierBlockIndex: number,
 		laterBlockIndex: number,
 		selection: boolean,
+		kind: AvailabilityType = "availability",
 	): void {
-		// If setting to available (true)
-		if (selection) {
-			// Add ISO strings for each block in the range
-			for (
-				let blockIndex = earlierBlockIndex;
-				blockIndex <= laterBlockIndex;
-				blockIndex++
-			) {
-				const ISOString = this.getISOStringForBlock(blockIndex);
+		const target = kind;
+		const other: AvailabilityType =
+			kind === "availability" ? "ifNeeded" : "availability";
 
-				// Only add if not already present
-				if (!this.availability.includes(ISOString)) {
-					this.availability.push(ISOString);
+		// Precompute the ISO strings for the selected range
+		const rangeISO: string[] = [];
+		for (let i = earlierBlockIndex; i <= laterBlockIndex; i++) {
+			rangeISO.push(this.getISOStringForBlock(i));
+		}
+		const rangeSet = new Set(rangeISO);
+
+		if (selection) {
+			const existingTargetTimes = new Set(
+				this.availability
+					.filter((e) => e.availabilityType === target)
+					.map((e) => e.time),
+			);
+
+			for (const iso of rangeISO) {
+				if (!existingTargetTimes.has(iso)) {
+					this.availability.push({ time: iso, availabilityType: target });
 				}
 			}
-			// Sort the ISO strings to maintain chronological order
-			this.availability.sort();
+
+			this.availability = this.availability.filter(
+				(e) => !(e.availabilityType === other && rangeSet.has(e.time)),
+			);
+		} else {
+			this.availability = this.availability.filter(
+				(e) => !(e.availabilityType === target && rangeSet.has(e.time)),
+			);
 		}
-		// If setting to unavailable (false)
-		else {
-			// Remove ISO strings in the range
-			this.availability = this.availability.filter((ISOString) => {
-				const blockIndex = this.getBlockIndexFromISOString(ISOString);
-				return blockIndex < earlierBlockIndex || blockIndex > laterBlockIndex;
-			});
-		}
+
+		this.availability.sort((a, b) => {
+			if (a.time !== b.time) return a.time.localeCompare(b.time);
+			return a.availabilityType.localeCompare(b.availabilityType);
+		});
 	}
 
 	/**
@@ -458,15 +490,28 @@ export class ZotDate {
 	 * @returns A new ZotDate instance with the same properties
 	 */
 	clone(): ZotDate {
-		const clonedDate = new ZotDate(
+		const clonedGroupAvailability: Record<string, string[]> =
+			Object.fromEntries(
+				Object.entries(this.groupAvailability).map(([k, v]) => [k, [...v]]),
+			);
+
+		const clonedGroupIfNeededAvailability: Record<string, string[]> =
+			Object.fromEntries(
+				Object.entries(this.groupIfNeededAvailability).map(([k, v]) => [
+					k,
+					[...v],
+				]),
+			);
+
+		return new ZotDate(
 			new Date(this.day),
 			this.earliestTime,
 			this.latestTime,
 			this.isSelected,
-			[...this.availability],
-			{ ...this.groupAvailability },
+			this.availability.map((e) => ({ ...e })),
+			clonedGroupAvailability,
+			clonedGroupIfNeededAvailability,
 		);
-		return clonedDate;
 	}
 
 	/**

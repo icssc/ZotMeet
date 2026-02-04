@@ -38,6 +38,7 @@ export function GroupResponses({
 	);
 
 	const { availabilityView } = useAvailabilityViewStore();
+
 	const {
 		selectedZotDateIndex,
 		selectedBlockIndex,
@@ -78,49 +79,88 @@ export function GroupResponses({
 		[toggleSelectedMember],
 	);
 
-	const { availableMembers, notAvailableMembers } = useMemo(() => {
-		if (
-			selectedZotDateIndex === undefined ||
-			selectedBlockIndex === undefined
-		) {
+	/**
+	 * For the selected cell, split members into:
+	 * - availableMembers: members in (available OR ifNeeded)
+	 * - notAvailableMembers: members in neither
+	 * - ifNeededOnlySet: members who are ONLY in ifNeeded (used for "*" marker)
+	 *
+	 * Note: if there is no selected cell, default to "nobody available" and "everyone not available"
+	 * so the UI shows N/A / full list accordingly.
+	 */
+	const { availableMembers, notAvailableMembers, ifNeededOnlySet } =
+		useMemo(() => {
+			if (
+				selectedZotDateIndex === undefined ||
+				selectedBlockIndex === undefined
+			) {
+				return {
+					availableMembers: [] as Member[],
+					notAvailableMembers: members,
+					ifNeededOnlySet: new Set<string>(),
+				};
+			}
+
+			const selectedDate = newAvailDates[selectedZotDateIndex];
+			if (!selectedDate) {
+				return {
+					availableMembers: [] as Member[],
+					notAvailableMembers: members,
+					ifNeededOnlySet: new Set<string>(),
+				};
+			}
+
+			const timestamp = getTimestampFromBlockIndex(
+				selectedBlockIndex,
+				selectedZotDateIndex,
+				fromTime,
+				timezone,
+				newAvailDates,
+			);
+
+			const availableIds = selectedDate.groupAvailability?.[timestamp] ?? [];
+			const ifNeededIds =
+				selectedDate.groupIfNeededAvailability?.[timestamp] ?? [];
+
+			const availableSet = new Set(availableIds);
+			const combinedAvailableSet = new Set<string>([
+				...availableIds,
+				...ifNeededIds,
+			]);
+
+			const ifNeededOnly = new Set<string>(
+				ifNeededIds.filter((id) => !availableSet.has(id)),
+			);
+
 			return {
-				availableMembers: [],
-				notAvailableMembers: members,
+				availableMembers: members.filter((m) =>
+					combinedAvailableSet.has(m.memberId),
+				),
+				notAvailableMembers: members.filter(
+					(m) => !combinedAvailableSet.has(m.memberId),
+				),
+				ifNeededOnlySet: ifNeededOnly,
 			};
-		}
-		const selectedDate = newAvailDates[selectedZotDateIndex];
-		const timestamp = getTimestampFromBlockIndex(
-			selectedBlockIndex,
+		}, [
 			selectedZotDateIndex,
+			selectedBlockIndex,
+			newAvailDates,
 			fromTime,
 			timezone,
-			newAvailDates,
-		);
-		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
-
-		return {
-			availableMembers: members.filter((member) =>
-				availableMemberIds.includes(member.memberId),
-			),
-			notAvailableMembers: members.filter(
-				(member) => !availableMemberIds.includes(member.memberId),
-			),
-		};
-	}, [
-		selectedZotDateIndex,
-		selectedBlockIndex,
-		newAvailDates,
-		fromTime,
-		members,
-		timezone,
-	]);
+			members,
+		]);
 
 	useEffect(() => {
 		if (
 			selectedZotDateIndex !== undefined &&
 			selectedBlockIndex !== undefined
 		) {
-			const displayDate = newAvailDates[selectedZotDateIndex].day;
+			const displayDate = newAvailDates[selectedZotDateIndex]?.day;
+
+			if (!displayDate) {
+				setBlockInfoString("Select a cell to view");
+				return;
+			}
 
 			const formattedDate = displayDate.toLocaleDateString("en-US", {
 				month: "short",
@@ -138,6 +178,7 @@ export function GroupResponses({
 				earliestTime + selectedBlockIndex * blockLength + blockLength,
 				false,
 			);
+
 			setBlockInfoString(`${formattedDate}, ${startTime} - ${endTime}`);
 		} else {
 			setBlockInfoString("Select a cell to view");
@@ -179,46 +220,85 @@ export function GroupResponses({
 					</button>
 				</div>
 
-				<div className="flex h-[32rem] grow flex-col">
-					<div className="border-gray-300 border-b-[1px] px-8">
-						<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
-							AVAILABLE (
-							{isHoveringGrid ? availableMembers.length : members.length})
-						</span>
+				{/* Main + IfNeeded UI (your feature) + keep main's checkbox selection UX */}
+				<div className="grid grid-cols-2 lg:flex lg:flex-col lg:gap-10 lg:py-4">
+					{/* AVAILABLE */}
+					<div>
+						<div className="flex items-baseline justify-between border-gray-300 border-b-[1px] px-8">
+							<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
+								AVAILABLE (
+								{isHoveringGrid ? availableMembers.length : members.length})
+							</span>
+							<span className="text-slate-400 text-xs">* = if needed</span>
+						</div>
+
+						<ul className="h-64 overflow-auto py-2 pl-8">
+							{members.map((member) => {
+								const isNotAvailable =
+									isHoveringGrid &&
+									notAvailableMembers.some(
+										(m) => m.memberId === member.memberId,
+									);
+
+								return (
+									<li
+										key={member.memberId}
+										className={cn(
+											"cursor-pointer text-lg",
+											isNotAvailable
+												? "text-decoration-line: text-gray-medium line-through"
+												: "text-gray-800",
+										)}
+										onMouseEnter={() => handleMemberHover(member.memberId)}
+										onMouseLeave={() => handleMemberHover(null)}
+									>
+										<ul className="flex w-fit items-center gap-2">
+											<Checkbox
+												id={`MEMBER${member.memberId}`}
+												checked={selectedMembers.includes(member.memberId)}
+												onCheckedChange={() =>
+													handleMemberSelect(member.memberId)
+												}
+											/>
+											<Label
+												htmlFor={`MEMBER${member.memberId}`}
+												className="cursor-pointer text-lg"
+											>
+												{member.displayName}
+												{ifNeededOnlySet.has(member.memberId) ? " *" : ""}
+											</Label>
+										</ul>
+									</li>
+								);
+							})}
+						</ul>
 					</div>
 
-					<ul className="overflow-auto py-2 pl-8">
-						{members.map((member) => (
-							<li
-								key={member.memberId}
-								className={cn(
-									"cursor-pointer text-lg",
-									isHoveringGrid &&
-										notAvailableMembers.some(
-											(m) => m.memberId === member.memberId,
-										)
-										? "text-decoration-line: text-gray-medium line-through"
-										: "",
-								)}
-								onMouseEnter={() => handleMemberHover(member.memberId)}
-								onMouseLeave={() => handleMemberHover(null)}
-							>
-								<ul className="flex w-fit items-center gap-2">
-									<Checkbox
-										id={`MEMBER${member.memberId}`}
-										checked={selectedMembers.includes(member.memberId)}
-										onCheckedChange={() => handleMemberSelect(member.memberId)}
-									/>
-									<Label
-										htmlFor={`MEMBER${member.memberId}`}
-										className="cursor-pointer text-lg"
+					{/* NOT AVAILABLE */}
+					<div className="hidden lg:block">
+						<div className="border-gray-300 border-b-[1px] px-8">
+							<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
+								NOT AVAILABLE ({notAvailableMembers.length})
+							</span>
+						</div>
+
+						<ul className="h-64 overflow-auto py-2 pl-8">
+							{notAvailableMembers.length > 0 ? (
+								notAvailableMembers.map((member) => (
+									<li
+										key={member.memberId}
+										className="cursor-pointer text-gray-400 text-lg"
+										onMouseEnter={() => handleMemberHover(member.memberId)}
+										onMouseLeave={() => handleMemberHover(null)}
 									>
 										{member.displayName}
-									</Label>
-								</ul>
-							</li>
-						))}
-					</ul>
+									</li>
+								))
+							) : (
+								<li className="text-gray-400 text-sm italic">N/A</li>
+							)}
+						</ul>
+					</div>
 				</div>
 			</div>
 		</div>

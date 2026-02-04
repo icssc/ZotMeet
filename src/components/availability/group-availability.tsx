@@ -44,48 +44,93 @@ export const getTimestampFromBlockIndex = (
 };
 
 function calculateBlockColor({
-	block,
+	availableBlock,
+	ifNeededBlock,
 	hoveredMember,
 	selectedMembers,
 	numMembers,
 	showBestTimes,
 	maxAvailability,
 }: {
-	block: string[];
+	availableBlock: string[];
+	ifNeededBlock: string[];
 	hoveredMember: string | null;
 	selectedMembers: string[];
 	numMembers: number;
 	showBestTimes: boolean;
 	maxAvailability: number;
 }): string {
+	const availableSet = new Set(availableBlock);
+	const ifNeededSet = new Set(ifNeededBlock);
+
+	// combined unique participants
+	const combinedCount = new Set([...availableBlock, ...ifNeededBlock]).size;
+
+	// Selected members mode: blend by how many selected are in each bucket
 	if (selectedMembers.length) {
-		const selectedInBlock = selectedMembers.filter((memberId) =>
-			block.includes(memberId),
-		);
-		if (selectedInBlock.length) {
-			const proportion = selectedInBlock.length / selectedMembers.length;
-			return `rgba(55, 124, 251, ${proportion})`;
+		let availHits = 0;
+		let ifNeededHits = 0;
+
+		for (const id of selectedMembers) {
+			if (availableSet.has(id)) availHits++;
+			else if (ifNeededSet.has(id)) ifNeededHits++;
 		}
-		return "transparent";
+
+		if (availHits === 0 && ifNeededHits === 0) return "transparent";
+
+		const availRatio = availHits / selectedMembers.length; // 0..1
+		const ifNeededRatio = ifNeededHits / selectedMembers.length; // 0..1
+
+		// Blend blue (55,124,251) + yellow (253,224,71)
+		const r = Math.round(55 * availRatio + 253 * ifNeededRatio);
+		const g = Math.round(124 * availRatio + 224 * ifNeededRatio);
+		const b = Math.round(251 * availRatio + 71 * ifNeededRatio);
+
+		// Opacity based on how many selected show up at all
+		const opacity = (availHits + ifNeededHits) / selectedMembers.length;
+		return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 	}
 
+	// Hover mode: if-needed takes precedence over available for that member
 	if (hoveredMember) {
-		if (block.includes(hoveredMember)) {
-			return "rgba(55, 124, 251)";
-		}
+		if (ifNeededSet.has(hoveredMember)) return "rgba(253, 224, 71, 0.85)";
+		if (availableSet.has(hoveredMember)) return "rgba(55, 124, 251, 1)";
 		return "transparent";
 	}
 
+	// Best times mode: highlight cells with the max combined participation
 	if (showBestTimes) {
-		if (block.length === maxAvailability && maxAvailability > 0) {
+		if (combinedCount === maxAvailability && maxAvailability > 0) {
+			// strong blue when it's a "best time"
 			return "rgba(55, 124, 251, 1)";
 		}
 		return "transparent";
 	}
 
+	// Default: show two contributions (blue for available, yellow for if-needed)
 	if (numMembers) {
-		const opacity = block.length / numMembers;
-		return `rgba(55, 124, 251, ${opacity})`;
+		const availOpacity = availableBlock.length / numMembers; // 0..1
+		const ifNeededOpacity = ifNeededBlock.length / numMembers; // 0..1
+
+		// If there's only one type, use a single color
+		if (availableBlock.length > 0 && ifNeededBlock.length === 0) {
+			return `rgba(55, 124, 251, ${availOpacity})`;
+		}
+		if (ifNeededBlock.length > 0 && availableBlock.length === 0) {
+			return `rgba(253, 224, 71, ${Math.min(0.9, ifNeededOpacity)})`;
+		}
+
+		// Mixed: blend base colors, opacity based on combined participation
+		const totalOpacity = Math.min(1, combinedCount / numMembers);
+
+		const availWeight = availOpacity / (availOpacity + ifNeededOpacity);
+		const ifNeededWeight = 1 - availWeight;
+
+		const r = Math.round(55 * availWeight + 253 * ifNeededWeight);
+		const g = Math.round(124 * availWeight + 224 * ifNeededWeight);
+		const b = Math.round(251 * availWeight + 71 * ifNeededWeight);
+
+		return `rgba(${r}, ${g}, ${b}, ${totalOpacity})`;
 	}
 
 	return "transparent";
@@ -183,12 +228,21 @@ export function GroupAvailability({
 
 		let max = 0;
 		availabilityDates.forEach((date) => {
-			Object.values(date.groupAvailability).forEach((memberIds) => {
-				max = Math.max(max, memberIds.length);
+			const keys = new Set<string>([
+				...Object.keys(date.groupAvailability ?? {}),
+				...Object.keys(date.groupIfNeededAvailability ?? {}),
+			]);
+
+			keys.forEach((ts) => {
+				const available = date.groupAvailability?.[ts] || [];
+				const ifNeeded = date.groupIfNeededAvailability?.[ts] || [];
+				const combined = new Set([...available, ...ifNeeded]).size;
+				max = Math.max(max, combined);
 			});
 		});
+
 		return max;
-	}, [showBestTimes, members, availabilityDates]);
+	}, [showBestTimes, members.length, availabilityDates]);
 
 	const {
 		startBlockSelection,
@@ -603,20 +657,30 @@ export function GroupAvailability({
 			}
 
 			//similarly, block is recomputed to check the day before IF it crosses into the next day
-			let block = selectedDate.groupAvailability[timestamp] || [];
+			let effectiveAvailable =
+				selectedDate.groupAvailability?.[timestamp] || [];
+			let effectiveIfNeeded =
+				selectedDate.groupIfNeededAvailability?.[timestamp] || [];
+
+			// If spillover, pull from previous day
 			if (
 				datesBefore !== 0 &&
 				blockIndex < datesBefore &&
 				pageDateIndex !== 0 &&
 				(!doesntNeedDay || dayOffset >= 1)
 			) {
-				block = newBlocks[pageDateIndex - 1].groupAvailability[timestamp] || [];
+				effectiveAvailable =
+					newBlocks[pageDateIndex - 1].groupAvailability?.[timestamp] || [];
+				effectiveIfNeeded =
+					newBlocks[pageDateIndex - 1].groupIfNeededAvailability?.[timestamp] ||
+					[];
 			}
 
 			const blockColor = isScheduled(timestamp)
 				? "rgba(255, 215, 0, 0.6)" // gold
 				: calculateBlockColor({
-						block,
+						availableBlock: effectiveAvailable,
+						ifNeededBlock: effectiveIfNeeded,
 						hoveredMember,
 						selectedMembers,
 						numMembers,

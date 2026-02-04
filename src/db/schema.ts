@@ -222,6 +222,11 @@ export const groupsRelations = relations(groups, ({ many }) => ({
 	meetings: many(meetings),
 }));
 
+type MeetingAvailability = {
+	time: string;
+	availabilityType: "availability" | "ifNeeded";
+}[];
+
 export type InsertGroup = InferInsertModel<typeof groups>;
 export type SelectGroup = InferSelectModel<typeof groups>;
 
@@ -240,7 +245,7 @@ export const availabilities = pgTable(
 		 * @example ["2025-04-11T00:00:00.000Z", "2025-04-12T00:00:00.000Z"]
 		 */
 		meetingAvailabilities: jsonb("meeting_availabilities")
-			.$type<string[]>()
+			.$type<MeetingAvailability>()
 			.notNull()
 			.default([]),
 	},

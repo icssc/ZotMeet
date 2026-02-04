@@ -4,6 +4,7 @@ import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar
 import { formatInTimeZone } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
+import { AvailabilityModeToggle } from "@/components/availability/availability-mode-toggle";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
@@ -29,11 +30,79 @@ import {
 	convertAnchorDatesToCurrentWeek,
 	isAnchorDateMeeting,
 } from "@/lib/types/chrono";
+import type {
+	AvailabilityEntry,
+	AvailabilityType,
+	MeetingAvailability,
+} from "@/lib/zotdate";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
+
+/**
+ * Backwards-compatible normalizer:
+ * - Old shape: string[]
+ * - New shape: { availability: string[], ifNeeded: string[] }
+ */
+const normalizeMeetingAvailabilities = (raw: unknown): MeetingAvailability => {
+	if (Array.isArray(raw)) {
+		if (raw.every((x) => typeof x === "string")) {
+			return (raw as string[]).map((time) => ({
+				time,
+				availabilityType: "availability",
+			}));
+		}
+
+		return (raw as unknown[])
+			.map((x) => {
+				if (!x || typeof x !== "object") {
+					return null;
+				}
+				const obj = x as Partial<AvailabilityEntry>;
+
+				if (typeof obj.time !== "string") {
+					return null;
+				}
+
+				if (
+					obj.availabilityType !== "availability" &&
+					obj.availabilityType !== "ifNeeded"
+				) {
+					return null;
+				}
+
+				return { time: obj.time, availabilityType: obj.availabilityType };
+			})
+			.filter((x): x is AvailabilityEntry => x !== null);
+	}
+
+	if (raw && typeof raw === "object") {
+		const obj = raw as Partial<{ availability: unknown; ifNeeded: unknown }>;
+
+		const availability = Array.isArray(obj.availability)
+			? (obj.availability.filter((x) => typeof x === "string") as string[])
+			: [];
+
+		const ifNeeded = Array.isArray(obj.ifNeeded)
+			? (obj.ifNeeded.filter((x) => typeof x === "string") as string[])
+			: [];
+
+		return [
+			...availability.map((time) => ({
+				time,
+				availabilityType: "availability" as const,
+			})),
+			...ifNeeded.map((time) => ({
+				time,
+				availabilityType: "ifNeeded" as const,
+			})),
+		];
+	}
+
+	return [];
+};
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -48,37 +117,57 @@ const deriveInitialAvailability = ({
 	allAvailabilties: MemberMeetingAvailability[];
 	availabilityTimeBlocks: number[];
 }) => {
-	const availabilitiesByDate = new Map<string, string[]>();
+	const availabilitiesByDate = new Map<string, MeetingAvailability>();
+
+	const ensureList = (dateStr: string): MeetingAvailability => {
+		let list = availabilitiesByDate.get(dateStr);
+		if (!list) {
+			list = [];
+			availabilitiesByDate.set(dateStr, list);
+		}
+		return list;
+	};
+
+	// --- Personal (logged-in user) ---
 	if (userAvailability?.meetingAvailabilities) {
-		userAvailability.meetingAvailabilities.forEach((timeStr) => {
-			// Convert UTC timestamp to local date to get the correct day
-			const localDate = new Date(timeStr);
-			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
+		const entries = normalizeMeetingAvailabilities(
+			userAvailability.meetingAvailabilities,
+		);
 
-			if (!availabilitiesByDate.has(dateStr)) {
-				availabilitiesByDate.set(dateStr, []);
-			}
-
-			availabilitiesByDate.get(dateStr)?.push(timeStr);
-		});
+		for (const entry of entries) {
+			const localDate = new Date(entry.time);
+			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD
+			ensureList(dateStr).push(entry);
+		}
 	}
 
-	const timestampsByDate = new Map<string, Map<string, string[]>>();
-	for (const member of allAvailabilties) {
-		for (const timestamp of member.meetingAvailabilities) {
-			// Convert UTC timestamp to local date to get the correct day
-			const localDate = new Date(timestamp);
-			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
+	// --- Group availability maps (hard + ifNeeded) ---
+	const hardByDate = new Map<string, Map<string, string[]>>();
+	const ifNeededByDate = new Map<string, Map<string, string[]>>();
 
-			let dateMap = timestampsByDate.get(dateStr);
-			if (dateMap === undefined) {
+	for (const member of allAvailabilties) {
+		const entries = normalizeMeetingAvailabilities(
+			member.meetingAvailabilities,
+		);
+
+		for (const entry of entries) {
+			const timestamp = entry.time;
+			const localDate = new Date(timestamp);
+			const dateStr = localDate.toLocaleDateString("en-CA");
+
+			const targetOuter =
+				entry.availabilityType === "ifNeeded" ? ifNeededByDate : hardByDate;
+
+			let dateMap = targetOuter.get(dateStr);
+			if (!dateMap) {
 				dateMap = new Map();
-				timestampsByDate.set(dateStr, dateMap);
+				targetOuter.set(dateStr, dateMap);
 			}
 
 			if (!dateMap.has(timestamp)) {
 				dateMap.set(timestamp, []);
 			}
+
 			dateMap.get(timestamp)?.push(member.memberId);
 		}
 	}
@@ -88,7 +177,6 @@ const deriveInitialAvailability = ({
 			// Extract the date part and create a Date object in LOCAL timezone
 			const dateStr = meetingDate.split("T")[0];
 			const [year, month, day] = dateStr.split("-").map(Number);
-			// Create date at midnight in LOCAL timezone
 			const date = new Date(year, month - 1, day);
 
 			const earliestMinutes = availabilityTimeBlocks[0] || 480;
@@ -96,18 +184,34 @@ const deriveInitialAvailability = ({
 				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] || 1035) +
 				15;
 
-			const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
+			const dateAvailabilities = availabilitiesByDate.get(dateStr) ?? [];
+
+			const seen = new Set<string>();
+			const deduped = dateAvailabilities.filter((e) => {
+				const key = `${e.time}|${e.availabilityType}`;
+				if (seen.has(key)) {
+					return false;
+				}
+				seen.add(key);
+				return true;
+			});
 
 			const dateGroupAvailabilities = Object.fromEntries(
-				timestampsByDate.get(dateStr) || new Map(),
+				hardByDate.get(dateStr) || new Map(),
 			);
+
+			const dateGroupIfNeededAvailabilities = Object.fromEntries(
+				ifNeededByDate.get(dateStr) || new Map(),
+			);
+
 			return new ZotDate(
 				date,
 				earliestMinutes,
 				latestMinutes,
 				false,
-				dateAvailabilities,
+				deduped,
 				dateGroupAvailabilities,
+				dateGroupIfNeededAvailabilities,
 			);
 		})
 		.sort((a, b) => a.day.getTime() - b.day.getTime());
@@ -224,6 +328,9 @@ export function Availability({
 		}),
 	);
 
+	const [availabilityMode, setAvailabilityMode] =
+		useState<AvailabilityType>("availability");
+
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
 	});
@@ -261,10 +368,11 @@ export function Availability({
 
 	const handleUserAvailabilityChange = useCallback(
 		(updatedDates: ZotDate[]) => {
-			setAvailabilityDates(updatedDates);
+			setAvailabilityDates(updatedDates.map((d) => d.clone()));
 		},
 		[],
 	);
+
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
 		setAvailabilityDates(originalDates);
@@ -272,6 +380,9 @@ export function Availability({
 
 	const handleSuccessfulSave = useCallback(() => {
 		confirmSave();
+		requestAnimationFrame(() => {
+			window.location.reload();
+		});
 	}, [confirmSave]);
 
 	useEffect(() => {
@@ -385,6 +496,14 @@ export function Availability({
 				setChangeableTimezone={setChangeableTimezone}
 				setTimezone={setUserTimezone}
 			/>
+			{availabilityView !== "group" && availabilityView !== "schedule" && (
+				<div className="flex items-center justify-between">
+					<AvailabilityModeToggle
+						value={availabilityMode}
+						onChange={setAvailabilityMode}
+					/>
+				</div>
+			)}
 
 			<div className="flex flex-row items-start justify-start align-top">
 				<div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
@@ -434,6 +553,7 @@ export function Availability({
 												onAvailabilityChange={handleUserAvailabilityChange}
 												timezone={userTimezone}
 												meetingDates={meetingData.dates}
+												availabilityMode={availabilityMode}
 											/>
 										)}
 									</tr>
@@ -446,6 +566,7 @@ export function Availability({
 							changeableTimezone={changeableTimezone}
 						/>
 					</div>
+
 					<AvailabilityNavButton
 						direction="right"
 						handleClick={() => nextPage(availabilityDates.length)}
@@ -453,6 +574,13 @@ export function Availability({
 					/>
 				</div>
 
+				{/* <GroupResponses
+					availabilityDates={availabilityDates}
+					fromTime={fromTimeMinutes}
+					members={members}
+					timezone={userTimezone}
+					anchorNormalizedDate={anchorNormalizedDate}
+				/> */}
 				<GroupResponses
 					availabilityDates={availabilityDates}
 					fromTime={fromTimeMinutes}

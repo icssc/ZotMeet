@@ -33,6 +33,7 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'[]'::jsonb"
+
         }
       },
       "indexes": {},

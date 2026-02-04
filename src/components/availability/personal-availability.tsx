@@ -10,7 +10,7 @@ import type {
 	AvailabilityBlockType,
 	GoogleCalendarEvent,
 } from "@/lib/types/availability";
-import type { ZotDate } from "@/lib/zotdate";
+import type { AvailabilityType, ZotDate } from "@/lib/zotdate";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface PersonalAvailabilityProps {
@@ -25,6 +25,7 @@ interface PersonalAvailabilityProps {
 	onAvailabilityChange: (updatedDates: ZotDate[]) => void;
 	timezone: string;
 	meetingDates: string[];
+	availabilityMode: AvailabilityType;
 }
 
 export function PersonalAvailability({
@@ -39,6 +40,7 @@ export function PersonalAvailability({
 	onAvailabilityChange,
 	timezone,
 	meetingDates,
+	availabilityMode,
 }: PersonalAvailabilityProps) {
 	const {
 		startBlockSelection,
@@ -96,39 +98,46 @@ export function PersonalAvailability({
 			setIsEditingAvailability(true);
 		}
 
-		if (selectionState) {
-			const {
-				earlierDateIndex,
-				laterDateIndex,
+		if (!selectionState) {
+			return;
+		}
+
+		const {
+			earlierDateIndex,
+			laterDateIndex,
+			earlierBlockIndex,
+			laterBlockIndex,
+		} = selectionState;
+
+		const {
+			zotDateIndex: selectionStartDateIndex,
+			blockIndex: selectionStartBlockIndex,
+		} = startBlock;
+
+		const startSelectionZotDate = availabilityDates[selectionStartDateIndex];
+
+		const selectionValue = !startSelectionZotDate.getBlockAvailability(
+			selectionStartBlockIndex,
+			availabilityMode,
+		);
+
+		const updatedDates = availabilityDates.map((d) => d.clone());
+
+		for (
+			let dateIndex = earlierDateIndex;
+			dateIndex <= laterDateIndex;
+			dateIndex++
+		) {
+			const currentDate = updatedDates[dateIndex];
+
+			currentDate.setBlockAvailabilities(
 				earlierBlockIndex,
 				laterBlockIndex,
-			} = selectionState;
-
-			const {
-				zotDateIndex: selectionStartDateIndex,
-				blockIndex: selectionStartBlockIndex,
-			} = startBlock;
-
-			const startSelectionZotDate = availabilityDates[selectionStartDateIndex];
-			const selectionValue = !startSelectionZotDate.getBlockAvailability(
-				selectionStartBlockIndex,
+				selectionValue,
+				availabilityMode,
 			);
 
-			const updatedDates = [...availabilityDates];
-
-			for (
-				let dateIndex = earlierDateIndex;
-				dateIndex <= laterDateIndex;
-				dateIndex++
-			) {
-				const currentDate = updatedDates[dateIndex];
-				currentDate.setBlockAvailabilities(
-					earlierBlockIndex,
-					laterBlockIndex,
-					selectionValue,
-				);
-
-				// For each block in the selection range
+			if (availabilityMode === "availability") {
 				for (
 					let blockIdx = earlierBlockIndex;
 					blockIdx <= laterBlockIndex;
@@ -142,40 +151,32 @@ export function PersonalAvailability({
 						availabilityDates,
 					);
 
-					// Initialize empty array if timestamp doesn't exist
-					if (!currentDate.groupAvailability[timestamp]) {
-						currentDate.groupAvailability[timestamp] = [];
-					}
+					const existing = currentDate.groupAvailability[timestamp] ?? [];
 
 					if (selectionValue) {
-						// Add user to availability if not already present
-						if (
-							!currentDate.groupAvailability[timestamp].includes(
+						if (!existing.includes(user?.memberId ?? "")) {
+							currentDate.groupAvailability[timestamp] = [
+								...existing,
 								user?.memberId ?? "",
-							)
-						) {
-							currentDate.groupAvailability[timestamp].push(
-								user?.memberId ?? "",
-							);
+							];
+						} else {
+							currentDate.groupAvailability[timestamp] = existing;
 						}
 					} else {
-						// Remove user from availability
-						currentDate.groupAvailability[timestamp] =
-							currentDate.groupAvailability[timestamp].filter(
-								(id) => id !== (user?.memberId ?? ""),
-							);
+						currentDate.groupAvailability[timestamp] = existing.filter(
+							(id) => id !== (user?.memberId ?? ""),
+						);
 					}
 				}
 			}
-
-			setStartBlockSelection(undefined);
-			setEndBlockSelection(undefined);
-			setSelectionState(undefined);
-			setIsStateUnsaved(true);
-
-			// Call the onAvailabilityChange handler with the updated dates
-			onAvailabilityChange(updatedDates);
 		}
+
+		setStartBlockSelection(undefined);
+		setEndBlockSelection(undefined);
+		setSelectionState(undefined);
+		setIsStateUnsaved(true);
+
+		onAvailabilityChange(updatedDates);
 	};
 
 	useEffect(() => {
@@ -188,10 +189,7 @@ export function PersonalAvailability({
 		};
 
 		window.addEventListener("beforeunload", handleBeforeUnload);
-
-		return () => {
-			window.removeEventListener("beforeunload", handleBeforeUnload);
-		};
+		return () => window.removeEventListener("beforeunload", handleBeforeUnload);
 	}, [isStateUnsaved]);
 
 	return (
@@ -202,6 +200,7 @@ export function PersonalAvailability({
 			availabilityTimeBlocksLength={availabilityTimeBlocks.length}
 			currentPageAvailability={currentPageAvailability}
 			processedCellSegments={processedCellSegments}
+			availabilityKind={availabilityMode}
 		/>
 	);
 }
