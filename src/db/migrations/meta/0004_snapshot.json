@@ -1,5 +1,5 @@
 {
-  "id": "2458974d-9383-4385-ab03-a8c19afebe3e",
+  "id": "81f378b6-c1d4-4648-adff-d3a77d4ce750",
   "prevId": "bf14389b-17b1-433c-bc05-c911a4ac7fd5",
   "version": "7",
   "dialect": "postgresql",
@@ -32,7 +32,8 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{\"availability\":[],\"ifNeeded\":[]}'::jsonb"
+          "default": "'[]'::jsonb"
+
         }
       },
       "indexes": {},
@@ -110,6 +111,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "archived": {
+          "name": "archived",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},

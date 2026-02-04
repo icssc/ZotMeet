@@ -1,8 +1,8 @@
 import { create } from "zustand";
 
 interface AvailabilityViewStore {
-	availabilityView: "group" | "personal";
-	setAvailabilityView: (view: "group" | "personal") => void;
+	availabilityView: "group" | "personal" | "schedule";
+	setAvailabilityView: (view: "group" | "personal" | "schedule") => void;
 	hasAvailability: boolean;
 	setHasAvailability: (hasAvailability: boolean) => void;
 }

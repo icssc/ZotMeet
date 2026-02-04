@@ -2,7 +2,10 @@ import { notFound, redirect } from "next/navigation";
 // import { GroupsDisplay } from "@/components/summary/GroupsDisplay";
 import { Meetings } from "@/components/summary/meetings";
 import { getCurrentSession } from "@/lib/auth";
-import { getMeetings } from "@/server/data/meeting/queries";
+import {
+	getMeetings,
+	getScheduledTimeBlocks,
+} from "@/server/data/meeting/queries";
 
 export default async function Page() {
 	const session = await getCurrentSession();
@@ -16,6 +19,17 @@ export default async function Page() {
 	}
 
 	const meetings = await getMeetings(memberId);
+	// Fetch scheduled time blocks for each meeting
+	const scheduledTimeBlocksByMeetingId = Object.fromEntries(
+		await Promise.all(
+			meetings.map(async (meeting) => {
+				const blocks = meeting.scheduled
+					? await getScheduledTimeBlocks(meeting.id)
+					: [];
+				return [meeting.id, blocks] as const;
+			}),
+		),
+	);
 
 	return (
 		<div className="px-8 py-8">
@@ -24,7 +38,11 @@ export default async function Page() {
                 <GroupsDisplay />
             </div> */}
 
-			<Meetings meetings={meetings} userId={memberId} />
+			<Meetings
+				meetings={meetings}
+				userId={memberId}
+				scheduledTimeBlocksByMeetingId={scheduledTimeBlocksByMeetingId}
+			/>
 		</div>
 	);
 }

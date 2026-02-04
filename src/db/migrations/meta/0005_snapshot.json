@@ -1,6 +1,6 @@
 {
-  "id": "e31ad27b-6383-414f-bf94-c25530aa5a00",
-  "prevId": "2458974d-9383-4385-ab03-a8c19afebe3e",
+  "id": "21451459-a651-4b96-877f-14b58d424bf6",
+  "prevId": "81f378b6-c1d4-4648-adff-d3a77d4ce750",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -110,6 +110,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "archived": {
+          "name": "archived",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},
@@ -445,12 +452,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "password_hash": {
-          "name": "password_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "created_at": {
           "name": "created_at",

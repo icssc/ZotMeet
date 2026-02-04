@@ -25,6 +25,22 @@ export const attendanceEnum = pgEnum("attendance", [
 	"declined",
 ]);
 
+export enum GroupRole {
+	MEMBER = "member",
+	ADMIN = "admin",
+}
+
+export function enumToPgEnum<T extends Record<string, string>>(
+	myEnum: T,
+): [T[keyof T], ...T[keyof T][]] {
+	return Object.values(myEnum).map((value: string) => value) as [
+		T[keyof T],
+		...T[keyof T][],
+	];
+}
+
+export const groupRoleEnum = pgEnum("group_role", enumToPgEnum(GroupRole));
+
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = pgTable(
 	"members",
@@ -57,7 +73,6 @@ export const users = pgTable("users", {
 		})
 		.notNull(),
 	email: text("email").unique().notNull(),
-	passwordHash: text("password_hash"),
 	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
 
@@ -163,6 +178,25 @@ export const meetings = pgTable("meetings", {
 	archived: boolean("archived").default(false).notNull(),
 });
 
+export const scheduledMeetings = pgTable("scheduled_meetings", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	meetingId: uuid("meeting_id")
+		.notNull()
+		.references(() => meetings.id, { onDelete: "cascade" }),
+	scheduledDate: timestamp("scheduled_date", {
+		withTimezone: false,
+		mode: "date",
+	}).notNull(),
+	scheduledFromTime: time("scheduled_from_time", {
+		withTimezone: false,
+	}).notNull(),
+	scheduledToTime: time("scheduled_to_time", {
+		withTimezone: false,
+	}).notNull(),
+});
+
+export type SelectScheduledMeeting = InferSelectModel<typeof scheduledMeetings>;
+
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
 	groups: one(groups, {
 		fields: [meetings.group_id],
@@ -180,6 +214,7 @@ export const groups = pgTable("groups", {
 	description: text("description"),
 	createdAt: timestamp("created_at"),
 	createdBy: text("user_id").references(() => users.id),
+	archived: boolean("archived").default(false).notNull(),
 });
 
 export const groupsRelations = relations(groups, ({ many }) => ({
@@ -191,6 +226,9 @@ type MeetingAvailability = {
 	time: string;
 	availabilityType: "availability" | "ifNeeded";
 }[];
+
+export type InsertGroup = InferInsertModel<typeof groups>;
+export type SelectGroup = InferSelectModel<typeof groups>;
 
 export const availabilities = pgTable(
 	"availabilities",
@@ -239,6 +277,7 @@ export const usersInGroup = pgTable(
 		groupId: uuid("group_id")
 			.notNull()
 			.references(() => groups.id, { onDelete: "cascade" }),
+		role: groupRoleEnum("role").default(GroupRole.MEMBER).notNull(),
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.groupId, table.userId] }),
