@@ -12,7 +12,6 @@ interface InviteDecisionProps {
 
 async function handleAccept(inviteToken: string) {
 	const result = await acceptInvite(inviteToken);
-	console.log(result);
 	alert(result.message);
 }
 

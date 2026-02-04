@@ -84,7 +84,7 @@ export async function createGroupInvite(
 				expiresAt,
 				sentAt: new Date(),
 			})
-			.returning({ inviteToken: groupInvites.inviteToken }); //  CRITICAL
+			.returning({ inviteToken: groupInvites.inviteToken });
 
 		revalidatePath("/groups");
 		revalidatePath(`/groups/${groupId}`);
