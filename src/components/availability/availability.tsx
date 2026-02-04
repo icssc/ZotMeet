@@ -269,7 +269,7 @@ export function Availability({
 		confirmSave();
 	}, [confirmSave]);
 
-	useEffect(() => {
+	const refreshGoogleCalendarEvents = useCallback(() => {
 		if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
 			const firstDateISO = anchorNormalizedDate[0].toISOString();
 
@@ -291,6 +291,22 @@ export function Availability({
 			setGoogleCalendarEvents([]);
 		}
 	}, [availabilityDates, anchorNormalizedDate]);
+
+	useEffect(() => {
+		refreshGoogleCalendarEvents();
+	}, [refreshGoogleCalendarEvents]);
+
+	useEffect(() => {
+		window.addEventListener(
+			"google-calendar-updated",
+			refreshGoogleCalendarEvents,
+		);
+		return () =>
+			window.removeEventListener(
+				"google-calendar-updated",
+				refreshGoogleCalendarEvents,
+			);
+	}, [refreshGoogleCalendarEvents]);
 
 	const members = useMemo(() => {
 		const presentMemberIds = [

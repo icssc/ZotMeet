@@ -64,6 +64,13 @@
       "when": 1769142785048,
       "tag": "0008_change_isadmin_to_role_enum",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1769597952765,
+      "tag": "0009_rapid_katie_power",
+      "breakpoints": true
     }
   ]
 }

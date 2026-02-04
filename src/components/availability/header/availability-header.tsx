@@ -6,6 +6,7 @@ import {
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
 import {
+	CalendarIcon,
 	CircleCheckIcon,
 	CircleXIcon,
 	DeleteIcon,
@@ -14,6 +15,7 @@ import {
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { AuthDialog } from "@/components/auth/auth-dialog";
+import { GoogleCalendarSelectionDialog } from "@/components/availability/google-calendar-selection-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,7 @@ import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
+import { useGoogleCalendarSelectionStore } from "@/store/useGoogleCalendarSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
 interface AvailabilityHeaderProps {
@@ -205,6 +208,21 @@ export function AvailabilityHeader({
 					<div className="flex flex-row justify-end space-x-2">
 						{availabilityView === "personal" ? (
 							<div className="flex space-x-2 md:space-x-4">
+								{user && (
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() =>
+											useGoogleCalendarSelectionStore.setState({
+												isDialogOpen: true,
+											})
+										}
+										className="flex items-center gap-2"
+									>
+										<CalendarIcon className="h-4 w-4" />
+										<span className="hidden md:flex">Calendars</span>
+									</Button>
+								)}
 								<Button
 									className={cn(
 										"h-8 min-h-fit flex-center border border-yellow-500 bg-white px-2 text-yellow-500 uppercase md:w-28 md:p-0",
@@ -299,6 +317,7 @@ export function AvailabilityHeader({
 			</div>
 
 			<AuthDialog />
+			<GoogleCalendarSelectionDialog />
 
 			<EditModal
 				meetingData={meetingData}
