@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/shallow";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
 import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
@@ -31,6 +32,8 @@ export function AvailabilityBlockCell({
 	eventSegments,
 	hasSpacerBefore = false,
 }: AvailabilityBlockCellProps) {
+	const isDraggingRef = useRef(false);
+
 	const {
 		startBlockSelection,
 		selectionState,
@@ -90,14 +93,8 @@ export function AvailabilityBlockCell({
 		}
 	};
 
-	const handleMouseUp = () => {
-		if (startBlockSelection) {
-			setEndBlockSelection(availabilitySelection);
-			setAvailabilities(startBlockSelection);
-		}
-	};
-
 	const handleMouseDown = () => {
+		isDraggingRef.current = true;
 		setStartBlockSelection(availabilitySelection);
 		setEndBlockSelection(availabilitySelection);
 	};
@@ -116,8 +113,54 @@ export function AvailabilityBlockCell({
 		setEndBlockSelection(availabilitySelection);
 	};
 
+	// global mouse event listeners for drag tracking
+	useEffect(() => {
+		if (!startBlockSelection) return;
+
+		const handleGlobalMouseMove = (e: MouseEvent) => {
+			if (!isDraggingRef.current) return;
+
+			const element = document.elementFromPoint(e.clientX, e.clientY);
+			if (!element) return;
+
+			const touchingDateIndex = parseInt(
+				element.getAttribute("data-date-index") || "",
+				10,
+			);
+			const touchingBlockIndex = parseInt(
+				element.getAttribute("data-block-index") || "",
+				10,
+			);
+
+			if (
+				!Number.isNaN(touchingDateIndex) &&
+				!Number.isNaN(touchingBlockIndex)
+			) {
+				setEndBlockSelection({
+					zotDateIndex: touchingDateIndex,
+					blockIndex: touchingBlockIndex,
+				});
+			}
+		};
+
+		const handleGlobalMouseUp = () => {
+			if (isDraggingRef.current && startBlockSelection) {
+				isDraggingRef.current = false;
+				setAvailabilities(startBlockSelection);
+			}
+		};
+
+		document.addEventListener("mousemove", handleGlobalMouseMove);
+		document.addEventListener("mouseup", handleGlobalMouseUp);
+
+		return () => {
+			document.removeEventListener("mousemove", handleGlobalMouseMove);
+			document.removeEventListener("mouseup", handleGlobalMouseUp);
+		};
+	}, [startBlockSelection, setEndBlockSelection, setAvailabilities]);
+
 	return (
-		<td onMouseUp={handleMouseUp} className="relative px-0 py-0">
+		<td className="relative px-0 py-0">
 			<button
 				type="button"
 				onTouchStart={handleTouchStart}

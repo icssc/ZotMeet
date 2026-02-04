@@ -1,7 +1,7 @@
 "use client";
 
 import { fromZonedTime } from "date-fns-tz";
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 import {
@@ -119,6 +119,8 @@ export function GroupAvailability({
 	isScheduling,
 	doesntNeedDay,
 }: GroupAvailabilityProps) {
+	const isDraggingRef = useRef(false);
+
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
 	const [newBlocks, newAvailDates] = newZonedPageAvailAndDates(
@@ -354,6 +356,7 @@ export function GroupAvailability({
 			blockIndex: number;
 		}) => {
 			if (isScheduling) {
+				isDraggingRef.current = true;
 				setStartBlockSelection({ zotDateIndex, blockIndex });
 				setEndBlockSelection({ zotDateIndex, blockIndex });
 			}
@@ -383,6 +386,8 @@ export function GroupAvailability({
 			endBlockSelection &&
 			selectionState
 		) {
+			isDraggingRef.current = false;
+
 			const {
 				earlierDateIndex,
 				laterDateIndex,
@@ -453,6 +458,45 @@ export function GroupAvailability({
 		setEndBlockSelection,
 		setSelectionState,
 	]);
+
+	// Global mouse event listeners for drag tracking
+	useEffect(() => {
+		if (!isScheduling || !startBlockSelection) return;
+
+		const handleGlobalMouseMove = (e: MouseEvent) => {
+			if (!isDraggingRef.current) return;
+
+			const element = document.elementFromPoint(e.clientX, e.clientY);
+			if (!element) return;
+
+			const zotDateIndex = parseInt(
+				element.getAttribute("data-date-index") || "",
+				10,
+			);
+			const blockIdx = parseInt(
+				element.getAttribute("data-block-index") || "",
+				10,
+			);
+
+			if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIdx)) {
+				setEndBlockSelection({ zotDateIndex, blockIndex: blockIdx });
+			}
+		};
+
+		const handleGlobalMouseUp = () => {
+			if (isDraggingRef.current) {
+				handleMouseUp();
+			}
+		};
+
+		document.addEventListener("mousemove", handleGlobalMouseMove);
+		document.addEventListener("mouseup", handleGlobalMouseUp);
+
+		return () => {
+			document.removeEventListener("mousemove", handleGlobalMouseMove);
+			document.removeEventListener("mouseup", handleGlobalMouseUp);
+		};
+	}, [isScheduling, startBlockSelection, setEndBlockSelection, handleMouseUp]);
 
 	const handleTouchStart = (e: React.TouchEvent) => {
 		if (!isScheduling) {
