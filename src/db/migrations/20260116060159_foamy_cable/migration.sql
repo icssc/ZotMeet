@@ -1,1 +1,0 @@
-ALTER TABLE "groups" ADD COLUMN "archived" boolean DEFAULT false NOT NULL;
