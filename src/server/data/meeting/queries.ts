@@ -15,10 +15,7 @@ export async function getExistingMeeting(
 	meetingId: string,
 ): Promise<SelectMeeting> {
 	const meeting = await db.query.meetings.findFirst({
-		where: {
-			id: meetingId,
-			archived: false,
-		},
+		where: and(eq(meetings.id, meetingId), eq(meetings.archived, false)),
 	});
 
 	if (!meeting) {
@@ -43,10 +40,10 @@ export const getAvailability = async ({
 					"meetingAvailabilities",
 				),
 		},
-		where: {
-			memberId: userId,
-			meetingId: meetingId,
-		},
+		where: and(
+			eq(availabilities.memberId, userId),
+			eq(availabilities.meetingId, meetingId),
+		),
 	});
 
 	if (!availability) {

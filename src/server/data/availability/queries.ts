@@ -12,10 +12,10 @@ export async function getMemberMeetingAvailability({
 	meetingId: string;
 }) {
 	const availabilityData = await db.query.availabilities.findFirst({
-		where: {
-			memberId: memberId,
-			meetingId: meetingId,
-		},
+		where: and(
+			eq(availabilities.memberId, memberId),
+			eq(availabilities.meetingId, meetingId),
+		),
 	});
 
 	if (!availabilityData) {
