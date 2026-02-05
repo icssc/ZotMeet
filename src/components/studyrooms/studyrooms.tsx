@@ -2,49 +2,55 @@
 
 import { Box, Typography } from "@mui/material";
 import * as React from "react";
-import AvailabilityGrid from "@/app/studyrooms/availability-grid";
-import RoomsSidebar from "@/app/studyrooms/room-sidebar";
-import type {
-	GroupedRooms,
-	StudyRoomFromApi,
-} from "@/lib/studyrooms/groupRooms";
+import AvailabilityGrid from "@/components/studyrooms/availability-grid";
+import RoomsSidebar from "@/components/studyrooms/room-sidebar";
+import type { GroupedRooms, StudyRoomFromApi } from "@/lib/types/studyrooms";
 
 type Props = {
 	grouped: GroupedRooms;
 	roomsFromApi: StudyRoomFromApi[];
 };
 
-export default function StudyRoomsClient({ grouped, roomsFromApi }: Props) {
-	// shared sizing contract
+export default function StudyRooms({ grouped, roomsFromApi }: Props) {
 	const ROW_H = 44;
 	const GROUP_H = 36;
 	const TIME_H = 48;
 	const SIDEBAR_W = 360;
 
-	// two horizontal scrollers we will sync
+	const slotMinutes = 30;
+	const startHour = 0;
+	const endHour = 24;
+	const colWidthPx = 60;
+
+	const totalCols = ((endHour - startHour) * 60) / slotMinutes;
+	const gridWidthPx = totalCols * colWidthPx;
+	const SCROLLBAR_H = 16;
+
 	const headerScrollRef = React.useRef<HTMLDivElement | null>(null);
 	const bodyScrollRef = React.useRef<HTMLDivElement | null>(null);
+	const bottomScrollRef = React.useRef<HTMLDivElement | null>(null);
 
 	const isSyncingRef = React.useRef(false);
 
-	const syncScroll = (source: "header" | "body") => {
+	const syncScroll = (source: "body" | "bottom") => {
 		if (isSyncingRef.current) return;
 		isSyncingRef.current = true;
 
 		const headerEl = headerScrollRef.current;
 		const bodyEl = bodyScrollRef.current;
-		if (!headerEl || !bodyEl) {
+		const bottomEl = bottomScrollRef.current;
+
+		if (!headerEl || !bodyEl || !bottomEl) {
 			isSyncingRef.current = false;
 			return;
 		}
 
-		if (source === "header") {
-			bodyEl.scrollLeft = headerEl.scrollLeft;
-		} else {
-			headerEl.scrollLeft = bodyEl.scrollLeft;
-		}
+		const left = source === "body" ? bodyEl.scrollLeft : bottomEl.scrollLeft;
 
-		// release on next frame
+		headerEl.scrollLeft = left;
+		bodyEl.scrollLeft = left;
+		bottomEl.scrollLeft = left;
+
 		requestAnimationFrame(() => {
 			isSyncingRef.current = false;
 		});
@@ -54,7 +60,7 @@ export default function StudyRoomsClient({ grouped, roomsFromApi }: Props) {
 		<Box sx={{ height: "100vh", bgcolor: "background.default" }}>
 			{/* Shared vertical scroll container */}
 			<Box sx={{ height: "100%", overflowY: "auto", overflowX: "hidden" }}>
-				{/* ✅ Sticky header row */}
+				{/* Sticky time header row */}
 				<Box
 					sx={{
 						position: "sticky",
@@ -84,8 +90,8 @@ export default function StudyRoomsClient({ grouped, roomsFromApi }: Props) {
 						</Typography>
 					</Box>
 
-					{/* Right sticky header cell (horizontal scroll, synced with body) */}
-					<Box sx={{ flex: 1, minWidth: 0 }}>
+					{/* Right header cell (scroll synced, but DON'T show its scrollbar) */}
+					<Box sx={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
 						<AvailabilityGrid
 							mode="header"
 							groupedRooms={grouped}
@@ -93,12 +99,12 @@ export default function StudyRoomsClient({ grouped, roomsFromApi }: Props) {
 							rowHeightPx={ROW_H}
 							groupHeaderHeightPx={GROUP_H}
 							timeHeaderHeightPx={TIME_H}
-							slotMinutes={30}
-							startHour={0}
-							endHour={24}
-							colWidthPx={60}
+							slotMinutes={slotMinutes}
+							startHour={startHour}
+							endHour={endHour}
+							colWidthPx={colWidthPx}
 							scrollRef={headerScrollRef}
-							onScroll={() => syncScroll("header")}
+							// no onScroll here — bottom/body drives sync
 						/>
 					</Box>
 				</Box>
@@ -122,13 +128,45 @@ export default function StudyRoomsClient({ grouped, roomsFromApi }: Props) {
 							rowHeightPx={ROW_H}
 							groupHeaderHeightPx={GROUP_H}
 							timeHeaderHeightPx={TIME_H}
-							slotMinutes={30}
-							startHour={0}
-							endHour={24}
-							colWidthPx={60}
+							slotMinutes={slotMinutes}
+							startHour={startHour}
+							endHour={endHour}
+							colWidthPx={colWidthPx}
 							scrollRef={bodyScrollRef}
 							onScroll={() => syncScroll("body")}
 						/>
+					</Box>
+				</Box>
+
+				{/* Sticky bottom horizontal scrollbar (always at bottom of viewport) */}
+				<Box
+					sx={{
+						position: "sticky",
+						bottom: 0,
+						zIndex: 40,
+						height: SCROLLBAR_H,
+						bgcolor: "background.paper",
+						borderTop: "1px solid",
+						borderColor: "divider",
+					}}
+				>
+					<Box sx={{ display: "flex", height: "100%" }}>
+						{/* left gutter to align with sidebar */}
+						<Box sx={{ width: SIDEBAR_W, minWidth: SIDEBAR_W }} />
+						{/* actual scrollbar */}
+						<Box
+							ref={bottomScrollRef}
+							onScroll={() => syncScroll("bottom")}
+							sx={{
+								flex: 1,
+								minWidth: 0,
+								overflowX: "auto",
+								overflowY: "hidden",
+							}}
+						>
+							{/* creates scrollable width */}
+							<Box sx={{ width: gridWidthPx, height: 1 }} />
+						</Box>
 					</Box>
 				</Box>
 			</Box>

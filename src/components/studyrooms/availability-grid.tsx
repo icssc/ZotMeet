@@ -2,10 +2,7 @@
 
 import { Box, Typography } from "@mui/material";
 import * as React from "react";
-import type {
-	GroupedRooms,
-	StudyRoomFromApi,
-} from "@/lib/studyrooms/groupRooms";
+import type { GroupedRooms, StudyRoomFromApi } from "@/lib/types/studyrooms";
 
 type Props = {
 	mode: "header" | "body";
@@ -21,7 +18,6 @@ type Props = {
 	slotMinutes?: 15 | 30 | 60;
 	colWidthPx?: number;
 
-	// ✅ used for horizontal scroll syncing
 	scrollRef?: React.RefObject<HTMLDivElement | null>;
 	onScroll?: () => void;
 };
@@ -94,17 +90,28 @@ export default function AvailabilityGrid({
 		return out;
 	}, [startHour, endHour]);
 
-	// ✅ HEADER ONLY: ref + onScroll must be on the overflowX container
+	// base scroll styles (valid SxProps)
+	const baseScrollSx = {
+		overflowX: "auto",
+		overflowY: "hidden",
+		WebkitOverflowScrolling: "touch",
+	} as const;
+
+	// extra styles for header only (hide scrollbar but keep scrollable)
+	const hideScrollbarSx = {
+		"&::-webkit-scrollbar": { display: "none" },
+		scrollbarWidth: "none",
+		msOverflowStyle: "none",
+	} as const;
+
 	if (mode === "header") {
 		return (
 			<Box
 				ref={scrollRef}
 				onScroll={onScroll}
 				sx={{
-					overflowX: "auto",
-					overflowY: "hidden",
-					// helps trackpads feel consistent
-					WebkitOverflowScrolling: "touch",
+					...baseScrollSx,
+					...hideScrollbarSx,
 				}}
 			>
 				<Box
@@ -141,18 +148,9 @@ export default function AvailabilityGrid({
 		);
 	}
 
-	// ✅ BODY ONLY: ref + onScroll must be on the overflowX container
 	return (
 		<Box>
-			<Box
-				ref={scrollRef}
-				onScroll={onScroll}
-				sx={{
-					overflowX: "auto",
-					overflowY: "hidden",
-					WebkitOverflowScrolling: "touch",
-				}}
-			>
+			<Box ref={scrollRef} onScroll={onScroll} sx={baseScrollSx}>
 				<Box sx={{ width: gridWidth, minWidth: gridWidth }}>
 					{groupedRooms.map((group) => (
 						<Box key={group.location}>

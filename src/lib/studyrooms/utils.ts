@@ -1,25 +1,5 @@
-export type StudyRoomFromApi = {
-	id: string;
-	name: string;
-	capacity: number;
-	location: string;
-	slots: Array<{
-		studyRoomId: string;
-		start: string;
-		end: string;
-		url: string;
-		isAvailable: boolean;
-	}>;
-};
-
-export type GroupedRooms = {
-	location: string;
-	rooms: {
-		id: string;
-		name: string;
-		capacity: number;
-	}[];
-}[];
+// src/lib/studyrooms/utils.ts
+import type { GroupedRooms, StudyRoomFromApi } from "@/lib/types/studyrooms";
 
 function extractRoomNumber(name: string): number | null {
 	const matches = name.match(/\d+/g);
@@ -39,7 +19,7 @@ export function groupRoomsByLocationAndRoom(
 
 		map.get(loc)!.push({
 			id: r.id,
-			name: r.name, // full name, e.g. "Science 176"
+			name: r.name,
 			capacity: r.capacity,
 		});
 	}
