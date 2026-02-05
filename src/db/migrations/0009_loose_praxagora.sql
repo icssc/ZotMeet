@@ -1,0 +1,1 @@
+ALTER TABLE "group_invites" ADD COLUMN "invitee_email" text DEFAULT '' NOT NULL;

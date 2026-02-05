@@ -1,5 +1,6 @@
 "use client";
 
+import { People } from "@mui/icons-material";
 import { CalendarSearchIcon, SquarePlusIcon } from "lucide-react";
 import Image from "next/image";
 import type * as React from "react";
@@ -30,6 +31,11 @@ const data = {
 			title: "Summary",
 			url: "/summary",
 			icon: CalendarSearchIcon,
+		},
+		{
+			title: "Groups",
+			url: "/groups/home",
+			icon: People,
 		},
 	],
 };

@@ -64,7 +64,6 @@ export const membersRelations = relations(members, ({ one, many }) => ({
 export type InsertMember = InferInsertModel<typeof members>;
 export type SelectMember = InferSelectModel<typeof members>;
 
-// Users encompasses Members who have created an account.
 export const users = pgTable("users", {
 	id: text("id").primaryKey(),
 	memberId: uuid("member_id")
@@ -224,6 +223,50 @@ export const groupsRelations = relations(groups, ({ many }) => ({
 
 export type InsertGroup = InferInsertModel<typeof groups>;
 export type SelectGroup = InferSelectModel<typeof groups>;
+
+export const inviteStatusEnum = pgEnum("invite_status", [
+	"pending",
+	"accepted",
+	"declined",
+	"expired",
+]);
+
+export const groupInvites = pgTable("group_invites", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	groupId: uuid("group_id")
+		.notNull()
+		.references(() => groups.id, { onDelete: "cascade" }),
+	inviteToken: text("invite_token").notNull().unique(),
+	inviterId: text("inviter_id")
+		.notNull()
+		.references(() => users.id, { onDelete: "cascade" }),
+	inviteeEmail: text("invitee_email").notNull().default(""),
+	sentAt: timestamp("sent_at", { mode: "date" }).defaultNow().notNull(),
+	expiresAt: timestamp("expires_at", { mode: "date" }),
+});
+
+export const groupInviteResponses = pgTable("group_invite_responses", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	inviteId: uuid("invite_id")
+		.notNull()
+		.references(() => groupInvites.id, { onDelete: "cascade" }),
+	userId: text("user_id")
+		.notNull()
+		.references(() => users.id, { onDelete: "cascade" }),
+	email: text("email").notNull(),
+	status: inviteStatusEnum("status").notNull().default("pending"),
+	respondedAt: timestamp("responded_at", { mode: "date" }),
+});
+
+export type InsertGroupInvite = InferInsertModel<typeof groupInvites>;
+export type SelectGroupInvite = InferSelectModel<typeof groupInvites>;
+
+export type InsertGroupInviteResponse = InferInsertModel<
+	typeof groupInviteResponses
+>;
+export type SelectGroupInviteResponse = InferSelectModel<
+	typeof groupInviteResponses
+>;
 
 export const availabilities = pgTable(
 	"availabilities",
