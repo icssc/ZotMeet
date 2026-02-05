@@ -8,7 +8,7 @@ import {
 	Typography,
 } from "@mui/material";
 import * as React from "react";
-import type { GroupedRooms } from "@/lib/studyrooms/utils";
+import type { GroupedRooms } from "@/lib/types/studyrooms";
 
 type RoomsSidebarProps = {
 	groupedRooms: GroupedRooms;
