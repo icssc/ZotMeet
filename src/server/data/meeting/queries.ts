@@ -15,8 +15,10 @@ export async function getExistingMeeting(
 	meetingId: string,
 ): Promise<SelectMeeting> {
 	const meeting = await db.query.meetings.findFirst({
-		where: { id: meetingId, archived: false },
-		orderBy: { dates: "asc" },
+		where: {
+			id: meetingId,
+			archived: false,
+		},
 	});
 
 	if (!meeting) {
@@ -43,7 +45,7 @@ export const getAvailability = async ({
 		},
 		where: {
 			memberId: userId,
-			meetingId,
+			meetingId: meetingId,
 		},
 	});
 
@@ -69,7 +71,7 @@ export const getAllMemberAvailability = async ({
 		})
 		.from(availabilities)
 		.innerJoin(members, eq(availabilities.memberId, members.id))
-		.where(and(eq(availabilities.meetingId, meetingId)));
+		.where(eq(availabilities.meetingId, meetingId));
 
 	return availability as {
 		memberId: string;
