@@ -416,10 +416,8 @@ export function Availability({
 												availabilityDates={availabilityDates}
 												currentPageAvailability={currentPageAvailability}
 												members={members}
-												timezone={userTimezone}
 												onMouseLeave={handleMouseLeave}
 												isScheduling={availabilityView === "schedule"}
-												doesntNeedDay={doesntNeedDay}
 											/>
 										) : (
 											<PersonalAvailability

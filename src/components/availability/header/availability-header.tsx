@@ -76,14 +76,13 @@ export function AvailabilityHeader({
 		setAvailabilityView("group");
 	};
 
-	const { pendingAdds, commitPendingTimes, clearPendingTimes } =
-		useScheduleSelectionStore(
-			useShallow((state) => ({
-				pendingAdds: state.pendingAdds,
-				commitPendingTimes: state.commitPendingTimes,
-				clearPendingTimes: state.clearPendingTimes,
-			})),
-		);
+	const { commitPendingTimes, clearPendingTimes } = useScheduleSelectionStore(
+		useShallow((state) => ({
+			pendingAdds: state.pendingAdds,
+			commitPendingTimes: state.commitPendingTimes,
+			clearPendingTimes: state.clearPendingTimes,
+		})),
+	);
 
 	const handleScheduleCancel = () => {
 		clearPendingTimes();
@@ -148,7 +147,7 @@ export function AvailabilityHeader({
 	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
 	// const [guestName, setGuestName] = useState("");
 
-	const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 

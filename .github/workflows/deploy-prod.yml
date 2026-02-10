@@ -45,7 +45,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Migrate database
-        run: pnpm db:migrate
+      #  run: pnpm db:migrate
 
       # TODO (@KevinWu098): Remove this stage once SST fixes compat with Pulumi
       # https://github.com/anomalyco/sst/issues/6314

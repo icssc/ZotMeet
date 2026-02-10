@@ -16,7 +16,6 @@ export async function getExistingMeeting(
 ): Promise<SelectMeeting> {
 	const meeting = await db.query.meetings.findFirst({
 		where: and(eq(meetings.id, meetingId), eq(meetings.archived, false)),
-		orderBy: meetings.dates,
 	});
 
 	if (!meeting) {
@@ -58,24 +57,18 @@ export const getAllMemberAvailability = async ({
 }: {
 	meetingId: string;
 }): Promise<MemberMeetingAvailability[]> => {
-	const availability = await db
-		.select({
-			memberId: availabilities.memberId,
-			meetingAvailabilities:
-				sql`${availabilities.meetingAvailabilities}::jsonb`.as(
-					"meetingAvailabilities",
-				),
-			displayName: members.displayName,
-		})
-		.from(availabilities)
-		.innerJoin(members, eq(availabilities.memberId, members.id))
-		.where(and(eq(availabilities.meetingId, meetingId)));
+	const availabilityData = await db.query.availabilities.findMany({
+		where: eq(availabilities.meetingId, meetingId),
+		with: {
+			member: true,
+		},
+	});
 
-	return availability as {
-		memberId: string;
-		meetingAvailabilities: string[];
-		displayName: string;
-	}[];
+	return availabilityData.map((a) => ({
+		memberId: a.memberId,
+		meetingAvailabilities: a.meetingAvailabilities,
+		displayName: a.member.displayName,
+	}));
 };
 
 export async function getMeetings(memberId: string) {
