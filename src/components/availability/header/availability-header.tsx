@@ -79,6 +79,45 @@ export function AvailabilityHeader({
 		setAvailabilityView("group");
 	};
 
+	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
+	// const [guestName, setGuestName] = useState("");
+
+	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
+
+	const isOwner = !!user && meetingData.hostId === user.memberId;
+
+	const handleSave = async () => {
+		if (!user) {
+			// setIsGuestDialogOpen(true);
+
+			return;
+		}
+		setChangeableTimezone(true);
+		const availability = {
+			meetingId: meetingData.id,
+			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
+			displayName: user.displayName,
+		};
+
+		const response = await saveAvailability(availability);
+
+		if (response.status === 200) {
+			setHasAvailability(true);
+			setAvailabilityView("group");
+			onSave();
+
+			// Clear guest member name
+			if (!user) {
+				// setGuestName("");
+			}
+		} else {
+			console.error("Error saving availability:", response.body.error);
+		}
+	};
+
 	const { commitPendingTimes, clearPendingTimes } = useScheduleSelectionStore(
 		useShallow((state) => ({
 			pendingAdds: state.pendingAdds,
@@ -141,48 +180,10 @@ export function AvailabilityHeader({
 
 			// Move pending to scheduled after successful save
 			commitPendingTimes();
+			setIsScheduled(true);
 			setAvailabilityView("group");
 		} catch (error) {
 			console.error("Failed to save meeting blocks", error);
-		}
-	};
-
-	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
-	// const [guestName, setGuestName] = useState("");
-
-	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-	const isOwner = !!user && meetingData.hostId === user.memberId;
-	const isScheduled = meetingData.scheduled;
-
-	const handleSave = async () => {
-		if (!user) {
-			// setIsGuestDialogOpen(true);
-
-			return;
-		}
-		setChangeableTimezone(true);
-		const availability = {
-			meetingId: meetingData.id,
-			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-
-		const response = await saveAvailability(availability);
-
-		if (response.status === 200) {
-			setHasAvailability(true);
-			setAvailabilityView("group");
-			onSave();
-
-			// Clear guest member name
-			if (!user) {
-				// setGuestName("");
-			}
-		} else {
-			console.error("Error saving availability:", response.body.error);
 		}
 	};
 
