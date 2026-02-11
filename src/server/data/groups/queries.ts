@@ -1,8 +1,9 @@
 import "server-only";
 
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
+	availabilities,
 	GroupRole,
 	groups,
 	meetings,
@@ -134,4 +135,62 @@ export async function getGroupMemberCount(groupId: string): Promise<number> {
 		.where(eq(usersInGroup.groupId, groupId));
 
 	return result[0]?.count ?? 0;
+}
+
+export type GroupWithDetails = SelectGroup & {
+	memberCount: number;
+	memberEmails: string[];
+	totalMembers: number;
+	isCreator: boolean;
+	needsAvailability: boolean;
+};
+
+export async function getGroupsWithDetails(
+	userId: string,
+	memberId: string,
+): Promise<GroupWithDetails[]> {
+	const userGroups = await getGroupsByUserId(userId);
+
+	const groupsWithDetails = await Promise.all(
+		userGroups.map(async (group) => {
+			const [memberCount, members, groupMeetings] = await Promise.all([
+				getGroupMemberCount(group.id),
+				getUsersInGroup(group.id),
+				getMeetingsByGroupId(group.id),
+			]);
+
+			// Check if any meetings in this group need availability from this user
+			let needsAvailability = false;
+			if (groupMeetings.length > 0) {
+				const meetingIds = groupMeetings.map((m) => m.id);
+				const userAvailabilities = await db
+					.select({ meetingId: availabilities.meetingId })
+					.from(availabilities)
+					.where(
+						and(
+							eq(availabilities.memberId, memberId),
+							inArray(availabilities.meetingId, meetingIds),
+						),
+					);
+
+				const respondedMeetingIds = new Set(
+					userAvailabilities.map((a) => a.meetingId),
+				);
+				needsAvailability = meetingIds.some(
+					(id) => !respondedMeetingIds.has(id),
+				);
+			}
+
+			return {
+				...group,
+				memberCount,
+				memberEmails: members.slice(0, 4).map((m) => m.email),
+				totalMembers: members.length,
+				isCreator: group.createdBy === userId,
+				needsAvailability,
+			};
+		}),
+	);
+
+	return groupsWithDetails;
 }
