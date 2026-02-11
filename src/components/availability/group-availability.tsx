@@ -1,5 +1,6 @@
 "use client";
 
+import { Hsluv } from "hsluv";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -80,8 +81,22 @@ function calculateBlockColor({
 	}
 
 	if (numMembers) {
-		const opacity = block.length / numMembers;
-		return `rgba(55, 124, 251, ${opacity})`;
+		// Proportion of people available
+		const x = block.length / numMembers;
+
+		const lightness = 100 * (1 - x * x);
+
+		const hpluv = new Hsluv();
+		hpluv.hpluv_h = 258;
+		hpluv.hpluv_p = 100;
+		hpluv.hpluv_l = lightness;
+		hpluv.hpluvToRgb();
+
+		const r = Math.round(hpluv.rgb_r * 255);
+		const g = Math.round(hpluv.rgb_g * 255);
+		const b = Math.round(hpluv.rgb_b * 255);
+
+		return `rgb(${r}, ${g}, ${b})`;
 	}
 
 	return "transparent";
