@@ -37,7 +37,6 @@ export function PersonalAvailability({
 	googleCalendarEvents,
 	user,
 	onAvailabilityChange,
-	timezone,
 	meetingDates,
 }: PersonalAvailabilityProps) {
 	const {
@@ -138,7 +137,6 @@ export function PersonalAvailability({
 						blockIdx,
 						dateIndex,
 						fromTime,
-						timezone,
 						availabilityDates,
 					);
 

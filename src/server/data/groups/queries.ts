@@ -86,6 +86,7 @@ export async function isUserInGroup({
 			eq(usersInGroup.groupId, groupId),
 		),
 	});
+
 	return userInGroup !== undefined;
 }
 
@@ -97,7 +98,7 @@ export async function isGroupCreator({
 	groupId: string;
 }): Promise<boolean> {
 	const group = await db.query.groups.findFirst({
-		where: and(eq(groups.id, groupId), eq(groups.createdBy, userId)),
+		where: and(eq(groups.id, userId), eq(groups.createdBy, groupId)),
 	});
 	return group !== undefined;
 }

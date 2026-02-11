@@ -464,7 +464,12 @@ export class ZotDate {
 			this.latestTime,
 			this.isSelected,
 			[...this.availability],
-			{ ...this.groupAvailability },
+			Object.fromEntries(
+				Object.entries(this.groupAvailability).map(([key, value]) => [
+					key,
+					[...value],
+				]),
+			),
 		);
 		return clonedDate;
 	}
