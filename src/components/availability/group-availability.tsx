@@ -1,6 +1,5 @@
 "use client";
 
-import { fromZonedTime } from "date-fns-tz";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -114,30 +113,6 @@ export function GroupAvailability({
 }: GroupAvailabilityProps) {
 	const isDraggingRef = useRef(false);
 
-	//extra day calculation for day spillover
-	//put in here to prevent infinite adding, recalculates everytime something changes
-	const [newBlocks, newAvailDates] = newZonedPageAvailAndDates(
-		currentPageAvailability,
-		availabilityDates,
-		doesntNeedDay,
-	);
-	//counts number of days in availibilityTimeBlocks that is in the before (calculates the time offset for formatting)
-	const datesBefore = React.useMemo(() => {
-		if (availabilityTimeBlocks.length === 0) return 0;
-
-		let count = 1;
-		let prev = availabilityTimeBlocks[0];
-
-		for (let i = 1; i < availabilityTimeBlocks.length; i++) {
-			if (availabilityTimeBlocks[i] - prev !== 15) {
-				break;
-			}
-			count++;
-			prev = availabilityTimeBlocks[i];
-		}
-
-		return count;
-	}, [availabilityTimeBlocks]);
 	const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
