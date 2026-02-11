@@ -79,14 +79,14 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 			<div className="mt-4 border-gray-200 border-b" />
 
 			<div className="mt-4 flex flex-wrap items-center gap-3">
-				<div className="flex items-center gap-2.5 rounded-full bg-[#f8f8f8] px-4 py-2">
+				<div className="flex items-center gap-2.5 rounded-full bg-gray-200 px-4 py-2">
 					<Search className="size-5 text-gray-600" />
 					<input
 						type="text"
 						placeholder="Search"
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
-						className="bg-transparent font-semibold text-base outline-none placeholder:text-black"
+						className="bg-transparent font-semibold text-base outline-none placeholder:text-gray-500"
 					/>
 				</div>
 
