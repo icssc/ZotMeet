@@ -45,12 +45,12 @@ export const GroupAvailabilityBlock = memo(
 				onPointerDown={onPointerDown}
 				onPointerMove={onPointerMove}
 				onPointerUp={onPointerUp}
+				data-date-index={dateIndex}
+				data-block-index={blockIndex}
 			>
 				<div
-					className={cn("block h-full w-full py-2")}
+					className={cn("pointer-events-none block h-full w-full py-2")}
 					style={{ background: blockColor }}
-					data-date-index={dateIndex}
-					data-block-index={blockIndex}
 				/>
 			</button>
 		);

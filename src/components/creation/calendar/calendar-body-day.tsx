@@ -108,6 +108,10 @@ export function CalendarBodyDay({
 				onPointerMove={handlePointerMove}
 				onPointerUp={handlePointerUp}
 				className="relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:none]"
+				data-day={calendarDay.getDay()}
+				data-month={calendarDay.getMonth()}
+				data-year={calendarDay.getYear()}
+				data-selected={calendarDay.isSelected}
 			>
 				<CalendarBodyDayCell
 					isHighlighted={!!isHighlighted}

@@ -41,9 +41,10 @@ export function AvailabilityBlock({
 
 	return (
 		<div
-			data-date-index={zotDateIndex}
-			data-block-index={blockIndex}
-			className={cn("block h-full w-full py-2", backgroundColor)}
+			className={cn(
+				"pointer-events-none block h-full w-full py-2",
+				backgroundColor,
+			)}
 		/>
 	);
 }
