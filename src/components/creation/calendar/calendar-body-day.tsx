@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import { CalendarBodyDayCell } from "@/components/creation/calendar/calendar-body-day-cell";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -53,59 +53,24 @@ export function CalendarBodyDay({
 		setEndDaySelection,
 	]);
 
-	/**
-	 * Updates the current highlight selection whenever a mobile user drags on the calendar
-	 * @param {TouchEvent} e - Touch event from a mobile user
-	 */
-	const handleTouchMove = (e: React.TouchEvent<HTMLButtonElement>) => {
-		const touchingElement = document.elementFromPoint(
-			e.touches[0].clientX,
-			e.touches[0].clientY,
-		);
+	// Pointer event handlers
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent<HTMLButtonElement>) => {
+			const target = e.currentTarget;
+			target.setPointerCapture(e.pointerId);
 
-		if (!touchingElement) return;
-
-		const touchingDay = touchingElement.getAttribute("data-day");
-
-		if (startDaySelection && touchingDay) {
-			const day = ZotDate.extractDayFromElement(touchingElement);
-			setEndDaySelection(day ?? undefined);
-		}
-	};
-
-	const handleTouchStart = (e: React.TouchEvent<HTMLButtonElement>) => {
-		if (e.cancelable) {
-			e.preventDefault();
-		}
-		setStartDaySelection(calendarDay);
-	};
-
-	const handleTouchEnd = (e: React.TouchEvent<HTMLButtonElement>) => {
-		if (e.cancelable) {
-			e.preventDefault();
-		}
-
-		handleEndSelection();
-	};
-
-	const handleMouseMove = () => {
-		if (startDaySelection) {
+			isDraggingRef.current = true;
+			setStartDaySelection(calendarDay);
 			setEndDaySelection(calendarDay);
-		}
-	};
+		},
+		[calendarDay, setStartDaySelection, setEndDaySelection],
+	);
 
-	const handleMouseDown = () => {
-		isDraggingRef.current = true;
-		setStartDaySelection(calendarDay);
-	};
+	const handlePointerMove = useCallback(
+		(e: React.PointerEvent<HTMLButtonElement>) => {
+			if (!isDraggingRef.current || !startDaySelection) return;
 
-	// global mouse event listeners for drag tracking
-	useEffect(() => {
-		if (!startDaySelection) return;
-
-		const handleGlobalMouseMove = (e: MouseEvent) => {
-			if (!isDraggingRef.current) return;
-
+			// Get element under pointer
 			const element = document.elementFromPoint(e.clientX, e.clientY);
 			if (!element) return;
 
@@ -116,34 +81,33 @@ export function CalendarBodyDay({
 					setEndDaySelection(day);
 				}
 			}
-		};
+		},
+		[startDaySelection, setEndDaySelection],
+	);
 
-		const handleGlobalMouseUp = () => {
-			if (isDraggingRef.current) {
-				isDraggingRef.current = false;
-				handleEndSelection();
+	const handlePointerUp = useCallback(
+		(e: React.PointerEvent<HTMLButtonElement>) => {
+			if (!isDraggingRef.current) return;
+
+			const target = e.currentTarget;
+			if (target.hasPointerCapture(e.pointerId)) {
+				target.releasePointerCapture(e.pointerId);
 			}
-		};
 
-		document.addEventListener("mousemove", handleGlobalMouseMove);
-		document.addEventListener("mouseup", handleGlobalMouseUp);
-
-		return () => {
-			document.removeEventListener("mousemove", handleGlobalMouseMove);
-			document.removeEventListener("mouseup", handleGlobalMouseUp);
-		};
-	}, [startDaySelection, handleEndSelection, setEndDaySelection]);
+			isDraggingRef.current = false;
+			handleEndSelection();
+		},
+		[handleEndSelection],
+	);
 
 	return (
 		<td>
 			<button
 				type="button"
-				onTouchMove={handleTouchMove}
-				onTouchStart={handleTouchStart}
-				onTouchEnd={handleTouchEnd}
-				onMouseMove={handleMouseMove}
-				onMouseDown={handleMouseDown}
-				className="relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:pinch-zoom]"
+				onPointerDown={handlePointerDown}
+				onPointerMove={handlePointerMove}
+				onPointerUp={handlePointerUp}
+				className="relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:none]"
 			>
 				<CalendarBodyDayCell
 					isHighlighted={!!isHighlighted}

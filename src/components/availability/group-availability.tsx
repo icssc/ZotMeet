@@ -347,38 +347,6 @@ export function GroupAvailability({
 		],
 	);
 
-	const handleMouseDown = useCallback(
-		({
-			zotDateIndex,
-			blockIndex,
-		}: {
-			zotDateIndex: number;
-			blockIndex: number;
-		}) => {
-			if (isScheduling) {
-				isDraggingRef.current = true;
-				setStartBlockSelection({ zotDateIndex, blockIndex });
-				setEndBlockSelection({ zotDateIndex, blockIndex });
-			}
-		},
-		[isScheduling, setStartBlockSelection, setEndBlockSelection],
-	);
-
-	const handleMouseMove = useCallback(
-		({
-			zotDateIndex,
-			blockIndex,
-		}: {
-			zotDateIndex: number;
-			blockIndex: number;
-		}) => {
-			if (isScheduling && startBlockSelection) {
-				setEndBlockSelection({ zotDateIndex, blockIndex });
-			}
-		},
-		[isScheduling, startBlockSelection, setEndBlockSelection],
-	);
-
 	const handleMouseUp = useCallback(() => {
 		if (
 			isScheduling &&
@@ -459,12 +427,23 @@ export function GroupAvailability({
 		setSelectionState,
 	]);
 
-	// Global mouse event listeners for drag tracking
-	useEffect(() => {
-		if (!isScheduling || !startBlockSelection) return;
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent, zotDateIndex: number, blockIndex: number) => {
+			if (!isScheduling) return;
 
-		const handleGlobalMouseMove = (e: MouseEvent) => {
-			if (!isDraggingRef.current) return;
+			const target = e.currentTarget as HTMLElement;
+			target.setPointerCapture(e.pointerId);
+
+			isDraggingRef.current = true;
+			setStartBlockSelection({ zotDateIndex, blockIndex });
+			setEndBlockSelection({ zotDateIndex, blockIndex });
+		},
+		[isScheduling, setStartBlockSelection, setEndBlockSelection],
+	);
+
+	const handlePointerMove = useCallback(
+		(e: React.PointerEvent) => {
+			if (!isScheduling || !isDraggingRef.current) return;
 
 			const element = document.elementFromPoint(e.clientX, e.clientY);
 			if (!element) return;
@@ -473,138 +452,32 @@ export function GroupAvailability({
 				element.getAttribute("data-date-index") || "",
 				10,
 			);
-			const blockIdx = parseInt(
+			const blockIndex = parseInt(
 				element.getAttribute("data-block-index") || "",
 				10,
 			);
 
-			if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIdx)) {
-				setEndBlockSelection({ zotDateIndex, blockIndex: blockIdx });
+			if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIndex)) {
+				setEndBlockSelection({ zotDateIndex, blockIndex });
 			}
-		};
+		},
+		[isScheduling, setEndBlockSelection],
+	);
 
-		const handleGlobalMouseUp = () => {
-			if (isDraggingRef.current) {
-				handleMouseUp();
-			}
-		};
+	const handlePointerUp = useCallback(
+		(e: React.PointerEvent) => {
+			if (!isScheduling || !isDraggingRef.current) return;
 
-		document.addEventListener("mousemove", handleGlobalMouseMove);
-		document.addEventListener("mouseup", handleGlobalMouseUp);
-
-		return () => {
-			document.removeEventListener("mousemove", handleGlobalMouseMove);
-			document.removeEventListener("mouseup", handleGlobalMouseUp);
-		};
-	}, [isScheduling, startBlockSelection, setEndBlockSelection, handleMouseUp]);
-
-	const handleTouchStart = (e: React.TouchEvent) => {
-		if (!isScheduling) {
-			return;
-		}
-		if (e.cancelable) {
-			e.preventDefault();
-		}
-
-		const touch = e.touches[0];
-		const element = document.elementFromPoint(touch.clientX, touch.clientY);
-
-		if (!element) return;
-
-		const zotDateIndex = parseInt(
-			element.getAttribute("data-date-index") || "",
-			10,
-		);
-		const blockIndex = parseInt(
-			element.getAttribute("data-block-index") || "",
-			10,
-		);
-
-		if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIndex)) {
-			setStartBlockSelection({ zotDateIndex, blockIndex });
-			setEndBlockSelection({ zotDateIndex, blockIndex });
-		}
-	};
-
-	const handleTouchMove = (e: React.TouchEvent) => {
-		if (!isScheduling) return;
-
-		const touch = e.touches[0];
-		const element = document.elementFromPoint(touch.clientX, touch.clientY);
-
-		if (!element || !startBlockSelection) return;
-
-		const zotDateIndex = parseInt(
-			element.getAttribute("data-date-index") || "",
-			10,
-		);
-		const blockIndex = parseInt(
-			element.getAttribute("data-block-index") || "",
-			10,
-		);
-
-		if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIndex)) {
-			setEndBlockSelection({ zotDateIndex, blockIndex });
-		}
-	};
-
-	const handleTouchEnd = (e: React.TouchEvent) => {
-		if (!isScheduling) {
-			return;
-		}
-
-		if (e.cancelable) {
-			e.preventDefault();
-		}
-
-		if (startBlockSelection && endBlockSelection && selectionState) {
-			const {
-				earlierDateIndex,
-				laterDateIndex,
-				earlierBlockIndex,
-				laterBlockIndex,
-			} = selectionState;
-
-			const timestamps: string[] = [];
-			for (
-				let dateIndex = earlierDateIndex;
-				dateIndex <= laterDateIndex;
-				dateIndex++
-			) {
-				for (
-					let blockIdx = earlierBlockIndex;
-					blockIdx <= laterBlockIndex;
-					blockIdx++
-				) {
-					const timestamp = getTimestampFromBlockIndex(
-						blockIdx,
-						dateIndex,
-						fromTime,
-						timezone,
-						newAvailDates,
-					);
-					if (timestamp) timestamps.push(timestamp);
-				}
+			const target = e.currentTarget as HTMLElement;
+			if (target.hasPointerCapture(e.pointerId)) {
+				target.releasePointerCapture(e.pointerId);
 			}
 
-			if (timestamps.length > 0) {
-				const firstTimestamp = timestamps[0];
-				const isFirstScheduled = isScheduled(firstTimestamp);
-
-				if (isFirstScheduled) {
-					timestamps.forEach((ts) => {
-						if (isScheduled(ts)) togglePendingTime(ts);
-					});
-				} else {
-					addPendingTimeRange(timestamps);
-				}
-
-				setStartBlockSelection(undefined);
-				setEndBlockSelection(undefined);
-				setSelectionState(undefined);
-			}
-		}
-	};
+			isDraggingRef.current = false;
+			handleMouseUp();
+		},
+		[isScheduling, handleMouseUp],
+	);
 
 	const isTopOfHour = timeBlock % 60 === 0;
 	const isHalfHour = timeBlock % 60 === 30;
@@ -700,22 +573,13 @@ export function GroupAvailability({
 									blockIndex,
 								})
 							}
-							onMouseDown={() =>
-								handleMouseDown({
-									zotDateIndex,
-									blockIndex,
-								})
+							onPointerDown={
+								isScheduling
+									? (e) => handlePointerDown(e, zotDateIndex, blockIndex)
+									: undefined
 							}
-							onMouseMove={() =>
-								handleMouseMove({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onMouseUp={handleMouseUp}
-							onTouchStart={(e) => handleTouchStart(e)}
-							onTouchMove={(e) => handleTouchMove(e)}
-							onTouchEnd={(e) => handleTouchEnd(e)}
+							onPointerMove={isScheduling ? handlePointerMove : undefined}
+							onPointerUp={isScheduling ? handlePointerUp : undefined}
 							blockColor={blockColor}
 							tableCellStyles={tableCellStyles}
 							hasSpacerBefore={spacers[pageDateIndex]}
