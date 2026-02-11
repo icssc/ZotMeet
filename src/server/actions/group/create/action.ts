@@ -34,7 +34,7 @@ export async function createGroup(
 		};
 	}
 
-	const { name, description } = parsed.data;
+	const { name, description, memberIds } = parsed.data;
 
 	try {
 		const result = await db.transaction(async (tx) => {
@@ -57,6 +57,19 @@ export async function createGroup(
 				groupId: newGroup.id,
 				role: GroupRole.ADMIN,
 			});
+
+			if (memberIds && memberIds.length > 0) {
+				const uniqueIds = memberIds.filter((id) => id !== user.id);
+				if (uniqueIds.length > 0) {
+					await tx.insert(usersInGroup).values(
+						uniqueIds.map((memberId) => ({
+							userId: memberId,
+							groupId: newGroup.id,
+							role: GroupRole.MEMBER,
+						})),
+					);
+				}
+			}
 
 			return newGroup;
 		});

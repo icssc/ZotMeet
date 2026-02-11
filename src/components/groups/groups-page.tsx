@@ -2,6 +2,7 @@
 
 import { Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
+import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { GroupCard } from "@/components/groups/group-card";
 import { cn } from "@/lib/utils";
 import type { GroupWithDetails } from "@/server/data/groups/queries";
@@ -15,6 +16,7 @@ interface GroupsPageProps {
 export function GroupsPage({ groups }: GroupsPageProps) {
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
+	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
 	const filteredGroups = useMemo(() => {
 		let result = groups;
@@ -53,6 +55,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 				<div className="flex items-center gap-4">
 					<button
 						type="button"
+						onClick={() => setCreateDialogOpen(true)}
 						className="flex items-center gap-5 rounded-[10px] bg-[#f7f7f7] px-3 py-1.5"
 					>
 						<Plus className="size-5" />
@@ -109,7 +112,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 
 			<div className="mt-8">
 				{filteredGroups.length > 0 ? (
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
 						{filteredGroups.map((group) => (
 							<GroupCard
 								key={group.id}
@@ -130,6 +133,11 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					</div>
 				)}
 			</div>
+
+			<CreateGroupDialog
+				open={createDialogOpen}
+				onOpenChange={setCreateDialogOpen}
+			/>
 		</div>
 	);
 }

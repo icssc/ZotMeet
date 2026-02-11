@@ -25,8 +25,8 @@ export function GroupCard({
 	const overflow = totalMembers - memberEmails.length;
 
 	return (
-		<div className="flex flex-col items-center gap-4 rounded-[10px] bg-[#f9f9f9] px-[30px] py-[26px]">
-			<div className="flex flex-col items-center gap-[11px]">
+		<div className="flex w-full max-w-[650px] flex-col items-center gap-4 overflow-hidden rounded-[10px] border border-gray-200 bg-gray-100 px-[30px] py-[26px]">
+			<div className="flex w-full flex-col items-center gap-[11px] overflow-hidden">
 				<div className="size-[100px] rounded-full bg-gray-300" />
 
 				<p className="text-center font-medium text-[#0a0a0a] text-base">
@@ -50,7 +50,7 @@ export function GroupCard({
 					)}
 				</div>
 
-				<p className="text-center text-[#717182] text-base">
+				<p className="w-full truncate text-center text-[#717182] text-base">
 					{description || "No description"}
 				</p>
 			</div>
@@ -60,9 +60,9 @@ export function GroupCard({
 					type="button"
 					className={cn(
 						"w-full rounded px-[22px] py-2",
-						"bg-blue-600 font-medium text-[15px] text-white uppercase tracking-[0.46px]",
+						"bg-black font-medium text-[15px] text-white uppercase tracking-[0.46px]",
 						"shadow-[0px_1px_5px_0px_rgba(0,0,0,0.12),0px_2px_2px_0px_rgba(0,0,0,0.14),0px_3px_1px_-2px_rgba(0,0,0,0.2)]",
-						"transition-colors hover:bg-blue-700",
+						"transition-colors hover:bg-gray-800",
 					)}
 				>
 					View Group
