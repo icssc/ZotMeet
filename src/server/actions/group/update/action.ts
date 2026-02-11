@@ -5,7 +5,6 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
 import { db } from "@/db";
-import type { SelectGroup } from "@/db/schema";
 import { groups } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import {
