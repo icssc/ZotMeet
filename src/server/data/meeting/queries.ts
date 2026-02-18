@@ -5,8 +5,8 @@ import { db } from "@/db";
 import {
 	availabilities,
 	meetings,
-	members,
 	type SelectMeeting,
+	scheduledMeetings,
 } from "@/db/schema";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 
@@ -15,7 +15,6 @@ export async function getExistingMeeting(
 ): Promise<SelectMeeting> {
 	const meeting = await db.query.meetings.findFirst({
 		where: and(eq(meetings.id, meetingId), eq(meetings.archived, false)),
-		orderBy: meetings.dates,
 	});
 
 	if (!meeting) {
@@ -57,24 +56,18 @@ export const getAllMemberAvailability = async ({
 }: {
 	meetingId: string;
 }): Promise<MemberMeetingAvailability[]> => {
-	const availability = await db
-		.select({
-			memberId: availabilities.memberId,
-			meetingAvailabilities:
-				sql`${availabilities.meetingAvailabilities}::jsonb`.as(
-					"meetingAvailabilities",
-				),
-			displayName: members.displayName,
-		})
-		.from(availabilities)
-		.innerJoin(members, eq(availabilities.memberId, members.id))
-		.where(and(eq(availabilities.meetingId, meetingId)));
+	const availabilityData = await db.query.availabilities.findMany({
+		where: eq(availabilities.meetingId, meetingId),
+		with: {
+			member: true,
+		},
+	});
 
-	return availability as {
-		memberId: string;
-		meetingAvailabilities: string[];
-		displayName: string;
-	}[];
+	return availabilityData.map((a) => ({
+		memberId: a.memberId,
+		meetingAvailabilities: a.meetingAvailabilities,
+		displayName: a.member.displayName,
+	}));
 };
 
 export async function getMeetings(memberId: string) {
@@ -112,4 +105,20 @@ export async function getMeetings(memberId: string) {
 		);
 
 	return userMeetings;
+}
+
+/**
+ * Fetch scheduled blocks for a meeting from scheduled_meetings table
+ */
+export async function getScheduledTimeBlocks(meetingId: string) {
+	const rows = await db
+		.select()
+		.from(scheduledMeetings)
+		.where(eq(scheduledMeetings.meetingId, meetingId));
+
+	if (!rows) {
+		throw new Error("Scheduled blocks not found");
+	}
+
+	return rows; // array of scheduled blocks
 }

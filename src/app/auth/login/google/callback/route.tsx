@@ -1,9 +1,9 @@
 import type { OAuth2Tokens } from "arctic";
 import { decodeIdToken } from "arctic";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "@/db";
-import { oauthAccounts, users } from "@/db/schema";
+import { oauthAccounts } from "@/db/schema";
 import { setSessionTokenCookie } from "@/lib/auth/cookies";
 import { oauth } from "@/lib/auth/oauth";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
@@ -93,17 +93,18 @@ export async function GET(request: Request): Promise<Response> {
 	const email = claims.email;
 
 	const existingUser = await db.query.users.findFirst({
-		where: eq(users.email, email),
+		where: (users) => eq(users.email, email),
 	});
 
 	let memberId: string;
 
 	if (existingUser) {
 		const existingOAuthAccount = await db.query.oauthAccounts.findFirst({
-			where: and(
-				eq(oauthAccounts.userId, existingUser.id),
-				eq(oauthAccounts.providerId, "oidc"),
-			),
+			where: (oauthAccounts, { eq, and }) =>
+				and(
+					eq(oauthAccounts.userId, existingUser.id),
+					eq(oauthAccounts.providerId, "oidc"),
+				),
 		});
 
 		if (!existingOAuthAccount) {
@@ -129,10 +130,7 @@ export async function GET(request: Request): Promise<Response> {
 		cookieStore.delete("session");
 		cookieStore.delete({ name: "session", path: "/" });
 
-		await setSessionTokenCookie(
-			sessionToken + "| IN CALLBACK",
-			session.expiresAt,
-		);
+		await setSessionTokenCookie(sessionToken, session.expiresAt);
 
 		cookieStore.delete("oauth_state");
 		cookieStore.delete("oauth_code_verifier");
@@ -156,8 +154,8 @@ export async function GET(request: Request): Promise<Response> {
 			oauthAccessTokenExpiresAt: googleTokenExpiry,
 		});
 
-		cookieStore.delete("session");
-		cookieStore.delete({ name: "session", path: "/" });
+		// cookieStore.delete("session");
+		// cookieStore.delete({ name: "session", path: "/" });
 		await setSessionTokenCookie(sessionToken, session.expiresAt);
 
 		memberId = user.memberId;

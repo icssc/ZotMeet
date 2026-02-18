@@ -1,8 +1,5 @@
-import {
-	type InferInsertModel,
-	type InferSelectModel,
-	relations,
-} from "drizzle-orm";
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { relations } from "drizzle-orm";
 import {
 	boolean,
 	index,
@@ -25,6 +22,22 @@ export const attendanceEnum = pgEnum("attendance", [
 	"declined",
 ]);
 
+export enum GroupRole {
+	MEMBER = "member",
+	ADMIN = "admin",
+}
+
+export function enumToPgEnum<T extends Record<string, string>>(
+	myEnum: T,
+): [T[keyof T], ...T[keyof T][]] {
+	return Object.values(myEnum).map((value: string) => value) as [
+		T[keyof T],
+		...T[keyof T][],
+	];
+}
+
+export const groupRoleEnum = pgEnum("group_role", enumToPgEnum(GroupRole));
+
 // Members encompasses anyone who uses ZotMeet, regardless of guest or user status.
 export const members = pgTable(
 	"members",
@@ -36,14 +49,6 @@ export const members = pgTable(
 	//     unique: unique().on(table.id),
 	// })
 );
-
-export const membersRelations = relations(members, ({ one, many }) => ({
-	availabilities: many(availabilities),
-	users: one(users, {
-		fields: [members.id],
-		references: [users.id],
-	}),
-}));
 
 export type InsertMember = InferInsertModel<typeof members>;
 export type SelectMember = InferSelectModel<typeof members>;
@@ -57,19 +62,8 @@ export const users = pgTable("users", {
 		})
 		.notNull(),
 	email: text("email").unique().notNull(),
-	passwordHash: text("password_hash"),
 	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 });
-
-export const usersRelations = relations(users, ({ one, many }) => ({
-	oauthAccountsTable: many(oauthAccounts),
-	usersInGroups: many(usersInGroup),
-	sessions: many(sessions),
-	members: one(members, {
-		fields: [users.memberId],
-		references: [members.id],
-	}),
-}));
 
 export type SelectUser = InferSelectModel<typeof users>;
 export type InsertUser = InferInsertModel<typeof users>;
@@ -89,13 +83,6 @@ export const oauthAccounts = pgTable(
 		pk: primaryKey({ columns: [table.providerId, table.providerUserId] }),
 	}),
 );
-
-export const oauthAccountRelations = relations(oauthAccounts, ({ one }) => ({
-	users: one(users, {
-		fields: [oauthAccounts.userId],
-		references: [users.id],
-	}),
-}));
 
 export const sessions = pgTable(
 	"sessions",
@@ -124,15 +111,20 @@ export const sessions = pgTable(
 	},
 );
 
-export const sessionsRelations = relations(sessions, ({ one }) => ({
-	users: one(users, {
-		fields: [sessions.userId],
-		references: [users.id],
-	}),
-}));
-
 export type SelectSession = InferSelectModel<typeof sessions>;
 export type InsertSession = InferInsertModel<typeof sessions>;
+
+export const groups = pgTable("groups", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	name: text("name").notNull(),
+	description: text("description"),
+	createdAt: timestamp("created_at"),
+	createdBy: text("user_id").references(() => users.id),
+	archived: boolean("archived").default(false).notNull(),
+});
+
+export type InsertGroup = InferInsertModel<typeof groups>;
+export type SelectGroup = InferSelectModel<typeof groups>;
 
 export const meetingTypeEnum = pgEnum("meeting_type", ["dates", "days"]);
 
@@ -163,33 +155,28 @@ export const meetings = pgTable("meetings", {
 	archived: boolean("archived").default(false).notNull(),
 });
 
-export const meetingsRelations = relations(meetings, ({ one, many }) => ({
-	groups: one(groups, {
-		fields: [meetings.group_id],
-		references: [groups.id],
-	}),
-	availabilities: many(availabilities),
-}));
+export const scheduledMeetings = pgTable("scheduled_meetings", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	meetingId: uuid("meeting_id")
+		.notNull()
+		.references(() => meetings.id, { onDelete: "cascade" }),
+	scheduledDate: timestamp("scheduled_date", {
+		withTimezone: false,
+		mode: "date",
+	}).notNull(),
+	scheduledFromTime: time("scheduled_from_time", {
+		withTimezone: false,
+	}).notNull(),
+	scheduledToTime: time("scheduled_to_time", {
+		withTimezone: false,
+	}).notNull(),
+});
+
+export type InsertScheduledMeeting = InferInsertModel<typeof scheduledMeetings>;
+export type SelectScheduledMeeting = InferSelectModel<typeof scheduledMeetings>;
 
 export type InsertMeeting = InferInsertModel<typeof meetings>;
 export type SelectMeeting = InferSelectModel<typeof meetings>;
-
-export const groups = pgTable("groups", {
-	id: uuid("id").defaultRandom().primaryKey(),
-	name: text("name").notNull(),
-	description: text("description"),
-	createdAt: timestamp("created_at"),
-	createdBy: text("user_id").references(() => users.id),
-	archived: boolean("archived").default(false).notNull(),
-});
-
-export const groupsRelations = relations(groups, ({ many }) => ({
-	usersInGroups: many(usersInGroup),
-	meetings: many(meetings),
-}));
-
-export type InsertGroup = InferInsertModel<typeof groups>;
-export type SelectGroup = InferSelectModel<typeof groups>;
 
 export const availabilities = pgTable(
 	"availabilities",
@@ -215,17 +202,6 @@ export const availabilities = pgTable(
 	}),
 );
 
-export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
-	members: one(members, {
-		fields: [availabilities.memberId],
-		references: [members.id],
-	}),
-	meetings: one(meetings, {
-		fields: [availabilities.meetingId],
-		references: [meetings.id],
-	}),
-}));
-
 export type SelectAvailability = InferSelectModel<typeof availabilities>;
 export type InsertAvailability = InferInsertModel<typeof availabilities>;
 
@@ -238,26 +214,79 @@ export const usersInGroup = pgTable(
 		groupId: uuid("group_id")
 			.notNull()
 			.references(() => groups.id, { onDelete: "cascade" }),
+		role: groupRoleEnum("role").default(GroupRole.MEMBER).notNull(),
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.groupId, table.userId] }),
 	}),
 );
 
-export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
-	groups: one(groups, {
-		fields: [usersInGroup.groupId],
-		references: [groups.id],
+export const usersRelations = relations(users, ({ one, many }) => ({
+	groups: many(groups, {
+		relationName: "usersToGroups",
 	}),
-	users: one(users, {
-		fields: [usersInGroup.userId],
-		references: [users.id],
+	member: one(members, {
+		fields: [users.memberId],
+		references: [members.id],
 	}),
 }));
 
-export const oauthRelations = relations(oauthAccounts, ({ one }) => ({
-	users: one(users, {
-		fields: [oauthAccounts.userId],
-		references: [users.id],
+export const groupsRelations = relations(groups, ({ many }) => ({
+	members: many(users, {
+		relationName: "usersToGroups",
+	}),
+	meetings: many(meetings),
+}));
+
+export const membersRelations = relations(members, ({ many }) => ({
+	hostedMeetings: many(meetings, {
+		relationName: "memberHostedMeetings",
+	}),
+	availabilities: many(availabilities),
+}));
+
+export const meetingsRelations = relations(meetings, ({ one, many }) => ({
+	group: one(groups, {
+		fields: [meetings.group_id],
+		references: [groups.id],
+	}),
+	host: one(members, {
+		fields: [meetings.hostId],
+		references: [members.id],
+		relationName: "memberHostedMeetings",
+	}),
+	availabilities: many(availabilities),
+	scheduledMeetings: many(scheduledMeetings),
+}));
+
+export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
+	member: one(members, {
+		fields: [availabilities.memberId],
+		references: [members.id],
+	}),
+	meeting: one(meetings, {
+		fields: [availabilities.meetingId],
+		references: [meetings.id],
 	}),
 }));
+
+export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
+	user: one(users, {
+		fields: [usersInGroup.userId],
+		references: [users.id],
+	}),
+	group: one(groups, {
+		fields: [usersInGroup.groupId],
+		references: [groups.id],
+	}),
+}));
+
+export const scheduledMeetingsRelations = relations(
+	scheduledMeetings,
+	({ one }) => ({
+		meeting: one(meetings, {
+			fields: [scheduledMeetings.meetingId],
+			references: [meetings.id],
+		}),
+	}),
+);

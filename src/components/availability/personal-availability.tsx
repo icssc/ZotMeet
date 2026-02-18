@@ -23,6 +23,7 @@ interface PersonalAvailabilityProps {
 	googleCalendarEvents: GoogleCalendarEvent[];
 	user: UserProfile | null;
 	onAvailabilityChange: (updatedDates: ZotDate[]) => void;
+	timezone: string;
 	meetingDates: string[];
 	showGoogleCalendar: boolean;
 }
