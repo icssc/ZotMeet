@@ -5,7 +5,6 @@ import { db } from "@/db";
 import {
 	availabilities,
 	meetings,
-	members,
 	type SelectMeeting,
 	scheduledMeetings,
 } from "@/db/schema";

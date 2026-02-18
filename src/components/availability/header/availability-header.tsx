@@ -5,6 +5,7 @@ import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
+import { FormControlLabel, Switch } from "@mui/material";
 import {
 	CircleCheckIcon,
 	CircleXIcon,
@@ -14,11 +15,9 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
-import { AuthDialog } from "@/components/auth/auth-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
@@ -62,6 +61,13 @@ export function AvailabilityHeader({
 		})),
 	);
 
+	const { overlayGoogleCalendar, setOverlayGoogleCalendar } =
+		useAvailabilityViewStore(
+			useShallow((state) => ({
+				overlayGoogleCalendar: state.overlayGoogleCalendar,
+				setOverlayGoogleCalendar: state.setOverlayGoogleCalendar,
+			})),
+		);
 	const { enabled: showBestTimes, setEnabled: setShowBestTimes } =
 		useBestTimesToggleStore(
 			useShallow((state) => ({
@@ -181,6 +187,14 @@ export function AvailabilityHeader({
 			console.error("Error saving availability:", response.body.error);
 		}
 	};
+	const handleToggleCalendar = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setOverlayGoogleCalendar(event.target.checked);
+	};
+	const handleToggleBestTimes = (
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => {
+		setShowBestTimes(event.target.checked);
+	};
 
 	return (
 		<>
@@ -188,27 +202,34 @@ export function AvailabilityHeader({
 				<h1 className="line-clamp-1 h-8 truncate font-medium font-montserrat text-xl md:h-fit md:text-3xl">
 					{meetingData.title}
 				</h1>
+				<div className="flex flex-col items-end gap-y-2">
+					<div className="flex flex-row items-center gap-x-2">
+						{isOwner && (
+							<>
+								<Button
+									onClick={() => {
+										setIsEditModalOpen(true);
+										handleCancel();
+									}}
+									variant="outline"
+									className={cn(
+										"h-8 min-h-fit flex-center border border-yellow-500 bg-white px-2 text-yellow-500 uppercase md:w-28 md:p-0",
+										"hover:border-yellow-500 hover:bg-yellow-500 hover:text-white",
+									)}
+								>
+									<EditIcon className="text-2xl" />
+								</Button>
 
-				<div className="flex flex-row items-center gap-x-2">
-					{isOwner && (
-						<>
-							<Button
-								onClick={() => setIsEditModalOpen(true)}
-								variant="outline"
-								className="h-full min-h-fit min-w-fit flex-center rounded font-dm-sans"
-							>
-								<EditIcon className="text-2xl" />
-							</Button>
-
-							<Button
-								onClick={() => setIsDeleteModalOpen(true)}
-								variant="outline"
-								className="h-full min-h-fit min-w-fit flex-center rounded font-dm-sans"
-							>
-								<DeleteIcon className="text-2xl" />
-							</Button>
-						</>
-					)}
+								<Button
+									onClick={() => setIsDeleteModalOpen(true)}
+									variant="outline"
+									className="h-full min-h-fit min-w-fit flex-center rounded font-dm-sans"
+								>
+									<DeleteIcon className="text-2xl" />
+								</Button>
+							</>
+						)}
+					</div>
 					<div className="flex flex-row justify-end space-x-2">
 						{availabilityView === "personal" ? (
 							<div className="flex space-x-2 md:space-x-4">
@@ -235,6 +256,17 @@ export function AvailabilityHeader({
 									</span>
 									<CircleCheckIcon className="text-green-500 group-hover:text-white" />
 								</Button>
+								<FormControlLabel
+									className="ml-2"
+									control={
+										<Switch
+											checked={overlayGoogleCalendar}
+											onChange={handleToggleCalendar}
+											size="small"
+										/>
+									}
+									label="Google Calendar"
+								/>
 							</div>
 						) : availabilityView === "schedule" ? (
 							<div className="flex space-x-2 md:space-x-4">
@@ -302,7 +334,7 @@ export function AvailabilityHeader({
 						<div className="flex items-center space-x-2">
 							<Switch
 								checked={showBestTimes}
-								onCheckedChange={setShowBestTimes}
+								onChange={handleToggleBestTimes}
 							/>
 							<span className="flex font-dm-sans">Best Times</span>
 						</div>

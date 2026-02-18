@@ -2,6 +2,9 @@ import { cookies } from "next/headers";
 
 export async function setSessionTokenCookie(token: string, expiresAt: Date) {
 	const cookieStore = await cookies();
+
+	cookieStore.delete("session");
+
 	cookieStore.set("session", token, {
 		httpOnly: true,
 		sameSite: "lax",
@@ -14,6 +17,10 @@ export async function setSessionTokenCookie(token: string, expiresAt: Date) {
 
 export async function deleteSessionTokenCookie() {
 	const cookieStore = await cookies();
+
+	cookieStore.delete({ name: "session", path: "/" });
+	cookieStore.delete({ name: "session", path: "/", maxAge: 0 });
+
 	cookieStore.set("session", "", {
 		httpOnly: true,
 		sameSite: "lax",
