@@ -1,3 +1,4 @@
+import { useCallback, useRef } from "react";
 import { useShallow } from "zustand/shallow";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
 import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
@@ -31,6 +32,8 @@ export function AvailabilityBlockCell({
 	eventSegments,
 	hasSpacerBefore = false,
 }: AvailabilityBlockCellProps) {
+	const isDraggingRef = useRef(false);
+
 	const {
 		startBlockSelection,
 		selectionState,
@@ -45,90 +48,77 @@ export function AvailabilityBlockCell({
 		})),
 	);
 
-	const availabilitySelection = {
-		zotDateIndex: zotDateIndex,
-		blockIndex: blockIndex,
-	};
+	// Pointer event handlers
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent) => {
+			const target = e.currentTarget as HTMLElement;
+			target.setPointerCapture(e.pointerId);
 
-	const handleTouchMove = (e: React.TouchEvent) => {
-		const touchingElement = document.elementFromPoint(
-			e.touches[0].clientX,
-			e.touches[0].clientY,
-		);
+			isDraggingRef.current = true;
+			const selection = { zotDateIndex, blockIndex };
+			setStartBlockSelection(selection);
+			setEndBlockSelection(selection);
+		},
+		[zotDateIndex, blockIndex, setStartBlockSelection, setEndBlockSelection],
+	);
 
-		if (!touchingElement) return;
+	const handlePointerMove = useCallback(
+		(e: React.PointerEvent) => {
+			if (!isDraggingRef.current) return;
 
-		const touchingDateIndex = parseInt(
-			touchingElement.getAttribute("data-date-index") || "",
-			10,
-		);
-		const touchingBlockIndex = parseInt(
-			touchingElement.getAttribute("data-block-index") || "",
-			10,
-		);
+			const element = document.elementFromPoint(e.clientX, e.clientY);
+			if (!element) return;
 
-		if (
-			!Number.isNaN(touchingDateIndex) &&
-			!Number.isNaN(touchingBlockIndex) &&
-			startBlockSelection
-		) {
-			setEndBlockSelection({
-				zotDateIndex: touchingDateIndex,
-				blockIndex: touchingBlockIndex,
-			});
-		}
-	};
+			const touchingDateIndex = parseInt(
+				element.getAttribute("data-date-index") || "",
+				10,
+			);
+			const touchingBlockIndex = parseInt(
+				element.getAttribute("data-block-index") || "",
+				10,
+			);
 
-	const handleTouchEnd = (e: React.TouchEvent) => {
-		if (e.cancelable) {
-			e.preventDefault();
-		}
+			if (
+				!Number.isNaN(touchingDateIndex) &&
+				!Number.isNaN(touchingBlockIndex)
+			) {
+				setEndBlockSelection({
+					zotDateIndex: touchingDateIndex,
+					blockIndex: touchingBlockIndex,
+				});
+			}
+		},
+		[setEndBlockSelection],
+	);
 
-		if (startBlockSelection) {
-			setEndBlockSelection(availabilitySelection);
-			setAvailabilities(startBlockSelection);
-		}
-	};
+	const handlePointerUp = useCallback(
+		(e: React.PointerEvent) => {
+			if (!isDraggingRef.current) return;
 
-	const handleMouseUp = () => {
-		if (startBlockSelection) {
-			setEndBlockSelection(availabilitySelection);
-			setAvailabilities(startBlockSelection);
-		}
-	};
+			const target = e.currentTarget as HTMLElement;
+			if (target.hasPointerCapture(e.pointerId)) {
+				target.releasePointerCapture(e.pointerId);
+			}
 
-	const handleMouseDown = () => {
-		setStartBlockSelection(availabilitySelection);
-		setEndBlockSelection(availabilitySelection);
-	};
-
-	const handleMouseMove = () => {
-		if (startBlockSelection) {
-			setEndBlockSelection(availabilitySelection);
-		}
-	};
-
-	const handleTouchStart = (e: React.TouchEvent) => {
-		if (e.cancelable) {
-			e.preventDefault();
-		}
-		setStartBlockSelection(availabilitySelection);
-		setEndBlockSelection(availabilitySelection);
-	};
+			isDraggingRef.current = false;
+			if (startBlockSelection) {
+				setAvailabilities(startBlockSelection);
+			}
+		},
+		[startBlockSelection, setAvailabilities],
+	);
 
 	return (
-		<td onMouseUp={handleMouseUp} className="relative px-0 py-0">
+		<td className="relative px-0 py-0">
 			<button
 				type="button"
-				onTouchStart={handleTouchStart}
-				onTouchMove={handleTouchMove}
-				onTouchEnd={handleTouchEnd}
-				onMouseDown={handleMouseDown}
-				onMouseMove={handleMouseMove}
+				onPointerDown={handlePointerDown}
+				onPointerMove={handlePointerMove}
+				onPointerUp={handlePointerUp}
 				data-date-index={zotDateIndex}
 				data-block-index={blockIndex}
 				className={cn(
-					"block h-full w-full cursor-row-resize border-gray-medium border-r-[1px] [touch-action:pinch-zoom]",
+					"block h-full w-full cursor-row-resize border-gray-medium border-r-[1px] [touch-action:none]",
 					isTopOfHour && "border-t-[1px] border-t-gray-medium",
 					isHalfHour && "border-t-[1px] border-t-gray-base",
 					isLastRow && "border-b-[1px]",
