@@ -1,10 +1,12 @@
 "use client";
 
+import { addMeetingToGoogleCalendar } from "@actions/availability/google/calendar/action";
 import { saveAvailability } from "@actions/availability/save/action";
 import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
+import GoogleIcon from "@mui/icons-material/Google";
 import {
 	CircleCheckIcon,
 	CircleXIcon,
@@ -13,6 +15,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useShallow } from "zustand/shallow";
 import { AuthDialog } from "@/components/auth/auth-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
@@ -74,6 +77,45 @@ export function AvailabilityHeader({
 		onCancel();
 		setChangeableTimezone(true);
 		setAvailabilityView("group");
+	};
+
+	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
+	// const [guestName, setGuestName] = useState("");
+
+	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
+
+	const isOwner = !!user && meetingData.hostId === user.memberId;
+
+	const handleSave = async () => {
+		if (!user) {
+			// setIsGuestDialogOpen(true);
+
+			return;
+		}
+		setChangeableTimezone(true);
+		const availability = {
+			meetingId: meetingData.id,
+			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
+			displayName: user.displayName,
+		};
+
+		const response = await saveAvailability(availability);
+
+		if (response.status === 200) {
+			setHasAvailability(true);
+			setAvailabilityView("group");
+			onSave();
+
+			// Clear guest member name
+			if (!user) {
+				// setGuestName("");
+			}
+		} else {
+			console.error("Error saving availability:", response.body.error);
+		}
 	};
 
 	const { commitPendingTimes, clearPendingTimes } = useScheduleSelectionStore(
@@ -138,47 +180,10 @@ export function AvailabilityHeader({
 
 			// Move pending to scheduled after successful save
 			commitPendingTimes();
+			setIsScheduled(true);
 			setAvailabilityView("group");
 		} catch (error) {
 			console.error("Failed to save meeting blocks", error);
-		}
-	};
-
-	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
-	// const [guestName, setGuestName] = useState("");
-
-	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-	const isOwner = !!user && meetingData.hostId === user.memberId;
-
-	const handleSave = async () => {
-		if (!user) {
-			// setIsGuestDialogOpen(true);
-
-			return;
-		}
-		setChangeableTimezone(true);
-		const availability = {
-			meetingId: meetingData.id,
-			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-
-		const response = await saveAvailability(availability);
-
-		if (response.status === 200) {
-			setHasAvailability(true);
-			setAvailabilityView("group");
-			onSave();
-
-			// Clear guest member name
-			if (!user) {
-				// setGuestName("");
-			}
-		} else {
-			console.error("Error saving availability:", response.body.error);
 		}
 	};
 
@@ -297,6 +302,33 @@ export function AvailabilityHeader({
 										{hasAvailability ? "Edit Availability" : "Add Availability"}
 									</span>
 								</Button>
+								{isScheduled && (
+									<Button
+										className={cn(
+											"h-8 min-h-fit min-w-fit flex-center px-2 md:w-40 md:p-0",
+										)}
+										onClick={async () => {
+											const { success, error } =
+												await addMeetingToGoogleCalendar({
+													meetingId: meetingData.id,
+													meetingTitle: meetingData.title,
+													meetingDescription: meetingData.description,
+													meetingLocation: meetingData.location,
+													timezone: meetingData.timezone,
+												});
+											if (success) {
+												toast.success(
+													"Meeting successfully added to Google Calendar!",
+												);
+											} else {
+												toast.error(error);
+											}
+										}}
+									>
+										<GoogleIcon />
+										<span className="flex font-dm-sans">Add to Calendar</span>
+									</Button>
+								)}
 							</div>
 						)}
 						<div className="flex items-center space-x-2">

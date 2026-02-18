@@ -19,7 +19,7 @@ export async function GET(): Promise<Response> {
 				"openid",
 				"profile",
 				"email",
-				"https://www.googleapis.com/auth/calendar.readonly",
+				"https://www.googleapis.com/auth/calendar",
 			],
 		),
 	);
