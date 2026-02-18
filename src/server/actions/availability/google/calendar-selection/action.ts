@@ -112,31 +112,43 @@ export async function getCalendarsForDialog(): Promise<
 		}));
 	}
 
-	const auth = new googleClient.auth.OAuth2();
-	auth.setCredentials({ access_token: accessToken });
-	const calendar = googleClient.calendar({ version: "v3", auth });
-	const calendarListRes = await calendar.calendarList.list();
-	const calendarItems = calendarListRes.data.items ?? [];
+	try {
+		const auth = new googleClient.auth.OAuth2();
+		auth.setCredentials({ access_token: accessToken });
+		const calendar = googleClient.calendar({ version: "v3", auth });
+		const calendarListRes = await calendar.calendarList.list();
+		const calendarItems = calendarListRes.data.items ?? [];
 
-	await syncUserCalendars(user.id, calendarItems);
+		await syncUserCalendars(user.id, calendarItems);
 
-	const dbCalendars = await getUserCalendars(user.id);
+		const dbCalendars = await getUserCalendars(user.id);
 
-	const googleMap = new Map<string, calendar_v3.Schema$CalendarListEntry>();
-	for (const c of calendarItems) {
-		if (c.id) googleMap.set(c.id, c);
+		const googleMap = new Map<string, calendar_v3.Schema$CalendarListEntry>();
+		for (const c of calendarItems) {
+			if (c.id) googleMap.set(c.id, c);
+		}
+
+		return dbCalendars.map((dbCal) => {
+			const gcal = googleMap.get(dbCal.calendarId);
+			return {
+				calendarId: dbCal.calendarId,
+				calendarName: gcal?.summary ?? dbCal.calendarId,
+				calendarColor: gcal?.backgroundColor ?? "#039BE5",
+				enabled: dbCal.enabled,
+				archived: dbCal.archived,
+			};
+		});
+	} catch (e) {
+		console.error("Failed to fetch Google Calendar list", e);
+		const dbCalendars = await getUserCalendars(user.id);
+		return dbCalendars.map((c) => ({
+			calendarId: c.calendarId,
+			calendarName: c.calendarId,
+			calendarColor: "#039BE5",
+			enabled: c.enabled,
+			archived: c.archived,
+		}));
 	}
-
-	return dbCalendars.map((dbCal) => {
-		const gcal = googleMap.get(dbCal.calendarId);
-		return {
-			calendarId: dbCal.calendarId,
-			calendarName: gcal?.summary ?? dbCal.calendarId,
-			calendarColor: gcal?.backgroundColor ?? "#039BE5",
-			enabled: dbCal.enabled,
-			archived: dbCal.archived,
-		};
-	});
 }
 
 export async function batchUpdateCalendarSelections(
