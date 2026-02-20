@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, or, sql } from "drizzle-orm";
+import { and, eq, ilike, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 
@@ -31,4 +31,21 @@ export async function getUserById(id: string) {
 	});
 
 	return user ?? null;
+}
+
+export async function searchUsersByEmail(
+	query: string,
+	excludeUserId: string,
+	limit = 5,
+) {
+	if (!query || query.length < 2) return [];
+
+	return await db
+		.select({
+			id: users.id,
+			email: users.email,
+		})
+		.from(users)
+		.where(and(ilike(users.email, `%${query}%`), ne(users.id, excludeUserId)))
+		.limit(limit);
 }
