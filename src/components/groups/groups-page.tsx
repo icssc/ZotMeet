@@ -127,9 +127,6 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 				) : (
 					<div className="flex flex-col items-center justify-center py-20 text-gray-500">
 						<p className="font-medium text-lg">No groups found</p>
-						<p className="mt-1 text-sm">
-							Create a group or join an existing one to get started.
-						</p>
 					</div>
 				)}
 			</div>

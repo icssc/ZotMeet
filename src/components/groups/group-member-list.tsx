@@ -255,7 +255,6 @@ export function GroupMemberList({
 }: GroupMemberListProps) {
 	return (
 		<div>
-			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-3">
 					<h1 className="font-bold font-montserrat text-5xl">{group.name}</h1>
@@ -286,7 +285,6 @@ export function GroupMemberList({
 				</div>
 			</div>
 
-			{/* Tabs */}
 			<Tabs defaultValue="meetings" className="mt-6">
 				<TabsList className="w-full border-gray-200 border-b">
 					<TabsTrigger
