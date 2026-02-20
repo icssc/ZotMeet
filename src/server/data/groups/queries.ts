@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, eq, inArray } from "drizzle-orm";
+import { and, count, countDistinct, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
 	availabilities,
@@ -57,6 +57,7 @@ export async function getUsersInGroup(groupId: string) {
 			userId: users.id,
 			memberId: users.memberId,
 			email: users.email,
+			role: usersInGroup.role,
 		})
 		.from(users)
 		.innerJoin(usersInGroup, eq(users.id, usersInGroup.userId))
@@ -193,4 +194,41 @@ export async function getGroupsWithDetails(
 	);
 
 	return groupsWithDetails;
+}
+
+export type MeetingWithStats = SelectMeeting & {
+	totalMembers: number;
+	respondedCount: number;
+};
+
+export async function getGroupMeetingsWithStats(
+	groupId: string,
+	totalMembers: number,
+): Promise<MeetingWithStats[]> {
+	const groupMeetings = await getMeetingsByGroupId(groupId);
+
+	if (groupMeetings.length === 0) {
+		return [];
+	}
+
+	const meetingIds = groupMeetings.map((m) => m.id);
+
+	const responseCounts = await db
+		.select({
+			meetingId: availabilities.meetingId,
+			respondedCount: countDistinct(availabilities.memberId),
+		})
+		.from(availabilities)
+		.where(inArray(availabilities.meetingId, meetingIds))
+		.groupBy(availabilities.meetingId);
+
+	const responseMap = new Map(
+		responseCounts.map((r) => [r.meetingId, r.respondedCount]),
+	);
+
+	return groupMeetings.map((meeting) => ({
+		...meeting,
+		totalMembers,
+		respondedCount: responseMap.get(meeting.id) ?? 0,
+	}));
 }
