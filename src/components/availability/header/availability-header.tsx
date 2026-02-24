@@ -1,6 +1,6 @@
 "use client";
 
-import { addMeetingToGoogleCalendar } from "@actions/availability/google/calendar/action";
+import { getGoogleCalendarPrefilledLinks } from "@actions/availability/google/calendar/action";
 import { saveAvailability } from "@actions/availability/save/action";
 import {
 	deleteScheduledTimeBlock,
@@ -308,21 +308,32 @@ export function AvailabilityHeader({
 											"h-8 min-h-fit min-w-fit flex-center px-2 md:w-40 md:p-0",
 										)}
 										onClick={async () => {
-											const { success, error } =
-												await addMeetingToGoogleCalendar({
+											const { success, links } =
+												await getGoogleCalendarPrefilledLinks({
 													meetingId: meetingData.id,
 													meetingTitle: meetingData.title,
 													meetingDescription: meetingData.description,
 													meetingLocation: meetingData.location,
 													timezone: meetingData.timezone,
 												});
-											if (success) {
-												toast.success(
-													"Meeting successfully added to Google Calendar!",
-												);
-											} else {
-												toast.error(error);
+
+											if (!success || !links?.length) {
+												toast.error("Failed to generate Google Calendar link.");
+												return;
 											}
+
+											// Open each prefilled link in a new tab
+											console.log("Generated Google Calendar links:", links);
+											links.forEach((slot) => {
+												console.log("Opening Google Calendar link:", slot);
+												window.open(slot, "_blank", "noopener,noreferrer");
+											});
+
+											toast.success(
+												`Google Calendar link${links.length > 1 ? "s" : ""} opened! Confirm the event${
+													links.length > 1 ? "s" : ""
+												} in your calendar.`,
+											);
 										}}
 									>
 										<GoogleIcon />

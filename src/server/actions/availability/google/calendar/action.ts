@@ -76,19 +76,16 @@ export async function fetchGoogleCalendarEvents(
 }
 
 // helper for adding to google calendar
-function combineDateAndTime(date: Date, time: string, timeZone: string) {
+function combineDateAndTime(date: Date, time: string) {
 	const [hours, minutes, seconds] = time.split(":").map(Number);
 
 	const combined = new Date(date);
 	combined.setHours(hours, minutes, seconds || 0, 0);
 
-	return {
-		dateTime: combined.toISOString(),
-		timeZone,
-	};
+	return combined.toISOString();
 }
 
-export async function addMeetingToGoogleCalendar({
+export async function getGoogleCalendarPrefilledLinks({
 	meetingId,
 	meetingTitle,
 	meetingDescription,
@@ -101,54 +98,43 @@ export async function addMeetingToGoogleCalendar({
 	meetingLocation: string | null;
 	timezone: string;
 }) {
-	const { accessToken, error } = await validateGoogleAccessToken();
-
-	if (error === "No OAuth refresh token" || error === "Not authenticated") {
-		return { success: false, error: error };
-	}
-
-	if (error || !accessToken) {
-		return { success: false, error: error };
-	}
-
-	const auth = new googleClient.auth.OAuth2();
-	auth.setCredentials({ access_token: accessToken });
-
-	const calendar = googleClient.calendar({ version: "v3", auth });
 	const blocks = await getScheduledTimeBlocks(meetingId);
 
-	// fetch list of calendars for this user
-	const calendarListRes = await calendar.calendarList.list();
-	const calendarItems = calendarListRes.data.items ?? [];
-
-	const primaryCalendar =
-		calendarItems.find((cal) => cal.primary) ?? calendarItems[0];
-	if (!primaryCalendar?.id) {
-		return { success: false, error: "No Google calendar found for the user" };
-	}
-
-	const calendarId = primaryCalendar.id;
+	const links: Array<string> = [];
 
 	const blocksByDate = groupScheduledBlocksByDate(blocks);
+
 	for (const { date, blocks } of blocksByDate) {
 		const mergedIntervals = mergeContiguousTimeBlocks(blocks);
-		for (const interval of mergedIntervals) {
-			const start = combineDateAndTime(date, interval.from, timezone);
-			const end = combineDateAndTime(date, interval.to, timezone);
 
-			await calendar.events.insert({
-				calendarId,
-				requestBody: {
-					summary: meetingTitle,
-					description: meetingDescription || "Scheduled via ZotMeet",
-					location: meetingLocation || undefined,
-					start,
-					end,
-					visibility: "default", // ensures visibility in Google Calendar UI
-				},
+		for (const interval of mergedIntervals) {
+			// Format start and end date to be in the format required by gcal (remove -, :, and .000)
+			const start = combineDateAndTime(date, interval.from).replace(
+				/([-:]|\.000)/g,
+				"",
+			);
+			const end = combineDateAndTime(date, interval.to).replace(
+				/([-:]|\.000)/g,
+				"",
+			);
+
+			const params = new URLSearchParams({
+				action: "TEMPLATE",
+				text: `${meetingTitle}`,
+				dates: `${start}/${end}`,
+				details: meetingDescription ?? "Meeting scheduled via ZotMeet.",
+				location: meetingLocation ?? "",
+				ctz: timezone,
 			});
+
+			const url = `https://calendar.google.com/calendar/render?${params.toString()}`;
+
+			links.push(url);
 		}
 	}
 
-	return { success: true };
+	return {
+		success: true,
+		links,
+	};
 }
