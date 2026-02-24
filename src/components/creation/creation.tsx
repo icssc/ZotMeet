@@ -30,6 +30,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		selectedDates: parseAsArrayOf(parseAsString).withDefault([]),
 		meetingType: parseAsStringEnum(["dates", "days"]).withDefault("dates"),
 		timezone: parseAsString.withDefault("America/Los_Angeles"),
+		groupId: parseAsString.withDefault(""),
 	});
 
 	// Convert selected dates from ISO strings to ZotDate objects.
@@ -142,6 +143,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			dates,
 			description: "",
 			meetingType,
+			group_id: urlState.groupId || undefined,
 		};
 
 		const result = await createMeeting(newMeeting);

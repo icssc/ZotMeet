@@ -41,8 +41,16 @@ export async function createMeetingFromData(
 }
 
 export async function createMeeting(meetingData: InsertMeeting) {
-	const { title, description, fromTime, toTime, timezone, dates, meetingType } =
-		meetingData;
+	const {
+		title,
+		description,
+		fromTime,
+		toTime,
+		timezone,
+		dates,
+		meetingType,
+		group_id,
+	} = meetingData;
 
 	const { user } = await getCurrentSession();
 
@@ -64,6 +72,7 @@ export async function createMeeting(meetingData: InsertMeeting) {
 		hostId,
 		dates: dates,
 		meetingType: meetingType || "dates",
+		group_id: group_id ?? null,
 	};
 
 	const [newMeeting] = await db
