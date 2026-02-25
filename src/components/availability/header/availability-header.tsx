@@ -323,9 +323,7 @@ export function AvailabilityHeader({
 											}
 
 											// Open each prefilled link in a new tab
-											console.log("Generated Google Calendar links:", links);
 											links.forEach((slot) => {
-												console.log("Opening Google Calendar link:", slot);
 												window.open(slot, "_blank", "noopener,noreferrer");
 											});
 
