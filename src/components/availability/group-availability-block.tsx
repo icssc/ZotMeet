@@ -9,6 +9,7 @@ interface GroupAvailabilityBlockProps {
 	onPointerDown?: (e: React.PointerEvent) => void;
 	onPointerMove?: (e: React.PointerEvent) => void;
 	onPointerUp?: (e: React.PointerEvent) => void;
+	onPointerCancel?: (e: React.PointerEvent) => void;
 	blockColor: string;
 	hasSpacerBefore?: boolean;
 	isScheduled?: boolean;
@@ -26,6 +27,7 @@ export const GroupAvailabilityBlock = memo(
 		onPointerDown,
 		onPointerMove,
 		onPointerUp,
+		onPointerCancel,
 		blockColor,
 		hasSpacerBefore = false,
 		dateIndex,
@@ -35,7 +37,7 @@ export const GroupAvailabilityBlock = memo(
 			<button
 				type="button"
 				className={cn(
-					"h-full w-full border-gray-medium border-r-[1px] transition-opacity duration-200 [touch-action:none]",
+					"h-8 w-full border-gray-medium border-r-[1px] transition-opacity duration-200 [touch-action:none]",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
 					tableCellStyles,
 					className,
@@ -45,12 +47,15 @@ export const GroupAvailabilityBlock = memo(
 				onPointerDown={onPointerDown}
 				onPointerMove={onPointerMove}
 				onPointerUp={onPointerUp}
+				onPointerCancel={onPointerCancel}
 				data-date-index={dateIndex}
 				data-block-index={blockIndex}
 			>
 				<div
-					className={cn("pointer-events-none block h-full w-full py-2")}
+					className={cn("pointer-events-none block h-full w-full")}
 					style={{ background: blockColor }}
+					data-date-index={dateIndex}
+					data-block-index={blockIndex}
 				/>
 			</button>
 		);
