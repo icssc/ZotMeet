@@ -144,6 +144,7 @@ export type GroupWithDetails = SelectGroup & {
 	totalMembers: number;
 	isCreator: boolean;
 	needsAvailability: boolean;
+	ownerEmail: string | null;
 };
 
 export async function getGroupsWithDetails(
@@ -189,6 +190,8 @@ export async function getGroupsWithDetails(
 				totalMembers: members.length,
 				isCreator: group.createdBy === userId,
 				needsAvailability,
+				ownerEmail:
+					members.find((m) => m.userId === group.createdBy)?.email ?? null,
 			};
 		}),
 	);

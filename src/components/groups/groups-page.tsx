@@ -113,16 +113,19 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 			<div className="mt-8">
 				{filteredGroups.length > 0 ? (
 					<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-						{filteredGroups.map((group) => (
-							<GroupCard
-								key={group.id}
-								id={group.id}
-								name={group.name}
-								description={group.description}
-								memberEmails={group.memberEmails}
-								totalMembers={group.totalMembers}
-							/>
-						))}
+						{filteredGroups
+							.filter((group) => group.ownerEmail !== null)
+							.map((group) => (
+								<GroupCard
+									key={group.id}
+									id={group.id}
+									name={group.name}
+									description={group.description}
+									memberEmails={group.memberEmails}
+									totalMembers={group.totalMembers}
+									ownerEmail={group.ownerEmail as string}
+								/>
+							))}
 					</div>
 				) : (
 					<div className="flex flex-col items-center justify-center py-20 text-gray-500">

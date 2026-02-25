@@ -8,6 +8,7 @@ interface GroupCardProps {
 	description: string | null;
 	memberEmails: string[];
 	totalMembers: number;
+	ownerEmail: string;
 }
 
 function getInitials(email: string): string {
@@ -21,8 +22,14 @@ export function GroupCard({
 	description,
 	memberEmails,
 	totalMembers,
+	ownerEmail,
 }: GroupCardProps) {
-	const overflow = totalMembers - memberEmails.length;
+	const displayEmails = [
+		ownerEmail,
+		...memberEmails.filter((e) => e !== ownerEmail),
+	].slice(0, 3);
+
+	const overflow = totalMembers - displayEmails.length;
 
 	return (
 		<div className="flex w-full max-w-[650px] flex-col items-center gap-4 overflow-hidden rounded-[10px] border border-gray-200 bg-gray-100 px-[30px] py-[26px]">
@@ -34,7 +41,7 @@ export function GroupCard({
 				</p>
 
 				<div className="flex items-center -space-x-2">
-					{memberEmails.map((email) => (
+					{displayEmails.map((email) => (
 						<Avatar key={email} className="size-6 border-2 border-white">
 							<AvatarFallback className="text-[10px]">
 								{getInitials(email)}
