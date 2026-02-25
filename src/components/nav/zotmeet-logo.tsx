@@ -13,7 +13,7 @@ export function ZotMeetLogo() {
 	];
 
 	useEffect(() => {
-		if (Math.random() < 1 / 5) {
+		if (Math.random() < 1 / 200) {
 			setSrc(anteaterImages[Math.floor(Math.random() * anteaterImages.length)]);
 			setAlt("Peter the Anteater");
 		}
