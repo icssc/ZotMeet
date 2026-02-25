@@ -455,10 +455,6 @@ export function Availability({
 	// Drag gesture for overdragging across cells
 	const bind = useDrag(
 		({ first, last, xy: [x, y], event, cancel }) => {
-			if (availabilityView === "personal") {
-				return;
-			}
-
 			event?.preventDefault();
 
 			const blockInfo = getBlockAtPosition(x, y);
@@ -524,6 +520,65 @@ export function Availability({
 								addPendingTimeRange(timestamps);
 							}
 						}
+					} else if (availabilityView === "personal") {
+						const startZotDate =
+							availabilityDates[startBlockSelection.zotDateIndex];
+						const toggleValue = !startZotDate.getBlockAvailability(
+							startBlockSelection.blockIndex,
+						);
+
+						const updatedDates = [...availabilityDates];
+
+						for (
+							let dateIndex = earlierDateIndex;
+							dateIndex <= laterDateIndex;
+							dateIndex++
+						) {
+							const currentDate = updatedDates[dateIndex];
+							currentDate.setBlockAvailabilities(
+								earlierBlockIndex,
+								laterBlockIndex,
+								toggleValue,
+							);
+
+							// Update group availability for each block
+							for (
+								let blockI = earlierBlockIndex;
+								blockI <= laterBlockIndex;
+								blockI++
+							) {
+								const timestamp = getTimestampFromBlockIndex(
+									blockI,
+									dateIndex,
+									fromTimeMinutes,
+									availabilityDates,
+								);
+
+								if (!currentDate.groupAvailability[timestamp]) {
+									currentDate.groupAvailability[timestamp] = [];
+								}
+
+								if (toggleValue) {
+									// Add user to availability
+									if (
+										!currentDate.groupAvailability[timestamp].includes(
+											user?.memberId ?? "",
+										)
+									) {
+										currentDate.groupAvailability[timestamp].push(
+											user?.memberId ?? "",
+										);
+									}
+								} else {
+									currentDate.groupAvailability[timestamp] =
+										currentDate.groupAvailability[timestamp].filter(
+											(id) => id !== (user?.memberId ?? ""),
+										);
+								}
+							}
+						}
+
+						handleUserAvailabilityChange(updatedDates);
 					}
 				}
 
@@ -595,13 +650,8 @@ export function Availability({
 												timeBlock={timeBlock}
 												blockIndex={blockIndex}
 												availabilityTimeBlocks={availabilityTimeBlocks}
-												fromTime={fromTimeMinutes}
-												availabilityDates={availabilityDates}
 												currentPageAvailability={currentPageAvailability}
 												googleCalendarEvents={googleCalendarEvents}
-												user={user}
-												onAvailabilityChange={handleUserAvailabilityChange}
-												timezone={userTimezone}
 												meetingDates={meetingData.dates}
 											/>
 										)}
