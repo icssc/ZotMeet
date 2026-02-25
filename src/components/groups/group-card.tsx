@@ -58,7 +58,7 @@ export function GroupCard({
 				</div>
 
 				<p className="w-full truncate text-center text-[#717182] text-base">
-					{description || "No description"}
+					{description}
 				</p>
 			</div>
 
