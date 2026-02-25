@@ -649,6 +649,7 @@ export function Availability({
 											<PersonalAvailability
 												timeBlock={timeBlock}
 												blockIndex={blockIndex}
+												availabilityDates={availabilityDates}
 												availabilityTimeBlocks={availabilityTimeBlocks}
 												currentPageAvailability={currentPageAvailability}
 												googleCalendarEvents={googleCalendarEvents}
