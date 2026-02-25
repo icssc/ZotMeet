@@ -1,10 +1,10 @@
 "use client";
 
 import { CalendarSearchIcon, SquarePlusIcon } from "lucide-react";
-import Image from "next/image";
 import type * as React from "react";
 import { NavMain } from "@/components/nav/nav-main";
 import { NavUser } from "@/components/nav/nav-user";
+import { ZotMeetLogo } from "@/components/nav/zotmeet-logo";
 import { Separator } from "@/components/ui/separator";
 import {
 	Sidebar,
@@ -58,7 +58,7 @@ export function SidebarComponent({ user, ...props }: SidebarComponentProps) {
 						>
 							<a href="/" className="space-gray-800 space-x-2">
 								<div className="relative flex aspect-square size-8 items-center justify-center rounded-lg border border-black text-sidebar-primary-foreground">
-									<Image src="/ZotMeet_BLACK.png" fill alt="ZotMeet logo" />
+									<ZotMeetLogo />
 								</div>
 								<div className="grid flex-1 text-left text-sm leading-tight">
 									<span className="truncate font-semibold text-4xl">

@@ -20,11 +20,11 @@ import {
 	MenuItem,
 	Typography,
 } from "@mui/material";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { AuthDialog } from "@/components/auth/auth-dialog";
+import { ZotMeetLogo } from "@/components/nav/zotmeet-logo";
 import type { UserProfile } from "@/lib/auth/user";
 import { logoutAction } from "@/server/actions/auth/logout/action";
 
@@ -90,7 +90,7 @@ export function MuiDrawer({ user }: MuiDrawerProps) {
 						borderRadius: 1,
 					}}
 				>
-					<Image src="/ZotMeet_BLACK.png" fill alt="ZotMeet logo" />
+					<ZotMeetLogo />
 				</Box>
 				{open && (
 					<Typography
