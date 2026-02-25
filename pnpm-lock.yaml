@@ -99,6 +99,9 @@ importers:
       googleapis:
         specifier: ^148.0.0
         version: 148.0.0
+      hsluv:
+        specifier: ^1.0.1
+        version: 1.0.1
       lucide-react:
         specifier: ^0.453.0
         version: 0.453.0(react@19.2.3)
@@ -2564,6 +2567,9 @@ packages:
   hono@4.7.4:
     resolution: {integrity: sha512-Pst8FuGqz3L7tFF+u9Pu70eI0xa5S3LPUmrNd5Jm8nTHze9FxLTK9Kaj5g/k4UcwuJSXTP65SyHOPLrffpcAJg==}
     engines: {node: '>=16.9.0'}
+
+  hsluv@1.0.1:
+    resolution: {integrity: sha512-zCaFTiDqBLQjCCFBu0qg7z9ASYPd+Bxx2GDCVZJsnehjK80S+jByqhuFz0pCd2Aw3FSKr18AWbRlwnKR0YdizQ==}
 
   http-errors@2.0.1:
     resolution: {integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==}
@@ -5819,6 +5825,8 @@ snapshots:
       react-is: 16.13.1
 
   hono@4.7.4: {}
+
+  hsluv@1.0.1: {}
 
   http-errors@2.0.1:
     dependencies:
