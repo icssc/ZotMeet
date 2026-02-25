@@ -25,35 +25,29 @@ export function groupScheduledBlocksByDate(
 		.sort((a, b) => a.date.getTime() - b.date.getTime());
 }
 
-// Merge 15-min contiguous blocks
+// Merge 15-min contiguous blocks into a single interval
 export const mergeContiguousTimeBlocks = (
 	blocks: SelectScheduledMeeting[],
-): TimeInterval[] => {
-	if (blocks.length === 0) return [];
+): TimeInterval | null => {
+	if (blocks.length === 0) return null;
 
 	// Sort by start time
 	const sorted = [...blocks].sort((a, b) =>
 		a.scheduledFromTime.localeCompare(b.scheduledFromTime),
 	);
 
-	const merged: TimeInterval[] = [];
-	let current: TimeInterval = {
-		from: sorted[0].scheduledFromTime,
-		to: sorted[0].scheduledToTime,
-	};
+	const from = sorted[0].scheduledFromTime;
+	let to = sorted[0].scheduledToTime;
 
 	for (let i = 1; i < sorted.length; i++) {
 		const block = sorted[i];
-		if (block.scheduledFromTime === current.to) {
-			// extend current
-			current.to = block.scheduledToTime;
+
+		if (block.scheduledFromTime === to) {
+			to = block.scheduledToTime;
 		} else {
-			merged.push(current);
-			current = { from: block.scheduledFromTime, to: block.scheduledToTime };
+			throw new Error("Non-contiguous time blocks detected");
 		}
 	}
 
-	// push last interval
-	merged.push(current);
-	return merged;
+	return { from, to };
 };

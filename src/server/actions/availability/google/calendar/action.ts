@@ -3,10 +3,7 @@
 import { getScheduledTimeBlocks } from "@data/meeting/queries";
 import { google as googleClient } from "googleapis";
 import { validateGoogleAccessToken } from "@/lib/auth/google";
-import {
-	groupScheduledBlocksByDate,
-	mergeContiguousTimeBlocks,
-} from "@/lib/meetings/utils";
+import { mergeContiguousTimeBlocks } from "@/lib/meetings/utils";
 import type { GoogleCalendarEvent } from "@/lib/types/availability";
 
 export async function fetchGoogleCalendarEvents(
@@ -85,7 +82,7 @@ function combineDateAndTime(date: Date, time: string) {
 	return combined.toISOString();
 }
 
-export async function getGoogleCalendarPrefilledLinks({
+export async function getGoogleCalendarPrefilledLink({
 	meetingId,
 	meetingTitle,
 	meetingDescription,
@@ -100,41 +97,48 @@ export async function getGoogleCalendarPrefilledLinks({
 }) {
 	const blocks = await getScheduledTimeBlocks(meetingId);
 
-	const links: Array<string> = [];
-
-	const blocksByDate = groupScheduledBlocksByDate(blocks);
-
-	for (const { date, blocks } of blocksByDate) {
-		const mergedIntervals = mergeContiguousTimeBlocks(blocks);
-
-		for (const interval of mergedIntervals) {
-			// Format start and end date to be in the format required by gcal (remove -, :, and .000)
-			const start = combineDateAndTime(date, interval.from).replace(
-				/([-:]|\.000)/g,
-				"",
-			);
-			const end = combineDateAndTime(date, interval.to).replace(
-				/([-:]|\.000)/g,
-				"",
-			);
-
-			const params = new URLSearchParams({
-				action: "TEMPLATE",
-				text: `${meetingTitle}`,
-				dates: `${start}/${end}`,
-				details: meetingDescription ?? "Meeting scheduled via ZotMeet.",
-				location: meetingLocation ?? "",
-				ctz: timezone,
-			});
-
-			const url = `https://calendar.google.com/calendar/render?${params.toString()}`;
-
-			links.push(url);
-		}
+	if (!blocks.length) {
+		return {
+			success: false,
+			link: null,
+		};
 	}
+
+	// merge all 15-min blocks into 1 contiguous interval
+	const mergedInterval = mergeContiguousTimeBlocks(blocks);
+	if (!mergedInterval) {
+		return {
+			success: false,
+			link: null,
+		};
+	}
+
+	// all blocks are now on the same date
+	const date = blocks[0].scheduledDate;
+
+	// Format start and end date to be in the format required by gcal (remove -, :, and .000)
+	const start = combineDateAndTime(date, mergedInterval.from).replace(
+		/([-:]|\.000)/g,
+		"",
+	);
+	const end = combineDateAndTime(date, mergedInterval.to).replace(
+		/([-:]|\.000)/g,
+		"",
+	);
+
+	const params = new URLSearchParams({
+		action: "TEMPLATE",
+		text: meetingTitle,
+		dates: `${start}/${end}`,
+		details: meetingDescription ?? "Meeting scheduled via ZotMeet.",
+		location: meetingLocation ?? "",
+		ctz: timezone,
+	});
+
+	const link = `https://calendar.google.com/calendar/render?${params.toString()}`;
 
 	return {
 		success: true,
-		links,
+		link,
 	};
 }

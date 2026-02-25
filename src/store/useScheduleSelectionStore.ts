@@ -67,7 +67,7 @@ export const useScheduleSelectionStore = create<ScheduleSelectionState>(
 					}
 				});
 
-				// Mark removed times that are in DB for deletion; drop from pending adds
+				// Mark removed times that are in DB for deletion
 				for (const ts of toRemove) {
 					if (scheduledTimes.has(ts)) pendingRemovals.add(ts);
 					pendingAdds.delete(ts);

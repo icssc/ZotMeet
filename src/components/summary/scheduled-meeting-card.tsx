@@ -68,12 +68,11 @@ export const ScheduledMeetingCard = ({
 						<div className="flex flex-nowrap items-center gap-x-1">
 							<AccessTime className="size-4" />
 							<span className="p text-nowrap">
-								{mergeContiguousTimeBlocks(firstDay.blocks)
-									.map(
-										(interval) =>
-											`${formatTimeWithHoursAndMins(interval.from)} - ${formatTimeWithHoursAndMins(interval.to)}`,
-									)
-									.join(", ")}
+								{(() => {
+									const interval = mergeContiguousTimeBlocks(firstDay.blocks);
+									if (!interval) return "—";
+									return `${formatTimeWithHoursAndMins(interval.from)} - ${formatTimeWithHoursAndMins(interval.to)}`;
+								})()}
 							</span>
 						</div>
 
@@ -102,15 +101,16 @@ export const ScheduledMeetingCard = ({
 							</div>
 
 							<div className="flex flex-wrap gap-2 text-gray-600 text-sm">
-								{mergeContiguousTimeBlocks(blocks).map((interval, index) => (
-									<span
-										key={index}
-										className="rounded-md bg-gray-100 px-2 py-1"
-									>
-										{formatTimeWithHoursAndMins(interval.from)}–
-										{formatTimeWithHoursAndMins(interval.to)}
-									</span>
-								))}
+								{(() => {
+									const interval = mergeContiguousTimeBlocks(blocks);
+									if (!interval) return null;
+									return (
+										<span className="rounded-md bg-gray-100 px-2 py-1">
+											{formatTimeWithHoursAndMins(interval.from)}–
+											{formatTimeWithHoursAndMins(interval.to)}
+										</span>
+									);
+								})()}
 							</div>
 						</div>
 					))}
