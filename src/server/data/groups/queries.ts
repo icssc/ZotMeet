@@ -100,7 +100,7 @@ export async function isGroupCreator({
 	groupId: string;
 }): Promise<boolean> {
 	const group = await db.query.groups.findFirst({
-		where: and(eq(groups.id, userId), eq(groups.createdBy, groupId)),
+		where: and(eq(groups.id, groupId), eq(groups.createdBy, userId)),
 	});
 	return group !== undefined;
 }
