@@ -1,3 +1,4 @@
+import { Divider } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -9,6 +10,7 @@ import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 
 interface GroupResponsesProps {
@@ -58,6 +60,14 @@ export function GroupResponses({
 			isHoveringGrid: state.isHoveringGrid,
 		})),
 	);
+
+	const { enabled: showBestTimes, setEnabled: setShowBestTimes } =
+		useBestTimesToggleStore(
+			useShallow((state) => ({
+				enabled: state.enabled,
+				setEnabled: state.setEnabled,
+			})),
+		);
 
 	const [blockInfoString, setBlockInfoString] = useState(
 		"Select a cell to view",
@@ -176,15 +186,39 @@ export function GroupResponses({
 					</button>
 				</div>
 
-				<div className="flex h-[32rem] grow flex-col">
-					<div className="border-gray-300 border-b-[1px] px-8">
+				<div className="flex flex-col py-2">
+					<div className="px-8">
+						<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
+							Options
+						</span>
+					</div>
+
+					<div className="flex items-center gap-2 pl-8">
+						<Checkbox
+							id={`Show_Best_Times`}
+							checked={showBestTimes}
+							onCheckedChange={setShowBestTimes}
+						/>
+						<Label
+							htmlFor={`Show_Best_Times`}
+							className="cursor-pointer text-lg"
+						>
+							Show Best Times
+						</Label>
+					</div>
+				</div>
+
+				<Divider />
+
+				<div className="flex h-[32rem] grow flex-col py-2">
+					<div className="px-8">
 						<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 							AVAILABLE (
 							{isHoveringGrid ? availableMembers.length : members.length})
 						</span>
 					</div>
 
-					<ul className="overflow-auto py-2 pl-8">
+					<ul className="overflow-auto pl-8">
 						{members.map((member) => (
 							<li
 								key={member.memberId}
