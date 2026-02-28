@@ -129,7 +129,7 @@ MuiSidebarContent.displayName = "MuiSidebarContent";
 // --- SidebarFooter ---
 
 const MuiSidebarFooter = React.forwardRef<HTMLDivElement, BoxProps>(
-	({ sx, ...props }, ref) => <Box ref={ref} sx={{ p: 1, ...sx }} {...props} />,
+	({ sx, ...props }, ref) => <Box ref={ref} sx={{ ...sx }} {...props} />,
 );
 MuiSidebarFooter.displayName = "MuiSidebarFooter";
 
@@ -243,7 +243,7 @@ const MuiSidebarMenuText = React.forwardRef<HTMLDivElement, ListItemTextProps>(
 				}}
 				sx={{
 					opacity: open ? 1 : 0,
-					transition: "opacity 0.2s ease-in-out",
+					transition: "opacity 0s ease-in-out",
 					whiteSpace: "nowrap",
 				}}
 				{...props}

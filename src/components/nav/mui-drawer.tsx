@@ -120,47 +120,42 @@ function NavMain() {
 }
 
 function NavUser({ user }: { user: UserProfile | null }) {
-	const { open } = useMuiSidebar();
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
 	if (!user) {
 		return (
-			<MuiSidebarMenuButton
-				component="a"
-				href="/auth/login/google"
-				tooltip="Sign In"
-			>
-				<MuiSidebarMenuIcon>
-					<Login />
-				</MuiSidebarMenuIcon>
-				<MuiSidebarMenuText primary="Sign In" />
-			</MuiSidebarMenuButton>
+			<MuiSidebarMenuItem>
+				<MuiSidebarMenuButton
+					component="a"
+					href="/auth/login/google"
+					tooltip="Sign In"
+				>
+					<MuiSidebarMenuIcon>
+						<Login />
+					</MuiSidebarMenuIcon>
+					<MuiSidebarMenuText primary="Sign In" />
+				</MuiSidebarMenuButton>
+			</MuiSidebarMenuItem>
 		);
 	}
 
 	return (
 		<>
-			<MuiSidebarMenuButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-				<MuiSidebarMenuIcon>
-					<Avatar sx={{ width: 32, height: 32 }}>
-						<Person />
-					</Avatar>
-				</MuiSidebarMenuIcon>
-				<Box
-					sx={{
-						minWidth: 0,
-						opacity: open ? 1 : 0,
-						transition: "opacity 0.2s ease-in-out",
-					}}
-				>
-					<Typography variant="body2" fontWeight={600} noWrap>
-						{user.displayName}
-					</Typography>
-					<Typography variant="caption" color="text.secondary" noWrap>
-						{user.email}
-					</Typography>
-				</Box>
-			</MuiSidebarMenuButton>
+			<MuiSidebarMenuItem>
+				<MuiSidebarMenuButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+					<MuiSidebarMenuIcon>
+						<Avatar sx={{ width: 24, height: 24 }}>
+							<Person fontSize="small" />
+						</Avatar>
+					</MuiSidebarMenuIcon>
+					<MuiSidebarMenuText
+						primary={user.displayName}
+						secondary={user.email}
+						primaryTypographyProps={{ fontWeight: 600, noWrap: true }}
+						secondaryTypographyProps={{ noWrap: true }}
+					/>
+				</MuiSidebarMenuButton>
+			</MuiSidebarMenuItem>
 
 			<Menu
 				anchorEl={anchorEl}
