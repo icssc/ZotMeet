@@ -4,11 +4,17 @@ import {
 	generateState,
 } from "arctic";
 import { cookies, headers } from "next/headers";
+import { deleteSessionTokenCookie } from "@/lib/auth/cookies";
 import { oauth } from "@/lib/auth/oauth";
 
-export async function GET(): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
+	const { searchParams } = new URL(request.url);
+	const promptValue = searchParams.get("prompt") || "none";
 	const state = generateState();
 	const codeVerifier = generateCodeVerifier();
+
+	await deleteSessionTokenCookie();
+
 	const url = new URL(
 		oauth.createAuthorizationURLWithPKCE(
 			"https://auth.icssc.club/authorize",
@@ -23,8 +29,10 @@ export async function GET(): Promise<Response> {
 			],
 		),
 	);
+	url.searchParams.set("prompt", promptValue);
 
 	const cookieStore = await cookies();
+
 	cookieStore.set("oauth_state", state, {
 		path: "/",
 		httpOnly: true,

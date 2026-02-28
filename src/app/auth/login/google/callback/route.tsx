@@ -1,9 +1,9 @@
 import type { OAuth2Tokens } from "arctic";
 import { decodeIdToken } from "arctic";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "@/db";
-import { oauthAccounts, users } from "@/db/schema";
+import { oauthAccounts } from "@/db/schema";
 import { setSessionTokenCookie } from "@/lib/auth/cookies";
 import { oauth } from "@/lib/auth/oauth";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
@@ -22,9 +22,8 @@ export async function GET(request: Request): Promise<Response> {
 	const codeVerifier = cookieStore.get("oauth_code_verifier")?.value ?? null;
 	const redirectUrl = cookieStore.get("auth_redirect_url")?.value ?? "/";
 
-	cookieStore.delete("auth_redirect_url");
-	cookieStore.delete("oauth_state");
-	cookieStore.delete("oauth_code_verifier");
+	cookieStore.delete("session");
+	cookieStore.delete({ name: "session", path: "/" });
 
 	if (
 		code === null ||
@@ -127,7 +126,16 @@ export async function GET(request: Request): Promise<Response> {
 			oauthRefreshToken: googleRefreshToken,
 			oauthAccessTokenExpiresAt: googleTokenExpiry,
 		});
+
+		cookieStore.delete("session");
+		cookieStore.delete({ name: "session", path: "/" });
+
 		await setSessionTokenCookie(sessionToken, session.expiresAt);
+
+		cookieStore.delete("oauth_state");
+		cookieStore.delete("oauth_code_verifier");
+		cookieStore.delete("auth_redirect_url");
+
 		const userRecord = await getUserById(existingUser.id);
 
 		if (!userRecord) {
@@ -145,6 +153,9 @@ export async function GET(request: Request): Promise<Response> {
 			oauthRefreshToken: googleRefreshToken,
 			oauthAccessTokenExpiresAt: googleTokenExpiry,
 		});
+
+		// cookieStore.delete("session");
+		// cookieStore.delete({ name: "session", path: "/" });
 		await setSessionTokenCookie(sessionToken, session.expiresAt);
 
 		memberId = user.memberId;

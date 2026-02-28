@@ -15,7 +15,6 @@ interface GroupResponsesProps {
 	availabilityDates: ZotDate[];
 	members: Member[];
 	fromTime: number;
-	timezone: string;
 	anchorNormalizedDate: Date[];
 	currentPageAvailability: ZotDate[];
 	availabilityTimeBlocks: number[];
@@ -26,11 +25,10 @@ export function GroupResponses({
 	availabilityDates,
 	fromTime,
 	members,
-	timezone,
 	currentPageAvailability,
 	doesntNeedDay,
 }: GroupResponsesProps) {
-	const [_newBlocks, newAvailDates] = newZonedPageAvailAndDates(
+	const [_newBlocks, _newAvailDates] = newZonedPageAvailAndDates(
 		currentPageAvailability,
 		availabilityDates,
 		doesntNeedDay,
@@ -87,12 +85,12 @@ export function GroupResponses({
 				notAvailableMembers: members,
 			};
 		}
-		const selectedDate = newAvailDates[selectedZotDateIndex];
+		const selectedDate = _newAvailDates[selectedZotDateIndex];
 		const timestamp = getTimestampFromBlockIndex(
 			selectedBlockIndex,
 			selectedZotDateIndex,
 			fromTime,
-			newAvailDates,
+			_newAvailDates,
 		);
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
 
@@ -107,7 +105,7 @@ export function GroupResponses({
 	}, [
 		selectedZotDateIndex,
 		selectedBlockIndex,
-		newAvailDates,
+		_newAvailDates,
 		fromTime,
 		members,
 	]);
@@ -117,15 +115,15 @@ export function GroupResponses({
 			selectedZotDateIndex !== undefined &&
 			selectedBlockIndex !== undefined
 		) {
-			const displayDate = newAvailDates[selectedZotDateIndex].day;
+			const displayDate = _newAvailDates[selectedZotDateIndex].day;
 
 			const formattedDate = displayDate.toLocaleDateString("en-US", {
 				month: "short",
 				day: "numeric",
 			});
 
-			const earliestTime = newAvailDates[selectedZotDateIndex].earliestTime;
-			const blockLength = newAvailDates[selectedZotDateIndex].blockLength;
+			const earliestTime = _newAvailDates[selectedZotDateIndex].earliestTime;
+			const blockLength = _newAvailDates[selectedZotDateIndex].blockLength;
 
 			const startTime = ZotDate.toTimeBlockString(
 				earliestTime + selectedBlockIndex * blockLength,
@@ -139,7 +137,7 @@ export function GroupResponses({
 		} else {
 			setBlockInfoString("Select a cell to view");
 		}
-	}, [selectedZotDateIndex, selectedBlockIndex, newAvailDates]);
+	}, [selectedZotDateIndex, selectedBlockIndex, _newAvailDates]);
 
 	return (
 		<div

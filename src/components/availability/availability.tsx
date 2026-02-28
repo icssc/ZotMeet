@@ -2,6 +2,7 @@
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { formatInTimeZone } from "date-fns-tz";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
@@ -128,8 +129,13 @@ export function Availability({
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
 }) {
+	const router = useRouter();
 	const availabilityView = useAvailabilityViewStore(
 		(state) => state.availabilityView,
+	);
+
+	const overlayGoogleCalendar = useAvailabilityViewStore(
+		(state) => state.overlayGoogleCalendar,
 	);
 
 	const selectionIsLocked = useGroupSelectionStore(
@@ -213,6 +219,7 @@ export function Availability({
 	const [googleCalendarEvents, setGoogleCalendarEvents] = useState<
 		GoogleCalendarEvent[]
 	>([]);
+	// const [hasFetchedCalendar, setHasFetchedCalendar] = useState(false);
 
 	const [availabilityDates, setAvailabilityDates] = useState(() =>
 		deriveInitialAvailability({
@@ -275,27 +282,41 @@ export function Availability({
 	}, [confirmSave]);
 
 	useEffect(() => {
-		if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
-			const firstDateISO = anchorNormalizedDate[0].toISOString();
-
-			const lastDateObj = new Date(
-				anchorNormalizedDate[anchorNormalizedDate.length - 1],
-			);
-			lastDateObj.setHours(23, 59, 59, 999);
-			const lastDateISO = lastDateObj.toISOString();
-
-			fetchGoogleCalendarEvents(firstDateISO, lastDateISO)
-				.then((events) => {
-					setGoogleCalendarEvents(events);
-				})
-				.catch((error) => {
-					console.error("Error fetching Google Calendar events:", error);
-					setGoogleCalendarEvents([]);
-				});
-		} else {
-			setGoogleCalendarEvents([]);
+		if (!overlayGoogleCalendar) {
+			return;
 		}
-	}, [availabilityDates, anchorNormalizedDate]);
+		// if (hasFetchedCalendar) return;
+
+		if (availabilityDates.length === 0 || anchorNormalizedDate.length === 0)
+			return;
+
+		const firstDateISO = anchorNormalizedDate[0].toISOString();
+		const lastDateObj = new Date(
+			anchorNormalizedDate[anchorNormalizedDate.length - 1],
+		);
+		lastDateObj.setHours(23, 59, 59, 999);
+
+		fetchGoogleCalendarEvents(firstDateISO, lastDateObj.toISOString()).then(
+			(result) => {
+				if (
+					result.status === "missing_scope" ||
+					result.status === "not_authenticated"
+				) {
+					router.push("/auth/login/google/?prompt=consent");
+
+					return;
+				}
+				setGoogleCalendarEvents(result.events);
+				// setHasFetchedCalendar(true);
+			},
+		);
+	}, [
+		overlayGoogleCalendar,
+		availabilityDates,
+		anchorNormalizedDate,
+		// hasFetchedCalendar,
+		router,
+	]);
 
 	const members = useMemo(() => {
 		const presentMemberIds = [
@@ -432,6 +453,7 @@ export function Availability({
 												onAvailabilityChange={handleUserAvailabilityChange}
 												timezone={userTimezone}
 												meetingDates={meetingData.dates}
+												showGoogleCalendar={overlayGoogleCalendar}
 											/>
 										)}
 									</tr>
@@ -455,7 +477,7 @@ export function Availability({
 					availabilityDates={availabilityDates}
 					fromTime={fromTimeMinutes}
 					members={members}
-					timezone={userTimezone}
+					// timezone={userTimezone}
 					anchorNormalizedDate={anchorNormalizedDate}
 					currentPageAvailability={currentPageAvailability}
 					availabilityTimeBlocks={availabilityTimeBlocks}
