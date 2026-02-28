@@ -23,7 +23,7 @@ export function MuiAppShell({ user, children }: MuiAppShellProps) {
 			<Box sx={{ display: "flex", minHeight: "100vh" }}>
 				{!isMobile && <MuiDrawer user={user} />}
 
-				<MuiSidebarInset sx={{ pb: isMobile ? 8 : 0 }}>
+				<MuiSidebarInset sx={{ paddingBottom: isMobile ? 7 : 0 }}>
 					{children}
 				</MuiSidebarInset>
 
