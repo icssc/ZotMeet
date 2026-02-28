@@ -8,7 +8,6 @@ import "./globals.css";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
-import { Banner } from "@/components/ui/banner";
 import { cn } from "@/lib/utils";
 import theme, { dmSans, montserrat } from "@/theme";
 
@@ -49,14 +48,6 @@ export default function RootLayout({
 						<ThemeProvider theme={theme}>
 							<AppShellWrapper>
 								<div className="h-full rounded-tl-xl bg-gray-50">
-									<Banner
-										chip="ALPHA"
-										storageKey="creation-alpha-banner-dismissed"
-										className="mx-4 mt-4"
-									>
-										ZotMeet is currently in alpha. You may experience bugs or
-										unexpected behavior.
-									</Banner>
 									{children}
 								</div>
 							</AppShellWrapper>
