@@ -1,15 +1,14 @@
 import { archiveMeeting } from "@actions/meeting/archive/action";
+import {
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogContentText,
+	DialogTitle,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
 import type { SelectMeeting } from "@/db/schema";
 
 interface DeleteModalProps {
@@ -17,16 +16,13 @@ interface DeleteModalProps {
 	isOpen: boolean;
 	handleOpenChange: (open: boolean) => void;
 }
+
 const DeleteModal = ({
 	meetingData,
 	isOpen,
 	handleOpenChange,
 }: DeleteModalProps) => {
 	const router = useRouter();
-
-	if (!isOpen) {
-		return null;
-	}
 
 	const handleDeleteClick = async () => {
 		const { success, error } = await archiveMeeting(meetingData);
@@ -42,26 +38,22 @@ const DeleteModal = ({
 	};
 
 	return (
-		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Delete Meeting</DialogTitle>
-				</DialogHeader>
+		<Dialog open={isOpen} onClose={() => handleOpenChange(false)}>
+			<DialogTitle>Delete Meeting</DialogTitle>
 
-				<DialogDescription>
+			<DialogContent>
+				<DialogContentText>
 					Are you sure you want to delete this meeting? This action cannot be
 					undone.
-				</DialogDescription>
-
-				<DialogFooter>
-					<Button onClick={() => handleOpenChange(false)} variant="outline">
-						Close
-					</Button>
-					<Button onClick={handleDeleteClick} variant="destructive">
-						Delete
-					</Button>
-				</DialogFooter>
+				</DialogContentText>
 			</DialogContent>
+
+			<DialogActions>
+				<Button onClick={() => handleOpenChange(false)}>Cancel</Button>
+				<Button onClick={handleDeleteClick} color="error">
+					Delete
+				</Button>
+			</DialogActions>
 		</Dialog>
 	);
 };
