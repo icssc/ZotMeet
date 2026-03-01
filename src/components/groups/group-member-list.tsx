@@ -272,8 +272,12 @@ export function GroupMemberList({
 				return;
 			}
 
-			await navigator.clipboard.writeText(res.inviteUrl);
-			toast.success("Invite link copied to clipboard.");
+			try {
+				await navigator.clipboard.writeText(res.inviteUrl);
+				toast.success("Invite link copied to clipboard.");
+			} catch (_clipboardError) {
+				toast.error("Invite link generated, but failed to copy to clipboard.");
+			}
 		} catch (_error) {
 			toast.error("Failed to generate invite link.");
 		} finally {
