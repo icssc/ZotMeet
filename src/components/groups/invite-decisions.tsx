@@ -1,30 +1,67 @@
 "use client";
 
-import {
-	acceptInvite,
-	declineInvite,
-} from "@actions/group/invite/create/action";
+import { acceptInvite } from "@actions/group/invite/create/action";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
-interface InviteDecisionProps {
-	inviteToken: string;
-}
+async function handleAccept(inviteLink: string) {
+	if (!inviteLink) {
+		return;
+	}
 
-async function handleAccept(inviteToken: string) {
-	const result = await acceptInvite(inviteToken);
+	const token = inviteLink.split("/").pop();
+	if (!token) {
+		return;
+	}
+
+	const result = await acceptInvite(token);
 	alert(result.message);
 }
 
-export const InviteDecision = ({ inviteToken }: InviteDecisionProps) => {
+interface InviteDecisionProps {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+}
+
+export const InviteDecision = ({ open, onOpenChange }: InviteDecisionProps) => {
+	const [input, setInput] = useState("");
+
 	return (
-		<div>
-			<div className="p-8">
-				<h1 className="mb-4 font-medium font-montserrat text-3xl">
-					Invite to Group
-				</h1>
-				<p className="mb-4 text-gray-600">Invite token: {inviteToken}</p>
-				<Button onClick={() => handleAccept(inviteToken)}>Accept</Button>
-			</div>
-		</div>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="sm:max-w-[500px]">
+				<DialogHeader>
+					<DialogTitle className="font-bold text-xl">
+						Join Existing Group
+					</DialogTitle>
+					<DialogDescription></DialogDescription>
+				</DialogHeader>
+
+				<form
+					onSubmit={(e) => {
+						e.preventDefault();
+						void handleAccept(input);
+					}}
+					className="flex items-end gap-3"
+				>
+					<div className="flex-1 space-y-1">
+						<p className="text-sm">Join via Link</p>
+						<Input
+							placeholder="Insert Meeting Link"
+							value={input}
+							onChange={(e) => setInput(e.target.value)}
+						/>
+					</div>
+					<Button type="submit">Join</Button>
+				</form>
+			</DialogContent>
+		</Dialog>
 	);
 };
