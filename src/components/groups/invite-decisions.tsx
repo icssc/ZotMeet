@@ -1,6 +1,7 @@
 "use client";
 
 import { acceptInvite } from "@actions/group/invite/create/action";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,20 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 
-async function handleAccept(inviteLink: string) {
-	if (!inviteLink) {
-		return;
-	}
-
-	const token = inviteLink.split("/").pop();
-	if (!token) {
-		return;
-	}
-
-	const result = await acceptInvite(token);
-	alert(result.message);
-}
-
 interface InviteDecisionProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
@@ -33,6 +20,22 @@ interface InviteDecisionProps {
 
 export const InviteDecision = ({ open, onOpenChange }: InviteDecisionProps) => {
 	const [input, setInput] = useState("");
+	const router = useRouter();
+
+	const handleAccept = async () => {
+		if (!input) return;
+
+		const token = input.split("/").pop();
+		if (!token) return;
+
+		const result = await acceptInvite(token);
+		alert(result.message);
+		if (result.success) {
+			onOpenChange(false);
+			setInput("");
+			router.refresh();
+		}
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -47,7 +50,7 @@ export const InviteDecision = ({ open, onOpenChange }: InviteDecisionProps) => {
 				<form
 					onSubmit={(e) => {
 						e.preventDefault();
-						void handleAccept(input);
+						void handleAccept();
 					}}
 					className="flex items-end gap-3"
 				>
