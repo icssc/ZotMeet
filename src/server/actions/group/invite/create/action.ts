@@ -13,11 +13,7 @@ import {
 } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { getExistingInvite } from "@/server/data/groups/invite-queries";
-import {
-	getExistingGroup,
-	isGroupCreator,
-	isUserInGroup,
-} from "@/server/data/groups/queries";
+import { getExistingGroup, isGroupCreator } from "@/server/data/groups/queries";
 //type def
 export type CreateInviteState = {
 	success: boolean;
@@ -165,34 +161,35 @@ export async function acceptInvite(
 	}
 
 	try {
-		const [existingResponse] = await db
-			.select()
-			.from(groupInviteResponses)
-			.where(
-				and(
-					eq(groupInviteResponses.inviteId, invite.id),
-					eq(groupInviteResponses.userId, user.id),
-				),
-			)
-			.limit(1);
+		const txResult = await db.transaction(async (tx) => {
+			const [existingResponse] = await tx
+				.select()
+				.from(groupInviteResponses)
+				.where(
+					and(
+						eq(groupInviteResponses.inviteId, invite.id),
+						eq(groupInviteResponses.userId, user.id),
+					),
+				)
+				.limit(1);
 
-		// Check if user is already in the group
-		const alreadyInGroup = await isUserInGroup({
-			userId: user.id,
-			groupId: invite.groupId,
-		});
+			const [membership] = await tx
+				.select({ userId: usersInGroup.userId })
+				.from(usersInGroup)
+				.where(
+					and(
+						eq(usersInGroup.userId, user.id),
+						eq(usersInGroup.groupId, invite.groupId),
+					),
+				)
+				.limit(1);
+			const alreadyInGroup = !!membership;
 
-		// If already accepted and in group, return success
-		if (existingResponse?.status === "accepted" && alreadyInGroup) {
-			return {
-				success: true,
-				message: "You are already a member of this group.",
-				groupId: invite.groupId,
-			};
-		}
+			// If already accepted and in group, return success immediately.
+			if (existingResponse?.status === "accepted" && alreadyInGroup) {
+				return { alreadyMember: true };
+			}
 
-		//add user to group
-		await db.transaction(async (tx) => {
 			const userEmail = (user.email ?? "").toLowerCase().trim();
 
 			// Update existing response or create new one
@@ -223,7 +220,17 @@ export async function acceptInvite(
 					groupId: invite.groupId,
 				});
 			}
+
+			return { alreadyMember: false };
 		});
+
+		if (txResult.alreadyMember) {
+			return {
+				success: true,
+				message: "You are already a member of this group.",
+				groupId: invite.groupId,
+			};
+		}
 
 		revalidatePath("/groups");
 		revalidatePath(`/groups/${invite.groupId}`);
