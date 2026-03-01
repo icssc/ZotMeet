@@ -300,11 +300,6 @@ export async function declineInvite(
 			)
 			.limit(1);
 
-		const alreadyInGroup = await isUserInGroup({
-			userId: user.id,
-			groupId: invite.groupId,
-		});
-
 		await db.transaction(async (tx) => {
 			const userEmail = (user.email ?? "").toLowerCase().trim();
 
@@ -324,17 +319,6 @@ export async function declineInvite(
 					status: "declined",
 					respondedAt: new Date(),
 				});
-			}
-
-			if (alreadyInGroup) {
-				await tx
-					.delete(usersInGroup)
-					.where(
-						and(
-							eq(usersInGroup.userId, user.id),
-							eq(usersInGroup.groupId, invite.groupId),
-						),
-					);
 			}
 		});
 
