@@ -8,6 +8,13 @@
       "when": 1770255427413,
       "tag": "0000_skinny_karnak",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772323133610,
+      "tag": "0001_jazzy_fallen_one",
+      "breakpoints": true
     }
   ]
 }

@@ -12,7 +12,8 @@ import {
 	Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import {
 	Tabs,
 	TabsContent,
@@ -29,6 +30,7 @@ import {
 import { GroupRole, type SelectGroup } from "@/db/schema";
 import { formatDateToUSNumeric } from "@/lib/availability/utils";
 import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
+import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import { updateMemberRole } from "@/server/actions/group/update-member-role/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
 
@@ -253,6 +255,32 @@ export function GroupMemberList({
 	isAdmin,
 	currentUserId,
 }: GroupMemberListProps) {
+	const [isCreatingInvite, setIsCreatingInvite] = useState(false);
+	const canShareInvites = group.createdBy === currentUserId;
+
+	async function handleCreateInviteLink() {
+		if (!canShareInvites) {
+			toast.error("Only the group creator can generate invite links.");
+			return;
+		}
+
+		setIsCreatingInvite(true);
+		try {
+			const res = await createGroupInvite(group.id);
+			if (!res.success || !res.inviteUrl) {
+				toast.error(res.message || "Failed to generate invite link.");
+				return;
+			}
+
+			await navigator.clipboard.writeText(res.inviteUrl);
+			toast.success("Invite link copied to clipboard.");
+		} catch (_error) {
+			toast.error("Failed to generate invite link.");
+		} finally {
+			setIsCreatingInvite(false);
+		}
+	}
+
 	return (
 		<div>
 			<div className="flex items-center justify-between">
@@ -277,10 +305,17 @@ export function GroupMemberList({
 					</Link>
 					<button
 						type="button"
-						className="flex items-center gap-2 rounded border border-gray-300 bg-white px-4 py-2 font-medium text-sm uppercase tracking-wide transition-colors hover:bg-gray-50"
+						className="flex items-center gap-2 rounded border border-gray-300 bg-white px-4 py-2 font-medium text-sm uppercase tracking-wide transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+						onClick={handleCreateInviteLink}
+						disabled={!canShareInvites || isCreatingInvite}
+						title={
+							!canShareInvites
+								? "Only the group creator can share invite links."
+								: undefined
+						}
 					>
 						<Share2 className="size-4" />
-						Share
+						{isCreatingInvite ? "Generating..." : "Share"}
 					</button>
 				</div>
 			</div>
