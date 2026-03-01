@@ -28,12 +28,16 @@ export const InviteDecision = ({ open, onOpenChange }: InviteDecisionProps) => {
 		const token = input.split("/").pop();
 		if (!token) return;
 
-		const result = await acceptInvite(token);
-		alert(result.message);
-		if (result.success) {
-			onOpenChange(false);
-			setInput("");
-			router.refresh();
+		try {
+			const result = await acceptInvite(token);
+			alert(result.message);
+			if (result.success) {
+				onOpenChange(false);
+				setInput("");
+				router.refresh();
+			}
+		} catch {
+			alert("Failed to accept invite. Please try again.");
 		}
 	};
 
