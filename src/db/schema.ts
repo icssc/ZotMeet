@@ -10,6 +10,7 @@ import {
 	text,
 	time,
 	timestamp,
+	unique,
 	uuid,
 } from "drizzle-orm/pg-core";
 
@@ -147,18 +148,27 @@ export const groupInvites = pgTable("group_invites", {
 	expiresAt: timestamp("expires_at", { mode: "date" }),
 });
 
-export const groupInviteResponses = pgTable("group_invite_responses", {
-	id: uuid("id").defaultRandom().primaryKey(),
-	inviteId: uuid("invite_id")
-		.notNull()
-		.references(() => groupInvites.id, { onDelete: "cascade" }),
-	userId: text("user_id")
-		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
-	email: text("email").notNull(),
-	status: inviteStatusEnum("status").notNull().default("pending"),
-	respondedAt: timestamp("responded_at", { mode: "date" }),
-});
+export const groupInviteResponses = pgTable(
+	"group_invite_responses",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		inviteId: uuid("invite_id")
+			.notNull()
+			.references(() => groupInvites.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		email: text("email").notNull(),
+		status: inviteStatusEnum("status").notNull().default("pending"),
+		respondedAt: timestamp("responded_at", { mode: "date" }),
+	},
+	(table) => ({
+		inviteUserUnique: unique("group_invite_responses_invite_user_unique").on(
+			table.inviteId,
+			table.userId,
+		),
+	}),
+);
 
 export type InsertGroupInvite = InferInsertModel<typeof groupInvites>;
 export type SelectGroupInvite = InferSelectModel<typeof groupInvites>;
