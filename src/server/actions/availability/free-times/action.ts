@@ -20,7 +20,7 @@ function expandScheduledBlockToISOSlots(
 	let currentMinutes = fh * 60 + fm;
 	const endMinutes = th * 60 + tm;
 	const effectiveEndMinutes =
-		endMinutes <= currentMinutes ? endMinutes + 1440 : endMinutes;
+		endMinutes < currentMinutes ? endMinutes + 1440 : endMinutes;
 	while (currentMinutes < effectiveEndMinutes) {
 		const wrappedMinutes = currentMinutes % 1440;
 		const h = Math.floor(wrappedMinutes / 60)
