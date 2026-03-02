@@ -13,9 +13,8 @@ type MuiAppShellProps = {
 export function MuiAppShell({ user, children }: MuiAppShellProps) {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-	console.log(theme);
 	return (
-		<Box sx={{ display: "flex", flexDirection: "column", minHeight: "42px" }}>
+		<Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
 			{!isMobile && <MuiTopNav user={user} />}
 			<Box sx={{ flex: 1, overflow: "auto", paddingBottom: isMobile ? 7 : 0 }}>
 				{children}

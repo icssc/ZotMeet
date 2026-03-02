@@ -91,7 +91,7 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 									fontWeight: 400,
 									fontSize: "18px", // Title Large
 									lineHeight: "24px",
-									font: "Roboto",
+									fontFamily: "Roboto",
 									borderBottom: isActive ? "2px solid" : "none",
 									borderColor: "text.primary",
 									"&:hover": {
