@@ -19,12 +19,21 @@ function expandScheduledBlockToISOSlots(
 
 	let currentMinutes = fh * 60 + fm;
 	const endMinutes = th * 60 + tm;
-	while (currentMinutes < endMinutes) {
-		const h = Math.floor(currentMinutes / 60)
+	const effectiveEndMinutes =
+		endMinutes <= currentMinutes ? endMinutes + 1440 : endMinutes;
+	while (currentMinutes < effectiveEndMinutes) {
+		const wrappedMinutes = currentMinutes % 1440;
+		const h = Math.floor(wrappedMinutes / 60)
 			.toString()
 			.padStart(2, "0");
-		const m = (currentMinutes % 60).toString().padStart(2, "0");
-		const utcDate = fromZonedTime(`${datePart}T${h}:${m}:00`, timezone);
+		const m = (wrappedMinutes % 60).toString().padStart(2, "0");
+		let slotDatePart = datePart;
+		if (currentMinutes >= 1440) {
+			const nextDay = new Date(scheduledDate);
+			nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+			slotDatePart = nextDay.toISOString().substring(0, 10);
+		}
+		const utcDate = fromZonedTime(`${slotDatePart}T${h}:${m}:00`, timezone);
 		slots.add(utcDate.toISOString());
 		currentMinutes += BLOCK_LENGTH;
 	}
