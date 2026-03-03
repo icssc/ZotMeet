@@ -468,6 +468,8 @@ export function Availability({
 				setStartBlockSelection({ zotDateIndex, blockIndex });
 				setEndBlockSelection({ zotDateIndex, blockIndex });
 			} else if (last) {
+				const { startBlockSelection, endBlockSelection } =
+					useBlockSelectionStore.getState();
 				if (startBlockSelection && endBlockSelection) {
 					const earlierDateIndex = Math.min(
 						startBlockSelection.zotDateIndex,
