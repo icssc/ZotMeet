@@ -3,7 +3,10 @@
 import { Calendar, Clock, UsersIcon } from "lucide-react";
 // import { MeetingCardStatus } from "@/components/summary/meeting-card-status";
 import type { SelectMeeting } from "@/db/schema";
-import { convertTimeFromUTC } from "@/lib/availability/utils";
+import {
+	convertTimeFromUTC,
+	formatDateToUSNumeric,
+} from "@/lib/availability/utils";
 import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
 
 const formatTime = (time: string): string => {
@@ -53,27 +56,16 @@ const DateRange = ({
 
 	// Regular date display for specific dates
 	if (dates.length === 1) {
-		return (
-			<>
-				{new Date(dates[0]).toLocaleDateString("en-US", {
-					month: "numeric",
-					day: "numeric",
-				})}
-			</>
-		);
+		return <>{formatDateToUSNumeric(new Date(dates[0]))}</>;
 	}
 
 	const sortedDates = [...dates].sort(
 		(a, b) => new Date(a).getTime() - new Date(b).getTime(),
 	);
 
-	const first = new Date(sortedDates[0]).toLocaleDateString("en-US", {
-		month: "numeric",
-		day: "numeric",
-	});
-	const last = new Date(sortedDates[sortedDates.length - 1]).toLocaleDateString(
-		"en-US",
-		{ month: "numeric", day: "numeric" },
+	const first = formatDateToUSNumeric(new Date(sortedDates[0]));
+	const last = formatDateToUSNumeric(
+		new Date(sortedDates[sortedDates.length - 1]),
 	);
 
 	return <>{`${first} - ${last}`}</>;

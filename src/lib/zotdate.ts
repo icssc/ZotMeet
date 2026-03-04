@@ -20,20 +20,34 @@ export class ZotDate {
 	 * @param availability array of ISO strings representing available time slots
 	 */
 	constructor(
-		day: Date = new Date(),
+		day: Date | ZotDate,
 		earliestTime: number = 0,
 		latestTime: number = 1440,
 		isSelected: boolean = false,
 		availability: string[] = [],
 		groupAvailability: Record<string, string[]> = {},
 	) {
-		this.day = day;
-		this.earliestTime = earliestTime;
-		this.latestTime = latestTime;
-		this.isSelected = isSelected;
-		this.blockLength = 15;
-		this.availability = availability;
-		this.groupAvailability = groupAvailability;
+		if (day instanceof ZotDate) {
+			this.day = new Date(day.day);
+			this.earliestTime = day.earliestTime;
+			this.latestTime = day.latestTime;
+			this.isSelected = day.isSelected;
+			this.blockLength = 15;
+			this.availability = [...day.availability];
+			this.groupAvailability = structuredClone(day.groupAvailability);
+		} else {
+			if (day) {
+				this.day = day;
+			} else {
+				this.day = new Date();
+			}
+			this.earliestTime = earliestTime;
+			this.latestTime = latestTime;
+			this.isSelected = isSelected;
+			this.blockLength = 15;
+			this.availability = availability;
+			this.groupAvailability = groupAvailability;
+		}
 	}
 
 	/**
@@ -450,7 +464,12 @@ export class ZotDate {
 			this.latestTime,
 			this.isSelected,
 			[...this.availability],
-			{ ...this.groupAvailability },
+			Object.fromEntries(
+				Object.entries(this.groupAvailability).map(([key, value]) => [
+					key,
+					[...value],
+				]),
+			),
 		);
 		return clonedDate;
 	}

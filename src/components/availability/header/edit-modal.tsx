@@ -1,18 +1,16 @@
 import { editMeeting } from "@actions/meeting/edit/action";
+import {
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+} from "@mui/material";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
-import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
 import type { SelectMeeting } from "@/db/schema";
 import { convertTimeFromUTC, convertTimeToUTC } from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
@@ -63,7 +61,6 @@ export const EditModal = ({
 		const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 		const dates = selectedDays.map((zotDate) => zotDate.day.toISOString());
 
-		// Convert times from user's local timezone to UTC
 		const referenceDate = dates[0];
 		const fromTimeUTC = convertTimeToUTC(
 			startTime,
@@ -109,18 +106,17 @@ export const EditModal = ({
 		);
 	}, [selectedDays.length, startTime, endTime, meetingName]);
 
-	if (!isOpen) {
-		return null;
-	}
-
 	return (
-		<Dialog open={isOpen} onOpenChange={handleOpenChange}>
-			<DialogContent className="max-w-6xl">
-				<DialogHeader>
-					<DialogTitle>Edit Meeting</DialogTitle>
-				</DialogHeader>
+		<Dialog
+			open={isOpen}
+			onClose={() => handleOpenChange(false)}
+			maxWidth="lg"
+			fullWidth
+		>
+			<DialogTitle>Edit Meeting</DialogTitle>
 
-				<DialogDescription className="flex flex-col space-y-6 px-4 pb-6">
+			<DialogContent>
+				<div className="flex flex-col space-y-6 pt-2">
 					<MeetingNameField
 						meetingName={meetingName}
 						setMeetingName={setMeetingName}
@@ -139,17 +135,19 @@ export const EditModal = ({
 						meetingType={meetingType}
 						setMeetingType={setMeetingType}
 					/>
-				</DialogDescription>
-
-				<DialogFooter>
-					<Button onClick={() => handleOpenChange(false)} variant={"outline"}>
-						Close
-					</Button>
-					<Button onClick={handleEditClick} disabled={!hasValidInputs}>
-						Save
-					</Button>
-				</DialogFooter>
+				</div>
 			</DialogContent>
+
+			<DialogActions>
+				<Button onClick={() => handleOpenChange(false)}>Cancel</Button>
+				<Button
+					onClick={handleEditClick}
+					disabled={!hasValidInputs}
+					variant="contained"
+				>
+					Save
+				</Button>
+			</DialogActions>
 		</Dialog>
 	);
 };

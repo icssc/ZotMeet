@@ -1,5 +1,5 @@
 {
-  "id": "84d75ce1-68c2-4353-8803-b073390c0728",
+  "id": "de52bfe5-e602-4045-a9f3-371d9cde30eb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -74,7 +74,9 @@
         }
       },
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.groups": {
       "name": "groups",
@@ -110,6 +112,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "archived": {
+          "name": "archived",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},
@@ -130,7 +139,9 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.meetings": {
       "name": "meetings",
@@ -204,12 +215,27 @@
           "notNull": true,
           "default": "'[]'::jsonb"
         },
+        "meeting_type": {
+          "name": "meeting_type",
+          "type": "meeting_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'dates'"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "archived": {
+          "name": "archived",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         }
       },
       "indexes": {},
@@ -243,7 +269,9 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.members": {
       "name": "members",
@@ -267,7 +295,9 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.oauth_accounts": {
       "name": "oauth_accounts",
@@ -318,7 +348,67 @@
         }
       },
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.scheduled_meetings": {
+      "name": "scheduled_meetings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "meeting_id": {
+          "name": "meeting_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_date": {
+          "name": "scheduled_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_from_time": {
+          "name": "scheduled_from_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "scheduled_to_time": {
+          "name": "scheduled_to_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "scheduled_meetings_meeting_id_meetings_id_fk": {
+          "name": "scheduled_meetings_meeting_id_meetings_id_fk",
+          "tableFrom": "scheduled_meetings",
+          "tableTo": "meetings",
+          "columnsFrom": [
+            "meeting_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.sessions": {
       "name": "sessions",
@@ -341,6 +431,18 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "oidc_access_token": {
+          "name": "oidc_access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "oidc_refresh_token": {
+          "name": "oidc_refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "google_access_token": {
           "name": "google_access_token",
@@ -395,7 +497,9 @@
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.users": {
       "name": "users",
@@ -418,12 +522,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
-        },
-        "password_hash": {
-          "name": "password_hash",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -459,7 +557,9 @@
           ]
         }
       },
-      "checkConstraints": {}
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.users_in_group": {
       "name": "users_in_group",
@@ -476,6 +576,14 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "group_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'member'"
         }
       },
       "indexes": {},
@@ -517,7 +625,9 @@
         }
       },
       "uniqueConstraints": {},
-      "checkConstraints": {}
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     }
   },
   "enums": {
@@ -529,10 +639,28 @@
         "maybe",
         "declined"
       ]
+    },
+    "public.group_role": {
+      "name": "group_role",
+      "schema": "public",
+      "values": [
+        "member",
+        "admin"
+      ]
+    },
+    "public.meeting_type": {
+      "name": "meeting_type",
+      "schema": "public",
+      "values": [
+        "dates",
+        "days"
+      ]
     }
   },
   "schemas": {},
   "sequences": {},
+  "roles": {},
+  "policies": {},
   "views": {},
   "_meta": {
     "columns": {},

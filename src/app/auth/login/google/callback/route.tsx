@@ -94,17 +94,18 @@ export async function GET(request: Request): Promise<Response> {
 	const email = claims.email;
 
 	const existingUser = await db.query.users.findFirst({
-		where: eq(users.email, email),
+		where: (users) => eq(users.email, email),
 	});
 
 	let memberId: string;
 
 	if (existingUser) {
 		const existingOAuthAccount = await db.query.oauthAccounts.findFirst({
-			where: and(
-				eq(oauthAccounts.userId, existingUser.id),
-				eq(oauthAccounts.providerId, "oidc"),
-			),
+			where: (oauthAccounts, { eq, and }) =>
+				and(
+					eq(oauthAccounts.userId, existingUser.id),
+					eq(oauthAccounts.providerId, "oidc"),
+				),
 		});
 
 		if (!existingOAuthAccount) {
