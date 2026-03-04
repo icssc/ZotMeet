@@ -30,10 +30,7 @@ import {
 	isAnchorDateMeeting,
 } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
-import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
-import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
-import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
-import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -128,20 +125,18 @@ export function Availability({
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
 }) {
-	const availabilityView = useAvailabilityViewStore(
+	const availabilityView = useAvailabilityStore(
 		(state) => state.availabilityView,
 	);
 
-	const selectionIsLocked = useGroupSelectionStore(
+	const selectionIsLocked = useAvailabilityStore(
 		(state) => state.selectionIsLocked,
 	);
-	const resetSelection = useGroupSelectionStore(
-		(state) => state.resetSelection,
-	);
-	const setIsMobileDrawerOpen = useGroupSelectionStore(
+	const resetSelection = useAvailabilityStore((state) => state.resetSelection);
+	const setIsMobileDrawerOpen = useAvailabilityStore(
 		(state) => state.setIsMobileDrawerOpen,
 	);
-	const toggleHoverGrid = useGroupSelectionStore(
+	const toggleHoverGrid = useAvailabilityStore(
 		(state) => state.toggleHoverGrid,
 	);
 
@@ -160,7 +155,7 @@ export function Availability({
 	]);
 
 	const { currentPage, itemsPerPage, isFirstPage, nextPage, prevPage } =
-		useAvailabilityPaginationStore(
+		useAvailabilityStore(
 			useShallow((state) => ({
 				currentPage: state.currentPage,
 				itemsPerPage: state.itemsPerPage,
@@ -370,7 +365,7 @@ export function Availability({
 		}
 
 		// add DB timestamps to the state
-		useScheduleSelectionStore.getState().hydrateScheduledTimes(timestamps);
+		useAvailabilityStore.getState().hydrateScheduledTimes(timestamps);
 	}, [scheduledBlocks]);
 
 	// TODO: Could add selection clearing with the escape key
