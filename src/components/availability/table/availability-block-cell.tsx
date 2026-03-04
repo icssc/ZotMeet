@@ -1,10 +1,7 @@
 import { useShallow } from "zustand/shallow";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
 import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
-import type {
-	AvailabilityBlockType,
-	EventSegment,
-} from "@/lib/types/availability";
+import type { EventSegment } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
@@ -12,7 +9,6 @@ interface AvailabilityBlockCellProps {
 	blockIndex: number;
 	isAvailable: boolean;
 	zotDateIndex: number;
-	setAvailabilities: (startBlock: AvailabilityBlockType) => void;
 	isTopOfHour: boolean;
 	isHalfHour: boolean;
 	isLastRow: boolean;
@@ -24,111 +20,26 @@ export function AvailabilityBlockCell({
 	blockIndex,
 	isAvailable,
 	zotDateIndex,
-	setAvailabilities,
 	isTopOfHour,
 	isHalfHour,
 	isLastRow,
 	eventSegments,
 	hasSpacerBefore = false,
 }: AvailabilityBlockCellProps) {
-	const {
-		startBlockSelection,
-		selectionState,
-		setStartBlockSelection,
-		setEndBlockSelection,
-	} = useBlockSelectionStore(
+	const { selectionState } = useBlockSelectionStore(
 		useShallow((state) => ({
-			startBlockSelection: state.startBlockSelection,
 			selectionState: state.selectionState,
-			setStartBlockSelection: state.setStartBlockSelection,
-			setEndBlockSelection: state.setEndBlockSelection,
 		})),
 	);
 
-	const availabilitySelection = {
-		zotDateIndex: zotDateIndex,
-		blockIndex: blockIndex,
-	};
-
-	const handleTouchMove = (e: React.TouchEvent) => {
-		const touchingElement = document.elementFromPoint(
-			e.touches[0].clientX,
-			e.touches[0].clientY,
-		);
-
-		if (!touchingElement) return;
-
-		const touchingDateIndex = parseInt(
-			touchingElement.getAttribute("data-date-index") || "",
-			10,
-		);
-		const touchingBlockIndex = parseInt(
-			touchingElement.getAttribute("data-block-index") || "",
-			10,
-		);
-
-		if (
-			!Number.isNaN(touchingDateIndex) &&
-			!Number.isNaN(touchingBlockIndex) &&
-			startBlockSelection
-		) {
-			setEndBlockSelection({
-				zotDateIndex: touchingDateIndex,
-				blockIndex: touchingBlockIndex,
-			});
-		}
-	};
-
-	const handleTouchEnd = (e: React.TouchEvent) => {
-		if (e.cancelable) {
-			e.preventDefault();
-		}
-
-		if (startBlockSelection) {
-			setEndBlockSelection(availabilitySelection);
-			setAvailabilities(startBlockSelection);
-		}
-	};
-
-	const handleMouseUp = () => {
-		if (startBlockSelection) {
-			setEndBlockSelection(availabilitySelection);
-			setAvailabilities(startBlockSelection);
-		}
-	};
-
-	const handleMouseDown = () => {
-		setStartBlockSelection(availabilitySelection);
-		setEndBlockSelection(availabilitySelection);
-	};
-
-	const handleMouseMove = () => {
-		if (startBlockSelection) {
-			setEndBlockSelection(availabilitySelection);
-		}
-	};
-
-	const handleTouchStart = (e: React.TouchEvent) => {
-		if (e.cancelable) {
-			e.preventDefault();
-		}
-		setStartBlockSelection(availabilitySelection);
-		setEndBlockSelection(availabilitySelection);
-	};
-
 	return (
-		<td onMouseUp={handleMouseUp} className="relative px-0 py-0">
+		<td className="relative px-0 py-0">
 			<button
 				type="button"
-				onTouchStart={handleTouchStart}
-				onTouchMove={handleTouchMove}
-				onTouchEnd={handleTouchEnd}
-				onMouseDown={handleMouseDown}
-				onMouseMove={handleMouseMove}
 				data-date-index={zotDateIndex}
 				data-block-index={blockIndex}
 				className={cn(
-					"block h-full w-full cursor-row-resize border-gray-medium border-r-[1px] [touch-action:pinch-zoom]",
+					"block h-full w-full cursor-row-resize border-gray-medium border-r-[1px] [touch-action:none]",
 					isTopOfHour && "border-t-[1px] border-t-gray-medium",
 					isHalfHour && "border-t-[1px] border-t-gray-base",
 					isLastRow && "border-b-[1px]",

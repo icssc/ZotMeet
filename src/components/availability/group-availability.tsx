@@ -162,7 +162,6 @@ export function GroupAvailability({
 	const {
 		startBlockSelection,
 		endBlockSelection,
-		selectionState,
 		setStartBlockSelection,
 		setEndBlockSelection,
 		setSelectionState,
@@ -170,21 +169,17 @@ export function GroupAvailability({
 		useShallow((state) => ({
 			startBlockSelection: state.startBlockSelection,
 			endBlockSelection: state.endBlockSelection,
-			selectionState: state.selectionState,
 			setStartBlockSelection: state.setStartBlockSelection,
 			setEndBlockSelection: state.setEndBlockSelection,
 			setSelectionState: state.setSelectionState,
 		})),
 	);
 
-	const { togglePendingTime, addPendingTimeRange, isScheduled } =
-		useScheduleSelectionStore(
-			useShallow((state) => ({
-				togglePendingTime: state.togglePendingTime,
-				addPendingTimeRange: state.addPendingTimeRange,
-				isScheduled: state.isScheduled,
-			})),
-		);
+	const { isScheduled } = useScheduleSelectionStore(
+		useShallow((state) => ({
+			isScheduled: state.isScheduled,
+		})),
+	);
 	// to load scheduled time blocks when meeting is loaded
 	// Forces re-render when scheduled or pending times change
 
@@ -310,215 +305,6 @@ export function GroupAvailability({
 		],
 	);
 
-	const handleMouseDown = useCallback(
-		({
-			zotDateIndex,
-			blockIndex,
-		}: {
-			zotDateIndex: number;
-			blockIndex: number;
-		}) => {
-			if (isScheduling) {
-				setStartBlockSelection({ zotDateIndex, blockIndex });
-				setEndBlockSelection({ zotDateIndex, blockIndex });
-			}
-		},
-		[isScheduling, setStartBlockSelection, setEndBlockSelection],
-	);
-
-	const handleMouseMove = useCallback(
-		({
-			zotDateIndex,
-			blockIndex,
-		}: {
-			zotDateIndex: number;
-			blockIndex: number;
-		}) => {
-			if (isScheduling && startBlockSelection) {
-				setEndBlockSelection({ zotDateIndex, blockIndex });
-			}
-		},
-		[isScheduling, startBlockSelection, setEndBlockSelection],
-	);
-
-	const handleMouseUp = useCallback(() => {
-		if (
-			isScheduling &&
-			startBlockSelection &&
-			endBlockSelection &&
-			selectionState
-		) {
-			const {
-				earlierDateIndex,
-				laterDateIndex,
-				earlierBlockIndex,
-				laterBlockIndex,
-			} = selectionState;
-
-			// get timestamps in the selected range
-			const timestamps: string[] = [];
-			for (
-				let dateIndex = earlierDateIndex;
-				dateIndex <= laterDateIndex;
-				dateIndex++
-			) {
-				for (
-					let blockIdx = earlierBlockIndex;
-					blockIdx <= laterBlockIndex;
-					blockIdx++
-				) {
-					const timestamp = getTimestampFromBlockIndex(
-						blockIdx,
-						dateIndex,
-						fromTime,
-						availabilityDates,
-					);
-					if (timestamp) {
-						timestamps.push(timestamp);
-					}
-				}
-			}
-
-			// Toggle all timestamps in range
-			if (timestamps.length > 0) {
-				const firstTimestamp = timestamps[0];
-				const isFirstScheduled = isScheduled(firstTimestamp);
-
-				// if first timestamp is scheduled, we are un-scheduling the whole range
-				if (isFirstScheduled) {
-					timestamps.forEach((ts) => {
-						if (isScheduled(ts)) {
-							togglePendingTime(ts);
-						}
-					});
-					// else we are scheduling the whole range
-				} else {
-					addPendingTimeRange(timestamps);
-				}
-
-				// Reset selection
-				setStartBlockSelection(undefined);
-				setEndBlockSelection(undefined);
-				setSelectionState(undefined);
-			}
-		}
-	}, [
-		isScheduling,
-		startBlockSelection,
-		endBlockSelection,
-		selectionState,
-		fromTime,
-		availabilityDates,
-		isScheduled,
-		togglePendingTime,
-		addPendingTimeRange,
-		setStartBlockSelection,
-		setEndBlockSelection,
-		setSelectionState,
-	]);
-
-	const handleTouchStart = (e: React.TouchEvent) => {
-		if (e.cancelable) {
-			e.preventDefault();
-		}
-		if (!isScheduling) return;
-
-		const touch = e.touches[0];
-		const element = document.elementFromPoint(touch.clientX, touch.clientY);
-
-		if (!element) return;
-
-		const zotDateIndex = parseInt(
-			element.getAttribute("data-date-index") || "",
-			10,
-		);
-		const blockIndex = parseInt(
-			element.getAttribute("data-block-index") || "",
-			10,
-		);
-
-		if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIndex)) {
-			setStartBlockSelection({ zotDateIndex, blockIndex });
-			setEndBlockSelection({ zotDateIndex, blockIndex });
-		}
-	};
-
-	const handleTouchMove = (e: React.TouchEvent) => {
-		if (!isScheduling) return;
-
-		const touch = e.touches[0];
-		const element = document.elementFromPoint(touch.clientX, touch.clientY);
-
-		if (!element || !startBlockSelection) return;
-
-		const zotDateIndex = parseInt(
-			element.getAttribute("data-date-index") || "",
-			10,
-		);
-		const blockIndex = parseInt(
-			element.getAttribute("data-block-index") || "",
-			10,
-		);
-
-		if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIndex)) {
-			setEndBlockSelection({ zotDateIndex, blockIndex });
-		}
-	};
-
-	const handleTouchEnd = (e: React.TouchEvent) => {
-		if (e.cancelable) {
-			e.preventDefault();
-		}
-		if (!isScheduling) return;
-
-		if (startBlockSelection && endBlockSelection && selectionState) {
-			const {
-				earlierDateIndex,
-				laterDateIndex,
-				earlierBlockIndex,
-				laterBlockIndex,
-			} = selectionState;
-
-			const timestamps: string[] = [];
-			for (
-				let dateIndex = earlierDateIndex;
-				dateIndex <= laterDateIndex;
-				dateIndex++
-			) {
-				for (
-					let blockIdx = earlierBlockIndex;
-					blockIdx <= laterBlockIndex;
-					blockIdx++
-				) {
-					const timestamp = getTimestampFromBlockIndex(
-						blockIdx,
-						dateIndex,
-						fromTime,
-						availabilityDates,
-					);
-					if (timestamp) timestamps.push(timestamp);
-				}
-			}
-
-			if (timestamps.length > 0) {
-				const firstTimestamp = timestamps[0];
-				const isFirstScheduled = isScheduled(firstTimestamp);
-
-				if (isFirstScheduled) {
-					timestamps.forEach((ts) => {
-						if (isScheduled(ts)) togglePendingTime(ts);
-					});
-				} else {
-					addPendingTimeRange(timestamps);
-				}
-
-				setStartBlockSelection(undefined);
-				setEndBlockSelection(undefined);
-				setSelectionState(undefined);
-			}
-		}
-	};
-
 	const isTopOfHour = timeBlock % 60 === 0;
 	const isHalfHour = timeBlock % 60 === 30;
 	const isLastRow = blockIndex === availabilityTimeBlocks.length - 1;
@@ -590,22 +376,6 @@ export function GroupAvailability({
 									blockIndex,
 								})
 							}
-							onMouseDown={() =>
-								handleMouseDown({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onMouseMove={() =>
-								handleMouseMove({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onMouseUp={handleMouseUp}
-							onTouchStart={(e) => handleTouchStart(e)}
-							onTouchMove={(e) => handleTouchMove(e)}
-							onTouchEnd={(e) => handleTouchEnd(e)}
 							blockColor={blockColor}
 							tableCellStyles={tableCellStyles}
 							hasSpacerBefore={spacers[pageDateIndex]}
