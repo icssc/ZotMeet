@@ -43,7 +43,7 @@ export const ScheduledMeetingCard = ({
 			<button
 				type="button"
 				onClick={() => setExpanded((v) => !v)}
-				className="flex w-full items-start items-center gap-4 text-left"
+				className="flex w-full items-center gap-4 text-left"
 				aria-expanded={expanded}
 			>
 				<a href={`/availability/${meeting.id}`}>

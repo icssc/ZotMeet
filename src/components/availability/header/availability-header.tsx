@@ -228,25 +228,37 @@ export function AvailabilityHeader({
 											"h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0",
 										)}
 										onClick={async () => {
-											const { success, link } =
-												await getGoogleCalendarPrefilledLink({
-													meetingId: meetingData.id,
-													meetingTitle: meetingData.title,
-													meetingDescription: meetingData.description,
-													meetingLocation: meetingData.location,
-													timezone: meetingData.timezone,
-												});
+											try {
+												const { success, link } =
+													await getGoogleCalendarPrefilledLink({
+														meetingId: meetingData.id,
+														meetingTitle: meetingData.title,
+														meetingDescription: meetingData.description,
+														meetingLocation: meetingData.location,
+														timezone: meetingData.timezone,
+													});
 
-											if (!success || !link) {
-												toast.error("Failed to generate Google Calendar link.");
-												return;
+												if (!success || !link) {
+													toast.error(
+														"Failed to generate Google Calendar link.",
+													);
+													return;
+												}
+
+												window.open(link, "_blank", "noopener,noreferrer");
+
+												toast.success(
+													"Google Calendar link opened! Confirm the event in your calendar.",
+												);
+											} catch (error) {
+												console.error(
+													"Error generating Google Calendar link:",
+													error,
+												);
+												toast.error(
+													"An error occurred while generating the Google Calendar link.",
+												);
 											}
-
-											window.open(link, "_blank", "noopener,noreferrer");
-
-											toast.success(
-												"Google Calendar link opened! Confirm the event in your calendar.",
-											);
 										}}
 									>
 										<GoogleIcon className="size-5" />

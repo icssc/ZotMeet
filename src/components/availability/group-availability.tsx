@@ -193,6 +193,7 @@ export function GroupAvailability({
 	useEffect(() => {
 		if (startBlockSelection && endBlockSelection) {
 			if (startBlockSelection.zotDateIndex !== endBlockSelection.zotDateIndex) {
+				setSelectionState(undefined);
 				return;
 			}
 			setSelectionState({
