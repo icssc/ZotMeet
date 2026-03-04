@@ -11,7 +11,7 @@ import type {
 	ProcessedCellEventSegments,
 } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
-import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface AvailabilityBlocksProps {
 	setAvailabilities: (startBlock: AvailabilityBlockType) => void;
@@ -30,7 +30,7 @@ export function AvailabilityBlocks({
 	currentPageAvailability,
 	processedCellSegments,
 }: AvailabilityBlocksProps) {
-	const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
+	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
 			itemsPerPage: state.itemsPerPage,
