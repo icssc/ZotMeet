@@ -37,7 +37,7 @@ export const GroupAvailabilityBlock = memo(
 			<button
 				type="button"
 				className={cn(
-					"h-8 w-full border-gray-medium border-r-[1px] transition-opacity duration-200 [touch-action:none]",
+					"h-full w-full border-gray-medium border-r-[1px] transition-opacity duration-200 [touch-action:none]",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
 					tableCellStyles,
 					className,
@@ -52,7 +52,7 @@ export const GroupAvailabilityBlock = memo(
 				data-block-index={blockIndex}
 			>
 				<div
-					className={cn("pointer-events-none block h-full w-full")}
+					className={cn("pointer-events-none block h-full w-full py-2")}
 					style={{ background: blockColor }}
 					data-date-index={dateIndex}
 					data-block-index={blockIndex}
