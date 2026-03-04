@@ -621,13 +621,15 @@ export function Availability({
 						handleClick={prevPage}
 						disabled={isFirstPage}
 					/>
-					<div {...bind()}>
+          
+					<div className="flex flex-col gap-4" {...bind()}>
 						<table className="w-full table-fixed">
 							<AvailabilityTableHeader
 								currentPageAvailability={currentPageAvailability}
 								meetingType={meetingData.meetingType}
 								doesntNeedDay={doesntNeedDay}
 							/>
+
 							<tbody onMouseLeave={handleMouseLeave}>
 								{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
 									<tr key={`block-${timeBlock}`}>
@@ -662,12 +664,16 @@ export function Availability({
 								))}
 							</tbody>
 						</table>
-						<TimeZoneDropdown
-							timeZone={userTimezone}
-							changeTimeZone={setUserTimezone}
-							changeableTimezone={changeableTimezone}
-						/>
+
+						<div className="ml-10 flex flex-row items-center justify-between gap-4 md:ml-16">
+							<TimeZoneDropdown
+								timeZone={userTimezone}
+								changeTimeZone={setUserTimezone}
+								changeableTimezone={changeableTimezone}
+							/>
+						</div>
 					</div>
+
 					<AvailabilityNavButton
 						direction="right"
 						handleClick={() => nextPage(availabilityDates.length)}

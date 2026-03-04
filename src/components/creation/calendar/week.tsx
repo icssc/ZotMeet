@@ -1,5 +1,4 @@
 import type { Dispatch, SetStateAction } from "react";
-import { Button } from "@/components/ui/button";
 import { ANCHOR_DATES, WEEKDAYS } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -29,37 +28,29 @@ export function Week({ selectedDays, setSelectedDays }: WeekProps) {
 	};
 
 	return (
-		<tbody>
-			<tr>
-				<td colSpan={7} className="text-center">
-					<div className="grid grid-cols-7 gap-2 pb-2">
-						{WEEKDAYS.map((dayOfWeek, index) => {
-							const anchorDate = ANCHOR_DATES[index];
+		<div className="flex flex-wrap justify-center gap-3">
+			{WEEKDAYS.map((dayOfWeek, index) => {
+				const anchorDate = ANCHOR_DATES[index];
+				const isSelected = selectedDays.some(
+					(selectedDay) => selectedDay.day.getDay() === anchorDate.getDay(),
+				);
 
-							const isSelected = selectedDays.some(
-								(selectedDay) =>
-									selectedDay.day.getDay() === anchorDate.getDay(),
-							);
-
-							return (
-								<Button
-									key={dayOfWeek}
-									variant="outline"
-									className={cn(
-										"flex h-16 flex-col items-center justify-center rounded-md border border-gray-300 p-2 transition-colors duration-200",
-										isSelected
-											? "bg-primary text-white hover:bg-primary/90 hover:text-white"
-											: "hover:bg-gray-100",
-									)}
-									onClick={() => handleDayClick(index)}
-								>
-									<p className="text-xl">{dayOfWeek}</p>
-								</Button>
-							);
-						})}
-					</div>
-				</td>
-			</tr>
-		</tbody>
+				return (
+					<button
+						key={dayOfWeek}
+						type="button"
+						className={cn(
+							"flex h-14 w-24 items-center justify-center rounded-lg border font-medium text-base transition-colors duration-150",
+							isSelected
+								? "border-primary bg-primary text-white shadow-sm"
+								: "border-gray-200 bg-white text-gray-700 hover:border-primary/40 hover:bg-primary/5",
+						)}
+						onClick={() => handleDayClick(index)}
+					>
+						{dayOfWeek}
+					</button>
+				);
+			})}
+		</div>
 	);
 }

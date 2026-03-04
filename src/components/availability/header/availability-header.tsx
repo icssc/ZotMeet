@@ -6,6 +6,8 @@ import {
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
 import {
+	CalendarCheck,
+	CalendarPlus,
 	CircleCheckIcon,
 	CircleXIcon,
 	DeleteIcon,
@@ -14,17 +16,14 @@ import {
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
-import { AuthDialog } from "@/components/auth/auth-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
-import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
 interface AvailabilityHeaderProps {
@@ -61,14 +60,6 @@ export function AvailabilityHeader({
 			setAvailabilityView: state.setAvailabilityView,
 		})),
 	);
-
-	const { enabled: showBestTimes, setEnabled: setShowBestTimes } =
-		useBestTimesToggleStore(
-			useShallow((state) => ({
-				enabled: state.enabled,
-				setEnabled: state.setEnabled,
-			})),
-		);
 
 	const handleCancel = () => {
 		onCancel();
@@ -184,102 +175,61 @@ export function AvailabilityHeader({
 
 	return (
 		<>
-			<div className="flex-between gap-x-2 px-2 pt-8 md:px-4 md:pt-10">
-				<h1 className="line-clamp-1 h-8 truncate font-medium font-montserrat text-xl md:h-fit md:text-3xl">
-					{meetingData.title}
-				</h1>
+			<div className="px-2 pt-8">
+				<div className="flex items-start justify-between gap-x-4">
+					<h1 className="line-clamp-1 truncate font-medium font-montserrat text-xl md:text-3xl">
+						{meetingData.title}
+					</h1>
 
-				<div className="flex flex-row items-center gap-x-2">
-					{isOwner && (
-						<>
-							<Button
-								onClick={() => setIsEditModalOpen(true)}
-								variant="outline"
-								className="h-full min-h-fit min-w-fit flex-center rounded font-dm-sans"
-							>
-								<EditIcon className="text-2xl" />
-							</Button>
-
-							<Button
-								onClick={() => setIsDeleteModalOpen(true)}
-								variant="outline"
-								className="h-full min-h-fit min-w-fit flex-center rounded font-dm-sans"
-							>
-								<DeleteIcon className="text-2xl" />
-							</Button>
-						</>
-					)}
-					<div className="flex flex-row justify-end space-x-2">
-						{availabilityView === "personal" ? (
-							<div className="flex space-x-2 md:space-x-4">
+					<div className="flex shrink-0 space-x-2">
+						{availabilityView === "personal" ||
+						availabilityView === "schedule" ? (
+							<>
 								<Button
 									className={cn(
-										"h-8 min-h-fit flex-center border border-yellow-500 bg-white px-2 text-yellow-500 uppercase md:w-28 md:p-0",
-										"hover:border-yellow-500 hover:bg-yellow-500 hover:text-white",
+										"h-8 flex-center bg-white px-4 py-0 text-white uppercase",
+										"group bg-yellow-500 hover:bg-yellow-500/80",
 									)}
-									onClick={handleCancel}
+									onClick={
+										availabilityView === "personal"
+											? handleCancel
+											: handleScheduleCancel
+									}
 								>
 									<span className="hidden md:flex">Cancel</span>
 									<CircleXIcon />
 								</Button>
 								<Button
 									className={cn(
-										"h-8 min-h-fit flex-center border border-green-500 bg-white px-2 text-secondary uppercase md:w-24 md:p-0",
-										"group hover:border-green-500 hover:bg-green-500",
+										"h-8 flex-center bg-white px-4 py-0 text-white uppercase",
+										"group bg-green-500 hover:bg-green-500/80",
 									)}
 									type="submit"
-									onClick={handleSave}
+									onClick={
+										availabilityView === "personal"
+											? handleSave
+											: handleScheduleSave
+									}
 								>
-									<span className="hidden text-green-500 group-hover:text-white md:flex">
-										Save
-									</span>
-									<CircleCheckIcon className="text-green-500 group-hover:text-white" />
+									<span className="hidden md:flex">Save</span>
+									<CircleCheckIcon />
 								</Button>
-							</div>
-						) : availabilityView === "schedule" ? (
-							<div className="flex space-x-2 md:space-x-4">
-								<Button
-									className={cn(
-										"h-8 min-h-fit flex-center border border-yellow-500 bg-white px-2 text-yellow-500 uppercase md:w-24 md:p-0",
-										"group hover:border-yellow-500 hover:bg-yellow-500 hover:text-white",
-									)}
-									onClick={handleScheduleCancel}
-								>
-									<span className="hidden md:flex">Cancel</span>
-									<CircleXIcon />
-								</Button>
-								<Button
-									className={cn(
-										"h-8 min-h-fit flex-center border border-green-500 bg-white px-2 text-secondary uppercase md:w-24 md:p-0",
-										"group hover:border-green-500 hover:bg-green-500",
-									)}
-									type="submit"
-									onClick={handleScheduleSave}
-								>
-									<span className="hidden text-green-500 group-hover:text-white md:flex">
-										Save
-									</span>
-									<CircleCheckIcon className="text-green-500 group-hover:text-white" />
-								</Button>
-							</div>
+							</>
 						) : (
-							<div className="flex space-x-2">
+							<>
 								{isOwner && (
 									<Button
-										className={cn(
-											"h-8 min-h-fit min-w-fit flex-center px-2 md:w-40 md:p-0",
-										)}
-										onClick={() => {
-											setAvailabilityView("schedule");
-										}}
+										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
+										onClick={() => setAvailabilityView("schedule")}
 									>
-										<span className="flex font-dm-sans">Schedule Meeting</span>
+										<CalendarCheck className="size-5 md:hidden" />
+										<span className="hidden font-dm-sans md:flex">
+											Schedule Meeting
+										</span>
 									</Button>
 								)}
 								<Button
-									className={cn(
-										"h-8 min-h-fit min-w-fit flex-center px-2 md:w-40 md:p-0",
-									)}
+									className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
 									onClick={() => {
 										if (!user) {
 											setIsAuthModalOpen(true);
@@ -293,24 +243,40 @@ export function AvailabilityHeader({
 										setAvailabilityView("personal");
 									}}
 								>
-									<span className="flex font-dm-sans">
+									<CalendarPlus className="size-5 md:hidden" />
+									<span className="hidden font-dm-sans md:flex">
 										{hasAvailability ? "Edit Availability" : "Add Availability"}
 									</span>
 								</Button>
-							</div>
+							</>
 						)}
-						<div className="flex items-center space-x-2">
-							<Switch
-								checked={showBestTimes}
-								onCheckedChange={setShowBestTimes}
-							/>
-							<span className="flex font-dm-sans">Best Times</span>
-						</div>
 					</div>
 				</div>
-			</div>
 
-			{/*<AuthDialog />*/}
+				{isOwner && (
+					<div className="-ml-2 flex items-center gap-x-1 pt-1">
+						<Button
+							onClick={() => setIsEditModalOpen(true)}
+							variant="ghost"
+							size="sm"
+							className="gap-1 text-muted-foreground"
+						>
+							<EditIcon className="size-4" />
+							<span className="font-dm-sans text-sm">Edit Meeting</span>
+						</Button>
+
+						<Button
+							onClick={() => setIsDeleteModalOpen(true)}
+							variant="ghost"
+							size="sm"
+							className="gap-1 text-muted-foreground hover:text-destructive"
+						>
+							<DeleteIcon className="size-4" />
+							<span className="font-dm-sans text-sm">Delete Meeting</span>
+						</Button>
+					</div>
+				)}
+			</div>
 
 			<EditModal
 				meetingData={meetingData}
@@ -323,14 +289,6 @@ export function AvailabilityHeader({
 				isOpen={isDeleteModalOpen}
 				handleOpenChange={setIsDeleteModalOpen}
 			/>
-
-			{/* <GuestDialog
-                isGuestDialogOpen={isGuestDialogOpen}
-                setIsGuestDialogOpen={setIsGuestDialogOpen}
-                guestName={guestName}
-                setGuestName={setGuestName}
-                saveAvailabilityData={saveAvailabilityData}
-            /> */}
 		</>
 	);
 }
