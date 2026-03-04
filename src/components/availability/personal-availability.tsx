@@ -50,9 +50,7 @@ export function PersonalAvailability({
 			const currentState = JSON.stringify(
 				availabilityDates.map((date) => date.availability),
 			);
-			if (currentState !== initialAvailabilityRef.current) {
-				setIsStateUnsaved(true);
-			}
+			setIsStateUnsaved(currentState !== initialAvailabilityRef.current);
 		}
 	}, [availabilityDates]);
 
