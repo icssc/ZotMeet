@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useShallow } from "zustand/shallow";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { useGoogleCalendar } from "@/hooks/use-google-calendar";
 import type { GoogleCalendarEvent } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface PersonalAvailabilityProps {
 	timeBlock: number;
@@ -25,6 +27,25 @@ export function PersonalAvailability({
 	googleCalendarEvents,
 	meetingDates,
 }: PersonalAvailabilityProps) {
+	const {
+		startBlockSelection,
+		endBlockSelection,
+		selectionState,
+		setStartBlockSelection,
+		setEndBlockSelection,
+		setSelectionState,
+	} = useAvailabilityStore(
+		useShallow((state) => ({
+			startBlockSelection: state.startBlockSelection,
+			endBlockSelection: state.endBlockSelection,
+			selectionState: state.selectionState,
+			setStartBlockSelection: state.setStartBlockSelection,
+			setEndBlockSelection: state.setEndBlockSelection,
+			setSelectionState: state.setSelectionState,
+		})),
+	);
+
+	const [isEditingAvailability, setIsEditingAvailability] = useState(false);
 	const [isStateUnsaved, setIsStateUnsaved] = useState(false);
 	const initialAvailabilityRef = useRef<string | null>(null);
 
