@@ -11,7 +11,7 @@ import type {
 	GoogleCalendarEvent,
 } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
-import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface PersonalAvailabilityProps {
 	timeBlock: number;
@@ -46,7 +46,7 @@ export function PersonalAvailability({
 		setStartBlockSelection,
 		setEndBlockSelection,
 		setSelectionState,
-	} = useBlockSelectionStore(
+	} = useAvailabilityStore(
 		useShallow((state) => ({
 			startBlockSelection: state.startBlockSelection,
 			endBlockSelection: state.endBlockSelection,

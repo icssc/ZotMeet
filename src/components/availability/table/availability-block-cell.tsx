@@ -6,7 +6,7 @@ import type {
 	EventSegment,
 } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
-import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface AvailabilityBlockCellProps {
 	blockIndex: number;
@@ -36,7 +36,7 @@ export function AvailabilityBlockCell({
 		selectionState,
 		setStartBlockSelection,
 		setEndBlockSelection,
-	} = useBlockSelectionStore(
+	} = useAvailabilityStore(
 		useShallow((state) => ({
 			startBlockSelection: state.startBlockSelection,
 			selectionState: state.selectionState,

@@ -9,9 +9,7 @@ import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
-import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
-import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
-import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface GroupResponsesProps {
 	availabilityDates: ZotDate[];
@@ -38,8 +36,8 @@ export function GroupResponses({
 		doesntNeedDay,
 	);
 
-	const { availabilityView } = useAvailabilityViewStore();
 	const {
+		availabilityView,
 		selectedZotDateIndex,
 		selectedBlockIndex,
 		isMobileDrawerOpen,
@@ -48,8 +46,11 @@ export function GroupResponses({
 		toggleSelectedMember,
 		selectedMembers,
 		isHoveringGrid,
-	} = useGroupSelectionStore(
+		enabled: showBestTimes,
+		setEnabled: setShowBestTimes,
+	} = useAvailabilityStore(
 		useShallow((state) => ({
+			availabilityView: state.availabilityView,
 			selectedZotDateIndex: state.selectedZotDateIndex,
 			selectedBlockIndex: state.selectedBlockIndex,
 			isMobileDrawerOpen: state.isMobileDrawerOpen,
@@ -58,16 +59,10 @@ export function GroupResponses({
 			toggleSelectedMember: state.toggleSelectedMember,
 			selectedMembers: state.selectedMembers,
 			isHoveringGrid: state.isHoveringGrid,
+			enabled: state.enabled,
+			setEnabled: state.setEnabled,
 		})),
 	);
-
-	const { enabled: showBestTimes, setEnabled: setShowBestTimes } =
-		useBestTimesToggleStore(
-			useShallow((state) => ({
-				enabled: state.enabled,
-				setEnabled: state.setEnabled,
-			})),
-		);
 
 	const [blockInfoString, setBlockInfoString] = useState(
 		"Select a cell to view",
