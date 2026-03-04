@@ -77,6 +77,7 @@ export function AvailabilityHeader({
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
+	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
 
@@ -228,6 +229,8 @@ export function AvailabilityHeader({
 											"h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0",
 										)}
 										onClick={async () => {
+											if (isGeneratingLink) return;
+											setIsGeneratingLink(true);
 											try {
 												const { success, link } =
 													await getGoogleCalendarPrefilledLink({
@@ -258,6 +261,8 @@ export function AvailabilityHeader({
 												toast.error(
 													"An error occurred while generating the Google Calendar link.",
 												);
+											} finally {
+												setIsGeneratingLink(false);
 											}
 										}}
 									>
