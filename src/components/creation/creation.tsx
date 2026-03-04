@@ -18,6 +18,7 @@ import { convertTimeToUTC } from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
+import MeetingCard from "../ui/meeting-card";
 
 export function Creation({ user }: { user: UserProfile | null }) {
 	const [isCreating, setIsCreating] = useState(false);
@@ -215,6 +216,42 @@ export function Creation({ user }: { user: UserProfile | null }) {
 					{isCreating ? "Creating..." : "Continue →"}
 				</Button>
 			</div>
+
+			<MeetingCard
+				meetingName="Meeting Name"
+				meetingOrganizer="Meeting Organizer"
+				dateStart="2/3"
+				dateEnd="2/4"
+				timeStart="8am"
+				timeEnd="5pm"
+				numResponders="8"
+				location="mylocation"
+				meetingLink="/"
+			/>
+
+			<MeetingCard
+				meetingName="Meeting Name"
+				meetingOrganizer="Meeting Organizer"
+				dateStart="2/3"
+				dateEnd="2/4"
+				timeStart="8am"
+				timeEnd="5pm"
+				numResponders="8"
+				location="mylocation"
+				meetingLink="/"
+			/>
+
+			<MeetingCard
+				meetingName="Meeting Name"
+				meetingOrganizer="Meeting Organizer"
+				dateStart="2/3"
+				dateEnd="2/4"
+				timeStart="8am"
+				timeEnd="5pm"
+				numResponders="8"
+				location="mylocation"
+				meetingLink="/"
+			/>
 		</div>
 	);
 }
