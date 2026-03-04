@@ -222,41 +222,10 @@ export function AvailabilityHeader({
 							</>
 						) : (
 							<>
-								{isOwner && (
-									<Button
-										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
-										onClick={() => setAvailabilityView("schedule")}
-									>
-										<CalendarCheck className="size-5 md:hidden" />
-										<span className="hidden font-dm-sans md:flex">
-											Schedule Meeting
-										</span>
-									</Button>
-								)}
-								<Button
-									className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
-									onClick={() => {
-										if (!user) {
-											setIsAuthModalOpen(true);
-											router.push("/auth/login/google");
-											return;
-										}
-										setChangeableTimezone(false);
-										setTimezone(
-											Intl.DateTimeFormat().resolvedOptions().timeZone,
-										);
-										setAvailabilityView("personal");
-									}}
-								>
-									<CalendarPlus className="size-5 md:hidden" />
-									<span className="hidden font-dm-sans md:flex">
-										{hasAvailability ? "Edit Availability" : "Add Availability"}
-									</span>
-								</Button>
 								{isScheduled && (
 									<Button
 										className={cn(
-											"h-8 min-h-fit min-w-fit flex-center px-2 md:w-40 md:p-0",
+											"h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0",
 										)}
 										onClick={async () => {
 											const { success, link } =
@@ -280,10 +249,45 @@ export function AvailabilityHeader({
 											);
 										}}
 									>
-										<GoogleIcon />
-										<span className="flex font-dm-sans">Add to Calendar</span>
+										<GoogleIcon className="size-5" />
+										<span className="hidden font-dm-sans md:flex">
+											Add to Calendar
+										</span>
 									</Button>
 								)}
+
+								{isOwner && (
+									<Button
+										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
+										onClick={() => setAvailabilityView("schedule")}
+									>
+										<CalendarCheck className="size-5" />
+										<span className="hidden font-dm-sans md:flex">
+											Schedule Meeting
+										</span>
+									</Button>
+								)}
+
+								<Button
+									className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
+									onClick={() => {
+										if (!user) {
+											setIsAuthModalOpen(true);
+											router.push("/auth/login/google");
+											return;
+										}
+										setChangeableTimezone(false);
+										setTimezone(
+											Intl.DateTimeFormat().resolvedOptions().timeZone,
+										);
+										setAvailabilityView("personal");
+									}}
+								>
+									<CalendarPlus className="size-5" />
+									<span className="hidden font-dm-sans md:flex">
+										{hasAvailability ? "Edit Availability" : "Add Availability"}
+									</span>
+								</Button>
 							</>
 						)}
 					</div>
