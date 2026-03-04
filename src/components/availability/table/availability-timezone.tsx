@@ -20,11 +20,7 @@ export const TimeZoneDropdown = ({
 	};
 
 	return (
-		<FormControl
-			variant="standard"
-			disabled={!changeableTimezone}
-			sx={{ width: 400 }}
-		>
+		<FormControl variant="standard" disabled={!changeableTimezone}>
 			<InputLabel id="TimeZone-Switcher-Label">Select Time Zone:</InputLabel>
 			<Select
 				labelId="TimeZone-Switcher-Label"

@@ -15,6 +15,7 @@ export const createGroupSchema = z.object({
 			message: "Description must be less than 500 characters",
 		})
 		.optional(),
+	memberIds: z.array(z.string()).optional(),
 });
 
 export type CreateGroupInput = z.infer<typeof createGroupSchema>;

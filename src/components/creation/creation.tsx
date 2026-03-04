@@ -30,6 +30,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		selectedDates: parseAsArrayOf(parseAsString).withDefault([]),
 		meetingType: parseAsStringEnum(["dates", "days"]).withDefault("dates"),
 		timezone: parseAsString.withDefault("America/Los_Angeles"),
+		groupId: parseAsString.withDefault(""),
 	});
 
 	// Convert selected dates from ISO strings to ZotDate objects.
@@ -142,6 +143,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			dates,
 			description: "",
 			meetingType,
+			group_id: urlState.groupId || undefined,
 		};
 
 		const result = await createMeeting(newMeeting);
@@ -163,7 +165,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	}, [selectedDays.length, startTime, endTime, meetingName]);
 
 	return (
-		<div className="space-y-6 px-4">
+		<div className="flex flex-col gap-y-6 px-4">
 			<div className="px-4 pt-8 md:pt-8 md:pl-[60px]">
 				<h2 className="font-medium font-montserrat text-gray-dark text-xl md:text-2xl">
 					Let&apos;s plan your next meeting.
@@ -197,14 +199,15 @@ export function Creation({ user }: { user: UserProfile | null }) {
 				setMeetingType={setMeetingType}
 			/>
 
-			<div className="sticky bottom-0 -ml-4 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-border border-t bg-white p-3 md:bottom-4 md:ml-0 md:w-full md:rounded-xl md:border">
+			<div className="sticky bottom-0 z-10 -mx-4 mt-4 flex flex-row items-center justify-between gap-x-4 border-border border-t bg-white p-4 py-2 md:bottom-4 md:mx-0 md:rounded-xl md:border">
 				<p className="font-bold text-slate-medium text-sm uppercase">
-					{selectedDays.length} days selected
+					{selectedDays.length} {selectedDays.length === 1 ? "day" : "days"}{" "}
+					selected
 				</p>
 
 				<Button
 					className={cn(
-						"sm:btn-wide w-48 rounded-lg border-none bg-green-500 font-medium font-montserrat text-gray-light text-xl hover:bg-green-500/80",
+						"rounded-lg border-none bg-green-500 font-medium font-montserrat text-gray-light text-lg hover:bg-green-500/80",
 					)}
 					disabled={!hasValidInputs || isCreating}
 					onClick={handleCreation}
