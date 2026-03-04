@@ -73,13 +73,18 @@ export async function fetchGoogleCalendarEvents(
 }
 
 // helper for adding to google calendar
-function combineDateAndTime(date: Date, time: string) {
-	const [hours, minutes, seconds] = time.split(":").map(Number);
+function combineDateAndTime(date: Date, time: string): string {
+	const [hours, minutes, seconds = "00"] = time.split(":");
 
-	const combined = new Date(date);
-	combined.setHours(hours, minutes, seconds || 0, 0);
+	const yyyy = date.getFullYear();
+	const mm = String(date.getMonth() + 1).padStart(2, "0"); // 1-indexed months for gcal
+	const dd = String(date.getDate()).padStart(2, "0");
 
-	return combined.toISOString();
+	const hh = String(hours).padStart(2, "0");
+	const min = String(minutes).padStart(2, "0");
+	const ss = String(seconds).padStart(2, "0");
+
+	return `${yyyy}${mm}${dd}T${hh}${min}${ss}`;
 }
 
 export async function getGoogleCalendarPrefilledLink({
@@ -116,15 +121,8 @@ export async function getGoogleCalendarPrefilledLink({
 	// all blocks are now on the same date
 	const date = blocks[0].scheduledDate;
 
-	// Format start and end date to be in the format required by gcal (remove -, :, and .000)
-	const start = combineDateAndTime(date, mergedInterval.from).replace(
-		/([-:]|\.000)/g,
-		"",
-	);
-	const end = combineDateAndTime(date, mergedInterval.to).replace(
-		/([-:]|\.000)/g,
-		"",
-	);
+	const start = combineDateAndTime(date, mergedInterval.from);
+	const end = combineDateAndTime(date, mergedInterval.to);
 
 	const params = new URLSearchParams({
 		action: "TEMPLATE",

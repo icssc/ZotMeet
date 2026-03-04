@@ -5,13 +5,20 @@ interface TimeInterval {
 	to: string;
 }
 
+function formatLocalDateKey(date: Date): string {
+	const yyyy = date.getFullYear();
+	const mm = String(date.getMonth() + 1).padStart(2, "0");
+	const dd = String(date.getDate()).padStart(2, "0");
+	return `${yyyy}-${mm}-${dd}`;
+}
+
 export function groupScheduledBlocksByDate(
 	blocks: SelectScheduledMeeting[] = [],
 ) {
 	const map = new Map<string, SelectScheduledMeeting[]>();
 
 	for (const block of blocks) {
-		const key = block.scheduledDate.toISOString().split("T")[0];
+		const key = formatLocalDateKey(block.scheduledDate);
 		if (!map.has(key)) map.set(key, []);
 		map.get(key)!.push(block);
 	}
@@ -45,7 +52,7 @@ export const mergeContiguousTimeBlocks = (
 		if (block.scheduledFromTime === to) {
 			to = block.scheduledToTime;
 		} else {
-			throw new Error("Non-contiguous time blocks detected");
+			return null; // Non-contiguous blocks found
 		}
 	}
 
