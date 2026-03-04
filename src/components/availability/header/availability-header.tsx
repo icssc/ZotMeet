@@ -26,8 +26,7 @@ import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
-import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
-import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
@@ -55,7 +54,7 @@ export function AvailabilityHeader({
 		availabilityView,
 		setHasAvailability,
 		setAvailabilityView,
-	} = useAvailabilityViewStore(
+	} = useAvailabilityStore(
 		useShallow((state) => ({
 			hasAvailability: state.hasAvailability,
 			availabilityView: state.availabilityView,
@@ -110,7 +109,7 @@ export function AvailabilityHeader({
 		}
 	};
 
-	const { commitPendingTimes, clearPendingTimes } = useScheduleSelectionStore(
+	const { commitPendingTimes, clearPendingTimes } = useAvailabilityStore(
 		useShallow((state) => ({
 			pendingAdds: state.pendingAdds,
 			commitPendingTimes: state.commitPendingTimes,
@@ -125,8 +124,7 @@ export function AvailabilityHeader({
 
 	const handleScheduleSave = async () => {
 		try {
-			const { pendingAdds, pendingRemovals } =
-				useScheduleSelectionStore.getState();
+			const { pendingAdds, pendingRemovals } = useAvailabilityStore.getState();
 
 			// Remove pending removals
 			for (const timestamp of pendingRemovals) {
@@ -148,7 +146,6 @@ export function AvailabilityHeader({
 					scheduledToTime,
 				});
 			}
-
 			// Add new pending times
 			for (const timestamp of pendingAdds) {
 				const date = new Date(timestamp);
