@@ -576,7 +576,7 @@ export function GroupAvailability({
 						<GroupAvailabilityBlock
 							className={cn(
 								"group-availability-block block",
-								isScheduling && "cursor-row-resize",
+								isScheduling && "cursor-row-resize [touch-action:pinch-zoom]",
 							)}
 							onClick={() =>
 								handleCellClick({
