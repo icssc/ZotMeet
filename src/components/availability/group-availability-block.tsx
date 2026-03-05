@@ -41,7 +41,7 @@ export const GroupAvailabilityBlock = memo(
 			<button
 				type="button"
 				className={cn(
-					"h-full w-full border-gray-medium border-r-[1px] transition-opacity duration-200 [touch-action:pinch-zoom]",
+					"h-full w-full border-gray-medium border-r-[1px] transition-opacity duration-200",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
 					tableCellStyles,
 					className,
