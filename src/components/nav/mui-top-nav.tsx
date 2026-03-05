@@ -126,7 +126,7 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 							backgroundColor: "black",
 							fontWeight: 400,
 							lineHeight: "24px",
-							font: "Roboto",
+							fontFamily: "Roboto",
 							"&:hover": {
 								backgroundColor: "grey",
 							},
