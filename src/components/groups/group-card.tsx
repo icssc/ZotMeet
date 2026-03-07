@@ -32,11 +32,11 @@ export function GroupCard({
 	const overflow = totalMembers - displayEmails.length;
 
 	return (
-		<div className="flex w-full max-w-[650px] flex-col items-center gap-4 overflow-hidden rounded-[10px] border border-gray-200 bg-gray-100 px-[30px] py-[26px]">
+		<div className="flex h-full w-full max-w-[650px] flex-col items-center gap-4 overflow-hidden rounded-[10px] border border-gray-200 bg-gray-100 px-[30px] py-[26px]">
 			<div className="flex w-full flex-col items-center gap-[11px] overflow-hidden">
 				<div className="size-[100px] rounded-full bg-gray-300" />
 
-				<p className="text-center font-medium text-[#0a0a0a] text-base">
+				<p className="w-full truncate text-center font-medium text-[#0a0a0a] text-base">
 					{name}
 				</p>
 
@@ -57,12 +57,12 @@ export function GroupCard({
 					)}
 				</div>
 
-				<p className="w-full truncate text-center text-[#717182] text-base">
+				<p className="min-h-6 w-full truncate text-center text-[#717182] text-base">
 					{description}
 				</p>
 			</div>
 
-			<Link href={`/groups/${id}`} className="w-full">
+			<Link href={`/groups/${id}`} className="mt-auto w-full">
 				<button
 					type="button"
 					className={cn(
