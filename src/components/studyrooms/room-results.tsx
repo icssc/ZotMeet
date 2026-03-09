@@ -30,12 +30,26 @@ export function RoomResults({ rooms }: RoomResultsProps) {
 						Select Room
 					</button>
 					<ul>
-						{room.slots.slice(0, 5).map((slot) => (
-							<li key={`${slot.studyRoomId}-${slot.start}`}>
-								{slot.start} – {slot.end}:{" "}
-								{slot.isAvailable ? "Available" : "Unavailable"}
-							</li>
-						))}
+						{[...room.slots]
+							.sort((a, b) => a.start.localeCompare(b.start))
+							.slice(0, 5)
+							.map((slot) => (
+								<li key={`${slot.studyRoomId}-${slot.start}`}>
+									{new Date(slot.start).toLocaleTimeString("en-US", {
+										hour: "numeric",
+										minute: "2-digit",
+										hour12: true,
+									})}
+									{" – "}
+									{new Date(slot.end).toLocaleTimeString("en-US", {
+										hour: "numeric",
+										minute: "2-digit",
+										hour12: true,
+									})}
+									{": "}
+									{slot.isAvailable ? "Available" : "Unavailable"}
+								</li>
+							))}
 					</ul>
 				</li>
 			))}
