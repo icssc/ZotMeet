@@ -18,18 +18,24 @@ export default function Page() {
 		undefined,
 	);
 	const [rooms, setRooms] = useState<StudyRooms["data"] | null>(null);
+	const [error, setError] = useState<string | null>(null);
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
-		const { data } = await fetchStudyRooms({
-			date,
-			timeRange: `${startTime}-${endTime}`,
-			location: location || undefined,
-			capacityMin: capacityMin ? Number(capacityMin) : undefined,
-			capacityMax: capacityMax ? Number(capacityMax) : undefined,
-			isTechEnhanced,
-		});
-		setRooms(data);
+		setError(null);
+		try {
+			const { data } = await fetchStudyRooms({
+				date,
+				timeRange: `${startTime}-${endTime}`,
+				location: location || undefined,
+				capacityMin: capacityMin ? Number(capacityMin) : undefined,
+				capacityMax: capacityMax ? Number(capacityMax) : undefined,
+				isTechEnhanced,
+			});
+			setRooms(data);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "API call Failed");
+		}
 	}
 
 	return (
@@ -85,6 +91,7 @@ export default function Page() {
 				</select>
 				<Button type="submit">Search</Button>
 			</form>
+			{error && <p>{error}</p>}
 			{rooms && <RoomResults rooms={rooms} />}
 		</div>
 	);

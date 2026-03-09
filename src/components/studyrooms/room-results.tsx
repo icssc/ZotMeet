@@ -39,12 +39,14 @@ export function RoomResults({ rooms }: RoomResultsProps) {
 										hour: "numeric",
 										minute: "2-digit",
 										hour12: true,
+										timeZone: "America/Los_Angeles",
 									})}
 									{" – "}
 									{new Date(slot.end).toLocaleTimeString("en-US", {
 										hour: "numeric",
 										minute: "2-digit",
 										hour12: true,
+										timeZone: "America/Los_Angeles",
 									})}
 									{": "}
 									{slot.isAvailable ? "Available" : "Unavailable"}
