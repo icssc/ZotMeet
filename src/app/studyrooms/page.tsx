@@ -12,6 +12,11 @@ export default function Page() {
 	const [startTime, setStartTime] = useState("");
 	const [endTime, setEndTime] = useState("");
 	const [location, setLocation] = useState("");
+	const [capacityMin, setCapacityMin] = useState("");
+	const [capacityMax, setCapacityMax] = useState("");
+	const [isTechEnhanced, setIsTechEnhanced] = useState<boolean | undefined>(
+		undefined,
+	);
 	const [rooms, setRooms] = useState<StudyRooms["data"] | null>(null);
 
 	async function handleSubmit(e: React.FormEvent) {
@@ -20,6 +25,9 @@ export default function Page() {
 			date,
 			timeRange: `${startTime}-${endTime}`,
 			location: location || undefined,
+			capacityMin: capacityMin ? Number(capacityMin) : undefined,
+			capacityMax: capacityMax ? Number(capacityMax) : undefined,
+			isTechEnhanced,
 		});
 		setRooms(data);
 	}
@@ -51,6 +59,30 @@ export default function Page() {
 					value={location}
 					onChange={(e) => setLocation(e.target.value)}
 				/>
+				<Input
+					type="number"
+					placeholder="Min capacity (optional)"
+					value={capacityMin}
+					onChange={(e) => setCapacityMin(e.target.value)}
+				/>
+				<Input
+					type="number"
+					placeholder="Max capacity (optional)"
+					value={capacityMax}
+					onChange={(e) => setCapacityMax(e.target.value)}
+				/>
+				<select
+					value={isTechEnhanced === undefined ? "" : String(isTechEnhanced)}
+					onChange={(e) =>
+						setIsTechEnhanced(
+							e.target.value === "" ? undefined : e.target.value === "true",
+						)
+					}
+				>
+					<option value="">Tech enhanced (any)</option>
+					<option value="true">Tech enhanced: Yes</option>
+					<option value="false">Tech enhanced: No</option>
+				</select>
 				<Button type="submit">Search</Button>
 			</form>
 			{rooms && <RoomResults rooms={rooms} />}

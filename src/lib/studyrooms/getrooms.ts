@@ -4,15 +4,24 @@ export async function fetchStudyRooms({
 	date,
 	timeRange,
 	location,
+	capacityMin,
+	capacityMax,
+	isTechEnhanced,
 }: {
 	date: string;
 	timeRange: string;
 	location?: string;
+	capacityMin?: number;
+	capacityMax?: number;
+	isTechEnhanced?: boolean;
 }) {
 	const query: StudyRoomsByFilters = {
 		dates: date,
 		times: timeRange,
 		...(location ? { location } : {}),
+		...(capacityMin != null ? { capacityMin } : {}),
+		...(capacityMax != null ? { capacityMax } : {}),
+		...(isTechEnhanced != null ? { isTechEnhanced } : {}),
 	};
 	const params = new URLSearchParams(
 		query as Record<string, string>,
