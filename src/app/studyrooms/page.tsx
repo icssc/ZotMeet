@@ -23,6 +23,7 @@ export default function Page() {
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setError(null);
+		setRooms(null);
 		try {
 			const { data } = await fetchStudyRooms({
 				date,
