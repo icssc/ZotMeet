@@ -257,7 +257,7 @@ export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 				/>
 			</div>
 
-			<div className="grid grid-cols-3 gap-3">
+			<div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-3">
 				{meetings.map((m) => (
 					<MeetingCard
 						meetingName={m.title}

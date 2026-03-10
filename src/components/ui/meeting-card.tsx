@@ -33,7 +33,7 @@ const MeetingCard = ({
 	meetingLink,
 }: MeetingCardProps) => {
 	return (
-		<div className="border-2 border-gray-300 rounded-xl p-10 w-fit mb-10">
+		<div className="border-2 border-gray-300 rounded-xl p-10 w-full mb-10">
 			<div className="flex">
 				<p className="text-2xl">{meetingName}</p>
 				<MoreVertIcon className="ml-auto text-gray-500" />
@@ -41,7 +41,7 @@ const MeetingCard = ({
 
 			<p className="text-gray-500 mb-4">{meetingOrganizer}</p>
 
-			<div className="grid grid-cols-2 gap-x-16 gap-y-3 text-gray-500">
+			<div className="grid grid-cols-2 gap-x-16 gap-6 text-gray-500">
 				<div className="flex items-center gap-2">
 					<CalendarMonthIcon fontSize="small" />
 					<span>
