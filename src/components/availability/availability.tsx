@@ -39,16 +39,19 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
 	meetingDates,
-	userAvailability,
+	userId,
 	allAvailabilties,
 	availabilityTimeBlocks,
 }: {
 	timezone: string;
 	meetingDates: string[];
-	userAvailability: MemberMeetingAvailability | null;
+	userId: string | null;
 	allAvailabilties: MemberMeetingAvailability[];
 	availabilityTimeBlocks: number[];
 }) => {
+	const userAvailability =
+		allAvailabilties.find((a) => a.memberId === userId) ?? null;
+
 	const availabilitiesByDate = new Map<string, string[]>();
 	if (userAvailability?.meetingAvailabilities) {
 		userAvailability.meetingAvailabilities.forEach((timeStr) => {
@@ -118,13 +121,11 @@ const deriveInitialAvailability = ({
 
 export function Availability({
 	meetingData,
-	userAvailability,
 	allAvailabilities,
 	user,
 	scheduledBlocks,
 }: {
 	meetingData: SelectMeeting;
-	userAvailability: MemberMeetingAvailability | null;
 	allAvailabilities: MemberMeetingAvailability[];
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
@@ -217,7 +218,7 @@ export function Availability({
 		deriveInitialAvailability({
 			timezone: userTimezone,
 			meetingDates: meetingData.dates,
-			userAvailability,
+			userId: user?.memberId ?? null,
 			allAvailabilties: allAvailabilities,
 			availabilityTimeBlocks,
 		}),
