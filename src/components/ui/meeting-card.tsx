@@ -16,6 +16,7 @@ interface MeetingCardProps {
 	timeEnd: string;
 	numResponders: number;
 	location: string;
+	scheduled: boolean;
 	meetingLink: string;
 }
 
@@ -28,6 +29,7 @@ const MeetingCard = ({
 	timeEnd,
 	numResponders,
 	location,
+	scheduled,
 	meetingLink,
 }: MeetingCardProps) => {
 	return (
@@ -68,7 +70,8 @@ const MeetingCard = ({
 			</div>
 
 			<div className="flex mt-5">
-				<p className="text-sm">Scheduled</p>
+				{scheduled && <p className="text-sm">Scheduled</p>}
+
 				<Link href="/" className="ml-auto text-pink-400">
 					ADD AVAILABILITY
 				</Link>

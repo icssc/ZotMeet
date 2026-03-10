@@ -1,6 +1,8 @@
 "use client";
 
 import { createMeeting } from "@actions/meeting/create/action";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
+import { Input } from "@mui/material";
 import {
 	parseAsArrayOf,
 	parseAsString,
@@ -20,7 +22,13 @@ import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 import MeetingCard from "../ui/meeting-card";
 
-export function Creation({ user }: { user: UserProfile | null }) {
+interface CreationProps {
+	user: UserProfile | null;
+	meetings: SelectMeeting[];
+	meetingCounts: Record<string, number>;
+}
+
+export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 	const [isCreating, setIsCreating] = useState(false);
 
 	// Use NUQS for URL state management
@@ -81,6 +89,18 @@ export function Creation({ user }: { user: UserProfile | null }) {
 				? timeOrUpdater(urlState.endTime as HourMinuteString)
 				: timeOrUpdater;
 		void setUrlState({ endTime: newTime });
+	};
+
+	const formatTime = (time: string) => {
+		const [hour, minute] = time.split(":");
+		const date = new Date();
+		date.setHours(Number(hour), Number(minute));
+
+		return date.toLocaleTimeString([], {
+			hour: "numeric",
+			minute: "2-digit",
+			hour12: true,
+		});
 	};
 
 	const meetingType = urlState.meetingType as SelectMeeting["meetingType"];
@@ -217,41 +237,35 @@ export function Creation({ user }: { user: UserProfile | null }) {
 				</Button>
 			</div>
 
-			<MeetingCard
-				meetingName="Meeting Name"
-				meetingOrganizer="Meeting Organizer"
-				dateStart="2/3"
-				dateEnd="2/4"
-				timeStart="8am"
-				timeEnd="5pm"
-				numResponders="8"
-				location="mylocation"
-				meetingLink="/"
-			/>
+			<div className="flex items-center gap-3">
+				<Input
+					placeholder="Search Meetings"
+					className="w-full max-w-2xl rounded-3xl border-2 border-gray-300 p-4"
+					disableUnderline
+				/>
 
-			<MeetingCard
-				meetingName="Meeting Name"
-				meetingOrganizer="Meeting Organizer"
-				dateStart="2/3"
-				dateEnd="2/4"
-				timeStart="8am"
-				timeEnd="5pm"
-				numResponders="8"
-				location="mylocation"
-				meetingLink="/"
-			/>
+				<FilterAltIcon
+					className="rounded-2xl border-2 border-gray-300 p-2"
+					sx={{ fontSize: 38 }}
+				/>
+			</div>
 
-			<MeetingCard
-				meetingName="Meeting Name"
-				meetingOrganizer="Meeting Organizer"
-				dateStart="2/3"
-				dateEnd="2/4"
-				timeStart="8am"
-				timeEnd="5pm"
-				numResponders="8"
-				location="mylocation"
-				meetingLink="/"
-			/>
+			<div className="grid grid-cols-3 gap-3">
+				{meetings.map((m) => (
+					<MeetingCard
+						meetingName={m.title}
+						meetingOrganizer={"Ethan Chao"} // need to change to host id
+						dateStart="2/3"
+						dateEnd="2/4"
+						timeStart={`${formatTime(m.fromTime)}`}
+						timeEnd={`${formatTime(m.toTime)}`}
+						numResponders={meetingCounts[m.id] ?? 0}
+						location={"TBD"} //m.location
+						scheduled={Boolean(m.scheduled)}
+						meetingLink={`/groups/${m.group_id}`}
+					/>
+				))}
+			</div>
 		</div>
 	);
 }
