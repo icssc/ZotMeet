@@ -8,6 +8,7 @@ import {
 	members,
 	type SelectMeeting,
 	scheduledMeetings,
+	users,
 } from "@/db/schema";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 
@@ -93,8 +94,15 @@ export async function getMeetings(memberId: string) {
 			createdAt: meetings.createdAt,
 			archived: meetings.archived,
 			meetingType: meetings.meetingType,
+
+			//joined fields
+			hostDisplayName: members.displayName,
+			hostUserId: users.id,
+			hostEmail: users.email,
 		})
 		.from(meetings)
+		.leftJoin(members, eq(meetings.hostId, members.id))
+		.leftJoin(users, eq(users.memberId, members.id))
 		.where(
 			and(
 				eq(meetings.archived, false),

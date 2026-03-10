@@ -24,7 +24,7 @@ import MeetingCard from "../ui/meeting-card";
 
 interface CreationProps {
 	user: UserProfile | null;
-	meetings: SelectMeeting[];
+	meetings: (SelectMeeting & { hostDisplayName: string | null })[];
 	meetingCounts: Record<string, number>;
 }
 
@@ -103,6 +103,13 @@ export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 		});
 	};
 
+	const formatSingleDate = (dateString?: string) => {
+		if (!dateString) return "";
+		return new Intl.DateTimeFormat("en-US", {
+			month: "numeric",
+			day: "numeric",
+		}).format(new Date(dateString));
+	};
 	const meetingType = urlState.meetingType as SelectMeeting["meetingType"];
 	const setMeetingType = (
 		typeOrUpdater: React.SetStateAction<SelectMeeting["meetingType"]>,
@@ -254,15 +261,15 @@ export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 				{meetings.map((m) => (
 					<MeetingCard
 						meetingName={m.title}
-						meetingOrganizer={"Ethan Chao"} // need to change to host id
-						dateStart="2/3"
-						dateEnd="2/4"
+						meetingOrganizer={m.hostDisplayName ?? "Unknown organizer"}
+						dateStart={formatSingleDate(m.dates?.[0])}
+						dateEnd={formatSingleDate(m.dates?.[m.dates.length - 1])}
 						timeStart={`${formatTime(m.fromTime)}`}
 						timeEnd={`${formatTime(m.toTime)}`}
 						numResponders={meetingCounts[m.id] ?? 0}
-						location={"TBD"} //m.location
+						location={m.location}
 						scheduled={Boolean(m.scheduled)}
-						meetingLink={`/groups/${m.group_id}`}
+						meetingLink={`/availability/${m.id}`}
 					/>
 				))}
 			</div>

@@ -15,7 +15,7 @@ interface MeetingCardProps {
 	timeStart: string;
 	timeEnd: string;
 	numResponders: number;
-	location: string;
+	location: string | null;
 	scheduled: boolean;
 	meetingLink: string;
 }
@@ -29,7 +29,7 @@ const MeetingCard = ({
 	timeEnd,
 	numResponders,
 	location,
-	scheduled,
+	scheduled = false,
 	meetingLink,
 }: MeetingCardProps) => {
 	return (
@@ -63,16 +63,18 @@ const MeetingCard = ({
 					<p>{numResponders} Responders</p>
 				</div>
 
-				<div className="flex items-center gap-2">
-					<FmdGoodIcon fontSize="small" />
-					<p>{location}</p>
-				</div>
+				{location && (
+					<div className="flex items-center gap-2">
+						<FmdGoodIcon fontSize="small" />
+						<p>{location}</p>
+					</div>
+				)}
 			</div>
 
 			<div className="flex mt-5">
 				{scheduled && <p className="text-sm">Scheduled</p>}
 
-				<Link href="/" className="ml-auto text-pink-400">
+				<Link href={meetingLink} className="ml-auto text-pink-400">
 					ADD AVAILABILITY
 				</Link>
 				<NavigateNextIcon className="text-pink-400" />
