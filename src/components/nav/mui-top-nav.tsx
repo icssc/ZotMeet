@@ -45,7 +45,7 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 	const pathname = usePathname();
 
 	return (
-		<AppBar position="static" sx={{ backgroundColor: "#fff", color: "#000" }}>
+		<AppBar position="sticky" sx={{ backgroundColor: "#fff", color: "#000" }}>
 			<Toolbar
 				sx={{
 					display: "flex",
@@ -94,14 +94,15 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 									color: "text.primary",
 									textTransform: "none",
 									fontWeight: 400,
-									fontSize: "18px", // Title Large
+									fontSize: "18px",
 									lineHeight: "24px",
 									fontFamily: roboto.style.fontFamily,
-									borderBottom: isActive ? "2px solid" : "none",
-									borderColor: "text.primary",
+									borderRadius: 0,
+									borderBottom: "2px solid transparent",
+									borderColor: isActive ? "text.primary" : "transparent",
 									"&:hover": {
 										backgroundColor: "action.hover",
-										borderBottom: "2px solid",
+										borderColor: "text.primary",
 									},
 								}}
 							>
@@ -131,6 +132,7 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 							backgroundColor: "black",
 							fontWeight: 400,
 							lineHeight: "24px",
+							borderRadius: 0,
 							fontFamily: roboto.style.fontFamily,
 							"&:hover": {
 								backgroundColor: "grey",
@@ -191,6 +193,7 @@ function NavUser({ user }: { user: UserProfile | null }) {
 			</Box>
 
 			<Menu
+				disableScrollLock
 				anchorEl={anchorEl}
 				open={Boolean(anchorEl)}
 				onClose={() => setAnchorEl(null)}
