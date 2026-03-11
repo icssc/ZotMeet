@@ -4,7 +4,7 @@ import { useState } from "react";
 import { RoomResults } from "@/components/studyrooms/room-results";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { fetchStudyRooms } from "@/lib/studyrooms/getrooms";
+import { fetchStudyRooms } from "@/lib/studyrooms/get-rooms";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
 export default function Page() {
