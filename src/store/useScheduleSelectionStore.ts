@@ -6,6 +6,7 @@ interface ScheduleSelectionState {
 	pendingRemovals: Set<string>; // times being unscheduled in current session
 	addPendingTime: (timestamp: string) => void;
 	addPendingTimeRange: (timestamps: string[]) => void;
+	replaceEntireSelection: (timestamps: string[]) => void;
 	commitPendingTimes: () => void;
 	togglePendingTime: (timestamp: string) => void;
 	clearPendingTimes: () => void;
@@ -38,6 +39,62 @@ export const useScheduleSelectionStore = create<ScheduleSelectionState>(
 				});
 
 				return { pendingAdds: newPending };
+			});
+		},
+
+		// replace entire selection when rescheduling
+		replaceEntireSelection: (timestamps: string[]) => {
+			set((state) => {
+				const scheduledTimes = state.scheduledTimes;
+				const pendingAdds = new Set(state.pendingAdds);
+				const pendingRemovals = new Set(state.pendingRemovals);
+
+				const effective = new Set<string>();
+				scheduledTimes.forEach((ts) => {
+					if (!pendingRemovals.has(ts)) {
+						effective.add(ts);
+					}
+				});
+				state.pendingAdds.forEach((ts) => {
+					effective.add(ts);
+				});
+
+				const newEffective = new Set(timestamps);
+				const toRemove: string[] = [];
+				effective.forEach((ts) => {
+					if (!newEffective.has(ts)) {
+						toRemove.push(ts);
+					}
+				});
+
+				// Mark removed times that are in DB for deletion
+				for (const ts of toRemove) {
+					if (scheduledTimes.has(ts)) pendingRemovals.add(ts);
+					pendingAdds.delete(ts);
+				}
+				// Don't remove from DB if they're in the new selection
+				newEffective.forEach((ts) => {
+					pendingRemovals.delete(ts);
+				});
+
+				// Pending adds = new selection minus times already in DB (and not removed)
+				const stillInDb = new Set<string>();
+				scheduledTimes.forEach((ts) => {
+					if (!pendingRemovals.has(ts)) {
+						stillInDb.add(ts);
+					}
+				});
+				const nextPendingAdds = new Set<string>();
+				newEffective.forEach((ts) => {
+					if (!stillInDb.has(ts)) {
+						nextPendingAdds.add(ts);
+					}
+				});
+
+				return {
+					pendingAdds: nextPendingAdds,
+					pendingRemovals,
+				};
 			});
 		},
 
