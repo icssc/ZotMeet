@@ -1,5 +1,6 @@
 import type { SelectMeeting } from "@/db/schema";
 import { convertTimeFromUTC } from "@/lib/availability/utils";
+import { WEEKDAYS } from "@/lib/types/chrono";
 
 export interface MeetingCardViewModel {
 	meetingName: string;
@@ -29,6 +30,18 @@ const formatSingleDate = (dateString?: string) => {
 		month: "numeric",
 		day: "numeric",
 	}).format(new Date(dateString));
+};
+
+const formatDateForMeetingType = (
+	dateString: string | undefined,
+	meetingType: SelectMeeting["meetingType"],
+) => {
+	if (!dateString) return "";
+	if (meetingType === "days") {
+		const dayIndex = new Date(dateString).getUTCDay();
+		return WEEKDAYS[dayIndex] ?? "";
+	}
+	return formatSingleDate(dateString);
 };
 
 const formatTime = (time: string) => {
@@ -70,8 +83,8 @@ export function toMeetingCardProps(
 	return {
 		meetingName: meeting.title,
 		meetingOrganizer: meeting.hostDisplayName ?? "Unknown organizer",
-		dateStart: formatSingleDate(firstDate),
-		dateEnd: formatSingleDate(lastDate),
+		dateStart: formatDateForMeetingType(firstDate, meeting.meetingType),
+		dateEnd: formatDateForMeetingType(lastDate, meeting.meetingType),
 		timeStart: formatTime(localFromTime),
 		timeEnd: formatTime(localToTime),
 		numResponders: options.responderCount ?? 0,

@@ -97,8 +97,6 @@ export async function getMeetings(memberId: string) {
 
 			// joined fields
 			hostDisplayName: members.displayName,
-			hostUserId: users.id,
-			hostEmail: users.email,
 		})
 		.from(meetings)
 		.leftJoin(members, eq(meetings.hostId, members.id))

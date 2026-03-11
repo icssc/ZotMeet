@@ -98,16 +98,20 @@ export const Meetings = ({
 
 	return (
 		<div className="w-full rounded-xl">
-			<div className="flex flex-col justify-between sm:flex-row">
-				<div className="mb-5 flex items-center sm:hidden">
-					<h1 className="block font-montserrat font-semibold text-4xl sm:hidden">
+			<div className="flex justify-between sm:flex-row sm:flex-col">
+				<div className="mb-5 flex items-center lg:hidden">
+					<h1 className="block w-full font-montserrat font-semibold text-4xl lg:hidden">
 						Meetings
 					</h1>
-					<Link href="/" className="ml-auto rounded-full bg-[#F26489]">
-						<IconButton sx={{ color: "white" }} className="h-14 w-14">
-							<Add fontSize="large" />
-						</IconButton>
-					</Link>
+
+					<IconButton
+						component={Link}
+						href="/"
+						sx={{ color: "white" }}
+						className="!bg-[#F26489] ml-auto h-14 w-14 rounded-full"
+					>
+						<Add fontSize="large" />
+					</IconButton>
 				</div>
 
 				<div className="flex w-full items-center gap-3">
