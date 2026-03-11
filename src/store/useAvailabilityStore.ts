@@ -81,10 +81,15 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 			return state;
 		}),
 	prevPage: () =>
-		set((state) => ({
-			currentPage: state.currentPage - 1,
-			isFirstPage: state.currentPage - 1 === 0,
-		})),
+		set((state) => {
+			if (state.currentPage > 0) {
+				return {
+					currentPage: state.currentPage - 1,
+					isFirstPage: state.currentPage - 1 === 0,
+				};
+			}
+			return state;
+		}),
 	setCurrentPage: (page) =>
 		set({
 			currentPage: page,
