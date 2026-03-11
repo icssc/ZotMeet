@@ -45,43 +45,31 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 	const pathname = usePathname();
 
 	return (
-		<AppBar position="sticky" sx={{ backgroundColor: "#fff", color: "#000" }}>
+		<AppBar
+			position="sticky"
+			sx={{
+				backgroundColor: "#fff",
+				color: "#000",
+				boxShadow:
+					"0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+			}}
+		>
 			<Toolbar
 				sx={{
 					display: "flex",
 					alignItems: "center",
 				}}
 			>
-				{/* LEFT */}
-				<Box
-					sx={{
-						flex: 1,
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "flex-start",
-					}}
-				>
-					<Box
-						sx={{
-							position: "relative",
-							width: 78,
-							height: 46,
-						}}
-					>
-						<Image src="/new_zotmeet_logo.png" fill alt="ZotMeet logo" />
-					</Box>
+				<Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start" }}>
+					<Image
+						src="/zotmeet-logo.svg"
+						alt="ZotMeet logo"
+						width={80}
+						height={40}
+					/>
 				</Box>
 
-				{/* CENTER */}
-				<Box
-					sx={{
-						flex: 1,
-						display: "flex",
-						justifyContent: "center",
-						alignItems: "center",
-						gap: 3,
-					}}
-				>
+				<Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
 					{navItems.map((item) => {
 						const isActive = pathname === item.url;
 
@@ -112,7 +100,6 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 					})}
 				</Box>
 
-				{/* RIGHT */}
 				<Box
 					sx={{
 						flex: 1,
@@ -125,14 +112,14 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 					<Button
 						component={Link}
 						href="/"
-						variant="contained"
 						sx={{
 							textTransform: "none",
 							color: "white",
+							padding: "4px 12px",
 							backgroundColor: "black",
 							fontWeight: 400,
 							lineHeight: "24px",
-							borderRadius: 0,
+							borderRadius: 1,
 							fontFamily: roboto.style.fontFamily,
 							"&:hover": {
 								backgroundColor: "grey",
