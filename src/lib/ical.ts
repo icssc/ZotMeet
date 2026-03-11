@@ -127,22 +127,15 @@ export function generateICalString(
 	return lines.join("\r\n");
 }
 
-export function downloadICalFile(
-	meetingData: SelectMeeting,
-	scheduledBlocks: SelectScheduledMeeting[] = [],
-): void {
-	const icalContent = generateICalString(meetingData, scheduledBlocks);
-
-	if (!icalContent) return;
-
-	const blob = new Blob([icalContent], {
+export function triggerICalDownload(content: string, filename: string): void {
+	const blob = new Blob([content], {
 		type: "text/calendar;charset=utf-8",
 	});
 	const url = URL.createObjectURL(blob);
 
 	const link = document.createElement("a");
 	link.href = url;
-	link.download = `${meetingData.title.replace(/[^a-zA-Z0-9]/g, "_")}.ics`;
+	link.download = filename;
 	document.body.appendChild(link);
 	link.click();
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
+import { getICalFileContent } from "@actions/availability/ical/action";
 import { saveAvailability } from "@actions/availability/save/action";
 import {
 	deleteScheduledTimeBlock,
@@ -23,9 +24,9 @@ import { useShallow } from "zustand/shallow";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
-import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
+import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
-import { downloadICalFile } from "@/lib/ical";
+import { triggerICalDownload } from "@/lib/ical";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
@@ -35,7 +36,6 @@ interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
 	user: UserProfile | null;
 	availabilityDates: ZotDate[];
-	scheduledBlocks: SelectScheduledMeeting[];
 	onCancel: () => void;
 	onSave: () => void;
 	setChangeableTimezone: (can: boolean) => void;
@@ -46,7 +46,6 @@ export function AvailabilityHeader({
 	meetingData,
 	user,
 	availabilityDates,
-	scheduledBlocks,
 	onCancel,
 	onSave,
 	setChangeableTimezone,
@@ -311,7 +310,15 @@ export function AvailabilityHeader({
 								</Button>
 								<Button
 									className="h-8 min-h-fit min-w-fit flex-center gap-1 px-2 md:px-4 md:py-0"
-									onClick={() => downloadICalFile(meetingData, scheduledBlocks)}
+									onClick={async () => {
+										const { success, content, filename } =
+											await getICalFileContent(meetingData.id);
+										if (!success || !content) {
+											toast.error("No scheduled meeting to download.");
+											return;
+										}
+										triggerICalDownload(content, filename);
+									}}
 								>
 									<FileDownload className="!text-lg md:!text-base" />
 									<span className="hidden font-dm-sans md:flex">
