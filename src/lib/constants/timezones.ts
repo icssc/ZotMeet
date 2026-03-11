@@ -17,6 +17,10 @@ export const TIMEZONES: TimeZone[] = [
 		label: "(UTC-7) Mountain Standard Time (MST)",
 	},
 	{
+		value: "America/Phoenix",
+		label: "(UTC-7) Arizona (No DST)",
+	},
+	{
 		value: "America/Chicago",
 		label: "(UTC-6) Central Standard Time (CST)",
 	},

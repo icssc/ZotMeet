@@ -17,7 +17,7 @@ export function CalendarBodyDayCell({
 	return (
 		<p
 			className={cn(
-				"relative aspect-square h-8 w-8 flex-center rounded-lg font-medium text-base text-gray-dark md:h-12 md:w-12 md:rounded-xl md:text-xl",
+				"pointer-events-none relative aspect-square h-8 w-8 flex-center rounded-lg font-medium text-base text-gray-dark md:h-12 md:w-12 md:rounded-xl md:text-xl",
 				isSelected && "bg-primary text-gray-50",
 				isHighlighted && "bg-slate-base text-gray-dark",
 				!isCurrentMonth &&
@@ -27,10 +27,6 @@ export function CalendarBodyDayCell({
 						isSelected && "bg-opacity-50 text-gray-100",
 					),
 			)}
-			data-day={calendarDay.getDay()}
-			data-month={calendarDay.getMonth()}
-			data-year={calendarDay.getYear()}
-			data-selected={isSelected}
 		>
 			{calendarDay.getDay()}
 		</p>

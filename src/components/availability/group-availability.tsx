@@ -162,17 +162,17 @@ export function GroupAvailability({
 	const {
 		startBlockSelection,
 		endBlockSelection,
-		selectionState,
 		setStartBlockSelection,
 		setEndBlockSelection,
+		selectionState,
 		setSelectionState,
 	} = useBlockSelectionStore(
 		useShallow((state) => ({
 			startBlockSelection: state.startBlockSelection,
 			endBlockSelection: state.endBlockSelection,
-			selectionState: state.selectionState,
 			setStartBlockSelection: state.setStartBlockSelection,
 			setEndBlockSelection: state.setEndBlockSelection,
+			selectionState: state.selectionState,
 			setSelectionState: state.setSelectionState,
 		})),
 	);
@@ -405,10 +405,10 @@ export function GroupAvailability({
 	]);
 
 	const handleTouchStart = (e: React.TouchEvent) => {
+		if (!isScheduling) return;
 		if (e.cancelable) {
 			e.preventDefault();
 		}
-		if (!isScheduling) return;
 
 		const touch = e.touches[0];
 		const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -453,10 +453,10 @@ export function GroupAvailability({
 	};
 
 	const handleTouchEnd = (e: React.TouchEvent) => {
+		if (!isScheduling) return;
 		if (e.cancelable) {
 			e.preventDefault();
 		}
-		if (!isScheduling) return;
 
 		if (startBlockSelection && endBlockSelection && selectionState) {
 			const {
@@ -554,7 +554,7 @@ export function GroupAvailability({
 						<GroupAvailabilityBlock
 							className={cn(
 								"group-availability-block block",
-								isScheduling && "cursor-row-resize",
+								isScheduling && "cursor-row-resize [touch-action:pinch-zoom]",
 							)}
 							onClick={() =>
 								handleCellClick({
@@ -568,22 +568,6 @@ export function GroupAvailability({
 									blockIndex,
 								})
 							}
-							onMouseDown={() =>
-								handleMouseDown({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onMouseMove={() =>
-								handleMouseMove({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onMouseUp={handleMouseUp}
-							onTouchStart={(e) => handleTouchStart(e)}
-							onTouchMove={(e) => handleTouchMove(e)}
-							onTouchEnd={(e) => handleTouchEnd(e)}
 							blockColor={blockColor}
 							tableCellStyles={tableCellStyles}
 							hasSpacerBefore={spacers[pageDateIndex]}
