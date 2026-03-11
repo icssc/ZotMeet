@@ -257,22 +257,24 @@ export function Availability({
 		[calendarSelections],
 	);
 
-	const visibleGoogleCalendarEvents = useMemo(
-		() =>
-			enabledCalendarIds.size === 0
-				? googleCalendarEvents
-				: googleCalendarEvents.filter(
-						(e) => !e.calendarId || enabledCalendarIds.has(e.calendarId),
-					),
-		[googleCalendarEvents, enabledCalendarIds],
-	);
-
 	const [availabilityMode, setAvailabilityMode] =
 		useState<AvailabilityMode>("available");
 	const [hiddenCalendarIds, setHiddenCalendarIds] = useState<Set<string>>(
 		new Set(),
 	);
 	const [overlayAvailabilities, setOverlayAvailabilities] = useState(false);
+
+	const visibleGoogleCalendarEvents = useMemo(
+		() =>
+			googleCalendarEvents.filter(
+				(e) =>
+					!e.calendarId ||
+					((enabledCalendarIds.size === 0 ||
+						enabledCalendarIds.has(e.calendarId)) &&
+						!hiddenCalendarIds.has(e.calendarId)),
+			),
+		[googleCalendarEvents, enabledCalendarIds, hiddenCalendarIds],
+	);
 
 	const googleCalendars = useMemo(
 		() =>
@@ -347,6 +349,7 @@ export function Availability({
 
 	const handleResetAvailability = useCallback(async () => {
 		if (!user) return;
+		const previousDates = availabilityDates;
 		const clearedDates = availabilityDates.map((date) => {
 			const updatedGroupAvailability = Object.fromEntries(
 				Object.entries(date.groupAvailability)
@@ -376,6 +379,7 @@ export function Availability({
 			confirmSave();
 		} else {
 			console.error("Error resetting availability:", response.body.error);
+			setAvailabilityDates(previousDates);
 		}
 	}, [
 		user,

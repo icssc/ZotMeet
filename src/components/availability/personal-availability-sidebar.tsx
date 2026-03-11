@@ -197,7 +197,7 @@ export function PersonalAvailabilitySidebar({
 				<div className="flex items-start justify-between gap-4">
 					<div>
 						<h3 className="font-medium font-montserrat text-lg">
-							Overlay Availabilites
+							Overlay Availabilities
 						</h3>
 						<p className="mt-0.5 text-gray-500 text-sm">
 							View all availability while inputting your own.
