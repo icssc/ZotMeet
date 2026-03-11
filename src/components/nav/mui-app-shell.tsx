@@ -1,13 +1,9 @@
 "use client";
 
 import { Box, useMediaQuery, useTheme } from "@mui/material";
-import {
-	MuiSidebarInset,
-	MuiSidebarProvider,
-} from "@/components/ui/mui/sidebar";
 import type { UserProfile } from "@/lib/auth/user";
 import { MuiBottomNav } from "./mui-bottom-nav";
-import { MuiDrawer } from "./mui-drawer";
+import { MuiTopNav } from "./mui-top-nav";
 
 type MuiAppShellProps = {
 	user: UserProfile | null;
@@ -17,18 +13,13 @@ type MuiAppShellProps = {
 export function MuiAppShell({ user, children }: MuiAppShellProps) {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-
 	return (
-		<MuiSidebarProvider>
-			<Box sx={{ display: "flex", minHeight: "100vh" }}>
-				{!isMobile && <MuiDrawer user={user} />}
-
-				<MuiSidebarInset sx={{ paddingBottom: isMobile ? 7 : 0 }}>
-					{children}
-				</MuiSidebarInset>
-
-				{isMobile && <MuiBottomNav />}
+		<Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+			{!isMobile && <MuiTopNav user={user} />}
+			<Box sx={{ flex: 1, overflow: "auto", paddingBottom: isMobile ? 7 : 0 }}>
+				{children}
 			</Box>
-		</MuiSidebarProvider>
+			{isMobile && <MuiBottomNav />}
+		</Box>
 	);
 }
