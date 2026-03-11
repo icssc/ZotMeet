@@ -621,7 +621,7 @@ export function Availability({
 						handleClick={prevPage}
 						disabled={isFirstPage}
 					/>
-          
+
 					<div className="flex flex-col gap-4" {...bind()}>
 						<table className="w-full table-fixed">
 							<AvailabilityTableHeader

@@ -177,14 +177,12 @@ export function GroupAvailability({
 		})),
 	);
 
-	const { isScheduled, togglePendingTime, addPendingTimeRange } =
-		useScheduleSelectionStore(
-			useShallow((state) => ({
-				isScheduled: state.isScheduled,
-				togglePendingTime: state.togglePendingTime,
-				addPendingTimeRange: state.addPendingTimeRange,
-			})),
-		);
+	const { isScheduled, replaceEntireSelection } = useScheduleSelectionStore(
+		useShallow((state) => ({
+			isScheduled: state.isScheduled,
+			replaceEntireSelection: state.replaceEntireSelection,
+		})),
+	);
 	// to load scheduled time blocks when meeting is loaded
 	// Forces re-render when scheduled or pending times change
 
@@ -194,6 +192,10 @@ export function GroupAvailability({
 	// update start and end block selection state
 	useEffect(() => {
 		if (startBlockSelection && endBlockSelection) {
+			if (startBlockSelection.zotDateIndex !== endBlockSelection.zotDateIndex) {
+				setSelectionState(undefined);
+				return;
+			}
 			setSelectionState({
 				earlierDateIndex: Math.min(
 					startBlockSelection.zotDateIndex,
@@ -379,22 +381,9 @@ export function GroupAvailability({
 				}
 			}
 
-			// Toggle all timestamps in range
+			// Each drag replaces the entire selection (clears any previous blocks)
 			if (timestamps.length > 0) {
-				const firstTimestamp = timestamps[0];
-				const isFirstScheduled = isScheduled(firstTimestamp);
-
-				// if first timestamp is scheduled, we are un-scheduling the whole range
-				if (isFirstScheduled) {
-					timestamps.forEach((ts) => {
-						if (isScheduled(ts)) {
-							togglePendingTime(ts);
-						}
-					});
-					// else we are scheduling the whole range
-				} else {
-					addPendingTimeRange(timestamps);
-				}
+				replaceEntireSelection(timestamps);
 
 				// Reset selection
 				setStartBlockSelection(undefined);
@@ -409,9 +398,7 @@ export function GroupAvailability({
 		selectionState,
 		fromTime,
 		availabilityDates,
-		isScheduled,
-		togglePendingTime,
-		addPendingTimeRange,
+		replaceEntireSelection,
 		setStartBlockSelection,
 		setEndBlockSelection,
 		setSelectionState,
@@ -501,16 +488,7 @@ export function GroupAvailability({
 			}
 
 			if (timestamps.length > 0) {
-				const firstTimestamp = timestamps[0];
-				const isFirstScheduled = isScheduled(firstTimestamp);
-
-				if (isFirstScheduled) {
-					timestamps.forEach((ts) => {
-						if (isScheduled(ts)) togglePendingTime(ts);
-					});
-				} else {
-					addPendingTimeRange(timestamps);
-				}
+				replaceEntireSelection(timestamps);
 
 				setStartBlockSelection(undefined);
 				setEndBlockSelection(undefined);
