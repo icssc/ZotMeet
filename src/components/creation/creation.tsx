@@ -1,7 +1,6 @@
 "use client";
 
 import { createMeeting } from "@actions/meeting/create/action";
-import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import SearchIcon from "@mui/icons-material/Search";
 import { Input } from "@mui/material";
 import {
@@ -32,6 +31,7 @@ interface CreationProps {
 
 export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 	const [isCreating, setIsCreating] = useState(false);
+	const [searchQuery, setSearchQuery] = useState("");
 
 	// Use NUQS for URL state management
 	const [urlState, setUrlState] = useQueryStates({
@@ -175,6 +175,18 @@ export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 		);
 	}, [selectedDays.length, startTime, endTime, meetingName]);
 
+	const normalizedQuery = searchQuery.trim().toLowerCase();
+	const filteredMeetings = useMemo(() => {
+		if (!normalizedQuery) return meetings;
+		return meetings.filter((meeting) => {
+			return (
+				meeting.title.toLowerCase().includes(normalizedQuery) ||
+				(meeting.location ?? "").toLowerCase().includes(normalizedQuery) ||
+				(meeting.description ?? "").toLowerCase().includes(normalizedQuery)
+			);
+		});
+	}, [meetings, normalizedQuery]);
+
 	return (
 		<div className="flex flex-col gap-y-6 px-4">
 			<div className="px-4 pt-8 md:pt-8 md:pl-[60px]">
@@ -235,19 +247,29 @@ export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 						disableUnderline
 						placeholder="Search Meetings"
 						className="w-full rounded-3xl border-2 border-gray-300 p-3 pl-11 transition-all group-focus-within:pl-3"
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
 					/>
 				</div>
 			</div>
 
-			<div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-3">
-				{meetings.map((meeting) => {
-					const cardProps = toMeetingCardProps(meeting, {
-						responderCount: meetingCounts[meeting.id] ?? 0,
-					});
+			{filteredMeetings.length === 0 ? (
+				<div className="flex items-center gap-4 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-6 pr-8">
+					<h3 className="truncate font-dm-sans font-medium text-gray-800 text-xl">
+						No meetings found.
+					</h3>
+				</div>
+			) : (
+				<div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-3">
+					{filteredMeetings.map((meeting) => {
+						const cardProps = toMeetingCardProps(meeting, {
+							responderCount: meetingCounts[meeting.id] ?? 0,
+						});
 
-					return <MeetingCard key={meeting.id} {...cardProps} />;
-				})}
-			</div>
+						return <MeetingCard key={meeting.id} {...cardProps} />;
+					})}
+				</div>
+			)}
 		</div>
 	);
 }
