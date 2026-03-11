@@ -26,12 +26,12 @@ export function AvailabilityModeSelector({
 				className={cn(
 					"flex flex-1 flex-col items-center gap-1.5 rounded-lg border-2 py-2 text-xs transition-colors",
 					availabilityMode === "available"
-						? "border-blue-500 bg-blue-50"
+						? "border-[#F26489] bg-[#FDEEF3]"
 						: "border-gray-200 bg-white",
 				)}
 				onClick={() => onModeChange("available")}
 			>
-				<div className="size-6 rounded-full bg-blue-500" />
+				<div className="size-6 rounded-full bg-[#F26489]" />
 				<span>Available</span>
 			</button>
 
@@ -40,16 +40,16 @@ export function AvailabilityModeSelector({
 				className={cn(
 					"flex flex-1 flex-col items-center gap-1.5 rounded-lg border-2 py-2 text-xs transition-colors",
 					availabilityMode === "if-needed"
-						? "border-blue-500 bg-blue-50"
+						? "border-[#F26489] bg-[#FDEEF3]"
 						: "border-gray-200 bg-white",
 				)}
 				onClick={() => onModeChange("if-needed")}
 			>
 				<div
-					className="size-6 rounded-full border-2 border-blue-400"
+					className="size-6 rounded-full border-2 border-[#F26489]"
 					style={{
 						background:
-							"repeating-linear-gradient(45deg, #93c5fd, #93c5fd 2px, transparent 2px, transparent 7px)",
+							"repeating-linear-gradient(45deg, #F9B8CA, #F9B8CA 2px, transparent 2px, transparent 7px)",
 					}}
 				/>
 				<span>If Needed</span>
@@ -60,7 +60,7 @@ export function AvailabilityModeSelector({
 				className={cn(
 					"flex flex-1 flex-col items-center gap-1.5 rounded-lg border-2 py-2 text-xs transition-colors",
 					availabilityMode === "unavailable"
-						? "border-blue-500 bg-blue-50"
+						? "border-[#F26489] bg-[#FDEEF3]"
 						: "border-gray-200 bg-white",
 				)}
 				onClick={() => onModeChange("unavailable")}
@@ -218,10 +218,7 @@ export function PersonalAvailabilitySidebar({
 				>
 					Cancel
 				</Button>
-				<Button
-					className="flex-1 bg-blue-600 text-white uppercase hover:bg-blue-700"
-					onClick={onSave}
-				>
+				<Button className="flex-1 uppercase" onClick={onSave}>
 					Save
 				</Button>
 			</div>

@@ -115,35 +115,6 @@ export const sessions = pgTable(
 export type SelectSession = InferSelectModel<typeof sessions>;
 export type InsertSession = InferInsertModel<typeof sessions>;
 
-export const userGoogleCalendars = pgTable(
-	"user_google_calendars",
-	{
-		id: uuid("id").defaultRandom().primaryKey(),
-		userId: text("user_id")
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		calendarId: text("calendar_id").notNull(),
-		enabled: boolean("enabled").default(true).notNull(),
-		archived: boolean("archived").default(false).notNull(),
-		createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-		updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
-	},
-	(table) => ({
-		userIdx: index("user_google_calendars_user_id_idx").on(table.userId),
-		userCalendarUnique: unique("user_calendar_unique").on(
-			table.userId,
-			table.calendarId,
-		),
-	}),
-);
-
-export type InsertUserGoogleCalendar = InferInsertModel<
-	typeof userGoogleCalendars
->;
-export type SelectUserGoogleCalendar = InferSelectModel<
-	typeof userGoogleCalendars
->;
-
 export const groups = pgTable("groups", {
 	id: uuid("id").defaultRandom().primaryKey(),
 	name: text("name").notNull(),
@@ -308,7 +279,6 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 	oauthAccountsTable: many(oauthAccounts),
 	usersInGroups: many(usersInGroup),
 	sessions: many(sessions),
-	userGoogleCalendars: many(userGoogleCalendars),
 	groups: many(groups, {
 		relationName: "usersToGroups",
 	}),
@@ -317,16 +287,6 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 		references: [members.id],
 	}),
 }));
-
-export const userGoogleCalendarsRelations = relations(
-	userGoogleCalendars,
-	({ one }) => ({
-		user: one(users, {
-			fields: [userGoogleCalendars.userId],
-			references: [users.id],
-		}),
-	}),
-);
 
 export const groupsRelations = relations(groups, ({ many }) => ({
 	members: many(users, {

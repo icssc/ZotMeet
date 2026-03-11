@@ -2,14 +2,9 @@
 
 import { getScheduledTimeBlocks } from "@data/meeting/queries";
 import { google as googleClient } from "googleapis";
-import { getCurrentSession } from "@/lib/auth";
 import { validateGoogleAccessToken } from "@/lib/auth/google";
 import { mergeContiguousTimeBlocks } from "@/lib/meetings/utils";
 import type { GoogleCalendarEvent } from "@/lib/types/availability";
-import {
-	getUserEnabledCalendars,
-	syncUserCalendars,
-} from "@/server/actions/availability/google/calendar-selection/action";
 
 export async function fetchGoogleCalendarEvents(
 	startDate: string,
@@ -25,11 +20,6 @@ export async function fetchGoogleCalendarEvents(
 		throw new Error(error ?? "Could not retrieve OAuth access token");
 	}
 
-	const { user } = await getCurrentSession();
-	if (!user) {
-		return [];
-	}
-
 	const auth = new googleClient.auth.OAuth2();
 	auth.setCredentials({ access_token: accessToken });
 
@@ -39,19 +29,8 @@ export async function fetchGoogleCalendarEvents(
 		const calendarListRes = await calendar.calendarList.list();
 		const calendarItems = calendarListRes.data.items ?? [];
 
-		await syncUserCalendars(user.id, calendarItems);
-
-		const enabledCalendars = await getUserEnabledCalendars(user.id);
-		const enabledCalendarIds = new Set(
-			enabledCalendars.map((c) => c.calendarId),
-		);
-
-		const enabledCalendarItems = calendarItems.filter(
-			(cal) => cal.id && enabledCalendarIds.has(cal.id),
-		);
-
 		const eventsPerCalendar = await Promise.all(
-			enabledCalendarItems.map(async (cal) => {
+			calendarItems.map(async (cal) => {
 				// Skip if calendar ID is missing
 				if (!cal.id) {
 					return [];

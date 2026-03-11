@@ -40,11 +40,9 @@ import {
 	isAnchorDateMeeting,
 } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
-import { getCalendarsForDialog } from "@/server/actions/availability/google/calendar-selection/action";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
-import { useGoogleCalendarSelectionStore } from "@/store/useGoogleCalendarSelectionStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
@@ -232,31 +230,6 @@ export function Availability({
 		GoogleCalendarEvent[]
 	>([]);
 
-	const calendarSelections = useGoogleCalendarSelectionStore(
-		(state) => state.calendars,
-	);
-
-	useEffect(() => {
-		if (!user) return;
-		getCalendarsForDialog()
-			.then((calendars) => {
-				useGoogleCalendarSelectionStore.getState().setCalendars(calendars);
-			})
-			.catch((error) => {
-				console.error("Error loading calendars:", error);
-			});
-	}, [user]);
-
-	const enabledCalendarIds = useMemo(
-		() =>
-			new Set(
-				calendarSelections
-					.filter((c) => c.enabled && !c.archived)
-					.map((c) => c.calendarId),
-			),
-		[calendarSelections],
-	);
-
 	const [availabilityMode, setAvailabilityMode] =
 		useState<AvailabilityMode>("available");
 	const [hiddenCalendarIds, setHiddenCalendarIds] = useState<Set<string>>(
@@ -267,26 +240,24 @@ export function Availability({
 	const visibleGoogleCalendarEvents = useMemo(
 		() =>
 			googleCalendarEvents.filter(
-				(e) =>
-					!e.calendarId ||
-					((enabledCalendarIds.size === 0 ||
-						enabledCalendarIds.has(e.calendarId)) &&
-						!hiddenCalendarIds.has(e.calendarId)),
+				(e) => !e.calendarId || !hiddenCalendarIds.has(e.calendarId),
 			),
-		[googleCalendarEvents, enabledCalendarIds, hiddenCalendarIds],
+		[googleCalendarEvents, hiddenCalendarIds],
 	);
 
-	const googleCalendars = useMemo(
-		() =>
-			calendarSelections
-				.filter((c) => !c.archived)
-				.map((c) => ({
-					id: c.calendarId,
-					name: c.calendarName,
-					color: c.calendarColor,
-				})),
-		[calendarSelections],
-	);
+	const googleCalendars = useMemo(() => {
+		const seen = new Map<string, { id: string; name: string; color: string }>();
+		for (const event of googleCalendarEvents) {
+			if (event.calendarId && !seen.has(event.calendarId)) {
+				seen.set(event.calendarId, {
+					id: event.calendarId,
+					name: event.calendarId,
+					color: event.calendarColor,
+				});
+			}
+		}
+		return Array.from(seen.values());
+	}, [googleCalendarEvents]);
 
 	const handleToggleCalendar = useCallback((calendarId: string) => {
 		setHiddenCalendarIds((prev) => {

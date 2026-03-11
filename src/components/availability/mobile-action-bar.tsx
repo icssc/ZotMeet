@@ -102,7 +102,7 @@ export function MobileActionBar({
 							<div
 								className={
 									availabilityMode === "available"
-										? "size-6 rounded-full bg-blue-500"
+										? "size-6 rounded-full bg-[#F26489]"
 										: "size-6 rounded-full border-2 border-gray-300 bg-white"
 								}
 							/>
@@ -117,12 +117,12 @@ export function MobileActionBar({
 							onClick={() => onModeChange("if-needed")}
 						>
 							<div
-								className="size-6 rounded-full border-2 border-blue-400"
+								className="size-6 rounded-full border-2 border-[#F26489]"
 								style={
 									availabilityMode === "if-needed"
 										? {
 												background:
-													"repeating-linear-gradient(45deg, #93c5fd, #93c5fd 2px, transparent 2px, transparent 7px)",
+													"repeating-linear-gradient(45deg, #F9B8CA, #F9B8CA 2px, transparent 2px, transparent 7px)",
 											}
 										: { background: "white" }
 								}

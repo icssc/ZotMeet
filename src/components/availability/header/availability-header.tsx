@@ -9,7 +9,6 @@ import {
 import GoogleIcon from "@mui/icons-material/Google";
 import {
 	CalendarCheck,
-	CalendarIcon,
 	CalendarPlus,
 	CircleCheckIcon,
 	CircleXIcon,
@@ -20,7 +19,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useShallow } from "zustand/shallow";
-import { GoogleCalendarSelectionDialog } from "@/components/availability/google-calendar-selection-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
@@ -29,7 +27,6 @@ import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
-import { useGoogleCalendarSelectionStore } from "@/store/useGoogleCalendarSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
 interface AvailabilityHeaderProps {
@@ -199,21 +196,6 @@ export function AvailabilityHeader({
 									availabilityView === "personal" && "lg:hidden",
 								)}
 							>
-								{availabilityView === "personal" && user && (
-									<Button
-										variant="outline"
-										size="sm"
-										onClick={() =>
-											useGoogleCalendarSelectionStore.setState({
-												isDialogOpen: true,
-											})
-										}
-										className="flex items-center gap-2"
-									>
-										<CalendarIcon className="h-4 w-4" />
-										<span className="hidden md:flex">Calendars</span>
-									</Button>
-								)}
 								<Button
 									className={cn(
 										"h-8 flex-center bg-white px-4 py-0 text-white uppercase",
@@ -357,8 +339,6 @@ export function AvailabilityHeader({
 					</div>
 				)}
 			</div>
-
-			<GoogleCalendarSelectionDialog />
 
 			<EditModal
 				meetingData={meetingData}

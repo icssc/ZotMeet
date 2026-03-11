@@ -52,17 +52,17 @@
       "breakpoints": true
     },
     {
-      "idx": 9,
-      "version": "7",
-      "when": 1769597952765,
-      "tag": "0009_rapid_katie_power",
-      "breakpoints": true
-    },
-    {
       "idx": 10,
       "version": "7",
       "when": 1773234387596,
       "tag": "0010_certain_strong_guy",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1773260329519,
+      "tag": "0011_even_nick_fury",
       "breakpoints": true
     }
   ]
