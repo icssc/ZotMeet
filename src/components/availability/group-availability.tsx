@@ -164,6 +164,7 @@ export function GroupAvailability({
 		endBlockSelection,
 		setStartBlockSelection,
 		setEndBlockSelection,
+		selectionState,
 		setSelectionState,
 	} = useBlockSelectionStore(
 		useShallow((state) => ({
@@ -171,15 +172,19 @@ export function GroupAvailability({
 			endBlockSelection: state.endBlockSelection,
 			setStartBlockSelection: state.setStartBlockSelection,
 			setEndBlockSelection: state.setEndBlockSelection,
+			selectionState: state.selectionState,
 			setSelectionState: state.setSelectionState,
 		})),
 	);
 
-	const { isScheduled } = useScheduleSelectionStore(
-		useShallow((state) => ({
-			isScheduled: state.isScheduled,
-		})),
-	);
+	const { isScheduled, togglePendingTime, addPendingTimeRange } =
+		useScheduleSelectionStore(
+			useShallow((state) => ({
+				isScheduled: state.isScheduled,
+				togglePendingTime: state.togglePendingTime,
+				addPendingTimeRange: state.addPendingTimeRange,
+			})),
+		);
 	// to load scheduled time blocks when meeting is loaded
 	// Forces re-render when scheduled or pending times change
 
