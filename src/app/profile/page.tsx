@@ -1,10 +1,10 @@
 "use client";
 
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
-import { useState } from "react";
+import { useThemeMode } from "@/components/theme/theme-provider";
 
 export default function ProfilePage() {
-	const [mode, setMode] = useState("light");
+	const { mode, setMode } = useThemeMode();
 
 	return (
 		<div className="space-y-6 px-8 py-8">
@@ -19,7 +19,7 @@ export default function ProfilePage() {
 						labelId="theme-select-label"
 						value={mode}
 						label="Mode"
-						onChange={(e) => setMode(e.target.value)}
+						onChange={(e) => setMode(e.target.value as "light" | "dark")}
 					>
 						<MenuItem value="light">Light</MenuItem>
 						<MenuItem value="dark">Dark</MenuItem>

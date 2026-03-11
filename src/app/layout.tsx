@@ -1,4 +1,3 @@
-import { ThemeProvider } from "@mui/material/styles";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
@@ -8,8 +7,9 @@ import "./globals.css";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
+import AppThemeProvider from "@/components/theme/theme-provider";
 import { cn } from "@/lib/utils";
-import theme, { dmSans, montserrat } from "@/theme";
+import { dmSans, montserrat } from "@/theme";
 
 const geistSans = localFont({
 	src: "./fonts/GeistVF.woff",
@@ -32,28 +32,25 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
 	children,
-}: Readonly<{
+}: {
 	children: React.ReactNode;
-}>) {
+}) {
 	return (
 		<html lang="en" className={`${dmSans.className} ${montserrat.className}`}>
 			<body
 				className={cn(
 					`${geistSans.variable} ${geistMono.variable} antialiased`,
-					"bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]",
 				)}
 			>
 				<NuqsAdapter>
 					<AppRouterCacheProvider>
-						<ThemeProvider theme={theme}>
+						<AppThemeProvider>
 							<AppShellWrapper>
-								<div className="h-full rounded-tl-xl bg-gray-50">
-									{children}
-								</div>
+								<div className="h-full rounded-tl-xl">{children}</div>
 							</AppShellWrapper>
 
 							<Toaster />
-						</ThemeProvider>
+						</AppThemeProvider>
 					</AppRouterCacheProvider>
 				</NuqsAdapter>
 			</body>
