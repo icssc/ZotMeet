@@ -253,7 +253,7 @@ export function AvailabilityHeader({
 									</span>
 								</Button>
 								<Button
-									className="h-8 min-h-fit min-w-fit flex-center gap-1 bg-[#3B82F6] px-2 text-white hover:bg-[#3B82F6]/80 md:px-4 md:py-0"
+									className="h-8 min-h-fit min-w-fit flex-center gap-1 px-2 md:px-4 md:py-0"
 									onClick={() => downloadICalFile(meetingData, scheduledBlocks)}
 								>
 									<FileDownload className="!text-lg md:!text-base" />
