@@ -1,4 +1,9 @@
-CREATE TYPE "public"."invite_status" AS ENUM('pending', 'accepted', 'declined', 'expired');--> statement-breakpoint
+DO $$ BEGIN
+ CREATE TYPE "public"."invite_status" AS ENUM('pending', 'accepted', 'declined', 'expired');
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "group_invite_responses" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"invite_id" uuid NOT NULL,
