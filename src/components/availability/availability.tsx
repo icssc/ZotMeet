@@ -7,7 +7,12 @@ import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
+import { MobileActionBar } from "@/components/availability/mobile-action-bar";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
+import {
+	type AvailabilityMode,
+	PersonalAvailabilitySidebar,
+} from "@/components/availability/personal-availability-sidebar";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
@@ -238,6 +243,55 @@ export function Availability({
 					),
 		[googleCalendarEvents, enabledCalendarIds],
 	);
+
+	const [availabilityMode, setAvailabilityMode] =
+		useState<AvailabilityMode>("available");
+	const [hiddenCalendarIds, setHiddenCalendarIds] = useState<Set<string>>(
+		new Set(),
+	);
+	const [overlayAvailabilities, setOverlayAvailabilities] = useState(false);
+
+	const googleCalendars = useMemo(
+		() =>
+			calendarSelections
+				.filter((c) => !c.archived)
+				.map((c) => ({
+					id: c.calendarId,
+					name: c.calendarName,
+					color: c.calendarColor,
+				})),
+		[calendarSelections],
+	);
+
+	const handleToggleCalendar = useCallback((calendarId: string) => {
+		setHiddenCalendarIds((prev) => {
+			const next = new Set(prev);
+			if (next.has(calendarId)) {
+				next.delete(calendarId);
+			} else {
+				next.add(calendarId);
+			}
+			return next;
+		});
+	}, []);
+
+	const handleResetAvailability = useCallback(() => {
+		setAvailabilityDates((prev) =>
+			prev.map(
+				(date) =>
+					new ZotDate(
+						date.day,
+						date.earliestTime,
+						date.latestTime,
+						false,
+						[],
+						date.groupAvailability,
+					),
+			),
+		);
+	}, []);
+
+	const isOwner = !!user && meetingData.hostId === user.memberId;
 
 	const [availabilityDates, setAvailabilityDates] = useState(() =>
 		deriveInitialAvailability({
@@ -482,17 +536,48 @@ export function Availability({
 					/>
 				</div>
 
-				<GroupResponses
-					availabilityDates={availabilityDates}
-					fromTime={fromTimeMinutes}
-					members={members}
-					timezone={userTimezone}
-					anchorNormalizedDate={anchorNormalizedDate}
-					currentPageAvailability={currentPageAvailability}
-					availabilityTimeBlocks={availabilityTimeBlocks}
-					doesntNeedDay={doesntNeedDay}
-				/>
+				{availabilityView === "personal" ? (
+					<PersonalAvailabilitySidebar
+						onCancel={handleCancelEditing}
+						onReset={handleResetAvailability}
+						onSave={handleSuccessfulSave}
+						availabilityMode={availabilityMode}
+						onModeChange={setAvailabilityMode}
+						googleCalendars={googleCalendars}
+						hiddenCalendarIds={hiddenCalendarIds}
+						onToggleCalendar={handleToggleCalendar}
+						overlayAvailabilities={overlayAvailabilities}
+						onOverlayChange={setOverlayAvailabilities}
+					/>
+				) : (
+					<GroupResponses
+						availabilityDates={availabilityDates}
+						fromTime={fromTimeMinutes}
+						members={members}
+						timezone={userTimezone}
+						anchorNormalizedDate={anchorNormalizedDate}
+						currentPageAvailability={currentPageAvailability}
+						availabilityTimeBlocks={availabilityTimeBlocks}
+						doesntNeedDay={doesntNeedDay}
+					/>
+				)}
 			</div>
+
+			<MobileActionBar
+				user={user}
+				isOwner={isOwner}
+				members={members}
+				setChangeableTimezone={setChangeableTimezone}
+				setTimezone={setUserTimezone}
+				availabilityMode={availabilityMode}
+				onModeChange={setAvailabilityMode}
+				onReset={handleResetAvailability}
+				googleCalendars={googleCalendars}
+				hiddenCalendarIds={hiddenCalendarIds}
+				onToggleCalendar={handleToggleCalendar}
+				overlayAvailabilities={overlayAvailabilities}
+				onOverlayChange={setOverlayAvailabilities}
+			/>
 		</div>
 	);
 }
