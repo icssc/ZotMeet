@@ -251,7 +251,7 @@ export function Availability({
 			if (event.calendarId && !seen.has(event.calendarId)) {
 				seen.set(event.calendarId, {
 					id: event.calendarId,
-					name: event.calendarId,
+					name: event.calendarName ?? event.calendarId,
 					color: event.calendarColor,
 				});
 			}

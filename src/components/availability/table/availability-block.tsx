@@ -36,7 +36,7 @@ export function AvailabilityBlock({
 				return "bg-[#FDEEF3]";
 			}
 		}
-		return isAvailable ? "bg-primary" : "bg-transparent";
+		return isAvailable ? "bg-[#3b82f6]" : "bg-transparent";
 	}, [selectionState, isAvailable, zotDateIndex, blockIndex]);
 
 	return (
