@@ -17,6 +17,7 @@ import {
 	Toolbar,
 	Typography,
 } from "@mui/material";
+import { Roboto } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -29,6 +30,12 @@ const navItems = [
 	{ title: "Groups", url: "/groups" },
 	//{ title: "Rooms", url: "/rooms" },
 ];
+
+export const roboto = Roboto({
+	subsets: ["latin"],
+	display: "swap",
+	weight: ["400", "500", "600", "700"],
+});
 
 type MuiTopNavProps = {
 	user: UserProfile | null;
@@ -52,7 +59,6 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "flex-start",
-						borderRadius: 0,
 					}}
 				>
 					<Box
@@ -60,7 +66,6 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 							position: "relative",
 							width: 78,
 							height: 46,
-							border: 0,
 						}}
 					>
 						<Image src="/new_zotmeet_logo.png" fill alt="ZotMeet logo" />
@@ -91,7 +96,7 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 									fontWeight: 400,
 									fontSize: "18px", // Title Large
 									lineHeight: "24px",
-									fontFamily: "Roboto",
+									fontFamily: roboto.style.fontFamily,
 									borderBottom: isActive ? "2px solid" : "none",
 									borderColor: "text.primary",
 									"&:hover": {
@@ -126,7 +131,7 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 							backgroundColor: "black",
 							fontWeight: 400,
 							lineHeight: "24px",
-							fontFamily: "Roboto",
+							fontFamily: roboto.style.fontFamily,
 							"&:hover": {
 								backgroundColor: "grey",
 							},
