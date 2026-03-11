@@ -141,7 +141,7 @@ export function GroupAvailability({
 	);
 
 	const numMembers = members.length;
-	const { enabled: showBestTimes } = useAvailabilityStore();
+	const showBestTimes = useAvailabilityStore((state) => state.enabled);
 
 	const maxAvailability = useMemo(() => {
 		if (!showBestTimes || numMembers === 0) return 0;
