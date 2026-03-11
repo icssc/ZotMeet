@@ -76,7 +76,11 @@ function localDateTimeToDate(date: Date, time: string): Date {
 export function generateICalString(
 	meetingData: SelectMeeting,
 	scheduledBlocks: SelectScheduledMeeting[] = [],
-): string {
+): string | null {
+	if (scheduledBlocks.length === 0) {
+		return null;
+	}
+
 	const lines: string[] = [
 		"BEGIN:VCALENDAR",
 		"VERSION:2.0",
@@ -94,60 +98,15 @@ export function generateICalString(
 		: "";
 
 	const now = formatICalDateTimeUTC(new Date());
+	const intervals = mergeScheduledBlocks(scheduledBlocks);
 
-	// If there are scheduled blocks, export those as the actual calendar events.
-	// Scheduled blocks are stored in the user's local timezone.
-	if (scheduledBlocks.length > 0) {
-		const intervals = mergeScheduledBlocks(scheduledBlocks);
+	for (let i = 0; i < intervals.length; i++) {
+		const interval = intervals[i];
+		const startDate = localDateTimeToDate(interval.date, interval.from);
+		const endDate = localDateTimeToDate(interval.date, interval.to);
 
-		for (let i = 0; i < intervals.length; i++) {
-			const interval = intervals[i];
-			const startDate = localDateTimeToDate(interval.date, interval.from);
-			const endDate = localDateTimeToDate(interval.date, interval.to);
-
-			const datePart = interval.date.toISOString().split("T")[0];
-			const uid = `${meetingData.id}-scheduled-${datePart}-${i}@zotmeet`;
-
-			lines.push("BEGIN:VEVENT");
-			lines.push(`UID:${uid}`);
-			lines.push(`DTSTAMP:${now}`);
-			lines.push(`DTSTART:${formatICalDateTimeUTC(startDate)}`);
-			lines.push(`DTEND:${formatICalDateTimeUTC(endDate)}`);
-			lines.push(`SUMMARY:${title}`);
-			if (description) {
-				lines.push(`DESCRIPTION:${description}`);
-			}
-			if (location) {
-				lines.push(`LOCATION:${location}`);
-			}
-			lines.push("END:VEVENT");
-		}
-
-		lines.push("END:VCALENDAR");
-		return lines.join("\r\n");
-	}
-
-	// Fallback: no scheduled blocks — export the meeting availability window.
-	// "days" type meetings use anchor dates (Jan 1-7, 2023) which are not real dates.
-	if (meetingData.meetingType === "days") {
-		lines.push("END:VCALENDAR");
-		return lines.join("\r\n");
-	}
-
-	for (const dateStr of meetingData.dates) {
-		const datePart = dateStr.substring(0, 10);
-		const [hours, minutes, seconds = "00"] = meetingData.fromTime.split(":");
-		const startDate = new Date(`${datePart}T${hours}:${minutes}:${seconds}Z`);
-
-		const [eh, em, es = "00"] = meetingData.toTime.split(":");
-		const endDate = new Date(`${datePart}T${eh}:${em}:${es}Z`);
-
-		// Handle midnight UTC wraparound
-		if (endDate.getTime() <= startDate.getTime()) {
-			endDate.setUTCDate(endDate.getUTCDate() + 1);
-		}
-
-		const uid = `${meetingData.id}-${datePart}@zotmeet`;
+		const datePart = interval.date.toISOString().split("T")[0];
+		const uid = `${meetingData.id}-scheduled-${datePart}-${i}@zotmeet`;
 
 		lines.push("BEGIN:VEVENT");
 		lines.push(`UID:${uid}`);
@@ -173,6 +132,9 @@ export function downloadICalFile(
 	scheduledBlocks: SelectScheduledMeeting[] = [],
 ): void {
 	const icalContent = generateICalString(meetingData, scheduledBlocks);
+
+	if (!icalContent) return;
+
 	const blob = new Blob([icalContent], {
 		type: "text/calendar;charset=utf-8",
 	});
