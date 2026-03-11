@@ -120,33 +120,3 @@ export async function getScheduledMeetings(meetingId: string) {
 		return { error: "Failed to fetch scheduled meetings." };
 	}
 }
-
-/**
- * Fetch scheduled block times from meetings table
- * (original helper for backwards compatibility)
- */
-export async function getScheduledTimeBlocks(meetingId: string) {
-	try {
-		// Fetch all scheduled blocks for this meeting
-		const rows = await db
-			.select()
-			.from(scheduledMeetings)
-			.where(eq(scheduledMeetings.meetingId, meetingId));
-
-		if (!rows || rows.length === 0) {
-			return { error: "No scheduled blocks found for this meeting" };
-		}
-
-		// Map results into a more convenient format
-		const scheduledBlocks = rows.map((row) => ({
-			scheduledDate: row.scheduledDate, // Date object
-			scheduledFromTime: row.scheduledFromTime, // "HH:mm:ss"
-			scheduledToTime: row.scheduledToTime, // "HH:mm:ss"
-		}));
-
-		return scheduledBlocks;
-	} catch (error) {
-		console.error("Error fetching scheduled block times:", error);
-		return { error: "Failed to fetch scheduled block times." };
-	}
-}

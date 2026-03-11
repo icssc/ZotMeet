@@ -231,12 +231,12 @@ export function Availability({
 
 	const visibleGoogleCalendarEvents = useMemo(
 		() =>
-			enabledCalendarIds.size === 0
+			calendarSelections.length === 0
 				? googleCalendarEvents
 				: googleCalendarEvents.filter(
 						(e) => !e.calendarId || enabledCalendarIds.has(e.calendarId),
 					),
-		[googleCalendarEvents, enabledCalendarIds],
+		[googleCalendarEvents, calendarSelections.length, enabledCalendarIds],
 	);
 
 	const [availabilityDates, setAvailabilityDates] = useState(() =>

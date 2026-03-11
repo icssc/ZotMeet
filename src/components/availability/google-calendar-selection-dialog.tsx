@@ -82,7 +82,12 @@ export function GoogleCalendarSelectionDialog() {
 	};
 
 	return (
-		<Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+		<Dialog
+			open={isDialogOpen}
+			onOpenChange={(open) => {
+				if (!open) handleCancel();
+			}}
+		>
 			<DialogContent className="max-w-md">
 				<DialogHeader>
 					<DialogTitle>Select Calendars to Sync</DialogTitle>

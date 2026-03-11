@@ -37,7 +37,11 @@ export async function fetchGoogleCalendarEvents(
 		const calendarListRes = await calendar.calendarList.list();
 		const calendarItems = calendarListRes.data.items ?? [];
 
-		await syncUserCalendars(user.id, calendarItems);
+		try {
+			await syncUserCalendars(user.id, calendarItems);
+		} catch (e) {
+			console.warn("Failed to sync user calendars", e);
+		}
 
 		const enabledCalendars = await getUserEnabledCalendars(user.id);
 		const enabledCalendarIds = new Set(
