@@ -1,4 +1,8 @@
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
+import {
+	getCurrentWeekDateForAnchor,
+	isAnchorDateMeeting,
+} from "@/lib/types/chrono";
 
 function formatICalDateTimeUTC(date: Date): string {
 	const year = date.getUTCFullYear();
@@ -98,14 +102,20 @@ export function generateICalString(
 		: "";
 
 	const now = formatICalDateTimeUTC(new Date());
+	const isDaysOfWeek = isAnchorDateMeeting(meetingData.dates);
 	const intervals = mergeScheduledBlocks(scheduledBlocks);
 
 	for (let i = 0; i < intervals.length; i++) {
 		const interval = intervals[i];
-		const startDate = localDateTimeToDate(interval.date, interval.from);
-		const endDate = localDateTimeToDate(interval.date, interval.to);
 
-		const datePart = interval.date.toISOString().split("T")[0];
+		const eventDate = isDaysOfWeek
+			? getCurrentWeekDateForAnchor(interval.date)
+			: interval.date;
+
+		const startDate = localDateTimeToDate(eventDate, interval.from);
+		const endDate = localDateTimeToDate(eventDate, interval.to);
+
+		const datePart = eventDate.toISOString().split("T")[0];
 		const uid = `${meetingData.id}-scheduled-${datePart}-${i}@zotmeet`;
 
 		lines.push("BEGIN:VEVENT");

@@ -1,10 +1,17 @@
 "use server";
 
-import { getScheduledTimeBlocks } from "@data/meeting/queries";
+import {
+	getExistingMeeting,
+	getScheduledTimeBlocks,
+} from "@data/meeting/queries";
 import {
 	groupScheduledBlocksByDate,
 	mergeContiguousTimeBlocks,
 } from "@/lib/meetings/utils";
+import {
+	getCurrentWeekDateForAnchor,
+	isAnchorDateMeeting,
+} from "@/lib/types/chrono";
 
 function combineDateAndTimeISO(date: Date, time: string): string {
 	const [hours, minutes, seconds = "00"] = time.split(":");
@@ -40,6 +47,9 @@ export async function getOutlookCalendarLink({
 		};
 	}
 
+	const meetingData = await getExistingMeeting(meetingId);
+	const isDaysOfWeek = isAnchorDateMeeting(meetingData.dates);
+
 	// Group by date, then merge each day's blocks independently
 	const grouped = groupScheduledBlocksByDate(blocks);
 
@@ -53,7 +63,9 @@ export async function getOutlookCalendarLink({
 		};
 	}
 
-	const date = firstDay.date;
+	const date = isDaysOfWeek
+		? getCurrentWeekDateForAnchor(firstDay.date)
+		: firstDay.date;
 	const start = combineDateAndTimeISO(date, mergedInterval.from);
 	const end = combineDateAndTimeISO(date, mergedInterval.to);
 
