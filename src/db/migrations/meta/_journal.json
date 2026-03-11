@@ -10,6 +10,20 @@
       "breakpoints": true
     },
     {
+      "idx": 1,
+      "version": "7",
+      "when": 1772323133610,
+      "tag": "0001_jazzy_fallen_one",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772390053970,
+      "tag": "0002_moaning_masked_marvel",
+      "breakpoints": true
+    },
+    {
       "idx": 5,
       "version": "7",
       "when": 1768979067197,
