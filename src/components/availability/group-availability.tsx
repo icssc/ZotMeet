@@ -162,27 +162,27 @@ export function GroupAvailability({
 	const {
 		startBlockSelection,
 		endBlockSelection,
-		selectionState,
 		setStartBlockSelection,
 		setEndBlockSelection,
+		selectionState,
 		setSelectionState,
 	} = useBlockSelectionStore(
 		useShallow((state) => ({
 			startBlockSelection: state.startBlockSelection,
 			endBlockSelection: state.endBlockSelection,
-			selectionState: state.selectionState,
 			setStartBlockSelection: state.setStartBlockSelection,
 			setEndBlockSelection: state.setEndBlockSelection,
+			selectionState: state.selectionState,
 			setSelectionState: state.setSelectionState,
 		})),
 	);
 
-	const { togglePendingTime, addPendingTimeRange, isScheduled } =
+	const { isScheduled, togglePendingTime, addPendingTimeRange } =
 		useScheduleSelectionStore(
 			useShallow((state) => ({
+				isScheduled: state.isScheduled,
 				togglePendingTime: state.togglePendingTime,
 				addPendingTimeRange: state.addPendingTimeRange,
-				isScheduled: state.isScheduled,
 			})),
 		);
 	// to load scheduled time blocks when meeting is loaded
@@ -590,22 +590,6 @@ export function GroupAvailability({
 									blockIndex,
 								})
 							}
-							onMouseDown={() =>
-								handleMouseDown({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onMouseMove={() =>
-								handleMouseMove({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onMouseUp={handleMouseUp}
-							onTouchStart={(e) => handleTouchStart(e)}
-							onTouchMove={(e) => handleTouchMove(e)}
-							onTouchEnd={(e) => handleTouchEnd(e)}
 							blockColor={blockColor}
 							tableCellStyles={tableCellStyles}
 							hasSpacerBefore={spacers[pageDateIndex]}
