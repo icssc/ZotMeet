@@ -324,6 +324,24 @@ export function AvailabilityHeader({
 									</Button>
 								)}
 
+								<Button
+									className="h-8 min-h-fit min-w-fit flex-center gap-1 px-2 md:px-4 md:py-0"
+									onClick={async () => {
+										const { success, content, filename } =
+											await getICalFileContent(meetingData.id);
+										if (!success || !content) {
+											toast.error("No scheduled meeting to download.");
+											return;
+										}
+										triggerICalDownload(content, filename);
+									}}
+								>
+									<FileDownload className="!text-lg md:!text-base" />
+									<span className="hidden font-dm-sans md:flex">
+										Download iCal
+									</span>
+								</Button>
+
 								{isOwner && (
 									<Button
 										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
@@ -354,23 +372,6 @@ export function AvailabilityHeader({
 									<CalendarPlus className="size-5" />
 									<span className="hidden font-dm-sans md:flex">
 										{hasAvailability ? "Edit Availability" : "Add Availability"}
-									</span>
-								</Button>
-								<Button
-									className="h-8 min-h-fit min-w-fit flex-center gap-1 px-2 md:px-4 md:py-0"
-									onClick={async () => {
-										const { success, content, filename } =
-											await getICalFileContent(meetingData.id);
-										if (!success || !content) {
-											toast.error("No scheduled meeting to download.");
-											return;
-										}
-										triggerICalDownload(content, filename);
-									}}
-								>
-									<FileDownload className="!text-lg md:!text-base" />
-									<span className="hidden font-dm-sans md:flex">
-										Download iCal
 									</span>
 								</Button>
 							</>
