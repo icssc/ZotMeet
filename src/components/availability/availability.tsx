@@ -608,6 +608,7 @@ export function Availability({
 				meetingData={meetingData}
 				user={user}
 				availabilityDates={availabilityDates}
+				scheduledBlocks={scheduledBlocks}
 				onCancel={handleCancelEditing}
 				onSave={handleSuccessfulSave}
 				setChangeableTimezone={setChangeableTimezone}
