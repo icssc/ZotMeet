@@ -7,22 +7,23 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/custom/tabs";
-import { MeetingsDisplay } from "@/components/summary/meetings-display";
 import { Button } from "@/components/ui/button";
-import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
+import MeetingCard from "@/components/ui/meeting-card";
+import type { SelectMeeting } from "@/db/schema";
+import { toMeetingCardProps } from "@/lib/meeting-card/mapper";
 
 import { cn } from "@/lib/utils";
 
 interface MeetingsDisplayProps {
 	meetings: SelectMeeting[];
 	userId: string;
-	scheduledTimeBlocksByMeetingId?: Record<string, SelectScheduledMeeting[]>;
+	meetingCounts: Record<string, number>;
 }
 
 export const Meetings = ({
 	meetings,
 	userId,
-	scheduledTimeBlocksByMeetingId,
+	meetingCounts,
 }: MeetingsDisplayProps) => {
 	const [hostedOnly, setHostedOnly] = useState(false);
 
@@ -50,6 +51,30 @@ export const Meetings = ({
 	const handleClick = useCallback(() => {
 		setHostedOnly((prev) => !prev);
 	}, []);
+
+	const renderMeetingCards = (displayMeetings: SelectMeeting[]) => {
+		if (displayMeetings.length === 0) {
+			return (
+				<div className="flex items-center gap-4 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-6 pr-8">
+					<h3 className="truncate font-dm-sans font-medium text-gray-800 text-xl">
+						No meetings found.
+					</h3>
+				</div>
+			);
+		}
+
+		return (
+			<div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-3">
+				{displayMeetings.map((meeting) => {
+					const cardProps = toMeetingCardProps(meeting, {
+						responderCount: meetingCounts[meeting.id] ?? 0,
+					});
+
+					return <MeetingCard key={meeting.id} {...cardProps} />;
+				})}
+			</div>
+		);
+	};
 
 	return (
 		<div className="w-full rounded-xl">
@@ -89,14 +114,11 @@ export const Meetings = ({
 				</TabsList>
 
 				<TabsContent value="scheduled">
-					<MeetingsDisplay
-						meetings={filteredScheduledMeetings}
-						scheduledTimeBlocks={scheduledTimeBlocksByMeetingId}
-					/>
+					{renderMeetingCards(filteredScheduledMeetings)}
 				</TabsContent>
 
 				<TabsContent value="unscheduled">
-					<MeetingsDisplay meetings={filteredUnscheduledMeetings} />
+					{renderMeetingCards(filteredUnscheduledMeetings)}
 				</TabsContent>
 			</Tabs>
 		</div>

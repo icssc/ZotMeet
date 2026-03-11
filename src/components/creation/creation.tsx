@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
+import { toMeetingCardProps } from "@/lib/meeting-card/mapper";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -91,25 +92,6 @@ export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 		void setUrlState({ endTime: newTime });
 	};
 
-	const formatTime = (time: string) => {
-		const [hour, minute] = time.split(":");
-		const date = new Date();
-		date.setHours(Number(hour), Number(minute));
-
-		return date.toLocaleTimeString([], {
-			hour: "numeric",
-			minute: "2-digit",
-			hour12: true,
-		});
-	};
-
-	const formatSingleDate = (dateString?: string) => {
-		if (!dateString) return "";
-		return new Intl.DateTimeFormat("en-US", {
-			month: "numeric",
-			day: "numeric",
-		}).format(new Date(dateString));
-	};
 	const meetingType = urlState.meetingType as SelectMeeting["meetingType"];
 	const setMeetingType = (
 		typeOrUpdater: React.SetStateAction<SelectMeeting["meetingType"]>,
@@ -258,20 +240,13 @@ export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 			</div>
 
 			<div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-3">
-				{meetings.map((m) => (
-					<MeetingCard
-						meetingName={m.title}
-						meetingOrganizer={m.hostDisplayName ?? "Unknown organizer"}
-						dateStart={formatSingleDate(m.dates?.[0])}
-						dateEnd={formatSingleDate(m.dates?.[m.dates.length - 1])}
-						timeStart={`${formatTime(m.fromTime)}`}
-						timeEnd={`${formatTime(m.toTime)}`}
-						numResponders={meetingCounts[m.id] ?? 0}
-						location={m.location}
-						scheduled={Boolean(m.scheduled)}
-						meetingLink={`/availability/${m.id}`}
-					/>
-				))}
+				{meetings.map((meeting) => {
+					const cardProps = toMeetingCardProps(meeting, {
+						responderCount: meetingCounts[meeting.id] ?? 0,
+					});
+
+					return <MeetingCard key={meeting.id} {...cardProps} />;
+				})}
 			</div>
 		</div>
 	);
