@@ -284,12 +284,13 @@ export function AvailabilityHeader({
 										)}
 										onClick={async () => {
 											try {
-												const { success, link } = await getOutlookCalendarLink({
-													meetingId: meetingData.id,
-													meetingTitle: meetingData.title,
-													meetingDescription: meetingData.description,
-													meetingLocation: meetingData.location,
-												});
+												const { success, link, totalDays } =
+													await getOutlookCalendarLink({
+														meetingId: meetingData.id,
+														meetingTitle: meetingData.title,
+														meetingDescription: meetingData.description,
+														meetingLocation: meetingData.location,
+													});
 
 												if (!success || !link) {
 													toast.error(
@@ -301,7 +302,9 @@ export function AvailabilityHeader({
 												window.open(link, "_blank", "noopener,noreferrer");
 
 												toast.success(
-													"Outlook Calendar link opened! Confirm the event in your calendar.",
+													totalDays > 1
+														? `Outlook Calendar link opened for the first day. Use "Download iCal" for all ${totalDays} days.`
+														: "Outlook Calendar link opened! Confirm the event in your calendar.",
 												);
 											} catch (error) {
 												console.error(

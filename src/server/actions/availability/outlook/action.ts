@@ -1,7 +1,10 @@
 "use server";
 
 import { getScheduledTimeBlocks } from "@data/meeting/queries";
-import { mergeContiguousTimeBlocks } from "@/lib/meetings/utils";
+import {
+	groupScheduledBlocksByDate,
+	mergeContiguousTimeBlocks,
+} from "@/lib/meetings/utils";
 
 function combineDateAndTimeISO(date: Date, time: string): string {
 	const [hours, minutes, seconds = "00"] = time.split(":");
@@ -37,7 +40,12 @@ export async function getOutlookCalendarLink({
 		};
 	}
 
-	const mergedInterval = mergeContiguousTimeBlocks(blocks);
+	// Group by date, then merge each day's blocks independently
+	const grouped = groupScheduledBlocksByDate(blocks);
+
+	// Use the first day's merged interval for the Outlook event
+	const firstDay = grouped[0];
+	const mergedInterval = mergeContiguousTimeBlocks(firstDay.blocks);
 	if (!mergedInterval) {
 		return {
 			success: false,
@@ -45,7 +53,7 @@ export async function getOutlookCalendarLink({
 		};
 	}
 
-	const date = blocks[0].scheduledDate;
+	const date = firstDay.date;
 	const start = combineDateAndTimeISO(date, mergedInterval.from);
 	const end = combineDateAndTimeISO(date, mergedInterval.to);
 
@@ -64,5 +72,6 @@ export async function getOutlookCalendarLink({
 	return {
 		success: true,
 		link,
+		totalDays: grouped.length,
 	};
 }
