@@ -5,6 +5,7 @@ import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
+import { FileDownload } from "@mui/icons-material";
 import {
 	CalendarCheck,
 	CalendarPlus,
@@ -19,8 +20,9 @@ import { useShallow } from "zustand/shallow";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
-import type { SelectMeeting } from "@/db/schema";
+import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
+import { downloadICalFile } from "@/lib/ical";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
@@ -30,6 +32,7 @@ interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
 	user: UserProfile | null;
 	availabilityDates: ZotDate[];
+	scheduledBlocks: SelectScheduledMeeting[];
 	onCancel: () => void;
 	onSave: () => void;
 	setChangeableTimezone: (can: boolean) => void;
@@ -40,6 +43,7 @@ export function AvailabilityHeader({
 	meetingData,
 	user,
 	availabilityDates,
+	scheduledBlocks,
 	onCancel,
 	onSave,
 	setChangeableTimezone,
@@ -246,6 +250,15 @@ export function AvailabilityHeader({
 									<CalendarPlus className="size-5 md:hidden" />
 									<span className="hidden font-dm-sans md:flex">
 										{hasAvailability ? "Edit Availability" : "Add Availability"}
+									</span>
+								</Button>
+								<Button
+									className="h-8 min-h-fit min-w-fit flex-center gap-1 bg-[#3B82F6] px-2 text-white hover:bg-[#3B82F6]/80 md:px-4 md:py-0"
+									onClick={() => downloadICalFile(meetingData, scheduledBlocks)}
+								>
+									<FileDownload className="!text-lg md:!text-base" />
+									<span className="hidden font-dm-sans md:flex">
+										Download iCal
 									</span>
 								</Button>
 							</>
