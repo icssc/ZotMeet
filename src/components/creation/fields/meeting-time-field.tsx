@@ -106,7 +106,7 @@ export const MeetingTimeField = ({
 						<SelectTrigger className="w-fit">
 							<SelectValue placeholder={startHour} />
 						</SelectTrigger>
-						<SelectContent>
+						<SelectContent className="z-[1400]">
 							{Array.from({ length: 12 }, (_, i) => `${i + 1}`).map((hour) => (
 								<SelectItem key={hour} value={hour}>
 									{hour}
@@ -119,7 +119,7 @@ export const MeetingTimeField = ({
 						<SelectTrigger className="w-fit">
 							<SelectValue placeholder={"AM"} />
 						</SelectTrigger>
-						<SelectContent>
+						<SelectContent className="z-[1400]">
 							<SelectItem value="AM">AM</SelectItem>
 							<SelectItem value="PM">PM</SelectItem>
 						</SelectContent>
@@ -133,7 +133,7 @@ export const MeetingTimeField = ({
 						<SelectTrigger className="w-fit">
 							<SelectValue placeholder={endHour} />
 						</SelectTrigger>
-						<SelectContent>
+						<SelectContent className="z-[1400]">
 							{Array.from({ length: 12 }, (_, i) => `${i + 1}`).map((hour) => (
 								<SelectItem key={hour} value={hour}>
 									{hour}
@@ -146,7 +146,7 @@ export const MeetingTimeField = ({
 						<SelectTrigger className="w-fit">
 							<SelectValue placeholder={"PM"} />
 						</SelectTrigger>
-						<SelectContent>
+						<SelectContent className="z-[1400]">
 							<SelectItem value="AM">AM</SelectItem>
 							<SelectItem value="PM">PM</SelectItem>
 						</SelectContent>

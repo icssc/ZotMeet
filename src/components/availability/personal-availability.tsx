@@ -1,64 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useShallow } from "zustand/shallow";
-import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
+import { useEffect, useRef, useState } from "react";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { useGoogleCalendar } from "@/hooks/use-google-calendar";
-import type { UserProfile } from "@/lib/auth/user";
-import type {
-	AvailabilityBlockType,
-	GoogleCalendarEvent,
-} from "@/lib/types/availability";
+import type { GoogleCalendarEvent } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
-import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 
 interface PersonalAvailabilityProps {
 	timeBlock: number;
 	blockIndex: number;
 	availabilityTimeBlocks: number[];
-	fromTime: number;
 	availabilityDates: ZotDate[];
 	currentPageAvailability: ZotDate[];
 	googleCalendarEvents: GoogleCalendarEvent[];
-	user: UserProfile | null;
-	onAvailabilityChange: (updatedDates: ZotDate[]) => void;
-	timezone: string;
 	meetingDates: string[];
 }
 
 export function PersonalAvailability({
 	timeBlock,
 	blockIndex,
-	fromTime,
 	availabilityTimeBlocks,
 	availabilityDates,
 	currentPageAvailability,
 	googleCalendarEvents,
-	user,
-	onAvailabilityChange,
 	meetingDates,
 }: PersonalAvailabilityProps) {
-	const {
-		startBlockSelection,
-		endBlockSelection,
-		selectionState,
-		setStartBlockSelection,
-		setEndBlockSelection,
-		setSelectionState,
-	} = useBlockSelectionStore(
-		useShallow((state) => ({
-			startBlockSelection: state.startBlockSelection,
-			endBlockSelection: state.endBlockSelection,
-			selectionState: state.selectionState,
-			setStartBlockSelection: state.setStartBlockSelection,
-			setEndBlockSelection: state.setEndBlockSelection,
-			setSelectionState: state.setSelectionState,
-		})),
-	);
-
-	const [isEditingAvailability, setIsEditingAvailability] = useState(false);
 	const [isStateUnsaved, setIsStateUnsaved] = useState(false);
+	const initialAvailabilityRef = useRef<string | null>(null);
 
 	const { processedCellSegments } = useGoogleCalendar({
 		googleCalendarEvents,
@@ -67,114 +35,24 @@ export function PersonalAvailability({
 		meetingDates,
 	});
 
+	// Store initial availability state on mount
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Only run once on mount to capture initial state
 	useEffect(() => {
-		if (startBlockSelection && endBlockSelection) {
-			setSelectionState({
-				earlierDateIndex: Math.min(
-					startBlockSelection.zotDateIndex,
-					endBlockSelection.zotDateIndex,
-				),
-				laterDateIndex: Math.max(
-					startBlockSelection.zotDateIndex,
-					endBlockSelection.zotDateIndex,
-				),
-				earlierBlockIndex: Math.min(
-					startBlockSelection.blockIndex,
-					endBlockSelection.blockIndex,
-				),
-				laterBlockIndex: Math.max(
-					startBlockSelection.blockIndex,
-					endBlockSelection.blockIndex,
-				),
-			});
-		}
-	}, [startBlockSelection, endBlockSelection, setSelectionState]);
-
-	const setAvailabilities = (startBlock: AvailabilityBlockType) => {
-		if (!isEditingAvailability) {
-			setIsEditingAvailability(true);
-		}
-
-		if (selectionState) {
-			const {
-				earlierDateIndex,
-				laterDateIndex,
-				earlierBlockIndex,
-				laterBlockIndex,
-			} = selectionState;
-
-			const {
-				zotDateIndex: selectionStartDateIndex,
-				blockIndex: selectionStartBlockIndex,
-			} = startBlock;
-
-			const startSelectionZotDate = availabilityDates[selectionStartDateIndex];
-			const selectionValue = !startSelectionZotDate.getBlockAvailability(
-				selectionStartBlockIndex,
+		if (initialAvailabilityRef.current === null) {
+			initialAvailabilityRef.current = JSON.stringify(
+				availabilityDates.map((date) => date.availability),
 			);
-
-			const updatedDates = [...availabilityDates];
-
-			for (
-				let dateIndex = earlierDateIndex;
-				dateIndex <= laterDateIndex;
-				dateIndex++
-			) {
-				const currentDate = updatedDates[dateIndex];
-				currentDate.setBlockAvailabilities(
-					earlierBlockIndex,
-					laterBlockIndex,
-					selectionValue,
-				);
-
-				// For each block in the selection range
-				for (
-					let blockIdx = earlierBlockIndex;
-					blockIdx <= laterBlockIndex;
-					blockIdx++
-				) {
-					const timestamp = getTimestampFromBlockIndex(
-						blockIdx,
-						dateIndex,
-						fromTime,
-						availabilityDates,
-					);
-
-					// Initialize empty array if timestamp doesn't exist
-					if (!currentDate.groupAvailability[timestamp]) {
-						currentDate.groupAvailability[timestamp] = [];
-					}
-
-					if (selectionValue) {
-						// Add user to availability if not already present
-						if (
-							!currentDate.groupAvailability[timestamp].includes(
-								user?.memberId ?? "",
-							)
-						) {
-							currentDate.groupAvailability[timestamp].push(
-								user?.memberId ?? "",
-							);
-						}
-					} else {
-						// Remove user from availability
-						currentDate.groupAvailability[timestamp] =
-							currentDate.groupAvailability[timestamp].filter(
-								(id) => id !== (user?.memberId ?? ""),
-							);
-					}
-				}
-			}
-
-			setStartBlockSelection(undefined);
-			setEndBlockSelection(undefined);
-			setSelectionState(undefined);
-			setIsStateUnsaved(true);
-
-			// Call the onAvailabilityChange handler with the updated dates
-			onAvailabilityChange(updatedDates);
 		}
-	};
+	}, []);
+
+	useEffect(() => {
+		if (initialAvailabilityRef.current !== null) {
+			const currentState = JSON.stringify(
+				availabilityDates.map((date) => date.availability),
+			);
+			setIsStateUnsaved(currentState !== initialAvailabilityRef.current);
+		}
+	}, [availabilityDates]);
 
 	useEffect(() => {
 		const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -194,7 +72,6 @@ export function PersonalAvailability({
 
 	return (
 		<AvailabilityBlocks
-			setAvailabilities={setAvailabilities}
 			timeBlock={timeBlock}
 			blockIndex={blockIndex}
 			availabilityTimeBlocksLength={availabilityTimeBlocks.length}

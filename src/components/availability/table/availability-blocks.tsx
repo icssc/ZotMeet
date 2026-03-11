@@ -6,15 +6,11 @@ import {
 	generateDateKey,
 	spacerBeforeDate,
 } from "@/lib/availability/utils";
-import type {
-	AvailabilityBlockType,
-	ProcessedCellEventSegments,
-} from "@/lib/types/availability";
+import type { ProcessedCellEventSegments } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 
 interface AvailabilityBlocksProps {
-	setAvailabilities: (startBlock: AvailabilityBlockType) => void;
 	timeBlock: number;
 	blockIndex: number;
 	availabilityTimeBlocksLength: number;
@@ -23,7 +19,6 @@ interface AvailabilityBlocksProps {
 }
 
 export function AvailabilityBlocks({
-	setAvailabilities,
 	timeBlock,
 	blockIndex,
 	availabilityTimeBlocksLength,
@@ -69,7 +64,6 @@ export function AvailabilityBlocks({
 								blockIndex={blockIndex}
 								isAvailable={isAvailable}
 								zotDateIndex={zotDateIndex}
-								setAvailabilities={setAvailabilities}
 								isTopOfHour={isTopOfHour}
 								isHalfHour={isHalfHour}
 								isLastRow={isLastRow}

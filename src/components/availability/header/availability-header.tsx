@@ -1,10 +1,12 @@
 "use client";
 
+import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
 import { saveAvailability } from "@actions/availability/save/action";
 import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
+import GoogleIcon from "@mui/icons-material/Google";
 import {
 	CalendarCheck,
 	CalendarIcon,
@@ -16,6 +18,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useShallow } from "zustand/shallow";
 import { GoogleCalendarSelectionDialog } from "@/components/availability/google-calendar-selection-dialog";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
@@ -68,6 +71,46 @@ export function AvailabilityHeader({
 		onCancel();
 		setChangeableTimezone(true);
 		setAvailabilityView("group");
+	};
+
+	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
+	// const [guestName, setGuestName] = useState("");
+
+	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
+	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
+
+	const isOwner = !!user && meetingData.hostId === user.memberId;
+
+	const handleSave = async () => {
+		if (!user) {
+			// setIsGuestDialogOpen(true);
+
+			return;
+		}
+		setChangeableTimezone(true);
+		const availability = {
+			meetingId: meetingData.id,
+			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
+			displayName: user.displayName,
+		};
+
+		const response = await saveAvailability(availability);
+
+		if (response.status === 200) {
+			setHasAvailability(true);
+			setAvailabilityView("group");
+			onSave();
+
+			// Clear guest member name
+			if (!user) {
+				// setGuestName("");
+			}
+		} else {
+			console.error("Error saving availability:", response.body.error);
+		}
 	};
 
 	const { commitPendingTimes, clearPendingTimes } = useScheduleSelectionStore(
@@ -132,47 +175,10 @@ export function AvailabilityHeader({
 
 			// Move pending to scheduled after successful save
 			commitPendingTimes();
+			setIsScheduled(true);
 			setAvailabilityView("group");
 		} catch (error) {
 			console.error("Failed to save meeting blocks", error);
-		}
-	};
-
-	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
-	// const [guestName, setGuestName] = useState("");
-
-	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-	const isOwner = !!user && meetingData.hostId === user.memberId;
-
-	const handleSave = async () => {
-		if (!user) {
-			// setIsGuestDialogOpen(true);
-
-			return;
-		}
-		setChangeableTimezone(true);
-		const availability = {
-			meetingId: meetingData.id,
-			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-
-		const response = await saveAvailability(availability);
-
-		if (response.status === 200) {
-			setHasAvailability(true);
-			setAvailabilityView("group");
-			onSave();
-
-			// Clear guest member name
-			if (!user) {
-				// setGuestName("");
-			}
-		} else {
-			console.error("Error saving availability:", response.body.error);
 		}
 	};
 
@@ -235,17 +241,68 @@ export function AvailabilityHeader({
 							</>
 						) : (
 							<>
+								{isScheduled && (
+									<Button
+										className={cn(
+											"h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0",
+										)}
+										onClick={async () => {
+											if (isGeneratingLink) return;
+											setIsGeneratingLink(true);
+											try {
+												const { success, link } =
+													await getGoogleCalendarPrefilledLink({
+														meetingId: meetingData.id,
+														meetingTitle: meetingData.title,
+														meetingDescription: meetingData.description,
+														meetingLocation: meetingData.location,
+														timezone: meetingData.timezone,
+													});
+
+												if (!success || !link) {
+													toast.error(
+														"Failed to generate Google Calendar link.",
+													);
+													return;
+												}
+
+												window.open(link, "_blank", "noopener,noreferrer");
+
+												toast.success(
+													"Google Calendar link opened! Confirm the event in your calendar.",
+												);
+											} catch (error) {
+												console.error(
+													"Error generating Google Calendar link:",
+													error,
+												);
+												toast.error(
+													"An error occurred while generating the Google Calendar link.",
+												);
+											} finally {
+												setIsGeneratingLink(false);
+											}
+										}}
+									>
+										<GoogleIcon className="size-5" />
+										<span className="hidden font-dm-sans md:flex">
+											Add to Calendar
+										</span>
+									</Button>
+								)}
+
 								{isOwner && (
 									<Button
 										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
 										onClick={() => setAvailabilityView("schedule")}
 									>
-										<CalendarCheck className="size-5 md:hidden" />
+										<CalendarCheck className="size-5" />
 										<span className="hidden font-dm-sans md:flex">
 											Schedule Meeting
 										</span>
 									</Button>
 								)}
+
 								<Button
 									className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
 									onClick={() => {
@@ -261,7 +318,7 @@ export function AvailabilityHeader({
 										setAvailabilityView("personal");
 									}}
 								>
-									<CalendarPlus className="size-5 md:hidden" />
+									<CalendarPlus className="size-5" />
 									<span className="hidden font-dm-sans md:flex">
 										{hasAvailability ? "Edit Availability" : "Add Availability"}
 									</span>
