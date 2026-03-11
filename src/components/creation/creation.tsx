@@ -1,6 +1,9 @@
 "use client";
 
 import { createMeeting } from "@actions/meeting/create/action";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
+import SearchIcon from "@mui/icons-material/Search";
+import { Input } from "@mui/material";
 import {
 	parseAsArrayOf,
 	parseAsString,
@@ -15,11 +18,19 @@ import { Button } from "@/components/ui/button";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
+import { toMeetingCardProps } from "@/lib/meeting-card/mapper";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
+import MeetingCard from "../ui/meeting-card";
 
-export function Creation({ user }: { user: UserProfile | null }) {
+interface CreationProps {
+	user: UserProfile | null;
+	meetings: (SelectMeeting & { hostDisplayName: string | null })[];
+	meetingCounts: Record<string, number>;
+}
+
+export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 	const [isCreating, setIsCreating] = useState(false);
 
 	// Use NUQS for URL state management
@@ -214,6 +225,28 @@ export function Creation({ user }: { user: UserProfile | null }) {
 				>
 					{isCreating ? "Creating..." : "Continue →"}
 				</Button>
+			</div>
+
+			<div className="flex w-full items-center gap-3">
+				<div className="group relative w-full max-w-2xl">
+					<SearchIcon className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-gray-400 transition-opacity group-focus-within:opacity-0" />
+
+					<Input
+						disableUnderline
+						placeholder="Search Meetings"
+						className="w-full rounded-3xl border-2 border-gray-300 p-3 pl-11 transition-all group-focus-within:pl-3"
+					/>
+				</div>
+			</div>
+
+			<div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-3">
+				{meetings.map((meeting) => {
+					const cardProps = toMeetingCardProps(meeting, {
+						responderCount: meetingCounts[meeting.id] ?? 0,
+					});
+
+					return <MeetingCard key={meeting.id} {...cardProps} />;
+				})}
 			</div>
 		</div>
 	);
