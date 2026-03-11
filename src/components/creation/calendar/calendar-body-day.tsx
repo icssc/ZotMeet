@@ -107,7 +107,7 @@ export function CalendarBodyDay({
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
 				onPointerUp={handlePointerUp}
-				className="relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:none]"
+				className="relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:pinch-zoom]"
 				data-day={calendarDay.getDay()}
 				data-month={calendarDay.getMonth()}
 				data-year={calendarDay.getYear()}

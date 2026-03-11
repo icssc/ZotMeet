@@ -101,9 +101,9 @@ export function Calendar({
 		: `${monthName} ${currentYear}`;
 
 	return (
-		<div className="rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7">
-			<div className="flex flex-col items-start justify-between space-y-4 px-8 pb-6 md:px-16 lg:flex-row lg:items-start lg:space-y-0">
-				<h3 className="text-left font-figtree font-semibold text-2xl text-gray-dark md:text-3xl">
+		<div className="rounded-lg border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-6">
+			<div className="flex flex-col items-start justify-between px-4 pb-3 md:px-8">
+				<h3 className="font-montserrat font-semibold text-gray-dark text-lg md:text-2xl">
 					{title}
 				</h3>
 
@@ -133,7 +133,7 @@ export function Calendar({
 					</Button>
 
 					<div className="w-full md:px-4">
-						<table className="w-full table-fixed p-3">
+						<table className="w-full table-fixed border-collapse">
 							<thead>
 								<tr>
 									{WEEKDAYS.map((dayOfWeek) => (
