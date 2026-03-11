@@ -2,12 +2,13 @@
 
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
 import { getICalFileContent } from "@actions/availability/ical/action";
+import { getOutlookCalendarLink } from "@actions/availability/outlook/action";
 import { saveAvailability } from "@actions/availability/save/action";
 import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
-import { FileDownload } from "@mui/icons-material";
+import { CalendarMonth, FileDownload } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
 import {
 	CalendarCheck,
@@ -272,6 +273,50 @@ export function AvailabilityHeader({
 										<GoogleIcon className="size-5" />
 										<span className="hidden font-dm-sans md:flex">
 											Add to Calendar
+										</span>
+									</Button>
+								)}
+
+								{isScheduled && (
+									<Button
+										className={cn(
+											"h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0",
+										)}
+										onClick={async () => {
+											try {
+												const { success, link } = await getOutlookCalendarLink({
+													meetingId: meetingData.id,
+													meetingTitle: meetingData.title,
+													meetingDescription: meetingData.description,
+													meetingLocation: meetingData.location,
+												});
+
+												if (!success || !link) {
+													toast.error(
+														"Failed to generate Outlook Calendar link.",
+													);
+													return;
+												}
+
+												window.open(link, "_blank", "noopener,noreferrer");
+
+												toast.success(
+													"Outlook Calendar link opened! Confirm the event in your calendar.",
+												);
+											} catch (error) {
+												console.error(
+													"Error generating Outlook Calendar link:",
+													error,
+												);
+												toast.error(
+													"An error occurred while generating the Outlook Calendar link.",
+												);
+											}
+										}}
+									>
+										<CalendarMonth className="size-5" />
+										<span className="hidden font-dm-sans md:flex">
+											Add to Outlook
 										</span>
 									</Button>
 								)}
