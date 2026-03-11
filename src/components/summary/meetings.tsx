@@ -98,7 +98,7 @@ export const Meetings = ({
 
 	return (
 		<div className="w-full rounded-xl">
-			<div className="flex justify-between sm:flex-row sm:flex-col">
+			<div className="flex flex-col justify-between">
 				<div className="mb-5 flex items-center lg:hidden">
 					<h1 className="block w-full font-montserrat font-semibold text-4xl lg:hidden">
 						Meetings
