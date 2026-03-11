@@ -57,6 +57,7 @@ interface AvailabilityStore {
 	pendingRemovals: Set<string>;
 	addPendingTime: (timestamp: string) => void;
 	addPendingTimeRange: (timestamps: string[]) => void;
+	replaceEntireSelection: (timestamps: string[]) => void;
 	commitPendingTimes: () => void;
 	togglePendingTime: (timestamp: string) => void;
 	clearPendingTimes: () => void;
@@ -174,6 +175,10 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 			});
 			return { pendingAdds: newPending };
 		});
+	},
+
+	replaceEntireSelection: (timestamps: string[]) => {
+		set({ pendingAdds: new Set(timestamps), pendingRemovals: new Set() });
 	},
 
 	commitPendingTimes: () => {

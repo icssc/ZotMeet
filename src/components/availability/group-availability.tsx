@@ -173,11 +173,11 @@ export function GroupAvailability({
 		})),
 	);
 
-	const { togglePendingTime, addPendingTimeRange, isScheduled } =
+	const { togglePendingTime, replaceEntireSelection, isScheduled } =
 		useAvailabilityStore(
 			useShallow((state) => ({
 				togglePendingTime: state.togglePendingTime,
-				addPendingTimeRange: state.addPendingTimeRange,
+				replaceEntireSelection: state.replaceEntireSelection,
 				isScheduled: state.isScheduled,
 			})),
 		);
@@ -381,7 +381,7 @@ export function GroupAvailability({
 
 			// Each drag replaces the entire selection (clears any previous blocks)
 			if (timestamps.length > 0) {
-				addPendingTimeRange(timestamps);
+				replaceEntireSelection(timestamps);
 
 				// Reset selection
 				setStartBlockSelection(undefined);
@@ -396,7 +396,7 @@ export function GroupAvailability({
 		selectionState,
 		fromTime,
 		availabilityDates,
-		addPendingTimeRange,
+		replaceEntireSelection,
 		setStartBlockSelection,
 		setEndBlockSelection,
 		setSelectionState,
@@ -486,7 +486,7 @@ export function GroupAvailability({
 			}
 
 			if (timestamps.length > 0) {
-				addPendingTimeRange(timestamps);
+				replaceEntireSelection(timestamps);
 
 				setStartBlockSelection(undefined);
 				setEndBlockSelection(undefined);
