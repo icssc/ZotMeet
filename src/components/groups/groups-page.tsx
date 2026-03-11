@@ -6,6 +6,7 @@ import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { GroupCard } from "@/components/groups/group-card";
 import { cn } from "@/lib/utils";
 import type { GroupWithDetails } from "@/server/data/groups/queries";
+import { InviteDecision } from "./invite-decisions";
 
 type FilterTab = "all" | "created" | "availability";
 
@@ -47,6 +48,8 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 		[groups],
 	);
 
+	const [showJoinGroup, setShowJoinGroup] = useState(false);
+
 	return (
 		<div className="w-full">
 			<div className="flex items-end justify-between">
@@ -66,6 +69,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 
 					<button
 						type="button"
+						onClick={() => setShowJoinGroup(true)}
 						className="flex items-center gap-5 rounded-[10px] bg-[#f7f7f7] px-3 py-1.5"
 					>
 						<Users className="size-5" />
@@ -73,6 +77,11 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 							Join Existing Group
 						</span>
 					</button>
+
+					<InviteDecision
+						open={showJoinGroup}
+						onOpenChange={setShowJoinGroup}
+					/>
 				</div>
 			</div>
 

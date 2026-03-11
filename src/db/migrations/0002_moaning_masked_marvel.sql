@@ -1,0 +1,1 @@
+ALTER TABLE "group_invite_responses" ADD CONSTRAINT "group_invite_responses_invite_user_unique" UNIQUE("invite_id","user_id");
