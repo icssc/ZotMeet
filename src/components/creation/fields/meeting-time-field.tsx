@@ -1,12 +1,5 @@
-import { ClockIcon } from "lucide-react";
+import { TextField } from "@mui/material";
 import { type Dispatch, type SetStateAction, useState } from "react";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import type { HourMinuteString } from "@/lib/types/chrono";
 
 const convertTo24Hour = (hour: number, period: string) => {
@@ -90,68 +83,31 @@ export const MeetingTimeField = ({
 
 	return (
 		<div>
-			<div className="flex flex-row items-center space-x-2 text-slate-medium">
-				<ClockIcon />
-				<p className="font-semibold text-sm uppercase tracking-wide">
-					ANY TIME BETWEEN (PST)
-				</p>
-			</div>
+			<div className="flex w-full flex-col items-center space-y-4 pt-2 text-gray-500 text-sm">
+				<TextField
+					fullWidth
+					label="START TIME"
+					variant="outlined"
+					type="time"
+					size="medium"
+					placeholder="9:00 AM"
+					value={startTime}
+					onChange={(e) => setStartTime(e.target.value as HourMinuteString)}
+					autoFocus
+				/>
 
-			<div className="flex w-full flex-row items-center space-x-4 pt-2 text-gray-500 text-sm">
-				<div className="flex gap-2">
-					<Select
-						value={String(startHour)}
-						onValueChange={handleStartHourChange}
-					>
-						<SelectTrigger className="w-fit">
-							<SelectValue placeholder={startHour} />
-						</SelectTrigger>
-						<SelectContent>
-							{Array.from({ length: 12 }, (_, i) => `${i + 1}`).map((hour) => (
-								<SelectItem key={hour} value={hour}>
-									{hour}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-
-					<Select value={startPeriod} onValueChange={handleStartPeriodChange}>
-						<SelectTrigger className="w-fit">
-							<SelectValue placeholder={"AM"} />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="AM">AM</SelectItem>
-							<SelectItem value="PM">PM</SelectItem>
-						</SelectContent>
-					</Select>
-				</div>
-
-				<span> and </span>
-
-				<div className="flex gap-2">
-					<Select value={String(endHour)} onValueChange={handleEndHourChange}>
-						<SelectTrigger className="w-fit">
-							<SelectValue placeholder={endHour} />
-						</SelectTrigger>
-						<SelectContent>
-							{Array.from({ length: 12 }, (_, i) => `${i + 1}`).map((hour) => (
-								<SelectItem key={hour} value={hour}>
-									{hour}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-
-					<Select value={endPeriod} onValueChange={handleEndPeriodChange}>
-						<SelectTrigger className="w-fit">
-							<SelectValue placeholder={"PM"} />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="AM">AM</SelectItem>
-							<SelectItem value="PM">PM</SelectItem>
-						</SelectContent>
-					</Select>
-				</div>
+				<TextField
+					fullWidth
+					label="END TIME"
+					variant="outlined"
+					type="time"
+					size="medium"
+					placeholder="5:00 PM"
+					value={endTime}
+					onChange={(e) => setEndTime(e.target.value as HourMinuteString)}
+					autoFocus
+				/>
+				<div className="flex gap-2"></div>
 			</div>
 		</div>
 	);
