@@ -1,5 +1,4 @@
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
-import { relations } from "drizzle-orm";
 import {
 	boolean,
 	index,
@@ -218,75 +217,5 @@ export const usersInGroup = pgTable(
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.groupId, table.userId] }),
-	}),
-);
-
-export const usersRelations = relations(users, ({ one, many }) => ({
-	groups: many(groups, {
-		relationName: "usersToGroups",
-	}),
-	member: one(members, {
-		fields: [users.memberId],
-		references: [members.id],
-	}),
-}));
-
-export const groupsRelations = relations(groups, ({ many }) => ({
-	members: many(users, {
-		relationName: "usersToGroups",
-	}),
-	meetings: many(meetings),
-}));
-
-export const membersRelations = relations(members, ({ many }) => ({
-	hostedMeetings: many(meetings, {
-		relationName: "memberHostedMeetings",
-	}),
-	availabilities: many(availabilities),
-}));
-
-export const meetingsRelations = relations(meetings, ({ one, many }) => ({
-	group: one(groups, {
-		fields: [meetings.group_id],
-		references: [groups.id],
-	}),
-	host: one(members, {
-		fields: [meetings.hostId],
-		references: [members.id],
-		relationName: "memberHostedMeetings",
-	}),
-	availabilities: many(availabilities),
-	scheduledMeetings: many(scheduledMeetings),
-}));
-
-export const availabilitiesRelations = relations(availabilities, ({ one }) => ({
-	member: one(members, {
-		fields: [availabilities.memberId],
-		references: [members.id],
-	}),
-	meeting: one(meetings, {
-		fields: [availabilities.meetingId],
-		references: [meetings.id],
-	}),
-}));
-
-export const usersInGroupRelations = relations(usersInGroup, ({ one }) => ({
-	user: one(users, {
-		fields: [usersInGroup.userId],
-		references: [users.id],
-	}),
-	group: one(groups, {
-		fields: [usersInGroup.groupId],
-		references: [groups.id],
-	}),
-}));
-
-export const scheduledMeetingsRelations = relations(
-	scheduledMeetings,
-	({ one }) => ({
-		meeting: one(meetings, {
-			fields: [scheduledMeetings.meetingId],
-			references: [meetings.id],
-		}),
 	}),
 );
