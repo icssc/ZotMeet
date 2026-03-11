@@ -28,7 +28,6 @@ export function GroupResponses({
 	availabilityDates,
 	fromTime,
 	members,
-	timezone,
 	currentPageAvailability,
 	doesntNeedDay,
 }: GroupResponsesProps) {
