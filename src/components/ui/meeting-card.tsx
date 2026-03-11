@@ -74,10 +74,10 @@ const MeetingCard = ({
 			<div className="flex mt-5">
 				{scheduled && <p className="text-sm">Scheduled</p>}
 
-				<Link href={meetingLink} className="ml-auto text-pink-400">
+				<Link href={meetingLink} className="ml-auto text-[#F26489]">
 					ADD AVAILABILITY
 				</Link>
-				<NavigateNextIcon className="text-pink-400" />
+				<NavigateNextIcon className="text-[#F26489]" />
 			</div>
 		</div>
 	);

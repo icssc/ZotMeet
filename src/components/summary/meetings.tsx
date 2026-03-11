@@ -1,6 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { Add } from "@mui/icons-material";
+import FilterAltIcon from "@mui/icons-material/FilterAlt";
+import SearchIcon from "@mui/icons-material/Search";
+import { IconButton, Input } from "@mui/material";
+import Link from "next/link";
+import { useState } from "react";
 import {
 	Tabs,
 	TabsContent,
@@ -11,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import MeetingCard from "@/components/ui/meeting-card";
 import type { SelectMeeting } from "@/db/schema";
 import { toMeetingCardProps } from "@/lib/meeting-card/mapper";
-
 import { cn } from "@/lib/utils";
 
 interface MeetingsDisplayProps {
@@ -25,7 +29,9 @@ export const Meetings = ({
 	userId,
 	meetingCounts,
 }: MeetingsDisplayProps) => {
-	const [hostedOnly, setHostedOnly] = useState(false);
+	const [hostFilter, setHostFilter] = useState<"all" | "hosted">("all");
+	const [searchQuery, setSearchQuery] = useState("");
+	const hostedOnly = hostFilter === "hosted";
 
 	const scheduledMeetings =
 		meetings?.filter((meeting) => meeting.scheduled) || [];
@@ -48,9 +54,23 @@ export const Meetings = ({
 		(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
 	);
 
-	const handleClick = useCallback(() => {
-		setHostedOnly((prev) => !prev);
-	}, []);
+	const normalizedQuery = searchQuery.trim().toLowerCase();
+	const matchesSearch = (meeting: SelectMeeting) => {
+		if (!normalizedQuery) return true;
+		return (
+			meeting.title.toLowerCase().includes(normalizedQuery) ||
+			(meeting.location ?? "").toLowerCase().includes(normalizedQuery) ||
+			(meeting.description ?? "").toLowerCase().includes(normalizedQuery)
+		);
+	};
+
+	const searchedScheduledMeetings =
+		filteredScheduledMeetings.filter(matchesSearch);
+	const searchedUnscheduledMeetings =
+		filteredUnscheduledMeetings.filter(matchesSearch);
+
+	const allCount = meetings.length;
+	const hostedCount = meetings.filter((m) => m.hostId === userId).length;
 
 	const renderMeetingCards = (displayMeetings: SelectMeeting[]) => {
 		if (displayMeetings.length === 0) {
@@ -78,47 +98,93 @@ export const Meetings = ({
 
 	return (
 		<div className="w-full rounded-xl">
-			<div className="flex items-center justify-between">
-				<h1 className="font-medium font-montserrat text-3xl">Meetings</h1>
+			<div className="flex flex-col justify-between sm:flex-row">
+				<div className="mb-5 flex items-center sm:hidden">
+					<h1 className="block font-montserrat font-semibold text-4xl sm:hidden">
+						Meetings
+					</h1>
+					<Link href="/" className="ml-auto rounded-full bg-[#F26489]">
+						<IconButton sx={{ color: "white" }} className="h-14 w-14">
+							<Add fontSize="large" />
+						</IconButton>
+					</Link>
+				</div>
 
-				<Button
-					variant="outline"
-					size="sm"
-					className="flex w-32 items-center justify-center font-dm-sans text-xs"
-					onClick={handleClick}
-				>
-					{hostedOnly ? "Show All" : "Show Hosted Only"}
-				</Button>
+				<div className="flex w-full items-center gap-3">
+					<div className="group relative w-full max-w-2xl">
+						<SearchIcon className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-gray-400 transition-opacity group-focus-within:opacity-0" />
+
+						<Input
+							disableUnderline
+							placeholder="Search Meetings"
+							className="w-full rounded-3xl border-2 border-gray-300 p-3 pl-11 transition-all group-focus-within:pl-3"
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+						/>
+					</div>
+
+					<FilterAltIcon
+						className="rounded-2xl border-2 border-gray-300 p-2"
+						sx={{ fontSize: 38 }}
+					/>
+				</div>
 			</div>
 
 			<Tabs defaultValue="unscheduled">
-				<TabsList className="mb-8 space-x-0">
-					<TabsTrigger
-						value="unscheduled"
-						className={cn(
-							"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-montserrat text-lg duration-0",
-							"data-[state=active]:border-orange-500",
-						)}
+				<div className="flex">
+					<Tabs
+						value={hostFilter}
+						onValueChange={(value) => setHostFilter(value as "all" | "hosted")}
+						className="mt-4"
 					>
-						Unscheduled
-					</TabsTrigger>
-					<TabsTrigger
-						value="scheduled"
-						className={cn(
-							"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-montserrat text-lg duration-0",
-							"data-[state=active]:border-orange-500",
-						)}
-					>
-						Scheduled
-					</TabsTrigger>
-				</TabsList>
+						<TabsList className="items-center gap-3 space-x-0">
+							<TabsTrigger
+								value="all"
+								className={cn(
+									"rounded-xl p-2 px-4 text-blue-950 data-[state=active]:bg-blue-950 data-[state=active]:text-white",
+								)}
+							>
+								All ({allCount})
+							</TabsTrigger>
+							<TabsTrigger
+								value="hosted"
+								className={cn(
+									"rounded-xl p-2 px-4 text-blue-950 data-[state=active]:bg-blue-950 data-[state=active]:text-white",
+								)}
+							>
+								By You ({hostedCount})
+							</TabsTrigger>
+						</TabsList>
+					</Tabs>
+
+					<TabsList className="mb-8 ml-auto space-x-0">
+						<TabsTrigger
+							value="unscheduled"
+							className={cn(
+								"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-montserrat text-lg duration-0",
+								"data-[state=active]:border-blue-950",
+							)}
+						>
+							Unscheduled
+						</TabsTrigger>
+						<TabsTrigger
+							value="scheduled"
+							className={cn(
+								"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-montserrat text-lg duration-0",
+								"data-[state=active]:border-blue-950",
+							)}
+						>
+							Scheduled
+						</TabsTrigger>
+					</TabsList>
+				</div>
 
 				<TabsContent value="scheduled">
-					{renderMeetingCards(filteredScheduledMeetings)}
+					{renderMeetingCards(searchedScheduledMeetings)}
 				</TabsContent>
 
 				<TabsContent value="unscheduled">
-					{renderMeetingCards(filteredUnscheduledMeetings)}
+					{renderMeetingCards(searchedUnscheduledMeetings)}
 				</TabsContent>
 			</Tabs>
 		</div>

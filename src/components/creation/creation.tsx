@@ -2,6 +2,7 @@
 
 import { createMeeting } from "@actions/meeting/create/action";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
+import SearchIcon from "@mui/icons-material/Search";
 import { Input } from "@mui/material";
 import {
 	parseAsArrayOf,
@@ -226,17 +227,16 @@ export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 				</Button>
 			</div>
 
-			<div className="flex items-center gap-3">
-				<Input
-					placeholder="Search Meetings"
-					className="w-full max-w-2xl rounded-3xl border-2 border-gray-300 p-4"
-					disableUnderline
-				/>
+			<div className="flex w-full items-center gap-3">
+				<div className="group relative w-full max-w-2xl">
+					<SearchIcon className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-gray-400 transition-opacity group-focus-within:opacity-0" />
 
-				<FilterAltIcon
-					className="rounded-2xl border-2 border-gray-300 p-2"
-					sx={{ fontSize: 38 }}
-				/>
+					<Input
+						disableUnderline
+						placeholder="Search Meetings"
+						className="w-full rounded-3xl border-2 border-gray-300 p-3 pl-11 transition-all group-focus-within:pl-3"
+					/>
+				</div>
 			</div>
 
 			<div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-3">
