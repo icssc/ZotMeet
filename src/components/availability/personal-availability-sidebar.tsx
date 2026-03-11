@@ -24,7 +24,7 @@ export function AvailabilityModeSelector({
 			<button
 				type="button"
 				className={cn(
-					"flex flex-1 flex-col items-center gap-1.5 rounded-lg border-2 py-2 text-sm transition-colors",
+					"flex flex-1 flex-col items-center gap-1.5 rounded-lg border-2 py-2 text-xs transition-colors",
 					availabilityMode === "available"
 						? "border-blue-500 bg-blue-50"
 						: "border-gray-200 bg-white",
@@ -38,7 +38,7 @@ export function AvailabilityModeSelector({
 			<button
 				type="button"
 				className={cn(
-					"flex flex-1 flex-col items-center gap-1.5 rounded-lg border-2 py-2 text-sm transition-colors",
+					"flex flex-1 flex-col items-center gap-1.5 rounded-lg border-2 py-2 text-xs transition-colors",
 					availabilityMode === "if-needed"
 						? "border-blue-500 bg-blue-50"
 						: "border-gray-200 bg-white",
@@ -58,7 +58,7 @@ export function AvailabilityModeSelector({
 			<button
 				type="button"
 				className={cn(
-					"flex flex-1 flex-col items-center gap-1.5 rounded-lg border-2 py-2 text-sm transition-colors",
+					"flex flex-1 flex-col items-center gap-1.5 rounded-lg border-2 py-2 text-xs transition-colors",
 					availabilityMode === "unavailable"
 						? "border-blue-500 bg-blue-50"
 						: "border-gray-200 bg-white",

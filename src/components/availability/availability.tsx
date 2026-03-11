@@ -1,6 +1,7 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
+import { saveAvailability } from "@actions/availability/save/action";
 import { formatInTimeZone } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -35,6 +36,7 @@ import {
 	isAnchorDateMeeting,
 } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
+import { getCalendarsForDialog } from "@/server/actions/availability/google/calendar-selection/action";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useGoogleCalendarSelectionStore } from "@/store/useGoogleCalendarSelectionStore";
@@ -134,9 +136,14 @@ export function Availability({
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
 }) {
-	const availabilityView = useAvailabilityViewStore(
-		(state) => state.availabilityView,
-	);
+	const { availabilityView, setAvailabilityView, setHasAvailability } =
+		useAvailabilityViewStore(
+			useShallow((state) => ({
+				availabilityView: state.availabilityView,
+				setAvailabilityView: state.setAvailabilityView,
+				setHasAvailability: state.setHasAvailability,
+			})),
+		);
 
 	const selectionIsLocked = useGroupSelectionStore(
 		(state) => state.selectionIsLocked,
@@ -224,6 +231,17 @@ export function Availability({
 		(state) => state.calendars,
 	);
 
+	useEffect(() => {
+		if (!user) return;
+		getCalendarsForDialog()
+			.then((calendars) => {
+				useGoogleCalendarSelectionStore.getState().setCalendars(calendars);
+			})
+			.catch((error) => {
+				console.error("Error loading calendars:", error);
+			});
+	}, [user]);
+
 	const enabledCalendarIds = useMemo(
 		() =>
 			new Set(
@@ -275,22 +293,6 @@ export function Availability({
 		});
 	}, []);
 
-	const handleResetAvailability = useCallback(() => {
-		setAvailabilityDates((prev) =>
-			prev.map(
-				(date) =>
-					new ZotDate(
-						date.day,
-						date.earliestTime,
-						date.latestTime,
-						false,
-						[],
-						date.groupAvailability,
-					),
-			),
-		);
-	}, []);
-
 	const isOwner = !!user && meetingData.hostId === user.memberId;
 
 	const [availabilityDates, setAvailabilityDates] = useState(() =>
@@ -338,6 +340,46 @@ export function Availability({
 		numPaddingDates,
 	]);
 
+	const handleResetAvailability = useCallback(async () => {
+		if (!user) return;
+		const clearedDates = availabilityDates.map((date) => {
+			const updatedGroupAvailability = Object.fromEntries(
+				Object.entries(date.groupAvailability)
+					.map(([ts, memberIds]) => [
+						ts,
+						memberIds.filter((id) => id !== user.memberId),
+					])
+					.filter(([, memberIds]) => memberIds.length > 0),
+			);
+			return new ZotDate(
+				date.day,
+				date.earliestTime,
+				date.latestTime,
+				false,
+				[],
+				updatedGroupAvailability,
+			);
+		});
+		setAvailabilityDates(clearedDates);
+		const response = await saveAvailability({
+			meetingId: meetingData.id,
+			availabilityTimes: [],
+			displayName: user.displayName,
+		});
+		if (response.status === 200) {
+			setHasAvailability(false);
+			confirmSave();
+		} else {
+			console.error("Error resetting availability:", response.body.error);
+		}
+	}, [
+		user,
+		meetingData.id,
+		availabilityDates,
+		setHasAvailability,
+		confirmSave,
+	]);
+
 	const handleUserAvailabilityChange = useCallback(
 		(updatedDates: ZotDate[]) => {
 			setAvailabilityDates(updatedDates);
@@ -347,11 +389,34 @@ export function Availability({
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
 		setAvailabilityDates(originalDates);
-	}, [cancelEdit]);
+		setChangeableTimezone(true);
+		setAvailabilityView("group");
+	}, [cancelEdit, setAvailabilityView]);
 
-	const handleSuccessfulSave = useCallback(() => {
-		confirmSave();
-	}, [confirmSave]);
+	const handleSuccessfulSave = useCallback(async () => {
+		if (!user) return;
+		setChangeableTimezone(true);
+		const availability = {
+			meetingId: meetingData.id,
+			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
+			displayName: user.displayName,
+		};
+		const response = await saveAvailability(availability);
+		if (response.status === 200) {
+			setHasAvailability(true);
+			setAvailabilityView("group");
+			confirmSave();
+		} else {
+			console.error("Error saving availability:", response.body.error);
+		}
+	}, [
+		user,
+		meetingData.id,
+		availabilityDates,
+		setHasAvailability,
+		setAvailabilityView,
+		confirmSave,
+	]);
 
 	useEffect(() => {
 		if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
