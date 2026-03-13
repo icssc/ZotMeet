@@ -1,11 +1,14 @@
 "use client";
 
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
+import { getICalFileContent } from "@actions/availability/ical/action";
+import { getOutlookCalendarLink } from "@actions/availability/outlook/action";
 import { saveAvailability } from "@actions/availability/save/action";
 import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
+import { CalendarMonth, FileDownload } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
 import {
 	CalendarCheck,
@@ -24,6 +27,7 @@ import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
+import { triggerICalDownload } from "@/lib/ical";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
@@ -269,6 +273,72 @@ export function AvailabilityHeader({
 										<GoogleIcon className="size-5" />
 										<span className="hidden font-dm-sans md:flex">
 											Add to Calendar
+										</span>
+									</Button>
+								)}
+
+								{isScheduled && (
+									<Button
+										className={cn(
+											"h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0",
+										)}
+										onClick={async () => {
+											try {
+												const { success, link, totalDays } =
+													await getOutlookCalendarLink({
+														meetingId: meetingData.id,
+														meetingTitle: meetingData.title,
+														meetingDescription: meetingData.description,
+														meetingLocation: meetingData.location,
+													});
+
+												if (!success || !link) {
+													toast.error(
+														"Failed to generate Outlook Calendar link.",
+													);
+													return;
+												}
+
+												window.open(link, "_blank", "noopener,noreferrer");
+
+												toast.success(
+													totalDays > 1
+														? `Outlook Calendar link opened for the first day. Use "Download iCal" for all ${totalDays} days.`
+														: "Outlook Calendar link opened! Confirm the event in your calendar.",
+												);
+											} catch (error) {
+												console.error(
+													"Error generating Outlook Calendar link:",
+													error,
+												);
+												toast.error(
+													"An error occurred while generating the Outlook Calendar link.",
+												);
+											}
+										}}
+									>
+										<CalendarMonth className="size-5" />
+										<span className="hidden font-dm-sans md:flex">
+											Add to Outlook
+										</span>
+									</Button>
+								)}
+								{isScheduled && (
+									<Button
+										className="h-8 min-h-fit min-w-fit flex-center gap-1 px-2 md:px-4 md:py-0"
+										onClick={async () => {
+											const { success, content, filename } =
+												await getICalFileContent(meetingData.id);
+											if (!success || !content) {
+												toast.error("No scheduled meeting to download.");
+												return;
+											}
+											triggerICalDownload(content, filename);
+										}}
+									>
+										<FileDownload className="!text-lg md:!text-base" />
+										<span className="hidden font-dm-sans md:flex">
+											Download iCal
 										</span>
 									</Button>
 								)}
