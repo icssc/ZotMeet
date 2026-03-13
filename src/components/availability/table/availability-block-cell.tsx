@@ -3,7 +3,7 @@ import { AvailabilityBlock } from "@/components/availability/table/availability-
 import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
 import type { EventSegment } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
-import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface AvailabilityBlockCellProps {
 	blockIndex: number;
@@ -26,9 +26,17 @@ export function AvailabilityBlockCell({
 	eventSegments,
 	hasSpacerBefore = false,
 }: AvailabilityBlockCellProps) {
-	const { selectionState } = useBlockSelectionStore(
+	const {
+		startBlockSelection,
+		selectionState,
+		setStartBlockSelection,
+		setEndBlockSelection,
+	} = useAvailabilityStore(
 		useShallow((state) => ({
+			startBlockSelection: state.startBlockSelection,
 			selectionState: state.selectionState,
+			setStartBlockSelection: state.setStartBlockSelection,
+			setEndBlockSelection: state.setEndBlockSelection,
 		})),
 	);
 
