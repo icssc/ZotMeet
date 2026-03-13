@@ -36,7 +36,7 @@ import {
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
-import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
+import { useGoogleCalendarSelectionStore } from "@/store/useGoogleCalendarSelectionStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
@@ -218,6 +218,30 @@ export function Availability({
 	const [googleCalendarEvents, setGoogleCalendarEvents] = useState<
 		GoogleCalendarEvent[]
 	>([]);
+
+	const calendarSelections = useGoogleCalendarSelectionStore(
+		(state) => state.calendars,
+	);
+
+	const enabledCalendarIds = useMemo(
+		() =>
+			new Set(
+				calendarSelections
+					.filter((c) => c.enabled && !c.archived)
+					.map((c) => c.calendarId),
+			),
+		[calendarSelections],
+	);
+
+	const visibleGoogleCalendarEvents = useMemo(
+		() =>
+			calendarSelections.length === 0
+				? googleCalendarEvents
+				: googleCalendarEvents.filter(
+						(e) => !e.calendarId || enabledCalendarIds.has(e.calendarId),
+					),
+		[googleCalendarEvents, calendarSelections.length, enabledCalendarIds],
+	);
 
 	const [availabilityDates, setAvailabilityDates] = useState(() =>
 		deriveInitialAvailability({
@@ -656,7 +680,10 @@ export function Availability({
 												availabilityDates={availabilityDates}
 												availabilityTimeBlocks={availabilityTimeBlocks}
 												currentPageAvailability={currentPageAvailability}
-												googleCalendarEvents={googleCalendarEvents}
+												googleCalendarEvents={visibleGoogleCalendarEvents}
+												user={user}
+												onAvailabilityChange={handleUserAvailabilityChange}
+												timezone={userTimezone}
 												meetingDates={meetingData.dates}
 											/>
 										)}

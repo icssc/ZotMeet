@@ -103,3 +103,20 @@ export async function saveScheduledTimeBlock({
 		return { error: "Failed to save scheduled meeting." };
 	}
 }
+
+/**
+ * Fetch scheduled blocks for a meeting from scheduled_meetings table
+ */
+export async function getScheduledMeetings(meetingId: string) {
+	try {
+		const rows = await db
+			.select()
+			.from(scheduledMeetings)
+			.where(eq(scheduledMeetings.meetingId, meetingId));
+
+		return rows; // array of scheduled blocks
+	} catch (error) {
+		console.error("Error fetching scheduled meetings:", error);
+		return { error: "Failed to fetch scheduled meetings." };
+	}
+}
