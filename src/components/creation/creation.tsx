@@ -1,6 +1,8 @@
 "use client";
 
 import { createMeeting } from "@actions/meeting/create/action";
+import SearchIcon from "@mui/icons-material/Search";
+import { Input } from "@mui/material";
 import {
 	parseAsArrayOf,
 	parseAsString,
@@ -15,12 +17,24 @@ import { Button } from "@/components/ui/button";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
+import {
+	filterMeetingsByQuery,
+	toMeetingCardProps,
+} from "@/lib/meeting-card/mapper";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
+import MeetingCard from "../ui/meeting-card";
 
-export function Creation({ user }: { user: UserProfile | null }) {
+interface CreationProps {
+	user: UserProfile | null;
+	meetings: (SelectMeeting & { hostDisplayName: string | null })[];
+	meetingCounts: Record<string, number>;
+}
+
+export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 	const [isCreating, setIsCreating] = useState(false);
+	const [searchQuery, setSearchQuery] = useState("");
 
 	// Use NUQS for URL state management
 	const [urlState, setUrlState] = useQueryStates({
@@ -164,6 +178,11 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		);
 	}, [selectedDays.length, startTime, endTime, meetingName]);
 
+	const filteredMeetings = useMemo(
+		() => filterMeetingsByQuery(meetings, searchQuery),
+		[meetings, searchQuery],
+	);
+
 	return (
 		<div className="flex flex-col gap-y-6 px-4">
 			<div className="px-4 pt-8 md:pt-8 md:pl-[60px]">
@@ -215,6 +234,40 @@ export function Creation({ user }: { user: UserProfile | null }) {
 					{isCreating ? "Creating..." : "Continue →"}
 				</Button>
 			</div>
+
+			<div className="flex w-full items-center gap-3">
+				<div className="group relative w-full max-w-2xl">
+					<SearchIcon className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-gray-400 transition-opacity group-focus-within:opacity-0" />
+
+					<Input
+						disableUnderline
+						placeholder="Search Meetings"
+						className="w-full rounded-3xl border-2 border-gray-300 p-3 pl-11 transition-all group-focus-within:pl-3"
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+					/>
+				</div>
+			</div>
+
+			{filteredMeetings.length === 0 ? (
+				<div className="flex items-center gap-4 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-6 pr-8">
+					<h3 className="truncate font-dm-sans font-medium text-gray-800 text-xl">
+						{searchQuery.trim()
+							? "No meetings match your search."
+							: "You have no meetings yet."}
+					</h3>
+				</div>
+			) : (
+				<div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-3">
+					{filteredMeetings.map((meeting) => {
+						const cardProps = toMeetingCardProps(meeting, {
+							responderCount: meetingCounts[meeting.id] ?? 0,
+						});
+
+						return <MeetingCard key={meeting.id} {...cardProps} />;
+					})}
+				</div>
+			)}
 		</div>
 	);
 }
