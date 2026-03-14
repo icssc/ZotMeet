@@ -5,7 +5,6 @@ import GroupIcon from "@mui/icons-material/Group";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import Link from "next/link";
-import React from "react";
 
 interface MeetingCardProps {
 	meetingName: string;
@@ -16,7 +15,7 @@ interface MeetingCardProps {
 	timeEnd: string;
 	numResponders: number;
 	location: string | null;
-	scheduled: boolean;
+	scheduled?: boolean;
 	meetingLink: string;
 }
 
@@ -33,51 +32,52 @@ const MeetingCard = ({
 	meetingLink,
 }: MeetingCardProps) => {
 	return (
-		<div className="border-2 border-gray-300 rounded-xl p-10 w-full mb-10">
+		<div className="w-full rounded-xl border-2 border-gray-300 p-10">
 			<div className="flex">
 				<p className="text-2xl">{meetingName}</p>
 				<MoreVertIcon className="ml-auto text-gray-500" />
 			</div>
 
-			<p className="text-gray-500 mb-4">{meetingOrganizer}</p>
+			<p className="mb-4 text-gray-500">{meetingOrganizer}</p>
 
-			<div className="grid grid-cols-2 gap-x-16 gap-6 text-gray-500">
+			<div className="grid grid-cols-2 gap-6 gap-x-16 text-gray-500">
 				<div className="flex items-center gap-2">
 					<CalendarMonthIcon fontSize="small" />
 					<span>
-						{" "}
 						{dateStart} - {dateEnd}
 					</span>
 				</div>
 
 				<div className="flex items-center gap-2">
 					<AccessTimeIcon fontSize="small" />
-					<p>
-						{" "}
+					<span>
 						{timeStart} - {timeEnd}
-					</p>
+					</span>
 				</div>
 
 				<div className="flex items-center gap-2">
 					<GroupIcon fontSize="small" />
-					<p>{numResponders} Responders</p>
+					<span>{numResponders} Responders</span>
 				</div>
 
 				{location && (
 					<div className="flex items-center gap-2">
 						<FmdGoodIcon fontSize="small" />
-						<p>{location}</p>
+						<span>{location}</span>
 					</div>
 				)}
 			</div>
 
-			<div className="flex mt-5">
+			<div className="mt-5 flex">
 				{scheduled && <p className="text-sm">Scheduled</p>}
 
-				<Link href={meetingLink} className="ml-auto text-[#F26489]">
-					ADD AVAILABILITY
+				<Link
+					href={meetingLink}
+					className="ml-auto flex items-center text-[#F26489]"
+				>
+					{scheduled ? "VIEW SCHEDULE" : "ADD AVAILABILITY"}
+					<NavigateNextIcon />
 				</Link>
-				<NavigateNextIcon className="text-[#F26489]" />
 			</div>
 		</div>
 	);

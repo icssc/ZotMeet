@@ -17,7 +17,10 @@ import { Button } from "@/components/ui/button";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
-import { toMeetingCardProps } from "@/lib/meeting-card/mapper";
+import {
+	filterMeetingsByQuery,
+	toMeetingCardProps,
+} from "@/lib/meeting-card/mapper";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -175,17 +178,10 @@ export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 		);
 	}, [selectedDays.length, startTime, endTime, meetingName]);
 
-	const normalizedQuery = searchQuery.trim().toLowerCase();
-	const filteredMeetings = useMemo(() => {
-		if (!normalizedQuery) return meetings;
-		return meetings.filter((meeting) => {
-			return (
-				meeting.title.toLowerCase().includes(normalizedQuery) ||
-				(meeting.location ?? "").toLowerCase().includes(normalizedQuery) ||
-				(meeting.description ?? "").toLowerCase().includes(normalizedQuery)
-			);
-		});
-	}, [meetings, normalizedQuery]);
+	const filteredMeetings = useMemo(
+		() => filterMeetingsByQuery(meetings, searchQuery),
+		[meetings, searchQuery],
+	);
 
 	return (
 		<div className="flex flex-col gap-y-6 px-4">
@@ -256,7 +252,9 @@ export function Creation({ user, meetings, meetingCounts }: CreationProps) {
 			{filteredMeetings.length === 0 ? (
 				<div className="flex items-center gap-4 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-6 pr-8">
 					<h3 className="truncate font-dm-sans font-medium text-gray-800 text-xl">
-						No meetings found.
+						{searchQuery.trim()
+							? "No meetings match your search."
+							: "You have no meetings yet."}
 					</h3>
 				</div>
 			) : (

@@ -56,6 +56,19 @@ const formatTime = (time: string) => {
 	});
 };
 
+export function filterMeetingsByQuery<
+	T extends Pick<SelectMeeting, "title" | "location" | "description">,
+>(meetings: T[], query: string): T[] {
+	const normalized = query.trim().toLowerCase();
+	if (!normalized) return meetings;
+	return meetings.filter(
+		(m) =>
+			m.title.toLowerCase().includes(normalized) ||
+			(m.location ?? "").toLowerCase().includes(normalized) ||
+			(m.description ?? "").toLowerCase().includes(normalized),
+	);
+}
+
 export function toMeetingCardProps(
 	meeting: MeetingForCard,
 	options: ToMeetingCardOptions = {},

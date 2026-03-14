@@ -12,14 +12,16 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/components/custom/tabs";
-import { Button } from "@/components/ui/button";
 import MeetingCard from "@/components/ui/meeting-card";
 import type { SelectMeeting } from "@/db/schema";
-import { toMeetingCardProps } from "@/lib/meeting-card/mapper";
+import {
+	filterMeetingsByQuery,
+	toMeetingCardProps,
+} from "@/lib/meeting-card/mapper";
 import { cn } from "@/lib/utils";
 
 interface MeetingsDisplayProps {
-	meetings: SelectMeeting[];
+	meetings: (SelectMeeting & { hostDisplayName: string | null })[];
 	userId: string;
 	meetingCounts: Record<string, number>;
 }
@@ -54,30 +56,30 @@ export const Meetings = ({
 		(a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
 	);
 
-	const normalizedQuery = searchQuery.trim().toLowerCase();
-	const matchesSearch = (meeting: SelectMeeting) => {
-		if (!normalizedQuery) return true;
-		return (
-			meeting.title.toLowerCase().includes(normalizedQuery) ||
-			(meeting.location ?? "").toLowerCase().includes(normalizedQuery) ||
-			(meeting.description ?? "").toLowerCase().includes(normalizedQuery)
-		);
-	};
-
-	const searchedScheduledMeetings =
-		filteredScheduledMeetings.filter(matchesSearch);
-	const searchedUnscheduledMeetings =
-		filteredUnscheduledMeetings.filter(matchesSearch);
+	const hasActiveQuery = !!searchQuery.trim();
+	const searchedScheduledMeetings = filterMeetingsByQuery(
+		filteredScheduledMeetings,
+		searchQuery,
+	);
+	const searchedUnscheduledMeetings = filterMeetingsByQuery(
+		filteredUnscheduledMeetings,
+		searchQuery,
+	);
 
 	const allCount = meetings.length;
 	const hostedCount = meetings.filter((m) => m.hostId === userId).length;
 
-	const renderMeetingCards = (displayMeetings: SelectMeeting[]) => {
+	const renderMeetingCards = (
+		displayMeetings: SelectMeeting[],
+		isFiltered: boolean,
+	) => {
 		if (displayMeetings.length === 0) {
 			return (
 				<div className="flex items-center gap-4 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-6 pr-8">
 					<h3 className="truncate font-dm-sans font-medium text-gray-800 text-xl">
-						No meetings found.
+						{isFiltered
+							? "No meetings match your search."
+							: "You have no meetings yet."}
 					</h3>
 				</div>
 			);
@@ -136,30 +138,27 @@ export const Meetings = ({
 
 			<Tabs defaultValue="unscheduled">
 				<div className="flex">
-					<Tabs
-						value={hostFilter}
-						onValueChange={(value) => setHostFilter(value as "all" | "hosted")}
-						className="mt-4"
-					>
-						<TabsList className="items-center gap-3 space-x-0">
-							<TabsTrigger
-								value="all"
-								className={cn(
-									"rounded-xl p-2 px-4 text-blue-950 data-[state=active]:bg-blue-950 data-[state=active]:text-white",
-								)}
-							>
-								All ({allCount})
-							</TabsTrigger>
-							<TabsTrigger
-								value="hosted"
-								className={cn(
-									"rounded-xl p-2 px-4 text-blue-950 data-[state=active]:bg-blue-950 data-[state=active]:text-white",
-								)}
-							>
-								By You ({hostedCount})
-							</TabsTrigger>
-						</TabsList>
-					</Tabs>
+					<div className="mt-4 flex items-center gap-3">
+						{(["all", "hosted"] as const).map((filter) => {
+							const count = filter === "all" ? allCount : hostedCount;
+							const label = filter === "all" ? "All" : "By You";
+							return (
+								<button
+									key={filter}
+									type="button"
+									onClick={() => setHostFilter(filter)}
+									className={cn(
+										"rounded-xl p-2 px-4 text-blue-950 transition-colors",
+										hostFilter === filter
+											? "bg-blue-950 text-white"
+											: "hover:bg-blue-50",
+									)}
+								>
+									{label} ({count})
+								</button>
+							);
+						})}
+					</div>
 
 					<TabsList className="mb-8 ml-auto space-x-0">
 						<TabsTrigger
@@ -184,11 +183,11 @@ export const Meetings = ({
 				</div>
 
 				<TabsContent value="scheduled">
-					{renderMeetingCards(searchedScheduledMeetings)}
+					{renderMeetingCards(searchedScheduledMeetings, hasActiveQuery)}
 				</TabsContent>
 
 				<TabsContent value="unscheduled">
-					{renderMeetingCards(searchedUnscheduledMeetings)}
+					{renderMeetingCards(searchedUnscheduledMeetings, hasActiveQuery)}
 				</TabsContent>
 			</Tabs>
 		</div>
