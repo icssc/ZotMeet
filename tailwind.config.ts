@@ -78,8 +78,9 @@ const config: Config = {
 			},
 			fontFamily: {
 				montserrat: ["var(--font-montserrat)"],
-				"dm-sans": ["var(--font-dm-sans)"],
-				default: ["var(--font-dm-sans)"],
+				"dm-sans": ["var(--font-figtree)"],
+				figtree: ["var(--font-figtree)"],
+				default: ["var(--font-figtree)"],
 			},
 		},
 	},

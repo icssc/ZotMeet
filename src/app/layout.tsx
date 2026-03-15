@@ -9,7 +9,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
 import { cn } from "@/lib/utils";
-import theme, { dmSans, montserrat } from "@/theme";
+import theme, { figtree } from "@/theme";
 
 const geistSans = localFont({
 	src: "./fonts/GeistVF.woff",
@@ -36,10 +36,10 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<html lang="en" className={`${dmSans.className} ${montserrat.className}`}>
+		<html lang="en" className={figtree.className}>
 			<body
 				className={cn(
-					`${geistSans.variable} ${geistMono.variable} antialiased`,
+					`${geistSans.variable} ${geistMono.variable} ${figtree.variable} antialiased`,
 					"bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]",
 				)}
 			>
