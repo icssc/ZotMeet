@@ -6,7 +6,7 @@ import { getGroupsWithDetails } from "@/server/data/groups/queries";
 export default async function Page() {
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/");
+		redirect("/auth/login/google?redirect=/groups");
 	}
 
 	const memberId = session.user.memberId;

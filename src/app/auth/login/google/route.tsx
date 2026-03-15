@@ -6,7 +6,7 @@ import {
 import { cookies, headers } from "next/headers";
 import { oauth } from "@/lib/auth/oauth";
 
-export async function GET(): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
 	const state = generateState();
 	const codeVerifier = generateCodeVerifier();
 	const url = new URL(
@@ -40,11 +40,16 @@ export async function GET(): Promise<Response> {
 		sameSite: "lax",
 	});
 
+	const requestUrl = new URL(request.url);
+	const redirectParam = requestUrl.searchParams.get("redirect");
+
 	const headersList = await headers();
 	const referer = headersList.get("referer");
 
-	if (referer) {
-		cookieStore.set("auth_redirect_url", referer, {
+	const redirectTarget = redirectParam || referer;
+
+	if (redirectTarget) {
+		cookieStore.set("auth_redirect_url", redirectTarget, {
 			path: "/",
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
