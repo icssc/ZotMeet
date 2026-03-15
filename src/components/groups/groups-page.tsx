@@ -135,7 +135,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									description={group.description}
 									memberEmails={group.memberEmails}
 									totalMembers={group.totalMembers}
-									ownerEmail={group.ownerEmail as string}
+									creatorName={group.creatorName}
 								/>
 							))}
 					</div>

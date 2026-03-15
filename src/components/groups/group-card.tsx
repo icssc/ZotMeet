@@ -1,3 +1,4 @@
+import { PeopleOutline } from "@mui/icons-material";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -8,7 +9,7 @@ interface GroupCardProps {
 	description: string | null;
 	memberEmails: string[];
 	totalMembers: number;
-	ownerEmail: string;
+	creatorName: string;
 }
 
 function getInitials(email: string): string {
@@ -22,24 +23,24 @@ export function GroupCard({
 	description,
 	memberEmails,
 	totalMembers,
-	ownerEmail,
+	creatorName,
 }: GroupCardProps) {
-	const displayEmails = [
-		ownerEmail,
-		...memberEmails.filter((e) => e !== ownerEmail),
-	].slice(0, 3);
-
-	const overflow = totalMembers - displayEmails.length;
-
 	return (
-		<div className="flex h-full w-full max-w-[650px] flex-col items-center gap-4 overflow-hidden rounded-[10px] border border-gray-200 bg-gray-100 px-[30px] py-[26px]">
-			<div className="flex w-full flex-col items-center gap-[11px] overflow-hidden">
-				<div className="size-[100px] rounded-full bg-gray-300" />
+		<div className="flex h-full w-full max-w-[650px] flex-col items-center gap-4 overflow-hidden rounded-[10px] border border-gray-200 bg-gray-100 px-[30px] py-[60px]">
+			<Link href={`/groups/${id}`} className="block h-full w-full">
+				<div className="flex h-full w-full flex-col items-center gap-[11px] overflow-hidden">
+					<div className="mr-auto flex items-center gap-2">
+						{/* place holder for group pfp */}
+						<div className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-gray-300 text-gray-500">
+							{name.split("")[0]}
+						</div>
 
-				<p className="w-full truncate text-center font-medium text-[#0a0a0a] text-base">
-					{name}
-				</p>
+						<p className="w-full truncate text-center font-bold text-[#0a0a0a] text-base">
+							{name}
+						</p>
+					</div>
 
+					{/*
 				<div className="flex items-center -space-x-2">
 					{displayEmails.map((email) => (
 						<Avatar key={email} className="size-6 border-2 border-white">
@@ -56,24 +57,26 @@ export function GroupCard({
 						</Avatar>
 					)}
 				</div>
+*/}
 
-				<p className="min-h-6 w-full truncate text-center text-[#717182] text-base">
-					{description}
-				</p>
-			</div>
+					<p className="line-clamp-3 w-full flex-1 text-center text-[#717182] text-base">
+						{description ?? ""}
+					</p>
 
-			<Link href={`/groups/${id}`} className="mt-auto w-full">
-				<button
-					type="button"
-					className={cn(
-						"w-full rounded px-[22px] py-2",
-						"bg-black font-medium text-[15px] text-white uppercase tracking-[0.46px]",
-						"shadow-[0px_1px_5px_0px_rgba(0,0,0,0.12),0px_2px_2px_0px_rgba(0,0,0,0.14),0px_3px_1px_-2px_rgba(0,0,0,0.2)]",
-						"transition-colors hover:bg-gray-800",
-					)}
-				>
-					View Group
-				</button>
+					<div className="flex w-full items-center text-gray-500 text-sm">
+						<div className="flex gap-1">
+							<PeopleOutline fontSize="small" />
+							<p className="">{totalMembers}</p>
+						</div>
+
+						<p className="ml-auto">Created by {creatorName}</p>
+
+						{/* place holder for group pfp */}
+						<div className="ml-2 flex size-[20px] shrink-0 items-center justify-center rounded-full bg-gray-300">
+							{creatorName.split("")[0]}
+						</div>
+					</div>
+				</div>
 			</Link>
 		</div>
 	);
