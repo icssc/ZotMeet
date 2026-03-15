@@ -53,7 +53,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 	return (
 		<div className="w-full">
 			<div className="flex items-end justify-between">
-				<h1 className="font-bold font-montserrat text-5xl">Groups</h1>
+				<h1 className="font-bold font-figtree text-5xl">Groups</h1>
 
 				<div className="flex items-center gap-4">
 					<button

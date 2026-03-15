@@ -34,7 +34,7 @@ export default async function Page() {
 	return (
 		<div className="px-8 py-8">
 			{/* <div className="mb-4 flex flex-col gap-4 px-8">
-                <h1 className="font-montserrat text-3xl font-medium">Groups</h1>
+                <h1 className="font-figtree text-3xl font-medium">Groups</h1>
                 <GroupsDisplay />
             </div> */}
 

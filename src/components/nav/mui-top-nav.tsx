@@ -17,7 +17,6 @@ import {
 	Toolbar,
 	Typography,
 } from "@mui/material";
-import { Roboto } from "next/font/google";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -30,12 +29,6 @@ const navItems = [
 	{ title: "Groups", url: "/groups" },
 	//{ title: "Rooms", url: "/rooms" },
 ];
-
-export const roboto = Roboto({
-	subsets: ["latin"],
-	display: "swap",
-	weight: ["400", "500", "600", "700"],
-});
 
 type MuiTopNavProps = {
 	user: UserProfile | null;
@@ -84,7 +77,6 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 									fontWeight: 400,
 									fontSize: "18px",
 									lineHeight: "24px",
-									fontFamily: roboto.style.fontFamily,
 									borderRadius: 0,
 									borderBottom: "2px solid transparent",
 									borderColor: isActive ? "text.primary" : "transparent",
@@ -120,7 +112,6 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 							fontWeight: 400,
 							lineHeight: "24px",
 							borderRadius: 1,
-							fontFamily: roboto.style.fontFamily,
 							"&:hover": {
 								backgroundColor: "grey",
 							},

@@ -183,7 +183,7 @@ export function AvailabilityHeader({
 		<>
 			<div className="px-2 pt-8">
 				<div className="flex items-start justify-between gap-x-4">
-					<h1 className="line-clamp-1 truncate font-medium font-montserrat text-xl md:text-3xl">
+					<h1 className="line-clamp-1 truncate font-figtree font-medium text-xl md:text-3xl">
 						{meetingData.title}
 					</h1>
 

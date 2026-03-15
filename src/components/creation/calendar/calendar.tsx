@@ -103,7 +103,7 @@ export function Calendar({
 	return (
 		<div className="rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7">
 			<div className="flex flex-col items-start justify-between space-y-4 px-8 pb-6 md:px-16 lg:flex-row lg:items-start lg:space-y-0">
-				<h3 className="text-left font-montserrat font-semibold text-2xl text-gray-dark md:text-3xl">
+				<h3 className="text-left font-figtree font-semibold text-2xl text-gray-dark md:text-3xl">
 					{title}
 				</h3>
 
