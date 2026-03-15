@@ -1,3 +1,5 @@
+import { Add } from "@mui/icons-material";
+import { Button } from "@mui/material";
 import { notFound, redirect } from "next/navigation";
 // import { GroupsDisplay } from "@/components/summary/GroupsDisplay";
 import { Meetings } from "@/components/summary/meetings";
@@ -33,10 +35,14 @@ export default async function Page() {
 
 	return (
 		<div className="px-8 py-8">
-			{/* <div className="mb-4 flex flex-col gap-4 px-8">
-                <h1 className="font-figtree text-3xl font-medium">Groups</h1>
-                <GroupsDisplay />
-            </div> */}
+			<div className="mb-4 flex justify-end">
+				<Button href="/">
+					<div className="flex justify-center text-black">
+						<Add fontSize="small" />
+						Create Meeting
+					</div>
+				</Button>
+			</div>
 
 			<Meetings
 				meetings={meetings}
