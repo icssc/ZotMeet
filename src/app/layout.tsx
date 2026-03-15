@@ -1,26 +1,13 @@
+import "./globals.css";
 import { ThemeProvider } from "@mui/material/styles";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata } from "next";
-import localFont from "next/font/local";
-
-import "./globals.css";
 
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
 import { cn } from "@/lib/utils";
 import theme, { figtree } from "@/theme";
-
-const geistSans = localFont({
-	src: "./fonts/GeistVF.woff",
-	variable: "--font-geist-sans",
-	weight: "100 900",
-});
-const geistMono = localFont({
-	src: "./fonts/GeistMonoVF.woff",
-	variable: "--font-geist-mono",
-	weight: "100 900",
-});
 
 export const metadata: Metadata = {
 	title: "ZotMeet | Create a Meeting",
@@ -39,7 +26,7 @@ export default function RootLayout({
 		<html lang="en" className={figtree.className}>
 			<body
 				className={cn(
-					`${geistSans.variable} ${geistMono.variable} ${figtree.variable} antialiased`,
+					`${figtree.variable} antialiased`,
 					"bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]",
 				)}
 			>
