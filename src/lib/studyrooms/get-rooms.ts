@@ -27,7 +27,6 @@ export async function fetchStudyRooms({
 	};
 	const params = new URLSearchParams(query).toString();
 	const apiUrl = `https://anteaterapi.com/v2/rest/studyRooms?${params}`;
-	console.log("API URL:", apiUrl);
 	const res = await fetch(apiUrl);
 	if (!res.ok) {
 		throw new Error(`API error: ${res.status} ${res.statusText}`);

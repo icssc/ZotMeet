@@ -1,9 +1,17 @@
 "use client";
 
 import { useState } from "react";
+
 import { RoomResults } from "@/components/studyrooms/room-results";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { fetchStudyRooms } from "@/lib/studyrooms/get-rooms";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
@@ -23,6 +31,11 @@ export default function Page() {
 		e.preventDefault();
 		setError(null);
 		setRooms(null);
+		const timeRangePattern = /^\d{1,2}:\d{2}(am|pm)-\d{1,2}:\d{2}(am|pm)$/;
+		if (!timeRangePattern.test(timeRange)) {
+			setError("Invalid time range. Use format: 11:00am-5:00pm");
+			return;
+		}
 		try {
 			const { data } = await fetchStudyRooms({
 				date,
@@ -72,21 +85,24 @@ export default function Page() {
 					value={capacityMax}
 					onChange={(e) => setCapacityMax(e.target.value)}
 				/>
-				<select
-					value={isTechEnhanced === undefined ? "" : String(isTechEnhanced)}
-					onChange={(e) =>
-						setIsTechEnhanced(
-							e.target.value === "" ? undefined : e.target.value === "true",
-						)
+				<Select
+					value={isTechEnhanced === undefined ? "any" : String(isTechEnhanced)}
+					onValueChange={(value) =>
+						setIsTechEnhanced(value === "any" ? undefined : value === "true")
 					}
 				>
-					<option value="">Tech enhanced (any)</option>
-					<option value="true">Tech enhanced: Yes</option>
-					<option value="false">Tech enhanced: No</option>
-				</select>
+					<SelectTrigger>
+						<SelectValue placeholder="Tech enhanced (any)" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="any">Tech enhanced (any)</SelectItem>
+						<SelectItem value="true">Tech enhanced: Yes</SelectItem>
+						<SelectItem value="false">Tech enhanced: No</SelectItem>
+					</SelectContent>
+				</Select>
 				<Button type="submit">Search</Button>
 			</form>
-			{error && <p>{error}</p>}
+			{error && <p className="text-destructive text-sm">{error}</p>}
 			{rooms && <RoomResults rooms={rooms} timeRange={timeRange} />}
 		</div>
 	);
