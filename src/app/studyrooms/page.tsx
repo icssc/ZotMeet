@@ -9,8 +9,7 @@ import type { StudyRooms } from "@/lib/types/studyrooms";
 
 export default function Page() {
 	const [date, setDate] = useState("");
-	const [startTime, setStartTime] = useState("");
-	const [endTime, setEndTime] = useState("");
+	const [timeRange, setTimeRange] = useState("");
 	const [location, setLocation] = useState("");
 	const [capacityMin, setCapacityMin] = useState("");
 	const [capacityMax, setCapacityMax] = useState("");
@@ -27,7 +26,7 @@ export default function Page() {
 		try {
 			const { data } = await fetchStudyRooms({
 				date,
-				timeRange: `${startTime}-${endTime}`,
+				timeRange,
 				location: location || undefined,
 				capacityMin: capacityMin ? Number(capacityMin) : undefined,
 				capacityMax: capacityMax ? Number(capacityMax) : undefined,
@@ -35,7 +34,7 @@ export default function Page() {
 			});
 			setRooms(data);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "API call Failed");
+			setError(err instanceof Error ? err.message : "API call failed");
 		}
 	}
 
@@ -49,15 +48,10 @@ export default function Page() {
 					required
 				/>
 				<Input
-					type="time"
-					value={startTime}
-					onChange={(e) => setStartTime(e.target.value)}
-					required
-				/>
-				<Input
-					type="time"
-					value={endTime}
-					onChange={(e) => setEndTime(e.target.value)}
+					type="text"
+					placeholder="Time range e.g. 11:00am-5:00pm (UTC)"
+					value={timeRange}
+					onChange={(e) => setTimeRange(e.target.value)}
 					required
 				/>
 				<Input
@@ -93,7 +87,7 @@ export default function Page() {
 				<Button type="submit">Search</Button>
 			</form>
 			{error && <p>{error}</p>}
-			{rooms && <RoomResults rooms={rooms} />}
+			{rooms && <RoomResults rooms={rooms} timeRange={timeRange} />}
 		</div>
 	);
 }
