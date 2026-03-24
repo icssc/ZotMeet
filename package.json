@@ -11,6 +11,7 @@
 		"db:start": "docker compose up -d",
 		"db:stop": "docker compose down",
 		"db:reset": "docker compose down -v && docker compose up -d && pnpm db:migrate",
+		"db:seed": "tsx src/db/seed.ts",
 		"db:setup": "docker compose up -d && pnpm db:migrate",
 		"dev": "next dev",
 		"lint": "biome lint",

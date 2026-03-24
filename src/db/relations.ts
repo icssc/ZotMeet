@@ -3,6 +3,9 @@ import * as schema from "./schema";
 
 export const membersRelations = relations(schema.members, ({ one, many }) => ({
 	availabilities: many(schema.availabilities),
+	hostedMeetings: many(schema.meetings, {
+		relationName: "memberHostedMeetings",
+	}),
 
 	user: one(schema.users, {
 		fields: [schema.members.id],
@@ -45,7 +48,23 @@ export const meetingsRelations = relations(
 			fields: [schema.meetings.group_id],
 			references: [schema.groups.id],
 		}),
+		host: one(schema.members, {
+			fields: [schema.meetings.hostId],
+			references: [schema.members.id],
+			relationName: "memberHostedMeetings",
+		}),
 		availabilities: many(schema.availabilities),
+		scheduledMeetings: many(schema.scheduledMeetings),
+	}),
+);
+
+export const scheduledMeetingsRelations = relations(
+	schema.scheduledMeetings,
+	({ one }) => ({
+		meeting: one(schema.meetings, {
+			fields: [schema.scheduledMeetings.meetingId],
+			references: [schema.meetings.id],
+		}),
 	}),
 );
 
