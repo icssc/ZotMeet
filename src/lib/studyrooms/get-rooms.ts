@@ -15,17 +15,17 @@ export async function fetchStudyRooms({
 	capacityMax?: number;
 	isTechEnhanced?: boolean;
 }) {
-	const query: StudyRoomsByFilters = {
+	const query: Record<string, string> = {
 		dates: date,
 		times: timeRange,
 		...(location ? { location } : {}),
-		...(capacityMin != null ? { capacityMin } : {}),
-		...(capacityMax != null ? { capacityMax } : {}),
-		...(isTechEnhanced != null ? { isTechEnhanced } : {}),
+		...(capacityMin != null ? { capacityMin: String(capacityMin) } : {}),
+		...(capacityMax != null ? { capacityMax: String(capacityMax) } : {}),
+		...(isTechEnhanced != null
+			? { isTechEnhanced: String(isTechEnhanced) }
+			: {}),
 	};
-	const params = new URLSearchParams(
-		query as Record<string, string>,
-	).toString();
+	const params = new URLSearchParams(query).toString();
 	const apiUrl = `https://anteaterapi.com/v2/rest/studyRooms?${params}`;
 	const res = await fetch(apiUrl);
 	if (!res.ok) {
