@@ -9,6 +9,15 @@ export const membersRelations = relations(schema.members, ({ one, many }) => ({
 		references: [schema.users.memberId],
 	}),
 }));
+export const notificationsRelations = relations(
+	schema.notifications,
+	({ one }) => ({
+		user: one(schema.users, {
+			fields: [schema.notifications.userId],
+			references: [schema.users.id],
+		}),
+	}),
+);
 
 export const usersRelations = relations(schema.users, ({ one, many }) => ({
 	oauthAccounts: many(schema.oauthAccounts),
