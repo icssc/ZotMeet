@@ -16,6 +16,10 @@ export const notificationsRelations = relations(
 			fields: [schema.notifications.userId],
 			references: [schema.users.id],
 		}),
+		createdByUser: one(schema.users, {
+			fields: [schema.notifications.createdBy],
+			references: [schema.users.id],
+		}),
 	}),
 );
 

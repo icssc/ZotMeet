@@ -7,16 +7,21 @@ import {
 	Login,
 	Person,
 } from "@mui/icons-material";
+import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import {
 	AppBar,
 	Avatar,
+	Badge,
 	Box,
 	Button,
 	Menu,
 	MenuItem,
+	Popover,
 	Toolbar,
 	Typography,
 } from "@mui/material";
+import type { BadgeProps } from "@mui/material/Badge";
+import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -102,10 +107,125 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 						gap: 2,
 					}}
 				>
+					<Notifications />
 					<NavUser user={user} />
 				</Box>
 			</Toolbar>
 		</AppBar>
+	);
+}
+const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
+	"& .MuiBadge-badge": {
+		top: 13,
+		right: -13,
+		border: `2px solid ${(theme.vars ?? theme).palette.background.paper}`,
+	},
+}));
+
+type Notification = [
+	Title: string,
+	Description: string,
+	CreatedAt: Date,
+	ReadAt: Date | null,
+];
+function Notifications() {
+	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const open = Boolean(anchorEl);
+	const [notifs, setNotifs] = useState<Notification[]>([
+		["Sample Title", "Sample Description", new Date(), null],
+		["Sample Title2", "Sample Description2", new Date(), null],
+	]);
+	const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+		setAnchorEl(event.currentTarget);
+	};
+	const handleClose = () => {
+		setAnchorEl(null);
+	};
+
+	return (
+		<>
+			<Box>
+				<Badge
+					badgeContent={notifs.length}
+					onClick={handleClick}
+					color="primary"
+				>
+					<NotificationsOutlinedIcon />
+				</Badge>
+			</Box>
+			<Menu
+				open={Boolean(anchorEl)}
+				anchorEl={anchorEl}
+				onClose={() => setAnchorEl(null)}
+				MenuListProps={{ disablePadding: true }}
+			>
+				<Box sx={{ width: 360 }}>
+					<Box
+						sx={{
+							display: "flex",
+							justifyContent: "space-between",
+							alignItems: "center",
+							p: 2,
+							borderBottom: "1px solid",
+							borderColor: "divider",
+						}}
+					>
+						<StyledBadge
+							badgeContent={notifs.length}
+							onClick={handleClick}
+							color="primary"
+						>
+							<Typography variant="h6">Notifications</Typography>
+						</StyledBadge>
+						<Button>Mark all as read</Button>
+					</Box>
+					<Box sx={{ display: "flex", flexDirection: "column" }}>
+						{notifs.length === 0 ? (
+							<Typography variant="body2" color="text.secondary">
+								No new notifications
+							</Typography>
+						) : (
+							notifs.map((notif, index) => (
+								<Box
+									sx={{
+										pl: 2,
+										pr: 2,
+										borderBottom: "1px solid",
+										borderColor: "divider",
+									}}
+									key={index}
+								>
+									<Box sx={{ display: "flex", flexDirection: "row" }}>
+										<Box key={index} sx={{ p: 1 }}>
+											<Typography variant="body1">{notif[0]}</Typography>
+											<Typography variant="body2" color="text.secondary">
+												{notif[1]}
+											</Typography>
+											<Typography variant="body2">
+												{" "}
+												{notif[2].toLocaleDateString()}
+											</Typography>
+										</Box>
+										<Button
+											sx={{
+												ml: "auto",
+												backgroundColor: "action.hover",
+												mt: 2,
+												mb: 2,
+												border: 1,
+												borderColor: "action.hover",
+											}}
+										>
+											View
+										</Button>
+									</Box>
+								</Box>
+							))
+						)}
+					</Box>
+				</Box>
+			</Menu>
+		</>
 	);
 }
 
