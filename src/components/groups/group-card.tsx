@@ -32,7 +32,7 @@ export function GroupCard({
 				<div className="flex h-full w-full flex-col items-center gap-[11px] overflow-hidden">
 					<div className="mr-auto flex items-center gap-2">
 						{/* place holder for group pfp */}
-						<div className="relative size-[40px] shrink-0">
+						<div className="relative size-[45px] shrink-0">
 							<Image
 								src="/icssc-logo.svg"
 								alt="default-pfp"
@@ -41,12 +41,12 @@ export function GroupCard({
 							/>
 						</div>
 
-						<p className="w-full truncate text-center font-bold text-[#0a0a0a] text-base">
+						<p className="w-full truncate text-center font-bold text-lg">
 							{name}
 						</p>
 					</div>
 
-					<p className="line-clamp-3 w-full flex-1 text-center text-[#717182] text-base">
+					<p className="line-clamp-3 w-full flex-1 text-center text-[#717182]">
 						{description ?? ""}
 					</p>
 
