@@ -1,34 +1,24 @@
-CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');--> statement-breakpoint
-CREATE TYPE "public"."group_role" AS ENUM('member', 'admin');--> statement-breakpoint
-CREATE TYPE "public"."invite_status" AS ENUM('pending', 'accepted', 'declined', 'expired');--> statement-breakpoint
-CREATE TYPE "public"."meeting_type" AS ENUM('dates', 'days');--> statement-breakpoint
+DO $$ BEGIN
+	CREATE TYPE "public"."attendance" AS ENUM('accepted', 'maybe', 'declined');
+EXCEPTION
+	WHEN duplicate_object THEN null;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+	CREATE TYPE "public"."group_role" AS ENUM('member', 'admin');
+EXCEPTION
+	WHEN duplicate_object THEN null;
+END $$;--> statement-breakpoint
+DO $$ BEGIN
+	CREATE TYPE "public"."meeting_type" AS ENUM('dates', 'days');
+EXCEPTION
+	WHEN duplicate_object THEN null;
+END $$;--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "availabilities" (
 	"member_id" uuid NOT NULL,
 	"meeting_id" uuid NOT NULL,
 	"status" "attendance",
 	"meeting_availabilities" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	CONSTRAINT "availabilities_member_id_meeting_id_pk" PRIMARY KEY("member_id","meeting_id")
-);
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "group_invite_responses" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"invite_id" uuid NOT NULL,
-	"user_id" text NOT NULL,
-	"email" text NOT NULL,
-	"status" "invite_status" DEFAULT 'pending' NOT NULL,
-	"responded_at" timestamp,
-	CONSTRAINT "group_invite_responses_invite_user_unique" UNIQUE("invite_id","user_id")
-);
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "group_invites" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"group_id" uuid NOT NULL,
-	"invite_token" text NOT NULL,
-	"inviter_id" text NOT NULL,
-	"invitee_email" text DEFAULT '' NOT NULL,
-	"sent_at" timestamp DEFAULT now() NOT NULL,
-	"expires_at" timestamp,
-	CONSTRAINT "group_invites_invite_token_unique" UNIQUE("invite_token")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "groups" (
@@ -60,17 +50,6 @@ CREATE TABLE IF NOT EXISTS "meetings" (
 CREATE TABLE IF NOT EXISTS "members" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"display_name" text NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "notifications" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"user_id" uuid NOT NULL,
-	"type" text NOT NULL,
-	"read_at" timestamp with time zone,
-	"created_at" timestamp with time zone,
-	"created_by" uuid,
-	"title" text NOT NULL,
-	"message" text
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "oauth_accounts" (
@@ -127,30 +106,6 @@ EXCEPTION
 END $$;
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "group_invite_responses" ADD CONSTRAINT "group_invite_responses_invite_id_group_invites_id_fk" FOREIGN KEY ("invite_id") REFERENCES "public"."group_invites"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "group_invite_responses" ADD CONSTRAINT "group_invite_responses_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "group_invites" ADD CONSTRAINT "group_invites_group_id_groups_id_fk" FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "group_invites" ADD CONSTRAINT "group_invites_inviter_id_users_id_fk" FOREIGN KEY ("inviter_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
  ALTER TABLE "groups" ADD CONSTRAINT "groups_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
@@ -164,18 +119,6 @@ END $$;
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "meetings" ADD CONSTRAINT "meetings_host_id_members_id_fk" FOREIGN KEY ("host_id") REFERENCES "public"."members"("id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_users_member_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("member_id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "notifications" ADD CONSTRAINT "notifications_created_by_users_member_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("member_id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
