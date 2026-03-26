@@ -8,6 +8,13 @@ export const membersRelations = relations(schema.members, ({ one, many }) => ({
 		fields: [schema.members.id],
 		references: [schema.users.memberId],
 	}),
+
+	notifications: many(schema.notifications, {
+		relationName: "notificationUser",
+	}),
+	createdNotifications: many(schema.notifications, {
+		relationName: "notificationCreatedBy",
+	}),
 }));
 export const notificationsRelations = relations(
 	schema.notifications,
@@ -33,12 +40,6 @@ export const usersRelations = relations(schema.users, ({ one, many }) => ({
 	member: one(schema.members, {
 		fields: [schema.users.memberId],
 		references: [schema.members.id],
-	}),
-	notifications: many(schema.notifications, {
-		relationName: "notificationUser",
-	}),
-	createdNotifications: many(schema.notifications, {
-		relationName: "notificationCreatedBy",
 	}),
 }));
 
