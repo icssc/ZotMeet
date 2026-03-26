@@ -1,6 +1,6 @@
-ALTER TABLE "notifications" DROP CONSTRAINT "notifications_user_id_users_member_id_fk";
+ALTER TABLE "notifications" DROP CONSTRAINT IF EXISTS "notifications_user_id_users_member_id_fk";
 --> statement-breakpoint
-ALTER TABLE "notifications" DROP CONSTRAINT "notifications_created_by_users_member_id_fk";
+ALTER TABLE "notifications" DROP CONSTRAINT IF EXISTS "notifications_created_by_users_member_id_fk";
 --> statement-breakpoint
 DO $$ BEGIN
  ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_members_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."members"("id") ON DELETE cascade ON UPDATE no action;
