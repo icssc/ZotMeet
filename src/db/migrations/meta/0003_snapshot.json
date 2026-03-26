@@ -1,5 +1,5 @@
 {
-  "id": "b5664ad4-7997-4be2-923d-96da318dfa00",
+  "id": "492b6b6f-638e-4644-9ff8-eacd3a59e7e3",
   "prevId": "e5620044-e466-42fe-a6c9-eee38b5d51ba",
   "version": "7",
   "dialect": "postgresql",
@@ -536,28 +536,28 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "notifications_user_id_users_member_id_fk": {
-          "name": "notifications_user_id_users_member_id_fk",
+        "notifications_user_id_members_id_fk": {
+          "name": "notifications_user_id_members_id_fk",
           "tableFrom": "notifications",
-          "tableTo": "users",
+          "tableTo": "members",
           "columnsFrom": [
             "user_id"
           ],
           "columnsTo": [
-            "member_id"
+            "id"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "notifications_created_by_users_member_id_fk": {
-          "name": "notifications_created_by_users_member_id_fk",
+        "notifications_created_by_members_id_fk": {
+          "name": "notifications_created_by_members_id_fk",
           "tableFrom": "notifications",
-          "tableTo": "users",
+          "tableTo": "members",
           "columnsFrom": [
             "created_by"
           ],
           "columnsTo": [
-            "member_id"
+            "id"
           ],
           "onDelete": "no action",
           "onUpdate": "no action"
