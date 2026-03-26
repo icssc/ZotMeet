@@ -12,14 +12,14 @@ export const membersRelations = relations(schema.members, ({ one, many }) => ({
 export const notificationsRelations = relations(
 	schema.notifications,
 	({ one }) => ({
-		user: one(schema.users, {
+		user: one(schema.members, {
 			fields: [schema.notifications.userId],
-			references: [schema.users.memberId],
+			references: [schema.members.id],
 			relationName: "notificationUser",
 		}),
-		createdByUser: one(schema.users, {
+		createdByUser: one(schema.members, {
 			fields: [schema.notifications.createdBy],
-			references: [schema.users.memberId],
+			references: [schema.members.id],
 			relationName: "notificationCreatedBy",
 		}),
 	}),

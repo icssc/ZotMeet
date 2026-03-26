@@ -236,11 +236,11 @@ export const notifications = pgTable("notifications", {
 	id: uuid("id").defaultRandom().primaryKey(),
 	userId: uuid("user_id")
 		.notNull()
-		.references(() => users.memberId, { onDelete: "cascade" }),
+		.references(() => members.id, { onDelete: "cascade" }),
 	type: text("type").notNull(),
 	readAt: timestamp("read_at", { withTimezone: true, mode: "date" }),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }),
-	createdBy: uuid("created_by").references(() => users.memberId),
+	createdBy: uuid("created_by").references(() => members.id),
 	title: text("title").notNull(),
 	message: text("message"),
 });
