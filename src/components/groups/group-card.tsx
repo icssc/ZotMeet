@@ -1,4 +1,5 @@
 import { PeopleOutline } from "@mui/icons-material";
+import Image from "next/image";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -31,33 +32,19 @@ export function GroupCard({
 				<div className="flex h-full w-full flex-col items-center gap-[11px] overflow-hidden">
 					<div className="mr-auto flex items-center gap-2">
 						{/* place holder for group pfp */}
-						<div className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-gray-300 text-gray-500">
-							{name.split("")[0]}
+						<div className="relative size-[40px] shrink-0">
+							<Image
+								src="/icssc-logo.svg"
+								alt="default-pfp"
+								fill
+								className="object-contain object-bottom"
+							/>
 						</div>
 
 						<p className="w-full truncate text-center font-bold text-[#0a0a0a] text-base">
 							{name}
 						</p>
 					</div>
-
-					{/*
-				<div className="flex items-center -space-x-2">
-					{displayEmails.map((email) => (
-						<Avatar key={email} className="size-6 border-2 border-white">
-							<AvatarFallback className="text-[10px]">
-								{getInitials(email)}
-							</AvatarFallback>
-						</Avatar>
-					))}
-					{overflow > 0 && (
-						<Avatar className="size-6 border-2 border-white">
-							<AvatarFallback className="text-[10px]">
-								+{overflow}
-							</AvatarFallback>
-						</Avatar>
-					)}
-				</div>
-*/}
 
 					<p className="line-clamp-3 w-full flex-1 text-center text-[#717182] text-base">
 						{description ?? ""}

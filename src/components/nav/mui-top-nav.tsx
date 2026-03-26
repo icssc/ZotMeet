@@ -54,12 +54,14 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 				}}
 			>
 				<Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start" }}>
-					<Image
-						src="/zotmeet-logo.svg"
-						alt="ZotMeet logo"
-						width={80}
-						height={40}
-					/>
+					<Link href="/">
+						<Image
+							src="/zotmeet-logo.svg"
+							alt="ZotMeet logo"
+							width={40}
+							height={40}
+						/>
+					</Link>
 				</Box>
 
 				<Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
@@ -74,12 +76,11 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 								sx={{
 									color: "text.primary",
 									textTransform: "none",
-									fontWeight: 400,
+									fontWeight: isActive ? 700 : 400,
 									fontSize: "18px",
 									lineHeight: "24px",
 									borderRadius: 0,
 									borderBottom: "2px solid transparent",
-									borderColor: isActive ? "text.primary" : "transparent",
 									"&:hover": {
 										backgroundColor: "action.hover",
 										borderColor: "text.primary",
@@ -101,25 +102,6 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 						gap: 2,
 					}}
 				>
-					<Button
-						component={Link}
-						href="/"
-						sx={{
-							textTransform: "none",
-							color: "white",
-							padding: "4px 12px",
-							backgroundColor: "black",
-							fontWeight: 400,
-							lineHeight: "24px",
-							borderRadius: 1,
-							"&:hover": {
-								backgroundColor: "grey",
-							},
-						}}
-					>
-						Create Meeting
-					</Button>
-
 					<NavUser user={user} />
 				</Box>
 			</Toolbar>

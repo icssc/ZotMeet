@@ -100,7 +100,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 			<div className="mt-4 border-gray-200 border-b" />
 
 			<div className="mt-4 flex flex-col flex-wrap gap-3">
-				<div className="flex">
+				<div className="flex gap-1">
 					<FilterChip
 						label="All"
 						count={counts.all}
@@ -170,16 +170,16 @@ function FilterChip({
 			type="button"
 			onClick={onClick}
 			className={cn(
-				"flex items-center gap-2.5 rounded-full px-4 py-2 transition-colors",
+				"flex items-center gap-2.5 rounded-lg px-2 py-2 transition-colors",
 				active
-					? "bg-blue-950/80 text-white"
+					? "bg-[#1F2A44] text-white"
 					: "bg-black/[0.04] text-black hover:bg-black/[0.08]",
 			)}
 		>
-			<span className="font-semibold text-base">{label}</span>
+			<span className="font-semibold text-base leading-none">{label}</span>
 			<span
 				className={cn(
-					"font-bold text-xs uppercase",
+					"font-bold text-base leading-none",
 					active ? "text-white" : "text-[#918d89]",
 				)}
 			>
