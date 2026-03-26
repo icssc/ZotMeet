@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1770255427413,
-      "tag": "0000_skinny_karnak",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1772323133610,
-      "tag": "0001_jazzy_fallen_one",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1772390053970,
-      "tag": "0002_moaning_masked_marvel",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1774381806773,
-      "tag": "0003_known_slapstick",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1774407055665,
-      "tag": "0004_many_iron_fist",
+      "when": 1774489947393,
+      "tag": "0000_robust_peter_parker",
       "breakpoints": true
     }
   ]

@@ -234,13 +234,13 @@ export type SelectMeeting = InferSelectModel<typeof meetings>;
 
 export const notifications = pgTable("notifications", {
 	id: uuid("id").defaultRandom().primaryKey(),
-	userId: text("user_id")
+	userId: uuid("user_id")
 		.notNull()
-		.references(() => users.id, { onDelete: "cascade" }),
+		.references(() => users.memberId, { onDelete: "cascade" }),
 	type: text("type").notNull(),
 	readAt: timestamp("read_at", { withTimezone: true, mode: "date" }),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }),
-	createdBy: text("created_by").references(() => users.id),
+	createdBy: uuid("created_by").references(() => users.memberId),
 	title: text("title").notNull(),
 	message: text("message"),
 });
