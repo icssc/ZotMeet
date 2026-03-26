@@ -114,7 +114,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 						onClick={() => setActiveFilter("created")}
 					/>
 					<FilterChip
-						label="Invited"
+						label="Availability Needed"
 						count={counts.availability}
 						active={activeFilter === "availability"}
 						onClick={() => setActiveFilter("availability")}

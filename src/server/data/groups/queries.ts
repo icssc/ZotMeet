@@ -147,8 +147,8 @@ export type GroupWithDetails = SelectGroup & {
 	totalMembers: number;
 	isCreator: boolean;
 	needsAvailability: boolean;
-	ownerEmail: string | null;
-	creatorName: string | null;
+	ownerEmail: string;
+	creatorName: string;
 };
 
 export async function getGroupsWithDetails(
@@ -196,8 +196,8 @@ export async function getGroupsWithDetails(
 				totalMembers: members.length,
 				isCreator: group.createdBy === userId,
 				needsAvailability,
-				ownerEmail: creator?.email ?? null,
-				creatorName: creator?.displayName ?? null,
+				ownerEmail: creator?.email ?? "",
+				creatorName: creator?.displayName ?? "",
 			};
 		}),
 	);
