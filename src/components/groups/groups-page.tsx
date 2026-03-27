@@ -55,19 +55,40 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 
 	return (
 		<div className="w-full">
-			<div className="flex">
-				<div className="flex items-center gap-2.5 rounded-full bg-gray-200 px-4 py-2">
-					<Search className="size-5 text-gray-600" />
+			<div className="mt-6 mb-8 flex items-center sm:hidden">
+				<h1 className="text-5xl">Groups</h1>
+
+				<Button
+					type="button"
+					onClick={() => setCreateDialogOpen(true)}
+					sx={{
+						backgroundColor: "#F26489",
+						color: "white",
+						fontSize: "2rem",
+						padding: 0,
+						marginLeft: "auto",
+						minWidth: 0,
+						width: "3rem",
+						height: "3rem",
+					}}
+				>
+					+
+				</Button>
+			</div>
+
+			<div className="block sm:flex">
+				<div className="flex items-center gap-2.5 rounded-full bg-gray-100 px-4 py-2">
+					<Search className="size-5 text-gray-400" />
 					<input
 						type="text"
 						placeholder="Search"
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
-						className="bg-transparent font-semibold text-base outline-none placeholder:text-gray-500"
+						className="bg-transparent text-base outline-none placeholder:text-gray-400"
 					/>
 				</div>
 
-				<div className="ml-auto flex">
+				<div className="ml-auto hidden sm:block">
 					<Button
 						type="button"
 						onClick={() => setShowJoinGroup(true)}
@@ -123,8 +144,9 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 			</div>
 
 			<div className="mt-8">
+				<p className="p-1 text-gray-400">All ({counts.all})</p>
 				{filteredGroups.length > 0 ? (
-					<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+					<div className="flex flex-col gap-y-2 sm:flex-row sm:flex-wrap sm:justify-start sm:gap-x-8 sm:gap-y-8">
 						{filteredGroups
 							.filter((group) => group.ownerEmail !== null)
 							.map((group) => (
@@ -170,7 +192,7 @@ function FilterChip({
 			type="button"
 			onClick={onClick}
 			className={cn(
-				"flex items-center gap-2.5 rounded-lg px-2 py-2 transition-colors",
+				"flex items-center gap-2.5 rounded-lg px-1.5 py-2.5 transition-colors sm:px-2 sm:py-2",
 				active
 					? "bg-[#1F2A44] text-white"
 					: "bg-black/[0.04] text-black hover:bg-black/[0.08]",
