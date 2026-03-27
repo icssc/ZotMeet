@@ -92,8 +92,9 @@ export const MeetingTimeField = ({
 					size="medium"
 					placeholder="9:00 AM"
 					value={startTime}
-					onChange={(e) => setStartTime(e.target.value as HourMinuteString)}
-					autoFocus
+					onChange={(e) =>
+						setStartTime(`${e.target.value}:00` as HourMinuteString)
+					}
 				/>
 
 				<TextField
@@ -104,8 +105,9 @@ export const MeetingTimeField = ({
 					size="medium"
 					placeholder="5:00 PM"
 					value={endTime}
-					onChange={(e) => setEndTime(e.target.value as HourMinuteString)}
-					autoFocus
+					onChange={(e) =>
+						setEndTime(`${e.target.value}:00` as HourMinuteString)
+					}
 				/>
 				<div className="flex gap-2"></div>
 			</div>

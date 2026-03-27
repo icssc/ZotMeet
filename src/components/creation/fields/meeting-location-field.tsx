@@ -34,7 +34,6 @@ export function MeetingLocationField({
 				placeholder="Location"
 				value={meetingLocation}
 				onChange={handleLocationChange}
-				autoFocus
 			/>
 			<FormControlLabel
 				control={
