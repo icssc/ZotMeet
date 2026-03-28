@@ -217,6 +217,8 @@ function Notifications({
 												<Typography variant="body2">
 													{" "}
 													{notif.createdAt?.toLocaleDateString()}
+													{" • "}
+													{notif.createdBy}
 												</Typography>
 											</Box>
 											<Button

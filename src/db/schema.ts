@@ -240,7 +240,7 @@ export const notifications = pgTable("notifications", {
 	type: text("type").notNull(),
 	readAt: timestamp("read_at", { withTimezone: true, mode: "date" }),
 	createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }),
-	createdBy: uuid("created_by").references(() => members.id),
+	createdBy: text("created_by"),
 	title: text("title").notNull(),
 	message: text("message"),
 });
