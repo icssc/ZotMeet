@@ -1,5 +1,6 @@
 "use client";
 
+import { readNotification } from "@actions/user/action";
 import {
 	AddCircleOutline,
 	CalendarMonth,
@@ -26,7 +27,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import type { UserProfile } from "@/lib/auth/user";
+import type { NotificationItem, UserProfile } from "@/lib/auth/user";
 import { logoutAction } from "@/server/actions/auth/logout/action";
 
 const navItems = [
@@ -37,9 +38,10 @@ const navItems = [
 
 type MuiTopNavProps = {
 	user: UserProfile | null;
+	notifications: NotificationItem[];
 };
 
-export function MuiTopNav({ user }: MuiTopNavProps) {
+export function MuiTopNav({ user, notifications }: MuiTopNavProps) {
 	const pathname = usePathname();
 
 	return (
@@ -107,7 +109,7 @@ export function MuiTopNav({ user }: MuiTopNavProps) {
 						gap: 2,
 					}}
 				>
-					<Notifications />
+					<Notifications notifications={notifications} />
 					<NavUser user={user} />
 				</Box>
 			</Toolbar>
@@ -121,20 +123,24 @@ const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
 		border: `2px solid ${(theme.vars ?? theme).palette.background.paper}`,
 	},
 }));
+const markAllAsRead = async (notifications: NotificationItem[]) => {
+	notifications.forEach(async (notif) => {
+		if (!notif.readAt) {
+			readNotification(notif.id);
+		}
+	});
+};
 
-type Notification = [
-	Title: string,
-	Description: string,
-	CreatedAt: Date,
-	ReadAt: Date | null,
-];
-function Notifications() {
+function Notifications({
+	notifications,
+}: {
+	notifications: NotificationItem[];
+}) {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
-	const [notifs, setNotifs] = useState<Notification[]>([
-		["Sample Title", "Sample Description", new Date(), null],
-		["Sample Title2", "Sample Description2", new Date(), null],
-	]);
+
+	const unread = notifications.filter((n) => !n.readAt);
+
 	const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
 		setAnchorEl(event.currentTarget);
 	};
@@ -146,7 +152,7 @@ function Notifications() {
 		<>
 			<Box>
 				<Badge
-					badgeContent={notifs.length}
+					badgeContent={unread.length}
 					onClick={handleClick}
 					color="primary"
 				>
@@ -171,56 +177,64 @@ function Notifications() {
 						}}
 					>
 						<StyledBadge
-							badgeContent={notifs.length}
+							badgeContent={unread.length}
 							onClick={handleClick}
 							color="primary"
 						>
 							<Typography variant="h6">Notifications</Typography>
 						</StyledBadge>
-						<Button>Mark all as read</Button>
+						<Button
+							onClick={() => {
+								markAllAsRead(unread);
+							}}
+						>
+							Mark all as read
+						</Button>
 					</Box>
 					<Box sx={{ display: "flex", flexDirection: "column" }}>
-						{notifs.length === 0 ? (
-							<Typography variant="body2" color="text.secondary">
+						{unread.length === 0 ? (
+							<Typography sx={{ p: 2 }} variant="body2" color="text.secondary">
 								No new notifications
 							</Typography>
 						) : (
-							notifs.map((notif, index) => (
-								<Box
-									sx={{
-										pl: 2,
-										pr: 2,
-										borderBottom: "1px solid",
-										borderColor: "divider",
-									}}
-									key={index}
-								>
-									<Box sx={{ display: "flex", flexDirection: "row" }}>
-										<Box key={index} sx={{ p: 1 }}>
-											<Typography variant="body1">{notif[0]}</Typography>
-											<Typography variant="body2" color="text.secondary">
-												{notif[1]}
-											</Typography>
-											<Typography variant="body2">
-												{" "}
-												{notif[2].toLocaleDateString()}
-											</Typography>
+							unread.map((notif, index) =>
+								notif.readAt ? null : (
+									<Box
+										sx={{
+											pl: 2,
+											pr: 2,
+											borderBottom: "1px solid",
+											borderColor: "divider",
+										}}
+										key={index}
+									>
+										<Box sx={{ display: "flex", flexDirection: "row" }}>
+											<Box key={index} sx={{ p: 1 }}>
+												<Typography variant="body1">{notif.title}</Typography>
+												<Typography variant="body2" color="text.secondary">
+													{notif.message}
+												</Typography>
+												<Typography variant="body2">
+													{" "}
+													{notif.createdAt?.toLocaleDateString()}
+												</Typography>
+											</Box>
+											<Button
+												sx={{
+													ml: "auto",
+													backgroundColor: "action.hover",
+													mt: 2,
+													mb: 2,
+													border: 1,
+													borderColor: "action.hover",
+												}}
+											>
+												View
+											</Button>
 										</Box>
-										<Button
-											sx={{
-												ml: "auto",
-												backgroundColor: "action.hover",
-												mt: 2,
-												mb: 2,
-												border: 1,
-												borderColor: "action.hover",
-											}}
-										>
-											View
-										</Button>
 									</Box>
-								</Box>
-							))
+								),
+							)
 						)}
 					</Box>
 				</Box>
