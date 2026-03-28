@@ -224,7 +224,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 				<div className="mt-2 flex justify-center md:-mr-10 md:justify-end">
 					<Button
 						type="button"
-						className={cn("w-auto rounded-lg font-medium text-lg md:w-auto")}
+						className={cn("w-full rounded-lg font-medium text-lg md:w-auto")}
 						disabled={!hasValidInputs || isCreating}
 						onClick={handleCreation}
 					>
