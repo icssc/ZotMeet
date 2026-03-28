@@ -1,9 +1,10 @@
 "use client";
 
-import { readNotification } from "@actions/user/action";
+import { deleteNotification, readNotification } from "@actions/user/action";
 import {
 	AddCircleOutline,
 	CalendarMonth,
+	Close,
 	Groups,
 	Login,
 	Person,
@@ -15,6 +16,7 @@ import {
 	Badge,
 	Box,
 	Button,
+	IconButton,
 	Menu,
 	MenuItem,
 	Popover,
@@ -131,6 +133,10 @@ const markAllAsRead = async (notifications: NotificationItem[]) => {
 	}
 };
 
+const onClickX = async (notifications: NotificationItem) => {
+	await deleteNotification(notifications.id);
+};
+
 function Notifications({
 	notifications,
 }: {
@@ -147,7 +153,31 @@ function Notifications({
 	const handleClose = () => {
 		setAnchorEl(null);
 	};
+	function timeAgo(date: Date | null | undefined): string {
+		if (!date) return "";
 
+		const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+
+		if (seconds < 60) return `${seconds} seconds ago`;
+
+		const minutes = Math.floor(seconds / 60);
+		if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+
+		const hours = Math.floor(minutes / 60);
+		if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+
+		const days = Math.floor(hours / 24);
+		if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+
+		const weeks = Math.floor(days / 7);
+		if (weeks < 4) return `${weeks} week${weeks === 1 ? "" : "s"} ago`;
+
+		const months = Math.floor(days / 30);
+		if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
+
+		const years = Math.floor(days / 365);
+		return `${years} year${years === 1 ? "" : "s"} ago`;
+	}
 	return (
 		<>
 			<Box>
@@ -155,6 +185,7 @@ function Notifications({
 					badgeContent={unread.length}
 					onClick={handleClick}
 					color="primary"
+					sx={{ cursor: "pointer", ":hover": { cursor: "pointer" } }}
 				>
 					<NotificationsOutlinedIcon />
 				</Badge>
@@ -176,11 +207,7 @@ function Notifications({
 							borderColor: "divider",
 						}}
 					>
-						<StyledBadge
-							badgeContent={unread.length}
-							onClick={handleClick}
-							color="primary"
-						>
+						<StyledBadge badgeContent={unread.length} color="primary">
 							<Typography variant="h6">Notifications</Typography>
 						</StyledBadge>
 						<Button
@@ -194,49 +221,62 @@ function Notifications({
 					<Box sx={{ display: "flex", flexDirection: "column" }}>
 						{unread.length === 0 ? (
 							<Typography sx={{ p: 2 }} variant="body2" color="text.secondary">
-								No new notifications
+								You're all caught up! 🎉
 							</Typography>
 						) : (
-							unread.map((notif, index) =>
-								notif.readAt ? null : (
+							unread.map((notif, index) => (
+								<Box
+									sx={{
+										pl: 2,
+										pr: 2,
+										borderBottom: "1px solid",
+										borderColor: "divider",
+									}}
+									key={index}
+								>
 									<Box
 										sx={{
-											pl: 2,
-											pr: 2,
-											borderBottom: "1px solid",
-											borderColor: "divider",
+											display: "flex",
+											alignItems: "center",
+											flexDirection: "row",
 										}}
-										key={index}
 									>
-										<Box sx={{ display: "flex", flexDirection: "row" }}>
-											<Box key={index} sx={{ p: 1 }}>
-												<Typography variant="body1">{notif.title}</Typography>
-												<Typography variant="body2" color="text.secondary">
-													{notif.message}
-												</Typography>
-												<Typography variant="body2">
-													{" "}
-													{notif.createdAt?.toLocaleDateString()}
-													{" • "}
-													{notif.createdBy}
-												</Typography>
-											</Box>
-											<Button
-												sx={{
-													ml: "auto",
-													backgroundColor: "action.hover",
-													mt: 2,
-													mb: 2,
-													border: 1,
-													borderColor: "action.hover",
-												}}
-											>
-												View
-											</Button>
+										<Avatar alt="ICSSC" src="/icssc-logo.svg" />
+										<Box key={index} sx={{ p: 1 }}>
+											<Typography variant="body1">{notif.title}</Typography>
+											<Typography variant="body2" color="text.secondary">
+												{notif.message}
+											</Typography>
+											<Typography variant="body2">
+												{timeAgo(notif.createdAt)}
+												{" • "}
+												{/* {" • "}
+													{notif.createdBy} */}
+											</Typography>
 										</Box>
+										<Button
+											sx={{
+												ml: "auto",
+												backgroundColor: "action.hover",
+												mt: 2,
+												mb: 2,
+												border: 1,
+												borderColor: "action.hover",
+												color: "black",
+											}}
+										>
+											View
+										</Button>
+										<IconButton
+											size="small"
+											onClick={() => deleteNotification(notif.id)}
+											sx={{}}
+										>
+											<Close fontSize="small" />
+										</IconButton>
 									</Box>
-								),
-							)
+								</Box>
+							))
 						)}
 					</Box>
 				</Box>

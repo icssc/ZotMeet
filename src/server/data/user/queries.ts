@@ -88,3 +88,7 @@ export async function markNotificationAsRead(notificationId: string) {
 
 	return updatedNotification;
 }
+
+export async function deleteNotificationByID(notificationId: string) {
+	await db.delete(notifications).where(eq(notifications.id, notificationId));
+}
