@@ -1,9 +1,5 @@
-import {
-	getNotificationsByUserId,
-	markNotificationAsRead,
-} from "@data/user/queries";
+import { getNotificationsByMemberId } from "@data/user/queries";
 import { getCurrentSession } from "@/lib/auth";
-import { NotificationItem } from "@/lib/auth/user";
 import { MuiAppShell } from "./mui-app-shell";
 
 type AppShellWrapperProps = {
@@ -15,7 +11,7 @@ export default async function AppShellWrapper({
 }: AppShellWrapperProps) {
 	const { user } = await getCurrentSession();
 	const notifications = user
-		? await getNotificationsByUserId(user.memberId)
+		? await getNotificationsByMemberId(user.memberId)
 		: [];
 	return (
 		<MuiAppShell user={user} notifications={notifications}>

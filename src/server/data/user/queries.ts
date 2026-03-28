@@ -50,9 +50,9 @@ export async function searchUsersByEmail(
 		.limit(limit);
 }
 
-export async function getNotificationsByUserId(userId: string) {
+export async function getNotificationsByMemberId(memberId: string) {
 	const notification = await db.query.notifications.findMany({
-		where: eq(notifications.userId, userId),
+		where: eq(notifications.memberId, memberId),
 		orderBy: (notification) => notification.createdAt,
 	});
 
@@ -60,7 +60,7 @@ export async function getNotificationsByUserId(userId: string) {
 }
 
 export async function createNewNotification(
-	userId: string,
+	memberId: string,
 	title: string = "New Notification",
 	message: string = "You have a new notification",
 	type: string = "info",
@@ -68,7 +68,7 @@ export async function createNewNotification(
 	const newNotification = await db
 		.insert(notifications)
 		.values({
-			userId,
+			memberId,
 			title,
 			message,
 			type,

@@ -23,7 +23,7 @@ export async function readNotification(notificationId: string) {
 
 export async function deleteNotification(notificationId: string) {
 	const { user } = await getCurrentSession();
-	if (!user) return [];
+	if (!user) return;
 	await deleteNotificationByID(notificationId);
 	revalidatePath("/", "layout");
 }

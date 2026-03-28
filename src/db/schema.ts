@@ -234,16 +234,26 @@ export type SelectMeeting = InferSelectModel<typeof meetings>;
 
 export const notifications = pgTable("notifications", {
 	id: uuid("id").defaultRandom().primaryKey(),
-	userId: uuid("user_id")
+	memberId: uuid("user_id")
 		.notNull()
 		.references(() => members.id, { onDelete: "cascade" }),
 	type: text("type").notNull(),
 	readAt: timestamp("read_at", { withTimezone: true, mode: "date" }),
-	createdAt: timestamp("created_at", { withTimezone: true, mode: "date" }),
+	createdAt: timestamp("created_at", {
+		withTimezone: true,
+		mode: "date",
+	}).defaultNow(),
 	createdBy: text("created_by"),
 	title: text("title").notNull(),
 	message: text("message"),
 });
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+	member: one(members, {
+		fields: [notifications.memberId],
+		references: [members.id],
+	}),
+}));
 
 export const availabilities = pgTable(
 	"availabilities",
@@ -306,6 +316,7 @@ export const membersRelations = relations(members, ({ many }) => ({
 		relationName: "memberHostedMeetings",
 	}),
 	availabilities: many(availabilities),
+	notifications: many(notifications),
 }));
 
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({

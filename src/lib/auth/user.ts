@@ -18,7 +18,7 @@ export type UserProfile = {
 export type NotificationItem = {
 	id: string;
 	createdAt: Date | null;
-	userId: string;
+	memberId: string;
 	createdBy: string | null;
 	title: string;
 	type: string;
