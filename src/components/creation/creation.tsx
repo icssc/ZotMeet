@@ -179,8 +179,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	return (
 		<div className="flex flex-col gap-y-6 px-4">
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
-
-			<div className="w-full rounded-xl border bg-white px-8 py-6 md:px-14">
+			<div className="w-full rounded-xl border bg-white px-4 py-6 md:px-14">
 				<h2 className="font-medium font-montserrat text-2xl text-gray-dark md:text-3xl">
 					Plan your next meeting with ZotMeet
 				</h2>
@@ -189,12 +188,12 @@ export function Creation({ user }: { user: UserProfile | null }) {
 					FIND THE PERFECT TIME AND PLACE FOR YOUR MEETING.
 				</h3>
 
-				<div className="mx-auto flex w-3/4 flex-col justify-center gap-y-8">
+				<div className="mx-auto flex w-full max-w-md flex-col gap-6 md:w-3/4 md:max-w-none">
 					<MeetingNameField
 						meetingName={meetingName}
 						setMeetingName={setMeetingName}
 					/>
-					<div className="grid grid-cols-2 gap-8">
+					<div className="flex flex-col gap-6 md:grid md:grid-cols-2 md:gap-8">
 						<div className="flex flex-col gap-y-12">
 							<MeetingTimeField
 								startTime={startTime}
@@ -217,7 +216,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 						/>
 					</div>
 				</div>
-				<div className="mt-8 -mr-6 flex justify-end md:-mr-10">
+				<div className="mt-6 flex justify-center md:-mr-10 md:justify-end">
 					<Button
 						className={cn(
 							"rounded-lg border-none bg-green-500 font-medium font-montserrat text-gray-light text-lg hover:bg-green-500/80",
