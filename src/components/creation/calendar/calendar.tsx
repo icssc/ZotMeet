@@ -139,8 +139,11 @@ export function Calendar({
 									{WEEKDAYS.map((dayOfWeek) => (
 										<th className="px-0" key={dayOfWeek}>
 											<div>
-												<p className="w-full text-center font-light text-slate-medium text-sm uppercase md:font-bold">
+												<p className="hidden w-full text-center font-light text-slate-medium text-sm uppercase sm:block md:font-bold">
 													{dayOfWeek}
+												</p>
+												<p className="block sm:hidden">
+													{dayOfWeek.slice(0, 1)}
 												</p>
 											</div>
 											<Separator className="my-2 h-[2px] bg-slate-base" />

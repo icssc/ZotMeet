@@ -95,7 +95,7 @@ export function CalendarBodyDay({
 	};
 
 	return (
-		<td onMouseUp={handleMouseUp}>
+		<td className="py-2 md:py-0" onMouseUp={handleMouseUp}>
 			<button
 				type="button"
 				onTouchMove={handleTouchMove}

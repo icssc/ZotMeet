@@ -19,10 +19,10 @@ export function MeetingNameField({
 		<div className="flex w-full flex-row items-center gap-x-4 text-gray-500 text-lg">
 			<TextField
 				fullWidth
-				label="MEETING TITLE"
-				variant="standard"
+				label="Meeting Name"
+				variant="outlined"
 				size="medium"
-				placeholder="9:00 AM"
+				placeholder="Enter Meeting Name"
 				value={meetingName}
 				onChange={handleChange}
 				autoFocus
