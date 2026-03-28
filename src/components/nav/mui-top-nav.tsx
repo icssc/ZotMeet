@@ -232,7 +232,7 @@ function Notifications({
 										borderBottom: "1px solid",
 										borderColor: "divider",
 									}}
-									key={index}
+									key={notif.id}
 								>
 									<Box
 										sx={{
