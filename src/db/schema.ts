@@ -276,6 +276,9 @@ export const usersInGroup = pgTable(
 );
 
 export const usersRelations = relations(users, ({ one, many }) => ({
+	oauthAccountsTable: many(oauthAccounts),
+	usersInGroups: many(usersInGroup),
+	sessions: many(sessions),
 	groups: many(groups, {
 		relationName: "usersToGroups",
 	}),

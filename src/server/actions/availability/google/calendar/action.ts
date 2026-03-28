@@ -37,6 +37,7 @@ export async function fetchGoogleCalendarEvents(
 				}
 
 				const calendarColor = cal.backgroundColor ?? "#039BE5"; // Fallback color
+				const calendarName = cal.summary ?? cal.id;
 
 				try {
 					const eventsRes = await calendar.events.list({
@@ -56,6 +57,7 @@ export async function fetchGoogleCalendarEvents(
 						end: e.end?.dateTime ?? e.end?.date ?? "",
 						calendarColor,
 						calendarId: cal.id,
+						calendarName,
 					}));
 				} catch (e) {
 					console.warn(`Failed to fetch events for calendar ${cal.id}`, e);

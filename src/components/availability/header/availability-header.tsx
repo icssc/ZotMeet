@@ -190,7 +190,12 @@ export function AvailabilityHeader({
 					<div className="flex shrink-0 space-x-2">
 						{availabilityView === "personal" ||
 						availabilityView === "schedule" ? (
-							<>
+							<div
+								className={cn(
+									"flex gap-2",
+									availabilityView === "personal" && "lg:hidden",
+								)}
+							>
 								<Button
 									className={cn(
 										"h-8 flex-center bg-white px-4 py-0 text-white uppercase",
@@ -220,7 +225,7 @@ export function AvailabilityHeader({
 									<span className="hidden md:flex">Save</span>
 									<CircleCheckIcon />
 								</Button>
-							</>
+							</div>
 						) : (
 							<>
 								{isScheduled && (
