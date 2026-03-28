@@ -187,7 +187,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 					Create Meeting
 				</h2>
 
-				<h3 className="hidden font-light text-gray-400 text-sm sm:block md:text-sm">
+				<h3 className="hidden font-light text-gray-400 text-sm sm:mb-12 sm:block md:text-sm">
 					FIND THE PERFECT TIME AND PLACE FOR YOUR MEETING.
 				</h3>
 
@@ -224,7 +224,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 				<div className="mt-2 flex justify-center md:-mr-10 md:justify-end">
 					<Button
 						type="button"
-						className={cn("w-full rounded-lg font-medium text-lg")}
+						className={cn("w-auto rounded-lg font-medium text-lg md:w-auto")}
 						disabled={!hasValidInputs || isCreating}
 						onClick={handleCreation}
 					>

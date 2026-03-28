@@ -1,4 +1,4 @@
-import { TextField } from "@mui/material";
+import { TextField, useMediaQuery, useTheme } from "@mui/material";
 import type React from "react";
 import type { Dispatch, SetStateAction } from "react";
 
@@ -11,16 +11,19 @@ export function MeetingNameField({
 	meetingName,
 	setMeetingName,
 }: MeetingNameFieldProps) {
+	const theme = useTheme();
+	const isSmallUp = useMediaQuery(theme.breakpoints.up("sm"));
+
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setMeetingName(e.target.value);
 	};
 
 	return (
-		<div className="flex w-full flex-row items-center gap-x-4 text-gray-500 text-lg">
+		<div className="w-full">
 			<TextField
 				fullWidth
 				label="Meeting Name"
-				variant="outlined"
+				variant={isSmallUp ? "standard" : "outlined"}
 				size="medium"
 				placeholder="Enter Meeting Name"
 				value={meetingName}
