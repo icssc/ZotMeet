@@ -126,7 +126,7 @@ const StyledBadge = styled(Badge)<BadgeProps>(({ theme }) => ({
 const markAllAsRead = async (notifications: NotificationItem[]) => {
 	notifications.forEach(async (notif) => {
 		if (!notif.readAt) {
-			readNotification(notif.id);
+			await readNotification(notif.id);
 		}
 	});
 };

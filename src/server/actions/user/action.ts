@@ -16,6 +16,6 @@ export async function searchUsers(query: string) {
 export async function readNotification(notificationId: string) {
 	const { user } = await getCurrentSession();
 	if (!user) return;
-	markNotificationAsRead(notificationId);
+	await markNotificationAsRead(notificationId);
 	revalidatePath("/", "layout");
 }
