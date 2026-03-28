@@ -146,7 +146,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 			<div className="mt-8">
 				<p className="p-1 text-gray-400">All ({counts.all})</p>
 				{filteredGroups.length > 0 ? (
-					<div className="grid grid-cols-1-col gap-y-2 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-8">
+					<div className="grid grid-cols-1 gap-y-2 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-8">
 						{filteredGroups
 							.filter((group) => group.ownerEmail !== null)
 							.map((group) => (

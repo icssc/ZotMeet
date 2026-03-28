@@ -35,7 +35,7 @@ export function GroupCard({
 					</div>
 
 					<div>
-						<p className="sm:text:xl font-bold text-md">{name}</p>
+						<p className="font-bold text-md sm:text-xl">{name}</p>
 						<p className="block text-gray-500 sm:hidden">
 							{totalMembers} Members
 						</p>
