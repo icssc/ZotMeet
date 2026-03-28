@@ -9,7 +9,7 @@ import {
 } from "nuqs";
 import { useMemo, useState } from "react";
 import { Calendar } from "@/components/creation/calendar/calendar";
-import { MeetingLocationField } from "@/components/creation/fields/meeting-location-field";
+//import { MeetingLocationField } from "@/components/creation/fields/meeting-location-field";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import { Button } from "@/components/ui/button";
@@ -180,11 +180,14 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		<div className="flex flex-col gap-y-6 px-4">
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
 			<div className="w-full rounded-xl border bg-white px-4 py-6 md:px-14">
-				<h2 className="font-medium font-montserrat text-2xl text-gray-dark md:text-3xl">
+				<h2 className="hidden font-medium text-2xl text-gray-dark sm:block md:text-3xl">
 					Plan your next meeting with ZotMeet
 				</h2>
+				<h2 className="mb-10 flex justify-center text-3xl sm:hidden">
+					Create Meeting
+				</h2>
 
-				<h3 className="font-light text-gray-400 text-sm md:text-sm">
+				<h3 className="hidden font-light text-gray-400 text-sm sm:block md:text-sm">
 					FIND THE PERFECT TIME AND PLACE FOR YOUR MEETING.
 				</h3>
 
@@ -201,12 +204,14 @@ export function Creation({ user }: { user: UserProfile | null }) {
 								setStartTime={setStartTime}
 								setEndTime={setEndTime}
 							/>
+							{/*
 							<MeetingLocationField
 								meetingLocation={meetingLocation}
 								setMeetingLocation={setMeetingLocation}
 								recommendation={recommendation}
 								setRecommendation={setRecommendation}
 							/>
+							*/}
 						</div>
 						<Calendar
 							selectedDays={selectedDays}
@@ -216,11 +221,10 @@ export function Creation({ user }: { user: UserProfile | null }) {
 						/>
 					</div>
 				</div>
-				<div className="mt-6 flex justify-center md:-mr-10 md:justify-end">
+				<div className="mt-2 flex justify-center md:-mr-10 md:justify-end">
 					<Button
-						className={cn(
-							"rounded-lg border-none bg-green-500 font-medium font-montserrat text-gray-light text-lg hover:bg-green-500/80",
-						)}
+						type="button"
+						className={cn("w-full rounded-lg font-medium text-lg")}
 						disabled={!hasValidInputs || isCreating}
 						onClick={handleCreation}
 					>

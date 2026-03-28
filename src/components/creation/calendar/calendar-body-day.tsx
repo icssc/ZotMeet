@@ -101,7 +101,7 @@ export function CalendarBodyDay({
 	);
 
 	return (
-		<td>
+		<td className="py-2 md:py-0">
 			<button
 				type="button"
 				onPointerDown={handlePointerDown}
