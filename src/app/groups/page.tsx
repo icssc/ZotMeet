@@ -17,7 +17,7 @@ export default async function Page() {
 	const groups = await getGroupsWithDetails(session.user.id, memberId);
 
 	return (
-		<div className="px-8 py-8">
+		<div className="px-4 py-8 sm:px-8">
 			<GroupsPage groups={groups} />
 		</div>
 	);
