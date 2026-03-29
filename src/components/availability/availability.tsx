@@ -139,14 +139,19 @@ export function Availability({
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
 }) {
-	const { availabilityView, setAvailabilityView, setHasAvailability } =
-		useAvailabilityViewStore(
-			useShallow((state) => ({
-				availabilityView: state.availabilityView,
-				setAvailabilityView: state.setAvailabilityView,
-				setHasAvailability: state.setHasAvailability,
-			})),
-		);
+	const {
+		availabilityView,
+		setAvailabilityView,
+		setHasAvailability,
+		hasAvailability,
+	} = useAvailabilityViewStore(
+		useShallow((state) => ({
+			availabilityView: state.availabilityView,
+			setAvailabilityView: state.setAvailabilityView,
+			setHasAvailability: state.setHasAvailability,
+			hasAvailability: state.hasAvailability,
+		})),
+	);
 
 	const selectionIsLocked = useGroupSelectionStore(
 		(state) => state.selectionIsLocked,
@@ -734,7 +739,7 @@ export function Availability({
 			/>
 
 			<div className="flex flex-row items-start justify-start align-top">
-				<div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
+				<div className="flex h-fit min-w-0 items-center justify-between overflow-x-auto font-dm-sans lg:flex-1">
 					<AvailabilityNavButton
 						direction="left"
 						handleClick={prevPage}
@@ -823,6 +828,8 @@ export function Availability({
 						currentPageAvailability={currentPageAvailability}
 						availabilityTimeBlocks={availabilityTimeBlocks}
 						doesntNeedDay={doesntNeedDay}
+						isOwner={isOwner}
+						hasAvailability={hasAvailability}
 					/>
 				)}
 			</div>
