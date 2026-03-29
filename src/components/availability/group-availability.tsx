@@ -7,11 +7,7 @@ import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
-import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
-import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
-import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
-import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
-import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 export const getTimestampFromBlockIndex = (
 	blockIndex: number,
@@ -111,7 +107,7 @@ export function GroupAvailability({
 	onMouseLeave,
 	isScheduling,
 }: GroupAvailabilityProps) {
-	const { currentPage, itemsPerPage } = useAvailabilityPaginationStore(
+	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
 			itemsPerPage: state.itemsPerPage,
@@ -129,7 +125,7 @@ export function GroupAvailability({
 		setSelectionIsLocked,
 		setIsMobileDrawerOpen,
 		toggleHoverGrid,
-	} = useGroupSelectionStore(
+	} = useAvailabilityStore(
 		useShallow((state) => ({
 			selectedZotDateIndex: state.selectedZotDateIndex,
 			selectedBlockIndex: state.selectedBlockIndex,
@@ -145,7 +141,7 @@ export function GroupAvailability({
 	);
 
 	const numMembers = members.length;
-	const { enabled: showBestTimes } = useBestTimesToggleStore();
+	const showBestTimes = useAvailabilityStore((state) => state.enabled);
 
 	const maxAvailability = useMemo(() => {
 		if (!showBestTimes || numMembers === 0) return 0;
@@ -166,7 +162,7 @@ export function GroupAvailability({
 		setEndBlockSelection,
 		selectionState,
 		setSelectionState,
-	} = useBlockSelectionStore(
+	} = useAvailabilityStore(
 		useShallow((state) => ({
 			startBlockSelection: state.startBlockSelection,
 			endBlockSelection: state.endBlockSelection,
@@ -177,17 +173,19 @@ export function GroupAvailability({
 		})),
 	);
 
-	const { isScheduled, replaceEntireSelection } = useScheduleSelectionStore(
-		useShallow((state) => ({
-			isScheduled: state.isScheduled,
-			replaceEntireSelection: state.replaceEntireSelection,
-		})),
-	);
+	const { togglePendingTime, replaceEntireSelection, isScheduled } =
+		useAvailabilityStore(
+			useShallow((state) => ({
+				togglePendingTime: state.togglePendingTime,
+				replaceEntireSelection: state.replaceEntireSelection,
+				isScheduled: state.isScheduled,
+			})),
+		);
 	// to load scheduled time blocks when meeting is loaded
 	// Forces re-render when scheduled or pending times change
 
-	useScheduleSelectionStore((state) => state.scheduledTimes.size);
-	useScheduleSelectionStore((state) => state.pendingAdds.size);
+	useAvailabilityStore((state) => state.scheduledTimes.size);
+	useAvailabilityStore((state) => state.pendingAdds.size);
 
 	// update start and end block selection state
 	useEffect(() => {

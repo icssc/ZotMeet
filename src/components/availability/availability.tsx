@@ -34,25 +34,24 @@ import {
 	isAnchorDateMeeting,
 } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
-import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
-import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
-import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
-import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
-import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
 	meetingDates,
-	userAvailability,
+	userId,
 	allAvailabilties,
 	availabilityTimeBlocks,
 }: {
 	timezone: string;
 	meetingDates: string[];
-	userAvailability: MemberMeetingAvailability | null;
+	userId: string | null;
 	allAvailabilties: MemberMeetingAvailability[];
 	availabilityTimeBlocks: number[];
 }) => {
+	const userAvailability =
+		allAvailabilties.find((a) => a.memberId === userId) ?? null;
+
 	const availabilitiesByDate = new Map<string, string[]>();
 	if (userAvailability?.meetingAvailabilities) {
 		userAvailability.meetingAvailabilities.forEach((timeStr) => {
@@ -122,31 +121,27 @@ const deriveInitialAvailability = ({
 
 export function Availability({
 	meetingData,
-	userAvailability,
 	allAvailabilities,
 	user,
 	scheduledBlocks,
 }: {
 	meetingData: SelectMeeting;
-	userAvailability: MemberMeetingAvailability | null;
 	allAvailabilities: MemberMeetingAvailability[];
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
 }) {
-	const availabilityView = useAvailabilityViewStore(
+	const availabilityView = useAvailabilityStore(
 		(state) => state.availabilityView,
 	);
 
-	const selectionIsLocked = useGroupSelectionStore(
+	const selectionIsLocked = useAvailabilityStore(
 		(state) => state.selectionIsLocked,
 	);
-	const resetSelection = useGroupSelectionStore(
-		(state) => state.resetSelection,
-	);
-	const setIsMobileDrawerOpen = useGroupSelectionStore(
+	const resetSelection = useAvailabilityStore((state) => state.resetSelection);
+	const setIsMobileDrawerOpen = useAvailabilityStore(
 		(state) => state.setIsMobileDrawerOpen,
 	);
-	const toggleHoverGrid = useGroupSelectionStore(
+	const toggleHoverGrid = useAvailabilityStore(
 		(state) => state.toggleHoverGrid,
 	);
 
@@ -165,7 +160,7 @@ export function Availability({
 	]);
 
 	const { currentPage, itemsPerPage, isFirstPage, nextPage, prevPage } =
-		useAvailabilityPaginationStore(
+		useAvailabilityStore(
 			useShallow((state) => ({
 				currentPage: state.currentPage,
 				itemsPerPage: state.itemsPerPage,
@@ -223,7 +218,7 @@ export function Availability({
 		deriveInitialAvailability({
 			timezone: userTimezone,
 			meetingDates: meetingData.dates,
-			userAvailability,
+			userId: user?.memberId ?? null,
 			allAvailabilties: allAvailabilities,
 			availabilityTimeBlocks,
 		}),
@@ -375,7 +370,7 @@ export function Availability({
 		}
 
 		// add DB timestamps to the state
-		useScheduleSelectionStore.getState().hydrateScheduledTimes(timestamps);
+		useAvailabilityStore.getState().hydrateScheduledTimes(timestamps);
 	}, [scheduledBlocks]);
 
 	// Drag selection for group and schedule views
@@ -385,7 +380,7 @@ export function Availability({
 		setStartBlockSelection,
 		setEndBlockSelection,
 		setSelectionState,
-	} = useBlockSelectionStore(
+	} = useAvailabilityStore(
 		useShallow((state) => ({
 			startBlockSelection: state.startBlockSelection,
 			endBlockSelection: state.endBlockSelection,
@@ -396,7 +391,7 @@ export function Availability({
 	);
 
 	const { togglePendingTime, addPendingTimeRange, isScheduled } =
-		useScheduleSelectionStore(
+		useAvailabilityStore(
 			useShallow((state) => ({
 				togglePendingTime: state.togglePendingTime,
 				addPendingTimeRange: state.addPendingTimeRange,
@@ -469,7 +464,7 @@ export function Availability({
 				setEndBlockSelection({ zotDateIndex, blockIndex });
 			} else if (last) {
 				const { startBlockSelection, endBlockSelection } =
-					useBlockSelectionStore.getState();
+					useAvailabilityStore.getState();
 				if (startBlockSelection && endBlockSelection) {
 					const earlierDateIndex = Math.min(
 						startBlockSelection.zotDateIndex,
