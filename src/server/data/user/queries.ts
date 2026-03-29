@@ -2,7 +2,7 @@ import "server-only";
 
 import { and, eq, ilike, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { notifications, users } from "@/db/schema";
 
 export async function getUserIdExists(id: string) {
 	const user = await db.query.users.findFirst({
@@ -48,4 +48,47 @@ export async function searchUsersByEmail(
 		.from(users)
 		.where(and(ilike(users.email, `%${query}%`), ne(users.id, excludeUserId)))
 		.limit(limit);
+}
+
+export async function getNotificationsByMemberId(memberId: string) {
+	const notification = await db.query.notifications.findMany({
+		where: eq(notifications.memberId, memberId),
+		orderBy: (notification) => notification.createdAt,
+	});
+
+	return notification;
+}
+
+export async function createNewNotification(
+	memberId: string,
+	title: string = "New Notification",
+	message: string = "You have a new notification",
+	type: string = "info",
+) {
+	const newNotification = await db
+		.insert(notifications)
+		.values({
+			memberId,
+			title,
+			message,
+			type,
+		})
+		.returning();
+
+	return newNotification;
+}
+export async function markNotificationAsRead(notificationId: string) {
+	const updatedNotification = await db
+		.update(notifications)
+		.set({
+			readAt: new Date(),
+		})
+		.where(eq(notifications.id, notificationId))
+		.returning();
+
+	return updatedNotification;
+}
+
+export async function deleteNotificationByID(notificationId: string) {
+	await db.delete(notifications).where(eq(notifications.id, notificationId));
 }
