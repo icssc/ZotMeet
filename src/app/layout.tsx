@@ -40,7 +40,7 @@ export default function RootLayout({
 			<body
 				className={cn(
 					`${geistSans.variable} ${geistMono.variable} antialiased`,
-					"bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]",
+					"overflow-x-hidden bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]",
 				)}
 			>
 				<NuqsAdapter>

@@ -103,7 +103,7 @@ export function Calendar({
 	return (
 		<div className="rounded-lg border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-6">
 			<div className="flex flex-col items-start justify-between px-4 pb-3 md:px-8">
-				<h3 className="font-montserrat font-semibold text-gray-dark text-lg md:text-2xl">
+				<h3 className="font-semibold text-gray-dark text-lg md:text-2xl">
 					{title}
 				</h3>
 
@@ -139,10 +139,7 @@ export function Calendar({
 									{WEEKDAYS.map((dayOfWeek) => (
 										<th className="px-0" key={dayOfWeek}>
 											<div>
-												<p className="hidden w-full text-center font-light text-slate-medium text-sm uppercase sm:block md:font-bold">
-													{dayOfWeek}
-												</p>
-												<p className="block sm:hidden">
+												<p className="w-full text-center font-light text-slate-medium text-sm uppercase md:font-bold">
 													{dayOfWeek.slice(0, 1)}
 												</p>
 											</div>
