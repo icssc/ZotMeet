@@ -18,7 +18,7 @@ const SEED_ADMIN_MEMBER_ID = "00000000-0000-0000-0000-000000000000";
 const SEED_ADMIN_USER_ID = "seed_admin";
 
 const NAME_POOL = [
-	{ handle: "ethanc", displayName: "Ethan Chen" },
+	{ handle: "zotninja", displayName: "Zot Ninja" },
 	{ handle: "panteater", displayName: "Peter Anteater" },
 	{ handle: "zotking", displayName: "Zot King" },
 	{ handle: "aldrichpark", displayName: "Aldrich Park" },
@@ -88,14 +88,12 @@ async function seed(): Promise<void> {
 	);
 
 	await db.transaction(async (tx) => {
-		await tx
-			.insert(members)
-			.values(
-				batch.map(({ memberId, displayName }) => ({
-					id: memberId,
-					displayName,
-				})),
-			);
+		await tx.insert(members).values(
+			batch.map(({ memberId, displayName }) => ({
+				id: memberId,
+				displayName,
+			})),
+		);
 
 		await tx.insert(users).values(
 			batch.map(({ userId, memberId, handle }) => ({
