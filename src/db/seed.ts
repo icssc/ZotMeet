@@ -2,16 +2,14 @@ import { randomUUID } from "crypto";
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import * as relations from "./relations";
-import * as schema from "./schema";
-import { GroupRole } from "./schema";
+import { GroupRole, groups, members, users, usersInGroup } from "./schema";
 
 if (!process.env.DATABASE_URL) {
 	throw new Error("Missing DATABASE_URL env var.");
 }
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const db = drizzle(pool, { schema: { ...schema, ...relations } });
+const db = drizzle(pool);
 
 const BATCH_SIZE = 15;
 
@@ -44,12 +42,12 @@ const NAME_POOL = [
 
 async function seed(): Promise<void> {
 	await db
-		.insert(schema.members)
+		.insert(members)
 		.values({ id: SEED_ADMIN_MEMBER_ID, displayName: "Seed Admin" })
 		.onConflictDoNothing();
 
 	await db
-		.insert(schema.users)
+		.insert(users)
 		.values({
 			id: SEED_ADMIN_USER_ID,
 			memberId: SEED_ADMIN_MEMBER_ID,
@@ -58,7 +56,7 @@ async function seed(): Promise<void> {
 		.onConflictDoNothing();
 
 	await db
-		.insert(schema.groups)
+		.insert(groups)
 		.values({
 			id: SEED_GROUP_ID,
 			name: "ZotMeet Dev Team",
@@ -70,31 +68,50 @@ async function seed(): Promise<void> {
 		})
 		.onConflictDoNothing();
 
+	await db
+		.insert(usersInGroup)
+		.values({
+			userId: SEED_ADMIN_USER_ID,
+			groupId: SEED_GROUP_ID,
+			role: GroupRole.ADMIN,
+		})
+		.onConflictDoNothing();
+
 	const suffix = Math.random().toString(16).slice(2, 6);
+	const batch = NAME_POOL.slice(0, BATCH_SIZE).map(
+		({ handle, displayName }) => ({
+			memberId: randomUUID(),
+			userId: `seed_${handle}_${suffix}`,
+			displayName,
+			handle,
+		}),
+	);
 
 	await db.transaction(async (tx) => {
-		for (const { handle, displayName } of NAME_POOL.slice(0, BATCH_SIZE)) {
-			const [newMember] = await tx
-				.insert(schema.members)
-				.values({ id: randomUUID(), displayName })
-				.returning({ id: schema.members.id });
+		await tx
+			.insert(members)
+			.values(
+				batch.map(({ memberId, displayName }) => ({
+					id: memberId,
+					displayName,
+				})),
+			);
 
-			if (!newMember) {
-				throw new Error(`Failed to insert member for ${handle}`);
-			}
-
-			await tx.insert(schema.users).values({
-				id: `seed_${handle}_${suffix}`,
-				memberId: newMember.id,
+		await tx.insert(users).values(
+			batch.map(({ userId, memberId, handle }) => ({
+				id: userId,
+				memberId,
 				email: `${handle}_${suffix}@zotmeet.dev`,
-			});
+			})),
+		);
 
-			await tx.insert(schema.usersInGroup).values({
-				userId: `seed_${handle}_${suffix}`,
+		await tx.insert(usersInGroup).values(
+			batch.map(({ userId }) => ({
+				userId,
 				groupId: SEED_GROUP_ID,
 				role: GroupRole.MEMBER,
-			});
-		}
+			})),
+		);
 	});
 
 	console.log(`${BATCH_SIZE} users added (batch: _${suffix})`);
