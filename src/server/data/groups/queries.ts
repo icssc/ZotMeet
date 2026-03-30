@@ -7,6 +7,7 @@ import {
 	GroupRole,
 	groups,
 	meetings,
+	members,
 	type SelectGroup,
 	type SelectMeeting,
 	users,
@@ -57,10 +58,12 @@ export async function getUsersInGroup(groupId: string) {
 			userId: users.id,
 			memberId: users.memberId,
 			email: users.email,
+			displayName: members.displayName,
 			role: usersInGroup.role,
 		})
 		.from(users)
 		.innerJoin(usersInGroup, eq(users.id, usersInGroup.userId))
+		.innerJoin(members, eq(users.memberId, members.id))
 		.where(eq(usersInGroup.groupId, groupId));
 }
 
@@ -144,7 +147,8 @@ export type GroupWithDetails = SelectGroup & {
 	totalMembers: number;
 	isCreator: boolean;
 	needsAvailability: boolean;
-	ownerEmail: string | null;
+	ownerEmail: string;
+	creatorName: string;
 };
 
 export async function getGroupsWithDetails(
@@ -183,6 +187,8 @@ export async function getGroupsWithDetails(
 				);
 			}
 
+			const creator = members.find((m) => m.userId === group.createdBy);
+
 			return {
 				...group,
 				memberCount,
@@ -190,8 +196,8 @@ export async function getGroupsWithDetails(
 				totalMembers: members.length,
 				isCreator: group.createdBy === userId,
 				needsAvailability,
-				ownerEmail:
-					members.find((m) => m.userId === group.createdBy)?.email ?? null,
+				ownerEmail: creator?.email ?? "",
+				creatorName: creator?.displayName ?? "",
 			};
 		}),
 	);

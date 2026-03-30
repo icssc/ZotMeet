@@ -281,7 +281,7 @@ export function GroupResponses({
 			>
 				<div className="flex items-center justify-between px-8 py-4">
 					<div>
-						<h3 className="font-medium font-montserrat">Responders</h3>
+						<h3 className="font-figtree font-medium">Responders</h3>
 						<p className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 							{blockInfoString}
 						</p>

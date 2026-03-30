@@ -289,7 +289,7 @@ export function GroupMemberList({
 		<div>
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-3">
-					<h1 className="font-bold font-montserrat text-5xl">{group.name}</h1>
+					<h1 className="font-bold font-figtree text-5xl">{group.name}</h1>
 					<button
 						type="button"
 						className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"

@@ -248,6 +248,13 @@ export const notifications = pgTable("notifications", {
 	message: text("message"),
 });
 
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+	member: one(members, {
+		fields: [notifications.memberId],
+		references: [members.id],
+	}),
+}));
+
 export const availabilities = pgTable(
 	"availabilities",
 	{
@@ -292,7 +299,7 @@ export const usersInGroup = pgTable(
 );
 
 export const usersRelations = relations(users, ({ one, many }) => ({
-	oauthAccountsTable: many(oauthAccounts),
+	oauthAccounts: many(oauthAccounts),
 	usersInGroups: many(usersInGroup),
 	sessions: many(sessions),
 	groups: many(groups, {
@@ -305,9 +312,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 }));
 
 export const groupsRelations = relations(groups, ({ many }) => ({
-	members: many(users, {
-		relationName: "usersToGroups",
-	}),
+	members: many(usersInGroup),
 	meetings: many(meetings),
 }));
 
@@ -368,13 +373,6 @@ export const scheduledMeetingsRelations = relations(
 		}),
 	}),
 );
-
-export const notificationsRelations = relations(notifications, ({ one }) => ({
-	member: one(members, {
-		fields: [notifications.memberId],
-		references: [members.id],
-	}),
-}));
 
 export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
 	user: one(users, {

@@ -1,5 +1,6 @@
 "use client";
 
+import { searchUsers } from "@actions/user/action";
 import { Check, ChevronDown, Copy, X } from "lucide-react";
 import { useCallback, useRef, useState, useTransition } from "react";
 import {
@@ -10,7 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { createGroup } from "@/server/actions/group/create/action";
-import { searchUsers } from "@/server/actions/user/search";
 
 interface SelectedMember {
 	id: string;

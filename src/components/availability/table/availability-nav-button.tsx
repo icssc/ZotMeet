@@ -14,7 +14,7 @@ export const AvailabilityNavButton = memo(
 				type="button"
 				onClick={handleClick}
 				className={cn(
-					"p-3 pr-0 disabled:opacity-0 md:pr-1",
+					"shrink-0 p-3 pr-0 disabled:opacity-0 md:pr-1",
 					direction === "left" && "pl-0 md:pl-1",
 					direction === "right" && "pr-0 md:pr-1",
 				)}
