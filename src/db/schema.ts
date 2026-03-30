@@ -232,6 +232,29 @@ export type SelectScheduledMeeting = InferSelectModel<typeof scheduledMeetings>;
 export type InsertMeeting = InferInsertModel<typeof meetings>;
 export type SelectMeeting = InferSelectModel<typeof meetings>;
 
+export const notifications = pgTable("notifications", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	memberId: uuid("user_id")
+		.notNull()
+		.references(() => members.id, { onDelete: "cascade" }),
+	type: text("type").notNull(),
+	readAt: timestamp("read_at", { withTimezone: true, mode: "date" }),
+	createdAt: timestamp("created_at", {
+		withTimezone: true,
+		mode: "date",
+	}).defaultNow(),
+	createdBy: text("created_by"),
+	title: text("title").notNull(),
+	message: text("message"),
+});
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+	member: one(members, {
+		fields: [notifications.memberId],
+		references: [members.id],
+	}),
+}));
+
 export const availabilities = pgTable(
 	"availabilities",
 	{
@@ -276,9 +299,9 @@ export const usersInGroup = pgTable(
 );
 
 export const usersRelations = relations(users, ({ one, many }) => ({
-	groups: many(groups, {
-		relationName: "usersToGroups",
-	}),
+	oauthAccounts: many(oauthAccounts),
+	usersInGroups: many(usersInGroup),
+	sessions: many(sessions),
 	member: one(members, {
 		fields: [users.memberId],
 		references: [members.id],
@@ -286,17 +309,20 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 }));
 
 export const groupsRelations = relations(groups, ({ many }) => ({
-	members: many(users, {
-		relationName: "usersToGroups",
-	}),
+	members: many(usersInGroup),
 	meetings: many(meetings),
 }));
 
-export const membersRelations = relations(members, ({ many }) => ({
+export const membersRelations = relations(members, ({ one, many }) => ({
 	hostedMeetings: many(meetings, {
 		relationName: "memberHostedMeetings",
 	}),
 	availabilities: many(availabilities),
+	notifications: many(notifications),
+	user: one(users, {
+		fields: [members.id],
+		references: [users.memberId],
+	}),
 }));
 
 export const meetingsRelations = relations(meetings, ({ one, many }) => ({
@@ -344,3 +370,17 @@ export const scheduledMeetingsRelations = relations(
 		}),
 	}),
 );
+
+export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
+	user: one(users, {
+		fields: [oauthAccounts.userId],
+		references: [users.id],
+	}),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+	user: one(users, {
+		fields: [sessions.userId],
+		references: [users.id],
+	}),
+}));

@@ -157,7 +157,7 @@ export function GroupResponses({
 			)}
 		>
 			<div className="hidden pb-1 pl-8 lg:block">
-				<h3 className="font-medium font-montserrat text-xl">Responders</h3>
+				<h3 className="font-figtree font-medium text-xl">Responders</h3>
 				<p className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 					{blockInfoString}
 				</p>
@@ -171,7 +171,7 @@ export function GroupResponses({
 			>
 				<div className="flex items-center justify-between px-8 py-4 lg:hidden">
 					<div>
-						<h3 className="font-medium font-montserrat">Responders</h3>
+						<h3 className="font-figtree font-medium">Responders</h3>
 						<p className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 							{blockInfoString}
 						</p>

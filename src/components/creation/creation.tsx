@@ -167,7 +167,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	return (
 		<div className="flex flex-col gap-y-6 px-4">
 			<div className="px-4 pt-8 md:pt-8 md:pl-[60px]">
-				<h2 className="font-medium font-montserrat text-gray-dark text-xl md:text-2xl">
+				<h2 className="font-figtree font-medium text-gray-dark text-xl md:text-2xl">
 					Let&apos;s plan your next meeting.
 				</h2>
 
@@ -207,7 +207,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 
 				<Button
 					className={cn(
-						"rounded-lg border-none bg-green-500 font-medium font-montserrat text-gray-light text-lg hover:bg-green-500/80",
+						"rounded-lg border-none bg-green-500 font-figtree font-medium text-gray-light text-lg hover:bg-green-500/80",
 					)}
 					disabled={!hasValidInputs || isCreating}
 					onClick={handleCreation}

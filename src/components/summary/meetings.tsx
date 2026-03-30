@@ -54,7 +54,7 @@ export const Meetings = ({
 	return (
 		<div className="w-full rounded-xl">
 			<div className="flex items-center justify-between">
-				<h1 className="font-medium font-montserrat text-3xl">Meetings</h1>
+				<h1 className="font-figtree font-medium text-3xl">Meetings</h1>
 
 				<Button
 					variant="outline"
@@ -71,7 +71,7 @@ export const Meetings = ({
 					<TabsTrigger
 						value="unscheduled"
 						className={cn(
-							"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-montserrat text-lg duration-0",
+							"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-figtree text-lg duration-0",
 							"data-[state=active]:border-orange-500",
 						)}
 					>
@@ -80,7 +80,7 @@ export const Meetings = ({
 					<TabsTrigger
 						value="scheduled"
 						className={cn(
-							"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-montserrat text-lg duration-0",
+							"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-figtree text-lg duration-0",
 							"data-[state=active]:border-orange-500",
 						)}
 					>
