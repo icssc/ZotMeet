@@ -1,6 +1,6 @@
 {
-  "id": "7deb8756-5321-4c09-bf16-28f9bef0646f",
-  "prevId": "cac78df6-859c-4f1c-aecf-3e8cfec306e2",
+  "id": "cac78df6-859c-4f1c-aecf-3e8cfec306e2",
+  "prevId": "21451459-a651-4b96-877f-14b58d424bf6",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -560,13 +560,6 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
-        },
-        "is_admin": {
-          "name": "is_admin",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         }
       },
       "indexes": {},

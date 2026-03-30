@@ -1,6 +1,6 @@
 {
-  "id": "7deb8756-5321-4c09-bf16-28f9bef0646f",
-  "prevId": "cac78df6-859c-4f1c-aecf-3e8cfec306e2",
+  "id": "ca9014df-0eeb-4e01-a1d7-5841c99b4a31",
+  "prevId": "7deb8756-5321-4c09-bf16-28f9bef0646f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -561,12 +561,13 @@
           "primaryKey": false,
           "notNull": true
         },
-        "is_admin": {
-          "name": "is_admin",
-          "type": "boolean",
+        "role": {
+          "name": "role",
+          "type": "group_role",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": false
+          "default": "'member'"
         }
       },
       "indexes": {},
@@ -619,6 +620,14 @@
         "accepted",
         "maybe",
         "declined"
+      ]
+    },
+    "public.group_role": {
+      "name": "group_role",
+      "schema": "public",
+      "values": [
+        "member",
+        "admin"
       ]
     },
     "public.meeting_type": {

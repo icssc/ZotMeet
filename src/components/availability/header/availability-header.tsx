@@ -8,6 +8,7 @@ import {
 } from "@actions/meeting/schedule/action";
 import GoogleIcon from "@mui/icons-material/Google";
 import {
+	CalendarCheck,
 	CalendarIcon,
 	CircleCheckIcon,
 	CircleXIcon,
@@ -208,7 +209,7 @@ export function AvailabilityHeader({
 		<>
 			<div className="px-2 pt-8">
 				<div className="flex items-start justify-between gap-x-4">
-					<h1 className="line-clamp-1 truncate font-medium font-montserrat text-xl md:text-3xl">
+					<h1 className="line-clamp-1 truncate font-figtree font-medium text-xl md:text-3xl">
 						{meetingData.title}
 					</h1>
 
@@ -302,6 +303,18 @@ export function AvailabilityHeader({
 										</span>
 									</Button>
 								)}
+
+								{isOwner && (
+									<Button
+										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
+										onClick={() => setAvailabilityView("schedule")}
+									>
+										<CalendarCheck className="size-5" />
+										<span className="hidden font-dm-sans md:flex">
+											Schedule Meeting
+										</span>
+									</Button>
+								)}
 							</>
 						)}
 					</div>
@@ -326,23 +339,24 @@ export function AvailabilityHeader({
 						</span>
 					)}
 					{isOwner && (
-						<div className="flex items-center gap-x-1">
+						<div className="-ml-2 flex items-center gap-x-1 pt-1">
 							<Button
 								onClick={() => setIsEditModalOpen(true)}
 								variant="ghost"
 								size="sm"
-								className="h-auto gap-1 p-0 text-primary text-sm hover:text-primary/80"
+								className="gap-1 text-muted-foreground"
 							>
 								<EditIcon className="size-4" />
-								Edit Meeting Details
+								<span className="font-dm-sans text-sm">Edit Meeting</span>
 							</Button>
 							<Button
 								onClick={() => setIsDeleteModalOpen(true)}
 								variant="ghost"
 								size="sm"
-								className="h-auto gap-1 p-0 text-muted-foreground text-sm hover:text-destructive"
+								className="gap-1 text-muted-foreground hover:text-destructive"
 							>
 								<DeleteIcon className="size-4" />
+								<span className="font-dm-sans text-sm">Delete Meeting</span>
 							</Button>
 						</div>
 					)}
