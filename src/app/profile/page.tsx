@@ -9,6 +9,22 @@ export default function ProfilePage() {
 	return (
 		<div className="px-8 py-8">
 			<h1 className="font-figtree font-medium text-3xl">Profile</h1>
+			<div className="max-w-sm">
+				<p className="mb-2 font-medium">Preferred Display Mode</p>
+
+				<FormControl fullWidth>
+					<InputLabel id="theme-select-label">Mode</InputLabel>
+					<Select
+						labelId="theme-select-label"
+						value={mode}
+						label="Mode"
+						onChange={(e) => setMode(e.target.value as "light" | "dark")}
+					>
+						<MenuItem value="light">Light</MenuItem>
+						<MenuItem value="dark">Dark</MenuItem>
+					</Select>
+				</FormControl>
+			</div>
 		</div>
 	);
 }
