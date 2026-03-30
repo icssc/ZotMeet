@@ -1,6 +1,7 @@
 "use server";
 
 import { createGroupSchema } from "@actions/group/create/schema";
+import { createNewNotification } from "@data/user/queries";
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
 import { db } from "@/db";
@@ -58,21 +59,15 @@ export async function createGroup(
 				role: GroupRole.ADMIN,
 			});
 
-			if (memberIds && memberIds.length > 0) {
-				const uniqueIds = memberIds.filter((id) => id !== user.id);
-				if (uniqueIds.length > 0) {
-					await tx.insert(usersInGroup).values(
-						uniqueIds.map((memberId) => ({
-							userId: memberId,
-							groupId: newGroup.id,
-							role: GroupRole.MEMBER,
-						})),
-					);
-				}
-			}
-
 			return newGroup;
 		});
+
+		await createNewNotification(
+			(memberIds ?? []).filter((id) => id !== user.id),
+			name.trim(),
+			"You have a new Notification",
+			"Group",
+		);
 
 		revalidatePath("/summary");
 		revalidatePath("/groups");

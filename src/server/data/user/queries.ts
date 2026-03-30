@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, ilike, ne } from "drizzle-orm";
+import { and, eq, ilike, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { notifications, users } from "@/db/schema";
 
@@ -60,23 +60,26 @@ export async function getNotificationsByMemberId(memberId: string) {
 }
 
 export async function createNewNotification(
-	memberId: string,
+	userIds: string[],
 	title: string = "New Notification",
 	message: string = "You have a new notification",
 	type: string = "info",
 ) {
-	const newNotification = await db
-		.insert(notifications)
-		.values({
-			memberId,
-			title,
-			message,
-			type,
-		})
-		.returning();
+	if (userIds.length === 0) return;
 
-	return newNotification;
+	const memberRows = await db
+		.select({ memberId: users.memberId })
+		.from(users)
+		.where(inArray(users.id, userIds));
+
+	return db
+		.insert(notifications)
+		.values(
+			memberRows.map(({ memberId }) => ({ memberId, title, message, type })),
+		)
+		.returning();
 }
+
 export async function markNotificationAsRead(notificationId: string) {
 	const updatedNotification = await db
 		.update(notifications)
