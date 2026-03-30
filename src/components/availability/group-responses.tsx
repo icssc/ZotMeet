@@ -1,11 +1,11 @@
-import { Divider } from "@mui/material/";
 import {
-	CalendarCheck,
-	CalendarPlus,
-	ChevronDown,
-	ChevronUp,
-	XIcon,
-} from "lucide-react";
+	Close,
+	EditCalendar,
+	EventAvailable,
+	ExpandLess,
+	ExpandMore,
+} from "@mui/icons-material";
+import { Divider } from "@mui/material/";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
@@ -175,7 +175,7 @@ export function GroupResponses({
 						className="w-full gap-2 uppercase"
 						onClick={() => setAvailabilityView("personal")}
 					>
-						<CalendarPlus className="size-4" />
+						<EditCalendar className="size-4" />
 						{hasAvailability ? "Edit Availability" : "Add Availability"}
 					</Button>
 					{isOwner && (
@@ -184,7 +184,7 @@ export function GroupResponses({
 							className="w-full gap-2 uppercase"
 							onClick={() => setAvailabilityView("schedule")}
 						>
-							<CalendarCheck className="size-4" />
+							<EventAvailable className="size-4" />
 							Schedule Meeting
 						</Button>
 					)}
@@ -203,9 +203,9 @@ export function GroupResponses({
 							</p>
 						</div>
 						{attendeesExpanded ? (
-							<ChevronUp className="mt-1 size-5 shrink-0 text-gray-500" />
+							<ExpandLess className="mt-1 size-5 shrink-0 text-gray-500" />
 						) : (
-							<ChevronDown className="mt-1 size-5 shrink-0 text-gray-500" />
+							<ExpandMore className="mt-1 size-5 shrink-0 text-gray-500" />
 						)}
 					</button>
 
@@ -291,7 +291,7 @@ export function GroupResponses({
 						className="rounded-lg border-[1px] border-slate-400 p-0.5"
 						onClick={() => setIsMobileDrawerOpen(false)}
 					>
-						<XIcon className="text-lg text-slate-400" />
+						<Close className="text-lg text-slate-400" />
 					</button>
 				</div>
 

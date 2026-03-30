@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { ExpandLess, ExpandMore, Refresh } from "@mui/icons-material";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -138,7 +138,7 @@ export function PersonalAvailabilitySidebar({
 					className="mt-3 w-full gap-2 uppercase"
 					onClick={onReset}
 				>
-					<RefreshCw className="size-4" />
+					<Refresh className="size-4" />
 					Reset Availability
 				</Button>
 			</div>
@@ -158,9 +158,9 @@ export function PersonalAvailabilitySidebar({
 						</p>
 					</div>
 					{calendarOverlaysExpanded ? (
-						<ChevronUp className="mt-1 size-5 shrink-0 text-gray-500" />
+						<ExpandLess className="mt-1 size-5 shrink-0 text-gray-500" />
 					) : (
-						<ChevronDown className="mt-1 size-5 shrink-0 text-gray-500" />
+						<ExpandMore className="mt-1 size-5 shrink-0 text-gray-500" />
 					)}
 				</button>
 

@@ -6,17 +6,17 @@ import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
-import GoogleIcon from "@mui/icons-material/Google";
 import {
-	CalendarCheck,
-	CalendarIcon,
-	CircleCheckIcon,
-	CircleXIcon,
-	ClockIcon,
-	DeleteIcon,
-	EditIcon,
-	MapPinIcon,
-} from "lucide-react";
+	AccessTime,
+	CalendarMonth,
+	CheckCircle,
+	Delete,
+	Edit,
+	EventAvailable,
+	HighlightOff,
+	LocationOn,
+} from "@mui/icons-material";
+import GoogleIcon from "@mui/icons-material/Google";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -234,7 +234,7 @@ export function AvailabilityHeader({
 									}
 								>
 									<span className="hidden md:flex">Cancel</span>
-									<CircleXIcon />
+									<HighlightOff />
 								</Button>
 								<Button
 									className={cn(
@@ -249,7 +249,7 @@ export function AvailabilityHeader({
 									}
 								>
 									<span className="hidden md:flex">Save</span>
-									<CircleCheckIcon />
+									<CheckCircle />
 								</Button>
 							</div>
 						) : (
@@ -309,7 +309,7 @@ export function AvailabilityHeader({
 										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
 										onClick={() => setAvailabilityView("schedule")}
 									>
-										<CalendarCheck className="size-5" />
+										<EventAvailable className="size-5" />
 										<span className="hidden font-dm-sans md:flex">
 											Schedule Meeting
 										</span>
@@ -323,18 +323,18 @@ export function AvailabilityHeader({
 				<div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground text-sm">
 					{dateRange && (
 						<span className="flex items-center gap-1">
-							<CalendarIcon className="size-4 shrink-0" />
+							<CalendarMonth className="size-4 shrink-0" />
 							{dateRange}
 						</span>
 					)}
 					<span className="flex items-center gap-1">
-						<ClockIcon className="size-4 shrink-0" />
+						<AccessTime className="size-4 shrink-0" />
 						{formatMetaTime(meetingData.fromTime)} -{" "}
 						{formatMetaTime(meetingData.toTime)}
 					</span>
 					{meetingData.location && (
 						<span className="flex items-center gap-1">
-							<MapPinIcon className="size-4 shrink-0" />
+							<LocationOn className="size-4 shrink-0" />
 							{meetingData.location}
 						</span>
 					)}
@@ -346,7 +346,7 @@ export function AvailabilityHeader({
 								size="sm"
 								className="gap-1 text-muted-foreground"
 							>
-								<EditIcon className="size-4" />
+								<Edit className="size-4" />
 								<span className="font-dm-sans text-sm">Edit Meeting</span>
 							</Button>
 							<Button
@@ -355,7 +355,7 @@ export function AvailabilityHeader({
 								size="sm"
 								className="gap-1 text-muted-foreground hover:text-destructive"
 							>
-								<DeleteIcon className="size-4" />
+								<Delete className="size-4" />
 								<span className="font-dm-sans text-sm">Delete Meeting</span>
 							</Button>
 						</div>
