@@ -24,6 +24,7 @@ import { EditModal } from "@/components/availability/header/edit-modal";
 import { Button } from "@/components/ui/button";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
+import { formatTimeWithHoursAndMins } from "@/lib/availability/utils";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
@@ -149,15 +150,6 @@ export function AvailabilityHeader({
 		} catch (error) {
 			console.error("Failed to save meeting blocks", error);
 		}
-	};
-
-	const formatMetaTime = (time: string) => {
-		const [h, m] = time.split(":").map(Number);
-		const period = h >= 12 ? "PM" : "AM";
-		const hour = h % 12 || 12;
-		return m === 0
-			? `${hour} ${period}`
-			: `${hour}:${String(m).padStart(2, "0")} ${period}`;
 	};
 
 	const dateRange = (() => {
@@ -287,8 +279,8 @@ export function AvailabilityHeader({
 					)}
 					<span className="flex items-center gap-1">
 						<AccessTime className="size-4 shrink-0" />
-						{formatMetaTime(meetingData.fromTime)} -{" "}
-						{formatMetaTime(meetingData.toTime)}
+						{formatTimeWithHoursAndMins(meetingData.fromTime)} -{" "}
+						{formatTimeWithHoursAndMins(meetingData.toTime)}
 					</span>
 					{meetingData.location && (
 						<span className="flex items-center gap-1">
