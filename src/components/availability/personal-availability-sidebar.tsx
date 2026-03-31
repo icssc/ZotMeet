@@ -182,7 +182,7 @@ export function PersonalAvailabilitySidebar({
 									/>
 									<Label
 										htmlFor={`overlay-${cal.id}`}
-										className="cursor-pointer truncate"
+										className="cursor-pointer truncate text-base"
 									>
 										{cal.name}
 									</Label>
