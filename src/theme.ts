@@ -14,26 +14,15 @@ export const getTheme = (mode: "light" | "dark") =>
 	createTheme({
 		palette: {
 			mode,
-			background:
-				mode === "dark"
-					? {
-							default: "#1C1B1B",
-							paper: "#1C1B1B",
-						}
-					: {
-							default: "#ffffff",
-							paper: "#ffffff",
-						},
-			text:
-				mode === "dark"
-					? {
-							primary: "#FFFFFF",
-							secondary: "rgba(255,255,255,0.3)",
-						}
-					: {
-							primary: "#000000",
-							secondary: "rgba(0,0,0,0.6)",
-						},
+			background: {
+				default: mode === "dark" ? "#1C1B1B" : "#ffffff",
+				paper: mode === "dark" ? "#1C1B1B" : "#ffffff",
+			},
+			text: {
+				primary: mode === "dark" ? "#FFFFFF" : "#000000",
+				secondary:
+					mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.6)",
+			},
 			divider: mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.2)",
 		},
 		typography: {
@@ -71,6 +60,15 @@ export const getTheme = (mode: "light" | "dark") =>
 			button: {
 				fontFamily: figtree.style.fontFamily,
 				fontWeight: 500,
+			},
+		},
+		components: {
+			MuiSvgIcon: {
+				styleOverrides: {
+					root: ({ theme }) => ({
+						color: theme.palette.text.primary,
+					}),
+				},
 			},
 		},
 	});
