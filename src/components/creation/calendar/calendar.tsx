@@ -120,25 +120,28 @@ export function Calendar({
 					<Tab value="days" label="Days of Week" />
 				</Tabs>
 
-				<div className="mt-12 flex w-full items-center justify-between">
-					<h3 className="font-semibold text-gray-dark text-lg md:ml-5 md:text-2xl">
-						{title}
-					</h3>
+				<div className="mt-4 flex w-full items-center justify-between md:justify-start md:pl-15">
+					<div className="mt-4 flex w-full items-center pl-3 md:pl-5">
+						<h3 className="font-semibold text-gray-dark text-lg md:text-2xl">
+							{title}
+						</h3>
 
-					<div className="block flex gap-2 md:hidden">
-						<Button
-							onClick={decrementMonth}
-							className="bg-transparent hover:bg-transparent"
-						>
-							<span className="text-3xl text-gray-500">&lsaquo;</span>
-						</Button>
+						{/* Mobile only buttons */}
+						<div className="flex gap-2 md:hidden">
+							<Button
+								onClick={decrementMonth}
+								className="bg-transparent hover:bg-transparent"
+							>
+								<span className="text-3xl text-gray-500">&lsaquo;</span>
+							</Button>
 
-						<Button
-							onClick={incrementMonth}
-							className="bg-transparent hover:bg-transparent"
-						>
-							<span className="text-3xl text-gray-500">&rsaquo;</span>
-						</Button>
+							<Button
+								onClick={incrementMonth}
+								className="bg-transparent hover:bg-transparent"
+							>
+								<span className="text-3xl text-gray-500">&rsaquo;</span>
+							</Button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -156,7 +159,7 @@ export function Calendar({
 						<span className="text-3xl text-gray-500">&lsaquo;</span>
 					</Button>
 
-					<div className="w-full md:px-4">
+					<div className="w-full md:px-2">
 						<table className="w-full table-fixed border-collapse">
 							<thead>
 								<tr>

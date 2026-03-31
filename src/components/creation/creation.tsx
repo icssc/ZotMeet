@@ -221,7 +221,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 						/>
 					</div>
 				</div>
-				<div className="mt-2 flex justify-center md:-mr-10 md:justify-end">
+				<div className="mt-10 flex justify-center md:justify-end">
 					<Button
 						type="button"
 						className={cn("w-full rounded-lg font-medium text-lg md:w-auto")}

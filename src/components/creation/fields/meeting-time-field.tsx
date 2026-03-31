@@ -84,7 +84,7 @@ export const MeetingTimeField = ({
 	return (
 		<div>
 			{/* <div className="flex w-full flex-col items-center space-y-4 pt-2 text-gray-500 text-sm"> */}
-			<div className="flex flex-row gap-4 md:flex-col">
+			<div className="flex w-full flex-col items-center gap-4 md:flex-row">
 				<TextField
 					fullWidth
 					label="START TIME"
