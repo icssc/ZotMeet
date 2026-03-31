@@ -1,7 +1,6 @@
 "use client";
 
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
-import { saveAvailability } from "@actions/availability/save/action";
 import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
@@ -51,16 +50,9 @@ export function AvailabilityHeader({
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
 
-	const {
-		hasAvailability,
-		availabilityView,
-		setHasAvailability,
-		setAvailabilityView,
-	} = useAvailabilityViewStore(
+	const { availabilityView, setAvailabilityView } = useAvailabilityViewStore(
 		useShallow((state) => ({
-			hasAvailability: state.hasAvailability,
 			availabilityView: state.availabilityView,
-			setHasAvailability: state.setHasAvailability,
 			setAvailabilityView: state.setAvailabilityView,
 		})),
 	);
@@ -82,33 +74,12 @@ export function AvailabilityHeader({
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
 
-	const handleSave = async () => {
+	const handleSave = () => {
 		if (!user) {
 			// setIsGuestDialogOpen(true);
-
 			return;
 		}
-		setChangeableTimezone(true);
-		const availability = {
-			meetingId: meetingData.id,
-			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-
-		const response = await saveAvailability(availability);
-
-		if (response.status === 200) {
-			setHasAvailability(true);
-			setAvailabilityView("group");
-			onSave();
-
-			// Clear guest member name
-			if (!user) {
-				// setGuestName("");
-			}
-		} else {
-			console.error("Error saving availability:", response.body.error);
-		}
+		onSave();
 	};
 
 	const { commitPendingTimes, clearPendingTimes } = useScheduleSelectionStore(
