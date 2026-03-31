@@ -6,15 +6,17 @@ import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
-import GoogleIcon from "@mui/icons-material/Google";
 import {
-	CalendarCheck,
-	CalendarPlus,
-	CircleCheckIcon,
-	CircleXIcon,
-	DeleteIcon,
-	EditIcon,
-} from "lucide-react";
+	AccessTime,
+	CalendarMonth,
+	CheckCircle,
+	Delete,
+	Edit,
+	EventAvailable,
+	HighlightOff,
+	LocationOn,
+} from "@mui/icons-material";
+import GoogleIcon from "@mui/icons-material/Google";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -179,6 +181,30 @@ export function AvailabilityHeader({
 		}
 	};
 
+	const formatMetaTime = (time: string) => {
+		const [h, m] = time.split(":").map(Number);
+		const period = h >= 12 ? "PM" : "AM";
+		const hour = h % 12 || 12;
+		return m === 0
+			? `${hour} ${period}`
+			: `${hour}:${String(m).padStart(2, "0")} ${period}`;
+	};
+
+	const dateRange = (() => {
+		const dates = meetingData.dates;
+		if (!dates.length) return null;
+		const parse = (s: string) => {
+			const [y, mo, d] = s.split("T")[0].split("-").map(Number);
+			return new Date(y, mo - 1, d);
+		};
+		const first = parse(dates[0]);
+		const last = parse(dates[dates.length - 1]);
+		const fmt = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`;
+		return first.getTime() === last.getTime()
+			? fmt(first)
+			: `${fmt(first)}-${fmt(last)}`;
+	})();
+
 	return (
 		<>
 			<div className="px-2 pt-8">
@@ -190,7 +216,12 @@ export function AvailabilityHeader({
 					<div className="flex shrink-0 space-x-2">
 						{availabilityView === "personal" ||
 						availabilityView === "schedule" ? (
-							<>
+							<div
+								className={cn(
+									"flex gap-2",
+									availabilityView === "personal" && "lg:hidden",
+								)}
+							>
 								<Button
 									className={cn(
 										"h-8 flex-center bg-white px-4 py-0 text-white uppercase",
@@ -203,7 +234,7 @@ export function AvailabilityHeader({
 									}
 								>
 									<span className="hidden md:flex">Cancel</span>
-									<CircleXIcon />
+									<HighlightOff />
 								</Button>
 								<Button
 									className={cn(
@@ -218,9 +249,9 @@ export function AvailabilityHeader({
 									}
 								>
 									<span className="hidden md:flex">Save</span>
-									<CircleCheckIcon />
+									<CheckCircle />
 								</Button>
-							</>
+							</div>
 						) : (
 							<>
 								{isScheduled && (
@@ -278,61 +309,58 @@ export function AvailabilityHeader({
 										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
 										onClick={() => setAvailabilityView("schedule")}
 									>
-										<CalendarCheck className="size-5" />
+										<EventAvailable className="size-5" />
 										<span className="hidden font-dm-sans md:flex">
 											Schedule Meeting
 										</span>
 									</Button>
 								)}
-
-								<Button
-									className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
-									onClick={() => {
-										if (!user) {
-											setIsAuthModalOpen(true);
-											router.push("/auth/login/google");
-											return;
-										}
-										setChangeableTimezone(false);
-										setTimezone(
-											Intl.DateTimeFormat().resolvedOptions().timeZone,
-										);
-										setAvailabilityView("personal");
-									}}
-								>
-									<CalendarPlus className="size-5" />
-									<span className="hidden font-dm-sans md:flex">
-										{hasAvailability ? "Edit Availability" : "Add Availability"}
-									</span>
-								</Button>
 							</>
 						)}
 					</div>
 				</div>
 
-				{isOwner && (
-					<div className="-ml-2 flex items-center gap-x-1 pt-1">
-						<Button
-							onClick={() => setIsEditModalOpen(true)}
-							variant="ghost"
-							size="sm"
-							className="gap-1 text-muted-foreground"
-						>
-							<EditIcon className="size-4" />
-							<span className="font-dm-sans text-sm">Edit Meeting</span>
-						</Button>
-
-						<Button
-							onClick={() => setIsDeleteModalOpen(true)}
-							variant="ghost"
-							size="sm"
-							className="gap-1 text-muted-foreground hover:text-destructive"
-						>
-							<DeleteIcon className="size-4" />
-							<span className="font-dm-sans text-sm">Delete Meeting</span>
-						</Button>
-					</div>
-				)}
+				<div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-muted-foreground text-sm">
+					{dateRange && (
+						<span className="flex items-center gap-1">
+							<CalendarMonth className="size-4 shrink-0" />
+							{dateRange}
+						</span>
+					)}
+					<span className="flex items-center gap-1">
+						<AccessTime className="size-4 shrink-0" />
+						{formatMetaTime(meetingData.fromTime)} -{" "}
+						{formatMetaTime(meetingData.toTime)}
+					</span>
+					{meetingData.location && (
+						<span className="flex items-center gap-1">
+							<LocationOn className="size-4 shrink-0" />
+							{meetingData.location}
+						</span>
+					)}
+					{isOwner && (
+						<div className="-ml-2 flex items-center gap-x-1 pt-1">
+							<Button
+								onClick={() => setIsEditModalOpen(true)}
+								variant="ghost"
+								size="sm"
+								className="gap-1 text-muted-foreground"
+							>
+								<Edit className="size-4" />
+								<span className="font-dm-sans text-sm">Edit Meeting</span>
+							</Button>
+							<Button
+								onClick={() => setIsDeleteModalOpen(true)}
+								variant="ghost"
+								size="sm"
+								className="gap-1 text-muted-foreground hover:text-destructive"
+							>
+								<Delete className="size-4" />
+								<span className="font-dm-sans text-sm">Delete Meeting</span>
+							</Button>
+						</div>
+					)}
+				</div>
 			</div>
 
 			<EditModal
