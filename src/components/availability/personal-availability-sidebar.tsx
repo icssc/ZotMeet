@@ -107,26 +107,16 @@ export function PersonalAvailabilitySidebar({
 		useState(true);
 
 	return (
-		<div className="hidden w-72 shrink-0 flex-col gap-4 pl-4 lg:flex">
-			<div>
-				<h2 className="font-medium font-montserrat text-xl">
-					Add Availability
-				</h2>
-				<p className="mt-0.5 text-gray-500 text-sm">
-					Drag over the calendar to add your availability.
+		<div className="mr-8 hidden w-72 shrink-0 flex-col gap-4 pl-4 lg:flex">
+			<div className="rounded-md border border-gray-200 p-1">
+				<h2 className="font-medium text-xl">Add Availability</h2>
+				<p className="mt-0.5 whitespace-nowrap text-gray-500 text-xs">
+					Drag over the calendar to add your availability
 				</p>
 			</div>
 
-			<div className="rounded-lg border bg-white p-4">
-				<h3 className="font-medium font-montserrat text-lg">
-					Availability Settings
-				</h3>
-				<p className="mt-0.5 text-gray-500 text-sm">
-					Click to switch from fill &ldquo;Available&rdquo; to &ldquo;If
-					needed&rdquo;.
-				</p>
-
-				<div className="mt-3">
+			<div className="rounded-lg border p-1">
+				<div className="mt-2">
 					<AvailabilityModeSelector
 						availabilityMode={availabilityMode}
 						onModeChange={onModeChange}
@@ -143,18 +133,16 @@ export function PersonalAvailabilitySidebar({
 				</Button>
 			</div>
 
-			<div className="rounded-lg border bg-white">
+			<div className="rounded-md border p-1">
 				<button
 					type="button"
-					className="flex w-full items-start justify-between px-4 pt-4 pb-3"
+					className="flex w-full items-start justify-between pt-4 pb-5"
 					onClick={() => setCalendarOverlaysExpanded((v) => !v)}
 				>
 					<div className="text-left">
-						<h3 className="font-medium font-montserrat text-lg">
-							Calendar Overlays
-						</h3>
-						<p className="mt-0.5 text-gray-500 text-sm">
-							Selected schedules will overlay their events.
+						<h3 className="font-medium text-lg">Calendar Overlays</h3>
+						<p className="mt-0.5 whitespace-nowrap text-gray-500 text-xs">
+							Selected schedules will overlay their events
 						</p>
 					</div>
 					{calendarOverlaysExpanded ? (
@@ -165,7 +153,7 @@ export function PersonalAvailabilitySidebar({
 				</button>
 
 				{calendarOverlaysExpanded && (
-					<div className="flex flex-col gap-2 px-4 pb-4">
+					<div className="mb-4 flex flex-col gap-2">
 						{googleCalendars.length === 0 ? (
 							<p className="text-gray-400 text-sm">No calendars connected.</p>
 						) : (
@@ -182,7 +170,7 @@ export function PersonalAvailabilitySidebar({
 									/>
 									<Label
 										htmlFor={`overlay-${cal.id}`}
-										className="cursor-pointer truncate"
+										className="cursor-pointer truncate text-md"
 									>
 										{cal.name}
 									</Label>
@@ -193,21 +181,20 @@ export function PersonalAvailabilitySidebar({
 				)}
 			</div>
 
-			<div className="rounded-lg border bg-white px-4 py-4">
-				<div className="flex items-start justify-between gap-4">
+			<div className="rounded-lg border bg-white py-4">
+				<div className="flex items-center gap-8">
 					<div>
-						<h3 className="font-medium font-montserrat text-lg">
-							Overlay Availabilities
-						</h3>
-						<p className="mt-0.5 text-gray-500 text-sm">
-							View all availability while inputting your own.
-						</p>
+						<h3 className="font-medium text-lg">Overlay Availabilities</h3>
 					</div>
 					<Switch
 						checked={overlayAvailabilities}
 						onCheckedChange={onOverlayChange}
 					/>
 				</div>
+
+				<p className="mt-0.5 whitespace-nowrap text-gray-500 text-xs">
+					View all availability while inputting your own
+				</p>
 			</div>
 
 			<div className="flex gap-2">

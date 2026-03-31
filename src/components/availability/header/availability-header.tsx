@@ -339,7 +339,7 @@ export function AvailabilityHeader({
 						</span>
 					)}
 					{isOwner && (
-						<div className="-ml-2 flex items-center gap-x-1 pt-1">
+						<div className="-ml-2 flex items-center gap-x-1">
 							<Button
 								onClick={() => setIsEditModalOpen(true)}
 								variant="ghost"
