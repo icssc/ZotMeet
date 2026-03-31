@@ -303,18 +303,6 @@ export function AvailabilityHeader({
 										</span>
 									</Button>
 								)}
-
-								{isOwner && (
-									<Button
-										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
-										onClick={() => setAvailabilityView("schedule")}
-									>
-										<EventAvailable className="size-5" />
-										<span className="hidden font-dm-sans md:flex">
-											Schedule Meeting
-										</span>
-									</Button>
-								)}
 							</>
 						)}
 					</div>
