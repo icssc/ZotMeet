@@ -56,6 +56,7 @@ export async function fetchGoogleCalendarEvents(
 						end: e.end?.dateTime ?? e.end?.date ?? "",
 						calendarColor,
 						calendarId: cal.id,
+						calendarName: cal.summary,
 					}));
 				} catch (e) {
 					console.warn(`Failed to fetch events for calendar ${cal.id}`, e);
