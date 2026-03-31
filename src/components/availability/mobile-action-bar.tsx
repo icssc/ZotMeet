@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, EventAvailable, ExpandMore, Refresh } from "@mui/icons-material";
+import { CalendarCheck, ChevronDown, Pencil, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -85,7 +85,7 @@ export function MobileActionBar({
 							className="flex flex-col items-center gap-1 px-3 py-1 text-gray-700"
 							onClick={() => setIsMoreOptionsOpen(true)}
 						>
-							<ExpandMore className="size-5" />
+							<ChevronDown className="size-5" />
 							<span className="text-xs">More Options</span>
 						</button>
 
@@ -174,7 +174,7 @@ export function MobileActionBar({
 											setIsMoreOptionsOpen(false);
 										}}
 									>
-										<Refresh className="size-4" />
+										<RefreshCw className="size-4" />
 										Reset Availability
 									</Button>
 								</div>
@@ -249,7 +249,7 @@ export function MobileActionBar({
 					className="flex flex-col items-center gap-1 px-3 py-1 text-gray-700"
 					onClick={() => setIsMobileDrawerOpen(true)}
 				>
-					<ExpandMore className="size-5" />
+					<ChevronDown className="size-5" />
 					<span className="text-xs">More Options</span>
 				</button>
 
@@ -269,7 +269,7 @@ export function MobileActionBar({
 					className="flex flex-col items-center gap-1 px-3 py-1 text-gray-700"
 					onClick={handleAddAvailability}
 				>
-					<Edit className="size-5" />
+					<Pencil className="size-5" />
 					<span className="text-xs">Add Availability</span>
 				</button>
 
@@ -282,7 +282,7 @@ export function MobileActionBar({
 							className="flex flex-col items-center gap-1 px-3 py-1 text-gray-700"
 							onClick={handleScheduleMeeting}
 						>
-							<EventAvailable className="size-5" />
+							<CalendarCheck className="size-5" />
 							<span className="text-xs">Schedule Meeting</span>
 						</button>
 					</>

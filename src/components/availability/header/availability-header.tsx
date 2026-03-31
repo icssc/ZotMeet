@@ -11,6 +11,7 @@ import {
 	CheckCircle,
 	Delete,
 	Edit,
+	EventAvailable,
 	HighlightOff,
 	LocationOn,
 } from "@mui/icons-material";
@@ -265,6 +266,18 @@ export function AvailabilityHeader({
 										</span>
 									</Button>
 								)}
+
+								{isOwner && (
+									<Button
+										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
+										onClick={() => setAvailabilityView("schedule")}
+									>
+										<EventAvailable className="size-5" />
+										<span className="hidden font-dm-sans md:flex">
+											Schedule Meeting
+										</span>
+									</Button>
+								)}
 							</>
 						)}
 					</div>
@@ -289,7 +302,7 @@ export function AvailabilityHeader({
 						</span>
 					)}
 					{isOwner && (
-						<div className="-ml-2 flex items-center gap-x-1">
+						<div className="-ml-2 flex items-center gap-x-1 pt-1">
 							<Button
 								onClick={() => setIsEditModalOpen(true)}
 								variant="ghost"
