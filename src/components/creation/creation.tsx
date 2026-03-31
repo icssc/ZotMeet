@@ -177,7 +177,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	}, [selectedDays.length, startTime, endTime, meetingName]);
 
 	return (
-		<div className="mx-auto my-6 flex w-[calc(100%-2rem)] max-w-6xl flex-col gap-y-6 rounded-xl border border-gray-300 px-4 md:my-8">
+		<div className="mx-auto my-6 flex w-[calc(100%-2rem)] max-w-6xl flex-col gap-y-6 px-4 md:my-8 md:rounded-xl md:border md:border-gray-300">
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
 			<div className="w-full rounded-xl border bg-white px-4 py-6 md:px-14">
 				<h2 className="hidden font-medium text-2xl text-gray-dark sm:block md:text-3xl">
@@ -197,7 +197,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 						setMeetingName={setMeetingName}
 					/>
 					<div className="flex flex-col md:grid md:grid-cols-2 md:gap-8">
-						<div className="flex flex-col gap-y-12">
+						<div className="mb-4 flex flex-col gap-y-12">
 							<MeetingTimeField
 								startTime={startTime}
 								endTime={endTime}

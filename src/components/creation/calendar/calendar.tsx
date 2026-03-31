@@ -103,20 +103,44 @@ export function Calendar({
 	return (
 		<div className="rounded-lg border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-6">
 			<div className="flex flex-col items-start justify-between px-4 pb-3 md:px-8">
-				<h3 className="font-semibold text-gray-dark text-lg md:text-2xl">
-					{title}
-				</h3>
-
 				<Tabs
 					value={meetingType}
 					onChange={(_event: React.SyntheticEvent, value: string) => {
 						setMeetingType(value as SelectMeeting["meetingType"]);
 						setSelectedDays([]);
 					}}
+					sx={{
+						"& .MuiTab-root": {
+							fontSize: { xs: "rem", md: "1rem" },
+							minWidth: { xs: 120, md: 180 },
+						},
+					}}
 				>
 					<Tab value="dates" label="Specific Dates" />
 					<Tab value="days" label="Days of Week" />
 				</Tabs>
+
+				<div className="mt-12 flex w-full items-center justify-between">
+					<h3 className="font-semibold text-gray-dark text-lg md:ml-5 md:text-2xl">
+						{title}
+					</h3>
+
+					<div className="block flex gap-2 md:hidden">
+						<Button
+							onClick={decrementMonth}
+							className="bg-transparent hover:bg-transparent"
+						>
+							<span className="text-3xl text-gray-500">&lsaquo;</span>
+						</Button>
+
+						<Button
+							onClick={incrementMonth}
+							className="bg-transparent hover:bg-transparent"
+						>
+							<span className="text-3xl text-gray-500">&rsaquo;</span>
+						</Button>
+					</div>
+				</div>
 			</div>
 
 			{isMeetingTypeDays ? (
@@ -127,7 +151,7 @@ export function Calendar({
 				<div className="flex items-center justify-between">
 					<Button
 						onClick={decrementMonth}
-						className="bg-transparent p-3 hover:bg-transparent"
+						className="hidden bg-transparent p-3 hover:bg-transparent md:block"
 					>
 						<span className="text-3xl text-gray-500">&lsaquo;</span>
 					</Button>
@@ -159,7 +183,7 @@ export function Calendar({
 
 					<Button
 						onClick={incrementMonth}
-						className="bg-transparent p-3 hover:bg-transparent"
+						className="hidden bg-transparent p-3 hover:bg-transparent md:block"
 					>
 						<span className="text-3xl text-gray-500">&rsaquo;</span>
 					</Button>
