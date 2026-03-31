@@ -7,6 +7,8 @@ import {
 	ExpandMore,
 	Group,
 } from "@mui/icons-material";
+import { Box, Typography } from "@mui/material";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import {
@@ -39,83 +41,135 @@ export const ScheduledMeetingCard = ({
 	const remainingCount = blocksByDate.length - 1;
 
 	return (
-		<div className="rounded-xl border-2 border-gray-200 bg-[#F9FAFB] p-6">
-			<button
-				type="button"
+		<Box
+			sx={(theme) => ({
+				borderRadius: 3,
+				border: `2px solid ${theme.palette.divider}`,
+				bgcolor: theme.palette.background.paper,
+				p: 3,
+			})}
+		>
+			<Box
+				component="button"
 				onClick={() => setExpanded((v) => !v)}
-				className="flex w-full items-center gap-4 text-left"
-				aria-expanded={expanded}
+				sx={{
+					display: "flex",
+					width: "100%",
+					alignItems: "center",
+					gap: 2,
+					textAlign: "left",
+					background: "none",
+					border: "none",
+					cursor: "pointer",
+				}}
 			>
-				<a href={`/availability/${meeting.id}`}>
-					<Group className="size-10 shrink-0 rounded-full text-gray-500" />
-				</a>
-				<div className="flex-grow space-y-1">
-					<a href={`/availability/${meeting.id}`}>
-						<h3 className="truncate font-dm-sans font-medium text-gray-800 text-xl">
+				<Link href={`/availability/${meeting.id}`} key={meeting.id}>
+					<Group fontSize="medium" />
+				</Link>
+
+				<Box sx={{ flexGrow: 1 }}>
+					<Link href={`/availability/${meeting.id}`} key={meeting.id}>
+						<Typography variant="h6" noWrap>
 							{meeting.title}
-						</h3>
-					</a>
+						</Typography>
+					</Link>
 
 					{/* Collapsed summary */}
-					<div className="flex flex-row flex-wrap items-center gap-x-4 font-dm-sans font-semibold text-gray-500 text-sm">
-						<div className="flex flex-nowrap items-center gap-x-1">
-							<CalendarMonth className="size-4" />
-							<span className="p text-nowrap">
-								{formatDateToUSNumeric(firstDay.date)}
-							</span>
-						</div>
+					<Box
+						sx={{
+							display: "flex",
+							flexWrap: "wrap",
+							alignItems: "center",
+							gap: 2,
+							color: "text.secondary",
+							fontSize: 14,
+							fontWeight: 500,
+						}}
+					>
+						<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+							<CalendarMonth fontSize="small" />
+							<span>{formatDateToUSNumeric(firstDay.date)}</span>
+						</Box>
 
-						<div className="flex flex-nowrap items-center gap-x-1">
-							<AccessTime className="size-4" />
-							<span className="p text-nowrap">
+						<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+							<AccessTime fontSize="small" />
+							<span>
 								{(() => {
 									const interval = mergeContiguousTimeBlocks(firstDay.blocks);
 									if (!interval) return "—";
 									return `${formatTimeWithHoursAndMins(interval.from)} - ${formatTimeWithHoursAndMins(interval.to)}`;
 								})()}
 							</span>
-						</div>
+						</Box>
 
 						{remainingCount > 0 && (
-							<span className="p text-nowrap text-gray-500">
+							<Typography variant="body2" color="text.secondary">
 								+ {remainingCount} more
-							</span>
+							</Typography>
 						)}
-					</div>
-				</div>
+					</Box>
+				</Box>
 
 				{expanded ? (
-					<ExpandLess className="mt-1 size-5 text-gray-400" />
+					<ExpandLess sx={{ color: "text.secondary" }} />
 				) : (
-					<ExpandMore className="mt-1 size-5 text-gray-400" />
+					<ExpandMore sx={{ color: "text.secondary" }} />
 				)}
-			</button>
+			</Box>
 
 			{/* Expanded view */}
 			{expanded && (
-				<div className="mt-4 space-y-3 border-t pt-4">
+				<Box
+					sx={(theme) => ({
+						mt: 2,
+						pt: 2,
+						borderTop: `1px solid ${theme.palette.divider}`,
+						display: "flex",
+						flexDirection: "column",
+						gap: 2,
+					})}
+				>
 					{blocksByDate.map(({ dateKey, date, blocks }) => (
-						<div key={dateKey} className="space-y-1">
-							<div className="font-dm-sans font-semibold text-gray-700">
+						<Box key={dateKey}>
+							<Typography fontWeight={600}>
 								{formatDateToUSNumeric(date)}
-							</div>
+							</Typography>
 
-							<div className="flex flex-wrap gap-2 text-gray-600 text-sm">
+							<Box
+								sx={{
+									display: "flex",
+									flexWrap: "wrap",
+									gap: 1,
+									mt: 0.5,
+								}}
+							>
 								{(() => {
 									const interval = mergeContiguousTimeBlocks(blocks);
 									if (!interval) return null;
+
 									return (
-										<span className="rounded-md bg-gray-100 px-2 py-1">
+										<Box
+											sx={(theme) => ({
+												px: 1,
+												py: 0.5,
+												borderRadius: 1,
+												fontSize: 13,
+												bgcolor:
+													theme.palette.mode === "dark"
+														? "rgba(255,255,255,0.08)"
+														: "rgba(0,0,0,0.06)",
+											})}
+										>
 											{formatTimeWithHoursAndMins(interval.from)}–
 											{formatTimeWithHoursAndMins(interval.to)}
-										</span>
+										</Box>
 									);
 								})()}
-							</div>
-						</div>
+							</Box>
+						</Box>
 					))}
-				</div>
+				</Box>
 			)}
-		</div>
+		</Box>
 	);
 };
