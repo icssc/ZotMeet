@@ -12,7 +12,6 @@ import {
 	CheckCircle,
 	Delete,
 	Edit,
-	EventAvailable,
 	HighlightOff,
 	LocationOn,
 } from "@mui/icons-material";
