@@ -101,22 +101,49 @@ export function Calendar({
 		: `${monthName} ${currentYear}`;
 
 	return (
-		<div className="rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7">
-			<div className="flex flex-col items-start justify-between space-y-4 px-8 pb-6 md:px-16 lg:flex-row lg:items-start lg:space-y-0">
-				<h3 className="text-left font-figtree font-semibold text-2xl text-gray-dark md:text-3xl">
-					{title}
-				</h3>
-
+		<div className="rounded-lg border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-6">
+			<div className="flex flex-col items-start justify-between px-4 pb-3 md:items-center md:px-8">
 				<Tabs
 					value={meetingType}
 					onChange={(_event: React.SyntheticEvent, value: string) => {
 						setMeetingType(value as SelectMeeting["meetingType"]);
 						setSelectedDays([]);
 					}}
+					sx={{
+						"& .MuiTab-root": {
+							fontSize: { xs: "1rem", md: "1rem" },
+							minWidth: { xs: 120, md: 180 },
+						},
+					}}
 				>
 					<Tab value="dates" label="Specific Dates" />
 					<Tab value="days" label="Days of Week" />
 				</Tabs>
+
+				<div className="mt-4 flex w-full items-center justify-between md:justify-start md:pl-15">
+					<div className="mt-4 flex w-full items-center pl-3 md:pl-5">
+						<h3 className="font-semibold text-gray-dark text-lg md:text-2xl">
+							{title}
+						</h3>
+
+						{/* Mobile only buttons */}
+						<div className="flex gap-2 md:hidden">
+							<Button
+								onClick={decrementMonth}
+								className="bg-transparent hover:bg-transparent"
+							>
+								<span className="text-3xl text-gray-500">&lsaquo;</span>
+							</Button>
+
+							<Button
+								onClick={incrementMonth}
+								className="bg-transparent hover:bg-transparent"
+							>
+								<span className="text-3xl text-gray-500">&rsaquo;</span>
+							</Button>
+						</div>
+					</div>
+				</div>
 			</div>
 
 			{isMeetingTypeDays ? (
@@ -127,20 +154,20 @@ export function Calendar({
 				<div className="flex items-center justify-between">
 					<Button
 						onClick={decrementMonth}
-						className="bg-transparent p-3 hover:bg-transparent"
+						className="hidden bg-transparent p-3 hover:bg-transparent md:block"
 					>
 						<span className="text-3xl text-gray-500">&lsaquo;</span>
 					</Button>
 
-					<div className="w-full md:px-4">
-						<table className="w-full table-fixed p-3">
+					<div className="w-full md:px-2">
+						<table className="w-full table-fixed border-collapse">
 							<thead>
 								<tr>
 									{WEEKDAYS.map((dayOfWeek) => (
 										<th className="px-0" key={dayOfWeek}>
 											<div>
 												<p className="w-full text-center font-light text-slate-medium text-sm uppercase md:font-bold">
-													{dayOfWeek}
+													{dayOfWeek.slice(0, 1)}
 												</p>
 											</div>
 											<Separator className="my-2 h-[2px] bg-slate-base" />
@@ -159,7 +186,7 @@ export function Calendar({
 
 					<Button
 						onClick={incrementMonth}
-						className="bg-transparent p-3 hover:bg-transparent"
+						className="hidden bg-transparent p-3 hover:bg-transparent md:block"
 					>
 						<span className="text-3xl text-gray-500">&rsaquo;</span>
 					</Button>
