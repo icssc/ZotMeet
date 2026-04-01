@@ -72,13 +72,17 @@ export async function createGroup(
 			return { result: newGroup, inviteToken: token };
 		});
 
-		await createNewNotification(
-			(memberIds ?? []).filter((id) => id !== user.id),
-			name.trim(),
-			`You've been invited to join ${name.trim()}!`,
-			"Group Invite",
-			inviteToken,
-		);
+		try {
+			await createNewNotification(
+				(memberIds ?? []).filter((id) => id !== user.id),
+				name.trim(),
+				`You've been invited to join ${name.trim()}!`,
+				"Group Invite",
+				inviteToken,
+			);
+		} catch (notificationError) {
+			console.error(notificationError);
+		}
 
 		revalidatePath("/summary");
 		revalidatePath("/groups");

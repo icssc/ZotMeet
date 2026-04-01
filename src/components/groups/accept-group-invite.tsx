@@ -11,7 +11,7 @@ import type { NotificationItem } from "@/lib/auth/user";
 
 interface AcceptGroupInviteProps {
 	open: boolean;
-	notification: NotificationItem | null;
+	notification: NotificationItem;
 	onOpenChange: (open: boolean) => void;
 }
 
@@ -21,13 +21,13 @@ const AcceptGroupInvite = ({
 	onOpenChange,
 }: AcceptGroupInviteProps) => {
 	const handleAccept = async () => {
-		await acceptInvite(notification?.redirect ?? "");
-		await deleteNotification(notification?.id ?? "");
+		await acceptInvite(notification.redirect ?? "");
+		await deleteNotification(notification.id);
 		onOpenChange(false);
 	};
 
 	const handleDecline = async () => {
-		await deleteNotification(notification?.id ?? "");
+		await deleteNotification(notification.id);
 		onOpenChange(false);
 	};
 

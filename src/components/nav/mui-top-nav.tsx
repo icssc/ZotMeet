@@ -274,15 +274,16 @@ function Notifications({
 					</Box>
 				</Box>
 			</Menu>
-
-			<AcceptGroupInvite
-				open={showGroupInvite}
-				notification={activeNotification}
-				onOpenChange={(open) => {
-					setShowGroupInvite(open);
-					if (!open) setActiveNotification(null);
-				}}
-			/>
+			{activeNotification && (
+				<AcceptGroupInvite
+					open={showGroupInvite}
+					notification={activeNotification}
+					onOpenChange={(open) => {
+						setShowGroupInvite(open);
+						if (!open) setActiveNotification(null);
+					}}
+				/>
+			)}
 		</>
 	);
 }
