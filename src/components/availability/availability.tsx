@@ -285,7 +285,6 @@ export function Availability({
 		if (!overlayGoogleCalendar) {
 			return;
 		}
-		// if (hasFetchedCalendar) return;
 
 		if (availabilityDates.length === 0 || anchorNormalizedDate.length === 0)
 			return;
@@ -307,7 +306,6 @@ export function Availability({
 					return;
 				}
 				setGoogleCalendarEvents(result.events);
-				// setHasFetchedCalendar(true);
 			},
 		);
 	}, [
@@ -477,7 +475,7 @@ export function Availability({
 					availabilityDates={availabilityDates}
 					fromTime={fromTimeMinutes}
 					members={members}
-					// timezone={userTimezone}
+					timezone={userTimezone}
 					anchorNormalizedDate={anchorNormalizedDate}
 					currentPageAvailability={currentPageAvailability}
 					availabilityTimeBlocks={availabilityTimeBlocks}

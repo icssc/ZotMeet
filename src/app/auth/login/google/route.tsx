@@ -9,7 +9,7 @@ import { oauth } from "@/lib/auth/oauth";
 
 export async function GET(request: Request): Promise<Response> {
 	const { searchParams } = new URL(request.url);
-	const promptValue = searchParams.get("prompt") || "none";
+	const promptValue = searchParams.get("prompt") || "consent";
 	const state = generateState();
 	const codeVerifier = generateCodeVerifier();
 

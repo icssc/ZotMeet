@@ -28,7 +28,7 @@ export function GroupResponses({
 	currentPageAvailability,
 	doesntNeedDay,
 }: GroupResponsesProps) {
-	const [_newBlocks, _newAvailDates] = newZonedPageAvailAndDates(
+	const [_newBlocks, newAvailDates] = newZonedPageAvailAndDates(
 		currentPageAvailability,
 		availabilityDates,
 		doesntNeedDay,
@@ -85,12 +85,12 @@ export function GroupResponses({
 				notAvailableMembers: members,
 			};
 		}
-		const selectedDate = _newAvailDates[selectedZotDateIndex];
+		const selectedDate = newAvailDates[selectedZotDateIndex];
 		const timestamp = getTimestampFromBlockIndex(
 			selectedBlockIndex,
 			selectedZotDateIndex,
 			fromTime,
-			_newAvailDates,
+			newAvailDates,
 		);
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
 
@@ -105,7 +105,7 @@ export function GroupResponses({
 	}, [
 		selectedZotDateIndex,
 		selectedBlockIndex,
-		_newAvailDates,
+		newAvailDates,
 		fromTime,
 		members,
 	]);
@@ -115,15 +115,15 @@ export function GroupResponses({
 			selectedZotDateIndex !== undefined &&
 			selectedBlockIndex !== undefined
 		) {
-			const displayDate = _newAvailDates[selectedZotDateIndex].day;
+			const displayDate = newAvailDates[selectedZotDateIndex].day;
 
 			const formattedDate = displayDate.toLocaleDateString("en-US", {
 				month: "short",
 				day: "numeric",
 			});
 
-			const earliestTime = _newAvailDates[selectedZotDateIndex].earliestTime;
-			const blockLength = _newAvailDates[selectedZotDateIndex].blockLength;
+			const earliestTime = newAvailDates[selectedZotDateIndex].earliestTime;
+			const blockLength = newAvailDates[selectedZotDateIndex].blockLength;
 
 			const startTime = ZotDate.toTimeBlockString(
 				earliestTime + selectedBlockIndex * blockLength,
@@ -137,7 +137,7 @@ export function GroupResponses({
 		} else {
 			setBlockInfoString("Select a cell to view");
 		}
-	}, [selectedZotDateIndex, selectedBlockIndex, _newAvailDates]);
+	}, [selectedZotDateIndex, selectedBlockIndex, newAvailDates]);
 
 	return (
 		<div

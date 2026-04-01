@@ -22,6 +22,10 @@ export async function GET(request: Request): Promise<Response> {
 	const codeVerifier = cookieStore.get("oauth_code_verifier")?.value ?? null;
 	const redirectUrl = cookieStore.get("auth_redirect_url")?.value ?? "/";
 
+	console.log("COOKIES:", cookieStore.getAll());
+	console.log("STATE COOKIE:", storedState);
+	console.log("VERIFIER:", codeVerifier);
+
 	cookieStore.delete("session");
 	cookieStore.delete({ name: "session", path: "/" });
 
