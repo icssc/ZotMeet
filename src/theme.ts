@@ -12,19 +12,6 @@ export const figtree = Figtree({
 
 export const getTheme = (mode: "light" | "dark") =>
 	createTheme({
-		palette: {
-			mode,
-			background: {
-				default: mode === "dark" ? "#1C1B1B" : "#ffffff",
-				paper: mode === "dark" ? "#1C1B1B" : "#ffffff",
-			},
-			text: {
-				primary: mode === "dark" ? "#FFFFFF" : "#000000",
-				secondary:
-					mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.6)",
-			},
-			divider: mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.2)",
-		},
 		typography: {
 			fontFamily: figtree.style.fontFamily,
 			h1: {
@@ -61,6 +48,19 @@ export const getTheme = (mode: "light" | "dark") =>
 				fontFamily: figtree.style.fontFamily,
 				fontWeight: 500,
 			},
+		},
+		palette: {
+			mode,
+			background: {
+				default: mode === "dark" ? "#1C1B1B" : "#ffffff",
+				paper: mode === "dark" ? "#1C1B1B" : "#ffffff",
+			},
+			text: {
+				primary: mode === "dark" ? "#FFFFFF" : "#000000",
+				secondary:
+					mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.6)",
+			},
+			divider: mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.2)",
 		},
 		components: {
 			MuiSvgIcon: {

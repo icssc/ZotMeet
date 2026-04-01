@@ -7,7 +7,7 @@ import { Toaster } from "sonner";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
 import AppThemeProvider from "@/components/theme/theme-provider";
 import { cn } from "@/lib/utils";
-import theme, { figtree } from "@/theme";
+import { figtree } from "@/theme";
 
 export const metadata: Metadata = {
 	title: "ZotMeet | Create a Meeting",
@@ -19,9 +19,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
 	children,
-}: {
+}: Readonly<{
 	children: React.ReactNode;
-}) {
+}>) {
 	return (
 		<html lang="en" className={figtree.className}>
 			<body
