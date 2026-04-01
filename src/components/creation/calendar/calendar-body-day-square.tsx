@@ -17,7 +17,7 @@ export function CalendarBodyDaySquare({
 	return (
 		<p
 			className={cn(
-				"relative aspect-square h-8 w-8 flex-center rounded-lg font-medium text-base text-gray-dark md:h-12 md:w-12 md:rounded-xl md:text-xl",
+				"relative h-4 w-4 flex-center rounded-lg font-medium text-base text-gray-dark md:h-6 md:w-6 md:rounded-xl md:text-lg",
 				isSelected && "bg-primary text-gray-50",
 				isHighlighted && "bg-slate-base text-gray-dark",
 				!isCurrentMonth &&
