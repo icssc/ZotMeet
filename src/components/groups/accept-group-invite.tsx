@@ -1,3 +1,5 @@
+import { acceptInvite } from "@actions/group/invite/create/action";
+import { deleteNotification } from "@actions/user/action";
 import { Avatar, Button } from "@mui/material";
 import {
 	Dialog,
@@ -18,6 +20,17 @@ const AcceptGroupInvite = ({
 	notification,
 	onOpenChange,
 }: AcceptGroupInviteProps) => {
+	const handleAccept = async () => {
+		await acceptInvite(notification?.redirect ?? "");
+		await deleteNotification(notification?.id ?? "");
+		onOpenChange(false);
+	};
+
+	const handleDecline = async () => {
+		await deleteNotification(notification?.id ?? "");
+		onOpenChange(false);
+	};
+
 	return (
 		<div>
 			<Dialog open={open} onOpenChange={onOpenChange}>
@@ -41,9 +54,9 @@ const AcceptGroupInvite = ({
 						</div>
 
 						<div className="ml-auto flex">
-							<Button>Accept</Button>
+							<Button onClick={handleAccept}>Accept</Button>
 
-							<Button>Decline</Button>
+							<Button onClick={handleDecline}>Decline</Button>
 						</div>
 					</div>
 				</DialogContent>

@@ -5,7 +5,7 @@ import { createNewNotification } from "@data/user/queries";
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
 import { db } from "@/db";
-import { GroupRole, groups, usersInGroup } from "@/db/schema";
+import { GroupRole, groupInvites, groups, usersInGroup } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 
 export type CreateGroupState = {
@@ -38,7 +38,7 @@ export async function createGroup(
 	const { name, description, memberIds } = parsed.data;
 
 	try {
-		const result = await db.transaction(async (tx) => {
+		const { result, inviteToken } = await db.transaction(async (tx) => {
 			const [newGroup] = await tx
 				.insert(groups)
 				.values({
@@ -59,7 +59,17 @@ export async function createGroup(
 				role: GroupRole.ADMIN,
 			});
 
-			return newGroup;
+			// Generate token here so we own it as a local variable
+			const token = crypto.randomUUID();
+			await tx.insert(groupInvites).values({
+				groupId: newGroup.id,
+				inviteToken: token,
+				inviterId: user.id,
+				inviteeEmail: "",
+				sentAt: new Date(),
+			});
+
+			return { result: newGroup, inviteToken: token };
 		});
 
 		await createNewNotification(
@@ -67,6 +77,7 @@ export async function createGroup(
 			name.trim(),
 			`You've been invited to join ${name.trim()}!`,
 			"Group Invite",
+			inviteToken,
 		);
 
 		revalidatePath("/summary");

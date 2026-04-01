@@ -64,6 +64,7 @@ export async function createNewNotification(
 	title: string = "New Notification",
 	message: string = "You have a new notification",
 	type: string = "info",
+	link: string,
 ) {
 	if (userIds.length === 0) return;
 
@@ -75,7 +76,13 @@ export async function createNewNotification(
 	return db
 		.insert(notifications)
 		.values(
-			memberRows.map(({ memberId }) => ({ memberId, title, message, type })),
+			memberRows.map(({ memberId }) => ({
+				memberId,
+				title,
+				message,
+				type,
+				redirect: link,
+			})),
 		)
 		.returning();
 }
