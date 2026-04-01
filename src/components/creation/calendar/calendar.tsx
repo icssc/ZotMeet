@@ -111,7 +111,7 @@ export function Calendar({
 					}}
 					sx={{
 						"& .MuiTab-root": {
-							fontSize: { xs: "rem", md: "1rem" },
+							fontSize: { xs: "1rem", md: "1rem" },
 							minWidth: { xs: 120, md: 180 },
 						},
 					}}
