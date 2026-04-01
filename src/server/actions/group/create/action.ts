@@ -65,8 +65,8 @@ export async function createGroup(
 		await createNewNotification(
 			(memberIds ?? []).filter((id) => id !== user.id),
 			name.trim(),
-			"You have a new Notification",
-			"Group",
+			`You've been invited to join ${name.trim()}!`,
+			"Group Invite",
 		);
 
 		revalidatePath("/summary");
