@@ -101,13 +101,13 @@ export function CalendarBodyDay({
 	);
 
 	return (
-		<td>
+		<td className="py-2 md:py-0">
 			<button
 				type="button"
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
 				onPointerUp={handlePointerUp}
-				className="relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:none]"
+				className="relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:pinch-zoom]"
 				data-day={calendarDay.getDay()}
 				data-month={calendarDay.getMonth()}
 				data-year={calendarDay.getYear()}
