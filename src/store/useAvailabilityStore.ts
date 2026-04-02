@@ -178,7 +178,23 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	},
 
 	replaceEntireSelection: (timestamps: string[]) => {
-		set({ pendingAdds: new Set(timestamps), pendingRemovals: new Set() });
+		set((state) => {
+			const newSelection = new Set(timestamps);
+			const pendingRemovals = new Set<string>();
+			const pendingAdds = new Set<string>();
+
+			for (const ts of state.scheduledTimes) {
+				if (!newSelection.has(ts)) {
+					pendingRemovals.add(ts);
+				}
+			}
+			for (const ts of newSelection) {
+				if (!state.scheduledTimes.has(ts)) {
+					pendingAdds.add(ts);
+				}
+			}
+			return { pendingAdds, pendingRemovals };
+		});
 	},
 
 	commitPendingTimes: () => {
