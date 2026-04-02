@@ -1,12 +1,14 @@
 "use client";
 
 import { CssBaseline, ThemeProvider } from "@mui/material";
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { getTheme } from "@/theme";
 
+type ThemeMode = "light" | "dark" | "system";
+
 type ThemeContextType = {
-	mode: "light" | "dark";
-	setMode: (mode: "light" | "dark") => void;
+	mode: ThemeMode;
+	setMode: (mode: ThemeMode) => void;
 };
 
 const ThemeModeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -23,9 +25,24 @@ export default function AppThemeProvider({
 }: {
 	children: React.ReactNode;
 }) {
-	const [mode, setMode] = useState<"light" | "dark">("light");
+	const [mode, setMode] = useState<ThemeMode>("light");
+	// resolving what "system" means for the current OS
+	const [resolvedMode, setResolvedMode] = useState<"light" | "dark">("light");
 
-	const theme = useMemo(() => getTheme(mode), [mode]);
+	// Update resolvedMode whenever mode or system preference changes
+	useEffect(() => {
+		if (mode === "system") {
+			const mq = window.matchMedia("(prefers-color-scheme: dark)");
+			const update = () => setResolvedMode(mq.matches ? "dark" : "light");
+			update();
+			mq.addEventListener("change", update);
+			return () => mq.removeEventListener("change", update);
+		} else {
+			setResolvedMode(mode);
+		}
+	}, [mode]);
+
+	const theme = useMemo(() => getTheme(resolvedMode), [resolvedMode]);
 
 	return (
 		<ThemeModeContext.Provider value={{ mode, setMode }}>

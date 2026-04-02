@@ -18,10 +18,13 @@ export default function ProfilePage() {
 						labelId="theme-select-label"
 						value={mode}
 						label="Mode"
-						onChange={(e) => setMode(e.target.value as "light" | "dark")}
+						onChange={(e) =>
+							setMode(e.target.value as "light" | "dark" | "system")
+						}
 					>
 						<MenuItem value="light">Light</MenuItem>
 						<MenuItem value="dark">Dark</MenuItem>
+						<MenuItem value="system">System</MenuItem>
 					</Select>
 				</FormControl>
 			</div>
