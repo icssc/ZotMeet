@@ -390,14 +390,11 @@ export function Availability({
 		})),
 	);
 
-	const { togglePendingTime, addPendingTimeRange, isScheduled } =
-		useAvailabilityStore(
-			useShallow((state) => ({
-				togglePendingTime: state.togglePendingTime,
-				addPendingTimeRange: state.addPendingTimeRange,
-				isScheduled: state.isScheduled,
-			})),
-		);
+	const { replaceEntireSelection } = useAvailabilityStore(
+		useShallow((state) => ({
+			replaceEntireSelection: state.replaceEntireSelection,
+		})),
+	);
 
 	useEffect(() => {
 		if (startBlockSelection && endBlockSelection) {
@@ -484,38 +481,26 @@ export function Availability({
 					);
 
 					if (availabilityView === "schedule") {
+						// Schedule selection stays on the day the drag started (no cross-day rectangle).
+						const day = startBlockSelection.zotDateIndex;
 						const timestamps: string[] = [];
 						for (
-							let dateIndex = earlierDateIndex;
-							dateIndex <= laterDateIndex;
-							dateIndex++
+							let blockI = earlierBlockIndex;
+							blockI <= laterBlockIndex;
+							blockI++
 						) {
-							for (
-								let blockI = earlierBlockIndex;
-								blockI <= laterBlockIndex;
-								blockI++
-							) {
-								const timestamp = getTimestampFromBlockIndex(
-									blockI,
-									dateIndex,
-									fromTimeMinutes,
-									availabilityDates,
-								);
-								if (timestamp) timestamps.push(timestamp);
-							}
+							const timestamp = getTimestampFromBlockIndex(
+								blockI,
+								day,
+								fromTimeMinutes,
+								availabilityDates,
+							);
+							if (timestamp) timestamps.push(timestamp);
 						}
 
 						if (timestamps.length > 0) {
-							const firstTimestamp = timestamps[0];
-							const isFirstScheduled = isScheduled(firstTimestamp);
-
-							if (isFirstScheduled) {
-								timestamps.forEach((ts) => {
-									if (isScheduled(ts)) togglePendingTime(ts);
-								});
-							} else {
-								addPendingTimeRange(timestamps);
-							}
+							// Each drag replaces the full scheduled selection (one contiguous rectangle).
+							replaceEntireSelection(timestamps);
 						}
 					} else if (availabilityView === "personal") {
 						const startZotDate =
@@ -585,6 +570,16 @@ export function Availability({
 			} else {
 				if (blockInfo) {
 					const { zotDateIndex, blockIndex } = blockInfo;
+					if (availabilityView === "schedule") {
+						const start = useAvailabilityStore.getState().startBlockSelection;
+						if (start) {
+							setEndBlockSelection({
+								zotDateIndex: start.zotDateIndex,
+								blockIndex,
+							});
+							return;
+						}
+					}
 					setEndBlockSelection({ zotDateIndex, blockIndex });
 				}
 			}

@@ -160,7 +160,6 @@ export function GroupAvailability({
 		endBlockSelection,
 		setStartBlockSelection,
 		setEndBlockSelection,
-		selectionState,
 		setSelectionState,
 	} = useAvailabilityStore(
 		useShallow((state) => ({
@@ -168,19 +167,16 @@ export function GroupAvailability({
 			endBlockSelection: state.endBlockSelection,
 			setStartBlockSelection: state.setStartBlockSelection,
 			setEndBlockSelection: state.setEndBlockSelection,
-			selectionState: state.selectionState,
 			setSelectionState: state.setSelectionState,
 		})),
 	);
 
-	const { togglePendingTime, replaceEntireSelection, isScheduled } =
-		useAvailabilityStore(
-			useShallow((state) => ({
-				togglePendingTime: state.togglePendingTime,
-				replaceEntireSelection: state.replaceEntireSelection,
-				isScheduled: state.isScheduled,
-			})),
-		);
+	const { replaceEntireSelection, isScheduled } = useAvailabilityStore(
+		useShallow((state) => ({
+			replaceEntireSelection: state.replaceEntireSelection,
+			isScheduled: state.isScheduled,
+		})),
+	);
 	// to load scheduled time blocks when meeting is loaded
 	// Forces re-render when scheduled or pending times change
 
@@ -290,9 +286,12 @@ export function GroupAvailability({
 			toggleHoverGrid(true);
 
 			if (isScheduling) {
-				// In schedule mode, update end selection for drag
+				// In schedule mode, keep the drag on the start day (same row index = time slot).
 				if (startBlockSelection) {
-					setEndBlockSelection({ zotDateIndex, blockIndex });
+					setEndBlockSelection({
+						zotDateIndex: startBlockSelection.zotDateIndex,
+						blockIndex,
+					});
 				}
 			} else {
 				if (!selectionIsLocked) {
@@ -335,51 +334,45 @@ export function GroupAvailability({
 			blockIndex: number;
 		}) => {
 			if (isScheduling && startBlockSelection) {
-				setEndBlockSelection({ zotDateIndex, blockIndex });
+				setEndBlockSelection({
+					zotDateIndex: startBlockSelection.zotDateIndex,
+					blockIndex,
+				});
 			}
 		},
 		[isScheduling, startBlockSelection, setEndBlockSelection],
 	);
 
 	const handleMouseUp = useCallback(() => {
-		if (
-			isScheduling &&
-			startBlockSelection &&
-			endBlockSelection &&
-			selectionState
-		) {
-			const {
-				earlierDateIndex,
-				laterDateIndex,
-				earlierBlockIndex,
-				laterBlockIndex,
-			} = selectionState;
+		if (isScheduling && startBlockSelection && endBlockSelection) {
+			const day = startBlockSelection.zotDateIndex;
+			const earlierBlockIndex = Math.min(
+				startBlockSelection.blockIndex,
+				endBlockSelection.blockIndex,
+			);
+			const laterBlockIndex = Math.max(
+				startBlockSelection.blockIndex,
+				endBlockSelection.blockIndex,
+			);
 
-			// get timestamps in the selected range
 			const timestamps: string[] = [];
 			for (
-				let dateIndex = earlierDateIndex;
-				dateIndex <= laterDateIndex;
-				dateIndex++
+				let blockIdx = earlierBlockIndex;
+				blockIdx <= laterBlockIndex;
+				blockIdx++
 			) {
-				for (
-					let blockIdx = earlierBlockIndex;
-					blockIdx <= laterBlockIndex;
-					blockIdx++
-				) {
-					const timestamp = getTimestampFromBlockIndex(
-						blockIdx,
-						dateIndex,
-						fromTime,
-						availabilityDates,
-					);
-					if (timestamp) {
-						timestamps.push(timestamp);
-					}
+				const timestamp = getTimestampFromBlockIndex(
+					blockIdx,
+					day,
+					fromTime,
+					availabilityDates,
+				);
+				if (timestamp) {
+					timestamps.push(timestamp);
 				}
 			}
 
-			// Each drag replaces the entire selection (clears any previous blocks)
+			// Each drag replaces the full scheduled selection (one rectangle; prior slots cleared)
 			if (timestamps.length > 0) {
 				replaceEntireSelection(timestamps);
 
@@ -393,7 +386,6 @@ export function GroupAvailability({
 		isScheduling,
 		startBlockSelection,
 		endBlockSelection,
-		selectionState,
 		fromTime,
 		availabilityDates,
 		replaceEntireSelection,
@@ -446,7 +438,10 @@ export function GroupAvailability({
 		);
 
 		if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIndex)) {
-			setEndBlockSelection({ zotDateIndex, blockIndex });
+			setEndBlockSelection({
+				zotDateIndex: startBlockSelection.zotDateIndex,
+				blockIndex,
+			});
 		}
 	};
 
@@ -456,33 +451,30 @@ export function GroupAvailability({
 			e.preventDefault();
 		}
 
-		if (startBlockSelection && endBlockSelection && selectionState) {
-			const {
-				earlierDateIndex,
-				laterDateIndex,
-				earlierBlockIndex,
-				laterBlockIndex,
-			} = selectionState;
+		if (startBlockSelection && endBlockSelection) {
+			const day = startBlockSelection.zotDateIndex;
+			const earlierBlockIndex = Math.min(
+				startBlockSelection.blockIndex,
+				endBlockSelection.blockIndex,
+			);
+			const laterBlockIndex = Math.max(
+				startBlockSelection.blockIndex,
+				endBlockSelection.blockIndex,
+			);
 
 			const timestamps: string[] = [];
 			for (
-				let dateIndex = earlierDateIndex;
-				dateIndex <= laterDateIndex;
-				dateIndex++
+				let blockIdx = earlierBlockIndex;
+				blockIdx <= laterBlockIndex;
+				blockIdx++
 			) {
-				for (
-					let blockIdx = earlierBlockIndex;
-					blockIdx <= laterBlockIndex;
-					blockIdx++
-				) {
-					const timestamp = getTimestampFromBlockIndex(
-						blockIdx,
-						dateIndex,
-						fromTime,
-						availabilityDates,
-					);
-					if (timestamp) timestamps.push(timestamp);
-				}
+				const timestamp = getTimestampFromBlockIndex(
+					blockIdx,
+					day,
+					fromTime,
+					availabilityDates,
+				);
+				if (timestamp) timestamps.push(timestamp);
 			}
 
 			if (timestamps.length > 0) {
