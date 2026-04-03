@@ -1,5 +1,5 @@
 {
-  "id": "cf6a3d35-a861-4960-b3c0-d09a03ea7a17",
+  "id": "2d2c31dd-28a7-4ee9-9e02-5139a6ee1930",
   "prevId": "d7b1d2e3-426a-4db6-b413-76ef0e019bd8",
   "version": "7",
   "dialect": "postgresql",
@@ -790,7 +790,7 @@
         },
         "theme_mode": {
           "name": "theme_mode",
-          "type": "text",
+          "type": "theme_mode",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
