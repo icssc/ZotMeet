@@ -43,6 +43,13 @@
       "when": 1774731057622,
       "tag": "0005_fixed_whizzer",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775110627075,
+      "tag": "0006_far_chimera",
+      "breakpoints": true
     }
   ]
 }

@@ -32,11 +32,12 @@ export default function AppThemeProvider({
 	// Update resolvedMode whenever mode or system preference changes
 	useEffect(() => {
 		if (mode === "system") {
-			const mq = window.matchMedia("(prefers-color-scheme: dark)");
-			const update = () => setResolvedMode(mq.matches ? "dark" : "light");
+			const preferDark = window.matchMedia("(prefers-color-scheme: dark)");
+			const update = () =>
+				setResolvedMode(preferDark.matches ? "dark" : "light");
 			update();
-			mq.addEventListener("change", update);
-			return () => mq.removeEventListener("change", update);
+			preferDark.addEventListener("change", update); // run update() when system pref changes
+			return () => preferDark.removeEventListener("change", update); // cleanup
 		} else {
 			setResolvedMode(mode);
 		}
