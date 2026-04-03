@@ -54,6 +54,8 @@ export const members = pgTable(
 export type InsertMember = InferInsertModel<typeof members>;
 export type SelectMember = InferSelectModel<typeof members>;
 
+export const themeModeEnum = pgEnum("theme_mode", ["light", "dark", "system"]);
+
 // Users encompasses Members who have created an account.
 export const users = pgTable("users", {
 	id: text("id").primaryKey(),
@@ -64,7 +66,7 @@ export const users = pgTable("users", {
 		.notNull(),
 	email: text("email").unique().notNull(),
 	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
-	themeMode: text("theme_mode").default("light").notNull(),
+	themeMode: themeModeEnum("theme_mode").default("light").notNull(),
 });
 
 export type SelectUser = InferSelectModel<typeof users>;

@@ -1,5 +1,5 @@
 {
-  "id": "b006dd9e-0852-4065-9de8-baf7652d9cf2",
+  "id": "cf6a3d35-a861-4960-b3c0-d09a03ea7a17",
   "prevId": "d7b1d2e3-426a-4db6-b413-76ef0e019bd8",
   "version": "7",
   "dialect": "postgresql",
@@ -790,7 +790,8 @@
         },
         "theme_mode": {
           "name": "theme_mode",
-          "type": "text",
+          "type": "theme_mode",
+          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
           "default": "'light'"
@@ -929,6 +930,15 @@
       "values": [
         "dates",
         "days"
+      ]
+    },
+    "public.theme_mode": {
+      "name": "theme_mode",
+      "schema": "public",
+      "values": [
+        "light",
+        "dark",
+        "system"
       ]
     }
   },
