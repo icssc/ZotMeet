@@ -1,13 +1,13 @@
 import "./globals.css";
-import { ThemeProvider } from "@mui/material/styles";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata } from "next";
 
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
+import AppThemeProvider from "@/components/theme/theme-provider";
 import { cn } from "@/lib/utils";
-import theme, { figtree } from "@/theme";
+import { figtree } from "@/theme";
 
 export const metadata: Metadata = {
 	title: "ZotMeet | Create a Meeting",
@@ -32,15 +32,13 @@ export default function RootLayout({
 			>
 				<NuqsAdapter>
 					<AppRouterCacheProvider>
-						<ThemeProvider theme={theme}>
+						<AppThemeProvider>
 							<AppShellWrapper>
-								<div className="h-full rounded-tl-xl bg-gray-50">
-									{children}
-								</div>
+								<div className="h-full rounded-tl-xl">{children}</div>
 							</AppShellWrapper>
 
 							<Toaster />
-						</ThemeProvider>
+						</AppThemeProvider>
 					</AppRouterCacheProvider>
 				</NuqsAdapter>
 			</body>

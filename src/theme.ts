@@ -10,44 +10,67 @@ export const figtree = Figtree({
 	weight: ["400", "500", "600", "700"],
 });
 
-const theme = createTheme({
-	typography: {
-		fontFamily: figtree.style.fontFamily,
-		h1: {
-			fontSize: "2.5rem",
-			fontWeight: 600,
-		},
-		h2: {
-			fontSize: "2rem",
-			fontWeight: 600,
-		},
-		h3: {
-			fontSize: "1.75rem",
-			fontWeight: 600,
-		},
-		h4: {
-			fontSize: "1.5rem",
-			fontWeight: 600,
-		},
-		h5: {
-			fontSize: "1.25rem",
-			fontWeight: 600,
-		},
-		h6: {
-			fontSize: "1rem",
-			fontWeight: 600,
-		},
-		body1: {
+export const getTheme = (mode: "light" | "dark") =>
+	createTheme({
+		typography: {
 			fontFamily: figtree.style.fontFamily,
+			h1: {
+				fontSize: "2.5rem",
+				fontWeight: 600,
+			},
+			h2: {
+				fontSize: "2rem",
+				fontWeight: 600,
+			},
+			h3: {
+				fontSize: "1.75rem",
+				fontWeight: 600,
+			},
+			h4: {
+				fontSize: "1.5rem",
+				fontWeight: 600,
+			},
+			h5: {
+				fontSize: "1.25rem",
+				fontWeight: 600,
+			},
+			h6: {
+				fontSize: "1rem",
+				fontWeight: 600,
+			},
+			body1: {
+				fontFamily: figtree.style.fontFamily,
+			},
+			body2: {
+				fontFamily: figtree.style.fontFamily,
+			},
+			button: {
+				fontFamily: figtree.style.fontFamily,
+				fontWeight: 500,
+			},
 		},
-		body2: {
-			fontFamily: figtree.style.fontFamily,
+		palette: {
+			mode,
+			background: {
+				default: mode === "dark" ? "#1C1B1B" : "#ffffff",
+				paper: mode === "dark" ? "#1C1B1B" : "#ffffff",
+			},
+			text: {
+				primary: mode === "dark" ? "#FFFFFF" : "#000000",
+				secondary:
+					mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.6)",
+			},
+			divider: mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.2)",
 		},
-		button: {
-			fontFamily: figtree.style.fontFamily,
-			fontWeight: 500,
+		components: {
+			MuiSvgIcon: {
+				styleOverrides: {
+					root: ({ theme }) => ({
+						color: theme.palette.text.primary,
+					}),
+				},
+			},
 		},
-	},
-});
+	});
 
-export default theme;
+export default getTheme;
