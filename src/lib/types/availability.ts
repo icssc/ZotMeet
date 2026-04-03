@@ -39,6 +39,7 @@ export interface GoogleCalendarEvent {
 	end: string;
 	calendarColor: string;
 	calendarId?: string | null; // For UI calendar list groupings
+	calendarName?: string | null;
 }
 
 export interface GoogleCalendarEventLayoutInfo {
