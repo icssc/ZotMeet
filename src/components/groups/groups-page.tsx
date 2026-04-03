@@ -110,11 +110,6 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 							<p>Create Group</p>
 						</div>
 					</Button>
-
-					<InviteDecision
-						open={showJoinGroup}
-						onOpenChange={setShowJoinGroup}
-					/>
 				</div>
 			</div>
 
@@ -172,6 +167,8 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 				open={createDialogOpen}
 				onOpenChange={setCreateDialogOpen}
 			/>
+
+			<InviteDecision open={showJoinGroup} onOpenChange={setShowJoinGroup} />
 		</div>
 	);
 }

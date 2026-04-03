@@ -1,7 +1,9 @@
 "use client";
 
 import { searchUsers } from "@actions/user/action";
-import { Check, ChevronDown, Copy, X } from "lucide-react";
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
+import { Check, Copy, X } from "lucide-react";
 import { useCallback, useRef, useState, useTransition } from "react";
 import {
 	Dialog,
@@ -33,7 +35,6 @@ export function CreateGroupDialog({
 	const [searchResults, setSearchResults] = useState<
 		{ id: string; email: string }[]
 	>([]);
-	const [showDropdown, setShowDropdown] = useState(false);
 	const [inviteLink, setInviteLink] = useState("");
 	const [copied, setCopied] = useState(false);
 	const [isPending, startTransition] = useTransition();
@@ -46,7 +47,6 @@ export function CreateGroupDialog({
 		setMembers([]);
 		setMemberQuery("");
 		setSearchResults([]);
-		setShowDropdown(false);
 		setInviteLink("");
 		setCopied(false);
 		setError("");
@@ -70,7 +70,6 @@ export function CreateGroupDialog({
 
 			if (query.length < 2) {
 				setSearchResults([]);
-				setShowDropdown(false);
 				return;
 			}
 
@@ -80,8 +79,7 @@ export function CreateGroupDialog({
 					(r) => !members.some((m) => m.id === r.id),
 				);
 				setSearchResults(filtered);
-				setShowDropdown(filtered.length > 0);
-			}, 300);
+			}, 50);
 		},
 		[members],
 	);
@@ -93,7 +91,6 @@ export function CreateGroupDialog({
 			}
 			setMemberQuery("");
 			setSearchResults([]);
-			setShowDropdown(false);
 		},
 		[members],
 	);
@@ -183,59 +180,37 @@ export function CreateGroupDialog({
 						</span>
 					</div>
 
-					<div className="relative">
-						<fieldset className="rounded border border-gray-300 px-3 pt-1 pb-2">
-							<legend className="px-1 text-gray-500 text-xs">
-								Add Members
-							</legend>
-							<div className="flex items-center gap-2">
-								<input
-									type="text"
-									value={memberQuery}
-									onChange={(e) => handleMemberSearch(e.target.value)}
-									onFocus={() => {
-										if (searchResults.length > 0) setShowDropdown(true);
-									}}
-									className="flex-1 bg-transparent text-base outline-none"
-									placeholder=""
-								/>
-								<div className="flex items-center gap-1">
-									{memberQuery && (
-										<button
-											type="button"
-											onClick={() => {
-												setMemberQuery("");
-												setSearchResults([]);
-												setShowDropdown(false);
-											}}
-											className="text-gray-400 hover:text-gray-600"
-										>
-											<X className="size-4" />
-										</button>
-									)}
-									<ChevronDown className="size-4 text-gray-400" />
-								</div>
-							</div>
-						</fieldset>
-
-						{showDropdown && (
-							<div className="absolute right-0 left-0 z-10 mt-1 rounded border border-gray-200 bg-white shadow-lg">
-								{searchResults.map((user) => (
-									<button
-										key={user.id}
-										type="button"
-										onClick={() => addMember(user)}
-										className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-gray-50"
-									>
-										<div className="flex size-8 items-center justify-center rounded-full bg-blue-100 font-medium text-blue-700 text-xs">
-											{getInitials(user.email)}
-										</div>
-										<span className="text-sm">{user.email}</span>
-									</button>
-								))}
-							</div>
+					<Autocomplete
+						options={searchResults}
+						getOptionLabel={(option) => option.email}
+						filterOptions={(x) => x}
+						inputValue={memberQuery}
+						onInputChange={(_, value, reason) => {
+							if (reason !== "reset") handleMemberSearch(value);
+						}}
+						onChange={(_, user) => {
+							if (user) addMember(user);
+						}}
+						value={null}
+						isOptionEqualToValue={(option, value) => option.id === value.id}
+						noOptionsText={
+							memberQuery.length < 2 ? "Type to search…" : "No users found"
+						}
+						disablePortal
+						renderInput={(params) => (
+							<TextField {...params} label="Add Members" size="small" />
 						)}
-					</div>
+						renderOption={({ key, ...optionProps }, option) => (
+							<li key={key ?? option.id} {...optionProps}>
+								<div className="flex items-center gap-3">
+									<div className="flex size-8 items-center justify-center rounded-full bg-blue-100 font-medium text-blue-700 text-xs">
+										{getInitials(option.email)}
+									</div>
+									<span className="text-sm">{option.email}</span>
+								</div>
+							</li>
+						)}
+					/>
 
 					{members.length > 0 && (
 						<div className="flex flex-wrap gap-2">

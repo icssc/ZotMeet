@@ -246,6 +246,7 @@ export const notifications = pgTable("notifications", {
 	createdBy: text("created_by"),
 	title: text("title").notNull(),
 	message: text("message"),
+	redirect: text("redirect"),
 });
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
