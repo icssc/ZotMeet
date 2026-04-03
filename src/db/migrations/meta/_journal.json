@@ -50,6 +50,13 @@
       "when": 1775242971389,
       "tag": "0006_typical_hellfire_club",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1775243032038,
+      "tag": "0007_blushing_gideon",
+      "breakpoints": true
     }
   ]
 }
