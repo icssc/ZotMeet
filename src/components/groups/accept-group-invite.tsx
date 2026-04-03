@@ -65,4 +65,4 @@ const AcceptGroupInvite = ({
 	);
 };
 
-export default AcceptGroupInvite;
+export { AcceptGroupInvite };

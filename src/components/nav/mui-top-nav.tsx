@@ -21,9 +21,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { AcceptGroupInvite } from "@/components/groups/accept-group-invite";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
 import { logoutAction } from "@/server/actions/auth/logout/action";
-import AcceptGroupInvite from "../groups/accept-group-invite";
 
 const navItems = [
 	{ title: "Meetings", url: "/summary" },
