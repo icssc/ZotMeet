@@ -37,9 +37,10 @@ export default function AppThemeProvider({
 			try {
 				const themeMode = await getUserThemeMode();
 				setMode(themeMode);
-				setInitialThemeLoaded(true);
 			} catch (err) {
 				console.error("Failed to fetch theme preference", err);
+			} finally {
+				setInitialThemeLoaded(true);
 			}
 		}
 

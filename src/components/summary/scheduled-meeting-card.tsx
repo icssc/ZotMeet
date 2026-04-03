@@ -51,6 +51,7 @@ export const ScheduledMeetingCard = ({
 		>
 			<Box
 				component="button"
+				type="button"
 				onClick={() => setExpanded((v) => !v)}
 				sx={{
 					display: "flex",
