@@ -1,6 +1,6 @@
 {
-  "id": "4dc20b6d-a680-43b8-83ae-f242857231e9",
-  "prevId": "b379b874-1def-42ed-bf37-39de9d4a4d64",
+  "id": "5fe59d8a-ebf2-46ce-836f-645f9f8ce47b",
+  "prevId": "4dc20b6d-a680-43b8-83ae-f242857231e9",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -793,6 +793,14 @@
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
+        },
+        "theme_mode": {
+          "name": "theme_mode",
+          "type": "theme_mode",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'light'"
         }
       },
       "indexes": {},
@@ -928,6 +936,15 @@
       "values": [
         "dates",
         "days"
+      ]
+    },
+    "public.theme_mode": {
+      "name": "theme_mode",
+      "schema": "public",
+      "values": [
+        "light",
+        "dark",
+        "system"
       ]
     }
   },

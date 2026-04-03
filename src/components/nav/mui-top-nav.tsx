@@ -21,6 +21,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { AcceptGroupInvite } from "@/components/groups/accept-group-invite";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
 import { logoutAction } from "@/server/actions/auth/logout/action";
 
@@ -157,6 +158,9 @@ function Notifications({
 	notifications: NotificationItem[];
 }) {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const [showGroupInvite, setShowGroupInvite] = useState(false);
+	const [activeNotification, setActiveNotification] =
+		useState<NotificationItem | null>(null);
 
 	const unread = notifications.filter((n) => !n.readAt);
 
@@ -249,6 +253,10 @@ function Notifications({
 												borderColor: "action.hover",
 												color: "black",
 											}}
+											onClick={() => {
+												setActiveNotification(notif);
+												setShowGroupInvite(true);
+											}}
 										>
 											View
 										</Button>
@@ -266,6 +274,16 @@ function Notifications({
 					</Box>
 				</Box>
 			</Menu>
+			{activeNotification && (
+				<AcceptGroupInvite
+					open={showGroupInvite}
+					notification={activeNotification}
+					onOpenChange={(open) => {
+						setShowGroupInvite(open);
+						if (!open) setActiveNotification(null);
+					}}
+				/>
+			)}
 		</>
 	);
 }

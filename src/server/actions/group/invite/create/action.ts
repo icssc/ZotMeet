@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt, isNull, or } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import {
@@ -60,16 +60,40 @@ export async function createGroupInvite(
 		};
 	}
 
-	// GENERATE UNIQUE TOKEN FOR Invite
-	const inviteToken = crypto.randomUUID();
-
 	// Calculate expiration date
 	const expiresAt = expiresInDays
 		? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
 		: null;
 
-	// Insert Invite to DB
+	// Reuse an existing non-expired invite for this group if one already exists
 	try {
+		const [existingInvite] = await db
+			.select({ inviteToken: groupInvites.inviteToken })
+			.from(groupInvites)
+			.where(
+				and(
+					eq(groupInvites.groupId, groupId),
+					or(
+						isNull(groupInvites.expiresAt),
+						gt(groupInvites.expiresAt, new Date()),
+					),
+				),
+			)
+			.limit(1);
+
+		if (existingInvite) {
+			const baseUrl =
+				process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+			return {
+				success: true,
+				message: "Invite link retrieved successfully",
+				inviteToken: existingInvite.inviteToken,
+				inviteUrl: `${baseUrl}/invite/${existingInvite.inviteToken}`,
+			};
+		}
+
+		// No existing invite — generate a new one
+		const inviteToken = crypto.randomUUID();
 		const [newInvite] = await db
 			.insert(groupInvites)
 			.values({

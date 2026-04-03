@@ -1,6 +1,6 @@
 {
-  "id": "4dc20b6d-a680-43b8-83ae-f242857231e9",
-  "prevId": "b379b874-1def-42ed-bf37-39de9d4a4d64",
+  "id": "b379b874-1def-42ed-bf37-39de9d4a4d64",
+  "prevId": "d7b1d2e3-426a-4db6-b413-76ef0e019bd8",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -501,7 +501,7 @@
           "name": "type",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "read_at": {
           "name": "read_at",
@@ -530,12 +530,6 @@
         },
         "message": {
           "name": "message",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "redirect": {
-          "name": "redirect",
           "type": "text",
           "primaryKey": false,
           "notNull": false
