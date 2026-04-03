@@ -1,6 +1,7 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
+import { saveAvailability } from "@actions/availability/save/action";
 import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -11,7 +12,12 @@ import {
 } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
+import { MobileActionBar } from "@/components/availability/mobile-action-bar";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
+import {
+	type AvailabilityMode,
+	PersonalAvailabilitySidebar,
+} from "@/components/availability/personal-availability-sidebar";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
@@ -133,8 +139,18 @@ export function Availability({
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
 }) {
-	const availabilityView = useAvailabilityViewStore(
-		(state) => state.availabilityView,
+	const {
+		availabilityView,
+		setAvailabilityView,
+		setHasAvailability,
+		hasAvailability,
+	} = useAvailabilityViewStore(
+		useShallow((state) => ({
+			availabilityView: state.availabilityView,
+			setAvailabilityView: state.setAvailabilityView,
+			setHasAvailability: state.setHasAvailability,
+			hasAvailability: state.hasAvailability,
+		})),
 	);
 
 	const selectionIsLocked = useGroupSelectionStore(
@@ -219,6 +235,49 @@ export function Availability({
 		GoogleCalendarEvent[]
 	>([]);
 
+	const [availabilityMode, setAvailabilityMode] =
+		useState<AvailabilityMode>("available");
+	const [hiddenCalendarIds, setHiddenCalendarIds] = useState<Set<string>>(
+		new Set(),
+	);
+	const [overlayAvailabilities, setOverlayAvailabilities] = useState(false);
+
+	const visibleGoogleCalendarEvents = useMemo(
+		() =>
+			googleCalendarEvents.filter(
+				(e) => !e.calendarId || !hiddenCalendarIds.has(e.calendarId),
+			),
+		[googleCalendarEvents, hiddenCalendarIds],
+	);
+
+	const googleCalendars = useMemo(() => {
+		const seen = new Map<string, { id: string; name: string; color: string }>();
+		for (const event of googleCalendarEvents) {
+			if (event.calendarId && !seen.has(event.calendarId)) {
+				seen.set(event.calendarId, {
+					id: event.calendarId,
+					name: event.calendarName ?? event.calendarId,
+					color: event.calendarColor,
+				});
+			}
+		}
+		return Array.from(seen.values());
+	}, [googleCalendarEvents]);
+
+	const handleToggleCalendar = useCallback((calendarId: string) => {
+		setHiddenCalendarIds((prev) => {
+			const next = new Set(prev);
+			if (next.has(calendarId)) {
+				next.delete(calendarId);
+			} else {
+				next.add(calendarId);
+			}
+			return next;
+		});
+	}, []);
+
+	const isOwner = !!user && meetingData.hostId === user.memberId;
+
 	const [availabilityDates, setAvailabilityDates] = useState(() =>
 		deriveInitialAvailability({
 			timezone: userTimezone,
@@ -264,6 +323,48 @@ export function Availability({
 		numPaddingDates,
 	]);
 
+	const handleResetAvailability = useCallback(async () => {
+		if (!user) return;
+		const previousDates = availabilityDates;
+		const clearedDates = availabilityDates.map((date) => {
+			const updatedGroupAvailability = Object.fromEntries(
+				Object.entries(date.groupAvailability)
+					.map(([ts, memberIds]) => [
+						ts,
+						memberIds.filter((id) => id !== user.memberId),
+					])
+					.filter(([, memberIds]) => memberIds.length > 0),
+			);
+			return new ZotDate(
+				date.day,
+				date.earliestTime,
+				date.latestTime,
+				false,
+				[],
+				updatedGroupAvailability,
+			);
+		});
+		setAvailabilityDates(clearedDates);
+		const response = await saveAvailability({
+			meetingId: meetingData.id,
+			availabilityTimes: [],
+			displayName: user.displayName,
+		});
+		if (response.status === 200) {
+			setHasAvailability(false);
+			confirmSave();
+		} else {
+			console.error("Error resetting availability:", response.body.error);
+			setAvailabilityDates(previousDates);
+		}
+	}, [
+		user,
+		meetingData.id,
+		availabilityDates,
+		setHasAvailability,
+		confirmSave,
+	]);
+
 	const handleUserAvailabilityChange = useCallback(
 		(updatedDates: ZotDate[]) => {
 			setAvailabilityDates(updatedDates);
@@ -273,11 +374,34 @@ export function Availability({
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
 		setAvailabilityDates(originalDates);
-	}, [cancelEdit]);
+		setChangeableTimezone(true);
+		setAvailabilityView("group");
+	}, [cancelEdit, setAvailabilityView]);
 
-	const handleSuccessfulSave = useCallback(() => {
-		confirmSave();
-	}, [confirmSave]);
+	const handleSuccessfulSave = useCallback(async () => {
+		if (!user) return;
+		setChangeableTimezone(true);
+		const availability = {
+			meetingId: meetingData.id,
+			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
+			displayName: user.displayName,
+		};
+		const response = await saveAvailability(availability);
+		if (response.status === 200) {
+			setHasAvailability(true);
+			setAvailabilityView("group");
+			confirmSave();
+		} else {
+			console.error("Error saving availability:", response.body.error);
+		}
+	}, [
+		user,
+		meetingData.id,
+		availabilityDates,
+		setHasAvailability,
+		setAvailabilityView,
+		confirmSave,
+	]);
 
 	useEffect(() => {
 		if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
@@ -615,7 +739,7 @@ export function Availability({
 			/>
 
 			<div className="flex flex-row items-start justify-start align-top">
-				<div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
+				<div className="flex h-fit min-w-0 items-center justify-between overflow-x-auto font-dm-sans lg:flex-1">
 					<AvailabilityNavButton
 						direction="left"
 						handleClick={prevPage}
@@ -656,7 +780,7 @@ export function Availability({
 												availabilityDates={availabilityDates}
 												availabilityTimeBlocks={availabilityTimeBlocks}
 												currentPageAvailability={currentPageAvailability}
-												googleCalendarEvents={googleCalendarEvents}
+												googleCalendarEvents={visibleGoogleCalendarEvents}
 												meetingDates={meetingData.dates}
 											/>
 										)}
@@ -681,17 +805,50 @@ export function Availability({
 					/>
 				</div>
 
-				<GroupResponses
-					availabilityDates={availabilityDates}
-					fromTime={fromTimeMinutes}
-					members={members}
-					timezone={userTimezone}
-					anchorNormalizedDate={anchorNormalizedDate}
-					currentPageAvailability={currentPageAvailability}
-					availabilityTimeBlocks={availabilityTimeBlocks}
-					doesntNeedDay={doesntNeedDay}
-				/>
+				{availabilityView === "personal" ? (
+					<PersonalAvailabilitySidebar
+						onCancel={handleCancelEditing}
+						onReset={handleResetAvailability}
+						onSave={handleSuccessfulSave}
+						availabilityMode={availabilityMode}
+						onModeChange={setAvailabilityMode}
+						googleCalendars={googleCalendars}
+						hiddenCalendarIds={hiddenCalendarIds}
+						onToggleCalendar={handleToggleCalendar}
+						overlayAvailabilities={overlayAvailabilities}
+						onOverlayChange={setOverlayAvailabilities}
+					/>
+				) : (
+					<GroupResponses
+						availabilityDates={availabilityDates}
+						fromTime={fromTimeMinutes}
+						members={members}
+						timezone={userTimezone}
+						anchorNormalizedDate={anchorNormalizedDate}
+						currentPageAvailability={currentPageAvailability}
+						availabilityTimeBlocks={availabilityTimeBlocks}
+						doesntNeedDay={doesntNeedDay}
+						isOwner={isOwner}
+						hasAvailability={hasAvailability}
+					/>
+				)}
 			</div>
+
+			<MobileActionBar
+				user={user}
+				isOwner={isOwner}
+				members={members}
+				setChangeableTimezone={setChangeableTimezone}
+				setTimezone={setUserTimezone}
+				availabilityMode={availabilityMode}
+				onModeChange={setAvailabilityMode}
+				onReset={handleResetAvailability}
+				googleCalendars={googleCalendars}
+				hiddenCalendarIds={hiddenCalendarIds}
+				onToggleCalendar={handleToggleCalendar}
+				overlayAvailabilities={overlayAvailabilities}
+				onOverlayChange={setOverlayAvailabilities}
+			/>
 		</div>
 	);
 }

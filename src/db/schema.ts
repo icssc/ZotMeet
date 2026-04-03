@@ -302,6 +302,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 	oauthAccounts: many(oauthAccounts),
 	usersInGroups: many(usersInGroup),
 	sessions: many(sessions),
+	groups: many(groups, {
+		relationName: "usersToGroups",
+	}),
 	member: one(members, {
 		fields: [users.memberId],
 		references: [members.id],
