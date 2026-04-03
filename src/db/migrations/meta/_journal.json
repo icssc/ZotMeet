@@ -47,8 +47,15 @@
     {
       "idx": 6,
       "version": "7",
-      "when": 1775234932282,
-      "tag": "0006_closed_hercules",
+      "when": 1775110627075,
+      "tag": "0006_far_chimera",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1775236131258,
+      "tag": "0007_spooky_wiccan",
       "breakpoints": true
     }
   ]

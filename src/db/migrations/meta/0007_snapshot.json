@@ -1,6 +1,6 @@
 {
-  "id": "cf6a3d35-a861-4960-b3c0-d09a03ea7a17",
-  "prevId": "d7b1d2e3-426a-4db6-b413-76ef0e019bd8",
+  "id": "7e1c3d62-ef12-4be5-8d0b-cb9ff24801de",
+  "prevId": "cf6a3d35-a861-4960-b3c0-d09a03ea7a17",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -790,7 +790,7 @@
         },
         "theme_mode": {
           "name": "theme_mode",
-          "type": "text",
+          "type": "theme_mode",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
