@@ -52,8 +52,8 @@ export const getTheme = (mode: "light" | "dark") =>
 		palette: {
 			mode,
 			background: {
-				default: mode === "dark" ? "#1C1B1B" : "#ffffff",
-				paper: mode === "dark" ? "#1C1B1B" : "#ffffff",
+				default: mode === "dark" ? "#1C1B1B" : "#F5F5F5",
+				paper: mode === "dark" ? "#2A2929" : "#ffffff",
 			},
 			text: {
 				primary: mode === "dark" ? "#FFFFFF" : "#000000",
