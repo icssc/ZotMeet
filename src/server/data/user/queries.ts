@@ -105,7 +105,7 @@ export async function deleteNotificationByID(notificationId: string) {
 
 export async function updateUserThemeMode(
 	userId: string,
-	themeMode: "light" | "dark" | "system",
+	themeMode: "light" | "dark",
 ) {
 	return await db
 		.update(users)

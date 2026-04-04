@@ -12,7 +12,7 @@ import {
 } from "react";
 import { getTheme } from "@/theme";
 
-type ThemeMode = "light" | "dark" | "system";
+type ThemeMode = "light" | "dark";
 
 type ThemeContextType = {
 	mode: ThemeMode;
@@ -36,25 +36,6 @@ export default function AppThemeProvider({
 	initialMode: ThemeMode;
 }) {
 	const [mode, setMode] = useState<ThemeMode>(initialMode);
-	// resolving what "system" means for the current OS
-	const [resolvedMode, setResolvedMode] = useState<"light" | "dark">(() => {
-		if (initialMode !== "system") return initialMode;
-		return "light";
-	});
-
-	// Update resolvedMode whenever mode or system preference changes
-	useEffect(() => {
-		if (mode === "system") {
-			const preferDark = window.matchMedia("(prefers-color-scheme: dark)");
-			const update = () =>
-				setResolvedMode(preferDark.matches ? "dark" : "light");
-			update();
-			preferDark.addEventListener("change", update); // run update() when system pref changes
-			return () => preferDark.removeEventListener("change", update); // cleanup
-		} else {
-			setResolvedMode(mode);
-		}
-	}, [mode]);
 
 	// saving user preference to DB if it changed
 	const isFirstMount = useRef(true);
@@ -76,7 +57,7 @@ export default function AppThemeProvider({
 		persistMode();
 	}, [mode]);
 
-	const theme = useMemo(() => getTheme(resolvedMode), [resolvedMode]);
+	const theme = useMemo(() => getTheme(mode), [mode]);
 
 	return (
 		<ThemeModeContext.Provider value={{ mode, setMode }}>
