@@ -37,9 +37,19 @@ export default function AppThemeProvider({
 }) {
 	const [mode, setMode] = useState<ThemeMode>(initialMode);
 	// resolving what "system" means for the current OS
-	const [resolvedMode, setResolvedMode] = useState<"light" | "dark">(
-		initialMode === "dark" ? "dark" : "light",
-	);
+	const [resolvedMode, setResolvedMode] = useState<"light" | "dark">(() => {
+		if (initialMode !== "system") return initialMode;
+
+		// Check if we are on the client to safely access window
+		if (typeof window !== "undefined") {
+			return window.matchMedia("(prefers-color-scheme: dark)").matches
+				? "dark"
+				: "light";
+		}
+
+		return "light";
+	});
+
 	// Update resolvedMode whenever mode or system preference changes
 	useEffect(() => {
 		if (mode === "system") {
