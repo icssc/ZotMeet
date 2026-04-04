@@ -39,14 +39,6 @@ export default function AppThemeProvider({
 	// resolving what "system" means for the current OS
 	const [resolvedMode, setResolvedMode] = useState<"light" | "dark">(() => {
 		if (initialMode !== "system") return initialMode;
-
-		// Check if we are on the client to safely access window
-		if (typeof window !== "undefined") {
-			return window.matchMedia("(prefers-color-scheme: dark)").matches
-				? "dark"
-				: "light";
-		}
-
 		return "light";
 	});
 
