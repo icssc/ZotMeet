@@ -50,8 +50,6 @@ export const ScheduledMeetingCard = ({
 			})}
 		>
 			<Box
-				component="button"
-				type="button"
 				onClick={() => setExpanded((v) => !v)}
 				sx={{
 					display: "flex",
@@ -59,17 +57,21 @@ export const ScheduledMeetingCard = ({
 					alignItems: "center",
 					gap: 2,
 					textAlign: "left",
-					background: "none",
-					border: "none",
 					cursor: "pointer",
 				}}
 			>
-				<Link href={`/availability/${meeting.id}`} key={meeting.id}>
+				<Link
+					href={`/availability/${meeting.id}`}
+					onClick={(e) => e.stopPropagation()}
+				>
 					<Group fontSize="medium" />
 				</Link>
 
 				<Box sx={{ flexGrow: 1 }}>
-					<Link href={`/availability/${meeting.id}`} key={meeting.id}>
+					<Link
+						href={`/availability/${meeting.id}`}
+						onClick={(e) => e.stopPropagation()}
+					>
 						<Typography variant="h6" noWrap>
 							{meeting.title}
 						</Typography>
