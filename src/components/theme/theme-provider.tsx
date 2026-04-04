@@ -23,30 +23,14 @@ export function useThemeMode() {
 
 export default function AppThemeProvider({
 	children,
+	initialMode,
 }: {
 	children: React.ReactNode;
+	initialMode: ThemeMode;
 }) {
-	const [mode, setMode] = useState<ThemeMode>("light");
+	const [mode, setMode] = useState<ThemeMode>(initialMode);
 	// resolving what "system" means for the current OS
 	const [resolvedMode, setResolvedMode] = useState<"light" | "dark">("light");
-	const [initialThemeLoaded, setInitialThemeLoaded] = useState(false);
-
-	// on mount, fetch user's theme preference from DB
-	useEffect(() => {
-		async function fetchThemePreference() {
-			try {
-				const themeMode = await getUserThemeMode();
-				setMode(themeMode);
-			} catch (err) {
-				console.error("Failed to fetch theme preference", err);
-			} finally {
-				setInitialThemeLoaded(true);
-			}
-		}
-
-		fetchThemePreference();
-	}, []);
-
 	// Update resolvedMode whenever mode or system preference changes
 	useEffect(() => {
 		if (mode === "system") {
@@ -70,17 +54,10 @@ export default function AppThemeProvider({
 				console.error("Failed to save theme preference", err);
 			}
 		}
-		if (initialThemeLoaded) {
-			persistMode();
-		}
-	}, [mode, initialThemeLoaded]);
+		persistMode();
+	}, [mode]);
 
 	const theme = useMemo(() => getTheme(resolvedMode), [resolvedMode]);
-
-	if (!initialThemeLoaded) {
-		// Don't render children until we know the user's theme preference
-		return null;
-	}
 
 	return (
 		<ThemeModeContext.Provider value={{ mode, setMode }}>

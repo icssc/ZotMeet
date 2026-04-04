@@ -1,7 +1,7 @@
 import "./globals.css";
+import { getUserThemeMode } from "@actions/user/action";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata } from "next";
-
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
@@ -17,11 +17,14 @@ export const metadata: Metadata = {
 	},
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	// Fetch the preference on the server
+	const initialMode = await getUserThemeMode();
+
 	return (
 		<html lang="en" className={figtree.className}>
 			<body
@@ -32,7 +35,7 @@ export default function RootLayout({
 			>
 				<NuqsAdapter>
 					<AppRouterCacheProvider>
-						<AppThemeProvider>
+						<AppThemeProvider initialMode={initialMode}>
 							<AppShellWrapper>
 								<div className="h-full rounded-tl-xl">{children}</div>
 							</AppShellWrapper>
