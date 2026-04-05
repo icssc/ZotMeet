@@ -12,7 +12,7 @@ import {
 } from "react";
 import { getTheme } from "@/theme";
 
-type ThemeMode = "light" | "dark";
+type ThemeMode = "light" | "dark" | "system";
 
 type ThemeContextType = {
 	mode: ThemeMode;
@@ -57,7 +57,11 @@ export default function AppThemeProvider({
 		persistMode();
 	}, [mode]);
 
-	const theme = useMemo(() => getTheme(mode), [mode]);
+	// TODO: handle dynamically determining light/dark based on system preference if mode === "system"
+	const theme = useMemo(
+		() => getTheme(mode === "system" ? "light" : mode),
+		[mode],
+	);
 
 	return (
 		<ThemeModeContext.Provider value={{ mode, setMode }}>

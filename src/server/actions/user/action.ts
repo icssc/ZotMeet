@@ -30,7 +30,9 @@ export async function deleteNotification(notificationId: string) {
 	revalidatePath("/", "layout");
 }
 
-export async function saveThemePreference(themeMode: "light" | "dark") {
+export async function saveThemePreference(
+	themeMode: "light" | "dark" | "system",
+) {
 	const { user } = await getCurrentSession();
 	if (!user) return;
 	await updateUserThemeMode(user.id, themeMode);
