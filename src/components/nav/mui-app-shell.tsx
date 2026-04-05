@@ -19,7 +19,15 @@ export function MuiAppShell({
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 	return (
-		<Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+		<Box
+			sx={{
+				bgcolor: "background.default",
+				color: "text.primary",
+				display: "flex",
+				flexDirection: "column",
+				minHeight: "100vh",
+			}}
+		>
 			{!isMobile && <MuiTopNav user={user} notifications={notifications} />}
 			<Box sx={{ flex: 1, overflow: "auto", paddingBottom: isMobile ? 7 : 0 }}>
 				{children}

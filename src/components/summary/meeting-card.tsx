@@ -1,7 +1,7 @@
 "use client";
 
 import { AccessTime, CalendarMonth, Group } from "@mui/icons-material";
-// import { MeetingCardStatus } from "@/components/summary/meeting-card-status";
+import { Box, Typography } from "@mui/material";
 import type { SelectMeeting } from "@/db/schema";
 import {
 	convertTimeFromUTC,
@@ -13,8 +13,7 @@ const formatTime = (time: string): string => {
 	const [hourStr] = time.split(":");
 	let hour = parseInt(hourStr, 10);
 	const ampm = hour >= 12 ? "PM" : "AM";
-	hour = hour % 12;
-	hour = hour ? hour : 12;
+	hour = hour % 12 || 12;
 	return `${hour} ${ampm}`;
 };
 
@@ -86,41 +85,51 @@ export const MeetingCard = ({ meeting }: MeetingCardProps) => {
 	const toTimeLocal = convertTimeFromUTC(toTime, userTimezone, referenceDate);
 
 	return (
-		<div className="flex items-center gap-4 rounded-xl border-2 border-gray-200 bg-[#F9FAFB] bg-opacity-50 p-6 pr-8">
-			<Group className="size-10 shrink-0 rounded-full text-gray-500" />
+		<Box
+			sx={(theme) => ({
+				display: "flex",
+				alignItems: "center",
+				gap: 2,
+				borderRadius: 3,
+				border: `2px solid ${theme.palette.divider}`,
+				bgcolor: theme.palette.background.paper,
+				p: 3,
+				pr: 4,
+			})}
+		>
+			<Group fontSize="medium" />
 
-			<div className="flex-grow space-y-1">
-				<h3 className="truncate font-dm-sans font-medium text-gray-800 text-xl">
+			<Box sx={{ flexGrow: 1 }}>
+				<Typography variant="h6" noWrap>
 					{title}
-				</h3>
+				</Typography>
 
-				<div className="flex flex-row flex-wrap items-center gap-x-4 font-dm-sans font-semibold text-gray-500 text-sm">
-					<div className="flex flex-nowrap items-center gap-x-1">
-						<CalendarMonth className="size-4" />
-						<span className="p text-nowrap">
+				<Box
+					sx={{
+						display: "flex",
+						flexWrap: "wrap",
+						alignItems: "center",
+						gap: 2,
+						fontWeight: 500,
+						fontSize: 14,
+						color: "text.secondary",
+					}}
+				>
+					<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+						<CalendarMonth fontSize="small" />
+						<span>
 							<DateRange dates={dates} meetingType={meetingType} />
 						</span>
-					</div>
+					</Box>
 
-					<div className="flex flex-nowrap items-center gap-x-1">
-						<AccessTime className="size-4" />
-						<span className="text-nowrap">
+					<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+						<AccessTime fontSize="small" />
+						<span>
 							{formatTime(fromTimeLocal)} - {formatTime(toTimeLocal)}
 						</span>
-					</div>
-
-					{/* <Dot className="size-4" />
-
-                    <div className="flex flex-nowrap items-center gap-x-1">
-                        <MapPin className="size-4" />
-                        <span className="text-nowrap">
-                            {location ?? "Not specified"}
-                        </span>
-                    </div> */}
-				</div>
-			</div>
-
-			{/* <MeetingCardStatus /> */}
-		</div>
+					</Box>
+				</Box>
+			</Box>
+		</Box>
 	);
 };
