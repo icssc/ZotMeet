@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
 import { RoomResults } from "@/components/studyrooms/room-results";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +53,8 @@ export default function Page() {
 
 	return (
 		<div>
+			<RoomsHeatmap />
+
 			<form onSubmit={handleSubmit} className="flex flex-col gap-2">
 				<Input
 					type="date"
