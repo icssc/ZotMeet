@@ -705,7 +705,6 @@ export function Availability({
 					availabilityDates={availabilityDates}
 					fromTime={fromTimeMinutes}
 					members={members}
-					timezone={userTimezone}
 					anchorNormalizedDate={anchorNormalizedDate}
 					currentPageAvailability={currentPageAvailability}
 					availabilityTimeBlocks={availabilityTimeBlocks}
