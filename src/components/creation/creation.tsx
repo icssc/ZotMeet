@@ -41,7 +41,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			(isoString) => new ZotDate(new Date(isoString)),
 		);
 	}, [urlState.selectedDates]);
-	const [recommendation, setRecommendation] = useState<boolean>(false);
+	const [_recommendation, _setRecommendation] = useState<boolean>(false);
 
 	// Helper to update selected days.
 	const setSelectedDays = (daysOrUpdater: React.SetStateAction<ZotDate[]>) => {
@@ -63,8 +63,8 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		void setUrlState({ meetingName: newName });
 	};
 
-	const meetingLocation = urlState.meetingLocation;
-	const setMeetingLocation = (locOrUpdater: React.SetStateAction<string>) => {
+	const _meetingLocation = urlState.meetingLocation;
+	const _setMeetingLocation = (locOrUpdater: React.SetStateAction<string>) => {
 		const newLoc =
 			typeof locOrUpdater === "function"
 				? locOrUpdater(urlState.meetingLocation)
@@ -179,7 +179,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	return (
 		<div className="mx-auto my-6 flex w-[calc(100%-2rem)] max-w-6xl flex-col gap-y-6 px-4 md:my-8 md:rounded-xl md:border md:border-gray-300">
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
-			<div className="w-full rounded-xl border bg-white px-4 py-6 md:px-14">
+			<div className="w-full px-4 py-6 md:px-14">
 				<h2 className="hidden font-medium text-2xl text-gray-dark sm:block md:text-3xl">
 					Plan your next meeting with ZotMeet
 				</h2>

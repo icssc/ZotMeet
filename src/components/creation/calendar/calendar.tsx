@@ -130,14 +130,14 @@ export function Calendar({
 						<div className="flex gap-2 md:hidden">
 							<Button
 								onClick={decrementMonth}
-								className="bg-transparent hover:bg-transparent"
+								className="bg-transparent py-0 hover:bg-transparent"
 							>
 								<span className="text-3xl text-gray-500">&lsaquo;</span>
 							</Button>
 
 							<Button
 								onClick={incrementMonth}
-								className="bg-transparent hover:bg-transparent"
+								className="bg-transparent py-0 hover:bg-transparent"
 							>
 								<span className="text-3xl text-gray-500">&rsaquo;</span>
 							</Button>
