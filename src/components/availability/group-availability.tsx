@@ -162,29 +162,27 @@ export function GroupAvailability({
 	const {
 		startBlockSelection,
 		endBlockSelection,
-		selectionState,
 		setStartBlockSelection,
 		setEndBlockSelection,
+		selectionState,
 		setSelectionState,
 	} = useBlockSelectionStore(
 		useShallow((state) => ({
 			startBlockSelection: state.startBlockSelection,
 			endBlockSelection: state.endBlockSelection,
-			selectionState: state.selectionState,
 			setStartBlockSelection: state.setStartBlockSelection,
 			setEndBlockSelection: state.setEndBlockSelection,
+			selectionState: state.selectionState,
 			setSelectionState: state.setSelectionState,
 		})),
 	);
 
-	const { togglePendingTime, addPendingTimeRange, isScheduled } =
-		useScheduleSelectionStore(
-			useShallow((state) => ({
-				togglePendingTime: state.togglePendingTime,
-				addPendingTimeRange: state.addPendingTimeRange,
-				isScheduled: state.isScheduled,
-			})),
-		);
+	const { isScheduled, replaceEntireSelection } = useScheduleSelectionStore(
+		useShallow((state) => ({
+			isScheduled: state.isScheduled,
+			replaceEntireSelection: state.replaceEntireSelection,
+		})),
+	);
 	// to load scheduled time blocks when meeting is loaded
 	// Forces re-render when scheduled or pending times change
 
@@ -194,6 +192,10 @@ export function GroupAvailability({
 	// update start and end block selection state
 	useEffect(() => {
 		if (startBlockSelection && endBlockSelection) {
+			if (startBlockSelection.zotDateIndex !== endBlockSelection.zotDateIndex) {
+				setSelectionState(undefined);
+				return;
+			}
 			setSelectionState({
 				earlierDateIndex: Math.min(
 					startBlockSelection.zotDateIndex,
@@ -310,7 +312,7 @@ export function GroupAvailability({
 		],
 	);
 
-	const handleMouseDown = useCallback(
+	const _handleMouseDown = useCallback(
 		({
 			zotDateIndex,
 			blockIndex,
@@ -326,7 +328,7 @@ export function GroupAvailability({
 		[isScheduling, setStartBlockSelection, setEndBlockSelection],
 	);
 
-	const handleMouseMove = useCallback(
+	const _handleMouseMove = useCallback(
 		({
 			zotDateIndex,
 			blockIndex,
@@ -341,7 +343,7 @@ export function GroupAvailability({
 		[isScheduling, startBlockSelection, setEndBlockSelection],
 	);
 
-	const handleMouseUp = useCallback(() => {
+	const _handleMouseUp = useCallback(() => {
 		if (
 			isScheduling &&
 			startBlockSelection &&
@@ -379,22 +381,9 @@ export function GroupAvailability({
 				}
 			}
 
-			// Toggle all timestamps in range
+			// Each drag replaces the entire selection (clears any previous blocks)
 			if (timestamps.length > 0) {
-				const firstTimestamp = timestamps[0];
-				const isFirstScheduled = isScheduled(firstTimestamp);
-
-				// if first timestamp is scheduled, we are un-scheduling the whole range
-				if (isFirstScheduled) {
-					timestamps.forEach((ts) => {
-						if (isScheduled(ts)) {
-							togglePendingTime(ts);
-						}
-					});
-					// else we are scheduling the whole range
-				} else {
-					addPendingTimeRange(timestamps);
-				}
+				replaceEntireSelection(timestamps);
 
 				// Reset selection
 				setStartBlockSelection(undefined);
@@ -409,19 +398,17 @@ export function GroupAvailability({
 		selectionState,
 		fromTime,
 		availabilityDates,
-		isScheduled,
-		togglePendingTime,
-		addPendingTimeRange,
+		replaceEntireSelection,
 		setStartBlockSelection,
 		setEndBlockSelection,
 		setSelectionState,
 	]);
 
 	const handleTouchStart = (e: React.TouchEvent) => {
+		if (!isScheduling) return;
 		if (e.cancelable) {
 			e.preventDefault();
 		}
-		if (!isScheduling) return;
 
 		const touch = e.touches[0];
 		const element = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -466,10 +453,10 @@ export function GroupAvailability({
 	};
 
 	const handleTouchEnd = (e: React.TouchEvent) => {
+		if (!isScheduling) return;
 		if (e.cancelable) {
 			e.preventDefault();
 		}
-		if (!isScheduling) return;
 
 		if (startBlockSelection && endBlockSelection && selectionState) {
 			const {
@@ -501,16 +488,7 @@ export function GroupAvailability({
 			}
 
 			if (timestamps.length > 0) {
-				const firstTimestamp = timestamps[0];
-				const isFirstScheduled = isScheduled(firstTimestamp);
-
-				if (isFirstScheduled) {
-					timestamps.forEach((ts) => {
-						if (isScheduled(ts)) togglePendingTime(ts);
-					});
-				} else {
-					addPendingTimeRange(timestamps);
-				}
+				replaceEntireSelection(timestamps);
 
 				setStartBlockSelection(undefined);
 				setEndBlockSelection(undefined);
@@ -576,7 +554,7 @@ export function GroupAvailability({
 						<GroupAvailabilityBlock
 							className={cn(
 								"group-availability-block block",
-								isScheduling && "cursor-row-resize",
+								isScheduling && "cursor-row-resize [touch-action:pinch-zoom]",
 							)}
 							onClick={() =>
 								handleCellClick({
@@ -590,22 +568,6 @@ export function GroupAvailability({
 									blockIndex,
 								})
 							}
-							onMouseDown={() =>
-								handleMouseDown({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onMouseMove={() =>
-								handleMouseMove({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onMouseUp={handleMouseUp}
-							onTouchStart={(e) => handleTouchStart(e)}
-							onTouchMove={(e) => handleTouchMove(e)}
-							onTouchEnd={(e) => handleTouchEnd(e)}
 							blockColor={blockColor}
 							tableCellStyles={tableCellStyles}
 							hasSpacerBefore={spacers[pageDateIndex]}

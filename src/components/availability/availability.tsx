@@ -1,11 +1,15 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
+import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone } from "date-fns-tz";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
-import { GroupAvailability } from "@/components/availability/group-availability";
+import {
+	GroupAvailability,
+	getTimestampFromBlockIndex,
+} from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
@@ -33,6 +37,7 @@ import {
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityPaginationStore } from "@/store/useAvailabilityPaginationStore";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
@@ -392,6 +397,229 @@ export function Availability({
 		useScheduleSelectionStore.getState().hydrateScheduledTimes(timestamps);
 	}, [scheduledBlocks]);
 
+	// Drag selection for group and schedule views
+	const {
+		startBlockSelection,
+		endBlockSelection,
+		setStartBlockSelection,
+		setEndBlockSelection,
+		setSelectionState,
+	} = useBlockSelectionStore(
+		useShallow((state) => ({
+			startBlockSelection: state.startBlockSelection,
+			endBlockSelection: state.endBlockSelection,
+			setStartBlockSelection: state.setStartBlockSelection,
+			setEndBlockSelection: state.setEndBlockSelection,
+			setSelectionState: state.setSelectionState,
+		})),
+	);
+
+	const { togglePendingTime, addPendingTimeRange, isScheduled } =
+		useScheduleSelectionStore(
+			useShallow((state) => ({
+				togglePendingTime: state.togglePendingTime,
+				addPendingTimeRange: state.addPendingTimeRange,
+				isScheduled: state.isScheduled,
+			})),
+		);
+
+	useEffect(() => {
+		if (startBlockSelection && endBlockSelection) {
+			setSelectionState({
+				earlierDateIndex: Math.min(
+					startBlockSelection.zotDateIndex,
+					endBlockSelection.zotDateIndex,
+				),
+				laterDateIndex: Math.max(
+					startBlockSelection.zotDateIndex,
+					endBlockSelection.zotDateIndex,
+				),
+				earlierBlockIndex: Math.min(
+					startBlockSelection.blockIndex,
+					endBlockSelection.blockIndex,
+				),
+				laterBlockIndex: Math.max(
+					startBlockSelection.blockIndex,
+					endBlockSelection.blockIndex,
+				),
+			});
+		}
+	}, [startBlockSelection, endBlockSelection, setSelectionState]);
+
+	// Helper to get block info from pointer position
+	const getBlockAtPosition = useCallback((x: number, y: number) => {
+		const elements = document.elementsFromPoint(x, y);
+		for (const element of elements) {
+			if (
+				element.hasAttribute("data-date-index") &&
+				element.hasAttribute("data-block-index")
+			) {
+				const zotDateIndex = parseInt(
+					element.getAttribute("data-date-index") || "",
+					10,
+				);
+				const blockIndex = parseInt(
+					element.getAttribute("data-block-index") || "",
+					10,
+				);
+
+				if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIndex)) {
+					return { zotDateIndex, blockIndex };
+				}
+			}
+		}
+		return null;
+	}, []);
+
+	// Drag gesture for overdragging across cells
+	const bind = useDrag(
+		({ first, last, xy: [x, y], event, cancel }) => {
+			event?.preventDefault();
+
+			const blockInfo = getBlockAtPosition(x, y);
+
+			if (first) {
+				if (!blockInfo) {
+					cancel();
+					return;
+				}
+				const { zotDateIndex, blockIndex } = blockInfo;
+				setStartBlockSelection({ zotDateIndex, blockIndex });
+				setEndBlockSelection({ zotDateIndex, blockIndex });
+			} else if (last) {
+				const { startBlockSelection, endBlockSelection } =
+					useBlockSelectionStore.getState();
+				if (startBlockSelection && endBlockSelection) {
+					const earlierDateIndex = Math.min(
+						startBlockSelection.zotDateIndex,
+						endBlockSelection.zotDateIndex,
+					);
+					const laterDateIndex = Math.max(
+						startBlockSelection.zotDateIndex,
+						endBlockSelection.zotDateIndex,
+					);
+					const earlierBlockIndex = Math.min(
+						startBlockSelection.blockIndex,
+						endBlockSelection.blockIndex,
+					);
+					const laterBlockIndex = Math.max(
+						startBlockSelection.blockIndex,
+						endBlockSelection.blockIndex,
+					);
+
+					if (availabilityView === "schedule") {
+						const timestamps: string[] = [];
+						for (
+							let dateIndex = earlierDateIndex;
+							dateIndex <= laterDateIndex;
+							dateIndex++
+						) {
+							for (
+								let blockI = earlierBlockIndex;
+								blockI <= laterBlockIndex;
+								blockI++
+							) {
+								const timestamp = getTimestampFromBlockIndex(
+									blockI,
+									dateIndex,
+									fromTimeMinutes,
+									availabilityDates,
+								);
+								if (timestamp) timestamps.push(timestamp);
+							}
+						}
+
+						if (timestamps.length > 0) {
+							const firstTimestamp = timestamps[0];
+							const isFirstScheduled = isScheduled(firstTimestamp);
+
+							if (isFirstScheduled) {
+								timestamps.forEach((ts) => {
+									if (isScheduled(ts)) togglePendingTime(ts);
+								});
+							} else {
+								addPendingTimeRange(timestamps);
+							}
+						}
+					} else if (availabilityView === "personal") {
+						const startZotDate =
+							availabilityDates[startBlockSelection.zotDateIndex];
+						const toggleValue = !startZotDate.getBlockAvailability(
+							startBlockSelection.blockIndex,
+						);
+
+						const updatedDates = [...availabilityDates];
+
+						for (
+							let dateIndex = earlierDateIndex;
+							dateIndex <= laterDateIndex;
+							dateIndex++
+						) {
+							const currentDate = updatedDates[dateIndex];
+							currentDate.setBlockAvailabilities(
+								earlierBlockIndex,
+								laterBlockIndex,
+								toggleValue,
+							);
+
+							// Update group availability for each block
+							for (
+								let blockI = earlierBlockIndex;
+								blockI <= laterBlockIndex;
+								blockI++
+							) {
+								const timestamp = getTimestampFromBlockIndex(
+									blockI,
+									dateIndex,
+									fromTimeMinutes,
+									availabilityDates,
+								);
+
+								if (!currentDate.groupAvailability[timestamp]) {
+									currentDate.groupAvailability[timestamp] = [];
+								}
+
+								if (toggleValue) {
+									// Add user to availability
+									if (
+										!currentDate.groupAvailability[timestamp].includes(
+											user?.memberId ?? "",
+										)
+									) {
+										currentDate.groupAvailability[timestamp].push(
+											user?.memberId ?? "",
+										);
+									}
+								} else {
+									currentDate.groupAvailability[timestamp] =
+										currentDate.groupAvailability[timestamp].filter(
+											(id) => id !== (user?.memberId ?? ""),
+										);
+								}
+							}
+						}
+
+						handleUserAvailabilityChange(updatedDates);
+					}
+				}
+
+				setStartBlockSelection(undefined);
+				setEndBlockSelection(undefined);
+				setSelectionState(undefined);
+			} else {
+				if (blockInfo) {
+					const { zotDateIndex, blockIndex } = blockInfo;
+					setEndBlockSelection({ zotDateIndex, blockIndex });
+				}
+			}
+		},
+		{
+			pointer: { touch: true, capture: true },
+			filterTaps: true,
+			threshold: 3,
+		},
+	);
+
 	// TODO: Could add selection clearing with the escape key
 	return (
 		<div className="space-y-6">
@@ -412,13 +640,15 @@ export function Availability({
 						handleClick={prevPage}
 						disabled={isFirstPage}
 					/>
-					<div>
+
+					<div className="flex flex-col gap-4" {...bind()}>
 						<table className="w-full table-fixed">
 							<AvailabilityTableHeader
 								currentPageAvailability={currentPageAvailability}
 								meetingType={meetingData.meetingType}
 								doesntNeedDay={doesntNeedDay}
 							/>
+
 							<tbody onMouseLeave={handleMouseLeave}>
 								{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
 									<tr key={`block-${timeBlock}`}>
@@ -442,14 +672,10 @@ export function Availability({
 											<PersonalAvailability
 												timeBlock={timeBlock}
 												blockIndex={blockIndex}
-												availabilityTimeBlocks={availabilityTimeBlocks}
-												fromTime={fromTimeMinutes}
 												availabilityDates={availabilityDates}
+												availabilityTimeBlocks={availabilityTimeBlocks}
 												currentPageAvailability={currentPageAvailability}
 												googleCalendarEvents={googleCalendarEvents}
-												user={user}
-												onAvailabilityChange={handleUserAvailabilityChange}
-												timezone={userTimezone}
 												meetingDates={meetingData.dates}
 												showGoogleCalendar={overlayGoogleCalendar}
 											/>
@@ -458,12 +684,16 @@ export function Availability({
 								))}
 							</tbody>
 						</table>
-						<TimeZoneDropdown
-							timeZone={userTimezone}
-							changeTimeZone={setUserTimezone}
-							changeableTimezone={changeableTimezone}
-						/>
+
+						<div className="ml-10 flex flex-row items-center justify-between gap-4 md:ml-16">
+							<TimeZoneDropdown
+								timeZone={userTimezone}
+								changeTimeZone={setUserTimezone}
+								changeableTimezone={changeableTimezone}
+							/>
+						</div>
 					</div>
+
 					<AvailabilityNavButton
 						direction="right"
 						handleClick={() => nextPage(availabilityDates.length)}

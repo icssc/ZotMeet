@@ -1,10 +1,11 @@
 "use server";
 
 import { createGroupSchema } from "@actions/group/create/schema";
+import { createNewNotification } from "@data/user/queries";
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
 import { db } from "@/db";
-import { GroupRole, groups, usersInGroup } from "@/db/schema";
+import { GroupRole, groupInvites, groups, usersInGroup } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 
 export type CreateGroupState = {
@@ -37,7 +38,7 @@ export async function createGroup(
 	const { name, description, memberIds } = parsed.data;
 
 	try {
-		const result = await db.transaction(async (tx) => {
+		const { result, inviteToken } = await db.transaction(async (tx) => {
 			const [newGroup] = await tx
 				.insert(groups)
 				.values({
@@ -58,21 +59,30 @@ export async function createGroup(
 				role: GroupRole.ADMIN,
 			});
 
-			if (memberIds && memberIds.length > 0) {
-				const uniqueIds = memberIds.filter((id) => id !== user.id);
-				if (uniqueIds.length > 0) {
-					await tx.insert(usersInGroup).values(
-						uniqueIds.map((memberId) => ({
-							userId: memberId,
-							groupId: newGroup.id,
-							role: GroupRole.MEMBER,
-						})),
-					);
-				}
-			}
+			// Generate token here so we own it as a local variable
+			const token = crypto.randomUUID();
+			await tx.insert(groupInvites).values({
+				groupId: newGroup.id,
+				inviteToken: token,
+				inviterId: user.id,
+				inviteeEmail: "",
+				sentAt: new Date(),
+			});
 
-			return newGroup;
+			return { result: newGroup, inviteToken: token };
 		});
+
+		try {
+			await createNewNotification(
+				(memberIds ?? []).filter((id) => id !== user.id),
+				name.trim(),
+				`You've been invited to join ${name.trim()}!`,
+				"Group Invite",
+				inviteToken,
+			);
+		} catch (notificationError) {
+			console.error(notificationError);
+		}
 
 		revalidatePath("/summary");
 		revalidatePath("/groups");

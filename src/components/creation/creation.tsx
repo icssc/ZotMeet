@@ -9,6 +9,7 @@ import {
 } from "nuqs";
 import { useMemo, useState } from "react";
 import { Calendar } from "@/components/creation/calendar/calendar";
+//import { MeetingLocationField } from "@/components/creation/fields/meeting-location-field";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		meetingName: parseAsString.withDefault(""),
 		startTime: parseAsString.withDefault("09:00:00"),
 		endTime: parseAsString.withDefault("17:00:00"),
+		meetingLocation: parseAsString.withDefault(""),
 		selectedDates: parseAsArrayOf(parseAsString).withDefault([]),
 		meetingType: parseAsStringEnum(["dates", "days"]).withDefault("dates"),
 		timezone: parseAsString.withDefault("America/Los_Angeles"),
@@ -39,6 +41,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			(isoString) => new ZotDate(new Date(isoString)),
 		);
 	}, [urlState.selectedDates]);
+	const [_recommendation, _setRecommendation] = useState<boolean>(false);
 
 	// Helper to update selected days.
 	const setSelectedDays = (daysOrUpdater: React.SetStateAction<ZotDate[]>) => {
@@ -58,6 +61,15 @@ export function Creation({ user }: { user: UserProfile | null }) {
 				? nameOrUpdater(urlState.meetingName)
 				: nameOrUpdater;
 		void setUrlState({ meetingName: newName });
+	};
+
+	const _meetingLocation = urlState.meetingLocation;
+	const _setMeetingLocation = (locOrUpdater: React.SetStateAction<string>) => {
+		const newLoc =
+			typeof locOrUpdater === "function"
+				? locOrUpdater(urlState.meetingLocation)
+				: locOrUpdater;
+		void setUrlState({ meetingLocation: newLoc });
 	};
 
 	const startTime = urlState.startTime as HourMinuteString;
@@ -165,55 +177,62 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	}, [selectedDays.length, startTime, endTime, meetingName]);
 
 	return (
-		<div className="space-y-6 px-4">
-			<div className="px-4 pt-8 md:pt-8 md:pl-[60px]">
-				<h2 className="font-medium font-montserrat text-gray-dark text-xl md:text-2xl">
-					Let&apos;s plan your next meeting.
+		<div className="mx-auto my-6 flex w-[calc(100%-2rem)] max-w-6xl flex-col gap-y-6 px-4 md:my-8 md:rounded-xl md:border md:border-gray-300">
+			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
+			<div className="w-full rounded-xl border bg-white px-4 py-6 md:px-14">
+				<h2 className="hidden font-medium text-2xl text-gray-dark sm:block md:text-3xl">
+					Plan your next meeting with ZotMeet
+				</h2>
+				<h2 className="mb-10 flex justify-center text-3xl sm:hidden">
+					Create Meeting
 				</h2>
 
-				<h3 className="font-light text-gray-400 text-sm md:text-base">
-					Select potential dates and times for you and your team.
+				<h3 className="hidden font-light text-gray-400 text-sm sm:mb-12 sm:block md:text-sm">
+					FIND THE PERFECT TIME AND PLACE FOR YOUR MEETING.
 				</h3>
-			</div>
 
-			<div className="w-full rounded-xl border bg-white px-8 py-6 md:px-14">
-				<div className="flex flex-col gap-6">
+				<div className="flex w-full max-w-md flex-col gap-6 md:w-full md:max-w-none">
 					<MeetingNameField
 						meetingName={meetingName}
 						setMeetingName={setMeetingName}
 					/>
-
-					<MeetingTimeField
-						startTime={startTime}
-						endTime={endTime}
-						setStartTime={setStartTime}
-						setEndTime={setEndTime}
-					/>
+					<div className="flex flex-col md:grid md:grid-cols-2 md:gap-8">
+						<div className="mb-4 flex flex-col gap-y-12">
+							<MeetingTimeField
+								startTime={startTime}
+								endTime={endTime}
+								setStartTime={setStartTime}
+								setEndTime={setEndTime}
+							/>
+							{/*
+							<MeetingLocationField
+								meetingLocation={meetingLocation}
+								setMeetingLocation={setMeetingLocation}
+								recommendation={recommendation}
+								setRecommendation={setRecommendation}
+							/>
+							*/}
+						</div>
+						<Calendar
+							selectedDays={selectedDays}
+							setSelectedDays={setSelectedDays}
+							meetingType={meetingType}
+							setMeetingType={setMeetingType}
+						/>
+					</div>
+				</div>
+				<div className="mt-10 flex justify-center md:justify-end">
+					<Button
+						type="button"
+						className={cn("w-full rounded-lg font-medium text-lg md:w-auto")}
+						disabled={!hasValidInputs || isCreating}
+						onClick={handleCreation}
+					>
+						{isCreating ? "Creating..." : "Create Meeting"}
+					</Button>
 				</div>
 			</div>
-
-			<Calendar
-				selectedDays={selectedDays}
-				setSelectedDays={setSelectedDays}
-				meetingType={meetingType}
-				setMeetingType={setMeetingType}
-			/>
-
-			<div className="sticky bottom-0 -ml-4 flex w-[100vw] flex-row items-center justify-end gap-x-4 border-border border-t bg-white p-3 md:bottom-4 md:ml-0 md:w-full md:rounded-xl md:border">
-				<p className="font-bold text-slate-medium text-sm uppercase">
-					{selectedDays.length} days selected
-				</p>
-
-				<Button
-					className={cn(
-						"sm:btn-wide w-48 rounded-lg border-none bg-green-500 font-medium font-montserrat text-gray-light text-xl hover:bg-green-500/80",
-					)}
-					disabled={!hasValidInputs || isCreating}
-					onClick={handleCreation}
-				>
-					{isCreating ? "Creating..." : "Continue →"}
-				</Button>
-			</div>
+			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
 		</div>
 	);
 }

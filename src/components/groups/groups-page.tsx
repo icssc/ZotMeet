@@ -1,11 +1,15 @@
 "use client";
 
-import { Plus, Search, Users } from "lucide-react";
+import { Add } from "@mui/icons-material";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { Button } from "@mui/material";
+import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { GroupCard } from "@/components/groups/group-card";
 import { cn } from "@/lib/utils";
 import type { GroupWithDetails } from "@/server/data/groups/queries";
+import { InviteDecision } from "./invite-decisions";
 
 type FilterTab = "all" | "created" | "availability";
 
@@ -47,72 +51,97 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 		[groups],
 	);
 
+	const [showJoinGroup, setShowJoinGroup] = useState(false);
+
 	return (
 		<div className="w-full">
-			<div className="flex items-end justify-between">
-				<h1 className="font-bold font-montserrat text-5xl">Groups</h1>
+			<div className="mt-6 mb-8 flex items-center sm:hidden">
+				<h1 className="text-5xl">Groups</h1>
 
-				<div className="flex items-center gap-4">
-					<button
-						type="button"
-						onClick={() => setCreateDialogOpen(true)}
-						className="flex items-center gap-5 rounded-[10px] bg-[#f7f7f7] px-3 py-1.5"
-					>
-						<Plus className="size-5" />
-						<span className="font-medium text-[#222] text-base tracking-[0.15px]">
-							Create Group
-						</span>
-					</button>
-
-					<button
-						type="button"
-						className="flex items-center gap-5 rounded-[10px] bg-[#f7f7f7] px-3 py-1.5"
-					>
-						<Users className="size-5" />
-						<span className="font-medium text-[#222] text-base tracking-[0.15px]">
-							Join Existing Group
-						</span>
-					</button>
-				</div>
+				<Button
+					type="button"
+					onClick={() => setCreateDialogOpen(true)}
+					sx={{
+						backgroundColor: "#F26489",
+						color: "white",
+						fontSize: "2rem",
+						padding: 0,
+						marginLeft: "auto",
+						minWidth: 0,
+						width: "3rem",
+						height: "3rem",
+					}}
+				>
+					+
+				</Button>
 			</div>
 
-			<div className="mt-4 border-gray-200 border-b" />
-
-			<div className="mt-4 flex flex-wrap items-center gap-3">
-				<div className="flex items-center gap-2.5 rounded-full bg-gray-200 px-4 py-2">
-					<Search className="size-5 text-gray-600" />
+			<div className="block sm:flex">
+				<div className="flex items-center gap-2.5 rounded-full bg-gray-100 px-4 py-2">
+					<Search className="size-5 text-gray-400" />
 					<input
 						type="text"
 						placeholder="Search"
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
-						className="bg-transparent font-semibold text-base outline-none placeholder:text-gray-500"
+						className="bg-transparent text-base outline-none placeholder:text-gray-400"
 					/>
 				</div>
 
-				<FilterChip
-					label="All Groups"
-					count={counts.all}
-					active={activeFilter === "all"}
-					onClick={() => setActiveFilter("all")}
-				/>
-				<FilterChip
-					label="Created By You"
-					count={counts.created}
-					active={activeFilter === "created"}
-					onClick={() => setActiveFilter("created")}
-				/>
-				<FilterChip
-					label="Availability Needed"
-					count={counts.availability}
-					active={activeFilter === "availability"}
-					onClick={() => setActiveFilter("availability")}
-				/>
+				<div className="ml-auto hidden sm:block">
+					<Button
+						type="button"
+						onClick={() => setShowJoinGroup(true)}
+						className="flex items-center"
+					>
+						<div className="flex gap-2 text-black">
+							<PersonAddIcon className="size-5" />
+							<p>Join Group</p>
+						</div>
+					</Button>
+
+					<Button
+						type="button"
+						onClick={() => setCreateDialogOpen(true)}
+						className="flex items-center"
+					>
+						<div className="flex gap-2 text-black">
+							<Add className="size-5" />
+							<p>Create Group</p>
+						</div>
+					</Button>
+				</div>
+			</div>
+
+			<div className="mt-4 border-gray-200 border-b" />
+
+			<div className="mt-4 flex flex-col flex-wrap gap-3">
+				<div className="flex gap-1">
+					<FilterChip
+						label="All"
+						count={counts.all}
+						active={activeFilter === "all"}
+						onClick={() => setActiveFilter("all")}
+					/>
+					<FilterChip
+						label="By You"
+						count={counts.created}
+						active={activeFilter === "created"}
+						onClick={() => setActiveFilter("created")}
+					/>
+					<FilterChip
+						label="Availability Needed"
+						count={counts.availability}
+						active={activeFilter === "availability"}
+						onClick={() => setActiveFilter("availability")}
+					/>
+				</div>
 			</div>
 
 			<div className="mt-8">
+				<p className="p-1 text-gray-400">All ({counts.all})</p>
 				{filteredGroups.length > 0 ? (
-					<div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid grid-cols-1 gap-y-2 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-8">
 						{filteredGroups
 							.filter((group) => group.ownerEmail !== null)
 							.map((group) => (
@@ -123,7 +152,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									description={group.description}
 									memberEmails={group.memberEmails}
 									totalMembers={group.totalMembers}
-									ownerEmail={group.ownerEmail as string}
+									creatorName={group.creatorName}
 								/>
 							))}
 					</div>
@@ -138,6 +167,8 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 				open={createDialogOpen}
 				onOpenChange={setCreateDialogOpen}
 			/>
+
+			<InviteDecision open={showJoinGroup} onOpenChange={setShowJoinGroup} />
 		</div>
 	);
 }
@@ -158,16 +189,16 @@ function FilterChip({
 			type="button"
 			onClick={onClick}
 			className={cn(
-				"flex items-center gap-2.5 rounded-full px-4 py-2 transition-colors",
+				"flex items-center gap-2.5 rounded-lg px-1.5 py-2.5 transition-colors sm:px-2 sm:py-2",
 				active
-					? "bg-blue-600/80 text-white"
+					? "bg-[#1F2A44] text-white"
 					: "bg-black/[0.04] text-black hover:bg-black/[0.08]",
 			)}
 		>
-			<span className="font-semibold text-base">{label}</span>
+			<span className="font-semibold text-base leading-none">{label}</span>
 			<span
 				className={cn(
-					"font-bold text-xs uppercase",
+					"font-bold text-base leading-none",
 					active ? "text-white" : "text-[#918d89]",
 				)}
 			>

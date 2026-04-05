@@ -1,27 +1,13 @@
-import { ThemeProvider } from "@mui/material/styles";
+import "./globals.css";
+import { getUserThemeMode } from "@actions/user/action";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata } from "next";
-import localFont from "next/font/local";
-
-import "./globals.css";
-
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
-import { Banner } from "@/components/ui/banner";
+import AppThemeProvider from "@/components/theme/theme-provider";
 import { cn } from "@/lib/utils";
-import theme, { dmSans, montserrat } from "@/theme";
-
-const geistSans = localFont({
-	src: "./fonts/GeistVF.woff",
-	variable: "--font-geist-sans",
-	weight: "100 900",
-});
-const geistMono = localFont({
-	src: "./fonts/GeistMonoVF.woff",
-	variable: "--font-geist-mono",
-	weight: "100 900",
-});
+import { figtree } from "@/theme";
 
 export const metadata: Metadata = {
 	title: "ZotMeet | Create a Meeting",
@@ -31,38 +17,31 @@ export const metadata: Metadata = {
 	},
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	// Fetch the preference on the server
+	const initialMode = await getUserThemeMode();
+
 	return (
-		<html lang="en" className={`${dmSans.className} ${montserrat.className}`}>
+		<html lang="en" className={figtree.className}>
 			<body
 				className={cn(
-					`${geistSans.variable} ${geistMono.variable} antialiased`,
+					`${figtree.variable} antialiased`,
 					"bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]",
 				)}
 			>
 				<NuqsAdapter>
 					<AppRouterCacheProvider>
-						<ThemeProvider theme={theme}>
+						<AppThemeProvider initialMode={initialMode}>
 							<AppShellWrapper>
-								<div className="h-full rounded-tl-xl bg-gray-50">
-									<Banner
-										chip="ALPHA"
-										storageKey="creation-alpha-banner-dismissed"
-										className="mx-4 mt-4"
-									>
-										ZotMeet is currently in alpha. You may experience bugs or
-										unexpected behavior.
-									</Banner>
-									{children}
-								</div>
+								<div className="h-full rounded-tl-xl">{children}</div>
 							</AppShellWrapper>
 
 							<Toaster />
-						</ThemeProvider>
+						</AppThemeProvider>
 					</AppRouterCacheProvider>
 				</NuqsAdapter>
 			</body>

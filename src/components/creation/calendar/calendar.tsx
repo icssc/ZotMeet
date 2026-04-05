@@ -1,9 +1,9 @@
+import { Tab, Tabs } from "@mui/material";
 import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import { CalendarBody } from "@/components/creation/calendar/calendar-body";
 import { Week } from "@/components/creation/calendar/week";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { SelectMeeting } from "@/db/schema";
 import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
@@ -101,93 +101,97 @@ export function Calendar({
 		: `${monthName} ${currentYear}`;
 
 	return (
-		<div className="rounded-xl border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-7">
-			<div className="flex flex-col items-start justify-between space-y-4 px-8 pb-6 md:px-16 lg:flex-row lg:items-start lg:space-y-0">
-				<h3 className="text-left font-montserrat font-semibold text-2xl text-gray-dark md:text-3xl">
-					{title}
-				</h3>
-
+		<div className="rounded-lg border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-6">
+			<div className="flex flex-col items-start justify-between px-4 pb-3 md:items-center md:px-8">
 				<Tabs
 					value={meetingType}
-					onValueChange={(value) => {
+					onChange={(_event: React.SyntheticEvent, value: string) => {
 						setMeetingType(value as SelectMeeting["meetingType"]);
 						setSelectedDays([]);
 					}}
+					sx={{
+						"& .MuiTab-root": {
+							fontSize: { xs: "1rem", md: "1rem" },
+							minWidth: { xs: 120, md: 180 },
+						},
+					}}
 				>
-					<TabsList className="bg-background p-1">
-						<TabsTrigger
-							value="dates"
-							className="data-[state=active]:ring-1 data-[state=active]:ring-border"
-						>
-							Specific Dates
-						</TabsTrigger>
-						<TabsTrigger
-							value="days"
-							className="data-[state=active]:ring-1 data-[state=active]:ring-border"
-						>
-							Days of Week
-						</TabsTrigger>
-					</TabsList>
+					<Tab value="dates" label="Specific Dates" />
+					<Tab value="days" label="Days of Week" />
 				</Tabs>
+
+				<div className="mt-4 flex w-full items-center justify-between md:justify-start md:pl-15">
+					<div className="mt-4 flex w-full items-center pl-3 md:pl-5">
+						<h3 className="font-semibold text-gray-dark text-lg md:text-2xl">
+							{title}
+						</h3>
+
+						{/* Mobile only buttons */}
+						<div className="flex gap-2 md:hidden">
+							<Button
+								onClick={decrementMonth}
+								className="bg-transparent hover:bg-transparent"
+							>
+								<span className="text-3xl text-gray-500">&lsaquo;</span>
+							</Button>
+
+							<Button
+								onClick={incrementMonth}
+								className="bg-transparent hover:bg-transparent"
+							>
+								<span className="text-3xl text-gray-500">&rsaquo;</span>
+							</Button>
+						</div>
+					</div>
+				</div>
 			</div>
 
-			<div className="flex items-center justify-between">
-				{!isMeetingTypeDays && (
+			{isMeetingTypeDays ? (
+				<div className="px-8 md:px-16">
+					<Week selectedDays={selectedDays} setSelectedDays={setSelectedDays} />
+				</div>
+			) : (
+				<div className="flex items-center justify-between">
 					<Button
 						onClick={decrementMonth}
-						className="bg-transparent p-3 hover:bg-transparent"
+						className="hidden bg-transparent p-3 hover:bg-transparent md:block"
 					>
 						<span className="text-3xl text-gray-500">&lsaquo;</span>
 					</Button>
-				)}
 
-				<div
-					className={
-						isMeetingTypeDays ? "w-full px-3 md:px-10" : "w-full md:px-4"
-					}
-				>
-					<table className="w-full table-fixed p-3">
-						{isMeetingTypeDays ? (
-							<Week
-								selectedDays={selectedDays}
-								setSelectedDays={setSelectedDays}
+					<div className="w-full md:px-2">
+						<table className="w-full table-fixed border-collapse">
+							<thead>
+								<tr>
+									{WEEKDAYS.map((dayOfWeek) => (
+										<th className="px-0" key={dayOfWeek}>
+											<div>
+												<p className="w-full text-center font-light text-slate-medium text-sm uppercase md:font-bold">
+													{dayOfWeek.slice(0, 1)}
+												</p>
+											</div>
+											<Separator className="my-2 h-[2px] bg-slate-base" />
+										</th>
+									))}
+								</tr>
+							</thead>
+
+							<CalendarBody
+								calendarDays={calendarDays}
+								currentMonth={currentMonth}
+								updateSelectedRange={updateSelectedRange}
 							/>
-						) : (
-							<>
-								<thead>
-									<tr>
-										{WEEKDAYS.map((dayOfWeek) => (
-											<th className="px-0" key={dayOfWeek}>
-												<div>
-													<p className="w-full text-center font-light text-slate-medium text-sm uppercase md:font-bold">
-														{dayOfWeek}
-													</p>
-												</div>
-												<Separator className="my-2 h-[2px] bg-slate-base" />
-											</th>
-										))}
-									</tr>
-								</thead>
+						</table>
+					</div>
 
-								<CalendarBody
-									calendarDays={calendarDays}
-									currentMonth={currentMonth}
-									updateSelectedRange={updateSelectedRange}
-								/>
-							</>
-						)}
-					</table>
-				</div>
-
-				{!isMeetingTypeDays && (
 					<Button
 						onClick={incrementMonth}
-						className="bg-transparent p-3 hover:bg-transparent"
+						className="hidden bg-transparent p-3 hover:bg-transparent md:block"
 					>
 						<span className="text-3xl text-gray-500">&rsaquo;</span>
 					</Button>
-				)}
-			</div>
+				</div>
+			)}
 		</div>
 	);
 }

@@ -15,7 +15,17 @@ export type UserProfile = {
 	memberId: string;
 	displayName: string;
 };
-
+export type NotificationItem = {
+	id: string;
+	createdAt: Date | null;
+	memberId: string;
+	createdBy: string | null;
+	title: string;
+	type: string;
+	readAt: Date | null;
+	message: string | null;
+	redirect: string | null;
+};
 //TODO: Guest
 // export type GuestMember = {
 //     memberId: string;
