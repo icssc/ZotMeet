@@ -79,6 +79,7 @@ Simple, clean, and efficient meeting scheduling app.
 | `pnpm db:generate` | Generate new migrations from schema changes |
 | `pnpm db:migrate` | Apply pending migrations |
 | `pnpm db:studio` | Open Drizzle Studio to browse your database |
+| `pnpm db:seed` | Seed the database with a group and up to 20 random test users |
 
 ### Committing Changes
 
@@ -93,6 +94,24 @@ Simple, clean, and efficient meeting scheduling app.
 If you need credentials for the `.env` file, contact the project lead ([Kyle](https://github.com/kylebtran/)).
 
 After changes to the .env file, run `pnpm run check` to update SvelteKit's auto-generated environment variable types.
+
+### Seeding the Database (for Testing)
+
+The seed script (`src/db/seed.ts`) creates a group called **"ZotMeet Test Group"** and populates it with up to 20 randomly generated users. This is useful for testing features like availability views and group dashboards without needing real accounts.
+
+To seed:
+
+```bash
+pnpm db:seed
+```
+
+The script can be run multiple times — each run adds up to 20 more randomly generated members to the group, so you can keep running it to grow the group as needed.
+
+**Important:** The script cannot access your session, so it has no way of knowing your user ID. After seeding, you must manually add yourself to the group:
+
+1. Open Drizzle Studio: `pnpm db:studio`
+2. Find your user ID in the `users` table.
+3. Insert a row into `usersInGroup` with your user ID and the seeded group's ID.
 
 ### Database Schema
 
