@@ -4,8 +4,10 @@ import { revalidatePath } from "next/cache";
 import { getCurrentSession } from "@/lib/auth";
 import {
 	deleteNotificationByID,
+	getUserThemeModeFromDB,
 	markNotificationAsRead,
 	searchUsersByEmail,
+	updateUserThemeMode,
 } from "@/server/data/user/queries";
 export async function searchUsers(query: string) {
 	const { user } = await getCurrentSession();
@@ -26,4 +28,19 @@ export async function deleteNotification(notificationId: string) {
 	if (!user) return;
 	await deleteNotificationByID(notificationId);
 	revalidatePath("/", "layout");
+}
+
+export async function saveThemePreference(
+	themeMode: "light" | "dark" | "system",
+) {
+	const { user } = await getCurrentSession();
+	if (!user) return;
+	await updateUserThemeMode(user.id, themeMode);
+	revalidatePath("/", "layout");
+}
+
+export async function getUserThemeMode() {
+	const { user } = await getCurrentSession();
+	if (!user) return "light";
+	return await getUserThemeModeFromDB(user.id);
 }

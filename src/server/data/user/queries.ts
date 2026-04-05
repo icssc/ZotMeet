@@ -102,3 +102,25 @@ export async function markNotificationAsRead(notificationId: string) {
 export async function deleteNotificationByID(notificationId: string) {
 	await db.delete(notifications).where(eq(notifications.id, notificationId));
 }
+
+export async function updateUserThemeMode(
+	userId: string,
+	themeMode: "light" | "dark" | "system",
+) {
+	return await db
+		.update(users)
+		.set({ themeMode })
+		.where(eq(users.id, userId))
+		.returning();
+}
+
+export async function getUserThemeModeFromDB(userId: string) {
+	const user = await db.query.users.findFirst({
+		where: eq(users.id, userId),
+		columns: {
+			themeMode: true,
+		},
+	});
+
+	return user?.themeMode ?? "light";
+}
