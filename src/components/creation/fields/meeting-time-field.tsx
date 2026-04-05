@@ -2,34 +2,6 @@ import { TextField } from "@mui/material";
 import { type Dispatch, type SetStateAction, useState } from "react";
 import type { HourMinuteString } from "@/lib/types/chrono";
 
-const convertTo24Hour = (hour: number, period: string) => {
-	if (period === "PM" && hour !== 12) {
-		hour += 12;
-	} else if (period === "AM" && hour === 12) {
-		hour = 0;
-	}
-	return hour.toString().padStart(2, "0");
-};
-
-const parseHourMinuteString = (
-	time: HourMinuteString,
-): {
-	hour: number;
-	period: "AM" | "PM";
-} => {
-	const hour = parseInt(time.split(":")[0], 10);
-	let displayHour = hour;
-	const period = hour >= 12 ? "PM" : "AM";
-
-	if (hour > 12) {
-		displayHour = hour - 12;
-	} else if (hour === 0) {
-		displayHour = 12;
-	}
-
-	return { hour: displayHour, period };
-};
-
 interface MeetingTimeFieldProps {
 	startTime: HourMinuteString;
 	endTime: HourMinuteString;
@@ -43,44 +15,6 @@ export const MeetingTimeField = ({
 	setStartTime,
 	setEndTime,
 }: MeetingTimeFieldProps) => {
-	const { hour: initialStartHour, period: initialStartPeriod } =
-		parseHourMinuteString(startTime);
-	const { hour: initialEndHour, period: initialEndPeriod } =
-		parseHourMinuteString(endTime);
-
-	const [startHour, setStartHour] = useState(initialStartHour);
-	const [startPeriod, setStartPeriod] = useState<"AM" | "PM">(
-		initialStartPeriod,
-	);
-	const [endHour, setEndHour] = useState(initialEndHour);
-	const [endPeriod, setEndPeriod] = useState<"AM" | "PM">(initialEndPeriod);
-
-	const handleStartHourChange = (value: string) => {
-		const hour = parseInt(value, 10);
-		setStartHour(hour);
-		setStartTime(
-			`${convertTo24Hour(hour, startPeriod)}:00:00` as HourMinuteString,
-		);
-	};
-
-	const handleStartPeriodChange = (value: string) => {
-		setStartPeriod(value as "AM" | "PM");
-		setStartTime(
-			`${convertTo24Hour(startHour, value)}:00:00` as HourMinuteString,
-		);
-	};
-
-	const handleEndHourChange = (value: string) => {
-		const hour = parseInt(value, 10);
-		setEndHour(hour);
-		setEndTime(`${convertTo24Hour(hour, endPeriod)}:00:00` as HourMinuteString);
-	};
-
-	const handleEndPeriodChange = (value: string) => {
-		setEndPeriod(value as "AM" | "PM");
-		setEndTime(`${convertTo24Hour(endHour, value)}:00:00` as HourMinuteString);
-	};
-
 	return (
 		<div>
 			{/* <div className="flex w-full flex-col items-center space-y-4 pt-2 text-gray-500 text-sm"> */}

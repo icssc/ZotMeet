@@ -17,7 +17,6 @@ interface GroupResponsesProps {
 	availabilityDates: ZotDate[];
 	members: Member[];
 	fromTime: number;
-	timezone: string;
 	anchorNormalizedDate: Date[];
 	currentPageAvailability: ZotDate[];
 	availabilityTimeBlocks: number[];

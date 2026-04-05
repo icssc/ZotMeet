@@ -2,6 +2,10 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
+	// Enforce that auth routes are not proxied so that cookies are properly set on the root domain
+	if (request.nextUrl.pathname.startsWith("/auth")) {
+		return NextResponse.next();
+	}
 	// Only extend cookie expiration on GET requests since we can be sure
 	// a new session wasn't set when handling the request.
 	if (request.method === "GET") {

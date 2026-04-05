@@ -312,7 +312,7 @@ export function GroupAvailability({
 		],
 	);
 
-	const handleMouseDown = useCallback(
+	const _handleMouseDown = useCallback(
 		({
 			zotDateIndex,
 			blockIndex,
@@ -328,7 +328,7 @@ export function GroupAvailability({
 		[isScheduling, setStartBlockSelection, setEndBlockSelection],
 	);
 
-	const handleMouseMove = useCallback(
+	const _handleMouseMove = useCallback(
 		({
 			zotDateIndex,
 			blockIndex,
@@ -343,7 +343,7 @@ export function GroupAvailability({
 		[isScheduling, startBlockSelection, setEndBlockSelection],
 	);
 
-	const handleMouseUp = useCallback(() => {
+	const _handleMouseUp = useCallback(() => {
 		if (
 			isScheduling &&
 			startBlockSelection &&

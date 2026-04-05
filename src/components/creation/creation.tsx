@@ -41,7 +41,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			(isoString) => new ZotDate(new Date(isoString)),
 		);
 	}, [urlState.selectedDates]);
-	const [recommendation, setRecommendation] = useState<boolean>(false);
+	const [_recommendation, _setRecommendation] = useState<boolean>(false);
 
 	// Helper to update selected days.
 	const setSelectedDays = (daysOrUpdater: React.SetStateAction<ZotDate[]>) => {
@@ -63,8 +63,8 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		void setUrlState({ meetingName: newName });
 	};
 
-	const meetingLocation = urlState.meetingLocation;
-	const setMeetingLocation = (locOrUpdater: React.SetStateAction<string>) => {
+	const _meetingLocation = urlState.meetingLocation;
+	const _setMeetingLocation = (locOrUpdater: React.SetStateAction<string>) => {
 		const newLoc =
 			typeof locOrUpdater === "function"
 				? locOrUpdater(urlState.meetingLocation)

@@ -7,6 +7,7 @@ import {
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
 import GoogleIcon from "@mui/icons-material/Google";
+import { FormControlLabel, Switch } from "@mui/material";
 import {
 	CalendarCheck,
 	CalendarPlus,
@@ -27,6 +28,7 @@ import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useBestTimesToggleStore } from "@/store/useBestTimesToggleStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
 interface AvailabilityHeaderProps {
@@ -64,14 +66,19 @@ export function AvailabilityHeader({
 		})),
 	);
 
+	const { overlayGoogleCalendar, setOverlayGoogleCalendar } =
+		useAvailabilityViewStore(
+			useShallow((state) => ({
+				overlayGoogleCalendar: state.overlayGoogleCalendar,
+				setOverlayGoogleCalendar: state.setOverlayGoogleCalendar,
+			})),
+		);
+
 	const handleCancel = () => {
 		onCancel();
 		setChangeableTimezone(true);
 		setAvailabilityView("group");
 	};
-
-	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
-	// const [guestName, setGuestName] = useState("");
 
 	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -83,8 +90,6 @@ export function AvailabilityHeader({
 
 	const handleSave = async () => {
 		if (!user) {
-			// setIsGuestDialogOpen(true);
-
 			return;
 		}
 		setChangeableTimezone(true);
@@ -100,11 +105,6 @@ export function AvailabilityHeader({
 			setHasAvailability(true);
 			setAvailabilityView("group");
 			onSave();
-
-			// Clear guest member name
-			if (!user) {
-				// setGuestName("");
-			}
 		} else {
 			console.error("Error saving availability:", response.body.error);
 		}
@@ -179,6 +179,10 @@ export function AvailabilityHeader({
 		}
 	};
 
+	const handleToggleCalendar = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setOverlayGoogleCalendar(event.target.checked);
+	};
+
 	return (
 		<>
 			<div className="px-2 pt-8">
@@ -220,6 +224,17 @@ export function AvailabilityHeader({
 									<span className="hidden md:flex">Save</span>
 									<CircleCheckIcon />
 								</Button>
+								<FormControlLabel
+									className="ml-2"
+									control={
+										<Switch
+											checked={overlayGoogleCalendar}
+											onChange={handleToggleCalendar}
+											size="small"
+										/>
+									}
+									label="Google Calendar"
+								/>
 							</>
 						) : (
 							<>

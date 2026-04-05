@@ -14,6 +14,7 @@ interface PersonalAvailabilityProps {
 	currentPageAvailability: ZotDate[];
 	googleCalendarEvents: GoogleCalendarEvent[];
 	meetingDates: string[];
+	showGoogleCalendar: boolean;
 }
 
 export function PersonalAvailability({
@@ -24,12 +25,17 @@ export function PersonalAvailability({
 	currentPageAvailability,
 	googleCalendarEvents,
 	meetingDates,
+	showGoogleCalendar,
 }: PersonalAvailabilityProps) {
 	const [isStateUnsaved, setIsStateUnsaved] = useState(false);
 	const initialAvailabilityRef = useRef<string | null>(null);
 
+	const visibleGoogleCalendarEvents = showGoogleCalendar
+		? googleCalendarEvents
+		: [];
+
 	const { processedCellSegments } = useGoogleCalendar({
-		googleCalendarEvents,
+		googleCalendarEvents: visibleGoogleCalendarEvents,
 		currentPageAvailability,
 		availabilityTimeBlocks,
 		meetingDates,
