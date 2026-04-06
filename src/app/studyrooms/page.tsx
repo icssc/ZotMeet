@@ -45,6 +45,8 @@ export default function Page() {
 				capacityMax: capacityMax ? Number(capacityMax) : undefined,
 				isTechEnhanced,
 			});
+			console.log("search results:", data);
+
 			setRooms(data);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "API call failed");
@@ -53,8 +55,6 @@ export default function Page() {
 
 	return (
 		<div>
-			<RoomsHeatmap />
-
 			<form onSubmit={handleSubmit} className="flex flex-col gap-2">
 				<Input
 					type="date"
@@ -105,6 +105,7 @@ export default function Page() {
 				<Button type="submit">Search</Button>
 			</form>
 			{error && <p className="text-destructive text-sm">{error}</p>}
+			{rooms && <RoomsHeatmap rooms={rooms} timeRange={timeRange} />}
 			{rooms && <RoomResults rooms={rooms} timeRange={timeRange} />}
 		</div>
 	);

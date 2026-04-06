@@ -1,9 +1,15 @@
-import { Table, TableCell, TableHead, TableRow } from "@mui/material";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableRow,
+} from "@mui/material";
+import Link from "next/link";
+import type { StudyRooms } from "@/lib/types/studyrooms";
 
-// 9:00 AM PST
-const slotStart = "2026-04-05T17:00:00Z";
-// 5:00 PM PST
-const slotEnd = "2026-04-06T01:00:00Z";
+const slotStart = "2026-04-06T11:00:00Z"; // 11:00am UTC
+const slotEnd = "2026-04-06T17:00:00Z"; // 5:00pm UTC
 
 const formatISOToLocalTime = (isoString: string): string => {
 	return new Date(isoString)
@@ -11,6 +17,7 @@ const formatISOToLocalTime = (isoString: string): string => {
 			hour: "numeric",
 			minute: "2-digit",
 			hour12: true,
+			timeZone: "UTC",
 		})
 		.toLowerCase();
 };
@@ -29,29 +36,50 @@ while (current < end) {
 }
 
 const ROOMS = ["Room A", "Room B", "Room C"];
-const SLOTS = [480, 510, 540, 570]; // 8:00, 8:30, 9:00, 9:30
 
-export const RoomsHeatmap = () => {
+interface RoomsHeatmapProps {
+	rooms: StudyRooms["data"];
+	timeRange: string;
+}
+
+export const RoomsHeatmap = ({ rooms, timeRange }: RoomsHeatmapProps) => {
 	return (
 		<div className="">
-			<Table>
+			<p>{timeRange}</p>
+			<Table size="small" sx={{ borderCollapse: "collapse", borderSpacing: 0 }}>
 				<TableHead>
 					<TableRow>
-						<TableCell className="border border-green-200">
-							<div className="">
-								<h1>Rooms</h1>
-							</div>
-						</TableCell>
-
-						<div>
-							{timestamps.map((t) => (
-								<TableCell key={t} className="border border-green-200">
-									<div className="w-20">{t}</div>
-								</TableCell>
-							))}
-						</div>
+						<TableCell>Rooms</TableCell>
+						{timestamps.map((t) => (
+							<TableCell key={t} align="center">
+								<p className="w-14 whitespace-nowrap">{t}</p>
+							</TableCell>
+						))}
 					</TableRow>
 				</TableHead>
+
+				<TableBody>
+					{rooms.map((room) => (
+						<TableRow key={room.id}>
+							<TableCell className="whitespace-nowrap">
+								<p>{room.location}</p>
+								<p className="text-xs">{room.name}</p>
+							</TableCell>
+
+							{room.slots.map((s) => {
+								return (
+									<TableCell key={s.start} className="!p-0 border">
+										<Link href={s.url} className="block h-full w-full">
+											<div
+												className={`h-12 w-full ${s.isAvailable ? "bg-green-300" : "bg-red-300"}`}
+											/>
+										</Link>
+									</TableCell>
+								);
+							})}
+						</TableRow>
+					))}
+				</TableBody>
 			</Table>
 		</div>
 	);
