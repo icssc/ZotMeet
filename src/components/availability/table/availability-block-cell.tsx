@@ -1,9 +1,8 @@
-import { useShallow } from "zustand/shallow";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
 import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
 import type { EventSegment } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
-import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface AvailabilityBlockCellProps {
 	blockIndex: number;
@@ -26,11 +25,7 @@ export function AvailabilityBlockCell({
 	eventSegments,
 	hasSpacerBefore = false,
 }: AvailabilityBlockCellProps) {
-	const { selectionState } = useBlockSelectionStore(
-		useShallow((state) => ({
-			selectionState: state.selectionState,
-		})),
-	);
+	const selectionState = useAvailabilityStore((state) => state.selectionState);
 
 	return (
 		<td className="relative px-0 py-0">

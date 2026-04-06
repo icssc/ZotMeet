@@ -65,17 +65,6 @@ export default async function Page(props: PageProps) {
 	const scheduledBlocks = await getScheduledTimeBlocks(meetingData.id);
 
 	const session = await getCurrentSession();
-	let userAvailability = null;
-
-	if (session.user !== null) {
-		const userId = session.user.memberId;
-		for (const availability of allAvailabilities) {
-			if (availability.memberId === userId) {
-				userAvailability = availability;
-				break;
-			}
-		}
-	}
 
 	// const queryDates = meetingData.dates
 	//     .map((date) => date.toString())
@@ -98,7 +87,6 @@ export default async function Page(props: PageProps) {
 		<div className="space-y-2 px-4 pb-20">
 			<Availability
 				meetingData={meetingData}
-				userAvailability={userAvailability}
 				allAvailabilities={allAvailabilities}
 				user={session.user}
 				scheduledBlocks={scheduledBlocks}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ZotDate } from "@/lib/zotdate";
-import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface UseAvailabilityEditorProps {
 	currentAvailabilityDates: ZotDate[];
@@ -11,7 +11,7 @@ interface UseAvailabilityEditorProps {
 export function useEditState({
 	currentAvailabilityDates,
 }: UseAvailabilityEditorProps) {
-	const { availabilityView } = useAvailabilityViewStore();
+	const availabilityView = useAvailabilityStore((state) => state.availabilityView);
 
 	const [originalAvailabilityDates, setOriginalAvailabilityDates] = useState<
 		ZotDate[]
