@@ -15,8 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import type { UserProfile } from "@/lib/auth/user";
 import type { Member } from "@/lib/types/availability";
-import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
-import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface MobileActionBarProps {
 	user: UserProfile | null;
@@ -51,16 +50,14 @@ export function MobileActionBar({
 }: MobileActionBarProps) {
 	const router = useRouter();
 
-	const { availabilityView, setAvailabilityView } = useAvailabilityViewStore(
-		useShallow((state) => ({
-			availabilityView: state.availabilityView,
-			setAvailabilityView: state.setAvailabilityView,
-		})),
-	);
-
-	const setIsMobileDrawerOpen = useGroupSelectionStore(
-		(state) => state.setIsMobileDrawerOpen,
-	);
+	const { availabilityView, setAvailabilityView, setIsMobileDrawerOpen } =
+		useAvailabilityStore(
+			useShallow((state) => ({
+				availabilityView: state.availabilityView,
+				setAvailabilityView: state.setAvailabilityView,
+				setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
+			})),
+		);
 
 	const [isMoreOptionsOpen, setIsMoreOptionsOpen] = useState(false);
 
