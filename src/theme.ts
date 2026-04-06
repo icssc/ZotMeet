@@ -60,6 +60,24 @@ export const getTheme = (mode: "light" | "dark") =>
 				secondary:
 					mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.6)",
 			},
+			primary: {
+				main: "#F26489",
+			},
+			secondary: {
+				main: "#1F2A44",
+			},
+			success: {
+				main: "#2E7D32",
+			},
+			warning: {
+				main: "#FC9015",
+			},
+			info: {
+				main: "#1976D2",
+			},
+			error: {
+				main: "#DA281E",
+			},
 			divider: mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.2)",
 		},
 		components: {
