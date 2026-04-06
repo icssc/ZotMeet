@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentSession } from "@/lib/auth";
 import {
+	createNewNotification,
 	deleteNotificationByID,
 	getUserThemeModeFromDB,
 	markNotificationAsRead,
@@ -43,4 +44,14 @@ export async function getUserThemeMode() {
 	const { user } = await getCurrentSession();
 	if (!user) return "light";
 	return await getUserThemeModeFromDB(user.id);
+}
+
+export async function sendNotificationsToUsers(
+	userIds: string[],
+	title: string = "New Notification",
+	message: string = "You have a new notification",
+	type: string = "info",
+	link: string,
+) {
+	return await createNewNotification(userIds, title, message, type, link);
 }

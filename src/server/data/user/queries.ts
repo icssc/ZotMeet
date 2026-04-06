@@ -76,8 +76,8 @@ export async function createNewNotification(
 	return db
 		.insert(notifications)
 		.values(
-			memberRows.map(({ memberId }) => ({
-				memberId,
+			userIds.map((userId) => ({
+				memberId: userId,
 				title,
 				message,
 				type,

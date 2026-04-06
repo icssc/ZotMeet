@@ -39,6 +39,7 @@ import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
 import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
+import { NotificationNudge } from "./notification-nudge";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -680,17 +681,22 @@ export function Availability({
 						disabled={isLastPage}
 					/>
 				</div>
-
-				<GroupResponses
-					availabilityDates={availabilityDates}
-					fromTime={fromTimeMinutes}
-					members={members}
-					timezone={userTimezone}
-					anchorNormalizedDate={anchorNormalizedDate}
-					currentPageAvailability={currentPageAvailability}
-					availabilityTimeBlocks={availabilityTimeBlocks}
-					doesntNeedDay={doesntNeedDay}
-				/>
+				<div>
+					<GroupResponses
+						availabilityDates={availabilityDates}
+						fromTime={fromTimeMinutes}
+						members={members}
+						timezone={userTimezone}
+						anchorNormalizedDate={anchorNormalizedDate}
+						currentPageAvailability={currentPageAvailability}
+						availabilityTimeBlocks={availabilityTimeBlocks}
+						doesntNeedDay={doesntNeedDay}
+					/>
+					<NotificationNudge
+						allAvailabilities={allAvailabilities}
+						meetingData={meetingData}
+					/>
+				</div>
 			</div>
 		</div>
 	);
