@@ -26,12 +26,7 @@ export function AvailabilityBlockCell({
 	eventSegments,
 	hasSpacerBefore = false,
 }: AvailabilityBlockCellProps) {
-	const {
-		startBlockSelection,
-		selectionState,
-		setStartBlockSelection,
-		setEndBlockSelection,
-	} = useAvailabilityStore(
+	const { selectionState } = useAvailabilityStore(
 		useShallow((state) => ({
 			startBlockSelection: state.startBlockSelection,
 			selectionState: state.selectionState,
