@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
 import { RoomResults } from "@/components/studyrooms/room-results";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { fetchStudyRooms } from "@/lib/studyrooms/get-rooms";
+import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
 export default function Page() {
@@ -45,6 +45,7 @@ export default function Page() {
 				capacityMax: capacityMax ? Number(capacityMax) : undefined,
 				isTechEnhanced,
 			});
+
 			setRooms(data);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "API call failed");
@@ -103,6 +104,7 @@ export default function Page() {
 				<Button type="submit">Search</Button>
 			</form>
 			{error && <p className="text-destructive text-sm">{error}</p>}
+			{rooms && <RoomsHeatmap rooms={rooms} timeRange={timeRange} />}
 			{rooms && <RoomResults rooms={rooms} timeRange={timeRange} />}
 		</div>
 	);

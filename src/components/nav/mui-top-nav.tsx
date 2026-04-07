@@ -28,7 +28,7 @@ import { logoutAction } from "@/server/actions/auth/logout/action";
 const navItems = [
 	{ title: "Meetings", url: "/summary" },
 	{ title: "Groups", url: "/groups" },
-	//{ title: "Rooms", url: "/rooms" },
+	{ title: "Rooms", url: "/studyrooms" },
 ];
 
 type MuiTopNavProps = {
