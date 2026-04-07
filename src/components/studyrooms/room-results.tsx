@@ -53,7 +53,7 @@ export function RoomResults({ rooms, timeRange }: RoomResultsProps) {
 						</span>
 						<Button
 							type="button"
-							size="sm"
+							size="small"
 							onClick={() => console.log("payload:", room)}
 						>
 							Select Room
