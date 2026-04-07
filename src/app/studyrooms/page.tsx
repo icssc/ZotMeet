@@ -15,8 +15,9 @@ import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { format } from "date-fns";
 import { useState } from "react";
 
+import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
 import { RoomResults } from "@/components/studyrooms/room-results";
-import { fetchStudyRooms } from "@/lib/studyrooms/get-rooms";
+import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
 const LOCATION_OPTIONS = [
@@ -42,6 +43,7 @@ export default function Page() {
 	const [capacityMax, setCapacityMax] = useState("");
 	const [isTechEnhanced, setIsTechEnhanced] = useState(false);
 	const [rooms, setRooms] = useState<StudyRooms["data"] | null>(null);
+	const [timeRange, setTimeRange] = useState("");
 	const [error, setError] = useState<string | null>(null);
 
 	const activeFilters = [
@@ -104,15 +106,19 @@ export default function Page() {
 			return;
 		}
 
+		const tr = `${toLocalStr(startTime)}-${toLocalStr(endTime)}`;
+
 		try {
 			const { data } = await fetchStudyRooms({
 				date: format(date, "yyyy-MM-dd"),
-				timeRange: `${toLocalStr(startTime)}-${toLocalStr(endTime)}`,
+				timeRange: tr,
 				location: location || undefined,
 				capacityMin: capacityMin ? Number(capacityMin) : undefined,
 				capacityMax: capacityMax ? Number(capacityMax) : undefined,
 				isTechEnhanced: isTechEnhanced || undefined,
 			});
+
+			setTimeRange(tr);
 			setRooms(data);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "API call failed");
@@ -214,6 +220,7 @@ export default function Page() {
 				</Button>
 			</form>
 
+			{rooms && <RoomsHeatmap rooms={rooms} timeRange={timeRange} />}
 			{rooms && <RoomResults rooms={rooms} />}
 		</LocalizationProvider>
 	);
