@@ -27,9 +27,9 @@ const LOCATION_OPTIONS = [
 	"Ayala Science Library",
 ];
 
-const toUTCStr = (d: Date) => {
-	const h = d.getUTCHours();
-	const m = d.getUTCMinutes();
+const toLocalStr = (d: Date) => {
+	const h = d.getHours();
+	const m = d.getMinutes();
 	return `${h % 12 || 12}:${m.toString().padStart(2, "0")}${h >= 12 ? "pm" : "am"}`;
 };
 
@@ -83,10 +83,31 @@ export default function Page() {
 			return;
 		}
 
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		if (date < today) {
+			setError("Date cannot be in the past.");
+			return;
+		}
+
+		if (endTime <= startTime) {
+			setError("End time must be after start time.");
+			return;
+		}
+
+		if (
+			capacityMin &&
+			capacityMax &&
+			Number(capacityMin) > Number(capacityMax)
+		) {
+			setError("Min capacity cannot be greater than max capacity.");
+			return;
+		}
+
 		try {
 			const { data } = await fetchStudyRooms({
 				date: format(date, "yyyy-MM-dd"),
-				timeRange: `${toUTCStr(startTime)}-${toUTCStr(endTime)}`,
+				timeRange: `${toLocalStr(startTime)}-${toLocalStr(endTime)}`,
 				location: location || undefined,
 				capacityMin: capacityMin ? Number(capacityMin) : undefined,
 				capacityMax: capacityMax ? Number(capacityMax) : undefined,

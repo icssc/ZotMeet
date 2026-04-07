@@ -1,6 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
 interface RoomResultsProps {
@@ -9,35 +12,39 @@ interface RoomResultsProps {
 
 export function RoomResults({ rooms }: RoomResultsProps) {
 	if (rooms.length === 0) {
-		return <p className="text-muted-foreground text-sm">No rooms found.</p>;
+		return (
+			<Typography variant="body2" color="text.secondary">
+				No rooms found.
+			</Typography>
+		);
 	}
 
 	return (
-		<ul className="flex flex-col gap-4">
+		<Stack divider={<Divider />} spacing={2}>
 			{rooms.map((room) => (
-				<li key={room.id} className="flex flex-col gap-1">
-					<div className="flex items-center gap-2">
-						<strong>{room.name}</strong>
-						<span className="text-muted-foreground text-sm">
+				<Stack key={room.id} spacing={1}>
+					<Stack direction="row" alignItems="center" spacing={1}>
+						<Typography fontWeight="bold">{room.name}</Typography>
+						<Typography variant="body2" color="text.secondary">
 							— {room.location}, capacity {room.capacity}
 							{room.techEnhanced && " (tech enhanced)"}
-						</span>
+						</Typography>
 						<Button
-							type="button"
-							size="sm"
+							size="small"
+							variant="outlined"
 							onClick={() => console.log("payload:", room)}
 						>
 							Select Room
 						</Button>
-					</div>
-					<ul className="flex flex-col gap-1 pl-4">
+					</Stack>
+					<Stack spacing={0.5} pl={2}>
 						{[...room.slots]
 							.sort((a, b) => a.start.localeCompare(b.start))
 							.slice(0, 5)
 							.map((slot) => (
-								<li
+								<Typography
 									key={`${slot.studyRoomId}-${slot.start}`}
-									className="text-sm"
+									variant="body2"
 								>
 									{new Date(slot.start).toLocaleTimeString("en-US", {
 										hour: "numeric",
@@ -52,11 +59,11 @@ export function RoomResults({ rooms }: RoomResultsProps) {
 									})}
 									{": "}
 									{slot.isAvailable ? "Available" : "Unavailable"}
-								</li>
+								</Typography>
 							))}
-					</ul>
-				</li>
+					</Stack>
+				</Stack>
 			))}
-		</ul>
+		</Stack>
 	);
 }
