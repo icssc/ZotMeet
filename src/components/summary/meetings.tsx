@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@mui/material";
 import { useCallback, useState } from "react";
 import {
 	Tabs,
@@ -8,7 +9,6 @@ import {
 	TabsTrigger,
 } from "@/components/custom/tabs";
 import { MeetingsDisplay } from "@/components/summary/meetings-display";
-import { Button } from "@/components/ui/button";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 
 import { cn } from "@/lib/utils";

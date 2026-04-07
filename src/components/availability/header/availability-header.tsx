@@ -7,6 +7,8 @@ import {
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
 import GoogleIcon from "@mui/icons-material/Google";
+//import { Button } from "@/components/ui/button";
+import { Button } from "@mui/material";
 import {
 	CalendarCheck,
 	CalendarPlus,
@@ -21,7 +23,6 @@ import { toast } from "sonner";
 import { useShallow } from "zustand/shallow";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
-import { Button } from "@/components/ui/button";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { cn } from "@/lib/utils";
@@ -189,6 +190,7 @@ export function AvailabilityHeader({
 						availabilityView === "schedule" ? (
 							<>
 								<Button
+									variant="contained"
 									className={cn(
 										"h-8 flex-center bg-white px-4 py-0 text-white uppercase",
 										"group bg-yellow-500 hover:bg-yellow-500/80",
@@ -203,6 +205,7 @@ export function AvailabilityHeader({
 									<CircleXIcon />
 								</Button>
 								<Button
+									variant="contained"
 									className={cn(
 										"h-8 flex-center bg-white px-4 py-0 text-white uppercase",
 										"group bg-green-500 hover:bg-green-500/80",
@@ -272,6 +275,7 @@ export function AvailabilityHeader({
 
 								{isOwner && (
 									<Button
+										variant="contained"
 										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
 										onClick={() => setAvailabilityView("schedule")}
 									>
@@ -284,6 +288,7 @@ export function AvailabilityHeader({
 
 								<Button
 									className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
+									variant="contained"
 									onClick={() => {
 										if (!user) {
 											setIsAuthModalOpen(true);

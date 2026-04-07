@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@mui/material";
 
 export function GoogleButton() {
 	return (

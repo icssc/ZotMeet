@@ -1,6 +1,7 @@
 "use client";
 
 import { createMeeting } from "@actions/meeting/create/action";
+import { Button } from "@mui/material";
 import {
 	parseAsArrayOf,
 	parseAsString,
@@ -12,7 +13,6 @@ import { Calendar } from "@/components/creation/calendar/calendar";
 //import { MeetingLocationField } from "@/components/creation/fields/meeting-location-field";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
-import { Button } from "@/components/ui/button";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
@@ -223,6 +223,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 				</div>
 				<div className="mt-10 flex justify-center md:justify-end">
 					<Button
+						variant="contained"
 						type="button"
 						className={cn("w-full rounded-lg font-medium text-lg md:w-auto")}
 						disabled={!hasValidInputs || isCreating}
@@ -232,6 +233,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 					</Button>
 				</div>
 			</div>
+
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
 		</div>
 	);

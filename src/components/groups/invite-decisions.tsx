@@ -1,9 +1,9 @@
 "use client";
 
 import { acceptInvite } from "@actions/group/invite/create/action";
+import { Button } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,

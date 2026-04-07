@@ -1,8 +1,7 @@
-import { Tab, Tabs } from "@mui/material";
+import { Button, Tab, Tabs } from "@mui/material";
 import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import { CalendarBody } from "@/components/creation/calendar/calendar-body";
 import { Week } from "@/components/creation/calendar/week";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { SelectMeeting } from "@/db/schema";
 import { MONTHS, WEEKDAYS } from "@/lib/types/chrono";
