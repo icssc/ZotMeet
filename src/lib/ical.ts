@@ -1,3 +1,4 @@
+import { fromZonedTime } from "date-fns-tz";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import {
 	getCurrentWeekDateForAnchor,
@@ -67,14 +68,27 @@ function mergeScheduledBlocks(
 	return intervals;
 }
 
-function localDateTimeToDate(date: Date, time: string): Date {
-	const parts = time.split(":").map(Number);
-	const h = parts[0];
-	const m = parts[1];
-	const s = parts[2] ?? 0;
-	const d = new Date(date);
-	d.setHours(h, m, s, 0);
-	return d;
+// Helper function to pad a number to 2 digits
+function pad2(n: number): string {
+	return String(n).padStart(2, "0");
+}
+
+function getYmd(date: Date): { yyyy: number; mm: string; dd: string } {
+	return {
+		yyyy: date.getFullYear(),
+		mm: pad2(date.getMonth() + 1),
+		dd: pad2(date.getDate()),
+	};
+}
+
+function zonedLocalDateTimeToUTCDate(
+	date: Date,
+	time: string,
+	timezone: string,
+): Date {
+	const [h, m, s = "00"] = time.split(":");
+	const { yyyy, mm, dd } = getYmd(date);
+	return fromZonedTime(`${yyyy}-${mm}-${dd}T${h}:${m}:${s}`, timezone);
 }
 
 export function generateICalString(
@@ -112,10 +126,19 @@ export function generateICalString(
 			? getCurrentWeekDateForAnchor(interval.date)
 			: interval.date;
 
-		const startDate = localDateTimeToDate(eventDate, interval.from);
-		const endDate = localDateTimeToDate(eventDate, interval.to);
+		const startDate = zonedLocalDateTimeToUTCDate(
+			eventDate,
+			interval.from,
+			meetingData.timezone,
+		);
+		const endDate = zonedLocalDateTimeToUTCDate(
+			eventDate,
+			interval.to,
+			meetingData.timezone,
+		);
 
-		const datePart = eventDate.toISOString().split("T")[0];
+		const { yyyy, mm, dd } = getYmd(eventDate);
+		const datePart = `${yyyy}-${mm}-${dd}`;
 		const uid = `${meetingData.id}-scheduled-${datePart}-${i}@zotmeet`;
 
 		lines.push("BEGIN:VEVENT");
