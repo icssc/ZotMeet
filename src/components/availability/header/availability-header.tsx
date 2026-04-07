@@ -167,9 +167,11 @@ export function AvailabilityHeader({
 				});
 			}
 
-			// Move pending to scheduled after successful save
-			commitPendingTimes();
-			setIsScheduled(true);
+			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
+				// Move pending to scheduled after successful save
+				commitPendingTimes();
+				setIsScheduled(true);
+			}
 			setAvailabilityView("group");
 		} catch (error) {
 			console.error("Failed to save meeting blocks", error);
