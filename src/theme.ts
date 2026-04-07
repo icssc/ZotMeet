@@ -1,5 +1,6 @@
 "use client";
 
+import { blue, green, orange, red } from "@mui/material/colors";
 import { createTheme } from "@mui/material/styles";
 import { Figtree } from "next/font/google";
 
@@ -51,6 +52,10 @@ export const getTheme = (mode: "light" | "dark") =>
 		},
 		palette: {
 			mode,
+			action: {
+				hoverOpacity: 0.08,
+				selectedOpacity: 0.16,
+			},
 			background: {
 				default: mode === "dark" ? "#1C1B1B" : "#F5F5F5",
 				paper: mode === "dark" ? "#2A2929" : "#ffffff",
@@ -62,21 +67,32 @@ export const getTheme = (mode: "light" | "dark") =>
 			},
 			primary: {
 				main: "#F26489",
+				contrastText: "#FFFFFF",
 			},
 			secondary: {
 				main: "#1F2A44",
+				contrastText: "#FFFFFF",
 			},
 			success: {
-				main: "#2E7D32",
+				main: green[800],
+				dark: green[900],
+				light: green[500],
+				contrastText: "#FFFFFF",
 			},
 			warning: {
-				main: "#FC9015",
+				main: orange[800],
+				dark: orange[900],
+				light: orange[500],
+				contrastText: "#FFFFFF",
 			},
 			info: {
 				main: "#1976D2",
 			},
 			error: {
-				main: "#DA281E",
+				main: red[700],
+				dark: red[800],
+				light: red[400],
+				contrastText: "#FFFFFF",
 			},
 			divider: mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.2)",
 		},
@@ -85,6 +101,23 @@ export const getTheme = (mode: "light" | "dark") =>
 				styleOverrides: {
 					root: ({ theme }) => ({
 						color: theme.palette.text.primary,
+					}),
+				},
+			},
+			MuiButton: {
+				styleOverrides: {
+					root: {
+						textTransform: "none",
+					},
+					contained: ({ theme }) => ({
+						boxShadow: `0 4px 0 0 ${theme.palette.primary.main}, 0 4px 0 0 rgba(0,0,0,0.15)`,
+						"&:hover": {
+							boxShadow: `0 4px 0 0 ${theme.palette.primary.main}, 0 4px 0 0 rgba(0,0,0,0.15)`,
+						},
+						"&:active": {
+							boxShadow: "none",
+							transform: "translateY(4px)",
+						},
 					}),
 				},
 			},
