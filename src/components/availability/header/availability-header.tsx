@@ -170,7 +170,8 @@ export function AvailabilityHeader({
 			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
 				// Move pending to scheduled after successful save
 				commitPendingTimes();
-				setIsScheduled(true);
+				const { scheduledTimes } = useAvailabilityStore.getState();
+				setIsScheduled(scheduledTimes.size > 0);
 			}
 			setAvailabilityView("group");
 		} catch (error) {
