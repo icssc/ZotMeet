@@ -25,7 +25,6 @@ import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
-import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
@@ -190,11 +189,8 @@ export function AvailabilityHeader({
 						availabilityView === "schedule" ? (
 							<>
 								<Button
-									variant="contained"
-									className={cn(
-										"h-8 flex-center bg-white px-4 py-0 text-white uppercase",
-										"group bg-yellow-500 hover:bg-yellow-500/80",
-									)}
+									variant="outlined"
+									size="small"
 									onClick={
 										availabilityView === "personal"
 											? handleCancel
@@ -206,10 +202,7 @@ export function AvailabilityHeader({
 								</Button>
 								<Button
 									variant="contained"
-									className={cn(
-										"h-8 flex-center bg-white px-4 py-0 text-white uppercase",
-										"group bg-green-500 hover:bg-green-500/80",
-									)}
+									size="small"
 									type="submit"
 									onClick={
 										availabilityView === "personal"
@@ -225,9 +218,7 @@ export function AvailabilityHeader({
 							<>
 								{isScheduled && (
 									<Button
-										className={cn(
-											"h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0",
-										)}
+										size="small"
 										onClick={async () => {
 											if (isGeneratingLink) return;
 											setIsGeneratingLink(true);
@@ -276,7 +267,7 @@ export function AvailabilityHeader({
 								{isOwner && (
 									<Button
 										variant="contained"
-										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
+										size="small"
 										onClick={() => setAvailabilityView("schedule")}
 									>
 										<CalendarCheck className="size-5" />
@@ -287,8 +278,8 @@ export function AvailabilityHeader({
 								)}
 
 								<Button
-									className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
 									variant="contained"
+									size="small"
 									onClick={() => {
 										if (!user) {
 											setIsAuthModalOpen(true);
@@ -316,22 +307,25 @@ export function AvailabilityHeader({
 					<div className="-ml-2 flex items-center gap-x-1 pt-1">
 						<Button
 							onClick={() => setIsEditModalOpen(true)}
-							variant="ghost"
-							size="sm"
-							className="gap-1 text-muted-foreground"
+							variant="text"
+							size="small"
+							startIcon={<EditIcon />}
+							sx={{ color: "text.secondary" }}
 						>
-							<EditIcon className="size-4" />
-							<span className="font-dm-sans text-sm">Edit Meeting</span>
+							Edit Meeting
 						</Button>
 
 						<Button
 							onClick={() => setIsDeleteModalOpen(true)}
-							variant="ghost"
-							size="sm"
-							className="gap-1 text-muted-foreground hover:text-destructive"
+							variant="text"
+							size="small"
+							startIcon={<DeleteIcon />}
+							sx={{
+								color: "text.secondary",
+								"&:hover": { color: "error.main" },
+							}}
 						>
-							<DeleteIcon className="size-4" />
-							<span className="font-dm-sans text-sm">Delete Meeting</span>
+							Delete Meeting
 						</Button>
 					</div>
 				)}

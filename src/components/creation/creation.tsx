@@ -17,7 +17,6 @@ import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
-import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 
 export function Creation({ user }: { user: UserProfile | null }) {
@@ -225,7 +224,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 					<Button
 						variant="contained"
 						type="button"
-						className={cn("w-full rounded-lg font-medium text-lg md:w-auto")}
+						sx={{ width: { xs: "100%", md: "auto" } }}
 						disabled={!hasValidInputs || isCreating}
 						onClick={handleCreation}
 					>

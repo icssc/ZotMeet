@@ -47,7 +47,7 @@ export const getTheme = (mode: "light" | "dark") =>
 			},
 			button: {
 				fontFamily: figtree.style.fontFamily,
-				fontWeight: 500,
+				fontWeight: 600,
 			},
 		},
 		palette: {
@@ -110,14 +110,26 @@ export const getTheme = (mode: "light" | "dark") =>
 						textTransform: "none",
 					},
 					contained: ({ theme }) => ({
-						boxShadow: `0 4px 0 0 ${theme.palette.primary.main}, 0 4px 0 0 rgba(0,0,0,0.15)`,
+						boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 ${theme.palette.primary.main}`,
 						"&:hover": {
-							boxShadow: `0 4px 0 0 ${theme.palette.primary.main}, 0 4px 0 0 rgba(0,0,0,0.15)`,
+							boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 ${theme.palette.primary.main}`,
 						},
 						"&:active": {
 							boxShadow: "none",
 							transform: "translateY(4px)",
 						},
+					}),
+					outlinedPrimary: ({ theme }) => ({
+						borderColor: `rgba(242, 100, 137, 0.5)`,
+						"&:hover": {
+							borderColor: theme.palette.primary.main,
+						},
+					}),
+					outlinedInherit: ({ theme }) => ({
+						borderColor:
+							theme.palette.mode === "dark"
+								? "rgba(255,255,255,0.3)"
+								: "rgba(0,0,0,0.3)",
 					}),
 				},
 			},

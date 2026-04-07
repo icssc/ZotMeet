@@ -60,10 +60,9 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 
 				<Button
 					type="button"
+					variant="contained"
 					onClick={() => setCreateDialogOpen(true)}
 					sx={{
-						backgroundColor: "#F26489",
-						color: "white",
 						fontSize: "2rem",
 						padding: 0,
 						marginLeft: "auto",
@@ -91,24 +90,20 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 				<div className="ml-auto hidden sm:block">
 					<Button
 						type="button"
+						variant="outlined"
+						startIcon={<PersonAddIcon />}
 						onClick={() => setShowJoinGroup(true)}
-						className="flex items-center"
 					>
-						<div className="flex gap-2 text-black">
-							<PersonAddIcon className="size-5" />
-							<p>Join Group</p>
-						</div>
+						Join Group
 					</Button>
 
 					<Button
 						type="button"
+						variant="outlined"
+						startIcon={<Add />}
 						onClick={() => setCreateDialogOpen(true)}
-						className="flex items-center"
 					>
-						<div className="flex gap-2 text-black">
-							<Add className="size-5" />
-							<p>Create Group</p>
-						</div>
+						Create Group
 					</Button>
 				</div>
 			</div>

@@ -139,7 +139,9 @@ export const EditModal = ({
 			</DialogContent>
 
 			<DialogActions>
-				<Button onClick={() => handleOpenChange(false)}>Cancel</Button>
+				<Button variant="contained" onClick={() => handleOpenChange(false)}>
+					Cancel
+				</Button>
 				<Button
 					onClick={handleEditClick}
 					disabled={!hasValidInputs}

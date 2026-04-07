@@ -56,12 +56,7 @@ export const Meetings = ({
 			<div className="flex items-center justify-between">
 				<h1 className="font-figtree font-medium text-3xl">Meetings</h1>
 
-				<Button
-					variant="outline"
-					size="sm"
-					className="flex w-32 items-center justify-center font-dm-sans text-xs"
-					onClick={handleClick}
-				>
+				<Button variant="outlined" size="small" onClick={handleClick}>
 					{hostedOnly ? "Show All" : "Show Hosted Only"}
 				</Button>
 			</div>
