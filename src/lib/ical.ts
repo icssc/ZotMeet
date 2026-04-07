@@ -75,9 +75,9 @@ function pad2(n: number): string {
 
 function getYmd(date: Date): { yyyy: number; mm: string; dd: string } {
 	return {
-		yyyy: date.getFullYear(),
-		mm: pad2(date.getMonth() + 1),
-		dd: pad2(date.getDate()),
+		yyyy: date.getUTCFullYear(),
+		mm: pad2(date.getUTCMonth() + 1),
+		dd: pad2(date.getUTCDate()),
 	};
 }
 
