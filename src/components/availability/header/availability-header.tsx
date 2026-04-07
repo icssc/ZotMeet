@@ -327,13 +327,20 @@ export function AvailabilityHeader({
 									<Button
 										className="h-8 min-h-fit min-w-fit flex-center gap-1 px-2 md:px-4 md:py-0"
 										onClick={async () => {
-											const { success, content, filename } =
-												await getICalFileContent(meetingData.id);
-											if (!success || !content) {
-												toast.error("No scheduled meeting to download.");
-												return;
+											try {
+												const { success, content, filename } =
+													await getICalFileContent(meetingData.id);
+												if (!success || !content) {
+													toast.error("No scheduled meeting to download.");
+													return;
+												}
+												triggerICalDownload(content, filename);
+											} catch (error) {
+												console.error("Error generating iCal file:", error);
+												toast.error(
+													"An error occurred while generating the iCal file.",
+												);
 											}
-											triggerICalDownload(content, filename);
 										}}
 									>
 										<FileDownload className="!text-lg md:!text-base" />
