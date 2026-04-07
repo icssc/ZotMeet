@@ -4,6 +4,7 @@ import {
 	getExistingMeeting,
 	getScheduledTimeBlocks,
 } from "@data/meeting/queries";
+import { fromZonedTime } from "date-fns-tz";
 import {
 	groupScheduledBlocksByDate,
 	mergeContiguousTimeBlocks,
@@ -25,6 +26,11 @@ function combineDateAndTimeISO(date: Date, time: string): string {
 	const ss = String(seconds).padStart(2, "0");
 
 	return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
+}
+
+function formatOutlookDateTimeUTC(date: Date): string {
+	// Outlook accepts ISO 8601. Use explicit UTC ("Z") to avoid local-tz interpretation.
+	return date.toISOString().replace(".000Z", "Z");
 }
 
 export async function getOutlookCalendarLink({
@@ -66,8 +72,19 @@ export async function getOutlookCalendarLink({
 	const date = isDaysOfWeek
 		? getCurrentWeekDateForAnchor(firstDay.date)
 		: firstDay.date;
-	const start = combineDateAndTimeISO(date, mergedInterval.from);
-	const end = combineDateAndTimeISO(date, mergedInterval.to);
+
+	const start = formatOutlookDateTimeUTC(
+		fromZonedTime(
+			combineDateAndTimeISO(date, mergedInterval.from),
+			meetingData.timezone,
+		),
+	);
+	const end = formatOutlookDateTimeUTC(
+		fromZonedTime(
+			combineDateAndTimeISO(date, mergedInterval.to),
+			meetingData.timezone,
+		),
+	);
 
 	const params = new URLSearchParams({
 		rru: "addevent",
