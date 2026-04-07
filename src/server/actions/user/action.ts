@@ -53,5 +53,7 @@ export async function sendNotificationsToUsers(
 	type: string = "info",
 	link: string,
 ) {
+	const { user } = await getCurrentSession();
+	if (!user) return;
 	return await createNewNotification(userIds, title, message, type, link);
 }
