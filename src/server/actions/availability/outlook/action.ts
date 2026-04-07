@@ -17,9 +17,9 @@ import {
 function combineDateAndTimeISO(date: Date, time: string): string {
 	const [hours, minutes, seconds = "00"] = time.split(":");
 
-	const yyyy = date.getUTCFullYear();
-	const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
-	const dd = String(date.getUTCDate()).padStart(2, "0");
+	const yyyy = date.getFullYear();
+	const mm = String(date.getMonth() + 1).padStart(2, "0");
+	const dd = String(date.getDate()).padStart(2, "0");
 
 	const hh = String(hours).padStart(2, "0");
 	const min = String(minutes).padStart(2, "0");
