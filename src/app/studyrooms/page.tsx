@@ -12,7 +12,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { fetchStudyRooms } from "@/lib/studyrooms/get-rooms";
+import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
 export default function Page() {
@@ -45,7 +45,6 @@ export default function Page() {
 				capacityMax: capacityMax ? Number(capacityMax) : undefined,
 				isTechEnhanced,
 			});
-			console.log("search results:", data);
 
 			setRooms(data);
 		} catch (err) {

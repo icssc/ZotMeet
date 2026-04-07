@@ -8,31 +8,14 @@ import {
 	Tooltip,
 } from "@mui/material";
 import Link from "next/link";
+import { buildTimeArray, formatISOToLocalTime } from "@/lib/rooms/utils";
 import type { StudyRooms } from "@/lib/types/studyrooms";
-
-const formatISOToLocalTime = (isoString: string): string => {
-	return new Date(isoString)
-		.toLocaleTimeString("en-US", {
-			hour: "numeric",
-			minute: "2-digit",
-			hour12: true,
-			timeZone: "UTC",
-		})
-		.toLowerCase();
-};
+import { cn } from "@/lib/utils";
 
 const slotStart = "2026-04-06T11:00:00Z"; // 11:00am UTC
 const slotEnd = "2026-04-06T17:00:00Z"; // 5:00pm UTC
 
-const start = new Date(slotStart);
-const end = new Date(slotEnd);
-
-const timestamps: string[] = [];
-let current = new Date(start);
-while (current < end) {
-	timestamps.push(formatISOToLocalTime(current.toISOString()));
-	current = new Date(current.getTime() + 30 * 60 * 1000); // + 30 min
-}
+const timestamps = buildTimeArray(slotStart, slotEnd);
 
 interface RoomsHeatmapProps {
 	rooms: StudyRooms["data"];
@@ -72,7 +55,8 @@ export const RoomsHeatmap = ({ rooms, timeRange }: RoomsHeatmapProps) => {
 								return (
 									<TableCell
 										key={s.start}
-										className="!p-0 !h-px border border-gray-300"
+										className="border border-gray-300"
+										sx={{ padding: 0, height: "1px" }}
 									>
 										<ButtonBase
 											component={Link}
@@ -85,7 +69,10 @@ export const RoomsHeatmap = ({ rooms, timeRange }: RoomsHeatmapProps) => {
 												title={`${formatISOToLocalTime(s.start)} - ${formatISOToLocalTime(s.end)}`}
 											>
 												<span
-													className={`h-full w-full ${s.isAvailable ? "bg-green-300" : "bg-red-300"}`}
+													className={cn(
+														"h-full w-full",
+														s.isAvailable ? "bg-green-300" : "bg-red-300",
+													)}
 												/>
 											</Tooltip>
 										</ButtonBase>
