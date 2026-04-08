@@ -16,34 +16,76 @@ export const getTheme = (mode: "light" | "dark") =>
 		typography: {
 			fontFamily: figtree.style.fontFamily,
 			h1: {
-				fontSize: "2.5rem",
-				fontWeight: 600,
+				fontSize: "6rem",
+				fontWeight: 300,
+				lineHeight: 1.167,
+				letterSpacing: "-1.5px",
 			},
 			h2: {
-				fontSize: "2rem",
-				fontWeight: 600,
+				fontSize: "3.75rem",
+				fontWeight: 300,
+				lineHeight: 1.2,
+				letterSpacing: "-0.5px",
 			},
 			h3: {
-				fontSize: "1.75rem",
-				fontWeight: 600,
+				fontSize: "3rem",
+				fontWeight: 400,
+				lineHeight: 1.167,
+				letterSpacing: "0px",
 			},
 			h4: {
-				fontSize: "1.5rem",
-				fontWeight: 600,
+				fontSize: "2.125rem",
+				fontWeight: 400,
+				lineHeight: 1.235,
+				letterSpacing: "0.25px",
 			},
 			h5: {
-				fontSize: "1.25rem",
-				fontWeight: 600,
+				fontSize: "1.5rem",
+				fontWeight: 500,
+				lineHeight: 1.334,
+				letterSpacing: "0px",
 			},
 			h6: {
-				fontSize: "1rem",
+				fontSize: "1.25rem",
 				fontWeight: 600,
+				lineHeight: 1.6,
+				letterSpacing: "0.15px",
+			},
+			subtitle1: {
+				fontSize: "1rem",
+				fontWeight: 500,
+				lineHeight: 1.2,
+				letterSpacing: "0.15px",
+			},
+			subtitle2: {
+				fontSize: "0.875rem",
+				fontWeight: 500,
+				lineHeight: 1.2,
+				letterSpacing: "0.1px",
 			},
 			body1: {
-				fontFamily: figtree.style.fontFamily,
+				fontSize: "1rem",
+				fontWeight: 400,
+				lineHeight: 1.2,
+				letterSpacing: "0.15px",
 			},
 			body2: {
-				fontFamily: figtree.style.fontFamily,
+				fontSize: "0.875rem",
+				fontWeight: 400,
+				lineHeight: 1.2,
+				letterSpacing: "0.17px",
+			},
+			caption: {
+				fontSize: "0.75rem",
+				fontWeight: 500,
+				lineHeight: 1,
+				letterSpacing: "0.4px",
+			},
+			overline: {
+				fontSize: "0.75rem",
+				fontWeight: 500,
+				lineHeight: 1,
+				letterSpacing: "1px",
 			},
 			button: {
 				fontFamily: figtree.style.fontFamily,
@@ -86,7 +128,7 @@ export const getTheme = (mode: "light" | "dark") =>
 				contrastText: "#FFFFFF",
 			},
 			info: {
-				main: "#1976D2",
+				main: blue[700],
 			},
 			error: {
 				main: red[700],
@@ -112,7 +154,7 @@ export const getTheme = (mode: "light" | "dark") =>
 					contained: ({ theme }) => ({
 						boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 ${theme.palette.primary.main}`,
 						"&:hover": {
-							boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 ${theme.palette.primary.main}`,
+							boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 2px 0 0 ${theme.palette.primary.main}`,
 						},
 						"&:active": {
 							boxShadow: "none",
