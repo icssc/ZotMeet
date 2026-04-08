@@ -14,7 +14,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
 import { RoomResults } from "@/components/studyrooms/room-results";
@@ -36,9 +36,17 @@ const toLocalStr = (d: Date) => {
 };
 
 export default function Page() {
-	const [date, setDate] = useState<Date | null>(null);
-	const [startTime, setStartTime] = useState<Date | null>(null);
-	const [endTime, setEndTime] = useState<Date | null>(null);
+	const defaultStart = new Date();
+	defaultStart.setHours(11, 0, 0, 0);
+	const defaultEnd = new Date();
+	defaultEnd.setHours(17, 0, 0, 0);
+
+	const tomorrow = new Date();
+	tomorrow.setDate(tomorrow.getDate() + 1);
+
+	const [date, setDate] = useState<Date | null>(tomorrow);
+	const [startTime, setStartTime] = useState<Date | null>(defaultStart);
+	const [endTime, setEndTime] = useState<Date | null>(defaultEnd);
 	const [location, setLocation] = useState<string | null>(null);
 	const [capacityMin, setCapacityMin] = useState("");
 	const [capacityMax, setCapacityMax] = useState("");
@@ -125,6 +133,21 @@ export default function Page() {
 			setError(err instanceof Error ? err.message : "API call failed");
 		}
 	}
+
+	useEffect(() => {
+		const tmrw = new Date();
+		tmrw.setDate(tmrw.getDate() + 1);
+		const today = format(tmrw, "yyyy-MM-dd");
+		const defaultTr = "11:00am-5:00pm";
+		fetchStudyRooms({ date: today, timeRange: defaultTr })
+			.then(({ data }) => {
+				setTimeRange(defaultTr);
+				setRooms(data);
+			})
+			.catch((err) =>
+				setError(err instanceof Error ? err.message : "API call failed"),
+			);
+	}, []);
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns}>
