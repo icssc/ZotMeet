@@ -9,9 +9,20 @@ import type { StudyRooms } from "@/lib/types/studyrooms";
 
 interface RoomResultsProps {
 	rooms: StudyRooms["data"];
+	startTime: Date | null;
+	endTime: Date | null;
 }
 
-export function RoomResults({ rooms }: RoomResultsProps) {
+export function RoomResults({ rooms, startTime, endTime }: RoomResultsProps) {
+	const toMinutes = (d: Date) => d.getHours() * 60 + d.getMinutes();
+	const windowStart = startTime ? toMinutes(startTime) : 0;
+	const windowEnd = endTime ? toMinutes(endTime) : 24 * 60;
+
+	const isInWindow = (isoString: string) => {
+		const d = new Date(isoString);
+		const minutes = d.getHours() * 60 + d.getMinutes();
+		return minutes >= windowStart && minutes < windowEnd;
+	};
 	if (rooms.length === 0) {
 		return (
 			<Typography variant="body2" color="text.secondary">
@@ -41,6 +52,7 @@ export function RoomResults({ rooms }: RoomResultsProps) {
 						</Stack>
 						<Stack spacing={0.5} sx={{ pl: 2 }}>
 							{[...room.slots]
+								.filter((slot) => isInWindow(slot.start))
 								.sort((a, b) => a.start.localeCompare(b.start))
 								.slice(0, 5)
 								.map((slot) => (

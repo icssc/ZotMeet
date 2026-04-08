@@ -252,7 +252,9 @@ export default function Page() {
 			</Box>
 
 			{rooms && <RoomsHeatmap rooms={rooms} timeRange={timeRange} />}
-			{rooms && <RoomResults rooms={rooms} />}
+			{rooms && (
+				<RoomResults rooms={rooms} startTime={startTime} endTime={endTime} />
+			)}
 		</LocalizationProvider>
 	);
 }
