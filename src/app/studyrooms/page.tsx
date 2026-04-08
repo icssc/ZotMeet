@@ -1,6 +1,7 @@
 "use client";
 
 import Autocomplete from "@mui/material/Autocomplete";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -127,9 +128,16 @@ export default function Page() {
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns}>
-			<form
+			<Box
+				component="form"
 				onSubmit={handleSubmit}
-				className="flex max-w-xl flex-col gap-4 p-4"
+				sx={{
+					display: "flex",
+					flexDirection: "column",
+					gap: 2,
+					maxWidth: "sm",
+					p: 2,
+				}}
 			>
 				<DatePicker
 					label="Date"
@@ -218,7 +226,7 @@ export default function Page() {
 				<Button type="submit" variant="contained" fullWidth>
 					Search Rooms
 				</Button>
-			</form>
+			</Box>
 
 			{rooms && <RoomsHeatmap rooms={rooms} timeRange={timeRange} />}
 			{rooms && <RoomResults rooms={rooms} />}
