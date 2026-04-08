@@ -65,6 +65,7 @@ export async function createNewNotification(
 	message: string = "You have a new notification",
 	type: string = "info",
 	link: string,
+	user: string,
 ) {
 	if (userIds.length === 0) return;
 
@@ -82,6 +83,7 @@ export async function createNewNotification(
 				message,
 				type,
 				redirect: link,
+				createdBy: user,
 			})),
 		)
 		.returning();

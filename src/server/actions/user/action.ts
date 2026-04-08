@@ -10,6 +10,7 @@ import {
 	searchUsersByEmail,
 	updateUserThemeMode,
 } from "@/server/data/user/queries";
+
 export async function searchUsers(query: string) {
 	const { user } = await getCurrentSession();
 	if (!user) return [];
@@ -55,5 +56,18 @@ export async function sendNotificationsToUsers(
 ) {
 	const { user } = await getCurrentSession();
 	if (!user) return;
-	return await createNewNotification(userIds, title, message, type, link);
+	return await createNewNotification(
+		userIds,
+		title,
+		message,
+		type,
+		link,
+		user.displayName,
+	);
+}
+
+export async function getUser() {
+	const { user } = await getCurrentSession();
+	if (!user) return;
+	return user;
 }

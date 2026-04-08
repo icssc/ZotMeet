@@ -1,11 +1,14 @@
 "use client";
-import { sendNotificationsToUsers } from "@actions/user/action";
+import { getUser, sendNotificationsToUsers } from "@actions/user/action";
+import CloseIcon from "@mui/icons-material/Close";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
-import Alert from "@mui/material/Alert";
+import { Button } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import Snackbar from "@mui/material/Snackbar";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import type { SelectMeeting } from "@/db/schema";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
+
 export function NotificationNudge({
 	meetingData,
 	allAvailabilities,
@@ -20,59 +23,69 @@ export function NotificationNudge({
 		}
 	}
 
-	const [notificationSuccess, setNotificationSuccess] = useState<
-		boolean | null
-	>(null);
+	const [notificationSuccess, setNotificationSuccess] =
+		useState<boolean>(false);
+	const [notificationFailure, setNotificationFailure] =
+		useState<boolean>(false);
 	const sendNotification = async () => {
 		try {
+			const name = await getUser();
+			console.log(window.location.href);
 			await sendNotificationsToUsers(
 				[...notificationids],
 				meetingData.title,
-				"You have been notified about the meeting " + meetingData.title,
+				name?.displayName + " is requesting your availability",
 				meetingData.meetingType,
 				window.location.href,
 			);
 			setNotificationSuccess(true);
 		} catch (error) {
 			console.error("Error sending notifications:", error);
-			setNotificationSuccess(false);
+			setNotificationFailure(true);
 		}
 	};
-	if (notificationSuccess != null) {
-		if (notificationSuccess) {
-			return (
-				<div className="pt-2">
-					<Button onClick={sendNotification}>
-						<NotificationsOutlinedIcon color="secondary" />
-						Notify Everyone
-					</Button>
-					<Alert
-						severity="success"
-						onClose={() => setNotificationSuccess(null)}
+	return (
+		<div className="pt-2">
+			<Button
+				className="h-8 min-h-fit min-w-fit flex-center md:px-4 md:py-0"
+				onClick={sendNotification}
+				variant="contained"
+			>
+				<NotificationsOutlinedIcon sx={{ color: "#fff" }} />
+				Notify Everyone
+			</Button>
+			<Snackbar
+				open={notificationSuccess}
+				onClose={() => {
+					setNotificationSuccess(false);
+				}}
+				anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+				message="Notification Sent Successfully!"
+				action={
+					<IconButton
+						size="small"
+						onClick={() => setNotificationSuccess(false)}
 					>
-						Notifications sent successfully!
-					</Alert>
-				</div>
-			);
-		} else {
-			<div className="pt-2">
-				<Button onClick={sendNotification}>
-					<NotificationsOutlinedIcon color="secondary" />
-					Notify Everyone
-				</Button>
-				<Alert severity="error" onClose={() => setNotificationSuccess(null)}>
-					Failed to send notifications.
-				</Alert>
-			</div>;
-		}
-	} else {
-		return (
-			<div className="pt-2">
-				<Button onClick={sendNotification}>
-					<NotificationsOutlinedIcon color="secondary" />
-					Notify Everyone
-				</Button>
-			</div>
-		);
-	}
+						<CloseIcon sx={{ color: "#fff" }} fontSize="small" />
+					</IconButton>
+				}
+			/>
+			<Snackbar
+				open={notificationFailure}
+				onClose={() => {
+					setNotificationFailure(false);
+				}}
+				anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+				message="Failed to send notification..."
+				action={
+					<IconButton
+						size="small"
+						onClick={() => setNotificationFailure(false)}
+					>
+						<CloseIcon sx={{ color: "#fff" }} fontSize="small" />
+					</IconButton>
+				}
+			/>
+		</div>
+	);
 }
