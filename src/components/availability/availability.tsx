@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import {
 	GroupAvailability,
+	getBestTimeRanges,
 	getTimestampFromBlockIndex,
 } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
@@ -24,6 +25,7 @@ import {
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
 } from "@/lib/availability/utils";
+import { getStudyRooms } from "@/lib/studyrooms/getrooms";
 import type {
 	GoogleCalendarEvent,
 	MemberMeetingAvailability,
@@ -228,6 +230,9 @@ export function Availability({
 			availabilityTimeBlocks,
 		}),
 	);
+	const bestTimeRanges = useMemo(() => {
+		return getBestTimeRanges(availabilityDates);
+	}, [availabilityDates]);
 
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
@@ -266,13 +271,13 @@ export function Availability({
 
 	const handleUserAvailabilityChange = useCallback(
 		(updatedDates: ZotDate[]) => {
-			setAvailabilityDates(updatedDates);
+			setAvailabilityDates([...updatedDates]);
 		},
 		[],
 	);
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
-		setAvailabilityDates(originalDates);
+		setAvailabilityDates([...originalDates]);
 	}, [cancelEdit]);
 
 	const handleSuccessfulSave = useCallback(() => {
@@ -426,6 +431,41 @@ export function Availability({
 			});
 		}
 	}, [startBlockSelection, endBlockSelection, setSelectionState]);
+
+	//currently unused as we only have console log for now
+	const [_studyRooms, setStudyRooms] = useState<any[]>([]);
+
+	useEffect(() => {
+		if (!bestTimeRanges.length) {
+			setStudyRooms([]);
+			return;
+		}
+		const queryTimes = bestTimeRanges.join(",");
+		const queryDates = meetingData.dates.join(",");
+		console.log("Fetching with:", { queryDates, queryTimes });
+
+		const fetchRooms = async () => {
+			//console logs for draft pr testing
+			const queryTimes = bestTimeRanges.join(",");
+			const queryDates = meetingData.dates.join(",");
+			console.log("Fetching with:", { queryDates, queryTimes });
+
+			try {
+				const queryTimes = bestTimeRanges.join(",");
+				const queryDates = meetingData.dates.join(",");
+
+				const data = await getStudyRooms(queryDates, queryTimes);
+
+				console.log("Fetched study rooms:", data);
+
+				setStudyRooms(data.data ?? []);
+			} catch (err) {
+				console.error("Failed to fetch study rooms:", err);
+			}
+		};
+
+		fetchRooms();
+	}, [bestTimeRanges, meetingData.dates]);
 
 	// Helper to get block info from pointer position
 	const getBlockAtPosition = useCallback((x: number, y: number) => {
