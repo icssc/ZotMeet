@@ -178,8 +178,8 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	return (
 		<div className="mx-auto my-6 flex w-[calc(100%-2rem)] max-w-6xl flex-col gap-y-6 px-4 md:my-8 md:rounded-xl md:border md:border-gray-300">
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
-			<div className="w-full rounded-xl border bg-white px-4 py-6 md:px-14">
-				<h2 className="hidden font-medium text-2xl text-gray-dark sm:block md:text-3xl">
+			<div className="w-full px-4 py-6 md:px-14">
+				<h2 className="hidden font-medium text-2xl sm:block md:text-3xl">
 					Plan your next meeting with ZotMeet
 				</h2>
 				<h2 className="mb-10 flex justify-center text-3xl sm:hidden">

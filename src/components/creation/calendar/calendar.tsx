@@ -123,9 +123,7 @@ export function Calendar({
 
 				<div className="mt-4 flex w-full items-center justify-between md:justify-start md:pl-15">
 					<div className="mt-4 flex w-full items-center pl-3 md:pl-5">
-						<h3 className="font-semibold text-gray-dark text-lg md:text-2xl">
-							{title}
-						</h3>
+						<h3 className="font-semibold text-lg md:text-2xl">{title}</h3>
 
 						{/* Mobile only buttons */}
 						<div className="flex gap-2 md:hidden">

@@ -86,7 +86,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					/>
 				</div>
 
-				<div className="ml-auto hidden sm:block">
+				<div className="ml-auto hidden items-center gap-2 sm:flex">
 					<Button
 						type="button"
 						variant="outlined"

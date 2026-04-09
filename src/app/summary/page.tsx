@@ -1,4 +1,5 @@
 import { Add } from "@mui/icons-material";
+import { Button } from "@mui/material";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 // import { GroupsDisplay } from "@/components/summary/GroupsDisplay";
@@ -37,10 +38,9 @@ export default async function Page() {
 		<div className="px-8 py-8">
 			<div className="mb-4 flex justify-end">
 				<Link href="/">
-					<div className="flex items-center text-black">
-						<Add fontSize="small" />
+					<Button variant="contained" startIcon={<Add fontSize="small" />}>
 						Create Meeting
-					</div>
+					</Button>
 				</Link>
 			</div>
 
