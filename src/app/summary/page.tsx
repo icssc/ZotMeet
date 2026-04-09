@@ -36,14 +36,6 @@ export default async function Page() {
 
 	return (
 		<div className="px-8 py-8">
-			<div className="mb-4 flex justify-end">
-				<Link href="/">
-					<Button variant="contained" startIcon={<Add fontSize="small" />}>
-						Create Meeting
-					</Button>
-				</Link>
-			</div>
-
 			<Meetings
 				meetings={meetings}
 				userId={memberId}

@@ -213,7 +213,9 @@ export function AvailabilityHeader({
 							<>
 								{isScheduled && (
 									<Button
-										size="small"
+										variant="outlined"
+										size="medium"
+										startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
 										onClick={async () => {
 											if (isGeneratingLink) return;
 											setIsGeneratingLink(true);
@@ -250,10 +252,7 @@ export function AvailabilityHeader({
 											}
 										}}
 									>
-										<GoogleIcon className="size-5" />
-										<span className="hidden font-dm-sans md:flex">
-											Add to Calendar
-										</span>
+										Add to Calendar
 									</Button>
 								)}
 

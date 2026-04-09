@@ -1,6 +1,8 @@
 "use client";
 
+import { Add } from "@mui/icons-material";
 import { Button, Tab, Tabs } from "@mui/material";
+import Link from "next/link";
 import { useCallback, useState } from "react";
 import { MeetingsDisplay } from "@/components/summary/meetings-display";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
@@ -46,12 +48,23 @@ export const Meetings = ({
 
 	return (
 		<div className="w-full rounded-xl">
-			<div className="flex items-center justify-between">
+			<div className="mb-4 flex items-start justify-between gap-4">
 				<h1 className="font-figtree font-medium text-3xl">Meetings</h1>
 
-				<Button variant="outlined" size="small" onClick={handleClick}>
-					{hostedOnly ? "Show All" : "Show Hosted Only"}
-				</Button>
+				<div className="flex shrink-0 flex-col items-end gap-3">
+					<Button
+						component={Link}
+						href="/"
+						variant="contained"
+						startIcon={<Add fontSize="small" />}
+					>
+						Create Meeting
+					</Button>
+
+					<Button variant="outlined" size="small" onClick={handleClick}>
+						{hostedOnly ? "Show All" : "Show Hosted Only"}
+					</Button>
+				</div>
 			</div>
 
 			<Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 4 }}>
