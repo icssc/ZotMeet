@@ -146,6 +146,24 @@ export const getTheme = (mode: "light" | "dark") =>
 					}),
 				},
 			},
+			MuiTabs: {
+				defaultProps: {
+					textColor: "inherit",
+				},
+			},
+			MuiTab: {
+				styleOverrides: {
+					root: ({ theme }) => ({
+						color: theme.palette.text.primary,
+						"&.Mui-selected": {
+							color: theme.palette.text.primary,
+							"& .MuiTab-iconWrapper": {
+								color: theme.palette.primary.main,
+							},
+						},
+					}),
+				},
+			},
 			MuiSwitch: {
 				styleOverrides: {
 					track: {
