@@ -7,10 +7,10 @@ import {
 	DialogTitle,
 } from "@mui/material";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
+import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import { convertTimeFromUTC, convertTimeToUTC } from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
@@ -87,14 +87,16 @@ export const EditModal = ({
 		const { success, error } = await editMeeting(updatedMeeting);
 
 		if (success) {
-			toast.success("Meeting updated successfully!");
+			showSuccess("Meeting updated successfully!");
 			window.location.reload();
 		} else {
-			toast.error(error);
+			showError(error ?? "Something went wrong.");
 		}
 
 		handleOpenChange(false);
 	};
+
+	const { showSuccess, showError } = useSnackbar();
 
 	const hasValidInputs = useMemo(() => {
 		return (

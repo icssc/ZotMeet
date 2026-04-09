@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { toast } from "sonner";
 import {
 	Select,
 	SelectContent,
@@ -22,6 +21,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useSnackbar } from "@/components/ui/snackbar-provider";
 import { GroupRole, type SelectGroup } from "@/db/schema";
 import { formatDateToUSNumeric } from "@/lib/availability/utils";
 import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
@@ -253,10 +253,11 @@ export function GroupMemberList({
 	const [isCreatingInvite, setIsCreatingInvite] = useState(false);
 	const [tab, setTab] = useState(0);
 	const canShareInvites = group.createdBy === currentUserId;
+	const { showSuccess, showError } = useSnackbar();
 
 	async function handleCreateInviteLink() {
 		if (!canShareInvites) {
-			toast.error("Only the group creator can generate invite links.");
+			showError("Only the group creator can generate invite links.");
 			return;
 		}
 
@@ -264,18 +265,18 @@ export function GroupMemberList({
 		try {
 			const res = await createGroupInvite(group.id);
 			if (!res.success || !res.inviteUrl) {
-				toast.error(res.message || "Failed to generate invite link.");
+				showError(res.message || "Failed to generate invite link.");
 				return;
 			}
 
 			try {
 				await navigator.clipboard.writeText(res.inviteUrl);
-				toast.success("Invite link copied to clipboard.");
+				showSuccess("Invite link copied to clipboard.");
 			} catch (_clipboardError) {
-				toast.error("Invite link generated, but failed to copy to clipboard.");
+				showError("Invite link generated, but failed to copy to clipboard.");
 			}
 		} catch (_error) {
-			toast.error("Failed to generate invite link.");
+			showError("Failed to generate invite link.");
 		} finally {
 			setIsCreatingInvite(false);
 		}

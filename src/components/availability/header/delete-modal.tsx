@@ -8,7 +8,7 @@ import {
 	DialogTitle,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 
 interface DeleteModalProps {
@@ -23,15 +23,16 @@ const DeleteModal = ({
 	handleOpenChange,
 }: DeleteModalProps) => {
 	const router = useRouter();
+	const { showSuccess, showError } = useSnackbar();
 
 	const handleDeleteClick = async () => {
 		const { success, error } = await archiveMeeting(meetingData);
 
 		if (success) {
-			toast.success("Meeting deleted successfully!");
+			showSuccess("Meeting deleted successfully!");
 			router.push("/summary");
 		} else {
-			toast.error(error);
+			showError(error ?? "Something went wrong.");
 		}
 
 		handleOpenChange(false);

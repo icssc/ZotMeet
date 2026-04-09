@@ -18,10 +18,10 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 import { useShallow } from "zustand/shallow";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
+import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import type { ZotDate } from "@/lib/zotdate";
@@ -47,6 +47,7 @@ export function AvailabilityHeader({
 	setTimezone,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
+	const { showSuccess, showError } = useSnackbar();
 
 	const {
 		hasAvailability,
@@ -232,15 +233,13 @@ export function AvailabilityHeader({
 													});
 
 												if (!success || !link) {
-													toast.error(
-														"Failed to generate Google Calendar link.",
-													);
+													showError("Failed to generate Google Calendar link.");
 													return;
 												}
 
 												window.open(link, "_blank", "noopener,noreferrer");
 
-												toast.success(
+												showSuccess(
 													"Google Calendar link opened! Confirm the event in your calendar.",
 												);
 											} catch (error) {
@@ -248,7 +247,7 @@ export function AvailabilityHeader({
 													"Error generating Google Calendar link:",
 													error,
 												);
-												toast.error(
+												showError(
 													"An error occurred while generating the Google Calendar link.",
 												);
 											} finally {
