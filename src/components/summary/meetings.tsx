@@ -1,17 +1,9 @@
 "use client";
 
-import { Button } from "@mui/material";
+import { Button, Tab, Tabs } from "@mui/material";
 import { useCallback, useState } from "react";
-import {
-	Tabs,
-	TabsContent,
-	TabsList,
-	TabsTrigger,
-} from "@/components/custom/tabs";
 import { MeetingsDisplay } from "@/components/summary/meetings-display";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
-
-import { cn } from "@/lib/utils";
 
 interface MeetingsDisplayProps {
 	meetings: SelectMeeting[];
@@ -25,6 +17,7 @@ export const Meetings = ({
 	scheduledTimeBlocksByMeetingId,
 }: MeetingsDisplayProps) => {
 	const [hostedOnly, setHostedOnly] = useState(false);
+	const [tab, setTab] = useState(0);
 
 	const scheduledMeetings =
 		meetings?.filter((meeting) => meeting.scheduled) || [];
@@ -61,39 +54,18 @@ export const Meetings = ({
 				</Button>
 			</div>
 
-			<Tabs defaultValue="unscheduled">
-				<TabsList className="mb-8 space-x-0">
-					<TabsTrigger
-						value="unscheduled"
-						className={cn(
-							"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-figtree text-lg duration-0",
-							"data-[state=active]:border-orange-500",
-						)}
-					>
-						Unscheduled
-					</TabsTrigger>
-					<TabsTrigger
-						value="scheduled"
-						className={cn(
-							"border-0 border-neutral-300 border-b-2 p-4 pb-0 font-figtree text-lg duration-0",
-							"data-[state=active]:border-orange-500",
-						)}
-					>
-						Scheduled
-					</TabsTrigger>
-				</TabsList>
-
-				<TabsContent value="scheduled">
-					<MeetingsDisplay
-						meetings={filteredScheduledMeetings}
-						scheduledTimeBlocks={scheduledTimeBlocksByMeetingId}
-					/>
-				</TabsContent>
-
-				<TabsContent value="unscheduled">
-					<MeetingsDisplay meetings={filteredUnscheduledMeetings} />
-				</TabsContent>
+			<Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 4 }}>
+				<Tab label="Unscheduled" />
+				<Tab label="Scheduled" />
 			</Tabs>
+
+			{tab === 0 && <MeetingsDisplay meetings={filteredUnscheduledMeetings} />}
+			{tab === 1 && (
+				<MeetingsDisplay
+					meetings={filteredScheduledMeetings}
+					scheduledTimeBlocks={scheduledTimeBlocksByMeetingId}
+				/>
+			)}
 		</div>
 	);
 };

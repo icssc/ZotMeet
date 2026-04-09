@@ -1,5 +1,6 @@
 "use client";
 
+import { Tab, Tabs } from "@mui/material";
 import {
 	Bell,
 	Calendar,
@@ -14,12 +15,6 @@ import {
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import {
-	Tabs,
-	TabsContent,
-	TabsList,
-	TabsTrigger,
-} from "@/components/custom/tabs";
 import {
 	Select,
 	SelectContent,
@@ -256,6 +251,7 @@ export function GroupMemberList({
 	currentUserId,
 }: GroupMemberListProps) {
 	const [isCreatingInvite, setIsCreatingInvite] = useState(false);
+	const [tab, setTab] = useState(0);
 	const canShareInvites = group.createdBy === currentUserId;
 
 	async function handleCreateInviteLink() {
@@ -324,32 +320,30 @@ export function GroupMemberList({
 				</div>
 			</div>
 
-			<Tabs defaultValue="meetings" className="mt-6">
-				<TabsList className="w-full border-gray-200 border-b">
-					<TabsTrigger
-						value="meetings"
-						className="flex items-center gap-2 px-6 pb-3 text-sm uppercase tracking-wide"
-					>
-						<Calendar className="size-4" />
-						All Meetings ({meetings.length})
-					</TabsTrigger>
-					<TabsTrigger
-						value="members"
-						className="flex items-center gap-2 px-6 pb-3 text-sm uppercase tracking-wide"
-					>
-						<Users className="size-4" />
-						Members ({members.length})
-					</TabsTrigger>
-					<TabsTrigger
-						value="settings"
-						className="flex items-center gap-2 px-6 pb-3 text-sm uppercase tracking-wide"
-					>
-						<Settings className="size-4" />
-						Settings
-					</TabsTrigger>
-				</TabsList>
+			<Tabs
+				value={tab}
+				onChange={(_, v) => setTab(v)}
+				sx={{ mt: 3, borderBottom: 1, borderColor: "divider" }}
+			>
+				<Tab
+					icon={<Calendar className="size-4" />}
+					iconPosition="start"
+					label={`All Meetings (${meetings.length})`}
+				/>
+				<Tab
+					icon={<Users className="size-4" />}
+					iconPosition="start"
+					label={`Members (${members.length})`}
+				/>
+				<Tab
+					icon={<Settings className="size-4" />}
+					iconPosition="start"
+					label="Settings"
+				/>
+			</Tabs>
 
-				<TabsContent value="meetings" className="mt-4">
+			{tab === 0 && (
+				<div className="mt-4">
 					{meetings.length > 0 ? (
 						<div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
 							{meetings.map((meeting) => (
@@ -361,23 +355,25 @@ export function GroupMemberList({
 							<p className="text-gray-500 text-lg italic">No meetings yet!</p>
 						</div>
 					)}
-				</TabsContent>
+				</div>
+			)}
 
-				<TabsContent value="members" className="mt-4">
+			{tab === 1 && (
+				<div className="mt-4">
 					<MembersList
 						members={members}
 						isAdmin={isAdmin}
 						groupId={group.id}
 						currentUserId={currentUserId}
 					/>
-				</TabsContent>
+				</div>
+			)}
 
-				<TabsContent value="settings" className="mt-4">
-					<div className="flex items-center justify-center py-32">
-						<p className="text-gray-500 text-lg">Settings coming soon</p>
-					</div>
-				</TabsContent>
-			</Tabs>
+			{tab === 2 && (
+				<div className="mt-4 flex items-center justify-center py-32">
+					<p className="text-gray-500 text-lg">Settings coming soon</p>
+				</div>
+			)}
 		</div>
 	);
 }
