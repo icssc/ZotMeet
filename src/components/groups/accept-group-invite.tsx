@@ -25,7 +25,10 @@ const AcceptGroupInvite = ({
 		await deleteNotification(notification.id);
 		onOpenChange(false);
 	};
-
+	const handleDecline = async () => {
+		await deleteNotification(notification.id);
+		onOpenChange(false);
+	};
 	return (
 		<div>
 			<Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,7 +52,9 @@ const AcceptGroupInvite = ({
 						</div>
 
 						<div className="ml-auto flex">
-							<Button onClick={handleAccept}>View</Button>
+							<Button onClick={handleAccept}>Accept</Button>
+
+							<Button onClick={handleDecline}>Decline</Button>
 						</div>
 					</div>
 				</DialogContent>

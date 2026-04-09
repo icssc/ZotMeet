@@ -74,7 +74,7 @@ export async function createGroup(
 
 		try {
 			await createNewNotification(
-				(memberIds ?? []).filter((id) => id !== user.id),
+				(memberIds ?? []).filter((id) => id !== user.memberId),
 				name.trim(),
 				`You've been invited to join ${name.trim()}!`,
 				"Group Invite",

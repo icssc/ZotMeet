@@ -18,6 +18,7 @@ export function NotificationNudge({
 }) {
 	const notificationids = new Set<string>();
 	for (const availability of allAvailabilities) {
+		console.log(allAvailabilities);
 		if (!notificationids.has(availability.memberId)) {
 			notificationids.add(availability.memberId);
 		}

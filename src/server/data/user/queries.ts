@@ -69,11 +69,6 @@ export async function createNewNotification(
 ) {
 	if (userIds.length === 0) return;
 
-	const memberRows = await db
-		.select({ memberId: users.memberId })
-		.from(users)
-		.where(inArray(users.id, userIds));
-
 	return db
 		.insert(notifications)
 		.values(

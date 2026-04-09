@@ -1,6 +1,7 @@
 "use client";
 
 import { deleteNotification, readNotification } from "@actions/user/action";
+import { markNotificationAsRead } from "@data/user/queries";
 import { Close, Login, Person } from "@mui/icons-material";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import {
@@ -254,8 +255,8 @@ function Notifications({
 												color: "black",
 											}}
 											onClick={() => {
-												setActiveNotification(notif);
-												setShowGroupInvite(true);
+												deleteNotification(notif.id);
+												window.location.href = notif.redirect ?? "about:blank";
 											}}
 										>
 											View
