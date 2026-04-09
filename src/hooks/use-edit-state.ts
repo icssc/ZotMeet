@@ -11,7 +11,9 @@ interface UseAvailabilityEditorProps {
 export function useEditState({
 	currentAvailabilityDates,
 }: UseAvailabilityEditorProps) {
-	const availabilityView = useAvailabilityStore((state) => state.availabilityView);
+	const availabilityView = useAvailabilityStore(
+		(state) => state.availabilityView,
+	);
 
 	const [originalAvailabilityDates, setOriginalAvailabilityDates] = useState<
 		ZotDate[]
