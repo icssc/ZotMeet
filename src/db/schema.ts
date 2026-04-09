@@ -259,6 +259,28 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 	}),
 }));
 
+export const emailNotifications = pgTable("email_notificaions", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	notificationId: uuid("notification_id")
+		.notNull()
+		.references(() => notifications.id, { onDelete: "cascade" }),
+
+	memberId: uuid("member_id")
+		.notNull()
+		.references(() => members.id, { onDelete: "cascade" }),
+
+	toEmail: text("to_email").notNull(),
+	status: text("status").notNull().default("pending"), // pending, sent, failed, cancelled
+	sendAt: timestamp("send_at", { withTimezone: true, mode: "date" }).notNull(),
+	sentAt: timestamp("sent_at", { withTimezone: true, mode: "date" }),
+	createdAt: timestamp("created_at", {
+		withTimezone: true,
+		mode: "date",
+	})
+		.defaultNow()
+		.notNull(),
+});
+
 export const availabilities = pgTable(
 	"availabilities",
 	{
