@@ -2,8 +2,11 @@
 
 import { searchUsers } from "@actions/user/action";
 import Autocomplete from "@mui/material/Autocomplete";
+import Avatar from "@mui/material/Avatar";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import TextField from "@mui/material/TextField";
-import { Check, Copy, X } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { useCallback, useRef, useState, useTransition } from "react";
 import {
 	Dialog,
@@ -11,7 +14,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import { createGroup } from "@/server/actions/group/create/action";
 
 interface SelectedMember {
@@ -215,22 +217,13 @@ export function CreateGroupDialog({
 					{members.length > 0 && (
 						<div className="flex flex-wrap gap-2">
 							{members.map((member) => (
-								<div
+								<Chip
 									key={member.id}
-									className="flex items-center gap-1.5 rounded-full bg-gray-100 py-1 pr-1 pl-2"
-								>
-									<div className="flex size-6 items-center justify-center rounded-full bg-blue-100 font-medium text-[10px] text-blue-700">
-										{getInitials(member.email)}
-									</div>
-									<span className="text-sm">{member.email.split("@")[0]}</span>
-									<button
-										type="button"
-										onClick={() => removeMember(member.id)}
-										className="rounded-full p-0.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
-									>
-										<X className="size-3.5" />
-									</button>
-								</div>
+									avatar={<Avatar>{getInitials(member.email)}</Avatar>}
+									label={member.email.split("@")[0]}
+									onDelete={() => removeMember(member.id)}
+									variant="filled"
+								/>
 							))}
 						</div>
 					)}
@@ -245,31 +238,16 @@ export function CreateGroupDialog({
 								placeholder="Link available after group is created"
 								className="flex-1 rounded border border-gray-300 bg-gray-50 px-3 py-2 text-gray-500 text-sm outline-none"
 							/>
-							<button
-								type="button"
+							<Button
+								variant="contained"
+								disableElevation
 								onClick={handleCopyLink}
 								disabled={!inviteLink}
-								className={cn(
-									"flex items-center gap-1.5 rounded px-4 py-2 font-medium text-sm transition-colors",
-									copied
-										? "bg-green-600 text-white"
-										: inviteLink
-											? "bg-blue-600 text-white hover:bg-blue-700"
-											: "cursor-not-allowed bg-gray-200 text-gray-400",
-								)}
+								color={copied ? "success" : "primary"}
+								startIcon={copied ? <Check /> : <Copy />}
 							>
-								{copied ? (
-									<>
-										<Check className="size-4" />
-										COPIED
-									</>
-								) : (
-									<>
-										<Copy className="size-4" />
-										COPY
-									</>
-								)}
-							</button>
+								{copied ? "Copied" : "Copy"}
+							</Button>
 						</div>
 						<p className="mt-1 text-gray-400 text-xs">
 							Anyone with this link can join the group
@@ -279,24 +257,16 @@ export function CreateGroupDialog({
 					{error && <p className="text-red-500 text-sm">{error}</p>}
 
 					<div className="flex items-center justify-end gap-4">
-						<button
-							type="button"
-							onClick={() => handleOpenChange(false)}
-							className="font-medium text-blue-600 text-sm uppercase tracking-wider hover:text-blue-700"
-						>
+						<Button variant="text" onClick={() => handleOpenChange(false)}>
 							Cancel
-						</button>
-						<button
-							type="button"
+						</Button>
+						<Button
+							variant="contained"
 							onClick={handleSubmit}
 							disabled={isPending || !name.trim()}
-							className={cn(
-								"rounded bg-blue-600 px-6 py-2.5 font-medium text-sm text-white uppercase tracking-wider",
-								"hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50",
-							)}
 						>
 							{isPending ? "Creating..." : "Create Group"}
-						</button>
+						</Button>
 					</div>
 				</div>
 			</DialogContent>

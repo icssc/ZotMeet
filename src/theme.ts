@@ -171,6 +171,16 @@ export const getTheme = (mode: "light" | "dark") =>
 					},
 				},
 			},
+			MuiChip: {
+				styleOverrides: {
+					label: {
+						fontSize: "0.8125rem",
+						fontWeight: 400,
+						lineHeight: "18px",
+						letterSpacing: "0.16px",
+					},
+				},
+			},
 			MuiButton: {
 				styleOverrides: {
 					root: {
