@@ -2,7 +2,7 @@ import "server-only";
 
 import { and, eq, ilike, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { notifications, users } from "@/db/schema";
+import { members, notifications, users } from "@/db/schema";
 
 export async function getUserIdExists(id: string) {
 	const user = await db.query.users.findFirst({
@@ -69,11 +69,17 @@ export async function createNewNotification(
 ) {
 	if (userIds.length === 0) return;
 
+	const memberRows = await db
+		.select({ memberId: members.id })
+		.from(members)
+		.where(inArray(members.id, userIds));
+
+	if (memberRows.length === 0) return;
 	return db
 		.insert(notifications)
 		.values(
-			userIds.map((userId) => ({
-				memberId: userId,
+			memberRows.map(({ memberId }) => ({
+				memberId,
 				title,
 				message,
 				type,

@@ -31,7 +31,6 @@ export function NotificationNudge({
 	const sendNotification = async () => {
 		try {
 			const name = await getUser();
-			console.log(window.location.href);
 			await sendNotificationsToUsers(
 				[...notificationids],
 				meetingData.title,

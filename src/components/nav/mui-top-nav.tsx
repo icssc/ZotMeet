@@ -254,9 +254,15 @@ function Notifications({
 												borderColor: "action.hover",
 												color: "black",
 											}}
-											onClick={() => {
-												deleteNotification(notif.id);
-												window.location.href = notif.redirect ?? "about:blank";
+											onClick={async () => {
+												await deleteNotification(notif.id);
+												const redirectUrl = notif.redirect
+													? new URL(notif.redirect, window.location.origin)
+													: new URL("/", window.location.origin);
+												window.location.href =
+													redirectUrl.origin === window.location.origin
+														? redirectUrl.toString()
+														: "/";
 											}}
 										>
 											View
