@@ -208,6 +208,16 @@ export const getTheme = (mode: "light" | "dark") =>
 							transform: "translateY(4px)",
 						},
 					}),
+					outlined: {
+						boxShadow: "0px 4px 0px 0px rgba(0,0,0,0.25)",
+						"&:hover": {
+							boxShadow: "0px 2px 0px 0px rgba(0,0,0,0.25)",
+						},
+						"&:active": {
+							boxShadow: "none",
+							transform: "translateY(4px)",
+						},
+					},
 					outlinedPrimary: ({ theme }) => ({
 						borderColor: `rgba(242, 100, 137, 0.5)`,
 						"&:hover": {

@@ -141,7 +141,11 @@ export const EditModal = ({
 			</DialogContent>
 
 			<DialogActions>
-				<Button variant="contained" onClick={() => handleOpenChange(false)}>
+				<Button
+					variant="outlined"
+					color="inherit"
+					onClick={() => handleOpenChange(false)}
+				>
 					Cancel
 				</Button>
 				<Button

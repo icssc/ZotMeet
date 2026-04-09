@@ -190,6 +190,7 @@ export function AvailabilityHeader({
 							<>
 								<Button
 									variant="outlined"
+									color="inherit"
 									size="small"
 									onClick={
 										availabilityView === "personal"
