@@ -51,34 +51,39 @@ export const RoomsHeatmap = ({ rooms, timeRange }: RoomsHeatmapProps) => {
 								<p className="text-xs">{room.description?.slice(0, 50)}</p>
 							</TableCell>
 
-							{room.slots.map((s) => {
-								return (
-									<TableCell
-										key={s.start}
-										className="border border-gray-300"
-										sx={{ padding: 0, height: "1px" }}
-									>
-										<ButtonBase
-											component={Link}
-											target="_blank"
-											href={s.url}
-											className={"h-full w-full"}
+							{[...room.slots]
+								.sort(
+									(a, b) =>
+										new Date(a.start).getTime() - new Date(b.start).getTime(),
+								)
+								.map((s) => {
+									return (
+										<TableCell
+											key={s.start}
+											className="border border-gray-300"
+											sx={{ padding: 0, height: "1px" }}
 										>
-											<Tooltip
-												placement="top"
-												title={`${formatISOToLocalTime(s.start)} - ${formatISOToLocalTime(s.end)}`}
+											<ButtonBase
+												component={Link}
+												target="_blank"
+												href={s.url}
+												className={"h-full w-full"}
 											>
-												<span
-													className={cn(
-														"h-full w-full",
-														s.isAvailable ? "bg-green-300" : "bg-red-300",
-													)}
-												/>
-											</Tooltip>
-										</ButtonBase>
-									</TableCell>
-								);
-							})}
+												<Tooltip
+													placement="top"
+													title={`${formatISOToLocalTime(s.start)} - ${formatISOToLocalTime(s.end)}`}
+												>
+													<span
+														className={cn(
+															"h-full w-full",
+															s.isAvailable ? "bg-green-300" : "bg-red-300",
+														)}
+													/>
+												</Tooltip>
+											</ButtonBase>
+										</TableCell>
+									);
+								})}
 						</TableRow>
 					))}
 				</TableBody>
