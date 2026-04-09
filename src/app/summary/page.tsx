@@ -12,7 +12,7 @@ import {
 export default async function Page() {
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/");
+		redirect("/auth/login/google");
 	}
 
 	const memberId = session.user.memberId;
