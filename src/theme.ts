@@ -171,6 +171,18 @@ export const getTheme = (mode: "light" | "dark") =>
 					},
 				},
 			},
+			MuiCheckbox: {
+				defaultProps: {
+					color: "primary",
+				},
+				styleOverrides: {
+					root: {
+						"& .MuiSvgIcon-root": {
+							color: "inherit",
+						},
+					},
+				},
+			},
 			MuiChip: {
 				styleOverrides: {
 					label: {
