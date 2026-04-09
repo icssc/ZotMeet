@@ -146,6 +146,13 @@ export const getTheme = (mode: "light" | "dark") =>
 					}),
 				},
 			},
+			MuiSwitch: {
+				styleOverrides: {
+					track: {
+						borderRadius: "100px",
+					},
+				},
+			},
 			MuiButton: {
 				styleOverrides: {
 					root: {
