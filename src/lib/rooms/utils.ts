@@ -4,7 +4,7 @@ export const formatISOToLocalTime = (isoString: string): string => {
 			hour: "numeric",
 			minute: "2-digit",
 			hour12: true,
-			timeZone: "UTC",
+			//timeZone: "UTC",
 		})
 		.toLowerCase();
 };
@@ -22,7 +22,7 @@ export const buildTimeArray = (
 	let current = start;
 	while (current < end) {
 		timestamps.push(formatISOToLocalTime(current.toISOString()));
-		current = new Date(current.getTime() + 30 * 60 * 1000);
+		current = new Date(current.getTime() + 15 * 60 * 1000);
 	}
 
 	return timestamps;

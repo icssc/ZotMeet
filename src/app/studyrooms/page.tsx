@@ -251,7 +251,9 @@ export default function Page() {
 				</Button>
 			</Box>
 
-			{rooms && <RoomsHeatmap rooms={rooms} timeRange={timeRange} />}
+			{rooms && (
+				<RoomsHeatmap rooms={rooms} startTime={startTime} endTime={endTime} />
+			)}
 			{rooms && (
 				<RoomResults rooms={rooms} startTime={startTime} endTime={endTime} />
 			)}
