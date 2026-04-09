@@ -1,6 +1,7 @@
 "use client";
 
 import { deleteNotification, readNotification } from "@actions/user/action";
+import { markNotificationAsRead } from "@data/user/queries";
 import { Close, Login, Person } from "@mui/icons-material";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import {
@@ -253,9 +254,15 @@ function Notifications({
 												borderColor: "action.hover",
 												color: "black",
 											}}
-											onClick={() => {
-												setActiveNotification(notif);
-												setShowGroupInvite(true);
+											onClick={async () => {
+												await deleteNotification(notif.id);
+												const redirectUrl = notif.redirect
+													? new URL(notif.redirect, window.location.origin)
+													: new URL("/", window.location.origin);
+												window.location.href =
+													redirectUrl.origin === window.location.origin
+														? redirectUrl.toString()
+														: "/";
 											}}
 										>
 											View

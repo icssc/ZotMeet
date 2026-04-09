@@ -79,6 +79,7 @@ export async function createGroup(
 				`You've been invited to join ${name.trim()}!`,
 				"Group Invite",
 				inviteToken,
+				user.displayName,
 			);
 		} catch (notificationError) {
 			console.error(notificationError);

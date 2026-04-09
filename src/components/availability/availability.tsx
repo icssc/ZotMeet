@@ -35,6 +35,7 @@ import {
 } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+import { NotificationNudge } from "./notification-nudge";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -670,17 +671,22 @@ export function Availability({
 						disabled={isLastPage}
 					/>
 				</div>
-
-				<GroupResponses
-					availabilityDates={availabilityDates}
-					fromTime={fromTimeMinutes}
-					members={members}
-					timezone={userTimezone}
-					anchorNormalizedDate={anchorNormalizedDate}
-					currentPageAvailability={currentPageAvailability}
-					availabilityTimeBlocks={availabilityTimeBlocks}
-					doesntNeedDay={doesntNeedDay}
-				/>
+				<div>
+					<GroupResponses
+						availabilityDates={availabilityDates}
+						fromTime={fromTimeMinutes}
+						members={members}
+						timezone={userTimezone}
+						anchorNormalizedDate={anchorNormalizedDate}
+						currentPageAvailability={currentPageAvailability}
+						availabilityTimeBlocks={availabilityTimeBlocks}
+						doesntNeedDay={doesntNeedDay}
+					/>
+					<NotificationNudge
+						meetingData={meetingData}
+						allAvailabilities={allAvailabilities}
+					/>
+				</div>
 			</div>
 		</div>
 	);

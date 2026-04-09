@@ -25,12 +25,10 @@ const AcceptGroupInvite = ({
 		await deleteNotification(notification.id);
 		onOpenChange(false);
 	};
-
 	const handleDecline = async () => {
 		await deleteNotification(notification.id);
 		onOpenChange(false);
 	};
-
 	return (
 		<div>
 			<Dialog open={open} onOpenChange={onOpenChange}>
