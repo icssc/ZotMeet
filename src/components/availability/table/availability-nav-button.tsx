@@ -1,5 +1,7 @@
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { IconButton } from "@mui/material";
 import { memo } from "react";
-import { cn } from "@/lib/utils";
 
 interface AvailabilityNavButtonProps {
 	direction: "left" | "right";
@@ -10,20 +12,14 @@ interface AvailabilityNavButtonProps {
 export const AvailabilityNavButton = memo(
 	({ direction, disabled, handleClick }: AvailabilityNavButtonProps) => {
 		return (
-			<button
-				type="button"
+			<IconButton
 				onClick={handleClick}
-				className={cn(
-					"shrink-0 p-3 pr-0 disabled:opacity-0 md:pr-1",
-					direction === "left" && "pl-0 md:pl-1",
-					direction === "right" && "pr-0 md:pr-1",
-				)}
 				disabled={disabled}
+				size="small"
+				sx={{ opacity: disabled ? 0 : 1 }}
 			>
-				<span className="text-3xl text-gray-500">
-					{direction === "left" ? <p> &lsaquo;</p> : <p>&rsaquo;</p>}
-				</span>
-			</button>
+				{direction === "left" ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+			</IconButton>
 		);
 	},
 );

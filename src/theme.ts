@@ -103,29 +103,29 @@ export const getTheme = (mode: "light" | "dark") =>
 				paper: mode === "dark" ? "#2A2929" : "#ffffff",
 			},
 			text: {
-				primary: mode === "dark" ? "#FFFFFF" : "#000000",
+				primary: mode === "dark" ? "white" : "#000000",
 				secondary:
 					mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.6)",
 			},
 			primary: {
 				main: "#F26489",
-				contrastText: "#FFFFFF",
+				contrastText: "white",
 			},
 			secondary: {
 				main: "#1F2A44",
-				contrastText: "#FFFFFF",
+				contrastText: "white",
 			},
 			success: {
 				main: green[800],
 				dark: green[900],
 				light: green[500],
-				contrastText: "#FFFFFF",
+				contrastText: "white",
 			},
 			warning: {
 				main: orange[800],
 				dark: orange[900],
 				light: orange[500],
-				contrastText: "#FFFFFF",
+				contrastText: "white",
 			},
 			info: {
 				main: blue[700],
@@ -134,7 +134,7 @@ export const getTheme = (mode: "light" | "dark") =>
 				main: red[700],
 				dark: red[800],
 				light: red[400],
-				contrastText: "#FFFFFF",
+				contrastText: "white",
 			},
 			divider: mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.2)",
 		},

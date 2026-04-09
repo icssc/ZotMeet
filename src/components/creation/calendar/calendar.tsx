@@ -1,4 +1,6 @@
-import { Button, Tab, Tabs } from "@mui/material";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { IconButton, Tab, Tabs } from "@mui/material";
 import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import { CalendarBody } from "@/components/creation/calendar/calendar-body";
 import { Week } from "@/components/creation/calendar/week";
@@ -127,19 +129,12 @@ export function Calendar({
 
 						{/* Mobile only buttons */}
 						<div className="flex gap-2 md:hidden">
-							<Button
-								onClick={decrementMonth}
-								className="bg-transparent hover:bg-transparent"
-							>
-								<span className="text-3xl text-gray-500">&lsaquo;</span>
-							</Button>
-
-							<Button
-								onClick={incrementMonth}
-								className="bg-transparent hover:bg-transparent"
-							>
-								<span className="text-3xl text-gray-500">&rsaquo;</span>
-							</Button>
+							<IconButton onClick={decrementMonth} size="small">
+								<ChevronLeftIcon />
+							</IconButton>
+							<IconButton onClick={incrementMonth} size="small">
+								<ChevronRightIcon />
+							</IconButton>
 						</div>
 					</div>
 				</div>
@@ -151,12 +146,12 @@ export function Calendar({
 				</div>
 			) : (
 				<div className="flex items-center justify-between">
-					<Button
+					<IconButton
 						onClick={decrementMonth}
-						className="hidden bg-transparent p-3 hover:bg-transparent md:block"
+						sx={{ display: { xs: "none", md: "flex" } }}
 					>
-						<span className="text-3xl text-gray-500">&lsaquo;</span>
-					</Button>
+						<ChevronLeftIcon />
+					</IconButton>
 
 					<div className="w-full md:px-2">
 						<table className="w-full table-fixed border-collapse">
@@ -183,12 +178,12 @@ export function Calendar({
 						</table>
 					</div>
 
-					<Button
+					<IconButton
 						onClick={incrementMonth}
-						className="hidden bg-transparent p-3 hover:bg-transparent md:block"
+						sx={{ display: { xs: "none", md: "flex" } }}
 					>
-						<span className="text-3xl text-gray-500">&rsaquo;</span>
-					</Button>
+						<ChevronRightIcon />
+					</IconButton>
 				</div>
 			)}
 		</div>
