@@ -8,14 +8,7 @@ import {
 } from "@actions/meeting/schedule/action";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Button } from "@mui/material";
-import {
-	CalendarCheck,
-	CalendarPlus,
-	CircleCheckIcon,
-	CircleXIcon,
-	DeleteIcon,
-	EditIcon,
-} from "lucide-react";
+import { DeleteIcon, EditIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -202,7 +195,6 @@ export function AvailabilityHeader({
 									}
 								>
 									<span className="hidden md:flex">Cancel</span>
-									<CircleXIcon />
 								</Button>
 								<Button
 									variant="contained"
@@ -215,7 +207,6 @@ export function AvailabilityHeader({
 									}
 								>
 									<span className="hidden md:flex">Save</span>
-									<CircleCheckIcon />
 								</Button>
 							</>
 						) : (
@@ -272,7 +263,6 @@ export function AvailabilityHeader({
 										size="small"
 										onClick={() => setAvailabilityView("schedule")}
 									>
-										<CalendarCheck className="size-5" />
 										<span className="hidden font-dm-sans md:flex">
 											Schedule Meeting
 										</span>
@@ -295,7 +285,6 @@ export function AvailabilityHeader({
 										setAvailabilityView("personal");
 									}}
 								>
-									<CalendarPlus className="size-5" />
 									<span className="hidden font-dm-sans md:flex">
 										{hasAvailability ? "Edit Availability" : "Add Availability"}
 									</span>
