@@ -1,6 +1,6 @@
 "use client";
 
-import { Tab, Tabs } from "@mui/material";
+import { Button, Tab, Tabs } from "@mui/material";
 import {
 	Bell,
 	Calendar,
@@ -296,17 +296,13 @@ export function GroupMemberList({
 				</div>
 				<div className="flex items-center gap-3">
 					<Link href={`/?groupId=${group.id}`}>
-						<button
-							type="button"
-							className="flex items-center gap-2 rounded bg-black px-4 py-2 font-medium text-sm text-white uppercase tracking-wide transition-colors hover:bg-gray-800"
-						>
-							<Plus className="size-4" />
+						<Button variant="contained" startIcon={<Plus className="size-4" />}>
 							Create New Meeting
-						</button>
+						</Button>
 					</Link>
-					<button
-						type="button"
-						className="flex items-center gap-2 rounded border border-gray-300 bg-white px-4 py-2 font-medium text-sm uppercase tracking-wide transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+					<Button
+						variant="outlined"
+						startIcon={<Share2 className="size-4" />}
 						onClick={handleCreateInviteLink}
 						disabled={!canShareInvites || isCreatingInvite}
 						title={
@@ -315,9 +311,8 @@ export function GroupMemberList({
 								: undefined
 						}
 					>
-						<Share2 className="size-4" />
 						{isCreatingInvite ? "Generating..." : "Share"}
-					</button>
+					</Button>
 				</div>
 			</div>
 
