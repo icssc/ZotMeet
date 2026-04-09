@@ -188,7 +188,7 @@ export function AvailabilityHeader({
 						availabilityView === "schedule" ? (
 							<>
 								<Button
-									variant="contained"
+									variant="outlined"
 									size="small"
 									onClick={
 										availabilityView === "personal"
