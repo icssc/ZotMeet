@@ -440,32 +440,27 @@ export function Availability({
 			setStudyRooms([]);
 			return;
 		}
-		const queryTimes = bestTimeRanges.join(",");
-		const queryDates = meetingData.dates.join(",");
-		console.log("Fetching with:", { queryDates, queryTimes });
 
 		const fetchRooms = async () => {
-			//console logs for draft pr testing
-			const queryTimes = bestTimeRanges.join(",");
-			const queryDates = meetingData.dates.join(",");
-			console.log("Fetching with:", { queryDates, queryTimes });
-
 			try {
-				const queryTimes = bestTimeRanges.join(",");
-				const queryDates = meetingData.dates.join(",");
+				// Make one API call per (date, time) pair
+				const promises = bestTimeRanges.map(({ date, time }) => {
+					console.log("Fetching with:", { date, time });
+					return getStudyRooms(date, time);
+				});
+				const results = await Promise.all(promises);
 
-				const data = await getStudyRooms(queryDates, queryTimes);
+				console.log("Fetched study rooms:", results); // console log for now
+				const combined = results.flatMap((res) => res.data ?? []);
 
-				console.log("Fetched study rooms:", data);
-
-				setStudyRooms(data.data ?? []);
+				setStudyRooms(combined);
 			} catch (err) {
 				console.error("Failed to fetch study rooms:", err);
 			}
 		};
 
 		fetchRooms();
-	}, [bestTimeRanges, meetingData.dates]);
+	}, [bestTimeRanges]);
 
 	// Helper to get block info from pointer position
 	const getBlockAtPosition = useCallback((x: number, y: number) => {

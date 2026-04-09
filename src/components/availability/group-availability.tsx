@@ -13,15 +13,21 @@ import { useBlockSelectionStore } from "@/store/useBlockSelectionStore";
 import { useGroupSelectionStore } from "@/store/useGroupSelectionStore";
 import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
 
+// to fit api format, am/pm is needed
 function formatRange(start: Date, end: Date) {
 	const format = (d: Date) => {
-		const hours = d.getHours();
+		let hours = d.getHours();
 		const minutes = d.getMinutes().toString().padStart(2, "0");
-		return `${hours}:${minutes}`;
-	};
 
+		const ampm = hours >= 12 ? "pm" : "am";
+		hours = hours % 12;
+		if (hours === 0) hours = 12;
+
+		return `${hours}:${minutes}${ampm}`;
+	};
 	return `${format(start)}-${format(end)}`;
 }
+
 export function getBestTimeRanges(availabilityDates: any[]) {
 	let max = 0;
 
