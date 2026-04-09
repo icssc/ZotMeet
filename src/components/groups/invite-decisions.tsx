@@ -1,17 +1,16 @@
 "use client";
 
 import { acceptInvite } from "@actions/group/invite/create/action";
-import { Button } from "@mui/material";
+import {
+	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
+	TextField,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 
 interface InviteDecisionProps {
 	open: boolean;
@@ -42,33 +41,44 @@ export const InviteDecision = ({ open, onOpenChange }: InviteDecisionProps) => {
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="sm:max-w-[500px]">
-				<DialogHeader>
-					<DialogTitle className="font-bold text-xl">
-						Join Existing Group
-					</DialogTitle>
-					<DialogDescription></DialogDescription>
-				</DialogHeader>
+		<Dialog
+			open={open}
+			onClose={() => onOpenChange(false)}
+			maxWidth="sm"
+			fullWidth
+		>
+			<DialogTitle>Join Existing Group</DialogTitle>
 
+			<DialogContent>
 				<form
 					onSubmit={(e) => {
 						e.preventDefault();
 						void handleAccept();
 					}}
-					className="flex items-end gap-3"
 				>
-					<div className="flex-1 space-y-1">
-						<p className="text-sm">Join via Link</p>
-						<Input
-							placeholder="Insert Meeting Link"
-							value={input}
-							onChange={(e) => setInput(e.target.value)}
-						/>
-					</div>
-					<Button type="submit">Join</Button>
+					<TextField
+						label="Join via Link"
+						placeholder="Insert Meeting Link"
+						value={input}
+						onChange={(e) => setInput(e.target.value)}
+						fullWidth
+						sx={{ mt: 1 }}
+					/>
 				</form>
 			</DialogContent>
+
+			<DialogActions>
+				<Button onClick={() => onOpenChange(false)} variant="text">
+					Cancel
+				</Button>
+				<Button
+					onClick={() => void handleAccept()}
+					variant="contained"
+					disabled={!input}
+				>
+					Join
+				</Button>
+			</DialogActions>
 		</Dialog>
 	);
 };

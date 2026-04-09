@@ -1,11 +1,11 @@
-import { Button } from "@mui/material";
 import {
+	Button,
 	Dialog,
+	DialogActions,
 	DialogContent,
-	DialogFooter,
 	DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+	TextField,
+} from "@mui/material";
 
 interface GuestDialogProps {
 	isGuestDialogOpen: boolean;
@@ -30,32 +30,38 @@ export function GuestDialog({
 	};
 
 	return (
-		<Dialog open={isGuestDialogOpen} onOpenChange={setIsGuestDialogOpen}>
-			TODO: Guest
+		<Dialog
+			open={isGuestDialogOpen}
+			onClose={() => setIsGuestDialogOpen(false)}
+			maxWidth="xs"
+			fullWidth
+		>
+			<DialogTitle>Continue as Guest</DialogTitle>
+
 			<DialogContent>
-				<DialogTitle>Continue as Guest</DialogTitle>
-				<Input
-					id="name"
+				<TextField
+					autoFocus
+					label="Your name"
 					placeholder="Enter your name..."
 					value={guestName}
 					onChange={(e) => setGuestName(e.target.value)}
-					autoFocus
 					onKeyDown={(e) => {
-						if (e.key === "Enter") {
-							handleGuestSubmit();
-						}
+						if (e.key === "Enter") handleGuestSubmit();
 					}}
+					fullWidth
+					sx={{ mt: 1 }}
 				/>
-				<DialogFooter>
-					<Button
-						type="button"
-						onClick={handleGuestSubmit}
-						disabled={!guestName.trim()}
-					>
-						Submit
-					</Button>
-				</DialogFooter>
 			</DialogContent>
+
+			<DialogActions>
+				<Button
+					variant="contained"
+					onClick={handleGuestSubmit}
+					disabled={!guestName.trim()}
+				>
+					Submit
+				</Button>
+			</DialogActions>
 		</Dialog>
 	);
 }
