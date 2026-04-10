@@ -293,7 +293,7 @@ export function GroupResponses({
 										toggleSelection(cap, selectedCapacity, setSelectedCapacity)
 									}
 									// Need to be unified with our custom mui, i kinda just picked close colors
-									className={`!rounded-full !border !border-pink-500${
+									className={`!rounded-full !border !border-pink-500 ${
 										selected
 											? "!bg-pink-500 !text-white hover:!bg-pink-500"
 											: "!text-pink-500 hover:!bg-pink-100"
