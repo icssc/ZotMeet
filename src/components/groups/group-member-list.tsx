@@ -1,5 +1,6 @@
 "use client";
 
+import { Button, Tab, Tabs } from "@mui/material";
 import {
 	Bell,
 	Calendar,
@@ -13,13 +14,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { toast } from "sonner";
-import {
-	Tabs,
-	TabsContent,
-	TabsList,
-	TabsTrigger,
-} from "@/components/custom/tabs";
 import {
 	Select,
 	SelectContent,
@@ -27,6 +21,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { useSnackbar } from "@/components/ui/snackbar-provider";
 import { GroupRole, type SelectGroup } from "@/db/schema";
 import { formatDateToUSNumeric } from "@/lib/availability/utils";
 import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
@@ -256,11 +251,13 @@ export function GroupMemberList({
 	currentUserId,
 }: GroupMemberListProps) {
 	const [isCreatingInvite, setIsCreatingInvite] = useState(false);
+	const [tab, setTab] = useState(0);
 	const canShareInvites = group.createdBy === currentUserId;
+	const { showSuccess, showError } = useSnackbar();
 
 	async function handleCreateInviteLink() {
 		if (!canShareInvites) {
-			toast.error("Only the group creator can generate invite links.");
+			showError("Only the group creator can generate invite links.");
 			return;
 		}
 
@@ -268,18 +265,18 @@ export function GroupMemberList({
 		try {
 			const res = await createGroupInvite(group.id);
 			if (!res.success || !res.inviteUrl) {
-				toast.error(res.message || "Failed to generate invite link.");
+				showError(res.message || "Failed to generate invite link.");
 				return;
 			}
 
 			try {
 				await navigator.clipboard.writeText(res.inviteUrl);
-				toast.success("Invite link copied to clipboard.");
+				showSuccess("Invite link copied to clipboard.");
 			} catch (_clipboardError) {
-				toast.error("Invite link generated, but failed to copy to clipboard.");
+				showError("Invite link generated, but failed to copy to clipboard.");
 			}
 		} catch (_error) {
-			toast.error("Failed to generate invite link.");
+			showError("Failed to generate invite link.");
 		} finally {
 			setIsCreatingInvite(false);
 		}
@@ -299,17 +296,13 @@ export function GroupMemberList({
 				</div>
 				<div className="flex items-center gap-3">
 					<Link href={`/?groupId=${group.id}`}>
-						<button
-							type="button"
-							className="flex items-center gap-2 rounded bg-black px-4 py-2 font-medium text-sm text-white uppercase tracking-wide transition-colors hover:bg-gray-800"
-						>
-							<Plus className="size-4" />
+						<Button variant="contained" startIcon={<Plus className="size-4" />}>
 							Create New Meeting
-						</button>
+						</Button>
 					</Link>
-					<button
-						type="button"
-						className="flex items-center gap-2 rounded border border-gray-300 bg-white px-4 py-2 font-medium text-sm uppercase tracking-wide transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+					<Button
+						variant="outlined"
+						startIcon={<Share2 className="size-4" />}
 						onClick={handleCreateInviteLink}
 						disabled={!canShareInvites || isCreatingInvite}
 						title={
@@ -318,38 +311,35 @@ export function GroupMemberList({
 								: undefined
 						}
 					>
-						<Share2 className="size-4" />
 						{isCreatingInvite ? "Generating..." : "Share"}
-					</button>
+					</Button>
 				</div>
 			</div>
 
-			<Tabs defaultValue="meetings" className="mt-6">
-				<TabsList className="w-full border-gray-200 border-b">
-					<TabsTrigger
-						value="meetings"
-						className="flex items-center gap-2 px-6 pb-3 text-sm uppercase tracking-wide"
-					>
-						<Calendar className="size-4" />
-						All Meetings ({meetings.length})
-					</TabsTrigger>
-					<TabsTrigger
-						value="members"
-						className="flex items-center gap-2 px-6 pb-3 text-sm uppercase tracking-wide"
-					>
-						<Users className="size-4" />
-						Members ({members.length})
-					</TabsTrigger>
-					<TabsTrigger
-						value="settings"
-						className="flex items-center gap-2 px-6 pb-3 text-sm uppercase tracking-wide"
-					>
-						<Settings className="size-4" />
-						Settings
-					</TabsTrigger>
-				</TabsList>
+			<Tabs
+				value={tab}
+				onChange={(_, v) => setTab(v)}
+				sx={{ mt: 3, borderBottom: 1, borderColor: "divider" }}
+			>
+				<Tab
+					icon={<Calendar className="size-4" />}
+					iconPosition="start"
+					label={`All Meetings (${meetings.length})`}
+				/>
+				<Tab
+					icon={<Users className="size-4" />}
+					iconPosition="start"
+					label={`Members (${members.length})`}
+				/>
+				<Tab
+					icon={<Settings className="size-4" />}
+					iconPosition="start"
+					label="Settings"
+				/>
+			</Tabs>
 
-				<TabsContent value="meetings" className="mt-4">
+			{tab === 0 && (
+				<div className="mt-4">
 					{meetings.length > 0 ? (
 						<div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
 							{meetings.map((meeting) => (
@@ -361,23 +351,25 @@ export function GroupMemberList({
 							<p className="text-gray-500 text-lg italic">No meetings yet!</p>
 						</div>
 					)}
-				</TabsContent>
+				</div>
+			)}
 
-				<TabsContent value="members" className="mt-4">
+			{tab === 1 && (
+				<div className="mt-4">
 					<MembersList
 						members={members}
 						isAdmin={isAdmin}
 						groupId={group.id}
 						currentUserId={currentUserId}
 					/>
-				</TabsContent>
+				</div>
+			)}
 
-				<TabsContent value="settings" className="mt-4">
-					<div className="flex items-center justify-center py-32">
-						<p className="text-gray-500 text-lg">Settings coming soon</p>
-					</div>
-				</TabsContent>
-			</Tabs>
+			{tab === 2 && (
+				<div className="mt-4 flex items-center justify-center py-32">
+					<p className="text-gray-500 text-lg">Settings coming soon</p>
+				</div>
+			)}
 		</div>
 	);
 }

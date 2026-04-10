@@ -7,7 +7,6 @@ import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { GroupCard } from "@/components/groups/group-card";
-import { cn } from "@/lib/utils";
 import type { GroupWithDetails } from "@/server/data/groups/queries";
 import { InviteDecision } from "./invite-decisions";
 
@@ -60,10 +59,9 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 
 				<Button
 					type="button"
+					variant="contained"
 					onClick={() => setCreateDialogOpen(true)}
 					sx={{
-						backgroundColor: "#F26489",
-						color: "white",
 						fontSize: "2rem",
 						padding: 0,
 						marginLeft: "auto",
@@ -88,27 +86,23 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					/>
 				</div>
 
-				<div className="ml-auto hidden sm:block">
+				<div className="ml-auto hidden items-center gap-2 sm:flex">
 					<Button
 						type="button"
+						variant="outlined"
+						startIcon={<PersonAddIcon />}
 						onClick={() => setShowJoinGroup(true)}
-						className="flex items-center"
 					>
-						<div className="flex gap-2 text-black">
-							<PersonAddIcon className="size-5" />
-							<p>Join Group</p>
-						</div>
+						Join Group
 					</Button>
 
 					<Button
 						type="button"
+						variant="outlined"
+						startIcon={<Add />}
 						onClick={() => setCreateDialogOpen(true)}
-						className="flex items-center"
 					>
-						<div className="flex gap-2 text-black">
-							<Add className="size-5" />
-							<p>Create Group</p>
-						</div>
+						Create Group
 					</Button>
 				</div>
 			</div>
@@ -185,25 +179,22 @@ function FilterChip({
 	onClick: () => void;
 }) {
 	return (
-		<button
-			type="button"
+		<Button
 			onClick={onClick}
-			className={cn(
-				"flex items-center gap-2.5 rounded-lg px-1.5 py-2.5 transition-colors sm:px-2 sm:py-2",
-				active
-					? "bg-[#1F2A44] text-white"
-					: "bg-black/[0.04] text-black hover:bg-black/[0.08]",
-			)}
+			disableElevation
+			sx={{
+				bgcolor: active ? "secondary.main" : "rgba(0,0,0,0.04)",
+				color: active ? "secondary.contrastText" : "text.primary",
+				"&:hover": {
+					bgcolor: active ? "secondary.dark" : "rgba(0,0,0,0.08)",
+				},
+				boxShadow: "none",
+				borderRadius: 1,
+				fontWeight: 600,
+				fontSize: "1rem",
+			}}
 		>
-			<span className="font-semibold text-base leading-none">{label}</span>
-			<span
-				className={cn(
-					"font-bold text-base leading-none",
-					active ? "text-white" : "text-[#918d89]",
-				)}
-			>
-				{count}
-			</span>
-		</button>
+			{label} {count}
+		</Button>
 	);
 }

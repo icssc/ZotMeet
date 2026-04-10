@@ -1,10 +1,8 @@
-import { Divider } from "@mui/material/";
+import { Checkbox, Divider, FormControlLabel } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
@@ -187,18 +185,16 @@ export function GroupResponses({
 						</span>
 					</div>
 
-					<div className="flex items-center gap-2 pl-8">
-						<Checkbox
-							id={`Show_Best_Times`}
-							checked={showBestTimes}
-							onCheckedChange={setShowBestTimes}
+					<div className="pl-8">
+						<FormControlLabel
+							control={
+								<Checkbox
+									checked={showBestTimes}
+									onChange={(e) => setShowBestTimes(e.target.checked)}
+								/>
+							}
+							label="Show Best Times"
 						/>
-						<Label
-							htmlFor={`Show_Best_Times`}
-							className="cursor-pointer text-lg"
-						>
-							Show Best Times
-						</Label>
 					</div>
 				</div>
 
@@ -228,19 +224,15 @@ export function GroupResponses({
 								onMouseEnter={() => handleMemberHover(member.memberId)}
 								onMouseLeave={() => handleMemberHover(null)}
 							>
-								<ul className="flex w-fit items-center gap-2">
-									<Checkbox
-										id={`MEMBER${member.memberId}`}
-										checked={selectedMembers.includes(member.memberId)}
-										onCheckedChange={() => handleMemberSelect(member.memberId)}
-									/>
-									<Label
-										htmlFor={`MEMBER${member.memberId}`}
-										className="cursor-pointer text-lg"
-									>
-										{member.displayName}
-									</Label>
-								</ul>
+								<FormControlLabel
+									control={
+										<Checkbox
+											checked={selectedMembers.includes(member.memberId)}
+											onChange={() => handleMemberSelect(member.memberId)}
+										/>
+									}
+									label={member.displayName}
+								/>
 							</li>
 						))}
 					</ul>
