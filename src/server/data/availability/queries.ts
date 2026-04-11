@@ -1,8 +1,8 @@
 import "server-only";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
-import { availabilities } from "@/db/schema";
+import { availabilities, meetings, scheduledMeetings } from "@/db/schema";
 
 export async function getMemberMeetingAvailability({
 	memberId,
@@ -23,4 +23,35 @@ export async function getMemberMeetingAvailability({
 	}
 
 	return availabilityData;
+}
+
+export async function getUserAvailabilitiesAndScheduled(memberId: string) {
+	const userAvailabilities = await db
+		.select({
+			meetingId: availabilities.meetingId,
+			meetingAvailabilities: availabilities.meetingAvailabilities,
+		})
+		.from(availabilities)
+		.innerJoin(meetings, eq(availabilities.meetingId, meetings.id))
+		.where(
+			and(eq(availabilities.memberId, memberId), eq(meetings.archived, false)),
+		);
+
+	if (userAvailabilities.length === 0) {
+		return { userAvailabilities: [], scheduledBlocks: [] };
+	}
+	const meetingIds = userAvailabilities.map((a) => a.meetingId);
+
+	const scheduledBlocks = await db
+		.select({
+			scheduledDate: scheduledMeetings.scheduledDate,
+			scheduledFromTime: scheduledMeetings.scheduledFromTime,
+			scheduledToTime: scheduledMeetings.scheduledToTime,
+			timezone: meetings.timezone,
+		})
+		.from(scheduledMeetings)
+		.innerJoin(meetings, eq(scheduledMeetings.meetingId, meetings.id))
+		.where(inArray(scheduledMeetings.meetingId, meetingIds));
+
+	return { userAvailabilities, scheduledBlocks };
 }
