@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils";
 
 interface RoomsHeatmapProps {
 	rooms: StudyRooms["data"];
-	timeRange: string;
 	startTime: Date;
 	endTime: Date;
 }

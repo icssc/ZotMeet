@@ -22,6 +22,7 @@ import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
 const LOCATION_OPTIONS = [
+	"Plaza Verde",
 	"Langson Library",
 	"Science Library",
 	"Multimedia Resources Center",
@@ -47,12 +48,15 @@ export default function Page() {
 	const [date, setDate] = useState<Date | null>(tomorrow);
 	const [startTime, setStartTime] = useState<Date | null>(defaultStart);
 	const [endTime, setEndTime] = useState<Date | null>(defaultEnd);
+	const [committedStart, setCommittedStart] = useState<Date | null>(
+		defaultStart,
+	);
+	const [committedEnd, setCommittedEnd] = useState<Date | null>(defaultEnd);
 	const [location, setLocation] = useState<string | null>(null);
 	const [capacityMin, setCapacityMin] = useState("");
 	const [capacityMax, setCapacityMax] = useState("");
 	const [isTechEnhanced, setIsTechEnhanced] = useState(false);
 	const [rooms, setRooms] = useState<StudyRooms["data"] | null>(null);
-	const [timeRange, setTimeRange] = useState("");
 	const [error, setError] = useState<string | null>(null);
 
 	const activeFilters = [
@@ -127,8 +131,9 @@ export default function Page() {
 				isTechEnhanced: isTechEnhanced || undefined,
 			});
 
-			setTimeRange(tr);
 			setRooms(data);
+			setCommittedStart(startTime);
+			setCommittedEnd(endTime);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "API call failed");
 		}
@@ -139,10 +144,15 @@ export default function Page() {
 		tmrw.setDate(tmrw.getDate() + 1);
 		const today = format(tmrw, "yyyy-MM-dd");
 		const defaultTr = "11:00am-5:00pm";
+		const initialCommittedStart = new Date();
+		initialCommittedStart.setHours(11, 0, 0, 0);
+		const initialCommittedEnd = new Date();
+		initialCommittedEnd.setHours(17, 0, 0, 0);
 		fetchStudyRooms({ date: today, timeRange: defaultTr })
 			.then(({ data }) => {
-				setTimeRange(defaultTr);
 				setRooms(data);
+				setCommittedStart(initialCommittedStart);
+				setCommittedEnd(initialCommittedEnd);
 			})
 			.catch((err) =>
 				setError(err instanceof Error ? err.message : "API call failed"),
@@ -173,13 +183,13 @@ export default function Page() {
 					<TimePicker
 						label="Start Time"
 						value={startTime}
-						onChange={setStartTime}
+						onAccept={setStartTime}
 						slotProps={{ textField: { fullWidth: true } }}
 					/>
 					<TimePicker
 						label="End Time"
 						value={endTime}
-						onChange={setEndTime}
+						onAccept={setEndTime}
 						slotProps={{ textField: { fullWidth: true } }}
 					/>
 				</Stack>
@@ -251,8 +261,12 @@ export default function Page() {
 				</Button>
 			</Box>
 
-			{rooms && (
-				<RoomsHeatmap rooms={rooms} startTime={startTime} endTime={endTime} />
+			{rooms && committedStart && committedEnd && (
+				<RoomsHeatmap
+					rooms={rooms}
+					startTime={committedStart}
+					endTime={committedEnd}
+				/>
 			)}
 			{rooms && (
 				<RoomResults rooms={rooms} startTime={startTime} endTime={endTime} />
