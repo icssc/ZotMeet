@@ -12,20 +12,24 @@ import { buildTimeArray, formatISOToLocalTime } from "@/lib/rooms/utils";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 import { cn } from "@/lib/utils";
 
-const slotStart = "2026-04-06T11:00:00Z"; // 11:00am UTC
-const slotEnd = "2026-04-06T17:00:00Z"; // 5:00pm UTC
-
-const timestamps = buildTimeArray(slotStart, slotEnd);
-
 interface RoomsHeatmapProps {
 	rooms: StudyRooms["data"];
-	timeRange: string;
+	startTime: Date;
+	endTime: Date;
 }
 
-export const RoomsHeatmap = ({ rooms, timeRange }: RoomsHeatmapProps) => {
+export const RoomsHeatmap = ({
+	rooms,
+	startTime,
+	endTime,
+}: RoomsHeatmapProps) => {
+	const timestamps = buildTimeArray(
+		startTime.toISOString(),
+		endTime.toISOString(),
+	);
+
 	return (
 		<div className="">
-			<p>{timeRange}</p>
 			<Table size="small" sx={{ borderCollapse: "collapse", borderSpacing: 0 }}>
 				<TableHead>
 					<TableRow>
