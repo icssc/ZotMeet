@@ -270,7 +270,7 @@ export function AvailabilityHeader({
 
 								<Button
 									variant="contained"
-									size="small"
+									className="w-80"
 									onClick={() => {
 										if (!user) {
 											setIsAuthModalOpen(true);
