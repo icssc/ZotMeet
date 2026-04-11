@@ -1,10 +1,4 @@
-import {
-	Checkbox,
-	Chip,
-	Divider,
-	FormControlLabel,
-	Switch,
-} from "@mui/material/";
+import { Chip, Switch } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -85,14 +79,13 @@ export function GroupResponses({
 		[toggleSelectedMember],
 	);
 
-	const { availableMembers, notAvailableMembers } = useMemo(() => {
+	const { availableMembers } = useMemo(() => {
 		if (
 			selectedZotDateIndex === undefined ||
 			selectedBlockIndex === undefined
 		) {
 			return {
 				availableMembers: [],
-				notAvailableMembers: members,
 			};
 		}
 		const selectedDate = newAvailDates[selectedZotDateIndex];
@@ -107,9 +100,6 @@ export function GroupResponses({
 		return {
 			availableMembers: members.filter((member) =>
 				availableMemberIds.includes(member.memberId),
-			),
-			notAvailableMembers: members.filter(
-				(member) => !availableMemberIds.includes(member.memberId),
 			),
 		};
 	}, [
@@ -156,22 +146,22 @@ export function GroupResponses({
 				availabilityView !== "group" && "pointer-events-none invisible",
 			)}
 		>
-			<div className="hidden pb-1 pl-6 lg:block">
-				<h3 className="font-medium text-xl">Attendees</h3>
-				<p className="font-bold text-slate-400 text-xs uppercase tracking-wide">
-					{blockInfoString}
-				</p>
-			</div>
-
 			<div
 				className={cn(
-					"fixed bottom-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl bg-opacity-90 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:right-2 lg:h-auto lg:w-96 lg:shrink-0 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:bg-opacity-50",
+					"fixed bottom-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:h-auto lg:w-96 lg:shrink-0 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:bg-opacity-50",
 					isMobileDrawerOpen && "translate-y-0",
 				)}
 			>
-				<div className="flex items-center justify-between px-8 py-4 lg:hidden">
+				<div className="hidden pb-3 lg:block">
+					<h3 className="font-medium text-xl">Attendees</h3>
+					<p className="font-bold text-slate-400 text-xs uppercase tracking-wide">
+						{blockInfoString}
+					</p>
+				</div>
+
+				<div className="flex items-center justify-between py-4 lg:hidden">
 					<div>
-						<h3 className="font-figtree font-medium">Responders</h3>
+						<h3 className="font-medium">Responders</h3>
 						<p className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 							{blockInfoString}
 						</p>
@@ -186,36 +176,40 @@ export function GroupResponses({
 				</div>
 
 				<div className="mt-4 flex flex-col py-2">
-					<div className="px-8">
-						<h1>Map Display</h1>
-						<p className="text-slate-500 text-xs">
+					<div>
+						<h2 className="font-medium text-xl">Map Display</h2>
+						<p className="font-bold text-slate-400 text-xs">
 							Filter how responder availability shows together on the map
 						</p>
 					</div>
 
-					<div className="mt-2 pl-8">
-						<FormControlLabel
-							control={
-								<Switch
-									checked={showBestTimes}
-									onChange={(e) => setShowBestTimes(e.target.checked)}
-								/>
-							}
-							label="Best Times"
+					<div className="mt-2 flex items-center gap-2">
+						<Switch
+							id="availability-best-times"
+							checked={showBestTimes}
+							onChange={(e) => setShowBestTimes(e.target.checked)}
+							size="medium"
+							inputProps={{ "aria-label": "Best Times" }}
 						/>
+						<label
+							htmlFor="availability-best-times"
+							className="cursor-pointer text-md"
+						>
+							Best Times
+						</label>
 					</div>
 				</div>
 
 				<div className="h-[32rem] flex-col py-2">
-					<div className="px-8">
-						<h1>Responders</h1>
+					<div>
+						<h2 className="font-medium text-xl">Responders</h2>
 						<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 							AVAILABLE (
 							{isHoveringGrid ? availableMembers.length : members.length})
 						</span>
 					</div>
 
-					<ul className="mt-3 overflow-auto pl-8">
+					<ul className="mt-3 flex flex-wrap gap-2 overflow-auto">
 						{members.map((member) => (
 							<Chip
 								clickable

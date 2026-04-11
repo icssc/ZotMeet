@@ -17,6 +17,7 @@ import { EditModal } from "@/components/availability/header/edit-modal";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
+import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
@@ -174,13 +175,32 @@ export function AvailabilityHeader({
 
 	return (
 		<>
-			<div className="px-2 pt-8">
-				<div className="flex items-start justify-between gap-x-4">
-					<h1 className="line-clamp-1 truncate font-figtree font-medium text-xl md:text-3xl">
+			<div className="px-0 pt-8">
+				<div
+					className={cn(
+						"gap-4",
+						availabilityView === "group"
+							? "flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-x-4"
+							: "flex items-start justify-between",
+					)}
+				>
+					<h1
+						className={cn(
+							"line-clamp-1 truncate font-figtree font-medium text-xl md:text-3xl",
+							availabilityView === "group" && "min-w-0",
+						)}
+					>
 						{meetingData.title}
 					</h1>
 
-					<div className="flex shrink-0 space-x-2">
+					<div
+						className={cn(
+							"shrink-0",
+							availabilityView === "group"
+								? "flex w-full flex-col gap-2 lg:col-start-2 lg:w-full"
+								: "flex space-x-2",
+						)}
+					>
 						{availabilityView === "personal" ||
 						availabilityView === "schedule" ? (
 							<>
@@ -211,66 +231,71 @@ export function AvailabilityHeader({
 							</>
 						) : (
 							<>
-								{isScheduled && (
-									<Button
-										variant="outlined"
-										size="medium"
-										startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
-										onClick={async () => {
-											if (isGeneratingLink) return;
-											setIsGeneratingLink(true);
-											try {
-												const { success, link } =
-													await getGoogleCalendarPrefilledLink({
-														meetingId: meetingData.id,
-														meetingTitle: meetingData.title,
-														meetingDescription: meetingData.description,
-														meetingLocation: meetingData.location,
-														timezone: meetingData.timezone,
-													});
+								<div className="flex flex-wrap justify-end gap-2">
+									{isScheduled && (
+										<Button
+											variant="outlined"
+											size="medium"
+											startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
+											onClick={async () => {
+												if (isGeneratingLink) return;
+												setIsGeneratingLink(true);
+												try {
+													const { success, link } =
+														await getGoogleCalendarPrefilledLink({
+															meetingId: meetingData.id,
+															meetingTitle: meetingData.title,
+															meetingDescription: meetingData.description,
+															meetingLocation: meetingData.location,
+															timezone: meetingData.timezone,
+														});
 
-												if (!success || !link) {
-													showError("Failed to generate Google Calendar link.");
-													return;
+													if (!success || !link) {
+														showError(
+															"Failed to generate Google Calendar link.",
+														);
+														return;
+													}
+
+													window.open(link, "_blank", "noopener,noreferrer");
+
+													showSuccess(
+														"Google Calendar link opened! Confirm the event in your calendar.",
+													);
+												} catch (error) {
+													console.error(
+														"Error generating Google Calendar link:",
+														error,
+													);
+													showError(
+														"An error occurred while generating the Google Calendar link.",
+													);
+												} finally {
+													setIsGeneratingLink(false);
 												}
+											}}
+										>
+											Add to Calendar
+										</Button>
+									)}
 
-												window.open(link, "_blank", "noopener,noreferrer");
-
-												showSuccess(
-													"Google Calendar link opened! Confirm the event in your calendar.",
-												);
-											} catch (error) {
-												console.error(
-													"Error generating Google Calendar link:",
-													error,
-												);
-												showError(
-													"An error occurred while generating the Google Calendar link.",
-												);
-											} finally {
-												setIsGeneratingLink(false);
-											}
-										}}
-									>
-										Add to Calendar
-									</Button>
-								)}
-
-								{isOwner && (
-									<Button
-										variant="contained"
-										size="small"
-										onClick={() => setAvailabilityView("schedule")}
-									>
-										<span className="hidden font-dm-sans md:flex">
-											Schedule Meeting
-										</span>
-									</Button>
-								)}
+									{isOwner && (
+										<Button
+											variant="contained"
+											size="small"
+											onClick={() => setAvailabilityView("schedule")}
+										>
+											<span className="hidden font-dm-sans md:flex">
+												Schedule Meeting
+											</span>
+										</Button>
+									)}
+								</div>
 
 								<Button
 									variant="contained"
-									className="w-80"
+									className="w-full max-w-full normal-case"
+									sx={{ py: 0.75 }}
 									onClick={() => {
 										if (!user) {
 											setIsAuthModalOpen(true);
