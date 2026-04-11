@@ -268,9 +268,14 @@ export default function Page() {
 					endTime={committedEnd}
 				/>
 			)}
-			{rooms && (
-				<RoomResults rooms={rooms} startTime={startTime} endTime={endTime} />
-			)}
+
+			{/*rooms && committedStart && committedEnd && (
+				<RoomResults
+					rooms={rooms}
+					startTime={committedStart}
+					endTime={committedEnd}
+				/>
+			)*/}
 		</LocalizationProvider>
 	);
 }
