@@ -1,4 +1,4 @@
-import { Chip, Switch } from "@mui/material/";
+import { Button, Chip, Switch } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -41,6 +41,7 @@ export function GroupResponses({
 		setIsMobileDrawerOpen,
 		setHoveredMember,
 		toggleSelectedMember,
+		setSelectedMember,
 		selectedMembers,
 		isHoveringGrid,
 		enabled: showBestTimes,
@@ -54,6 +55,7 @@ export function GroupResponses({
 			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
 			setHoveredMember: state.setHoveredMember,
 			toggleSelectedMember: state.toggleSelectedMember,
+			setSelectedMember: state.setSelectedMember,
 			selectedMembers: state.selectedMembers,
 			isHoveringGrid: state.isHoveringGrid,
 			enabled: state.enabled,
@@ -64,6 +66,10 @@ export function GroupResponses({
 	const [blockInfoString, setBlockInfoString] = useState(
 		"Filter through responders and find the best meeting time",
 	);
+
+	const handleClearSelected = useCallback(() => {
+		setSelectedMember([]);
+	}, [setSelectedMember]);
 
 	const handleMemberHover = useCallback(
 		(memberId: string | null) => {
@@ -200,7 +206,7 @@ export function GroupResponses({
 					</div>
 				</div>
 
-				<div className="h-[32rem] flex-col py-2">
+				<div className="flex h-[32rem] flex-col py-2">
 					<div>
 						<h2 className="font-medium text-xl">Responders</h2>
 						<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
@@ -227,6 +233,15 @@ export function GroupResponses({
 							/>
 						))}
 					</ul>
+					<div className="mt-10 ml-auto">
+						<Button
+							variant="text"
+							className="ml-auto"
+							onClick={handleClearSelected}
+						>
+							Clear Selected
+						</Button>
+					</div>
 				</div>
 			</div>
 		</div>
