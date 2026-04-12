@@ -1,11 +1,16 @@
 "use client";
 
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import {
+	Accordion,
+	AccordionDetails,
+	AccordionSummary,
 	Button,
 	ToggleButton,
 	ToggleButtonGroup,
 	Typography,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import React from "react";
 
 type Availability = "available" | "if-needed" | "unavailable";
@@ -92,17 +97,20 @@ export function PersonalAvailabilitySidebar() {
 							key={value}
 							value={value}
 							aria-label={label}
-							sx={{
+							sx={(theme) => ({
 								display: "flex",
 								flexDirection: "column",
 								gap: 1,
 								px: 2,
 								py: 1.5,
 								"&.Mui-selected": {
-									background: "#FBEAF0",
-									borderColor: "#ED93B1",
+									backgroundColor: alpha(
+										theme.palette.primary.main,
+										theme.palette.mode === "dark" ? 0.2 : 0.12,
+									),
+									borderColor: theme.palette.primary.main,
 								},
-							}}
+							})}
 						>
 							{icon}
 							<Typography variant="caption">{label}</Typography>
@@ -113,6 +121,27 @@ export function PersonalAvailabilitySidebar() {
 				<Button variant="outlined" color="inherit" fullWidth>
 					Clear availability
 				</Button>
+
+				<Accordion
+					defaultExpanded
+					elevation={0}
+					sx={{
+						boxShadow: "none",
+						border: "none",
+						"&:before": { display: "none" },
+					}}
+				>
+					<AccordionSummary
+						expandIcon={<ArrowDropDownIcon />}
+						aria-controls="panel1-content"
+						id="panel1-header"
+					>
+						<Typography variant="button">Calendar Overlays</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<p>put calendars here</p>
+					</AccordionDetails>
+				</Accordion>
 			</div>
 		</div>
 	);
