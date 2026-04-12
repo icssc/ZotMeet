@@ -1,4 +1,4 @@
-import { Button, Chip, Switch } from "@mui/material/";
+import { Button, Chip, Switch, Typography } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -152,10 +152,10 @@ export function GroupResponses({
 				)}
 			>
 				<div className="hidden pb-3 lg:block">
-					<h3 className="font-medium text-xl">Attendees</h3>
-					<p className="font-bold text-slate-400 text-xs uppercase tracking-wide">
+					<Typography variant="h6">Attendees</Typography>
+					<Typography variant="caption" className="text-slate-400">
 						{blockInfoString}
-					</p>
+					</Typography>
 				</div>
 
 				<div className="flex items-center justify-between py-4 lg:hidden">
@@ -174,12 +174,14 @@ export function GroupResponses({
 					</button>
 				</div>
 
-				<div className="mt-4 flex flex-col py-2">
+				<div className="mt-3 flex flex-col">
 					<div>
-						<h2 className="font-medium text-xl">Map Display</h2>
-						<p className="font-bold text-slate-400 text-xs">
+						<Typography variant="h6" className="font-medium text-xl">
+							Map Display
+						</Typography>
+						<Typography variant="caption" className="text-slate-400">
 							Filter how responder availability shows together on the map
-						</p>
+						</Typography>
 					</div>
 
 					<div className="mt-2 flex items-center gap-2">
