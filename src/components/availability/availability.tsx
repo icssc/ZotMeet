@@ -35,6 +35,7 @@ import {
 } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -604,8 +605,8 @@ export function Availability({
 				setTimezone={setUserTimezone}
 			/>
 
-			<div className="flex flex-row items-start justify-start align-top">
-				<div className="flex h-fit items-center justify-between overflow-x-auto font-dm-sans lg:w-full lg:pr-14">
+			<div className="flex min-h-0 w-full min-w-0 flex-row items-start justify-start">
+				<div className="flex h-fit min-w-0 flex-1 items-center justify-between overflow-x-auto font-dm-sans lg:pr-14">
 					<AvailabilityNavButton
 						direction="left"
 						handleClick={prevPage}
@@ -671,16 +672,19 @@ export function Availability({
 					/>
 				</div>
 
-				<GroupResponses
-					availabilityDates={availabilityDates}
-					fromTime={fromTimeMinutes}
-					members={members}
-					timezone={userTimezone}
-					anchorNormalizedDate={anchorNormalizedDate}
-					currentPageAvailability={currentPageAvailability}
-					availabilityTimeBlocks={availabilityTimeBlocks}
-					doesntNeedDay={doesntNeedDay}
-				/>
+				{(availabilityView === "group" || availabilityView === "schedule") && (
+					<GroupResponses
+						availabilityDates={availabilityDates}
+						fromTime={fromTimeMinutes}
+						members={members}
+						timezone={userTimezone}
+						anchorNormalizedDate={anchorNormalizedDate}
+						currentPageAvailability={currentPageAvailability}
+						availabilityTimeBlocks={availabilityTimeBlocks}
+						doesntNeedDay={doesntNeedDay}
+					/>
+				)}
+				{availabilityView === "personal" && <PersonalAvailabilitySidebar />}
 			</div>
 		</div>
 	);

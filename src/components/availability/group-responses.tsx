@@ -1,4 +1,4 @@
-import { Checkbox, Divider, FormControlLabel } from "@mui/material/";
+import { Button, Chip, Switch, Typography } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -34,26 +34,26 @@ export function GroupResponses({
 	);
 
 	const {
-		availabilityView,
 		selectedZotDateIndex,
 		selectedBlockIndex,
 		isMobileDrawerOpen,
 		setIsMobileDrawerOpen,
 		setHoveredMember,
 		toggleSelectedMember,
+		setSelectedMember,
 		selectedMembers,
 		isHoveringGrid,
 		enabled: showBestTimes,
 		setEnabled: setShowBestTimes,
 	} = useAvailabilityStore(
 		useShallow((state) => ({
-			availabilityView: state.availabilityView,
 			selectedZotDateIndex: state.selectedZotDateIndex,
 			selectedBlockIndex: state.selectedBlockIndex,
 			isMobileDrawerOpen: state.isMobileDrawerOpen,
 			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
 			setHoveredMember: state.setHoveredMember,
 			toggleSelectedMember: state.toggleSelectedMember,
+			setSelectedMember: state.setSelectedMember,
 			selectedMembers: state.selectedMembers,
 			isHoveringGrid: state.isHoveringGrid,
 			enabled: state.enabled,
@@ -62,8 +62,12 @@ export function GroupResponses({
 	);
 
 	const [blockInfoString, setBlockInfoString] = useState(
-		"Select a cell to view",
+		"Filter through responders and find the best meeting time",
 	);
+
+	const handleClearSelected = useCallback(() => {
+		setSelectedMember([]);
+	}, [setSelectedMember]);
 
 	const handleMemberHover = useCallback(
 		(memberId: string | null) => {
@@ -79,14 +83,13 @@ export function GroupResponses({
 		[toggleSelectedMember],
 	);
 
-	const { availableMembers, notAvailableMembers } = useMemo(() => {
+	const { availableMembers } = useMemo(() => {
 		if (
 			selectedZotDateIndex === undefined ||
 			selectedBlockIndex === undefined
 		) {
 			return {
 				availableMembers: [],
-				notAvailableMembers: members,
 			};
 		}
 		const selectedDate = newAvailDates[selectedZotDateIndex];
@@ -101,9 +104,6 @@ export function GroupResponses({
 		return {
 			availableMembers: members.filter((member) =>
 				availableMemberIds.includes(member.memberId),
-			),
-			notAvailableMembers: members.filter(
-				(member) => !availableMemberIds.includes(member.memberId),
 			),
 		};
 	}, [
@@ -144,27 +144,24 @@ export function GroupResponses({
 	}, [selectedZotDateIndex, selectedBlockIndex, newAvailDates]);
 
 	return (
-		<div
-			className={cn(
-				availabilityView !== "group" && "pointer-events-none invisible",
-			)}
-		>
-			<div className="hidden pb-1 pl-8 lg:block">
-				<h3 className="font-figtree font-medium text-xl">Responders</h3>
-				<p className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
-					{blockInfoString}
-				</p>
-			</div>
-
+		<div className="min-w-0 lg:shrink-0">
 			<div
 				className={cn(
-					"fixed right-0 bottom-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl border-[1px] border-gray-400 bg-gray-100 bg-opacity-90 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:right-10 lg:h-auto lg:w-64 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:bg-opacity-50",
+					// Cap height so the flex row does not grow with responder count (see availability layout).
+					"fixed bottom-0 h-96 max-h-[85dvh] w-full min-w-0 translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:max-h-[min(calc(100dvh-10rem),56rem)] lg:w-96 lg:shrink-0 lg:translate-y-0 lg:self-start lg:overflow-y-auto lg:overscroll-y-contain lg:rounded-l-xl lg:bg-opacity-50",
 					isMobileDrawerOpen && "translate-y-0",
 				)}
 			>
-				<div className="flex items-center justify-between px-8 py-4 lg:hidden">
+				<div className="hidden pb-3 lg:block">
+					<Typography variant="h6">Attendees</Typography>
+					<Typography variant="caption" className="text-slate-400">
+						{blockInfoString}
+					</Typography>
+				</div>
+
+				<div className="flex items-center justify-between py-4 lg:hidden">
 					<div>
-						<h3 className="font-figtree font-medium">Responders</h3>
+						<h3 className="font-medium">Responders</h3>
 						<p className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 							{blockInfoString}
 						</p>
@@ -178,64 +175,71 @@ export function GroupResponses({
 					</button>
 				</div>
 
-				<div className="flex flex-col py-2">
-					<div className="px-8">
-						<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
-							Options
-						</span>
+				<div className="mt-3 flex flex-col">
+					<div>
+						<Typography variant="h6" className="font-medium text-xl">
+							Map Display
+						</Typography>
+						<Typography variant="caption" className="text-slate-400">
+							Filter how responder availability shows together on the map
+						</Typography>
 					</div>
 
-					<div className="pl-8">
-						<FormControlLabel
-							control={
-								<Checkbox
-									checked={showBestTimes}
-									onChange={(e) => setShowBestTimes(e.target.checked)}
-								/>
-							}
-							label="Show Best Times"
+					<div className="mt-2 flex items-center gap-2">
+						<Switch
+							id="availability-best-times"
+							checked={showBestTimes}
+							onChange={(e) => setShowBestTimes(e.target.checked)}
+							size="medium"
+							inputProps={{ "aria-label": "Best Times" }}
 						/>
+						<label
+							htmlFor="availability-best-times"
+							className="cursor-pointer text-md"
+						>
+							Best Times
+						</label>
 					</div>
 				</div>
 
-				<Divider />
-
-				<div className="flex h-[32rem] grow flex-col py-2">
-					<div className="px-8">
+				<div className="flex flex-col py-2">
+					<div>
+						<h2 className="font-medium text-xl">Responders</h2>
 						<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
 							AVAILABLE (
 							{isHoveringGrid ? availableMembers.length : members.length})
 						</span>
 					</div>
 
-					<ul className="overflow-auto pl-8">
+					<ul className="mt-3 flex flex-wrap gap-2">
 						{members.map((member) => (
-							<li
+							<Chip
 								key={member.memberId}
-								className={cn(
-									"cursor-pointer text-lg",
-									isHoveringGrid &&
-										notAvailableMembers.some(
-											(m) => m.memberId === member.memberId,
-										)
-										? "text-decoration-line: text-gray-medium line-through"
-										: "",
-								)}
+								clickable
+								//put pfp here once user settings merged. icon={}
+								label={member.displayName}
+								color={
+									selectedMembers.includes(member.memberId)
+										? "primary"
+										: "default"
+								}
+								variant="outlined"
+								sx={{ maxWidth: "100%" }}
 								onMouseEnter={() => handleMemberHover(member.memberId)}
 								onMouseLeave={() => handleMemberHover(null)}
-							>
-								<FormControlLabel
-									control={
-										<Checkbox
-											checked={selectedMembers.includes(member.memberId)}
-											onChange={() => handleMemberSelect(member.memberId)}
-										/>
-									}
-									label={member.displayName}
-								/>
-							</li>
+								onClick={() => handleMemberSelect(member.memberId)}
+							/>
 						))}
 					</ul>
+					<div className="mt-4 ml-auto">
+						<Button
+							variant="text"
+							className="ml-auto"
+							onClick={handleClearSelected}
+						>
+							Clear Selected
+						</Button>
+					</div>
 				</div>
 			</div>
 		</div>

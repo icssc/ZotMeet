@@ -6,6 +6,7 @@ import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
+import { Create, InsertInvitationRounded } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Button } from "@mui/material";
 import { DeleteIcon, EditIcon } from "lucide-react";
@@ -174,16 +175,16 @@ export function AvailabilityHeader({
 
 	return (
 		<>
-			<div className="px-2 pt-8">
-				<div className="flex items-start justify-between gap-x-4">
-					<h1 className="line-clamp-1 truncate font-figtree font-medium text-xl md:text-3xl">
+			<div className="">
+				<div className="mt-16 flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-[auto_auto] lg:items-start lg:gap-x-4">
+					<h1 className="order-1 line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl lg:col-start-1 lg:row-start-1">
 						{meetingData.title}
 					</h1>
 
-					<div className="flex shrink-0 space-x-2">
+					<div className="order-2 flex w-full shrink-0 flex-col gap-2 self-start lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:w-full">
 						{availabilityView === "personal" ||
 						availabilityView === "schedule" ? (
-							<>
+							<div className="flex flex-wrap justify-end gap-2">
 								<Button
 									variant="outlined"
 									color="inherit"
@@ -208,9 +209,9 @@ export function AvailabilityHeader({
 								>
 									<span className="hidden md:flex">Save</span>
 								</Button>
-							</>
+							</div>
 						) : (
-							<>
+							<div className="flex flex-wrap justify-end gap-2">
 								{isScheduled && (
 									<Button
 										variant="outlined"
@@ -256,21 +257,11 @@ export function AvailabilityHeader({
 									</Button>
 								)}
 
-								{isOwner && (
-									<Button
-										variant="contained"
-										size="small"
-										onClick={() => setAvailabilityView("schedule")}
-									>
-										<span className="hidden font-dm-sans md:flex">
-											Schedule Meeting
-										</span>
-									</Button>
-								)}
-
 								<Button
 									variant="contained"
-									size="small"
+									startIcon={<Create sx={{ color: "inherit" }} />}
+									className="w-full max-w-full normal-case"
+									sx={{ py: 0.75 }}
 									onClick={() => {
 										if (!user) {
 											setIsAuthModalOpen(true);
@@ -284,41 +275,52 @@ export function AvailabilityHeader({
 										setAvailabilityView("personal");
 									}}
 								>
-									<span className="hidden font-dm-sans md:flex">
+									<span className="hidden md:flex">
 										{hasAvailability ? "Edit Availability" : "Add Availability"}
 									</span>
 								</Button>
-							</>
+								{isOwner && (
+									<Button
+										variant="outlined"
+										startIcon={<InsertInvitationRounded />}
+										className="w-full"
+										sx={{ py: 0.75 }}
+										onClick={() => setAvailabilityView("schedule")}
+									>
+										<span className="hidden md:flex">Schedule Meeting</span>
+									</Button>
+								)}
+							</div>
 						)}
 					</div>
+
+					{isOwner && (
+						<div className="order-3 -ml-2 flex items-center gap-x-1 self-start lg:col-start-1 lg:row-start-2">
+							<Button
+								onClick={() => setIsEditModalOpen(true)}
+								variant="text"
+								size="small"
+								startIcon={<EditIcon />}
+								sx={{ color: "text.secondary" }}
+							>
+								Edit Meeting
+							</Button>
+
+							<Button
+								onClick={() => setIsDeleteModalOpen(true)}
+								variant="text"
+								size="small"
+								startIcon={<DeleteIcon />}
+								sx={{
+									color: "text.secondary",
+									"&:hover": { color: "error.main" },
+								}}
+							>
+								Delete Meeting
+							</Button>
+						</div>
+					)}
 				</div>
-
-				{isOwner && (
-					<div className="-ml-2 flex items-center gap-x-1 pt-1">
-						<Button
-							onClick={() => setIsEditModalOpen(true)}
-							variant="text"
-							size="small"
-							startIcon={<EditIcon />}
-							sx={{ color: "text.secondary" }}
-						>
-							Edit Meeting
-						</Button>
-
-						<Button
-							onClick={() => setIsDeleteModalOpen(true)}
-							variant="text"
-							size="small"
-							startIcon={<DeleteIcon />}
-							sx={{
-								color: "text.secondary",
-								"&:hover": { color: "error.main" },
-							}}
-						>
-							Delete Meeting
-						</Button>
-					</div>
-				)}
 			</div>
 
 			<EditModal
