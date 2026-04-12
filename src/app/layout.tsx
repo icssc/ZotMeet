@@ -3,9 +3,9 @@ import { getUserThemeMode } from "@actions/user/action";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { Toaster } from "sonner";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
 import AppThemeProvider from "@/components/theme/theme-provider";
+import { SnackbarProvider } from "@/components/ui/snackbar-provider";
 import { cn } from "@/lib/utils";
 import { figtree } from "@/theme";
 
@@ -36,11 +36,11 @@ export default async function RootLayout({
 				<NuqsAdapter>
 					<AppRouterCacheProvider>
 						<AppThemeProvider initialMode={initialMode}>
-							<AppShellWrapper>
-								<div className="h-full rounded-tl-xl">{children}</div>
-							</AppShellWrapper>
-
-							<Toaster />
+							<SnackbarProvider>
+								<AppShellWrapper>
+									<div className="h-full rounded-tl-xl">{children}</div>
+								</AppShellWrapper>
+							</SnackbarProvider>
 						</AppThemeProvider>
 					</AppRouterCacheProvider>
 				</NuqsAdapter>

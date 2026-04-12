@@ -28,7 +28,7 @@ import { logoutAction } from "@/server/actions/auth/logout/action";
 const navItems = [
 	{ title: "Meetings", url: "/summary" },
 	{ title: "Groups", url: "/groups" },
-	//{ title: "Rooms", url: "/rooms" },
+	{ title: "Rooms", url: "/studyrooms" },
 ];
 
 type MuiTopNavProps = {
@@ -77,7 +77,6 @@ export function MuiTopNav({ user, notifications }: MuiTopNavProps) {
 								href={item.url}
 								sx={{
 									color: "text.primary",
-									textTransform: "none",
 									fontWeight: isActive ? 700 : 400,
 									fontSize: "18px",
 									lineHeight: "24px",
@@ -244,15 +243,10 @@ function Notifications({
 											</Typography>
 										</Box>
 										<Button
-											sx={{
-												ml: "auto",
-												backgroundColor: "action.hover",
-												mt: 2,
-												mb: 2,
-												border: 1,
-												borderColor: "action.hover",
-												color: "black",
-											}}
+											variant="outlined"
+											color="inherit"
+											size="small"
+											sx={{ ml: "auto", my: 2 }}
 											onClick={() => {
 												setActiveNotification(notif);
 												setShowGroupInvite(true);
@@ -298,7 +292,6 @@ function NavUser({ user }: { user: UserProfile | null }) {
 				href="/auth/login/google"
 				startIcon={<Login />}
 				sx={{
-					textTransform: "none",
 					color: "text.primary",
 				}}
 			>

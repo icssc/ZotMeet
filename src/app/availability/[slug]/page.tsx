@@ -79,7 +79,6 @@ export default async function Page(props: PageProps) {
 		<div className="space-y-2 px-4 pb-20">
 			<Availability
 				meetingData={meetingData}
-				userAvailability={userAvailability}
 				allAvailabilities={allAvailabilities}
 				user={session.user}
 				scheduledBlocks={scheduledBlocks}

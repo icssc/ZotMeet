@@ -7,27 +7,18 @@ import {
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
 import GoogleIcon from "@mui/icons-material/Google";
-import {
-	CalendarCheck,
-	CalendarPlus,
-	CircleCheckIcon,
-	CircleXIcon,
-	DeleteIcon,
-	EditIcon,
-} from "lucide-react";
+import { Button } from "@mui/material";
+import { DeleteIcon, EditIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 import { useShallow } from "zustand/shallow";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
-import { Button } from "@/components/ui/button";
+import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
-import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
-import { useAvailabilityViewStore } from "@/store/useAvailabilityViewStore";
-import { useScheduleSelectionStore } from "@/store/useScheduleSelectionStore";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
@@ -49,13 +40,14 @@ export function AvailabilityHeader({
 	setTimezone,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
+	const { showSuccess, showError } = useSnackbar();
 
 	const {
 		hasAvailability,
 		availabilityView,
 		setHasAvailability,
 		setAvailabilityView,
-	} = useAvailabilityViewStore(
+	} = useAvailabilityStore(
 		useShallow((state) => ({
 			hasAvailability: state.hasAvailability,
 			availabilityView: state.availabilityView,
@@ -110,7 +102,7 @@ export function AvailabilityHeader({
 		}
 	};
 
-	const { commitPendingTimes, clearPendingTimes } = useScheduleSelectionStore(
+	const { commitPendingTimes, clearPendingTimes } = useAvailabilityStore(
 		useShallow((state) => ({
 			pendingAdds: state.pendingAdds,
 			commitPendingTimes: state.commitPendingTimes,
@@ -125,8 +117,7 @@ export function AvailabilityHeader({
 
 	const handleScheduleSave = async () => {
 		try {
-			const { pendingAdds, pendingRemovals } =
-				useScheduleSelectionStore.getState();
+			const { pendingAdds, pendingRemovals } = useAvailabilityStore.getState();
 
 			// Remove pending removals
 			for (const timestamp of pendingRemovals) {
@@ -148,7 +139,6 @@ export function AvailabilityHeader({
 					scheduledToTime,
 				});
 			}
-
 			// Add new pending times
 			for (const timestamp of pendingAdds) {
 				const date = new Date(timestamp);
@@ -170,9 +160,12 @@ export function AvailabilityHeader({
 				});
 			}
 
-			// Move pending to scheduled after successful save
-			commitPendingTimes();
-			setIsScheduled(true);
+			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
+				// Move pending to scheduled after successful save
+				commitPendingTimes();
+				const { scheduledTimes } = useAvailabilityStore.getState();
+				setIsScheduled(scheduledTimes.size > 0);
+			}
 			setAvailabilityView("group");
 		} catch (error) {
 			console.error("Failed to save meeting blocks", error);
@@ -192,10 +185,9 @@ export function AvailabilityHeader({
 						availabilityView === "schedule" ? (
 							<>
 								<Button
-									className={cn(
-										"h-8 flex-center bg-white px-4 py-0 text-white uppercase",
-										"group bg-yellow-500 hover:bg-yellow-500/80",
-									)}
+									variant="outlined"
+									color="inherit"
+									size="small"
 									onClick={
 										availabilityView === "personal"
 											? handleCancel
@@ -203,13 +195,10 @@ export function AvailabilityHeader({
 									}
 								>
 									<span className="hidden md:flex">Cancel</span>
-									<CircleXIcon />
 								</Button>
 								<Button
-									className={cn(
-										"h-8 flex-center bg-white px-4 py-0 text-white uppercase",
-										"group bg-green-500 hover:bg-green-500/80",
-									)}
+									variant="contained"
+									size="small"
 									type="submit"
 									onClick={
 										availabilityView === "personal"
@@ -218,16 +207,15 @@ export function AvailabilityHeader({
 									}
 								>
 									<span className="hidden md:flex">Save</span>
-									<CircleCheckIcon />
 								</Button>
 							</>
 						) : (
 							<>
 								{isScheduled && (
 									<Button
-										className={cn(
-											"h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0",
-										)}
+										variant="outlined"
+										size="medium"
+										startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
 										onClick={async () => {
 											if (isGeneratingLink) return;
 											setIsGeneratingLink(true);
@@ -242,15 +230,13 @@ export function AvailabilityHeader({
 													});
 
 												if (!success || !link) {
-													toast.error(
-														"Failed to generate Google Calendar link.",
-													);
+													showError("Failed to generate Google Calendar link.");
 													return;
 												}
 
 												window.open(link, "_blank", "noopener,noreferrer");
 
-												toast.success(
+												showSuccess(
 													"Google Calendar link opened! Confirm the event in your calendar.",
 												);
 											} catch (error) {
@@ -258,7 +244,7 @@ export function AvailabilityHeader({
 													"Error generating Google Calendar link:",
 													error,
 												);
-												toast.error(
+												showError(
 													"An error occurred while generating the Google Calendar link.",
 												);
 											} finally {
@@ -266,19 +252,16 @@ export function AvailabilityHeader({
 											}
 										}}
 									>
-										<GoogleIcon className="size-5" />
-										<span className="hidden font-dm-sans md:flex">
-											Add to Calendar
-										</span>
+										Add to Calendar
 									</Button>
 								)}
 
 								{isOwner && (
 									<Button
-										className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
+										variant="contained"
+										size="small"
 										onClick={() => setAvailabilityView("schedule")}
 									>
-										<CalendarCheck className="size-5" />
 										<span className="hidden font-dm-sans md:flex">
 											Schedule Meeting
 										</span>
@@ -286,7 +269,8 @@ export function AvailabilityHeader({
 								)}
 
 								<Button
-									className="h-8 min-h-fit min-w-fit flex-center px-2 md:px-4 md:py-0"
+									variant="contained"
+									size="small"
 									onClick={() => {
 										if (!user) {
 											setIsAuthModalOpen(true);
@@ -300,7 +284,6 @@ export function AvailabilityHeader({
 										setAvailabilityView("personal");
 									}}
 								>
-									<CalendarPlus className="size-5" />
 									<span className="hidden font-dm-sans md:flex">
 										{hasAvailability ? "Edit Availability" : "Add Availability"}
 									</span>
@@ -314,22 +297,25 @@ export function AvailabilityHeader({
 					<div className="-ml-2 flex items-center gap-x-1 pt-1">
 						<Button
 							onClick={() => setIsEditModalOpen(true)}
-							variant="ghost"
-							size="sm"
-							className="gap-1 text-muted-foreground"
+							variant="text"
+							size="small"
+							startIcon={<EditIcon />}
+							sx={{ color: "text.secondary" }}
 						>
-							<EditIcon className="size-4" />
-							<span className="font-dm-sans text-sm">Edit Meeting</span>
+							Edit Meeting
 						</Button>
 
 						<Button
 							onClick={() => setIsDeleteModalOpen(true)}
-							variant="ghost"
-							size="sm"
-							className="gap-1 text-muted-foreground hover:text-destructive"
+							variant="text"
+							size="small"
+							startIcon={<DeleteIcon />}
+							sx={{
+								color: "text.secondary",
+								"&:hover": { color: "error.main" },
+							}}
 						>
-							<DeleteIcon className="size-4" />
-							<span className="font-dm-sans text-sm">Delete Meeting</span>
+							Delete Meeting
 						</Button>
 					</div>
 				)}

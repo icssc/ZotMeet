@@ -1,12 +1,13 @@
 import { acceptInvite } from "@actions/group/invite/create/action";
 import { deleteNotification } from "@actions/user/action";
-import { Avatar, Button } from "@mui/material";
 import {
+	Avatar,
+	Button,
 	Dialog,
+	DialogActions,
 	DialogContent,
-	DialogHeader,
 	DialogTitle,
-} from "@/components/ui/dialog";
+} from "@mui/material";
 import type { NotificationItem } from "@/lib/auth/user";
 
 interface AcceptGroupInviteProps {
@@ -32,36 +33,33 @@ const AcceptGroupInvite = ({
 	};
 
 	return (
-		<div>
-			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent className="sm:max-w-50">
-					<DialogHeader>
-						<DialogTitle>Join Group</DialogTitle>
-					</DialogHeader>
+		<Dialog
+			open={open}
+			onClose={() => onOpenChange(false)}
+			maxWidth="xs"
+			fullWidth
+		>
+			<DialogTitle>Join Group</DialogTitle>
 
-					<div className="mt-8 flex items-center">
-						<div className="flex items-center gap-3">
-							<Avatar
-								src={"/icssc-logo.svg"}
-								alt="group-icon"
-								sx={{ width: 50, height: 50 }}
-							/>
-
-							<div>
-								<p className="font-semibold">{notification?.title}</p>
-								<p>{notification?.message}</p>
-							</div>
-						</div>
-
-						<div className="ml-auto flex">
-							<Button onClick={handleAccept}>Accept</Button>
-
-							<Button onClick={handleDecline}>Decline</Button>
-						</div>
+			<DialogContent>
+				<div className="flex items-center gap-3">
+					<Avatar
+						src="/icssc-logo.svg"
+						alt="group-icon"
+						sx={{ width: 50, height: 50 }}
+					/>
+					<div>
+						<p className="font-semibold">{notification?.title}</p>
+						<p>{notification?.message}</p>
 					</div>
-				</DialogContent>
-			</Dialog>
-		</div>
+				</div>
+			</DialogContent>
+
+			<DialogActions>
+				<Button onClick={handleDecline}>Decline</Button>
+				<Button onClick={handleAccept}>Accept</Button>
+			</DialogActions>
+		</Dialog>
 	);
 };
 
