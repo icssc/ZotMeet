@@ -9,8 +9,9 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import {
-	buildTimeArray,
+	buildHalfHourIntervals,
 	formatISOToLocalTime,
+	groupSlotsIntoIntervals,
 	mergeDateAndTime,
 } from "@/lib/rooms/utils";
 import type { StudyRooms } from "@/lib/types/studyrooms";
@@ -29,11 +30,7 @@ export const RoomsHeatmap = ({
 	startTime,
 	endTime,
 }: RoomsHeatmapProps) => {
-	const timestamps = buildTimeArray(
-		startTime.toISOString(),
-		endTime.toISOString(),
-	);
-
+	const intervals = buildHalfHourIntervals(searchDate, startTime, endTime);
 	const windowStart = mergeDateAndTime(searchDate, startTime);
 
 	return (
@@ -43,63 +40,71 @@ export const RoomsHeatmap = ({
 				<TableHead>
 					<TableRow>
 						<TableCell>Rooms</TableCell>
-						{timestamps.map((t) => (
-							<TableCell key={t} align="center">
-								<p className="w-14 whitespace-nowrap">{t}</p>
+						{intervals.map((iv) => (
+							<TableCell key={iv.label} align="center">
+								<p className="w-14 whitespace-nowrap">{iv.label}</p>
 							</TableCell>
 						))}
 					</TableRow>
 				</TableHead>
 
 				<TableBody>
-					{rooms.map((room) => (
-						<TableRow key={room.id}>
-							<TableCell className="whitespace-nowrap">
-								<p>{room.location}</p>
+					{rooms.map((room) => {
+						const sorted = [...room.slots]
+							.sort(
+								(a, b) =>
+									new Date(a.start).getTime() - new Date(b.start).getTime(),
+							)
+							.filter((s) => new Date(s.start) >= windowStart);
 
-								<div className="flex items-center gap-2 text-xs">
-									<p className="text-xs">{room.name}</p>
-									<p>{room.capacity && `•  Cap: ${room.capacity}`}</p>
-								</div>
-								<p className="text-xs">{room.description?.slice(0, 50)}</p>
-							</TableCell>
+						const buckets = groupSlotsIntoIntervals(sorted, intervals);
 
-							{[...room.slots]
-								.sort(
-									(a, b) =>
-										new Date(a.start).getTime() - new Date(b.start).getTime(),
-								)
-								.filter((s) => new Date(s.start) >= windowStart)
-								.map((s) => {
-									return (
-										<TableCell
-											key={s.start}
-											className="border border-gray-300"
-											sx={{ padding: 0, height: "1px" }}
-										>
-											<ButtonBase
-												component={Link}
-												target="_blank"
-												href={s.url}
-												className={"h-full w-full"}
-											>
-												<Tooltip
-													placement="top"
-													title={`${formatISOToLocalTime(s.start)} - ${formatISOToLocalTime(s.end)}`}
+						return (
+							<TableRow key={room.id}>
+								<TableCell className="whitespace-nowrap">
+									<p>{room.location}</p>
+									<div className="flex items-center gap-2 text-xs">
+										<p className="text-xs">{room.name}</p>
+										<p>{room.capacity && `•  Cap: ${room.capacity}`}</p>
+									</div>
+									<p className="text-xs">{room.description?.slice(0, 50)}</p>
+								</TableCell>
+
+								{buckets.map((bucket) => (
+									<TableCell
+										key={bucket.intervalLabel}
+										className="border border-gray-300"
+										sx={{ padding: 0, height: "1px" }}
+									>
+										<div className="flex h-full">
+											{bucket.slots.map((s) => (
+												<ButtonBase
+													key={s.start}
+													component={Link}
+													target="_blank"
+													href={s.url}
+													className="h-full"
+													sx={{ flex: 1 }}
 												>
-													<span
-														className={cn(
-															"h-full w-full",
-															s.isAvailable ? "bg-green-300" : "bg-red-300",
-														)}
-													/>
-												</Tooltip>
-											</ButtonBase>
-										</TableCell>
-									);
-								})}
-						</TableRow>
-					))}
+													<Tooltip
+														placement="top"
+														title={`${formatISOToLocalTime(s.start)} - ${formatISOToLocalTime(s.end)}`}
+													>
+														<span
+															className={cn(
+																"h-full w-full",
+																s.isAvailable ? "bg-green-300" : "bg-red-300",
+															)}
+														/>
+													</Tooltip>
+												</ButtonBase>
+											))}
+										</div>
+									</TableCell>
+								))}
+							</TableRow>
+						);
+					})}
 				</TableBody>
 			</Table>
 		</div>

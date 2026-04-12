@@ -83,6 +83,21 @@ export function findSlotOverlappingInterval<
 	return overlapping[0];
 }
 
+/** Earliest-starting slot whose interval overlaps `[rangeStart, rangeEnd)`. */
+export function findFirstSlotOverlappingRange<
+	T extends { start: string; end: string },
+>(slots: T[], rangeStart: Date, rangeEnd: Date): T | undefined {
+	const overlapping = slots.filter((s) => {
+		const ss = new Date(s.start);
+		const se = new Date(s.end);
+		return ss < rangeEnd && se > rangeStart;
+	});
+	overlapping.sort(
+		(a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+	);
+	return overlapping[0];
+}
+
 // returns an array of formatted times in 30 min intervals
 export const buildTimeArray = (
 	slotStart: string,
@@ -101,3 +116,30 @@ export const buildTimeArray = (
 
 	return timestamps;
 };
+
+export type SlotBucket<T> = {
+	intervalLabel: string;
+	intervalStart: Date;
+	slots: T[];
+};
+
+// returns an array. each SlotBucket represents a 30 minute window.
+// if a room uses 15-minute slots, two of them will fall under a single window
+export function groupSlotsIntoIntervals<
+	T extends { start: string; end: string },
+>(slots: T[], intervals: HalfHourInterval[]): SlotBucket<T>[] {
+	return intervals.map((interval) => {
+		const matching = slots.filter((s) => {
+			const ss = new Date(s.start);
+			return ss >= interval.start && ss < interval.end;
+		});
+		matching.sort(
+			(a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+		);
+		return {
+			intervalLabel: interval.label,
+			intervalStart: interval.start,
+			slots: matching,
+		};
+	});
+}
