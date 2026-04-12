@@ -21,7 +21,8 @@ function formatRange(start: Date, end: Date) {
 
 		return `${hours}:${minutes}${ampm}`;
 	};
-	return `${format(start)}-${format(end)}`;
+	const rangeEnd = new Date(end.getTime() + 15 * 60 * 1000);
+	return `${format(start)}-${format(rangeEnd)}`;
 }
 
 export function getBestTimeRanges(availabilityDates: any[]) {
