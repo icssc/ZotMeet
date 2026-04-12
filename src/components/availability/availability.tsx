@@ -605,7 +605,7 @@ export function Availability({
 				setTimezone={setUserTimezone}
 			/>
 
-			<div className="flex w-full min-w-0 flex-row items-start justify-start align-top">
+			<div className="flex w-full min-w-0 flex-row items-start justify-start">
 				<div className="flex h-fit min-w-0 flex-1 items-center justify-between overflow-x-auto font-dm-sans lg:pr-14">
 					<AvailabilityNavButton
 						direction="left"
@@ -672,16 +672,18 @@ export function Availability({
 					/>
 				</div>
 
-				<GroupResponses
-					availabilityDates={availabilityDates}
-					fromTime={fromTimeMinutes}
-					members={members}
-					timezone={userTimezone}
-					anchorNormalizedDate={anchorNormalizedDate}
-					currentPageAvailability={currentPageAvailability}
-					availabilityTimeBlocks={availabilityTimeBlocks}
-					doesntNeedDay={doesntNeedDay}
-				/>
+				{(availabilityView === "group" || availabilityView === "schedule") && (
+					<GroupResponses
+						availabilityDates={availabilityDates}
+						fromTime={fromTimeMinutes}
+						members={members}
+						timezone={userTimezone}
+						anchorNormalizedDate={anchorNormalizedDate}
+						currentPageAvailability={currentPageAvailability}
+						availabilityTimeBlocks={availabilityTimeBlocks}
+						doesntNeedDay={doesntNeedDay}
+					/>
+				)}
 				{availabilityView === "personal" && <PersonalAvailabilitySidebar />}
 			</div>
 		</div>

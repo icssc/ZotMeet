@@ -70,7 +70,7 @@ export function PersonalAvailabilitySidebar() {
 		React.useState<Availability>("available");
 
 	return (
-		<div>
+		<div className="fixed h-96 w-full px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:h-auto lg:w-96 lg:shrink-0">
 			<div>
 				<Typography variant="h6">Add Availability</Typography>
 				<Typography variant="caption">

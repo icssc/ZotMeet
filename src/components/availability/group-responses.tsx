@@ -34,7 +34,6 @@ export function GroupResponses({
 	);
 
 	const {
-		availabilityView,
 		selectedZotDateIndex,
 		selectedBlockIndex,
 		isMobileDrawerOpen,
@@ -48,7 +47,6 @@ export function GroupResponses({
 		setEnabled: setShowBestTimes,
 	} = useAvailabilityStore(
 		useShallow((state) => ({
-			availabilityView: state.availabilityView,
 			selectedZotDateIndex: state.selectedZotDateIndex,
 			selectedBlockIndex: state.selectedBlockIndex,
 			isMobileDrawerOpen: state.isMobileDrawerOpen,
@@ -146,12 +144,7 @@ export function GroupResponses({
 	}, [selectedZotDateIndex, selectedBlockIndex, newAvailDates]);
 
 	return (
-		<div
-			className={cn(
-				"lg:shrink-0",
-				availabilityView !== "group" && "pointer-events-none invisible",
-			)}
-		>
+		<div className="lg:shrink-0">
 			<div
 				className={cn(
 					"fixed bottom-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:h-auto lg:w-96 lg:shrink-0 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:bg-opacity-50",

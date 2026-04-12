@@ -6,11 +6,7 @@ import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
-import {
-	Create,
-	InsertInvitation,
-	InsertInvitationRounded,
-} from "@mui/icons-material";
+import { Create, InsertInvitationRounded } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Button } from "@mui/material";
 import { DeleteIcon, EditIcon } from "lucide-react";
@@ -22,7 +18,6 @@ import { EditModal } from "@/components/availability/header/edit-modal";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
-import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
@@ -181,34 +176,15 @@ export function AvailabilityHeader({
 	return (
 		<>
 			<div className="">
-				<div
-					className={cn(
-						"gap-4",
-						availabilityView === "group"
-							? "flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-x-4"
-							: "flex items-start justify-between",
-					)}
-				>
-					<h1
-						className={cn(
-							"line-clamp-1 truncate font-figtree font-medium text-xl md:text-3xl",
-							availabilityView === "group" && "min-w-0",
-						)}
-					>
+				<div className="mt-16 flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-[auto_auto] lg:items-start lg:gap-x-4">
+					<h1 className="order-1 line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl lg:col-start-1 lg:row-start-1">
 						{meetingData.title}
 					</h1>
 
-					<div
-						className={cn(
-							"shrink-0",
-							availabilityView === "group"
-								? "flex w-full flex-col gap-2 lg:col-start-2 lg:w-full"
-								: "flex space-x-2",
-						)}
-					>
+					<div className="order-2 flex w-full shrink-0 flex-col gap-2 self-start lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:w-full">
 						{availabilityView === "personal" ||
 						availabilityView === "schedule" ? (
-							<>
+							<div className="flex flex-wrap justify-end gap-2">
 								<Button
 									variant="outlined"
 									color="inherit"
@@ -233,7 +209,7 @@ export function AvailabilityHeader({
 								>
 									<span className="hidden md:flex">Save</span>
 								</Button>
-							</>
+							</div>
 						) : (
 							<div className="flex flex-wrap justify-end gap-2">
 								{isScheduled && (
@@ -317,34 +293,34 @@ export function AvailabilityHeader({
 							</div>
 						)}
 					</div>
+
+					{isOwner && (
+						<div className="order-3 -ml-2 flex items-center gap-x-1 self-start lg:col-start-1 lg:row-start-2">
+							<Button
+								onClick={() => setIsEditModalOpen(true)}
+								variant="text"
+								size="small"
+								startIcon={<EditIcon />}
+								sx={{ color: "text.secondary" }}
+							>
+								Edit Meeting
+							</Button>
+
+							<Button
+								onClick={() => setIsDeleteModalOpen(true)}
+								variant="text"
+								size="small"
+								startIcon={<DeleteIcon />}
+								sx={{
+									color: "text.secondary",
+									"&:hover": { color: "error.main" },
+								}}
+							>
+								Delete Meeting
+							</Button>
+						</div>
+					)}
 				</div>
-
-				{isOwner && (
-					<div className="-ml-2 flex items-center gap-x-1 pt-1">
-						<Button
-							onClick={() => setIsEditModalOpen(true)}
-							variant="text"
-							size="small"
-							startIcon={<EditIcon />}
-							sx={{ color: "text.secondary" }}
-						>
-							Edit Meeting
-						</Button>
-
-						<Button
-							onClick={() => setIsDeleteModalOpen(true)}
-							variant="text"
-							size="small"
-							startIcon={<DeleteIcon />}
-							sx={{
-								color: "text.secondary",
-								"&:hover": { color: "error.main" },
-							}}
-						>
-							Delete Meeting
-						</Button>
-					</div>
-				)}
 			</div>
 
 			<EditModal
