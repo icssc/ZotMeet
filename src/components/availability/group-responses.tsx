@@ -218,6 +218,7 @@ export function GroupResponses({
 					<ul className="mt-3 flex flex-wrap gap-2 overflow-auto">
 						{members.map((member) => (
 							<Chip
+								key={member.memberId}
 								clickable
 								//put pfp here once user settings merged. icon={}
 								label={member.displayName}

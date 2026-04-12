@@ -35,6 +35,7 @@ import {
 } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
@@ -681,6 +682,7 @@ export function Availability({
 					availabilityTimeBlocks={availabilityTimeBlocks}
 					doesntNeedDay={doesntNeedDay}
 				/>
+				{availabilityView === "personal" && <PersonalAvailabilitySidebar />}
 			</div>
 		</div>
 	);
