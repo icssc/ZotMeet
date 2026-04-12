@@ -144,7 +144,7 @@ export function PersonalAvailabilitySidebar() {
 
 				<div className="mt-6">
 					<div className="flex">
-						<Typography variant="h6">Overlay Availabilites</Typography>
+						<Typography variant="h6">Overlay Availabilities</Typography>
 						{/* Need to add Switch Functionality */}
 						<Switch className="ml-auto" size="medium" />
 					</div>
