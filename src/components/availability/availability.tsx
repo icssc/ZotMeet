@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import {
 	GroupAvailability,
+	getBestTimeRanges,
 	getTimestampFromBlockIndex,
 } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
@@ -24,6 +25,7 @@ import {
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
 } from "@/lib/availability/utils";
+import { getStudyRooms } from "@/lib/studyrooms/getrooms";
 import type {
 	GoogleCalendarEvent,
 	MemberMeetingAvailability,
@@ -223,6 +225,9 @@ export function Availability({
 			availabilityTimeBlocks,
 		}),
 	);
+	const bestTimeRanges = useMemo(() => {
+		return getBestTimeRanges(availabilityDates);
+	}, [availabilityDates]);
 
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
@@ -261,13 +266,13 @@ export function Availability({
 
 	const handleUserAvailabilityChange = useCallback(
 		(updatedDates: ZotDate[]) => {
-			setAvailabilityDates(updatedDates);
+			setAvailabilityDates([...updatedDates]);
 		},
 		[],
 	);
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
-		setAvailabilityDates(originalDates);
+		setAvailabilityDates([...originalDates]);
 	}, [cancelEdit]);
 
 	const handleSuccessfulSave = useCallback(() => {
@@ -418,6 +423,36 @@ export function Availability({
 			});
 		}
 	}, [startBlockSelection, endBlockSelection, setSelectionState]);
+
+	//currently unused as we only have console log for now
+	const [_studyRooms, setStudyRooms] = useState<any[]>([]);
+
+	useEffect(() => {
+		if (!bestTimeRanges.length) {
+			setStudyRooms([]);
+			return;
+		}
+
+		const fetchRooms = async () => {
+			try {
+				// Make one API call per (date, time) pair
+				const promises = bestTimeRanges.map(({ date, time }) => {
+					console.log("Fetching with:", { date, time });
+					return getStudyRooms(date, time);
+				});
+				const results = await Promise.all(promises);
+
+				console.log("Fetched study rooms:", results); // console log for now
+				const combined = results.flatMap((res) => res.data ?? []);
+
+				setStudyRooms(combined);
+			} catch (err) {
+				console.error("Failed to fetch study rooms:", err);
+			}
+		};
+
+		fetchRooms();
+	}, [bestTimeRanges]);
 
 	// Helper to get block info from pointer position
 	const getBlockAtPosition = useCallback((x: number, y: number) => {
