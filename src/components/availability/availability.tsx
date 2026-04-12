@@ -605,7 +605,7 @@ export function Availability({
 				setTimezone={setUserTimezone}
 			/>
 
-			<div className="flex w-full min-w-0 flex-row items-start justify-start">
+			<div className="flex min-h-0 w-full min-w-0 flex-row items-start justify-start">
 				<div className="flex h-fit min-w-0 flex-1 items-center justify-between overflow-x-auto font-dm-sans lg:pr-14">
 					<AvailabilityNavButton
 						direction="left"

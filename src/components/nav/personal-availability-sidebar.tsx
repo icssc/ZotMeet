@@ -6,6 +6,7 @@ import {
 	AccordionDetails,
 	AccordionSummary,
 	Button,
+	Switch,
 	ToggleButton,
 	ToggleButtonGroup,
 	Typography,
@@ -138,10 +139,20 @@ export function PersonalAvailabilitySidebar() {
 					>
 						<Typography variant="button">Calendar Overlays</Typography>
 					</AccordionSummary>
-					<AccordionDetails>
-						<p>put calendars here</p>
-					</AccordionDetails>
+					<AccordionDetails>{/*put calendars here */}</AccordionDetails>
 				</Accordion>
+
+				<div className="mt-6">
+					<div className="flex">
+						<Typography variant="h6">Overlay Availabilites</Typography>
+						{/* Need to add Switch Functionality */}
+						<Switch className="ml-auto" size="medium" />
+					</div>
+
+					<Typography variant="caption">
+						View all availability while inputting your own
+					</Typography>
+				</div>
 			</div>
 		</div>
 	);

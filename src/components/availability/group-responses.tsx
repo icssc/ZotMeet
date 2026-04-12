@@ -144,10 +144,11 @@ export function GroupResponses({
 	}, [selectedZotDateIndex, selectedBlockIndex, newAvailDates]);
 
 	return (
-		<div className="lg:shrink-0">
+		<div className="min-w-0 lg:shrink-0">
 			<div
 				className={cn(
-					"fixed bottom-0 h-96 w-full translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:h-auto lg:w-96 lg:shrink-0 lg:translate-y-0 lg:self-stretch lg:rounded-l-xl lg:bg-opacity-50",
+					// Cap height so the flex row does not grow with responder count (see availability layout).
+					"fixed bottom-0 h-96 max-h-[85dvh] w-full min-w-0 translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:max-h-[min(calc(100dvh-10rem),56rem)] lg:w-96 lg:shrink-0 lg:translate-y-0 lg:self-start lg:overflow-y-auto lg:overscroll-y-contain lg:rounded-l-xl lg:bg-opacity-50",
 					isMobileDrawerOpen && "translate-y-0",
 				)}
 			>
@@ -201,7 +202,7 @@ export function GroupResponses({
 					</div>
 				</div>
 
-				<div className="flex h-[32rem] flex-col py-2">
+				<div className="flex flex-col py-2">
 					<div>
 						<h2 className="font-medium text-xl">Responders</h2>
 						<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
@@ -210,7 +211,7 @@ export function GroupResponses({
 						</span>
 					</div>
 
-					<ul className="mt-3 flex flex-wrap gap-2 overflow-auto">
+					<ul className="mt-3 flex flex-wrap gap-2">
 						{members.map((member) => (
 							<Chip
 								key={member.memberId}
@@ -223,13 +224,14 @@ export function GroupResponses({
 										: "default"
 								}
 								variant="outlined"
+								sx={{ maxWidth: "100%" }}
 								onMouseEnter={() => handleMemberHover(member.memberId)}
 								onMouseLeave={() => handleMemberHover(null)}
 								onClick={() => handleMemberSelect(member.memberId)}
 							/>
 						))}
 					</ul>
-					<div className="mt-10 ml-auto">
+					<div className="mt-4 ml-auto">
 						<Button
 							variant="text"
 							className="ml-auto"
