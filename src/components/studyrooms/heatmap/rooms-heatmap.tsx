@@ -8,18 +8,24 @@ import {
 	Tooltip,
 } from "@mui/material";
 import Link from "next/link";
-import { buildTimeArray, formatISOToLocalTime } from "@/lib/rooms/utils";
+import {
+	buildTimeArray,
+	formatISOToLocalTime,
+	mergeDateAndTime,
+} from "@/lib/rooms/utils";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 import { cn } from "@/lib/utils";
 
 interface RoomsHeatmapProps {
 	rooms: StudyRooms["data"];
+	searchDate: Date;
 	startTime: Date;
 	endTime: Date;
 }
 
 export const RoomsHeatmap = ({
 	rooms,
+	searchDate,
 	startTime,
 	endTime,
 }: RoomsHeatmapProps) => {
@@ -28,8 +34,11 @@ export const RoomsHeatmap = ({
 		endTime.toISOString(),
 	);
 
+	const windowStart = mergeDateAndTime(searchDate, startTime);
+
 	return (
 		<div className="">
+			<p>{startTime.toISOString()}</p>
 			<Table size="small" sx={{ borderCollapse: "collapse", borderSpacing: 0 }}>
 				<TableHead>
 					<TableRow>
@@ -60,6 +69,7 @@ export const RoomsHeatmap = ({
 									(a, b) =>
 										new Date(a.start).getTime() - new Date(b.start).getTime(),
 								)
+								.filter((s) => new Date(s.start) >= windowStart)
 								.map((s) => {
 									return (
 										<TableCell
