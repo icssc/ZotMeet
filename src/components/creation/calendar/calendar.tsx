@@ -1,6 +1,6 @@
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { IconButton, Tab, Tabs } from "@mui/material";
+import { IconButton, Tab, Tabs, Typography } from "@mui/material";
 import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import { CalendarBody } from "@/components/creation/calendar/calendar-body";
 import { Week } from "@/components/creation/calendar/week";
@@ -103,7 +103,7 @@ export function Calendar({
 
 	return (
 		<div className="rounded-lg bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-6 md:border">
-			<div className="flex flex-col items-start justify-between px-4 pb-3 md:items-center md:px-8">
+			<div className="flex flex-col items-center justify-between px-4 pb-3 md:items-center md:px-8">
 				<Tabs
 					value={meetingType}
 					onChange={(_event: React.SyntheticEvent, value: string) => {
@@ -112,7 +112,7 @@ export function Calendar({
 					}}
 					sx={{
 						"& .MuiTab-root": {
-							fontSize: { xs: "1rem", md: "1rem" },
+							fontSize: { xs: "1.1rem", md: "1.25rem" },
 							minWidth: { xs: 120, md: 180 },
 						},
 					}}
@@ -123,15 +123,15 @@ export function Calendar({
 
 				<div className="mt-4 flex w-full items-center justify-between md:justify-start md:pl-15">
 					<div className="mt-4 flex w-full items-center pl-3 md:pl-5">
-						<h3 className="font-semibold text-lg md:text-2xl">{title}</h3>
+						<h3 className="font-semibold text-xl md:text-2xl">{title}</h3>
 
 						{/* Mobile only buttons */}
-						<div className="flex gap-2 md:hidden">
-							<IconButton onClick={decrementMonth} size="small">
-								<ChevronLeftIcon />
+						<div className="ml-auto flex gap-8 md:hidden">
+							<IconButton onClick={decrementMonth} sx={{ padding: 0 }}>
+								<ChevronLeftIcon fontSize="large" />
 							</IconButton>
-							<IconButton onClick={incrementMonth} size="small">
-								<ChevronRightIcon />
+							<IconButton onClick={incrementMonth} sx={{ padding: 0 }}>
+								<ChevronRightIcon fontSize="large" />
 							</IconButton>
 						</div>
 					</div>
@@ -151,7 +151,7 @@ export function Calendar({
 						<ChevronLeftIcon />
 					</IconButton>
 
-					<div className="w-full md:px-2">
+					<div className="mt-5 w-full md:px-2">
 						<table className="w-full table-fixed border-collapse">
 							<thead>
 								<tr>
