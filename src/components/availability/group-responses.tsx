@@ -154,7 +154,7 @@ export function GroupResponses({
 			>
 				<div className="hidden pb-3 lg:block">
 					<Typography variant="h6">Attendees</Typography>
-					<Typography variant="caption" className="text-slate-400">
+					<Typography variant="caption" color="textSecondary">
 						{blockInfoString}
 					</Typography>
 				</div>
@@ -162,9 +162,9 @@ export function GroupResponses({
 				<div className="flex items-center justify-between py-4 lg:hidden">
 					<div>
 						<h3 className="font-medium">Responders</h3>
-						<p className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
+						<Typography variant="caption" color="textSecondary">
 							{blockInfoString}
-						</p>
+						</Typography>
 					</div>
 					<button
 						type="button"
@@ -177,10 +177,8 @@ export function GroupResponses({
 
 				<div className="mt-3 flex flex-col">
 					<div>
-						<Typography variant="h6" className="font-medium text-xl">
-							Map Display
-						</Typography>
-						<Typography variant="caption" className="text-slate-400">
+						<Typography variant="h6">Map Display</Typography>
+						<Typography variant="caption" color="textSecondary">
 							Filter how responder availability shows together on the map
 						</Typography>
 					</div>
@@ -205,10 +203,10 @@ export function GroupResponses({
 				<div className="flex flex-col py-2">
 					<div>
 						<h2 className="font-medium text-xl">Responders</h2>
-						<span className="font-bold font-dm-sans text-slate-400 text-xs uppercase tracking-wide">
-							AVAILABLE (
+						<Typography variant="caption" color="textSecondary">
+							Available (
 							{isHoveringGrid ? availableMembers.length : members.length})
-						</span>
+						</Typography>
 					</div>
 
 					<ul className="mt-3 flex flex-wrap gap-2">
