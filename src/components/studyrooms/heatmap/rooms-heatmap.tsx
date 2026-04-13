@@ -34,8 +34,7 @@ export const RoomsHeatmap = ({
 	const windowStart = mergeDateAndTime(searchDate, startTime);
 
 	return (
-		<div className="">
-			<p>{startTime.toISOString()}</p>
+		<div>
 			<Table size="small" sx={{ borderCollapse: "collapse", borderSpacing: 0 }}>
 				<TableHead>
 					<TableRow>
