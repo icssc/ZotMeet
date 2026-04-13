@@ -64,34 +64,6 @@ export function GroupResponses({
 	const [blockInfoString, setBlockInfoString] = useState(
 		"Select a cell to view",
 	);
-	// made this cause i thought front end was a part of this pr at first :facepalm: just gonna keep for now
-	const capacityOptions = ["1-2", "3-4", "5-6", "7-8", "9-12", "13+"];
-	const buildingOptions = [
-		"Anteater Learning Pavilion",
-		"Science Library",
-		"Langson Library",
-		"Gateway Study Center",
-	];
-
-	const [selectedCapacity, setSelectedCapacity] = useState<string[]>([]);
-	const [selectedBuildings, setSelectedBuildings] = useState<string[]>([]);
-
-	const toggleSelection = (
-		value: string,
-		selected: string[],
-		setSelected: React.Dispatch<React.SetStateAction<string[]>>,
-	) => {
-		if (selected.includes(value)) {
-			setSelected(selected.filter((v) => v !== value));
-		} else {
-			setSelected([...selected, value]);
-		}
-	};
-
-	const clearRoomFilters = () => {
-		setSelectedCapacity([]);
-		setSelectedBuildings([]);
-	};
 
 	const handleMemberHover = useCallback(
 		(memberId: string | null) => {
@@ -264,62 +236,6 @@ export function GroupResponses({
 							</li>
 						))}
 					</ul>
-				</div>
-				<div className="mb-4 px-8">
-					<p className="mb-2 font-semibold">Capacity</p>
-					<div className="flex flex-wrap gap-2">
-						{capacityOptions.map((cap) => {
-							const selected = selectedCapacity.includes(cap);
-
-							return (
-								<Chip
-									key={cap}
-									label={cap}
-									variant="outlined"
-									onClick={() =>
-										toggleSelection(cap, selectedCapacity, setSelectedCapacity)
-									}
-									// Need to be unified with our custom mui, i kinda just picked close colors
-									className={`!rounded-full !border !border-pink-500 ${
-										selected
-											? "!bg-pink-500 !text-white hover:!bg-pink-500"
-											: "!text-pink-500 hover:!bg-pink-100"
-									}
-							`}
-								/>
-							);
-						})}
-					</div>
-				</div>
-
-				<div className="mb-2 px-8">
-					<p className="mb-2 font-semibold">Buildings</p>
-					<div className="flex flex-wrap gap-2">
-						{buildingOptions.map((bld) => {
-							const selected = selectedBuildings.includes(bld);
-
-							return (
-								<Chip
-									key={bld}
-									label={bld}
-									variant="outlined"
-									onClick={() =>
-										toggleSelection(
-											bld,
-											selectedBuildings,
-											setSelectedBuildings,
-										)
-									}
-									className={`!rounded-full !border !border-pink-500${
-										selected
-											? "!bg-pink-500 !text-white hover:!bg-pink-500"
-											: "!text-pink-500 hover:!bg-pink-100"
-									}
-								`}
-								/>
-							);
-						})}
-					</div>
 				</div>
 			</div>
 		</div>
