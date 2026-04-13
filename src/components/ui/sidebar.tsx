@@ -1,10 +1,10 @@
 "use client";
 
+import { Button } from "@mui/material";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";
 import * as React from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -261,9 +261,9 @@ const SidebarTrigger = React.forwardRef<
 		<Button
 			ref={ref}
 			data-sidebar="trigger"
-			variant="ghost"
-			size="icon"
-			className={cn("h-7 w-7", className)}
+			variant="text"
+			size="small"
+			className={cn("h-7 w-7 min-w-0", className)}
 			onClick={(event) => {
 				onClick?.(event);
 				toggleSidebar();

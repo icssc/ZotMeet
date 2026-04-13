@@ -1,13 +1,13 @@
+import { Dialog, DialogContent, DialogTitle } from "@mui/material";
 import { GoogleButton } from "@/components/auth/google-button";
-import { Dialog } from "@/components/ui/dialog";
-import { Tabs } from "@/components/ui/tabs";
 
 export function AuthDialog() {
 	return (
-		<Dialog>
-			<Tabs defaultValue="login">
+		<Dialog open>
+			<DialogTitle>Sign In</DialogTitle>
+			<DialogContent>
 				<GoogleButton />
-			</Tabs>
+			</DialogContent>
 		</Dialog>
 	);
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { createMeeting } from "@actions/meeting/create/action";
+import { Button } from "@mui/material";
 import {
 	parseAsArrayOf,
 	parseAsString,
@@ -12,12 +13,10 @@ import { Calendar } from "@/components/creation/calendar/calendar";
 //import { MeetingLocationField } from "@/components/creation/fields/meeting-location-field";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
-import { Button } from "@/components/ui/button";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
-import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
 
 export function Creation({ user }: { user: UserProfile | null }) {
@@ -179,8 +178,8 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	return (
 		<div className="mx-auto my-6 flex w-[calc(100%-2rem)] max-w-6xl flex-col gap-y-6 px-4 md:my-8 md:rounded-xl md:border md:border-gray-300">
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
-			<div className="w-full rounded-xl border bg-white px-4 py-6 md:px-14">
-				<h2 className="hidden font-medium text-2xl text-gray-dark sm:block md:text-3xl">
+			<div className="w-full px-4 py-6 md:px-14">
+				<h2 className="hidden font-medium text-2xl sm:block md:text-3xl">
 					Plan your next meeting with ZotMeet
 				</h2>
 				<h2 className="mb-10 flex justify-center text-3xl sm:hidden">
@@ -223,8 +222,9 @@ export function Creation({ user }: { user: UserProfile | null }) {
 				</div>
 				<div className="mt-10 flex justify-center md:justify-end">
 					<Button
+						variant="contained"
 						type="button"
-						className={cn("w-full rounded-lg font-medium text-lg md:w-auto")}
+						sx={{ width: { xs: "100%", md: "auto" } }}
 						disabled={!hasValidInputs || isCreating}
 						onClick={handleCreation}
 					>
@@ -232,6 +232,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 					</Button>
 				</div>
 			</div>
+
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
 		</div>
 	);

@@ -34,7 +34,7 @@ export function GoogleCalendarEventSegment({
 			style={{
 				gridColumn,
 				backgroundColor: isAvailable ? "transparent" : segmentBgColor,
-				borderColor: isAvailable ? "white" : segmentBorderColor,
+				borderColor: isAvailable ? "#FFFFFF" : segmentBorderColor,
 			}}
 			title={segment.summary}
 		>
@@ -42,7 +42,7 @@ export function GoogleCalendarEventSegment({
 				<div
 					className="select-none truncate p-0.5 text-xs leading-tight"
 					style={{
-						color: isAvailable ? "white" : segmentTextColor,
+						color: isAvailable ? "#FFFFFF" : segmentTextColor,
 					}}
 				>
 					{segment.summary}
