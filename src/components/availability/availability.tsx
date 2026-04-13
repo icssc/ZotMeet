@@ -684,7 +684,9 @@ export function Availability({
 						doesntNeedDay={doesntNeedDay}
 					/>
 				)}
-				{availabilityView === "personal" && <PersonalAvailabilitySidebar />}
+				{availabilityView === "personal" && (
+					<PersonalAvailabilitySidebar meetingId={meetingData.id} />
+				)}
 			</div>
 		</div>
 	);

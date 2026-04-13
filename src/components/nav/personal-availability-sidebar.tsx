@@ -1,19 +1,24 @@
 "use client";
 
+import { getRespondedMeetings } from "@actions/availability/copy/action";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import {
 	Accordion,
 	AccordionDetails,
 	AccordionSummary,
 	Button,
+	Checkbox,
+	FormControlLabel,
+	FormGroup,
 	Switch,
 	ToggleButton,
 	ToggleButtonGroup,
 	Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
+type RespondedMeeting = { id: string; title: string; createdAt: Date };
 type Availability = "available" | "if-needed" | "unavailable";
 
 const options: { value: Availability; label: string; icon: React.ReactNode }[] =
@@ -66,9 +71,26 @@ const options: { value: Availability; label: string; icon: React.ReactNode }[] =
 		},
 	];
 
-export function PersonalAvailabilitySidebar() {
+interface PersonalAvailabilitySidebarProps {
+	meetingId: string;
+}
+
+export function PersonalAvailabilitySidebar({
+	meetingId,
+}: PersonalAvailabilitySidebarProps) {
 	const [availability, setAvailability] =
 		React.useState<Availability>("available");
+	const [respondedMeetings, setRespondedMeetings] = useState<
+		RespondedMeeting[]
+	>([]);
+
+	useEffect(() => {
+		getRespondedMeetings(meetingId).then((result) => {
+			if (result.success && result.meetings) {
+				setRespondedMeetings(result.meetings);
+			}
+		});
+	}, [meetingId]);
 
 	return (
 		<div className="fixed h-96 w-full px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:h-auto lg:w-96 lg:shrink-0">
@@ -78,6 +100,36 @@ export function PersonalAvailabilitySidebar() {
 					Drag over the calendar to add your availability
 				</Typography>
 			</div>
+
+			<Accordion
+				defaultExpanded
+				elevation={0}
+				sx={{
+					boxShadow: "none",
+					border: "none",
+					"&:before": { display: "none" },
+				}}
+			>
+				<AccordionSummary
+					expandIcon={<ArrowDropDownIcon />}
+					aria-controls="panel1-content"
+					id="panel1-header"
+				>
+					<Typography variant="button">Import Previous Availability</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<FormGroup>
+						{respondedMeetings.map((meeting) => (
+							<FormControlLabel
+								control={<Checkbox defaultChecked />}
+								label={meeting.title}
+								key={meeting.id}
+							/>
+						))}
+					</FormGroup>
+				</AccordionDetails>
+			</Accordion>
+
 			<div className="mt-6">
 				<Typography variant="h6">Availability Settings</Typography>
 				<Typography variant="caption" color="textSecondary">
@@ -139,7 +191,7 @@ export function PersonalAvailabilitySidebar() {
 					>
 						<Typography variant="button">Calendar Overlays</Typography>
 					</AccordionSummary>
-					<AccordionDetails>{/*put calendars here */}</AccordionDetails>
+					<AccordionDetails></AccordionDetails>
 				</Accordion>
 
 				<div className="mt-6">
