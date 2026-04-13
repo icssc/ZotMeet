@@ -102,7 +102,7 @@ export function Calendar({
 		: `${monthName} ${currentYear}`;
 
 	return (
-		<div className="rounded-lg border bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-6">
+		<div className="rounded-lg bg-gradient-to-l from-[#00A96E0D] to-[#377CFB0D] py-6 md:border">
 			<div className="flex flex-col items-start justify-between px-4 pb-3 md:items-center md:px-8">
 				<Tabs
 					value={meetingType}
