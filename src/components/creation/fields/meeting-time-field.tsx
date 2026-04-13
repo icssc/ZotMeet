@@ -96,6 +96,12 @@ export const MeetingTimeField = ({
 					onChange={(e) =>
 						setStartTime(`${e.target.value}:00` as HourMinuteString)
 					}
+					inputProps={{ style: { fontSize: "1rem" } }}
+					sx={(theme) => ({
+						"& input::-webkit-calendar-picker-indicator": {
+							filter: theme.palette.mode === "dark" ? "invert(1)" : "none",
+						},
+					})}
 				/>
 
 				<TextField
@@ -109,6 +115,12 @@ export const MeetingTimeField = ({
 					onChange={(e) =>
 						setEndTime(`${e.target.value}:00` as HourMinuteString)
 					}
+					inputProps={{ style: { fontSize: "1rem" } }}
+					sx={(theme) => ({
+						"& input::-webkit-calendar-picker-indicator": {
+							filter: theme.palette.mode === "dark" ? "invert(1)" : "none",
+						},
+					})}
 				/>
 				<div className="flex gap-2"></div>
 			</div>

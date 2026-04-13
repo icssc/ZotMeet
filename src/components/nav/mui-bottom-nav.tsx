@@ -1,18 +1,13 @@
 "use client";
 
-import {
-	AddCircleOutline,
-	CalendarMonth,
-	Groups,
-	Person,
-} from "@mui/icons-material";
+import { Apartment, CalendarMonth, Groups, Person } from "@mui/icons-material";
 import { BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
 import { usePathname, useRouter } from "next/navigation";
 
 const navItems = [
-	{ label: "New", value: "/", icon: AddCircleOutline },
-	{ label: "Summary", value: "/summary", icon: CalendarMonth },
+	{ label: "Meetings", value: "/summary", icon: CalendarMonth },
 	{ label: "Groups", value: "/groups", icon: Groups },
+	{ label: "Rooms", value: "/studyrooms", icon: Apartment },
 	{ label: "Profile", value: "/profile", icon: Person },
 ];
 
