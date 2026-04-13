@@ -115,7 +115,7 @@ export function GroupCard({
 							overflow: "hidden",
 						}}
 					>
-						{description}
+						{description || "No Description Provided"}
 					</Typography>
 				</MuiCardContent>
 				<MuiCardActions
