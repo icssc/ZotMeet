@@ -56,28 +56,28 @@ function calculateBlockColor({
 		);
 		if (selectedInBlock.length) {
 			const proportion = selectedInBlock.length / selectedMembers.length;
-			return `rgba(55, 124, 251, ${proportion})`;
+			return `rgba(242, 100, 137, ${proportion})`;
 		}
 		return "transparent";
 	}
 
 	if (hoveredMember) {
 		if (block.includes(hoveredMember)) {
-			return "rgba(55, 124, 251)";
+			return `rgba(242, 100, 137, 1)`;
 		}
 		return "transparent";
 	}
 
 	if (showBestTimes) {
 		if (block.length === maxAvailability && maxAvailability > 0) {
-			return "rgba(55, 124, 251, 1)";
+			return `rgba(242, 100, 137, 1)`;
 		}
 		return "transparent";
 	}
 
 	if (numMembers) {
 		const opacity = block.length / numMembers;
-		return `rgba(55, 124, 251, ${opacity})`;
+		return `rgba(242, 100, 137, ${opacity})`;
 	}
 
 	return "transparent";
@@ -516,7 +516,7 @@ export function GroupAvailability({
 
 			const block = selectedDate.groupAvailability[timestamp] || [];
 			const blockColor = isScheduled(timestamp)
-				? "rgba(255, 215, 0, 0.6)" // gold
+				? "#d94f72"
 				: calculateBlockColor({
 						block,
 						hoveredMember,
