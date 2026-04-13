@@ -1,7 +1,6 @@
 "use client";
 
-import { Add } from "@mui/icons-material";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { Add, People } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -90,8 +89,9 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					<Button
 						type="button"
 						variant="outlined"
-						startIcon={<PersonAddIcon />}
+						startIcon={<People sx={{ color: "secondary.contrastText" }} />}
 						onClick={() => setShowJoinGroup(true)}
+						sx={{ bgcolor: "secondary.main", color: "secondary.contrastText" }}
 					>
 						Join Group
 					</Button>
@@ -99,8 +99,9 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					<Button
 						type="button"
 						variant="outlined"
-						startIcon={<Add />}
+						startIcon={<Add sx={{ color: "primary.contrastText" }} />}
 						onClick={() => setCreateDialogOpen(true)}
+						sx={{ bgcolor: "primary.main", color: "primary.contrastText" }}
 					>
 						Create Group
 					</Button>
@@ -151,8 +152,18 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 							))}
 					</div>
 				) : (
-					<div className="flex flex-col items-center justify-center py-20 text-gray-500">
-						<p className="font-medium text-lg">No groups found</p>
+					<div className="flex min-h-[500px] flex-col items-center justify-center py-20 text-gray-400">
+						<div
+							className="mb-6 flex h-24 w-24 items-center justify-center rounded-full"
+							style={{ backgroundColor: "rgba(0,0,0,0.04)" }}
+						>
+							<People sx={{ fontSize: "3.75rem", color: "divider" }} />
+						</div>
+
+						<p className="max-w-sm text-center text-gray-400 text-lg italic leading-relaxed">
+							Create your first group to start <br />
+							scheduling meetings.
+						</p>
 					</div>
 				)}
 			</div>
