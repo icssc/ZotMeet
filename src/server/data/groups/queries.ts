@@ -206,6 +206,7 @@ export async function getGroupsWithDetails(
 }
 
 export type MeetingWithStats = SelectMeeting & {
+	hostName: string;
 	totalMembers: number;
 	respondedCount: number;
 };
@@ -235,9 +236,21 @@ export async function getGroupMeetingsWithStats(
 		responseCounts.map((r) => [r.meetingId, r.respondedCount]),
 	);
 
-	return groupMeetings.map((meeting) => ({
-		...meeting,
-		totalMembers,
-		respondedCount: responseMap.get(meeting.id) ?? 0,
-	}));
+	// Fetch host name for each meeting
+	const meetingsWithHosts = await Promise.all(
+		groupMeetings.map(async (meeting) => {
+			const host = await db.query.members.findFirst({
+				where: eq(members.id, meeting.hostId),
+			});
+
+			return {
+				...meeting,
+				hostName: host?.displayName ?? "Unknown",
+				totalMembers,
+				respondedCount: responseMap.get(meeting.id) ?? 0,
+			};
+		}),
+	);
+
+	return meetingsWithHosts;
 }

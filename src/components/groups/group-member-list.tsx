@@ -1,8 +1,8 @@
 "use client";
 
-import { Button, Tab, Tabs } from "@mui/material";
+import { People } from "@mui/icons-material";
+import { Button, IconButton, Menu, MenuItem, Tab, Tabs } from "@mui/material";
 import {
-	Bell,
 	Calendar,
 	Clock,
 	MoreVertical,
@@ -42,6 +42,7 @@ interface GroupMemberListProps {
 	meetings: MeetingWithStats[];
 	isAdmin: boolean;
 	currentUserId: string;
+	currentMemberId: string;
 }
 
 function DateRange({
@@ -90,55 +91,88 @@ function DateRange({
 	return <>{`${first} - ${last}`}</>;
 }
 
-function MeetingRow({ meeting }: { meeting: MeetingWithStats }) {
+function MeetingRow({
+	meeting,
+	currentMemberId,
+}: {
+	meeting: MeetingWithStats;
+	currentMemberId: string;
+}) {
+	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const open = Boolean(anchorEl);
+	console.log("Meeting host ID:", meeting.hostId);
+	console.log("Current member ID:", currentMemberId);
+	const createdByLabel =
+		meeting.hostId === currentMemberId
+			? "Created by You"
+			: `Created by ${meeting.hostName}`;
+
 	return (
-		<Link href={`/availability/${meeting.id}`}>
-			<div className="flex items-center justify-between border-gray-200 border-b px-4 py-4 transition-colors hover:bg-gray-50">
-				<div className="flex flex-col gap-1">
-					<h3 className="font-medium text-base text-gray-900">
-						{meeting.title}
-					</h3>
-					<div className="flex flex-wrap items-center gap-x-4 text-gray-500 text-sm">
-						<div className="flex items-center gap-1">
-							<Calendar className="size-4" />
-							<span>
-								<DateRange
-									dates={meeting.dates}
-									meetingType={meeting.meetingType}
-								/>
-							</span>
-						</div>
-						<div className="flex items-center gap-1">
-							<Users className="size-4" />
-							<span>{meeting.totalMembers} members</span>
-						</div>
-						<div className="flex items-center gap-1">
-							<Clock className="size-4" />
-							<span>
-								{meeting.respondedCount}/{meeting.totalMembers} responded
-							</span>
-						</div>
+		<div className="flex items-center justify-between border-gray-200 border-b px-4 py-4 transition-colors hover:bg-gray-50">
+			<Link
+				href={`/availability/${meeting.id}`}
+				className="flex flex-1 flex-col gap-1"
+			>
+				<h3 className="font-medium text-base text-gray-900">{meeting.title}</h3>
+
+				<div className="flex flex-wrap items-center gap-x-4 text-gray-500 text-sm">
+					<div className="flex items-center gap-1">
+						<Calendar className="size-4" />
+						<span>
+							<DateRange
+								dates={meeting.dates}
+								meetingType={meeting.meetingType}
+							/>
+						</span>
+					</div>
+
+					<div className="flex items-center gap-1">
+						<Users className="size-4" />
+						<span>{meeting.totalMembers} members</span>
+					</div>
+
+					<div className="flex items-center gap-1">
+						<Clock className="size-4" />
+						<span>
+							{meeting.respondedCount}/{meeting.totalMembers} responded
+						</span>
 					</div>
 				</div>
-				<div className="flex items-center gap-2">
-					<button
-						type="button"
-						className="flex items-center gap-1.5 rounded border border-gray-300 px-3 py-1.5 font-medium text-sm uppercase tracking-wide transition-colors hover:bg-gray-100"
-						onClick={(e) => e.preventDefault()}
+			</Link>
+
+			<div className="ml-4 flex items-center gap-3">
+				<p className="whitespace-nowrap font-medium text-gray-400 text-xs uppercase tracking-wide">
+					{createdByLabel}
+				</p>
+				<IconButton
+					onClick={(e) => {
+						e.stopPropagation();
+						setAnchorEl(open ? null : e.currentTarget);
+					}}
+				>
+					<MoreVertical className="size-5 text-gray-500" />
+				</IconButton>
+
+				<Menu
+					anchorEl={anchorEl}
+					open={open}
+					onClose={() => setAnchorEl(null)}
+					transformOrigin={{ horizontal: "right", vertical: "top" }}
+					anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+				>
+					<MenuItem
+						onClick={(e) => {
+							e.stopPropagation();
+							setAnchorEl(null);
+							// handle nudge members
+						}}
 					>
-						<Bell className="size-4" />
+						<People className="mr-2 size-4" />
 						Nudge Members
-					</button>
-					<button
-						type="button"
-						className="rounded p-1 transition-colors hover:bg-gray-100"
-						onClick={(e) => e.preventDefault()}
-					>
-						<MoreVertical className="size-5 text-gray-500" />
-					</button>
-				</div>
+					</MenuItem>
+				</Menu>
 			</div>
-		</Link>
+		</div>
 	);
 }
 
@@ -249,6 +283,7 @@ export function GroupMemberList({
 	meetings,
 	isAdmin,
 	currentUserId,
+	currentMemberId,
 }: GroupMemberListProps) {
 	const [isCreatingInvite, setIsCreatingInvite] = useState(false);
 	const [tab, setTab] = useState(0);
@@ -343,7 +378,11 @@ export function GroupMemberList({
 					{meetings.length > 0 ? (
 						<div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
 							{meetings.map((meeting) => (
-								<MeetingRow key={meeting.id} meeting={meeting} />
+								<MeetingRow
+									key={meeting.id}
+									meeting={meeting}
+									currentMemberId={currentMemberId}
+								/>
 							))}
 						</div>
 					) : (

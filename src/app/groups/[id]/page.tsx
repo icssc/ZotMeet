@@ -55,6 +55,7 @@ export default async function Page(props: PageProps) {
 				meetings={meetingsWithStats}
 				isAdmin={isAdmin}
 				currentUserId={session.user.id}
+				currentMemberId={session.user.memberId}
 			/>
 		</div>
 	);
