@@ -1,6 +1,17 @@
-import { KeyboardArrowRight, PeopleOutline } from "@mui/icons-material";
+import {
+	Error as ErrorIcon,
+	KeyboardArrowRight,
+	PeopleOutline,
+} from "@mui/icons-material";
+import { Avatar, Box, Typography } from "@mui/material";
 import Image from "next/image";
 import Link from "next/link";
+import {
+	MuiCard,
+	MuiCardActions,
+	MuiCardContent,
+	MuiCardHeader,
+} from "@/components/ui/mui/card";
 
 interface GroupCardProps {
 	id: string;
@@ -9,6 +20,7 @@ interface GroupCardProps {
 	memberEmails?: string[];
 	totalMembers: number;
 	creatorName: string;
+	actionRequired?: boolean;
 }
 
 export function GroupCard({
@@ -17,52 +29,140 @@ export function GroupCard({
 	description,
 	totalMembers,
 	creatorName,
+	actionRequired = false,
 }: GroupCardProps) {
 	return (
-		<Link
-			href={`/groups/${id}`}
-			className="flex h-42 w-full flex-col gap-1 overflow-hidden rounded-md border border-gray-200 bg-gray-100 px-8 py-8 sm:h-70"
-		>
-			<div className="flex h-full flex-col gap-3">
-				<div className="flex w-full items-center gap-2">
-					<div className="relative size-12 shrink-0">
-						<Image
-							src="/icssc-logo.svg"
-							alt="group-pfp"
-							fill
-							className="object-contain"
-						/>
-					</div>
-
-					<div>
-						<p className="font-bold text-md sm:text-xl">{name}</p>
-						<p className="block text-gray-500 sm:hidden">
+		<Link href={`/groups/${id}`} style={{ textDecoration: "none" }}>
+			<MuiCard
+				sx={{
+					position: "relative",
+					overflow: "visible",
+					border: "1px solid",
+					borderColor: "divider",
+				}}
+			>
+				{actionRequired && (
+					<Box
+						sx={{
+							position: "absolute",
+							top: -4,
+							right: 24,
+							display: "flex",
+							alignItems: "center",
+							gap: "10px",
+							px: "10px",
+							py: "5px",
+							bgcolor: "#ffeaea",
+							borderRadius: "0 0 5px 5px",
+						}}
+					>
+						<ErrorIcon sx={{ fontSize: 18, color: "#da281e" }} />
+						<Typography
+							variant="caption"
+							sx={{
+								color: "#da281e",
+								fontWeight: 500,
+								letterSpacing: "0.14px",
+								lineHeight: "20px",
+							}}
+						>
+							Action Required
+						</Typography>
+					</Box>
+				)}
+				<MuiCardHeader
+					avatar={
+						<Box
+							sx={{
+								position: "relative",
+								width: 40,
+								height: 40,
+								flexShrink: 0,
+							}}
+						>
+							<Image
+								src="/icssc-logo.svg"
+								alt="group-pfp"
+								fill
+								style={{ objectFit: "contain" }}
+							/>
+						</Box>
+					}
+					title={<Typography variant="h6">{name}</Typography>}
+					subheader={
+						<Typography
+							variant="body2"
+							color="text.secondary"
+							sx={{ display: { sm: "none" } }}
+						>
 							{totalMembers} Members
-						</p>
-					</div>
-
-					<div className="ml-auto sm:hidden">
-						<KeyboardArrowRight />
-					</div>
-				</div>
-
-				<p className="line-clamp-2 w-full text-left text-gray-500 text-sm sm:line-clamp-3 sm:text-xl">
-					{description || "No Description Provided"}
-				</p>
-
-				<div className="hidden w-full items-center text-gray-600 text-sm sm:flex sm:text-base">
-					<div className="flex gap-1">
-						<PeopleOutline fontSize="small" />
-						<p>{totalMembers}</p>
-					</div>
-
-					<p className="ml-auto">Created by {creatorName}</p>
-
-					<div className="ml-2 flex size-5 shrink-0 items-center justify-center rounded-full bg-gray-400 text-white">
-						{creatorName[0]}
-					</div>
-				</div>
-			</div>
+						</Typography>
+					}
+					action={
+						<Box sx={{ display: { sm: "none" }, alignSelf: "center" }}>
+							<KeyboardArrowRight />
+						</Box>
+					}
+				/>
+				<MuiCardContent>
+					<Typography
+						variant="subtitle1"
+						sx={{
+							color: "#717182",
+							display: "-webkit-box",
+							WebkitLineClamp: { xs: 2, sm: 3 },
+							WebkitBoxOrient: "vertical",
+							overflow: "hidden",
+						}}
+					>
+						{description}
+					</Typography>
+				</MuiCardContent>
+				<MuiCardActions
+					sx={{
+						display: { xs: "none", sm: "flex" },
+						justifyContent: "space-between",
+						//flexWrap: "nowrap",
+						px: 2,
+					}}
+				>
+					<Box
+						sx={{
+							display: "flex",
+							alignItems: "center",
+							gap: 0.5,
+							flexShrink: 0,
+						}}
+					>
+						<PeopleOutline sx={{ fontSize: 12 }} />
+						<Typography variant="overline" sx={{ color: "#4a5565" }}>
+							{totalMembers} Members
+						</Typography>
+					</Box>
+					<Box
+						sx={{
+							display: "flex",
+							alignItems: "center",
+							gap: 1,
+							flexShrink: 0,
+						}}
+					>
+						<Avatar
+							sx={{
+								width: 18,
+								height: 18,
+								fontSize: "0.625rem",
+								bgcolor: "grey.400",
+							}}
+						>
+							{creatorName[0]}
+						</Avatar>
+						<Typography variant="overline" sx={{ color: "#4a5565" }}>
+							Owned by {creatorName}
+						</Typography>
+					</Box>
+				</MuiCardActions>
+			</MuiCard>
 		</Link>
 	);
 }

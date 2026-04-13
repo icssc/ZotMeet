@@ -187,6 +187,17 @@ export const getTheme = (mode: "light" | "dark") =>
 					},
 				},
 			},
+			MuiCard: {
+				defaultProps: {
+					elevation: 1,
+				},
+				styleOverrides: {
+					root: ({ theme }) => ({
+						borderRadius: 8,
+						backgroundColor: theme.palette.background.paper,
+					}),
+				},
+			},
 			MuiButton: {
 				styleOverrides: {
 					root: {
