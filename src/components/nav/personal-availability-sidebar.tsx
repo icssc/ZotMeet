@@ -1,6 +1,9 @@
 "use client";
 
-import { getRespondedMeetings } from "@actions/availability/copy/action";
+import {
+	getRespondedMeetings,
+	getUserAvailabilityForMeeting,
+} from "@actions/availability/copy/action";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import {
 	Accordion,
@@ -92,6 +95,14 @@ export function PersonalAvailabilitySidebar({
 		});
 	}, [meetingId]);
 
+	const handleCopyFromMeeting = async (sourceMeetingId: string) => {
+		const result = await getUserAvailabilityForMeeting(sourceMeetingId);
+		if (!result.success || !result.meetingAvailabilities) return;
+
+		console.log(result);
+		// only apply availabilities fitting the meeting window
+	};
+
 	return (
 		<div className="fixed h-96 w-full px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:h-auto lg:w-96 lg:shrink-0">
 			<div>
@@ -100,35 +111,6 @@ export function PersonalAvailabilitySidebar({
 					Drag over the calendar to add your availability
 				</Typography>
 			</div>
-
-			<Accordion
-				defaultExpanded
-				elevation={0}
-				sx={{
-					boxShadow: "none",
-					border: "none",
-					"&:before": { display: "none" },
-				}}
-			>
-				<AccordionSummary
-					expandIcon={<ArrowDropDownIcon />}
-					aria-controls="panel1-content"
-					id="panel1-header"
-				>
-					<Typography variant="button">Import Previous Availability</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<FormGroup>
-						{respondedMeetings.map((meeting) => (
-							<FormControlLabel
-								control={<Checkbox defaultChecked />}
-								label={meeting.title}
-								key={meeting.id}
-							/>
-						))}
-					</FormGroup>
-				</AccordionDetails>
-			</Accordion>
 
 			<div className="mt-6">
 				<Typography variant="h6">Availability Settings</Typography>
@@ -174,6 +156,45 @@ export function PersonalAvailabilitySidebar({
 				<Button variant="outlined" color="inherit" fullWidth>
 					Clear availability
 				</Button>
+
+				<Accordion
+					defaultExpanded
+					elevation={0}
+					sx={{
+						boxShadow: "none",
+						border: "none",
+						"&:before": { display: "none" },
+					}}
+				>
+					<AccordionSummary
+						expandIcon={<ArrowDropDownIcon />}
+						aria-controls="panel1-content"
+						id="panel1-header"
+					>
+						<Typography variant="button">
+							Import Previous Availability
+						</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<FormGroup>
+							{respondedMeetings.map((meeting) => (
+								<FormControlLabel
+									control={
+										<Checkbox
+											onChange={(e) => {
+												if (e.target.checked) {
+													handleCopyFromMeeting(meeting.id);
+												}
+											}}
+										/>
+									}
+									label={meeting.title}
+									key={meeting.id}
+								/>
+							))}
+						</FormGroup>
+					</AccordionDetails>
+				</Accordion>
 
 				<Accordion
 					defaultExpanded
