@@ -45,6 +45,10 @@ export const members = pgTable(
 	{
 		id: uuid("id").primaryKey().notNull().defaultRandom(),
 		displayName: text("display_name").notNull(),
+		username: text("username").unique(),
+		year: text("year"),
+		major: text("major"),
+		profilePicture: text("profile_picture"),
 	},
 	// (table) => ({
 	//     unique: unique().on(table.id),

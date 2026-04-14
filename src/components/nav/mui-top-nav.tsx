@@ -318,7 +318,10 @@ function NavUser({ user }: { user: UserProfile | null }) {
 					gap: 1,
 				}}
 			>
-				<Avatar sx={{ width: 32, height: 32 }}>
+				<Avatar
+					src={user.profilePicture ?? undefined}
+					sx={{ width: 32, height: 32 }}
+				>
 					<Person fontSize="small" />
 				</Avatar>
 				<Typography

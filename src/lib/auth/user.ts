@@ -7,6 +7,10 @@ export const userProfileProjection = {
 	email: users.email,
 	memberId: users.memberId,
 	displayName: members.displayName,
+	username: members.username,
+	year: members.year,
+	major: members.major,
+	profilePicture: members.profilePicture,
 };
 
 export type UserProfile = {
@@ -14,6 +18,10 @@ export type UserProfile = {
 	email: string;
 	memberId: string;
 	displayName: string;
+	username: string | null;
+	year: string | null;
+	major: string | null;
+	profilePicture: string | null;
 };
 export type NotificationItem = {
 	id: string;
