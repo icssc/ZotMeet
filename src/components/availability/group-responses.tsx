@@ -222,7 +222,13 @@ export function GroupResponses({
 										: "default"
 								}
 								variant="outlined"
-								sx={{ maxWidth: "100%" }}
+								sx={
+									isHoveringGrid
+										? availableMembers.includes(member)
+											? { maxWidth: "100%" }
+											: { textDecoration: "line-through", maxWidth: "100%" }
+										: { maxWidth: "100%" }
+								}
 								onMouseEnter={() => handleMemberHover(member.memberId)}
 								onMouseLeave={() => handleMemberHover(null)}
 								onClick={() => handleMemberSelect(member.memberId)}
