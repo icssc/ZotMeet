@@ -10,7 +10,7 @@ export async function updateUserProfile(data: {
 	displayName: string;
 	username: string;
 	year: string;
-	major: string;
+	school: string;
 }) {
 	const { user } = await getCurrentSession();
 	if (!user) return { success: false, message: "Not authenticated" };
@@ -34,7 +34,7 @@ export async function updateUserProfile(data: {
 			displayName: data.displayName.trim() || user.displayName,
 			username: trimmedUsername || null,
 			year: data.year.trim() || null,
-			major: data.major.trim() || null,
+			school: data.school.trim() || null,
 		})
 		.where(eq(members.id, user.memberId));
 

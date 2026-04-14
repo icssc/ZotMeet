@@ -1,5 +1,6 @@
 "use client";
 
+import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -10,6 +11,25 @@ import {
 	updateUserProfile,
 } from "@/server/actions/user/profile/action";
 
+const UCI_SCHOOLS = [
+	"Claire Trevor School of the Arts",
+	"Charlie Dunlop School of Biological Sciences",
+	"The Paul Merage School of Business",
+	"School of Education",
+	"The Henry Samueli School of Engineering",
+	"School of Humanities",
+	"Donald Bren School of Information and Computer Sciences",
+	"Interdisciplinary Studies",
+	"School of Law",
+	"School of Medicine",
+	"Sue and Bill Gross School of Nursing",
+	"School of Pharmacy and Pharmaceutical Sciences",
+	"School of Physical Sciences",
+	"Joe C. Wen School of Population and Public Health",
+	"School of Social Ecology",
+	"School of Social Sciences",
+];
+
 interface ProfileSettingsProps {
 	user: UserProfile;
 }
@@ -18,7 +38,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 	const [displayName, setDisplayName] = useState(user.displayName ?? "");
 	const [username, setUsername] = useState(user.username ?? "");
 	const [year, setYear] = useState(user.year ?? "");
-	const [major, setMajor] = useState(user.major ?? "");
+	const [school, setSchool] = useState(user.school ?? "");
 	const [profilePicture, setProfilePicture] = useState(
 		user.profilePicture ?? "",
 	);
@@ -31,7 +51,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 				displayName,
 				username,
 				year,
-				major,
+				school,
 			});
 			if (result.success) {
 				toast.success("Profile saved", { duration: 1200 });
@@ -163,14 +183,14 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 
 				<hr className="border-gray-200" />
 
-				<ProfileRow label="Major" description="Your current major">
-					<TextField
-						label="Major"
-						value={major}
-						onChange={(e) => setMajor(e.target.value)}
-						fullWidth
-						size="small"
-						variant="outlined"
+				<ProfileRow label="School" description="Your UCI school">
+					<Autocomplete
+						options={UCI_SCHOOLS}
+						value={school || null}
+						onChange={(_, value) => setSchool(value ?? "")}
+						renderInput={(params) => (
+							<TextField {...params} label="School" variant="outlined" />
+						)}
 					/>
 				</ProfileRow>
 			</div>

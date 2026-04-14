@@ -47,7 +47,7 @@ export const members = pgTable(
 		displayName: text("display_name").notNull(),
 		username: text("username").unique(),
 		year: text("year"),
-		major: text("major"),
+		school: text("school"),
 		profilePicture: text("profile_picture"),
 	},
 	// (table) => ({

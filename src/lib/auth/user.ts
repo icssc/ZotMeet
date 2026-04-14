@@ -9,7 +9,7 @@ export const userProfileProjection = {
 	displayName: members.displayName,
 	username: members.username,
 	year: members.year,
-	major: members.major,
+	school: members.school,
 	profilePicture: members.profilePicture,
 };
 
@@ -20,7 +20,7 @@ export type UserProfile = {
 	displayName: string;
 	username: string | null;
 	year: string | null;
-	major: string | null;
+	school: string | null;
 	profilePicture: string | null;
 };
 export type NotificationItem = {
