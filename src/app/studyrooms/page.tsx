@@ -17,7 +17,6 @@ import { format } from "date-fns";
 import { useEffect, useState } from "react";
 
 import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
-import { RoomResults } from "@/components/studyrooms/room-results";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
@@ -52,6 +51,7 @@ export default function Page() {
 		defaultStart,
 	);
 	const [committedEnd, setCommittedEnd] = useState<Date | null>(defaultEnd);
+	const [committedDate, setCommittedDate] = useState<Date | null>(tomorrow);
 	const [location, setLocation] = useState<string | null>(null);
 	const [capacityMin, setCapacityMin] = useState("");
 	const [capacityMax, setCapacityMax] = useState("");
@@ -132,6 +132,7 @@ export default function Page() {
 			});
 
 			setRooms(data);
+			setCommittedDate(date);
 			setCommittedStart(startTime);
 			setCommittedEnd(endTime);
 		} catch (err) {
@@ -151,6 +152,7 @@ export default function Page() {
 		fetchStudyRooms({ date: today, timeRange: defaultTr })
 			.then(({ data }) => {
 				setRooms(data);
+				setCommittedDate(tmrw);
 				setCommittedStart(initialCommittedStart);
 				setCommittedEnd(initialCommittedEnd);
 			})
@@ -261,9 +263,10 @@ export default function Page() {
 				</Button>
 			</Box>
 
-			{rooms && committedStart && committedEnd && (
+			{rooms && committedDate && committedStart && committedEnd && (
 				<RoomsHeatmap
 					rooms={rooms}
+					searchDate={committedDate}
 					startTime={committedStart}
 					endTime={committedEnd}
 				/>

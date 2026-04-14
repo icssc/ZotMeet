@@ -113,4 +113,10 @@
 	body {
 		@apply bg-background text-foreground;
 	}
+	input[type="time"],
+	input[type="date"],
+	input[type="datetime-local"] {
+		font-size: 1rem !important;
+		min-height: 1.4375em;
+	}
 }

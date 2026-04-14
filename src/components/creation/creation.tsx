@@ -176,9 +176,9 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	}, [selectedDays.length, startTime, endTime, meetingName]);
 
 	return (
-		<div className="mx-auto my-6 flex w-[calc(100%-2rem)] max-w-6xl flex-col gap-y-6 px-4 md:my-8 md:rounded-xl md:border md:border-gray-300">
+		<div className="mx-auto my-6 flex w-full max-w-6xl flex-col gap-y-6 px-0 md:my-8 md:w-[calc(100%-2rem)] md:rounded-xl md:border md:border-gray-300 md:px-4">
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
-			<div className="w-full px-4 py-6 md:px-14">
+			<div className="w-full px-2 py-6 md:px-14">
 				<h2 className="hidden font-medium text-2xl sm:block md:text-3xl">
 					Plan your next meeting with ZotMeet
 				</h2>
@@ -190,7 +190,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 					FIND THE PERFECT TIME AND PLACE FOR YOUR MEETING.
 				</h3>
 
-				<div className="flex w-full max-w-md flex-col gap-6 md:w-full md:max-w-none">
+				<div className="flex w-full flex-col gap-6">
 					<MeetingNameField
 						meetingName={meetingName}
 						setMeetingName={setMeetingName}
