@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import {
 	GroupAvailability,
-	getBestTimeRanges,
 	getTimestampFromBlockIndex,
 } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
@@ -25,7 +24,8 @@ import {
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
 } from "@/lib/availability/utils";
-import { getStudyRooms } from "@/lib/studyrooms/getrooms";
+import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
+import { getBestTimeRanges } from "@/lib/rooms/utils";
 import type {
 	GoogleCalendarEvent,
 	MemberMeetingAvailability,
@@ -439,7 +439,7 @@ export function Availability({
 				// Make one API call per (date, time) pair
 				const promises = bestTimeRanges.map(({ date, time }) => {
 					console.log("Fetching with:", { date, time });
-					return getStudyRooms(date, time);
+					return fetchStudyRooms({ date: date, timeRange: time });
 				});
 				const results = await Promise.all(promises);
 
