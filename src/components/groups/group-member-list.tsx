@@ -13,7 +13,7 @@ import {
 	Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
 	Select,
 	SelectContent,
@@ -100,8 +100,6 @@ function MeetingRow({
 }) {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
-	console.log("Meeting host ID:", meeting.hostId);
-	console.log("Current member ID:", currentMemberId);
 	const createdByLabel =
 		meeting.hostId === currentMemberId
 			? "Created by You"
@@ -317,6 +315,33 @@ export function GroupMemberList({
 		}
 	}
 
+	const { upcomingMeetings, allMeetings } = useMemo(() => {
+		const now = new Date();
+
+		const getSortDate = (meeting: MeetingWithStats) =>
+			meeting.scheduledDate
+				? new Date(meeting.scheduledDate)
+				: new Date(meeting.dates[0]); // meeting window start
+
+		// Upcoming section: scheduled + future
+		const upcomingMeetings = meetings
+			.filter((meeting) => {
+				if (!meeting.scheduledDate) return false;
+				return new Date(meeting.scheduledDate) > now;
+			})
+			.sort((a, b) => getSortDate(a).getTime() - getSortDate(b).getTime());
+
+		// All meeting section: unscheduled + scheduled meetings in the past
+		const allMeetings = meetings
+			.filter((meeting) => {
+				if (!meeting.scheduledDate) return true;
+				return new Date(meeting.scheduledDate) <= now;
+			})
+			.sort((a, b) => getSortDate(a).getTime() - getSortDate(b).getTime());
+
+		return { upcomingMeetings, allMeetings };
+	}, [meetings]);
+
 	return (
 		<div>
 			<div className="flex items-center justify-between">
@@ -376,14 +401,38 @@ export function GroupMemberList({
 			{tab === 0 && (
 				<div className="mt-4">
 					{meetings.length > 0 ? (
-						<div className="divide-y divide-gray-200 rounded-lg border border-gray-200">
-							{meetings.map((meeting) => (
-								<MeetingRow
-									key={meeting.id}
-									meeting={meeting}
-									currentMemberId={currentMemberId}
-								/>
-							))}
+						<div>
+							<div className="mt-8">
+								<p className="p-1 font-bold text-gray-400">
+									UPCOMING ({upcomingMeetings.length})
+								</p>
+
+								{upcomingMeetings.map((meeting) => (
+									<div className="rounded-lg border border-gray-200">
+										<MeetingRow
+											key={meeting.id}
+											meeting={meeting}
+											currentMemberId={currentMemberId}
+										/>
+									</div>
+								))}
+							</div>
+
+							<div className="mt-8">
+								<p className="p-1 font-bold text-gray-400">
+									ALL ({allMeetings.length})
+								</p>
+
+								{allMeetings.map((meeting) => (
+									<div className="rounded-lg border border-gray-200">
+										<MeetingRow
+											key={meeting.id}
+											meeting={meeting}
+											currentMemberId={currentMemberId}
+										/>
+									</div>
+								))}
+							</div>
 						</div>
 					) : (
 						<div className="flex items-center justify-center py-32">

@@ -10,6 +10,7 @@ import {
 	members,
 	type SelectGroup,
 	type SelectMeeting,
+	scheduledMeetings,
 	users,
 	usersInGroup,
 } from "@/db/schema";
@@ -207,6 +208,7 @@ export async function getGroupsWithDetails(
 
 export type MeetingWithStats = SelectMeeting & {
 	hostName: string;
+	scheduledDate: Date | null;
 	totalMembers: number;
 	respondedCount: number;
 };
@@ -243,9 +245,14 @@ export async function getGroupMeetingsWithStats(
 				where: eq(members.id, meeting.hostId),
 			});
 
+			const scheduledBlock = await db.query.scheduledMeetings.findFirst({
+				where: eq(scheduledMeetings.meetingId, meeting.id),
+			});
+
 			return {
 				...meeting,
 				hostName: host?.displayName ?? "Unknown",
+				scheduledDate: scheduledBlock?.scheduledDate ?? null,
 				totalMembers,
 				respondedCount: responseMap.get(meeting.id) ?? 0,
 			};
