@@ -331,13 +331,10 @@ export function GroupMemberList({
 			})
 			.sort((a, b) => getSortDate(a).getTime() - getSortDate(b).getTime());
 
-		// All meeting section: unscheduled + scheduled meetings in the past
-		const allMeetings = meetings
-			.filter((meeting) => {
-				if (!meeting.scheduledDate) return true;
-				return new Date(meeting.scheduledDate) <= now;
-			})
-			.sort((a, b) => getSortDate(a).getTime() - getSortDate(b).getTime());
+		// All meeting section
+		const allMeetings = meetings.sort(
+			(a, b) => getSortDate(a).getTime() - getSortDate(b).getTime(),
+		);
 
 		return { upcomingMeetings, allMeetings };
 	}, [meetings]);
@@ -408,7 +405,10 @@ export function GroupMemberList({
 								</p>
 
 								{upcomingMeetings.map((meeting) => (
-									<div className="rounded-lg border border-gray-200">
+									<div
+										key={meeting.id}
+										className="rounded-lg border border-gray-200"
+									>
 										<MeetingRow
 											key={meeting.id}
 											meeting={meeting}
@@ -424,7 +424,10 @@ export function GroupMemberList({
 								</p>
 
 								{allMeetings.map((meeting) => (
-									<div className="rounded-lg border border-gray-200">
+									<div
+										key={meeting.id}
+										className="rounded-lg border border-gray-200"
+									>
 										<MeetingRow
 											key={meeting.id}
 											meeting={meeting}
