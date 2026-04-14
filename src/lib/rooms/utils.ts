@@ -196,7 +196,7 @@ export function getBestTimeRanges(availabilityDates: any[]) {
 		const diffMinutes = (curr.getTime() - prev.getTime()) / 60000;
 
 		const sameDay =
-			curr.toISOString().split("T")[0] === prev.toISOString().split("T")[0];
+			formatLocalDateKey(curr) === formatLocalDateKey(prev);
 
 		if (diffMinutes !== 15 || !sameDay) {
 			results.push({
