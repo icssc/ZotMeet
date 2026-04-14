@@ -483,8 +483,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "major": {
-          "name": "major",
+        "school": {
+          "name": "school",
           "type": "text",
           "primaryKey": false,
           "notNull": false

@@ -58,7 +58,7 @@
       "tag": "0007_talented_tomorrow_man",
       "breakpoints": true
     },
-        {
+    {
       "idx": 8,
       "version": "7",
       "when": 1775256149767,
@@ -70,6 +70,13 @@
       "version": "7",
       "when": 1775344911930,
       "tag": "0009_gorgeous_ezekiel",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776148808688,
+      "tag": "0010_cheerful_senator_kelly",
       "breakpoints": true
     }
   ]
