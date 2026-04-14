@@ -400,8 +400,8 @@ export function GroupMemberList({
 					{meetings.length > 0 ? (
 						<div>
 							<div className="mt-8">
-								<p className="p-1 font-bold text-gray-400">
-									UPCOMING ({upcomingMeetings.length})
+								<p className="mb-2 font-bold text-[#969696] text-xs uppercase tracking-wide">
+									Upcoming ({upcomingMeetings.length})
 								</p>
 
 								{upcomingMeetings.map((meeting) => (
@@ -419,8 +419,8 @@ export function GroupMemberList({
 							</div>
 
 							<div className="mt-8">
-								<p className="p-1 font-bold text-gray-400">
-									ALL ({allMeetings.length})
+								<p className="mb-2 font-bold text-[#969696] text-xs uppercase tracking-wide">
+									All ({allMeetings.length})
 								</p>
 
 								{allMeetings.map((meeting) => (
