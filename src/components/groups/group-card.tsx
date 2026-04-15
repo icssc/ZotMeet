@@ -39,6 +39,8 @@ export function GroupCard({
 					overflow: "visible",
 					border: "1px solid",
 					borderColor: "divider",
+					px: 3,
+					py: 4,
 				}}
 			>
 				{actionRequired && (
@@ -71,6 +73,7 @@ export function GroupCard({
 					</Box>
 				)}
 				<MuiCardHeader
+					sx={{ p: 0 }}
 					avatar={
 						<Box
 							sx={{
@@ -104,7 +107,14 @@ export function GroupCard({
 						</Box>
 					}
 				/>
-				<MuiCardContent>
+				<MuiCardContent
+					sx={{
+						px: 0,
+						pt: "10px",
+						pb: "16px",
+						"&:last-child": { pb: "16px" },
+					}}
+				>
 					<Typography
 						variant="subtitle1"
 						sx={{
@@ -122,15 +132,14 @@ export function GroupCard({
 					sx={{
 						display: { xs: "none", sm: "flex" },
 						justifyContent: "space-between",
-						//flexWrap: "nowrap",
-						px: 2,
+						p: 0,
 					}}
 				>
 					<Box
 						sx={{
 							display: "flex",
 							alignItems: "center",
-							gap: 0.5,
+							gap: "5px",
 							flexShrink: 0,
 						}}
 					>
@@ -143,7 +152,7 @@ export function GroupCard({
 						sx={{
 							display: "flex",
 							alignItems: "center",
-							gap: 1,
+							gap: "10px",
 							flexShrink: 0,
 						}}
 					>
