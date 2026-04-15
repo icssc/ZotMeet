@@ -1,6 +1,7 @@
 import React from "react";
 import { useShallow } from "zustand/shallow";
 import { AvailabilityBlockCell } from "@/components/availability/table/availability-block-cell";
+import { getTimestampFromBlockIndex } from "@/lib/availability/grid-timestamps";
 import {
 	generateCellKey,
 	generateDateKey,
@@ -13,6 +14,8 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 interface AvailabilityBlocksProps {
 	timeBlock: number;
 	blockIndex: number;
+	fromTimeMinutes: number;
+	availabilityDates: ZotDate[];
 	availabilityTimeBlocksLength: number;
 	currentPageAvailability: ZotDate[];
 	processedCellSegments: ProcessedCellEventSegments;
@@ -21,6 +24,8 @@ interface AvailabilityBlocksProps {
 export function AvailabilityBlocks({
 	timeBlock,
 	blockIndex,
+	fromTimeMinutes,
+	availabilityDates,
 	availabilityTimeBlocksLength,
 	currentPageAvailability,
 	processedCellSegments,
@@ -30,6 +35,9 @@ export function AvailabilityBlocks({
 			currentPage: state.currentPage,
 			itemsPerPage: state.itemsPerPage,
 		})),
+	);
+	const importPreviewIsoSet = useAvailabilityStore(
+		(s) => s.importPreviewIsoSet,
 	);
 
 	const isTopOfHour = timeBlock % 60 === 0;
@@ -55,6 +63,15 @@ export function AvailabilityBlocks({
 					const cellKey = generateCellKey(zotDateIndex, blockIndex);
 					const segmentsForCell = processedCellSegments.get(cellKey) || [];
 
+					const slotIso = getTimestampFromBlockIndex(
+						blockIndex,
+						zotDateIndex,
+						fromTimeMinutes,
+						availabilityDates,
+					);
+					const showImportPreview =
+						Boolean(slotIso) && Boolean(importPreviewIsoSet?.has(slotIso));
+
 					return (
 						<React.Fragment key={key}>
 							{spacers[pageDateIndex] && (
@@ -69,6 +86,7 @@ export function AvailabilityBlocks({
 								isLastRow={isLastRow}
 								eventSegments={segmentsForCell}
 								hasSpacerBefore={spacers[pageDateIndex]}
+								showImportPreview={showImportPreview}
 							/>
 						</React.Fragment>
 					);

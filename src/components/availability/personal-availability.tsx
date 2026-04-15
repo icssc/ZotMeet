@@ -9,6 +9,7 @@ import type { ZotDate } from "@/lib/zotdate";
 interface PersonalAvailabilityProps {
 	timeBlock: number;
 	blockIndex: number;
+	fromTimeMinutes: number;
 	availabilityTimeBlocks: number[];
 	availabilityDates: ZotDate[];
 	currentPageAvailability: ZotDate[];
@@ -19,6 +20,7 @@ interface PersonalAvailabilityProps {
 export function PersonalAvailability({
 	timeBlock,
 	blockIndex,
+	fromTimeMinutes,
 	availabilityTimeBlocks,
 	availabilityDates,
 	currentPageAvailability,
@@ -74,6 +76,8 @@ export function PersonalAvailability({
 		<AvailabilityBlocks
 			timeBlock={timeBlock}
 			blockIndex={blockIndex}
+			fromTimeMinutes={fromTimeMinutes}
+			availabilityDates={availabilityDates}
 			availabilityTimeBlocksLength={availabilityTimeBlocks.length}
 			currentPageAvailability={currentPageAvailability}
 			processedCellSegments={processedCellSegments}

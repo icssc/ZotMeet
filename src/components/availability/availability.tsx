@@ -5,10 +5,7 @@ import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
-import {
-	GroupAvailability,
-	getTimestampFromBlockIndex,
-} from "@/components/availability/group-availability";
+import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
@@ -19,6 +16,12 @@ import { TimeZoneDropdown } from "@/components/availability/table/availability-t
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import type { UserProfile } from "@/lib/auth/user";
+import { getTimestampFromBlockIndex } from "@/lib/availability/grid-timestamps";
+import {
+	buildMeetingGridIsoSet,
+	buildZotDateRowsForMeetingDays,
+	mergeImportedGridSlots,
+} from "@/lib/availability/meeting-grid";
 import {
 	convertTimeFromUTC,
 	generateTimeBlocks,
@@ -147,6 +150,7 @@ export function Availability({
 	const toggleHoverGrid = useAvailabilityStore(
 		(state) => state.toggleHoverGrid,
 	);
+	const setImportPreview = useAvailabilityStore((s) => s.setImportPreview);
 
 	const handleMouseLeave = useCallback(() => {
 		if (availabilityView === "group" && !selectionIsLocked) {
@@ -204,6 +208,28 @@ export function Availability({
 		() => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
 		[fromTimeMinutes, toTimeMinutes],
 	);
+
+	const importGridIsoSet = useMemo(
+		() =>
+			buildMeetingGridIsoSet(
+				buildZotDateRowsForMeetingDays(
+					meetingData.dates,
+					availabilityTimeBlocks,
+				),
+				fromTimeMinutes,
+				availabilityTimeBlocks.length,
+			),
+		[meetingData.dates, fromTimeMinutes, availabilityTimeBlocks],
+	);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: clear import overlay when meeting or viewer TZ changes
+	useEffect(() => {
+		setImportPreview(null);
+	}, [meetingData.id, userTimezone, setImportPreview]);
+
+	useEffect(() => {
+		if (availabilityView !== "personal") setImportPreview(null);
+	}, [availabilityView, setImportPreview]);
 
 	const anchorNormalizedDate = useMemo(() => {
 		return isAnchorDateMeeting(meetingData.dates)
@@ -270,6 +296,25 @@ export function Availability({
 			setAvailabilityDates([...updatedDates]);
 		},
 		[],
+	);
+
+	const handleImportSlotsFromMeeting = useCallback(
+		(slotIsoStrings: string[]) => {
+			if (!user?.memberId || slotIsoStrings.length === 0) return;
+			const merged = mergeImportedGridSlots(
+				availabilityDates,
+				slotIsoStrings,
+				user.memberId,
+			);
+			handleUserAvailabilityChange(merged);
+			setImportPreview(null);
+		},
+		[
+			availabilityDates,
+			user?.memberId,
+			handleUserAvailabilityChange,
+			setImportPreview,
+		],
 	);
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
@@ -679,6 +724,7 @@ export function Availability({
 											<PersonalAvailability
 												timeBlock={timeBlock}
 												blockIndex={blockIndex}
+												fromTimeMinutes={fromTimeMinutes}
 												availabilityDates={availabilityDates}
 												availabilityTimeBlocks={availabilityTimeBlocks}
 												currentPageAvailability={currentPageAvailability}
@@ -720,7 +766,13 @@ export function Availability({
 					/>
 				)}
 				{availabilityView === "personal" && (
-					<PersonalAvailabilitySidebar meetingId={meetingData.id} />
+					<PersonalAvailabilitySidebar
+						meetingId={meetingData.id}
+						userTimezone={userTimezone}
+						importGridIsoSet={importGridIsoSet}
+						canImport={Boolean(user?.memberId)}
+						onImportSlots={handleImportSlotsFromMeeting}
+					/>
 				)}
 			</div>
 		</div>
