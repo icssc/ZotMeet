@@ -1,5 +1,6 @@
 "use client";
 
+import { alpha, darken, useTheme } from "@mui/material/styles";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -42,6 +43,7 @@ function calculateBlockColor({
 	numMembers,
 	showBestTimes,
 	maxAvailability,
+	primaryColor,
 }: {
 	block: string[];
 	hoveredMember: string | null;
@@ -49,6 +51,7 @@ function calculateBlockColor({
 	numMembers: number;
 	showBestTimes: boolean;
 	maxAvailability: number;
+	primaryColor: string;
 }): string {
 	if (selectedMembers.length) {
 		const selectedInBlock = selectedMembers.filter((memberId) =>
@@ -56,28 +59,28 @@ function calculateBlockColor({
 		);
 		if (selectedInBlock.length) {
 			const proportion = selectedInBlock.length / selectedMembers.length;
-			return `rgba(242, 100, 137, ${proportion})`;
+			return alpha(primaryColor, proportion);
 		}
 		return "transparent";
 	}
 
 	if (hoveredMember) {
 		if (block.includes(hoveredMember)) {
-			return `rgba(242, 100, 137, 1)`;
+			return alpha(primaryColor, 1);
 		}
 		return "transparent";
 	}
 
 	if (showBestTimes) {
 		if (block.length === maxAvailability && maxAvailability > 0) {
-			return `rgba(242, 100, 137, 1)`;
+			return alpha(primaryColor, 1);
 		}
 		return "transparent";
 	}
 
 	if (numMembers) {
 		const opacity = block.length / numMembers;
-		return `rgba(242, 100, 137, ${opacity})`;
+		return alpha(primaryColor, opacity);
 	}
 
 	return "transparent";
@@ -107,6 +110,7 @@ export function GroupAvailability({
 	onMouseLeave,
 	isScheduling,
 }: GroupAvailabilityProps) {
+	const theme = useTheme();
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
@@ -516,7 +520,7 @@ export function GroupAvailability({
 
 			const block = selectedDate.groupAvailability[timestamp] || [];
 			const blockColor = isScheduled(timestamp)
-				? "#d94f72"
+				? darken(theme.palette.primary.main, 0.1)
 				: calculateBlockColor({
 						block,
 						hoveredMember,
@@ -524,6 +528,7 @@ export function GroupAvailability({
 						numMembers,
 						showBestTimes,
 						maxAvailability,
+						primaryColor: theme.palette.primary.main,
 					});
 
 			const tableCellStyles = cn(

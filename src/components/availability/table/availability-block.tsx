@@ -33,7 +33,7 @@ export function AvailabilityBlock({
 				earlierBlockIndex <= blockIndex && blockIndex <= laterBlockIndex;
 
 			if (dateInRange && timeInRange) {
-				return "bg-[#F5C1CF]";
+				return "bg-primary/40";
 			}
 		}
 		return isAvailable ? "bg-primary" : "bg-transparent";

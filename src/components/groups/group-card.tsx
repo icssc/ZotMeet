@@ -4,7 +4,7 @@ import {
 	PeopleOutline,
 } from "@mui/icons-material";
 import { Avatar, Box, Typography } from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { alpha, lighten } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -66,7 +66,7 @@ export function GroupCard({
 							gap: "10px",
 							px: "10px",
 							py: "5px",
-							bgcolor: alpha(theme.palette.error.main, 0.12),
+							bgcolor: lighten(theme.palette.error.main, 0.9),
 							borderRadius: "0 0 5px 5px",
 						})}
 					>
