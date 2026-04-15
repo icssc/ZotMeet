@@ -1,12 +1,4 @@
-import {
-	Button,
-	Checkbox,
-	Chip,
-	Divider,
-	FormControlLabel,
-	Switch,
-	Typography,
-} from "@mui/material/";
+import { Button, Checkbox, Chip, Divider, FormControlLabel, Switch, Typography } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
