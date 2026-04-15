@@ -212,6 +212,7 @@ export async function getGroupsWithDetails(
 							lte(scheduledMeetings.scheduledDate, threeDaysFromNow),
 						),
 					)
+					.orderBy(scheduledMeetings.scheduledDate)
 					.limit(1);
 				upcomingMeetingName = upcoming[0]?.title ?? null;
 			}
