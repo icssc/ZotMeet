@@ -147,6 +147,7 @@ export type GroupWithDetails = SelectGroup & {
 	totalMembers: number;
 	isCreator: boolean;
 	needsAvailability: boolean;
+	pendingMeetingName: string | null;
 	ownerEmail: string;
 	creatorName: string;
 };
@@ -167,6 +168,7 @@ export async function getGroupsWithDetails(
 
 			// Check if any meetings in this group need availability from this user
 			let needsAvailability = false;
+			let pendingMeetingName: string | null = null;
 			if (groupMeetings.length > 0) {
 				const meetingIds = groupMeetings.map((m) => m.id);
 				const userAvailabilities = await db
@@ -182,9 +184,11 @@ export async function getGroupsWithDetails(
 				const respondedMeetingIds = new Set(
 					userAvailabilities.map((a) => a.meetingId),
 				);
-				needsAvailability = meetingIds.some(
-					(id) => !respondedMeetingIds.has(id),
+				const pendingMeeting = groupMeetings.find(
+					(m) => !respondedMeetingIds.has(m.id),
 				);
+				needsAvailability = pendingMeeting !== undefined;
+				pendingMeetingName = pendingMeeting?.title ?? null;
 			}
 
 			const creator = members.find((m) => m.userId === group.createdBy);
@@ -196,6 +200,7 @@ export async function getGroupsWithDetails(
 				totalMembers: members.length,
 				isCreator: group.createdBy === userId,
 				needsAvailability,
+				pendingMeetingName,
 				ownerEmail: creator?.email ?? "",
 				creatorName: creator?.displayName ?? "",
 			};
