@@ -79,6 +79,29 @@ export const RoomsHeatmap = ({
 		}
 	}, [rooms, sortBy, windowStart]);
 
+	const sortedRooms = useMemo(() => {
+		const copy = [...rooms];
+		switch (sortBy) {
+			case "location":
+				return copy.sort((a, b) => a.location.localeCompare(b.location));
+			case "capacity":
+				return copy.sort((a, b) => a.capacity - b.capacity);
+			case "availability": {
+				const countAvailable = (room: (typeof rooms)[number]) =>
+					room.slots.filter(
+						(s) => new Date(s.start) >= windowStart && s.isAvailable,
+					).length;
+				return copy.sort((a, b) => countAvailable(b) - countAvailable(a));
+			}
+			case "techEnhanced":
+				return copy.sort(
+					(a, b) => Number(b.techEnhanced) - Number(a.techEnhanced),
+				);
+			default:
+				return copy;
+		}
+	}, [rooms, sortBy, windowStart]);
+
 	return (
 		<div>
 			<Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
