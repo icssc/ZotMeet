@@ -6,8 +6,8 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
 import AppThemeProvider from "@/components/theme/theme-provider";
 import { SnackbarProvider } from "@/components/ui/snackbar-provider";
+import { figtree } from "@/fonts";
 import { cn } from "@/lib/utils";
-import { figtree } from "@/theme";
 
 export const metadata: Metadata = {
 	title: "ZotMeet | Create a Meeting",
