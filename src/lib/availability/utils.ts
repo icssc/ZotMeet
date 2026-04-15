@@ -171,6 +171,7 @@ export const newZonedPageAvailAndDates = (
 			false,
 			[],
 			{},
+			prevDay.ianaTimeZone,
 		);
 		if (availabilityDates) {
 			newAvailDates.push(
@@ -181,6 +182,7 @@ export const newZonedPageAvailAndDates = (
 					false,
 					[],
 					{},
+					prevDay.ianaTimeZone,
 				),
 			);
 		}

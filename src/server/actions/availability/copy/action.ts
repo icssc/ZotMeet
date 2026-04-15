@@ -107,11 +107,13 @@ export async function getImportableMeetings(
 		const zotRows = buildZotDateRowsForMeetingDays(
 			meeting.dates,
 			availabilityTimeBlocks,
+			viewerTimezone,
 		);
 		const gridIsoSet = buildMeetingGridIsoSet(
 			zotRows,
 			fromMinutes,
 			availabilityTimeBlocks.length,
+			viewerTimezone,
 		);
 
 		const respondedMeetingIds = db

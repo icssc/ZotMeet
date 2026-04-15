@@ -1,3 +1,4 @@
+import { fromZonedTime } from "date-fns-tz";
 import { getTimestampFromBlockIndex } from "@/lib/availability/grid-timestamps";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -5,19 +6,30 @@ import { ZotDate } from "@/lib/zotdate";
 export function buildZotDateRowsForMeetingDays(
 	meetingDates: string[],
 	availabilityTimeBlocks: number[],
+	timeZone?: string,
 ): ZotDate[] {
 	return meetingDates
 		.map((meetingDate) => {
 			const dateStr = meetingDate.split("T")[0];
 			const [year, month, day] = dateStr.split("-").map(Number);
-			const date = new Date(year, month - 1, day);
+			const date = timeZone
+				? fromZonedTime(`${dateStr}T00:00:00`, timeZone)
+				: new Date(year, month - 1, day);
 
 			const earliestMinutes = availabilityTimeBlocks[0] ?? 480;
 			const latestMinutes =
 				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] ?? 1035) +
 				15;
 
-			return new ZotDate(date, earliestMinutes, latestMinutes, false, [], {});
+			return new ZotDate(
+				date,
+				earliestMinutes,
+				latestMinutes,
+				false,
+				[],
+				{},
+				timeZone,
+			);
 		})
 		.sort((a, b) => a.day.getTime() - b.day.getTime());
 }
@@ -26,6 +38,7 @@ export function buildMeetingGridIsoSet(
 	availabilityDates: ZotDate[],
 	fromTimeMinutes: number,
 	blockCount: number,
+	timeZone?: string,
 ): Set<string> {
 	const set = new Set<string>();
 	for (let d = 0; d < availabilityDates.length; d++) {
@@ -35,6 +48,7 @@ export function buildMeetingGridIsoSet(
 				d,
 				fromTimeMinutes,
 				availabilityDates,
+				timeZone,
 			);
 			if (iso) set.add(iso);
 		}

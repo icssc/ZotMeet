@@ -19,6 +19,7 @@ interface AvailabilityBlocksProps {
 	availabilityTimeBlocksLength: number;
 	currentPageAvailability: ZotDate[];
 	processedCellSegments: ProcessedCellEventSegments;
+	timeZone: string;
 }
 
 export function AvailabilityBlocks({
@@ -29,6 +30,7 @@ export function AvailabilityBlocks({
 	availabilityTimeBlocksLength,
 	currentPageAvailability,
 	processedCellSegments,
+	timeZone,
 }: AvailabilityBlocksProps) {
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
@@ -68,6 +70,7 @@ export function AvailabilityBlocks({
 						zotDateIndex,
 						fromTimeMinutes,
 						availabilityDates,
+						timeZone,
 					);
 					const showImportPreview =
 						Boolean(slotIso) && Boolean(importPreviewIsoSet?.has(slotIso));

@@ -24,6 +24,7 @@ export function GroupResponses({
 	availabilityDates,
 	fromTime,
 	members,
+	timezone,
 	currentPageAvailability,
 	doesntNeedDay,
 }: GroupResponsesProps) {
@@ -98,6 +99,7 @@ export function GroupResponses({
 			selectedZotDateIndex,
 			fromTime,
 			newAvailDates,
+			timezone,
 		);
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
 
@@ -111,6 +113,7 @@ export function GroupResponses({
 		selectedBlockIndex,
 		newAvailDates,
 		fromTime,
+		timezone,
 		members,
 	]);
 

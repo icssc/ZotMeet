@@ -71,6 +71,7 @@ interface GroupAvailabilityProps {
 	members: Member[];
 	onMouseLeave: () => void;
 	isScheduling: boolean;
+	timeZone: string;
 }
 
 export function GroupAvailability({
@@ -83,6 +84,7 @@ export function GroupAvailability({
 	members,
 	onMouseLeave,
 	isScheduling,
+	timeZone,
 }: GroupAvailabilityProps) {
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
@@ -343,6 +345,7 @@ export function GroupAvailability({
 					day,
 					fromTime,
 					availabilityDates,
+					timeZone,
 				);
 				if (timestamp) {
 					timestamps.push(timestamp);
@@ -365,6 +368,7 @@ export function GroupAvailability({
 		endBlockSelection,
 		fromTime,
 		availabilityDates,
+		timeZone,
 		replaceEntireSelection,
 		setStartBlockSelection,
 		setEndBlockSelection,
@@ -450,6 +454,7 @@ export function GroupAvailability({
 					day,
 					fromTime,
 					availabilityDates,
+					timeZone,
 				);
 				if (timestamp) timestamps.push(timestamp);
 			}
@@ -489,6 +494,7 @@ export function GroupAvailability({
 				zotDateIndex,
 				fromTime,
 				availabilityDates,
+				timeZone,
 			);
 
 			const block = selectedDate.groupAvailability[timestamp] || [];

@@ -1,3 +1,4 @@
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { BLOCK_LENGTH } from "@/lib/availability/utils";
 import type { ZotDate } from "@/lib/zotdate";
 
@@ -7,14 +8,23 @@ export function getTimestampFromBlockIndex(
 	zotDateIndex: number,
 	fromTimeMinutes: number,
 	availabilityDates: ZotDate[],
+	timeZone?: string,
 ): string {
-	const minutesFromMidnight = fromTimeMinutes + blockIndex * BLOCK_LENGTH;
-	const hours = Math.floor(minutesFromMidnight / 60);
-	const minutes = minutesFromMidnight % 60;
+	const totalMinutes = fromTimeMinutes + blockIndex * BLOCK_LENGTH;
 
 	const selectedDate = availabilityDates.at(zotDateIndex);
 	if (!selectedDate) return "";
 
+	if (timeZone) {
+		const datePart = formatInTimeZone(selectedDate.day, timeZone, "yyyy-MM-dd");
+		const dayStart = fromZonedTime(`${datePart}T00:00:00`, timeZone);
+		return new Date(
+			dayStart.getTime() + totalMinutes * 60 * 1000,
+		).toISOString();
+	}
+
+	const hours = Math.floor(totalMinutes / 60);
+	const minutes = totalMinutes % 60;
 	const date = new Date(selectedDate.day);
 	date.setHours(hours, minutes, 0, 0);
 

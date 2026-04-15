@@ -2,7 +2,7 @@
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { useDrag } from "@use-gesture/react";
-import { formatInTimeZone } from "date-fns-tz";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
@@ -48,6 +48,7 @@ const deriveInitialAvailability = ({
 	userId,
 	allAvailabilties,
 	availabilityTimeBlocks,
+	timezone,
 }: {
 	timezone: string;
 	meetingDates: string[];
@@ -61,9 +62,11 @@ const deriveInitialAvailability = ({
 	const availabilitiesByDate = new Map<string, string[]>();
 	if (userAvailability?.meetingAvailabilities) {
 		userAvailability.meetingAvailabilities.forEach((timeStr) => {
-			// Convert UTC timestamp to local date to get the correct day
-			const localDate = new Date(timeStr);
-			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
+			const dateStr = formatInTimeZone(
+				new Date(timeStr),
+				timezone,
+				"yyyy-MM-dd",
+			);
 
 			if (!availabilitiesByDate.has(dateStr)) {
 				availabilitiesByDate.set(dateStr, []);
@@ -76,9 +79,11 @@ const deriveInitialAvailability = ({
 	const timestampsByDate = new Map<string, Map<string, string[]>>();
 	for (const member of allAvailabilties) {
 		for (const timestamp of member.meetingAvailabilities) {
-			// Convert UTC timestamp to local date to get the correct day
-			const localDate = new Date(timestamp);
-			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
+			const dateStr = formatInTimeZone(
+				new Date(timestamp),
+				timezone,
+				"yyyy-MM-dd",
+			);
 
 			let dateMap = timestampsByDate.get(dateStr);
 			if (dateMap === undefined) {
@@ -95,11 +100,8 @@ const deriveInitialAvailability = ({
 
 	const initialAvailability = meetingDates
 		.map((meetingDate) => {
-			// Extract the date part and create a Date object in LOCAL timezone
 			const dateStr = meetingDate.split("T")[0];
-			const [year, month, day] = dateStr.split("-").map(Number);
-			// Create date at midnight in LOCAL timezone
-			const date = new Date(year, month - 1, day);
+			const date = fromZonedTime(`${dateStr}T00:00:00`, timezone);
 
 			const earliestMinutes = availabilityTimeBlocks[0] || 480;
 			const latestMinutes =
@@ -118,6 +120,7 @@ const deriveInitialAvailability = ({
 				false,
 				dateAvailabilities,
 				dateGroupAvailabilities,
+				timezone,
 			);
 		})
 		.sort((a, b) => a.day.getTime() - b.day.getTime());
@@ -215,11 +218,13 @@ export function Availability({
 				buildZotDateRowsForMeetingDays(
 					meetingData.dates,
 					availabilityTimeBlocks,
+					userTimezone,
 				),
 				fromTimeMinutes,
 				availabilityTimeBlocks.length,
+				userTimezone,
 			),
-		[meetingData.dates, fromTimeMinutes, availabilityTimeBlocks],
+		[meetingData.dates, fromTimeMinutes, availabilityTimeBlocks, userTimezone],
 	);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: clear import overlay when meeting or viewer TZ changes
@@ -575,6 +580,7 @@ export function Availability({
 								day,
 								fromTimeMinutes,
 								availabilityDates,
+								userTimezone,
 							);
 							if (timestamp) timestamps.push(timestamp);
 						}
@@ -615,6 +621,7 @@ export function Availability({
 									dateIndex,
 									fromTimeMinutes,
 									availabilityDates,
+									userTimezone,
 								);
 
 								if (!currentDate.groupAvailability[timestamp]) {
@@ -719,6 +726,7 @@ export function Availability({
 												members={members}
 												onMouseLeave={handleMouseLeave}
 												isScheduling={availabilityView === "schedule"}
+												timeZone={userTimezone}
 											/>
 										) : (
 											<PersonalAvailability
@@ -730,6 +738,7 @@ export function Availability({
 												currentPageAvailability={currentPageAvailability}
 												googleCalendarEvents={googleCalendarEvents}
 												meetingDates={meetingData.dates}
+												userTimezone={userTimezone}
 											/>
 										)}
 									</tr>

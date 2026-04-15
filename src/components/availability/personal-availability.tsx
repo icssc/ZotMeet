@@ -15,6 +15,7 @@ interface PersonalAvailabilityProps {
 	currentPageAvailability: ZotDate[];
 	googleCalendarEvents: GoogleCalendarEvent[];
 	meetingDates: string[];
+	userTimezone: string;
 }
 
 export function PersonalAvailability({
@@ -26,6 +27,7 @@ export function PersonalAvailability({
 	currentPageAvailability,
 	googleCalendarEvents,
 	meetingDates,
+	userTimezone,
 }: PersonalAvailabilityProps) {
 	const [isStateUnsaved, setIsStateUnsaved] = useState(false);
 	const initialAvailabilityRef = useRef<string | null>(null);
@@ -81,6 +83,7 @@ export function PersonalAvailability({
 			availabilityTimeBlocksLength={availabilityTimeBlocks.length}
 			currentPageAvailability={currentPageAvailability}
 			processedCellSegments={processedCellSegments}
+			timeZone={userTimezone}
 		/>
 	);
 }
