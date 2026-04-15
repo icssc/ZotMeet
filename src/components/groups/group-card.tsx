@@ -4,6 +4,7 @@ import {
 	PeopleOutline,
 } from "@mui/icons-material";
 import { Avatar, Box, Typography } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -21,6 +22,7 @@ interface GroupCardProps {
 	totalMembers: number;
 	creatorName: string;
 	actionRequired?: boolean;
+	pendingMeetingName?: string | null;
 }
 
 export function GroupCard({
@@ -30,39 +32,49 @@ export function GroupCard({
 	totalMembers,
 	creatorName,
 	actionRequired = false,
+	pendingMeetingName,
 }: GroupCardProps) {
 	return (
 		<Link href={`/groups/${id}`} style={{ textDecoration: "none" }}>
 			<MuiCard
-				sx={{
-					position: "relative",
-					overflow: "visible",
-					border: "1px solid",
-					borderColor: "divider",
-					px: 3,
-					py: 4,
-				}}
+				sx={[
+					{
+						position: "relative",
+						overflow: "visible",
+						border: "1px solid",
+						borderColor: "divider",
+						px: { xs: 2, sm: 3 },
+						py: { xs: 1.5, sm: 4 },
+					},
+					actionRequired &&
+						((theme) => ({
+							"@media (max-width: 599px)": {
+								background: `linear-gradient(to right, ${theme.palette.background.paper} 44.713%, ${alpha(theme.palette.primary.main, 0.25)})`,
+							},
+						})),
+				]}
 			>
+				{/* Desktop only: action required badge */}
 				{actionRequired && (
 					<Box
-						sx={{
+						sx={(theme) => ({
 							position: "absolute",
 							top: -4,
 							right: 24,
-							display: "flex",
+							display: { xs: "none", sm: "flex" },
 							alignItems: "center",
 							gap: "10px",
 							px: "10px",
 							py: "5px",
-							bgcolor: "#ffeaea",
+							bgcolor: alpha(theme.palette.error.main, 0.12),
 							borderRadius: "0 0 5px 5px",
-						}}
+						})}
 					>
-						<ErrorIcon sx={{ fontSize: 18, color: "#da281e" }} />
+						<ErrorIcon sx={{ fontSize: 18, color: "error.main" }} />
 						<Typography
 							variant="caption"
 							sx={{
-								color: "#da281e",
+								color: "error.main",
 								fontWeight: 500,
 								letterSpacing: "0.14px",
 								lineHeight: "20px",
@@ -72,6 +84,7 @@ export function GroupCard({
 						</Typography>
 					</Box>
 				)}
+
 				<MuiCardHeader
 					sx={{ p: 0 }}
 					avatar={
@@ -93,13 +106,21 @@ export function GroupCard({
 					}
 					title={<Typography variant="h6">{name}</Typography>}
 					subheader={
-						<Typography
-							variant="body2"
-							color="text.secondary"
-							sx={{ display: { sm: "none" } }}
-						>
-							{totalMembers} Members
-						</Typography>
+						!actionRequired ? (
+							<Box
+								sx={{
+									display: { xs: "flex", sm: "none" },
+									alignItems: "center",
+									gap: "5px",
+									mt: "2px",
+								}}
+							>
+								<PeopleOutline sx={{ fontSize: 12, color: "text.secondary" }} />
+								<Typography variant="caption" sx={{ color: "text.secondary" }}>
+									{totalMembers}
+								</Typography>
+							</Box>
+						) : null
 					}
 					action={
 						<Box sx={{ display: { sm: "none" }, alignSelf: "center" }}>
@@ -107,6 +128,7 @@ export function GroupCard({
 						</Box>
 					}
 				/>
+
 				<MuiCardContent
 					sx={{
 						px: 0,
@@ -118,8 +140,10 @@ export function GroupCard({
 					<Typography
 						variant="subtitle1"
 						sx={{
-							color: "#717182",
-							display: "-webkit-box",
+							color: "text.secondary",
+							display: actionRequired
+								? { xs: "none", sm: "-webkit-box" }
+								: "-webkit-box",
 							WebkitLineClamp: { xs: 2, sm: 3 },
 							WebkitBoxOrient: "vertical",
 							overflow: "hidden",
@@ -127,7 +151,27 @@ export function GroupCard({
 					>
 						{description || "No Description Provided"}
 					</Typography>
+
+					{/* Mobile only: message for action required cards */}
+					{actionRequired && (
+						<Typography
+							variant="body2"
+							sx={{
+								display: { xs: "block", sm: "none" },
+								color: "text.secondary",
+							}}
+						>
+							Availability is needed for:{" "}
+							<Box
+								component="span"
+								sx={{ fontWeight: 700, fontStyle: "italic" }}
+							>
+								{pendingMeetingName ?? "a meeting"}
+							</Box>
+						</Typography>
+					)}
 				</MuiCardContent>
+
 				<MuiCardActions
 					sx={{
 						display: { xs: "none", sm: "flex" },
@@ -143,8 +187,8 @@ export function GroupCard({
 							flexShrink: 0,
 						}}
 					>
-						<PeopleOutline sx={{ fontSize: 12 }} />
-						<Typography variant="overline" sx={{ color: "#4a5565" }}>
+						<PeopleOutline sx={{ fontSize: 12, color: "text.secondary" }} />
+						<Typography variant="overline" sx={{ color: "text.secondary" }}>
 							{totalMembers} Members
 						</Typography>
 					</Box>
@@ -166,7 +210,7 @@ export function GroupCard({
 						>
 							{creatorName[0]}
 						</Avatar>
-						<Typography variant="overline" sx={{ color: "#4a5565" }}>
+						<Typography variant="overline" sx={{ color: "text.secondary" }}>
 							Owned by {creatorName}
 						</Typography>
 					</Box>

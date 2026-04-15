@@ -1,8 +1,8 @@
 "use client";
 
-import { Add } from "@mui/icons-material";
+import { Add, ExpandMore } from "@mui/icons-material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import { Button } from "@mui/material";
+import { Button, Typography } from "@mui/material";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
@@ -16,10 +16,13 @@ interface GroupsPageProps {
 	groups: GroupWithDetails[];
 }
 
+const INITIAL_ACTION_REQUIRED_COUNT = 2;
+
 export function GroupsPage({ groups }: GroupsPageProps) {
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
+	const [showAllActionRequired, setShowAllActionRequired] = useState(false);
 
 	const filteredGroups = useMemo(() => {
 		let result = groups;
@@ -49,6 +52,18 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 		}),
 		[groups],
 	);
+
+	const actionRequiredGroups = useMemo(
+		() =>
+			filteredGroups.filter(
+				(g) => g.needsAvailability && g.ownerEmail !== null,
+			),
+		[filteredGroups],
+	);
+
+	const visibleActionGroups = showAllActionRequired
+		? actionRequiredGroups
+		: actionRequiredGroups.slice(0, INITIAL_ACTION_REQUIRED_COUNT);
 
 	const [showJoinGroup, setShowJoinGroup] = useState(false);
 
@@ -132,7 +147,95 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 				</div>
 			</div>
 
-			<div className="mt-8">
+			<div className="mt-6 sm:hidden">
+				{actionRequiredGroups.length > 0 && (
+					<div className="mb-6">
+						<Typography
+							variant="overline"
+							color="text.disabled"
+							sx={{ display: "block", mb: 2 }}
+						>
+							Action Required ({actionRequiredGroups.length})
+						</Typography>
+						<div className="flex flex-col gap-3">
+							{visibleActionGroups.map((group) => (
+								<GroupCard
+									key={group.id}
+									id={group.id}
+									name={group.name}
+									description={group.description}
+									memberEmails={group.memberEmails}
+									totalMembers={group.totalMembers}
+									creatorName={group.creatorName}
+									actionRequired={true}
+									pendingMeetingName={group.pendingMeetingName}
+								/>
+							))}
+						</div>
+						{actionRequiredGroups.length > INITIAL_ACTION_REQUIRED_COUNT && (
+							<Button
+								type="button"
+								onClick={() => setShowAllActionRequired((v) => !v)}
+								endIcon={
+									<ExpandMore
+										sx={{
+											fontSize: 14,
+											transform: showAllActionRequired
+												? "rotate(180deg)"
+												: "none",
+											transition: "transform 0.2s",
+										}}
+									/>
+								}
+								sx={{
+									mt: 1.5,
+									width: "100%",
+									color: "text.disabled",
+									fontSize: "0.75rem",
+									fontWeight: 700,
+									letterSpacing: "0.4px",
+								}}
+							>
+								{showAllActionRequired ? "Show Less" : "Show More"}
+							</Button>
+						)}
+					</div>
+				)}
+
+				<div>
+					<Typography
+						variant="overline"
+						color="text.disabled"
+						sx={{ display: "block", mb: 2 }}
+					>
+						All ({filteredGroups.filter((g) => g.ownerEmail !== null).length})
+					</Typography>
+					{filteredGroups.filter((g) => g.ownerEmail !== null).length > 0 ? (
+						<div className="flex flex-col gap-3">
+							{filteredGroups
+								.filter((g) => g.ownerEmail !== null)
+								.map((group) => (
+									<GroupCard
+										key={group.id}
+										id={group.id}
+										name={group.name}
+										description={group.description}
+										memberEmails={group.memberEmails}
+										totalMembers={group.totalMembers}
+										creatorName={group.creatorName}
+										actionRequired={false}
+									/>
+								))}
+						</div>
+					) : (
+						<div className="flex flex-col items-center justify-center py-20 text-gray-500">
+							<p className="font-medium text-lg">No groups found</p>
+						</div>
+					)}
+				</div>
+			</div>
+
+			<div className="mt-8 hidden sm:block">
 				<p className="p-1 text-gray-400">All ({counts.all})</p>
 				{filteredGroups.length > 0 ? (
 					<div className="grid grid-cols-1 gap-y-2 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-8">
