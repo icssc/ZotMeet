@@ -76,3 +76,67 @@ export async function saveAvailability({
 		};
 	}
 }
+export async function saveIfNeeded({
+	meetingId,
+	availabilityTimes,
+	displayName: _displayName,
+}: saveAvailabilityProps) {
+	try {
+		const { user } = await getCurrentSession();
+
+		if (!user) {
+			throw new Error("User not found");
+		}
+
+		const memberId = user.memberId;
+
+		//Guest functionality disabled for now
+		//TODO: Guest
+		// if (!user) {
+		//     const guest = await createGuest({
+		//         displayName:
+		//             displayName ??
+		//             `TEST_${Math.floor(Math.random() * 1000 + 1)}`,
+		//         meetingId,
+		//     });
+		//     memberId = guest.memberId;
+		// } else {
+		//     memberId = user.memberId;
+		// }
+
+		const meeting = await getExistingMeeting(meetingId);
+
+		if (!meeting) {
+			throw new Error("Meeting not found");
+		}
+
+		await db
+			.insert(availabilities)
+			.values({
+				memberId,
+				meetingId,
+				ifNeededAvailabilities: availabilityTimes,
+			})
+			.onConflictDoUpdate({
+				target: [availabilities.memberId, availabilities.meetingId],
+				set: {
+					ifNeededAvailabilities: availabilityTimes,
+				},
+			});
+
+		return {
+			status: 200,
+			body: {
+				message: "Saved successfully",
+			},
+		};
+	} catch (error) {
+		console.error("Error saving ifNeeded:", error);
+		return {
+			status: 500,
+			body: {
+				error: "Failed to save",
+			},
+		};
+	}
+}

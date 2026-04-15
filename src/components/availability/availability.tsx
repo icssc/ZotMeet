@@ -131,6 +131,8 @@ export function Availability({
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
 }) {
+	const [availabilitySelectionMode, setAvailabilitySelectionMode] =
+		useState<Availability>("available");
 	const availabilityView = useAvailabilityStore(
 		(state) => state.availabilityView,
 	);
@@ -262,9 +264,15 @@ export function Availability({
 
 	const handleUserAvailabilityChange = useCallback(
 		(updatedDates: ZotDate[]) => {
-			setAvailabilityDates(updatedDates);
+			if (availabilitySelectionMode === "available") {
+				setAvailabilityDates(updatedDates);
+				console.log("s");
+			} else if (availabilitySelectionMode === "if-needed") {
+				setAvailabilityDates(updatedDates);
+				console.log("dat");
+			}
 		},
-		[],
+		[availabilitySelectionMode],
 	);
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
@@ -482,7 +490,6 @@ export function Availability({
 					);
 
 					if (availabilityView === "schedule") {
-						// Schedule selection stays on the day the drag started (no cross-day rectangle).
 						const day = startBlockSelection.zotDateIndex;
 						const timestamps: string[] = [];
 						for (
@@ -500,7 +507,6 @@ export function Availability({
 						}
 
 						if (timestamps.length > 0) {
-							// Each drag replaces the full scheduled selection (one contiguous rectangle).
 							replaceEntireSelection(timestamps);
 						}
 					} else if (availabilityView === "personal") {
@@ -524,7 +530,6 @@ export function Availability({
 								toggleValue,
 							);
 
-							// Update group availability for each block
 							for (
 								let blockI = earlierBlockIndex;
 								blockI <= laterBlockIndex;
@@ -542,7 +547,6 @@ export function Availability({
 								}
 
 								if (toggleValue) {
-									// Add user to availability
 									if (
 										!currentDate.groupAvailability[timestamp].includes(
 											user?.memberId ?? "",
@@ -589,10 +593,10 @@ export function Availability({
 			pointer: { touch: true, capture: true },
 			filterTaps: true,
 			threshold: 3,
+			eventOptions: { passive: false },
 		},
 	);
 
-	const [availability, setAvailability] = useState<Availability>("available");
 	// TODO: Could add selection clearing with the escape key
 	return (
 		<div className="space-y-6">
@@ -604,6 +608,7 @@ export function Availability({
 				onSave={handleSuccessfulSave}
 				setChangeableTimezone={setChangeableTimezone}
 				setTimezone={setUserTimezone}
+				availabilityEditState={availabilitySelectionMode}
 			/>
 
 			<div className="flex min-h-0 w-full min-w-0 flex-row items-start justify-start">
@@ -687,8 +692,8 @@ export function Availability({
 				)}
 				{availabilityView === "personal" && (
 					<PersonalAvailabilitySidebar
-						availability={availability}
-						setAvailability={setAvailability}
+						availability={availabilitySelectionMode}
+						setAvailability={setAvailabilitySelectionMode}
 					/>
 				)}
 			</div>
