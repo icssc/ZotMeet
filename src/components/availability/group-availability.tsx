@@ -1,5 +1,6 @@
 "use client";
 
+import { alpha, darken, useTheme } from "@mui/material/styles";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -21,6 +22,7 @@ function calculateBlockColor({
 	numMembers,
 	showBestTimes,
 	maxAvailability,
+	primaryColor,
 	ifNeededBlock,
 }: {
 	block: string[];
@@ -29,6 +31,7 @@ function calculateBlockColor({
 	numMembers: number;
 	showBestTimes: boolean;
 	maxAvailability: number;
+	primaryColor: string;
 	ifNeededBlock: string[];
 }): string {
 	if (selectedMembers.length) {
@@ -41,7 +44,7 @@ function calculateBlockColor({
 
 		if (selectedInBlock.length) {
 			const proportion = selectedInBlock.length / selectedMembers.length;
-			return `rgba(242, 100, 137, ${proportion})`; // available = pink
+			return alpha(primaryColor, proportion); // available = pink
 		}
 		if (ifNeededInBlock.length) {
 			const proportion = ifNeededInBlock.length / selectedMembers.length;
@@ -52,7 +55,7 @@ function calculateBlockColor({
 
 	if (hoveredMember) {
 		if (block.includes(hoveredMember)) {
-			return "rgba(242, 100, 137, 1)"; // available = pink
+			return alpha(primaryColor, 1); // available = pink
 		}
 		if (ifNeededBlock.includes(hoveredMember)) {
 			return "rgba(0, 100, 137, 1)"; // if-needed = blue
@@ -62,7 +65,7 @@ function calculateBlockColor({
 
 	if (showBestTimes) {
 		if (block.length === maxAvailability && maxAvailability > 0) {
-			return "rgba(242, 100, 137, 1)";
+			return alpha(primaryColor, 1);
 		}
 		return "transparent";
 	}
@@ -74,7 +77,7 @@ function calculateBlockColor({
 		}
 		if (block.length > 0) {
 			const opacity = block.length / numMembers;
-			return `rgba(242, 100, 137, ${opacity})`; // available = pink
+			return alpha(primaryColor, opacity); // available = pink
 		}
 	}
 
@@ -131,6 +134,7 @@ export function GroupAvailability({
 	isScheduling,
 	timeZone,
 }: GroupAvailabilityProps) {
+	const theme = useTheme();
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
@@ -575,6 +579,7 @@ export function GroupAvailability({
 					showBestTimes,
 					maxAvailability,
 					ifNeededBlock,
+					primaryColor: theme.palette.primary.main,
 				});
 				const blockIsScheduled = isScheduled(timestamp);
 
