@@ -1,4 +1,5 @@
 import {
+	CalendarToday,
 	Error as ErrorIcon,
 	KeyboardArrowRight,
 	PeopleOutline,
@@ -23,6 +24,7 @@ interface GroupCardProps {
 	creatorName: string;
 	actionRequired?: boolean;
 	pendingMeetingName?: string | null;
+	upcomingMeetingName?: string | null;
 }
 
 export function GroupCard({
@@ -33,6 +35,7 @@ export function GroupCard({
 	creatorName,
 	actionRequired = false,
 	pendingMeetingName,
+	upcomingMeetingName,
 }: GroupCardProps) {
 	return (
 		<Link href={`/groups/${id}`} style={{ textDecoration: "none" }}>
@@ -81,6 +84,37 @@ export function GroupCard({
 							}}
 						>
 							Action Required
+						</Typography>
+					</Box>
+				)}
+
+				{/* Upcoming meeting badge */}
+				{upcomingMeetingName && (
+					<Box
+						sx={(theme) => ({
+							position: "absolute",
+							top: -4,
+							right: 24,
+							display: "flex",
+							alignItems: "center",
+							gap: "10px",
+							px: "10px",
+							py: "5px",
+							bgcolor: lighten(theme.palette.success.main, 0.9),
+							borderRadius: "0 0 5px 5px",
+						})}
+					>
+						<CalendarToday sx={{ fontSize: 18, color: "success.main" }} />
+						<Typography
+							variant="caption"
+							sx={{
+								color: "success.main",
+								fontWeight: 500,
+								letterSpacing: "0.14px",
+								lineHeight: "20px",
+							}}
+						>
+							Upcoming Meeting
 						</Typography>
 					</Box>
 				)}

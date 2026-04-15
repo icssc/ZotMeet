@@ -224,6 +224,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 										totalMembers={group.totalMembers}
 										creatorName={group.creatorName}
 										actionRequired={false}
+										upcomingMeetingName={group.upcomingMeetingName}
 									/>
 								))}
 						</div>
@@ -251,6 +252,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									totalMembers={group.totalMembers}
 									creatorName={group.creatorName}
 									actionRequired={group.needsAvailability}
+									upcomingMeetingName={group.upcomingMeetingName}
 								/>
 							))}
 					</div>
