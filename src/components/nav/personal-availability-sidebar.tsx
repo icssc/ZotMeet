@@ -12,9 +12,9 @@ import {
 	Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import React from "react";
-
-type Availability = "available" | "if-needed" | "unavailable";
+import type React from "react";
+import type { Dispatch, SetStateAction } from "react";
+import type { Availability } from "../availability/availability";
 
 const options: { value: Availability; label: string; icon: React.ReactNode }[] =
 	[
@@ -65,11 +65,14 @@ const options: { value: Availability; label: string; icon: React.ReactNode }[] =
 			),
 		},
 	];
-
-export function PersonalAvailabilitySidebar() {
-	const [availability, setAvailability] =
-		React.useState<Availability>("available");
-
+type Props = {
+	availability: Availability;
+	setAvailability: Dispatch<SetStateAction<Availability>>;
+};
+export function PersonalAvailabilitySidebar({
+	availability,
+	setAvailability,
+}: Props) {
 	return (
 		<div className="fixed h-96 w-full px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:h-auto lg:w-96 lg:shrink-0">
 			<div>

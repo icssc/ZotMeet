@@ -119,7 +119,7 @@ const deriveInitialAvailability = ({
 
 	return initialAvailability;
 };
-
+export type Availability = "available" | "if-needed" | "unavailable";
 export function Availability({
 	meetingData,
 	allAvailabilities,
@@ -592,6 +592,7 @@ export function Availability({
 		},
 	);
 
+	const [availability, setAvailability] = useState<Availability>("available");
 	// TODO: Could add selection clearing with the escape key
 	return (
 		<div className="space-y-6">
@@ -684,7 +685,12 @@ export function Availability({
 						doesntNeedDay={doesntNeedDay}
 					/>
 				)}
-				{availabilityView === "personal" && <PersonalAvailabilitySidebar />}
+				{availabilityView === "personal" && (
+					<PersonalAvailabilitySidebar
+						availability={availability}
+						setAvailability={setAvailability}
+					/>
+				)}
 			</div>
 		</div>
 	);
