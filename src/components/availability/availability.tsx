@@ -1,6 +1,7 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
+import { Box } from "@mui/material";
 import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -760,7 +761,15 @@ export function Availability({
 			/>
 
 			<div className="flex min-h-0 w-full min-w-0 flex-row items-start justify-start">
-				<div className="flex h-fit min-w-0 flex-1 items-start justify-between overflow-x-auto lg:pr-14">
+				<Box
+					component="div"
+					className="flex h-fit min-w-0 flex-1 items-start justify-between overflow-x-auto p-4 lg:pr-14"
+					sx={{
+						border: 1,
+						borderColor: "divider",
+						borderRadius: 3,
+					}}
+				>
 					<div className="-mt-1 translate-x-3">
 						<AvailabilityNavButton
 							direction="left"
@@ -842,7 +851,7 @@ export function Availability({
 							disabled={isLastPage}
 						/>
 					</div>
-				</div>
+				</Box>
 
 				{(availabilityView === "group" || availabilityView === "schedule") && (
 					<div className="hidden w-96 min-w-0 shrink-0 flex-col gap-3 lg:flex">
