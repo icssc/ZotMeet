@@ -17,53 +17,6 @@ import {
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { getExistingMeeting } from "@/server/data/meeting/queries";
 
-export async function getRespondedMeetings(excludeMeetingId: string) {
-	const { user } = await getCurrentSession();
-
-	if (!user) {
-		return {
-			success: false,
-			message: "User not logged in!",
-		};
-	}
-
-	const memberId = user.memberId;
-	try {
-		//finds all meetingIds where user has availability row
-		const respondedMeetingIds = db
-			.select({ meetingId: availabilities.meetingId })
-			.from(availabilities)
-			.where(eq(availabilities.memberId, memberId));
-
-		const respondedMeetings = await db
-			.select({
-				id: meetings.id,
-				title: meetings.title,
-				createdAt: meetings.createdAt,
-			})
-			.from(meetings)
-			.where(
-				and(
-					eq(meetings.archived, false),
-					sql`${meetings.id} IN ${respondedMeetingIds}`,
-					ne(meetings.id, excludeMeetingId),
-				),
-			)
-			.orderBy(desc(meetings.createdAt));
-
-		return {
-			success: true as const,
-			meetings: respondedMeetings,
-		};
-	} catch (error) {
-		console.error("Error fetching responded meetings: ", error);
-		return {
-			success: false,
-			message: "Failed to fetch meetings",
-		};
-	}
-}
-
 /** Past meetings where the user saved at least one slot that overlaps the current meeting’s grid (viewer timezone). */
 export async function getImportableMeetings(
 	currentMeetingId: string,
