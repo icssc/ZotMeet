@@ -37,7 +37,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 				result = result.filter((g) => g.isCreator);
 				break;
 			case "availability":
-				result = result.filter((g) => g.needsAvailability);
+				result = result.filter((g) => g.upcomingMeetingName);
 				break;
 		}
 
@@ -48,7 +48,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 		() => ({
 			all: groups.length,
 			created: groups.filter((g) => g.isCreator).length,
-			availability: groups.filter((g) => g.needsAvailability).length,
+			availability: groups.filter((g) => g.upcomingMeetingName).length,
 		}),
 		[groups],
 	);

@@ -95,7 +95,7 @@ export function GroupCard({
 							position: "absolute",
 							top: -4,
 							right: 24,
-							display: "flex",
+							display: { xs: "none", sm: "flex" },
 							alignItems: "center",
 							gap: "10px",
 							px: "10px",
