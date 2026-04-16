@@ -49,12 +49,17 @@ export const RoomsHeatmap = ({
 	const windowStart = mergeDateAndTime(searchDate, startTime);
 
 	const sortedRooms = useMemo(() => {
-		const copy = [...rooms];
+		const copy = rooms.filter((r) => r.name);
 		switch (sortBy) {
 			case "location":
 				return copy.sort((a, b) => a.location.localeCompare(b.location));
 			case "capacity":
-				return copy.sort((a, b) => a.capacity - b.capacity);
+				return copy.sort((a, b) => {
+					if (!a.capacity && !b.capacity) return 0;
+					if (!a.capacity) return 1;
+					if (!b.capacity) return -1;
+					return a.capacity - b.capacity;
+				});
 			case "availability": {
 				const countAvailable = (room: (typeof rooms)[number]) =>
 					room.slots.filter(
@@ -118,7 +123,7 @@ export const RoomsHeatmap = ({
 									<p>{room.location}</p>
 									<div className="flex items-center gap-2 text-xs">
 										<p className="text-xs">{room.name}</p>
-										<p>{room.capacity && `•  Cap: ${room.capacity}`}</p>
+										<p>{room.capacity ? `•  Cap: ${room.capacity}` : null}</p>
 									</div>
 									<p className="text-xs">{room.description?.slice(0, 50)}</p>
 								</TableCell>
