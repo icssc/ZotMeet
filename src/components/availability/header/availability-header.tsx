@@ -49,14 +49,21 @@ export function AvailabilityHeader({
 	onSave,
 	setChangeableTimezone,
 	setTimezone,
-	availabilityEditState,
+	availabilityEditState: _availabilityEditState,
 	autoOpenInviteDialog = false,
 	inviteQueryInUrl = false,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const { showSuccess, showError } = useSnackbar();
+	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [isInviteDialogOpen, setIsInviteDialogOpen] =
+		useState(autoOpenInviteDialog);
+	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
+	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
+	const isOwner = !!user && meetingData.hostId === user.memberId;
 	const {
 		hasAvailability,
 		availabilityView,
@@ -81,19 +88,11 @@ export function AvailabilityHeader({
 	// const [guestName, setGuestName] = useState("");
 
 	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [isInviteDialogOpen, setIsInviteDialogOpen] =
-		useState(autoOpenInviteDialog);
 
 	useEffect(() => {
 		if (!inviteQueryInUrl) return;
 		router.replace(pathname, { scroll: false });
 	}, [inviteQueryInUrl, pathname, router]);
-	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
-	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
-
-	const isOwner = !!user && meetingData.hostId === user.memberId;
 
 	const handleSave = async () => {
 		if (!user) {
@@ -132,7 +131,6 @@ export function AvailabilityHeader({
 
 	const { commitPendingTimes, clearPendingTimes } = useAvailabilityStore(
 		useShallow((state) => ({
-			pendingAdds: state.pendingAdds,
 			commitPendingTimes: state.commitPendingTimes,
 			clearPendingTimes: state.clearPendingTimes,
 		})),
@@ -146,46 +144,32 @@ export function AvailabilityHeader({
 	const handleScheduleSave = async () => {
 		try {
 			const { pendingAdds, pendingRemovals } = useAvailabilityStore.getState();
+			const toSchedulePayload = (timestamp: string) => {
+				const date = new Date(timestamp);
+				const scheduledDate = new Date(
+					date.getFullYear(),
+					date.getMonth(),
+					date.getDate(),
+				);
+				const scheduledFromTime = date.toTimeString().slice(0, 8); // HH:mm:ss
+				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
+					.toTimeString()
+					.slice(0, 8);
+				return {
+					meetingId: meetingData.id,
+					scheduledDate,
+					scheduledFromTime,
+					scheduledToTime,
+				};
+			};
 
 			// Remove pending removals
 			for (const timestamp of pendingRemovals) {
-				const date = new Date(timestamp);
-				const scheduledDate = new Date(
-					date.getFullYear(),
-					date.getMonth(),
-					date.getDate(),
-				);
-				const scheduledFromTime = date.toTimeString().slice(0, 8); // HH:mm:ss
-				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-					.toTimeString()
-					.slice(0, 8);
-
-				await deleteScheduledTimeBlock({
-					meetingId: meetingData.id,
-					scheduledDate,
-					scheduledFromTime,
-					scheduledToTime,
-				});
+				await deleteScheduledTimeBlock(toSchedulePayload(timestamp));
 			}
 			// Add new pending times
 			for (const timestamp of pendingAdds) {
-				const date = new Date(timestamp);
-				const scheduledDate = new Date(
-					date.getFullYear(),
-					date.getMonth(),
-					date.getDate(),
-				);
-				const scheduledFromTime = date.toTimeString().slice(0, 8); // HH:mm:ss
-				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-					.toTimeString()
-					.slice(0, 8);
-
-				await saveScheduledTimeBlock({
-					meetingId: meetingData.id,
-					scheduledDate,
-					scheduledFromTime,
-					scheduledToTime,
-				});
+				await saveScheduledTimeBlock(toSchedulePayload(timestamp));
 			}
 
 			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
@@ -203,8 +187,8 @@ export function AvailabilityHeader({
 	return (
 		<>
 			<div className="">
-				<div className="mt-16 flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-[auto_auto] lg:items-start lg:gap-x-4">
-					<h1 className="order-1 line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl lg:col-start-1 lg:row-start-1">
+				<div className="mt-16 flex flex-col gap-4">
+					<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
 						{meetingData.title}
 					</h1>
 
@@ -332,7 +316,7 @@ export function AvailabilityHeader({
 					</div>
 
 					{isOwner && (
-						<div className="order-3 -ml-2 flex items-center gap-x-1 self-start lg:col-start-1 lg:row-start-2">
+						<div className="-ml-2 flex items-center gap-x-1 self-start">
 							<Button
 								onClick={() => setIsEditModalOpen(true)}
 								variant="text"

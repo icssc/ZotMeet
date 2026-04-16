@@ -5,6 +5,7 @@ import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
+import { AvailabilityActions } from "@/components/availability/availability-actions";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
@@ -768,6 +769,17 @@ export function Availability({
 						/>
 					</div>
 					<div className="flex flex-col gap-4" {...bind()}>
+						<div className="shrink-0 lg:hidden">
+							<AvailabilityActions
+								meetingData={meetingData}
+								user={user}
+								availabilityDates={availabilityDates}
+								onCancel={handleCancelEditing}
+								onSave={handleSuccessfulSave}
+								setChangeableTimezone={setChangeableTimezone}
+								setTimezone={setUserTimezone}
+							/>
+						</div>
 						<table className="w-full table-fixed">
 							<AvailabilityTableHeader
 								currentPageAvailability={currentPageAvailability}
@@ -833,28 +845,50 @@ export function Availability({
 				</div>
 
 				{(availabilityView === "group" || availabilityView === "schedule") && (
-					<GroupResponses
-						availabilityDates={availabilityDates}
-						fromTime={fromTimeMinutes}
-						members={members}
-						pendingMembers={pendingMembers}
-						timezone={userTimezone}
-						anchorNormalizedDate={anchorNormalizedDate}
-						currentPageAvailability={currentPageAvailability}
-						availabilityTimeBlocks={availabilityTimeBlocks}
-						doesntNeedDay={doesntNeedDay}
-					/>
+					<div className="hidden w-96 min-w-0 shrink-0 flex-col gap-3 lg:flex">
+						<AvailabilityActions
+							meetingData={meetingData}
+							user={user}
+							availabilityDates={availabilityDates}
+							onCancel={handleCancelEditing}
+							onSave={handleSuccessfulSave}
+							setChangeableTimezone={setChangeableTimezone}
+							setTimezone={setUserTimezone}
+						/>
+						<GroupResponses
+							availabilityDates={availabilityDates}
+							fromTime={fromTimeMinutes}
+							members={members}
+							pendingMembers={pendingMembers}
+							timezone={userTimezone}
+							anchorNormalizedDate={anchorNormalizedDate}
+							currentPageAvailability={currentPageAvailability}
+							availabilityTimeBlocks={availabilityTimeBlocks}
+							doesntNeedDay={doesntNeedDay}
+						/>
+					</div>
 				)}
 				{availabilityView === "personal" && (
-					<PersonalAvailabilitySidebar
-						availability={availabilitySelectionMode}
-						setAvailability={setAvailabilitySelectionMode}
-						meetingId={meetingData.id}
-						userTimezone={userTimezone}
-						importGridIsoSet={importGridIsoSet}
-						canImport={Boolean(user?.memberId)}
-						onImportSlots={handleImportSlotsFromMeeting}
-					/>
+					<div className="hidden w-96 min-w-0 shrink-0 flex-col gap-3 lg:flex">
+						<AvailabilityActions
+							meetingData={meetingData}
+							user={user}
+							availabilityDates={availabilityDates}
+							onCancel={handleCancelEditing}
+							onSave={handleSuccessfulSave}
+							setChangeableTimezone={setChangeableTimezone}
+							setTimezone={setUserTimezone}
+						/>
+						<PersonalAvailabilitySidebar
+							availability={availabilitySelectionMode}
+							setAvailability={setAvailabilitySelectionMode}
+							meetingId={meetingData.id}
+							userTimezone={userTimezone}
+							importGridIsoSet={importGridIsoSet}
+							canImport={Boolean(user?.memberId)}
+							onImportSlots={handleImportSlotsFromMeeting}
+						/>
+					</div>
 				)}
 			</div>
 		</div>

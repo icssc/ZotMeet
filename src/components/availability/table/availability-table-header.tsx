@@ -24,7 +24,7 @@ export function AvailabilityTableHeader({
 }: AvailabilityTableHeaderProps) {
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
-	const [newBlocks, newAvailDates] = newZonedPageAvailAndDates(
+	const [newBlocks, _newAvailDates] = newZonedPageAvailAndDates(
 		currentPageAvailability["availabilities"],
 		null,
 		doesntNeedDay,
