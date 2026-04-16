@@ -80,12 +80,17 @@ export const RoomsHeatmap = ({
 	}, [rooms, sortBy, windowStart]);
 
 	const sortedRooms = useMemo(() => {
-		const copy = [...rooms];
+		const copy = rooms.filter((r) => r.name);
 		switch (sortBy) {
 			case "location":
 				return copy.sort((a, b) => a.location.localeCompare(b.location));
 			case "capacity":
-				return copy.sort((a, b) => a.capacity - b.capacity);
+				return copy.sort((a, b) => {
+					if (!a.capacity && !b.capacity) return 0;
+					if (!a.capacity) return 1;
+					if (!b.capacity) return -1;
+					return a.capacity - b.capacity;
+				});
 			case "availability": {
 				const countAvailable = (room: (typeof rooms)[number]) =>
 					room.slots.filter(
