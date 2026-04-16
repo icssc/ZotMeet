@@ -235,6 +235,51 @@ export type SelectScheduledMeeting = InferSelectModel<typeof scheduledMeetings>;
 export type InsertMeeting = InferInsertModel<typeof meetings>;
 export type SelectMeeting = InferSelectModel<typeof meetings>;
 
+export const meetingInvites = pgTable("meeting_invites", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	meetingId: uuid("meeting_id")
+		.notNull()
+		.references(() => meetings.id, { onDelete: "cascade" }),
+	inviteToken: text("invite_token").notNull().unique(),
+	inviterId: text("inviter_id")
+		.notNull()
+		.references(() => users.id, { onDelete: "cascade" }),
+	sentAt: timestamp("sent_at", { mode: "date" }).defaultNow().notNull(),
+	expiresAt: timestamp("expires_at", { mode: "date" }),
+});
+
+export const meetingInviteResponses = pgTable(
+	"meeting_invite_responses",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		inviteId: uuid("invite_id")
+			.notNull()
+			.references(() => meetingInvites.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		email: text("email").notNull(),
+		status: inviteStatusEnum("status").notNull().default("pending"),
+		respondedAt: timestamp("responded_at", { mode: "date" }),
+	},
+	(table) => ({
+		inviteUserUnique: unique("meeting_invite_responses_invite_user_unique").on(
+			table.inviteId,
+			table.userId,
+		),
+	}),
+);
+
+export type InsertMeetingInvite = InferInsertModel<typeof meetingInvites>;
+export type SelectMeetingInvite = InferSelectModel<typeof meetingInvites>;
+
+export type InsertMeetingInviteResponse = InferInsertModel<
+	typeof meetingInviteResponses
+>;
+export type SelectMeetingInviteResponse = InferSelectModel<
+	typeof meetingInviteResponses
+>;
+
 export const notifications = pgTable("notifications", {
 	id: uuid("id").defaultRandom().primaryKey(),
 	memberId: uuid("user_id")
