@@ -1,6 +1,7 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
+import { Button } from "@mui/material";
 import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -11,7 +12,15 @@ import {
 } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
+import {
+	BottomSheet,
+	FloatingControlBar,
+} from "@/components/availability/mobile-control";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
+import {
+	RoomRecommendationSettings,
+	type StudyRoomApiEntry,
+} from "@/components/availability/room-recommendations";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
@@ -25,7 +34,7 @@ import {
 	getTimeFromHourMinuteString,
 } from "@/lib/availability/utils";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
-import { getBestTimeRanges } from "@/lib/rooms/utils";
+import { getBestTimeRanges, getCapacityRange } from "@/lib/rooms/utils";
 import type {
 	GoogleCalendarEvent,
 	MemberMeetingAvailability,
@@ -230,6 +239,17 @@ export function Availability({
 		return getBestTimeRanges(availabilityDates);
 	}, [availabilityDates]);
 
+	const [roomFilters, setRoomFilters] = useState({
+		capacities: ["3-4"] as string[],
+		buildings: [] as string[],
+		lengths: [60] as number[],
+	});
+
+	const [isSheetOpen, setIsSheetOpen] = useState(false);
+	const [activeTab, setActiveTab] = useState<"attendees" | "rooms">(
+		"attendees",
+	);
+
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
 	});
@@ -425,35 +445,7 @@ export function Availability({
 		}
 	}, [startBlockSelection, endBlockSelection, setSelectionState]);
 
-	//currently unused as we only have console log for now
-	const [_studyRooms, setStudyRooms] = useState<any[]>([]);
-
-	useEffect(() => {
-		if (!bestTimeRanges.length) {
-			setStudyRooms([]);
-			return;
-		}
-
-		const fetchRooms = async () => {
-			try {
-				// Make one API call per (date, time) pair
-				const promises = bestTimeRanges.map(({ date, time }) => {
-					console.log("Fetching with:", { date, time });
-					return fetchStudyRooms({ date: date, timeRange: time });
-				});
-				const results = await Promise.all(promises);
-
-				console.log("Fetched study rooms:", results); // console log for now
-				const combined = results.flatMap((res) => res.data ?? []);
-
-				setStudyRooms(combined);
-			} catch (err) {
-				console.error("Failed to fetch study rooms:", err);
-			}
-		};
-
-		fetchRooms();
-	}, [bestTimeRanges]);
+	const [studyRooms, setStudyRooms] = useState<StudyRoomApiEntry[]>([]);
 
 	// Helper to get block info from pointer position
 	const getBlockAtPosition = useCallback((x: number, y: number) => {
@@ -706,20 +698,146 @@ export function Availability({
 						disabled={isLastPage}
 					/>
 				</div>
-
 				{(availabilityView === "group" || availabilityView === "schedule") && (
-					<GroupResponses
-						availabilityDates={availabilityDates}
-						fromTime={fromTimeMinutes}
-						members={members}
-						timezone={userTimezone}
-						anchorNormalizedDate={anchorNormalizedDate}
-						currentPageAvailability={currentPageAvailability}
-						availabilityTimeBlocks={availabilityTimeBlocks}
-						doesntNeedDay={doesntNeedDay}
-					/>
+					<div className="hidden flex-col md:flex">
+						<GroupResponses
+							availabilityDates={availabilityDates}
+							fromTime={fromTimeMinutes}
+							members={members}
+							timezone={userTimezone}
+							anchorNormalizedDate={anchorNormalizedDate}
+							currentPageAvailability={currentPageAvailability}
+							availabilityTimeBlocks={availabilityTimeBlocks}
+							doesntNeedDay={doesntNeedDay}
+						/>
+						<RoomRecommendationSettings
+							rawRooms={studyRooms}
+							onFiltersChange={setRoomFilters}
+							onShowBestRooms={() => {
+								const fetchRooms = async () => {
+									try {
+										const { capacityMin, capacityMax } = getCapacityRange(
+											roomFilters.capacities,
+										);
+
+										const promises = bestTimeRanges.map(({ date, time }) =>
+											fetchStudyRooms({
+												date,
+												timeRange: time,
+												capacityMin,
+												capacityMax,
+											}),
+										);
+										const results = await Promise.all(promises);
+										const combined = results
+											.flatMap((res) => res.data ?? [])
+											.map((room) => ({
+												...room,
+												description: room.description ?? "",
+												directions: room.directions ?? "",
+											}));
+										setStudyRooms(combined);
+									} catch (err) {
+										console.error("Failed to fetch study rooms:", err);
+									}
+								};
+								fetchRooms();
+							}}
+							//just for testing- can delete this lmk
+							onRoomSelect={(room, _selected) => {
+								console.log("booking URL:", room.bookingUrl);
+							}}
+						/>
+					</div>
 				)}
 				{availabilityView === "personal" && <PersonalAvailabilitySidebar />}
+			</div>
+			<div className="md:hidden">
+				<FloatingControlBar
+					onOpen={() => setIsSheetOpen(true)}
+					numRooms={studyRooms.length}
+					numAttendees={members.length}
+				/>
+				<BottomSheet open={isSheetOpen} onClose={() => setIsSheetOpen(false)}>
+					<div className="flex flex-col gap-6">
+						{/* Tabs */}
+						<div className="flex border-b">
+							<Button
+								className={`flex-1 py-2 text-sm ${
+									activeTab === "attendees"
+										? "border-pink-500 border-b-2 font-medium"
+										: "text-gray-400"
+								}`}
+								onClick={() => setActiveTab("attendees")}
+							>
+								Attendees
+							</Button>
+
+							<Button
+								className={`flex-1 py-2 text-sm ${
+									activeTab === "rooms"
+										? "border-pink-500 border-b-2 font-medium"
+										: "text-gray-400"
+								}`}
+								onClick={() => setActiveTab("rooms")}
+							>
+								Rooms
+							</Button>
+						</div>
+
+						{activeTab === "attendees" ? (
+							<GroupResponses
+								availabilityDates={availabilityDates}
+								fromTime={fromTimeMinutes}
+								members={members}
+								timezone={userTimezone}
+								anchorNormalizedDate={anchorNormalizedDate}
+								currentPageAvailability={currentPageAvailability}
+								availabilityTimeBlocks={availabilityTimeBlocks}
+								doesntNeedDay={doesntNeedDay}
+							/>
+						) : (
+							<RoomRecommendationSettings
+								rawRooms={studyRooms}
+								onFiltersChange={setRoomFilters}
+								onShowBestRooms={() => {
+									const fetchRooms = async () => {
+										try {
+											const { capacityMin, capacityMax } = getCapacityRange(
+												roomFilters.capacities,
+											);
+
+											const promises = bestTimeRanges.map(({ date, time }) =>
+												fetchStudyRooms({
+													date,
+													timeRange: time,
+													capacityMin,
+													capacityMax,
+												}),
+											);
+
+											const results = await Promise.all(promises);
+											const combined = results
+												.flatMap((res) => res.data ?? [])
+												.map((room) => ({
+													...room,
+													description: room.description ?? "",
+													directions: room.directions ?? "",
+												}));
+											setStudyRooms(combined);
+										} catch (err) {
+											console.error("Failed to fetch study rooms:", err);
+										}
+									};
+									fetchRooms();
+								}}
+								onRoomSelect={(room, selected) => {
+									console.log(room, selected);
+								}}
+							/>
+						)}
+					</div>
+				</BottomSheet>
 			</div>
 		</div>
 	);
