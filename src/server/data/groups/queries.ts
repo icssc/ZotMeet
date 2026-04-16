@@ -191,7 +191,8 @@ export async function getGroupsWithDetails(
 				const pendingMeeting = groupMeetings.find(
 					(m) =>
 						!respondedMeetingIds.has(m.id) &&
-						m.dates.some((d) => new Date(d) >= today),
+						(m.meetingType === "days" ||
+							m.dates.some((d) => new Date(d) >= today)),
 				);
 				needsAvailability = pendingMeeting !== undefined;
 				pendingMeetingName = pendingMeeting?.title ?? null;
