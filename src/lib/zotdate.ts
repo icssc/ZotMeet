@@ -69,10 +69,11 @@ export class ZotDate {
 				this.ianaTimeZone,
 				"yyyy-MM-dd",
 			);
-			const dayStart = fromZonedTime(`${datePart}T00:00:00`, this.ianaTimeZone);
-			return new Date(
-				dayStart.getTime() + totalMinutes * 60 * 1000,
-			).toISOString();
+			const hours = Math.floor(totalMinutes / 60);
+			const minutes = totalMinutes % 60;
+			const pad = (n: number) => n.toString().padStart(2, "0");
+			const localDateTime = `${datePart}T${pad(hours)}:${pad(minutes)}:00`;
+			return fromZonedTime(localDateTime, this.ianaTimeZone).toISOString();
 		}
 		const newDate = new Date(this.day);
 		newDate.setHours(Math.floor(totalMinutes / 60));

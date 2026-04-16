@@ -17,10 +17,10 @@ export function getTimestampFromBlockIndex(
 
 	if (timeZone) {
 		const datePart = formatInTimeZone(selectedDate.day, timeZone, "yyyy-MM-dd");
-		const dayStart = fromZonedTime(`${datePart}T00:00:00`, timeZone);
-		return new Date(
-			dayStart.getTime() + totalMinutes * 60 * 1000,
-		).toISOString();
+		const hours = Math.floor(totalMinutes / 60);
+		const minutes = totalMinutes % 60;
+		const localTime = `${datePart}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`;
+		return fromZonedTime(localTime, timeZone).toISOString();
 	}
 
 	const hours = Math.floor(totalMinutes / 60);
