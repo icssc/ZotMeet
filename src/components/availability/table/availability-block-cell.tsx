@@ -40,7 +40,7 @@ export function AvailabilityBlockCell({
 				className={cn(
 					"block h-full w-full cursor-row-resize border-gray-medium border-r-[1px] [touch-action:none]",
 					isTopOfHour && "border-t-[1px] border-t-gray-medium",
-					isHalfHour && "border-t-[1px] border-t-gray-base",
+					isHalfHour && "border-t border-t-gray-base border-dotted",
 					isLastRow && "border-b-[1px]",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
 				)}
