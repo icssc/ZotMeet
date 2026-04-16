@@ -190,6 +190,7 @@ export async function getGroupsWithDetails(
 				today.setHours(0, 0, 0, 0);
 				const pendingMeeting = groupMeetings.find(
 					(m) =>
+						!m.scheduled &&
 						!respondedMeetingIds.has(m.id) &&
 						(m.meetingType === "days" ||
 							m.dates.some((d) => new Date(d) >= today)),
