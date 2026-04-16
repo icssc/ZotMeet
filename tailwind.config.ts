@@ -71,6 +71,15 @@ const config: Config = {
 					medium: "#94A3B8" /* slate-400 */,
 				},
 			},
+			keyframes: {
+				"meeting-pulse": {
+					"0%, 100%": { backgroundColor: "hsl(var(--primary) / 0.1)" },
+					"50%": { backgroundColor: "hsl(var(--primary) / 0.5)" },
+				},
+			},
+			animation: {
+				"meeting-pulse": "meeting-pulse 2s ease-in-out infinite",
+			},
 			borderRadius: {
 				lg: "var(--radius)",
 				md: "calc(var(--radius) - 2px)",

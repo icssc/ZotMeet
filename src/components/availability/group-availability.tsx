@@ -1,6 +1,6 @@
 "use client";
 
-import { alpha, darken, useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -86,8 +86,28 @@ function calculateBlockColor({
 	return "transparent";
 }
 
+function formatScheduledTimeRange(timestamps: string[]): string {
+	if (timestamps.length === 0) return "";
+	const sorted = [...timestamps].sort();
+	const start = new Date(sorted[0]);
+	const last = new Date(sorted[sorted.length - 1]);
+	last.setMinutes(last.getMinutes() + 15);
+
+	const fmt = (d: Date) => {
+		const h = d.getHours();
+		const m = d.getMinutes();
+		const ampm = h >= 12 ? "PM" : "AM";
+		const hour = h % 12 || 12;
+		return m === 0
+			? `${hour}${ampm}`
+			: `${hour}:${String(m).padStart(2, "0")}${ampm}`;
+	};
+	return `${fmt(start)} - ${fmt(last)}`;
+}
+
 interface GroupAvailabilityProps {
 	meetingId: string;
+	meetingTitle?: string;
 	timeBlock: number;
 	blockIndex: number;
 	availabilityTimeBlocks: number[];
@@ -100,6 +120,7 @@ interface GroupAvailabilityProps {
 }
 
 export function GroupAvailability({
+	meetingTitle,
 	timeBlock,
 	blockIndex,
 	availabilityTimeBlocks,
@@ -146,6 +167,25 @@ export function GroupAvailability({
 
 	const numMembers = members.length;
 	const showBestTimes = useAvailabilityStore((state) => state.enabled);
+
+	const { scheduledTimes, pendingAdds, pendingRemovals } = useAvailabilityStore(
+		useShallow((state) => ({
+			scheduledTimes: state.scheduledTimes,
+			pendingAdds: state.pendingAdds,
+			pendingRemovals: state.pendingRemovals,
+		})),
+	);
+
+	const { scheduledTimeRange, scheduledBlockCount } = useMemo(() => {
+		const effective = new Set([...scheduledTimes, ...pendingAdds]);
+		for (const ts of pendingRemovals) {
+			effective.delete(ts);
+		}
+		return {
+			scheduledTimeRange: formatScheduledTimeRange([...effective]),
+			scheduledBlockCount: effective.size,
+		};
+	}, [scheduledTimes, pendingAdds, pendingRemovals]);
 
 	const maxAvailability = useMemo(() => {
 		if (!showBestTimes || numMembers === 0) return 0;
@@ -519,17 +559,39 @@ export function GroupAvailability({
 			);
 
 			const block = selectedDate.groupAvailability[timestamp] || [];
-			const blockColor = isScheduled(timestamp)
-				? darken(theme.palette.primary.main, 0.1)
-				: calculateBlockColor({
-						block,
-						hoveredMember,
-						selectedMembers,
-						numMembers,
-						showBestTimes,
-						maxAvailability,
-						primaryColor: theme.palette.primary.main,
-					});
+			const blockColor = calculateBlockColor({
+				block,
+				hoveredMember,
+				selectedMembers,
+				numMembers,
+				showBestTimes,
+				maxAvailability,
+				primaryColor: theme.palette.primary.main,
+			});
+			const blockIsScheduled = isScheduled(timestamp);
+
+			const prevTimestamp =
+				blockIndex > 0
+					? getTimestampFromBlockIndex(
+							blockIndex - 1,
+							zotDateIndex,
+							fromTime,
+							availabilityDates,
+						)
+					: "";
+			const nextTimestamp =
+				blockIndex < availabilityTimeBlocks.length - 1
+					? getTimestampFromBlockIndex(
+							blockIndex + 1,
+							zotDateIndex,
+							fromTime,
+							availabilityDates,
+						)
+					: "";
+			const isTopEdge =
+				blockIsScheduled && (!prevTimestamp || !isScheduled(prevTimestamp));
+			const isBottomEdge =
+				blockIsScheduled && (!nextTimestamp || !isScheduled(nextTimestamp));
 
 			const tableCellStyles = cn(
 				isTopOfHour ? "border-t-[1px] border-t-gray-medium" : "",
@@ -545,7 +607,7 @@ export function GroupAvailability({
 					{spacers[pageDateIndex] && (
 						<td className="w-3 md:w-4" aria-hidden="true" />
 					)}
-					<td className="px-0 py-0">
+					<td className={cn("px-0 py-0", isTopEdge && "relative z-[1]")}>
 						<GroupAvailabilityBlock
 							className={cn(
 								"group-availability-block block",
@@ -564,6 +626,12 @@ export function GroupAvailability({
 								})
 							}
 							blockColor={blockColor}
+							isScheduled={blockIsScheduled}
+							isScheduledTopEdge={isTopEdge}
+							isScheduledBottomEdge={isBottomEdge}
+							scheduledMeetingTitle={isTopEdge ? meetingTitle : undefined}
+							scheduledTimeRange={isTopEdge ? scheduledTimeRange : undefined}
+							scheduledBlockCount={isTopEdge ? scheduledBlockCount : undefined}
 							tableCellStyles={tableCellStyles}
 							hasSpacerBefore={spacers[pageDateIndex]}
 							dateIndex={zotDateIndex}
