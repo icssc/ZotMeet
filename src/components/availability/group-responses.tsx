@@ -174,10 +174,11 @@ export function GroupResponses({
 	}, [selectedZotDateIndex, selectedBlockIndex, newAvailDates]);
 
 	return (
-		<div className="min-w-0 lg:shrink-0">
+		<div className="flex min-h-0 min-w-0 flex-1 flex-col lg:shrink-0">
 			<div
 				className={cn(
-					"fixed bottom-0 h-96 max-h-[85dvh] w-full min-w-0 translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:h-auto lg:max-h-none lg:w-96 lg:shrink-0 lg:translate-y-0 lg:self-start lg:overflow-visible lg:rounded-l-xl lg:bg-opacity-50",
+					// Cap height so the flex row does not grow with responder count (see availability layout).
+					"fixed bottom-0 h-96 max-h-[85dvh] w-full min-w-0 translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:h-full lg:max-h-none lg:min-h-0 lg:w-full lg:flex-1 lg:shrink-0 lg:translate-y-0 lg:self-stretch lg:overflow-y-auto lg:overscroll-y-contain lg:rounded-l-xl lg:bg-opacity-50",
 					isMobileDrawerOpen && "translate-y-0",
 				)}
 			>

@@ -11,7 +11,7 @@ import {
 } from "@actions/meeting/schedule/action";
 import { Create, InsertInvitationRounded } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
-import { Button } from "@mui/material";
+import { Button, Paper } from "@mui/material";
 import { DeleteIcon, EditIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -185,12 +185,11 @@ export function AvailabilityHeader({
 	};
 
 	return (
-		<>
-			<div className="">
-				<div className="mt-16 flex flex-col gap-4">
-					<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
-						{meetingData.title}
-					</h1>
+		<Paper variant="outlined" className="mt-10">
+			<div className="flex flex-col gap-4">
+				<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
+					{meetingData.title}
+				</h1>
 
 					<div className="order-2 flex w-full shrink-0 flex-col gap-2 self-start lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:w-full">
 						{availabilityView === "personal" ||
@@ -315,33 +314,32 @@ export function AvailabilityHeader({
 						)}
 					</div>
 
-					{isOwner && (
-						<div className="-ml-2 flex items-center gap-x-1 self-start">
-							<Button
-								onClick={() => setIsEditModalOpen(true)}
-								variant="text"
-								size="small"
-								startIcon={<EditIcon />}
-								sx={{ color: "text.secondary" }}
-							>
-								Edit Meeting
-							</Button>
+				{isOwner && (
+					<div className="-ml-2 flex items-center gap-x-1 self-start">
+						<Button
+							onClick={() => setIsEditModalOpen(true)}
+							variant="text"
+							size="small"
+							startIcon={<EditIcon />}
+							sx={{ color: "text.secondary" }}
+						>
+							Edit Meeting
+						</Button>
 
-							<Button
-								onClick={() => setIsDeleteModalOpen(true)}
-								variant="text"
-								size="small"
-								startIcon={<DeleteIcon />}
-								sx={{
-									color: "text.secondary",
-									"&:hover": { color: "error.main" },
-								}}
-							>
-								Delete Meeting
-							</Button>
-						</div>
-					)}
-				</div>
+						<Button
+							onClick={() => setIsDeleteModalOpen(true)}
+							variant="text"
+							size="small"
+							startIcon={<DeleteIcon />}
+							sx={{
+								color: "text.secondary",
+								"&:hover": { color: "error.main" },
+							}}
+						>
+							Delete Meeting
+						</Button>
+					</div>
+				)}
 			</div>
 
 			<EditModal
@@ -361,6 +359,6 @@ export function AvailabilityHeader({
 				onOpenChange={setIsInviteDialogOpen}
 				meetingId={meetingData.id}
 			/>
-		</>
+		</Paper>
 	);
 }

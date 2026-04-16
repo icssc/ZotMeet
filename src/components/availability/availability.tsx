@@ -1,7 +1,7 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { Box } from "@mui/material";
+import { Paper } from "@mui/material";
 import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -760,17 +760,13 @@ export function Availability({
 				inviteQueryInUrl={inviteQueryInUrl}
 			/>
 
-			<div className="flex min-h-0 w-full min-w-0 flex-row items-start justify-start">
-				<Box
+			<div className="flex min-h-0 w-full min-w-0 flex-row items-stretch justify-start">
+				<Paper
 					component="div"
-					className="flex h-fit min-w-0 flex-1 items-start justify-between overflow-x-auto p-4 lg:pr-14"
-					sx={{
-						border: 1,
-						borderColor: "divider",
-						borderRadius: 3,
-					}}
+					variant="outlined"
+					className="mr-4 flex min-h-0 min-w-0 flex-1 items-start justify-between self-stretch overflow-x-auto lg:overflow-x-hidden lg:pr-14"
 				>
-					<div className="-mt-1 translate-x-3">
+					<div className="-mt-2 translate-x-3">
 						<AvailabilityNavButton
 							direction="left"
 							handleClick={prevPage}
@@ -844,17 +840,17 @@ export function Availability({
 						</div>
 					</div>
 
-					<div className="-mt-1">
+					<div className="-mt-2 -translate-x-9">
 						<AvailabilityNavButton
 							direction="right"
 							handleClick={() => nextPage(availabilityDates.length)}
 							disabled={isLastPage}
 						/>
 					</div>
-				</Box>
+				</Paper>
 
 				{(availabilityView === "group" || availabilityView === "schedule") && (
-					<div className="hidden w-96 min-w-0 shrink-0 flex-col gap-3 lg:flex">
+					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
 						<AvailabilityActions
 							meetingData={meetingData}
 							user={user}
@@ -864,21 +860,26 @@ export function Availability({
 							setChangeableTimezone={setChangeableTimezone}
 							setTimezone={setUserTimezone}
 						/>
-						<GroupResponses
-							availabilityDates={availabilityDates}
-							fromTime={fromTimeMinutes}
-							members={members}
-							pendingMembers={pendingMembers}
-							timezone={userTimezone}
-							anchorNormalizedDate={anchorNormalizedDate}
-							currentPageAvailability={currentPageAvailability}
-							availabilityTimeBlocks={availabilityTimeBlocks}
-							doesntNeedDay={doesntNeedDay}
-						/>
+						<Paper
+							variant="outlined"
+							className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+						>
+							<GroupResponses
+								availabilityDates={availabilityDates}
+								fromTime={fromTimeMinutes}
+								members={members}
+								pendingMembers={pendingMembers}
+								timezone={userTimezone}
+								anchorNormalizedDate={anchorNormalizedDate}
+								currentPageAvailability={currentPageAvailability}
+								availabilityTimeBlocks={availabilityTimeBlocks}
+								doesntNeedDay={doesntNeedDay}
+							/>
+						</Paper>
 					</div>
 				)}
 				{availabilityView === "personal" && (
-					<div className="hidden w-96 min-w-0 shrink-0 flex-col gap-3 lg:flex">
+					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
 						<AvailabilityActions
 							meetingData={meetingData}
 							user={user}
@@ -888,15 +889,20 @@ export function Availability({
 							setChangeableTimezone={setChangeableTimezone}
 							setTimezone={setUserTimezone}
 						/>
-						<PersonalAvailabilitySidebar
-							availability={availabilitySelectionMode}
-							setAvailability={setAvailabilitySelectionMode}
-							meetingId={meetingData.id}
-							userTimezone={userTimezone}
-							importGridIsoSet={importGridIsoSet}
-							canImport={Boolean(user?.memberId)}
-							onImportSlots={handleImportSlotsFromMeeting}
-						/>
+						<Paper
+							variant="outlined"
+							className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+						>
+							<PersonalAvailabilitySidebar
+								availability={availabilitySelectionMode}
+								setAvailability={setAvailabilitySelectionMode}
+								meetingId={meetingData.id}
+								userTimezone={userTimezone}
+								importGridIsoSet={importGridIsoSet}
+								canImport={Boolean(user?.memberId)}
+								onImportSlots={handleImportSlotsFromMeeting}
+							/>
+						</Paper>
 					</div>
 				)}
 			</div>
