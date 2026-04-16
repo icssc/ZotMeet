@@ -1,5 +1,4 @@
 "use client";
-
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
 import {
 	saveAvailability,
@@ -9,10 +8,17 @@ import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
-import { Create, InsertInvitationRounded } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
-import { Button, Paper } from "@mui/material";
 import { DeleteIcon, EditIcon } from "lucide-react";
+import {
+	AccessTime,
+	CalendarMonth,
+	LocationOn,
+	Settings,
+	Create,
+	InsertInvitationRounded 
+} from "@mui/icons-material";
+import { Button, Paper, Typography } from "@mui/material";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -25,6 +31,10 @@ import type { UserProfile } from "@/lib/auth/user";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import type { Availability } from "../availability";
+import {
+	formatDateToUSNumeric,
+	formatTimeWithHoursAndMins,
+} from "@/lib/availability/utils";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
@@ -184,12 +194,47 @@ export function AvailabilityHeader({
 		}
 	};
 
+	const formattedStartDate = formatDateToUSNumeric(
+		new Date(meetingData.dates[0]),
+	);
+	const formattedEndDate = formatDateToUSNumeric(
+		new Date(meetingData.dates[meetingData.dates.length - 1]),
+	);
+
+	const formattedStartTime = formatTimeWithHoursAndMins(meetingData.fromTime);
+
+	const formattedEndTime = formatTimeWithHoursAndMins(meetingData.toTime);
+
 	return (
 		<Paper variant="outlined" className="mt-10">
 			<div className="flex flex-col gap-4">
 				<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
 					{meetingData.title}
 				</h1>
+
+				<div className="flex gap-8">
+					<div className="flex items-center gap-2">
+						<CalendarMonth fontSize="small" />
+						<Typography color="textSecondary">
+							{formattedStartDate} - {formattedEndDate}
+						</Typography>
+					</div>
+
+					<div className="flex items-center gap-2">
+						<AccessTime />
+						<Typography color="textSecondary">
+							{formattedStartTime} - {formattedEndTime}
+						</Typography>
+					</div>
+
+					{meetingData.location && (
+						<div>
+							<LocationOn />
+							<Typography color="textSecondary">
+								{meetingData.location}
+							</Typography>
+						</div>
+					)}
 
 					<div className="order-2 flex w-full shrink-0 flex-col gap-2 self-start lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:w-full">
 						{availabilityView === "personal" ||
@@ -314,45 +359,42 @@ export function AvailabilityHeader({
 						)}
 					</div>
 
-				{isOwner && (
-					<div className="-ml-2 flex items-center gap-x-1 self-start">
-						<Button
-							onClick={() => setIsEditModalOpen(true)}
-							variant="text"
-							size="small"
-							startIcon={<EditIcon />}
-							sx={{ color: "text.secondary" }}
-						>
-							Edit Meeting
-						</Button>
+					{isOwner && (
+						<div className="-ml-2 flex items-center gap-x-1 self-start">
+							<Button
+								onClick={() => setIsEditModalOpen(true)}
+								variant="text"
+								size="medium"
+								color="primary"
+								startIcon={<Settings sx={{ color: "primary.main" }} />}
+							>
+								<Typography>Edit Meeting</Typography>
+							</Button>
 
-						<Button
-							onClick={() => setIsDeleteModalOpen(true)}
-							variant="text"
-							size="small"
-							startIcon={<DeleteIcon />}
-							sx={{
-								color: "text.secondary",
-								"&:hover": { color: "error.main" },
-							}}
-						>
-							Delete Meeting
-						</Button>
-					</div>
-				)}
+							<Button
+								onClick={() => setIsDeleteModalOpen(true)}
+								variant="text"
+								size="medium"
+								startIcon={<DeleteIcon />}
+							>
+								<Typography>Delete Meeting</Typography>
+							</Button>
+						</div>
+					)}
+				</div>
+
+				<EditModal
+					meetingData={meetingData}
+					isOpen={isEditModalOpen}
+					handleOpenChange={setIsEditModalOpen}
+				/>
+
+				<DeleteModal
+					meetingData={meetingData}
+					isOpen={isDeleteModalOpen}
+					handleOpenChange={setIsDeleteModalOpen}
+				/>
 			</div>
-
-			<EditModal
-				meetingData={meetingData}
-				isOpen={isEditModalOpen}
-				handleOpenChange={setIsEditModalOpen}
-			/>
-
-			<DeleteModal
-				meetingData={meetingData}
-				isOpen={isDeleteModalOpen}
-				handleOpenChange={setIsDeleteModalOpen}
-			/>
 
 			<InviteMembersDialog
 				open={isInviteDialogOpen}
