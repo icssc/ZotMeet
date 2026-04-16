@@ -42,7 +42,7 @@ function toggle<T>(arr: T[], val: T): T[] {
 
 // Collapse multiple duration variants of the same physical room into one entry.
 export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
-	const seen = new Map<string, RoomResult>();
+	const seen = new Map<string, RoomResult & { availableCount: number }>();
 
 	for (const room of rooms) {
 		const baseName = room.name.replace(/\s*\(\d+\s*hours?\)/i, "").trim();
@@ -66,15 +66,26 @@ export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 				techEnhanced: room.techEnhanced,
 				bookingUrl,
 				durations: duration ? [duration] : [],
+				availableCount,
 			});
 		} else {
 			const updatedDurations = new Set(existing.durations);
 			if (duration) updatedDurations.add(duration);
 
-			// Replace if this variant has more available slots (better booking URL)
-			const existingCount = 0;
-			if (availableCount > existingCount && firstAvailableSlot) {
-				seen.set(key, { ...existing, durations: Array.from(updatedDurations) });
+			// Replace if this variant is better
+			if (availableCount > existing.availableCount && firstAvailableSlot) {
+				seen.set(key, {
+					...existing,
+					bookingUrl,
+					durations: Array.from(updatedDurations),
+					availableCount,
+				});
+			} else {
+				// Still merge durations
+				seen.set(key, {
+					...existing,
+					durations: Array.from(updatedDurations),
+				});
 			}
 		}
 	}
@@ -361,7 +372,11 @@ export function RoomRecommendationSettings({
 												color={isSelected ? "primary" : "default"}
 												onClick={() => handleToggleRoom(room)}
 												onDoubleClick={() =>
-													window.open(room.bookingUrl, "_blank")
+													window.open(
+														room.bookingUrl,
+														"_blank",
+														"noopener,noreferrer",
+													)
 												}
 												title={`${room.location}${room.description ? ` — ${room.description}` : ""}\nDouble-click to book`}
 												sx={{ maxWidth: "100%" }}

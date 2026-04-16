@@ -300,6 +300,37 @@ export function Availability({
 		confirmSave();
 	}, [confirmSave]);
 
+	const handleShowBestRooms = useCallback(async () => {
+		try {
+			const { capacityMin, capacityMax } = getCapacityRange(
+				roomFilters.capacities,
+			);
+
+			const promises = bestTimeRanges.map(({ date, time }) =>
+				fetchStudyRooms({
+					date,
+					timeRange: time,
+					capacityMin,
+					capacityMax,
+				}),
+			);
+
+			const results = await Promise.all(promises);
+
+			const combined = results
+				.flatMap((res) => res.data ?? [])
+				.map((room) => ({
+					...room,
+					description: room.description ?? "",
+					directions: room.directions ?? "",
+				}));
+
+			setStudyRooms(combined);
+		} catch (err) {
+			console.error("Failed to fetch study rooms:", err);
+		}
+	}, [roomFilters.capacities, bestTimeRanges]);
+
 	useEffect(() => {
 		if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
 			const firstDateISO = anchorNormalizedDate[0].toISOString();
@@ -713,132 +744,68 @@ export function Availability({
 						<RoomRecommendationSettings
 							rawRooms={studyRooms}
 							onFiltersChange={setRoomFilters}
-							onShowBestRooms={() => {
-								const fetchRooms = async () => {
-									try {
-										const { capacityMin, capacityMax } = getCapacityRange(
-											roomFilters.capacities,
-										);
-
-										const promises = bestTimeRanges.map(({ date, time }) =>
-											fetchStudyRooms({
-												date,
-												timeRange: time,
-												capacityMin,
-												capacityMax,
-											}),
-										);
-										const results = await Promise.all(promises);
-										const combined = results
-											.flatMap((res) => res.data ?? [])
-											.map((room) => ({
-												...room,
-												description: room.description ?? "",
-												directions: room.directions ?? "",
-											}));
-										setStudyRooms(combined);
-									} catch (err) {
-										console.error("Failed to fetch study rooms:", err);
-									}
-								};
-								fetchRooms();
-							}}
-							//just for testing- can delete this lmk
-							onRoomSelect={(room, _selected) => {
-								console.log("booking URL:", room.bookingUrl);
-							}}
+							onShowBestRooms={handleShowBestRooms}
 						/>
 					</div>
 				)}
 				{availabilityView === "personal" && <PersonalAvailabilitySidebar />}
 			</div>
-			<div className="md:hidden">
-				<FloatingControlBar
-					onOpen={() => setIsSheetOpen(true)}
-					numRooms={studyRooms.length}
-					numAttendees={members.length}
-				/>
-				<BottomSheet open={isSheetOpen} onClose={() => setIsSheetOpen(false)}>
-					<div className="flex flex-col gap-6">
-						{/* Tabs */}
-						<div className="flex border-b">
-							<Button
-								className={`flex-1 py-2 text-sm ${
-									activeTab === "attendees"
-										? "border-pink-500 border-b-2 font-medium"
-										: "text-gray-400"
-								}`}
-								onClick={() => setActiveTab("attendees")}
-							>
-								Attendees
-							</Button>
+			{(availabilityView === "group" || availabilityView === "schedule") && (
+				<div className="md:hidden">
+					<FloatingControlBar
+						onOpen={() => setIsSheetOpen(true)}
+						numRooms={studyRooms.length}
+						numAttendees={members.length}
+					/>
+					<BottomSheet open={isSheetOpen} onClose={() => setIsSheetOpen(false)}>
+						<div className="flex flex-col gap-6">
+							{/* Tabs */}
+							<div className="flex border-b">
+								<Button
+									className={`flex-1 py-2 text-sm ${
+										activeTab === "attendees"
+											? "border-pink-500 border-b-2 font-medium"
+											: "text-gray-400"
+									}`}
+									onClick={() => setActiveTab("attendees")}
+								>
+									Attendees
+								</Button>
 
-							<Button
-								className={`flex-1 py-2 text-sm ${
-									activeTab === "rooms"
-										? "border-pink-500 border-b-2 font-medium"
-										: "text-gray-400"
-								}`}
-								onClick={() => setActiveTab("rooms")}
-							>
-								Rooms
-							</Button>
+								<Button
+									className={`flex-1 py-2 text-sm ${
+										activeTab === "rooms"
+											? "border-pink-500 border-b-2 font-medium"
+											: "text-gray-400"
+									}`}
+									onClick={() => setActiveTab("rooms")}
+								>
+									Rooms
+								</Button>
+							</div>
+
+							{activeTab === "attendees" ? (
+								<GroupResponses
+									availabilityDates={availabilityDates}
+									fromTime={fromTimeMinutes}
+									members={members}
+									timezone={userTimezone}
+									anchorNormalizedDate={anchorNormalizedDate}
+									currentPageAvailability={currentPageAvailability}
+									availabilityTimeBlocks={availabilityTimeBlocks}
+									doesntNeedDay={doesntNeedDay}
+								/>
+							) : (
+								<RoomRecommendationSettings
+									rawRooms={studyRooms}
+									onFiltersChange={setRoomFilters}
+									onShowBestRooms={handleShowBestRooms}
+								/>
+							)}
 						</div>
-
-						{activeTab === "attendees" ? (
-							<GroupResponses
-								availabilityDates={availabilityDates}
-								fromTime={fromTimeMinutes}
-								members={members}
-								timezone={userTimezone}
-								anchorNormalizedDate={anchorNormalizedDate}
-								currentPageAvailability={currentPageAvailability}
-								availabilityTimeBlocks={availabilityTimeBlocks}
-								doesntNeedDay={doesntNeedDay}
-							/>
-						) : (
-							<RoomRecommendationSettings
-								rawRooms={studyRooms}
-								onFiltersChange={setRoomFilters}
-								onShowBestRooms={() => {
-									const fetchRooms = async () => {
-										try {
-											const { capacityMin, capacityMax } = getCapacityRange(
-												roomFilters.capacities,
-											);
-
-											const promises = bestTimeRanges.map(({ date, time }) =>
-												fetchStudyRooms({
-													date,
-													timeRange: time,
-													capacityMin,
-													capacityMax,
-												}),
-											);
-
-											const results = await Promise.all(promises);
-											const combined = results
-												.flatMap((res) => res.data ?? [])
-												.map((room) => ({
-													...room,
-													description: room.description ?? "",
-													directions: room.directions ?? "",
-												}));
-											setStudyRooms(combined);
-										} catch (err) {
-											console.error("Failed to fetch study rooms:", err);
-										}
-									};
-									fetchRooms();
-								}}
-								onRoomSelect={(room, selected) => {
-									console.log(room, selected);
-								}}
-							/>
-						)}
-					</div>
-				</BottomSheet>
-			</div>
+					</BottomSheet>
+				</div>
+			)}
 		</div>
 	);
 }
