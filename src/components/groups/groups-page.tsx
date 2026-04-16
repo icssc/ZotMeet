@@ -2,7 +2,7 @@
 
 import { Add, ExpandMore } from "@mui/icons-material";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import { Button, Typography } from "@mui/material";
+import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
@@ -68,10 +68,16 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 	const [showJoinGroup, setShowJoinGroup] = useState(false);
 
 	return (
-		<div className="w-full">
-			<div className="mt-6 mb-8 flex items-center sm:hidden">
-				<h1 className="text-5xl">Groups</h1>
-
+		<Box sx={{ width: "100%" }}>
+			<Box
+				sx={{
+					mt: 3,
+					mb: 4,
+					display: { xs: "flex", sm: "none" },
+					alignItems: "center",
+				}}
+			>
+				<Typography variant="h3">Groups</Typography>
 				<Button
 					type="button"
 					variant="contained"
@@ -79,7 +85,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					sx={{
 						fontSize: "2rem",
 						padding: 0,
-						marginLeft: "auto",
+						ml: "auto",
 						minWidth: 0,
 						width: "3rem",
 						height: "3rem",
@@ -87,11 +93,21 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 				>
 					+
 				</Button>
-			</div>
+			</Box>
 
-			<div className="block sm:flex">
-				<div className="flex items-center gap-2.5 rounded-full bg-gray-100 px-4 py-2">
-					<Search className="size-5 text-gray-400" />
+			<Box sx={{ display: { xs: "block", sm: "flex" } }}>
+				<Box
+					sx={{
+						display: "flex",
+						alignItems: "center",
+						gap: 1.25,
+						borderRadius: 99,
+						bgcolor: "grey.100",
+						px: 2,
+						py: 1,
+					}}
+				>
+					<Search size={20} color="var(--mui-palette-text-disabled, #9e9e9e)" />
 					<input
 						type="text"
 						placeholder="Search"
@@ -99,9 +115,16 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 						onChange={(e) => setSearch(e.target.value)}
 						className="bg-transparent text-base outline-none placeholder:text-gray-400"
 					/>
-				</div>
+				</Box>
 
-				<div className="ml-auto hidden items-center gap-2 sm:flex">
+				<Box
+					sx={{
+						ml: "auto",
+						display: { xs: "none", sm: "flex" },
+						alignItems: "center",
+						gap: 1,
+					}}
+				>
 					<Button
 						type="button"
 						variant="outlined"
@@ -119,37 +142,35 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					>
 						Create Group
 					</Button>
-				</div>
-			</div>
+				</Box>
+			</Box>
 
-			<div className="mt-4 border-gray-200 border-b" />
+			<Divider sx={{ mt: 2 }} />
 
-			<div className="mt-4 flex flex-col flex-wrap gap-3">
-				<div className="flex gap-1">
-					<FilterChip
-						label="All"
-						count={counts.all}
-						active={activeFilter === "all"}
-						onClick={() => setActiveFilter("all")}
-					/>
-					<FilterChip
-						label="By You"
-						count={counts.created}
-						active={activeFilter === "created"}
-						onClick={() => setActiveFilter("created")}
-					/>
-					<FilterChip
-						label="Availability Needed"
-						count={counts.availability}
-						active={activeFilter === "availability"}
-						onClick={() => setActiveFilter("availability")}
-					/>
-				</div>
-			</div>
+			<Box sx={{ mt: 2, display: "flex", gap: 0.5 }}>
+				<FilterChip
+					label="All"
+					count={counts.all}
+					active={activeFilter === "all"}
+					onClick={() => setActiveFilter("all")}
+				/>
+				<FilterChip
+					label="By You"
+					count={counts.created}
+					active={activeFilter === "created"}
+					onClick={() => setActiveFilter("created")}
+				/>
+				<FilterChip
+					label="Upcoming"
+					count={counts.availability}
+					active={activeFilter === "availability"}
+					onClick={() => setActiveFilter("availability")}
+				/>
+			</Box>
 
-			<div className="mt-6 sm:hidden">
+			<Box sx={{ mt: 3, display: { sm: "none" } }}>
 				{actionRequiredGroups.length > 0 && (
-					<div className="mb-6">
+					<Box sx={{ mb: 3 }}>
 						<Typography
 							variant="overline"
 							color="text.disabled"
@@ -157,7 +178,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 						>
 							Action Required ({actionRequiredGroups.length})
 						</Typography>
-						<div className="flex flex-col gap-3">
+						<Stack spacing={1.5}>
 							{visibleActionGroups.map((group) => (
 								<GroupCard
 									key={group.id}
@@ -171,7 +192,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									pendingMeetingName={group.pendingMeetingName}
 								/>
 							))}
-						</div>
+						</Stack>
 						{actionRequiredGroups.length > INITIAL_ACTION_REQUIRED_COUNT && (
 							<Button
 								type="button"
@@ -199,10 +220,10 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 								{showAllActionRequired ? "Show Less" : "Show More"}
 							</Button>
 						)}
-					</div>
+					</Box>
 				)}
 
-				<div>
+				<Box>
 					<Typography
 						variant="overline"
 						color="text.disabled"
@@ -211,7 +232,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 						All ({filteredGroups.filter((g) => g.ownerEmail !== null).length})
 					</Typography>
 					{filteredGroups.filter((g) => g.ownerEmail !== null).length > 0 ? (
-						<div className="flex flex-col gap-3">
+						<Stack spacing={1.5}>
 							{filteredGroups
 								.filter((g) => g.ownerEmail !== null)
 								.map((group) => (
@@ -224,22 +245,46 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 										totalMembers={group.totalMembers}
 										creatorName={group.creatorName}
 										actionRequired={false}
-									upcomingMeetingName={group.needsAvailability ? null : group.upcomingMeetingName}
+										upcomingMeetingName={
+											group.needsAvailability ? null : group.upcomingMeetingName
+										}
 									/>
 								))}
-						</div>
+						</Stack>
 					) : (
-						<div className="flex flex-col items-center justify-center py-20 text-gray-500">
-							<p className="font-medium text-lg">No groups found</p>
-						</div>
+						<Box
+							sx={{
+								display: "flex",
+								flexDirection: "column",
+								alignItems: "center",
+								justifyContent: "center",
+								py: 10,
+							}}
+						>
+							<Typography
+								variant="body1"
+								color="text.secondary"
+								fontWeight={500}
+							>
+								No groups found
+							</Typography>
+						</Box>
 					)}
-				</div>
-			</div>
+				</Box>
+			</Box>
 
-			<div className="mt-8 hidden sm:block">
-				<p className="p-1 text-gray-400">All ({counts.all})</p>
+			<Box sx={{ mt: 4, display: { xs: "none", sm: "block" } }}>
+				<Typography color="text.disabled" sx={{ p: 0.5 }}>
+					All ({counts.all})
+				</Typography>
 				{filteredGroups.length > 0 ? (
-					<div className="grid grid-cols-1 gap-y-2 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-8">
+					<Box
+						sx={{
+							display: "grid",
+							gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+							gap: { xs: 0.5, sm: 4 },
+						}}
+					>
 						{filteredGroups
 							.filter((group) => group.ownerEmail !== null)
 							.map((group) => (
@@ -255,13 +300,23 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									upcomingMeetingName={group.upcomingMeetingName}
 								/>
 							))}
-					</div>
+					</Box>
 				) : (
-					<div className="flex flex-col items-center justify-center py-20 text-gray-500">
-						<p className="font-medium text-lg">No groups found</p>
-					</div>
+					<Box
+						sx={{
+							display: "flex",
+							flexDirection: "column",
+							alignItems: "center",
+							justifyContent: "center",
+							py: 10,
+						}}
+					>
+						<Typography variant="body1" color="text.secondary" fontWeight={500}>
+							No groups found
+						</Typography>
+					</Box>
 				)}
-			</div>
+			</Box>
 
 			<CreateGroupDialog
 				open={createDialogOpen}
@@ -269,7 +324,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 			/>
 
 			<InviteDecision open={showJoinGroup} onOpenChange={setShowJoinGroup} />
-		</div>
+		</Box>
 	);
 }
 
@@ -289,10 +344,10 @@ function FilterChip({
 			onClick={onClick}
 			disableElevation
 			sx={{
-				bgcolor: active ? "secondary.main" : "rgba(0,0,0,0.04)",
+				bgcolor: active ? "secondary.main" : "action.hover",
 				color: active ? "secondary.contrastText" : "text.primary",
 				"&:hover": {
-					bgcolor: active ? "secondary.dark" : "rgba(0,0,0,0.08)",
+					bgcolor: active ? "secondary.dark" : "action.selected",
 				},
 				boxShadow: "none",
 				borderRadius: 1,
