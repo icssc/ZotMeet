@@ -18,6 +18,7 @@ import { useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
+import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
@@ -77,6 +78,7 @@ export function AvailabilityHeader({
 	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
@@ -294,15 +296,25 @@ export function AvailabilityHeader({
 									</span>
 								</Button>
 								{isOwner && (
-									<Button
-										variant="outlined"
-										startIcon={<InsertInvitationRounded />}
-										className="w-full"
-										sx={{ py: 0.75 }}
-										onClick={() => setAvailabilityView("schedule")}
-									>
-										<span className="hidden md:flex">Schedule Meeting</span>
-									</Button>
+									<>
+										<Button
+											variant="outlined"
+											startIcon={<InsertInvitationRounded />}
+											className="w-full"
+											sx={{ py: 0.75 }}
+											onClick={() => setAvailabilityView("schedule")}
+										>
+											<span className="hidden md:flex">Schedule Meeting</span>
+										</Button>
+										<Button
+											variant="outlined"
+											className="w-full"
+											sx={{ py: 0.75 }}
+											onClick={() => setIsInviteDialogOpen(true)}
+										>
+											<span className="hidden md:flex">Invite Members</span>
+										</Button>
+									</>
 								)}
 							</div>
 						)}
@@ -347,6 +359,12 @@ export function AvailabilityHeader({
 				meetingData={meetingData}
 				isOpen={isDeleteModalOpen}
 				handleOpenChange={setIsDeleteModalOpen}
+			/>
+
+			<InviteMembersDialog
+				open={isInviteDialogOpen}
+				onOpenChange={setIsInviteDialogOpen}
+				meetingId={meetingData.id}
 			/>
 		</>
 	);
