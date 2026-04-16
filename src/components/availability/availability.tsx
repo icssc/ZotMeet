@@ -759,13 +759,14 @@ export function Availability({
 			/>
 
 			<div className="flex min-h-0 w-full min-w-0 flex-row items-start justify-start">
-				<div className="flex h-fit min-w-0 flex-1 items-center justify-between overflow-x-auto font-dm-sans lg:pr-14">
-					<AvailabilityNavButton
-						direction="left"
-						handleClick={prevPage}
-						disabled={isFirstPage}
-					/>
-
+				<div className="flex h-fit min-w-0 flex-1 items-start justify-between overflow-x-auto lg:pr-14">
+					<div className="-mt-1 translate-x-3">
+						<AvailabilityNavButton
+							direction="left"
+							handleClick={prevPage}
+							disabled={isFirstPage}
+						/>
+					</div>
 					<div className="flex flex-col gap-4" {...bind()}>
 						<table className="w-full table-fixed">
 							<AvailabilityTableHeader
@@ -822,11 +823,13 @@ export function Availability({
 						</div>
 					</div>
 
-					<AvailabilityNavButton
-						direction="right"
-						handleClick={() => nextPage(availabilityDates.length)}
-						disabled={isLastPage}
-					/>
+					<div className="-mt-1">
+						<AvailabilityNavButton
+							direction="right"
+							handleClick={() => nextPage(availabilityDates.length)}
+							disabled={isLastPage}
+						/>
+					</div>
 				</div>
 
 				{(availabilityView === "group" || availabilityView === "schedule") && (
