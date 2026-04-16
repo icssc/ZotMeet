@@ -186,8 +186,12 @@ export async function getGroupsWithDetails(
 				const respondedMeetingIds = new Set(
 					userAvailabilities.map((a) => a.meetingId),
 				);
+				const today = new Date();
+				today.setHours(0, 0, 0, 0);
 				const pendingMeeting = groupMeetings.find(
-					(m) => !respondedMeetingIds.has(m.id),
+					(m) =>
+						!respondedMeetingIds.has(m.id) &&
+						m.dates.some((d) => new Date(d) >= today),
 				);
 				needsAvailability = pendingMeeting !== undefined;
 				pendingMeetingName = pendingMeeting?.title ?? null;
