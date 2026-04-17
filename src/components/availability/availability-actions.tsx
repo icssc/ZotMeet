@@ -121,7 +121,9 @@ export function AvailabilityActions({
 					scheduledToTime,
 				});
 				if ("error" in removalResult) {
-					showError(removalResult.error);
+					showError(
+						removalResult.error ?? "Failed to delete scheduled meeting.",
+					);
 					return;
 				}
 			}
@@ -145,7 +147,7 @@ export function AvailabilityActions({
 					scheduledToTime,
 				});
 				if ("error" in saveResult) {
-					showError(saveResult.error);
+					showError(saveResult.error ?? "Failed to save scheduled meeting.");
 					return;
 				}
 			}
