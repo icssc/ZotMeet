@@ -27,6 +27,11 @@ interface InviteMembersDialogProps {
 	meetingId: string;
 }
 
+const getInitials = (email: string) => {
+	const name = email.split("@")[0] ?? "";
+	return name.slice(0, 2).toUpperCase();
+};
+
 export function InviteMembersDialog({
 	open,
 	onOpenChange,
@@ -42,13 +47,21 @@ export function InviteMembersDialog({
 	const [isPending, startTransition] = useTransition();
 	const [error, setError] = useState("");
 	const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const copiedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 	const { showSuccess, showError } = useSnackbar();
 
 	useEffect(() => {
-		if (open && typeof window !== "undefined") {
+		if (open) {
 			setMeetingLink(`${window.location.origin}/availability/${meetingId}`);
 		}
 	}, [open, meetingId]);
+
+	useEffect(() => {
+		return () => {
+			if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+		};
+	}, []);
 
 	const resetForm = useCallback(() => {
 		setMembers([]);
@@ -58,13 +71,10 @@ export function InviteMembersDialog({
 		setError("");
 	}, []);
 
-	const handleOpenChange = useCallback(
-		(nextOpen: boolean) => {
-			if (!nextOpen) resetForm();
-			onOpenChange(nextOpen);
-		},
-		[onOpenChange, resetForm],
-	);
+	const handleOpenChange = (nextOpen: boolean) => {
+		if (!nextOpen) resetForm();
+		onOpenChange(nextOpen);
+	};
 
 	const handleMemberSearch = useCallback(
 		(query: string) => {
@@ -85,7 +95,7 @@ export function InviteMembersDialog({
 					(r) => !members.some((m) => m.id === r.id),
 				);
 				setSearchResults(filtered);
-			}, 50);
+			}, 200);
 		},
 		[members],
 	);
@@ -109,12 +119,13 @@ export function InviteMembersDialog({
 		if (!meetingLink) return;
 		await navigator.clipboard.writeText(meetingLink);
 		setCopied(true);
-		setTimeout(() => setCopied(false), 2000);
+		copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
 	}, [meetingLink]);
 
 	const handleDone = useCallback(() => {
 		if (members.length === 0) {
-			handleOpenChange(false);
+			resetForm();
+			onOpenChange(false);
 			return;
 		}
 
@@ -127,18 +138,14 @@ export function InviteMembersDialog({
 
 			if (result.success) {
 				showSuccess(result.message);
-				handleOpenChange(false);
+				resetForm();
+				onOpenChange(false);
 			} else {
 				setError(result.message);
 				showError(result.message);
 			}
 		});
-	}, [meetingId, members, handleOpenChange, showSuccess, showError]);
-
-	const getInitials = (email: string) => {
-		const name = email.split("@")[0] ?? "";
-		return name.slice(0, 2).toUpperCase();
-	};
+	}, [meetingId, members, onOpenChange, showSuccess, resetForm, showError]);
 
 	return (
 		<Dialog
