@@ -114,12 +114,16 @@ export function AvailabilityActions({
 					.toTimeString()
 					.slice(0, 8);
 
-				await deleteScheduledTimeBlock({
+				const removalResult = await deleteScheduledTimeBlock({
 					meetingId: meetingData.id,
 					scheduledDate,
 					scheduledFromTime,
 					scheduledToTime,
 				});
+				if ("error" in removalResult) {
+					showError(removalResult.error);
+					return;
+				}
 			}
 
 			for (const timestamp of pendingAdds) {
@@ -134,12 +138,16 @@ export function AvailabilityActions({
 					.toTimeString()
 					.slice(0, 8);
 
-				await saveScheduledTimeBlock({
+				const saveResult = await saveScheduledTimeBlock({
 					meetingId: meetingData.id,
 					scheduledDate,
 					scheduledFromTime,
 					scheduledToTime,
 				});
+				if ("error" in saveResult) {
+					showError(saveResult.error);
+					return;
+				}
 			}
 
 			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
@@ -150,6 +158,7 @@ export function AvailabilityActions({
 			setAvailabilityView("group");
 		} catch (error) {
 			console.error("Failed to save meeting blocks", error);
+			showError("Failed to save meeting schedule. Please try again.");
 		}
 	};
 
