@@ -121,11 +121,15 @@ export function Availability({
 	allAvailabilities,
 	user,
 	scheduledBlocks,
+	autoOpenInviteDialog = false,
+	inviteQueryInUrl = false,
 }: {
 	meetingData: SelectMeeting;
 	allAvailabilities: MemberMeetingAvailability[];
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
+	autoOpenInviteDialog?: boolean;
+	inviteQueryInUrl?: boolean;
 }) {
 	const [availabilitySelectionMode, setAvailabilitySelectionMode] =
 		useState<Availability>("available");
@@ -750,6 +754,8 @@ export function Availability({
 				setChangeableTimezone={setChangeableTimezone}
 				setTimezone={setUserTimezone}
 				availabilityEditState={availabilitySelectionMode}
+				autoOpenInviteDialog={autoOpenInviteDialog}
+				inviteQueryInUrl={inviteQueryInUrl}
 			/>
 
 			<div className="flex min-h-0 w-full min-w-0 flex-row items-start justify-start">

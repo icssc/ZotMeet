@@ -13,8 +13,8 @@ import { Create, InsertInvitationRounded } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Button } from "@mui/material";
 import { DeleteIcon, EditIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
@@ -36,6 +36,8 @@ interface AvailabilityHeaderProps {
 	setChangeableTimezone: (can: boolean) => void;
 	setTimezone: (timezone: string) => void;
 	availabilityEditState: Availability;
+	autoOpenInviteDialog?: boolean;
+	inviteQueryInUrl?: boolean;
 }
 
 export function AvailabilityHeader({
@@ -48,8 +50,11 @@ export function AvailabilityHeader({
 	setChangeableTimezone,
 	setTimezone,
 	availabilityEditState,
+	autoOpenInviteDialog = false,
+	inviteQueryInUrl = false,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
+	const pathname = usePathname();
 	const { showSuccess, showError } = useSnackbar();
 
 	const {
@@ -78,7 +83,13 @@ export function AvailabilityHeader({
 	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+	const [isInviteDialogOpen, setIsInviteDialogOpen] =
+		useState(autoOpenInviteDialog);
+
+	useEffect(() => {
+		if (!inviteQueryInUrl) return;
+		router.replace(pathname, { scroll: false });
+	}, [inviteQueryInUrl, pathname, router]);
 	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 

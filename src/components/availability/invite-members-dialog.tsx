@@ -119,6 +119,9 @@ export function InviteMembersDialog({
 		if (!meetingLink) return;
 		await navigator.clipboard.writeText(meetingLink);
 		setCopied(true);
+		if (copiedTimeoutRef.current) {
+			clearTimeout(copiedTimeoutRef.current);
+		}
 		copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
 	}, [meetingLink]);
 
