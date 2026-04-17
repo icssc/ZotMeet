@@ -402,6 +402,14 @@ export function Availability({
 		return Array.from(allMembers.values());
 	}, [allAvailabilities, availabilityDates, ifNeededDates, user]);
 
+	const pendingMembers = useMemo(
+		() =>
+			allAvailabilities
+				.filter((a) => a.meetingAvailabilities.length === 0)
+				.map(({ memberId, displayName }) => ({ memberId, displayName })),
+		[allAvailabilities],
+	);
+
 	let doesntNeedDay = true;
 	let past = availabilityTimeBlocks[0];
 	availabilityTimeBlocks.forEach((minutes, index) => {
@@ -820,6 +828,7 @@ export function Availability({
 						availabilityDates={availabilityDates}
 						fromTime={fromTimeMinutes}
 						members={members}
+						pendingMembers={pendingMembers}
 						timezone={userTimezone}
 						anchorNormalizedDate={anchorNormalizedDate}
 						currentPageAvailability={currentPageAvailability}

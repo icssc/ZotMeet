@@ -1,8 +1,9 @@
 "use server";
 
+import { inArray } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
-import { meetingInvites } from "@/db/schema";
+import { availabilities, meetingInvites, users } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { getExistingMeetingInvite } from "@/server/data/meeting/invite-queries";
 import { getExistingMeeting } from "@/server/data/meeting/queries";
@@ -66,6 +67,28 @@ export async function inviteMeetingMembers(
 			"Meeting Invite",
 			meetingLink,
 		);
+
+		const invitedUsers = await db
+			.select({ memberId: users.memberId, userId: users.id })
+			.from(users)
+			.where(inArray(users.id, memberIds));
+
+		if (invitedUsers.length === 0) {
+			return { success: false, message: "No valid members selected." };
+		}
+
+		await db
+			.insert(availabilities)
+			.values(
+				invitedUsers.map(({ memberId }) => ({
+					memberId,
+					meetingId,
+					meetingAvailabilities: [],
+				})),
+			)
+			.onConflictDoNothing({
+				target: [availabilities.memberId, availabilities.meetingId],
+			});
 
 		revalidatePath(`/availability/${meetingId}`);
 		revalidatePath("/summary");
