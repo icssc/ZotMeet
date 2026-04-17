@@ -213,9 +213,9 @@ export function AvailabilityHeader({
 			if (!copied) {
 				throw new Error("Clipboard write failed");
 			}
-			showSuccess("Meeting name coped to clipboard");
+			showSuccess("Meeting name copied to clipboard");
 		} catch (_clipboardError) {
-			showError("Invite link generated, but failed to copy to clipboard.");
+			showError("Failed to copy Meeting name");
 		}
 	}
 
@@ -233,11 +233,13 @@ export function AvailabilityHeader({
 						</IconButton>
 					</div>
 
-					<div className="block sm:hidden">
-						<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
-							<MoreVerticalIcon />
-						</IconButton>
-					</div>
+					{isOwner && (
+						<div className="block sm:hidden">
+							<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
+								<MoreVerticalIcon />
+							</IconButton>
+						</div>
+					)}
 				</div>
 				<div className="flex gap-8">
 					<div className="flex items-center gap-2">
