@@ -69,10 +69,14 @@ interface AvailabilityStore {
 	setImportPreview: (isoStrings: readonly string[] | null) => void;
 }
 
+// refresh upon page load. no live responsiveness, avoids useEffect()
+const getInitialItemsPerPage = () =>
+	typeof window !== "undefined" && window.innerWidth < 768 ? 2 : 5;
+
 export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	// Pagination
 	currentPage: 0,
-	itemsPerPage: 5,
+	itemsPerPage: getInitialItemsPerPage(),
 	isFirstPage: true,
 	nextPage: (totalItems) =>
 		set((state) => {
