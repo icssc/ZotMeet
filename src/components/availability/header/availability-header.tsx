@@ -9,16 +9,17 @@ import {
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
 import GoogleIcon from "@mui/icons-material/Google";
-import { DeleteIcon, EditIcon } from "lucide-react";
 import {
 	AccessTime,
 	CalendarMonth,
+	ContentCopy,
 	LocationOn,
 	Settings,
 	Create,
 	InsertInvitationRounded 
 } from "@mui/icons-material";
-import { Button, Paper, Typography } from "@mui/material";
+import { Button, IconButton, Paper, Typography } from "@mui/material";
+import { DeleteIcon, MoreVerticalIcon, EditIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -35,6 +36,7 @@ import {
 	formatDateToUSNumeric,
 	formatTimeWithHoursAndMins,
 } from "@/lib/availability/utils";
+import { copyTextToClipboard } from "@/lib/clipboard/utils";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
@@ -205,24 +207,49 @@ export function AvailabilityHeader({
 
 	const formattedEndTime = formatTimeWithHoursAndMins(meetingData.toTime);
 
+	async function handleCopy() {
+		try {
+			const copied = await copyTextToClipboard(meetingData.title);
+			if (!copied) {
+				throw new Error("Clipboard write failed");
+			}
+			showSuccess("Meeting name coped to clipboard");
+		} catch (_clipboardError) {
+			showError("Invite link generated, but failed to copy to clipboard.");
+		}
+	}
+
 	return (
 		<Paper variant="outlined" className="mt-10">
 			<div className="flex flex-col gap-4">
-				<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
-					{meetingData.title}
-				</h1>
+				<div className="flex w-full items-center">
+					<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
+						{meetingData.title}
+					</h1>
 
+					<div className="ml-auto sm:ml-8">
+						<IconButton size="small" onClick={handleCopy}>
+							<ContentCopy />
+						</IconButton>
+					</div>
+
+					<div className="block sm:hidden">
+						<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
+							<MoreVerticalIcon />
+						</IconButton>
+					</div>
+				</div>
 				<div className="flex gap-8">
 					<div className="flex items-center gap-2">
 						<CalendarMonth fontSize="small" />
-						<Typography color="textSecondary">
+						<Typography color="textSecondary" className="whitespace-nowrap">
 							{formattedStartDate} - {formattedEndDate}
 						</Typography>
 					</div>
 
 					<div className="flex items-center gap-2">
 						<AccessTime />
-						<Typography color="textSecondary">
+						<Typography color="textSecondary" className="whitespace-nowrap">
 							{formattedStartTime} - {formattedEndTime}
 						</Typography>
 					</div>
@@ -360,7 +387,7 @@ export function AvailabilityHeader({
 					</div>
 
 					{isOwner && (
-						<div className="-ml-2 flex items-center gap-x-1 self-start">
+						<div className="-ml-2 hidden items-center gap-x-1 sm:flex">
 							<Button
 								onClick={() => setIsEditModalOpen(true)}
 								variant="text"
