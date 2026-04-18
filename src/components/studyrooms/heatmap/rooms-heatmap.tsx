@@ -46,7 +46,10 @@ export const RoomsHeatmap = ({
 	const [sortBy, setSortBy] = useState<SortKey>("default");
 
 	const intervals = buildHalfHourIntervals(searchDate, startTime, endTime);
-	const windowStart = mergeDateAndTime(searchDate, startTime);
+	const windowStart = useMemo(
+		() => mergeDateAndTime(searchDate, startTime),
+		[searchDate, startTime],
+	);
 
 	const sortedRooms = useMemo(() => {
 		const copy = rooms.filter((r) => r.name);
