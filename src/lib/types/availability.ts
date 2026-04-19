@@ -23,7 +23,7 @@ export type SelectionStateType = {
 
 export type MemberMeetingAvailability = Pick<
 	SelectAvailability,
-	"memberId" | "meetingAvailabilities"
+	"memberId" | "meetingAvailabilities" | "ifNeededAvailabilities"
 > &
 	Pick<SelectMember, "displayName">;
 

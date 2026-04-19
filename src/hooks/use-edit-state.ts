@@ -6,10 +6,12 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface UseAvailabilityEditorProps {
 	currentAvailabilityDates: ZotDate[];
+	currentIfNeededDates: ZotDate[];
 }
 
 export function useEditState({
 	currentAvailabilityDates,
+	currentIfNeededDates,
 }: UseAvailabilityEditorProps) {
 	const availabilityView = useAvailabilityStore(
 		(state) => state.availabilityView,

@@ -11,7 +11,10 @@ interface PersonalAvailabilityProps {
 	blockIndex: number;
 	availabilityTimeBlocks: number[];
 	availabilityDates: ZotDate[];
-	currentPageAvailability: ZotDate[];
+	currentPageAvailability: {
+		availabilities: ZotDate[];
+		ifNeeded: ZotDate[];
+	};
 	googleCalendarEvents: GoogleCalendarEvent[];
 	meetingDates: string[];
 }
@@ -30,7 +33,7 @@ export function PersonalAvailability({
 
 	const { processedCellSegments } = useGoogleCalendar({
 		googleCalendarEvents,
-		currentPageAvailability,
+		currentPageAvailability: currentPageAvailability["availabilities"],
 		availabilityTimeBlocks,
 		meetingDates,
 	});

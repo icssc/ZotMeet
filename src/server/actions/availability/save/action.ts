@@ -41,6 +41,13 @@ export async function saveAvailability({
 		// }
 
 		const meeting = await getExistingMeeting(meetingId);
+		const existing = await db.query.availabilities.findFirst({
+			where: (a, { and, eq }) =>
+				and(eq(a.memberId, memberId), eq(a.meetingId, meetingId)),
+		});
+		const filteredIfNeeded = (existing?.ifNeededAvailabilities ?? []).filter(
+			(t) => !availabilityTimes.includes(t),
+		);
 
 		if (!meeting) {
 			throw new Error("Meeting not found");
@@ -52,11 +59,13 @@ export async function saveAvailability({
 				memberId,
 				meetingId,
 				meetingAvailabilities: availabilityTimes,
+				ifNeededAvailabilities: filteredIfNeeded,
 			})
 			.onConflictDoUpdate({
 				target: [availabilities.memberId, availabilities.meetingId],
 				set: {
 					meetingAvailabilities: availabilityTimes,
+					ifNeededAvailabilities: filteredIfNeeded, // 👈 write both columns
 				},
 			});
 
@@ -105,7 +114,14 @@ export async function saveIfNeeded({
 		// }
 
 		const meeting = await getExistingMeeting(meetingId);
+		const existing = await db.query.availabilities.findFirst({
+			where: (a, { and, eq }) =>
+				and(eq(a.memberId, memberId), eq(a.meetingId, meetingId)),
+		});
 
+		const filteredAvailability = (existing?.meetingAvailabilities ?? []).filter(
+			(t) => !availabilityTimes.includes(t),
+		);
 		if (!meeting) {
 			throw new Error("Meeting not found");
 		}
@@ -115,11 +131,13 @@ export async function saveIfNeeded({
 			.values({
 				memberId,
 				meetingId,
+				meetingAvailabilities: filteredAvailability,
 				ifNeededAvailabilities: availabilityTimes,
 			})
 			.onConflictDoUpdate({
 				target: [availabilities.memberId, availabilities.meetingId],
 				set: {
+					meetingAvailabilities: filteredAvailability,
 					ifNeededAvailabilities: availabilityTimes,
 				},
 			});

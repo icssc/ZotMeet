@@ -29,6 +29,7 @@ interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
 	user: UserProfile | null;
 	availabilityDates: ZotDate[];
+	ifNeededDates: ZotDate[];
 	onCancel: () => void;
 	onSave: () => void;
 	setChangeableTimezone: (can: boolean) => void;
@@ -40,6 +41,7 @@ export function AvailabilityHeader({
 	meetingData,
 	user,
 	availabilityDates,
+	ifNeededDates,
 	onCancel,
 	onSave,
 	setChangeableTimezone,
@@ -92,11 +94,16 @@ export function AvailabilityHeader({
 			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
 			displayName: user.displayName,
 		};
-		const response = await (availabilityEditState === "available"
-			? saveAvailability(availability)
-			: saveIfNeeded(availability));
+		const ifNeeded = {
+			meetingId: meetingData.id,
+			availabilityTimes: ifNeededDates.flatMap((date) => date.availability), // 👈 use ifNeededDates
+			displayName: user.displayName,
+		};
+		const response = await saveAvailability(availability);
 
-		if (response.status === 200) {
+		const ifNeededResponse = await saveIfNeeded(ifNeeded);
+
+		if (response.status === 200 && ifNeededResponse.status === 200) {
 			setHasAvailability(true);
 			setAvailabilityView("group");
 			onSave();
