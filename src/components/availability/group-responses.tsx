@@ -1,9 +1,11 @@
-import { Button, Checkbox, Chip, Divider, FormControlLabel, Switch, Typography } from "@mui/material/";
+import { Button, Chip, Switch, Typography } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
-import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
-import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
+import {
+	getTimestampFromBlockIndex,
+	newZonedPageAvailAndDates,
+} from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -24,6 +26,7 @@ export function GroupResponses({
 	availabilityDates,
 	fromTime,
 	members,
+	timezone,
 	currentPageAvailability,
 	doesntNeedDay,
 }: GroupResponsesProps) {
@@ -98,6 +101,7 @@ export function GroupResponses({
 			selectedZotDateIndex,
 			fromTime,
 			newAvailDates,
+			timezone,
 		);
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
 
@@ -111,6 +115,7 @@ export function GroupResponses({
 		selectedBlockIndex,
 		newAvailDates,
 		fromTime,
+		timezone,
 		members,
 	]);
 
