@@ -63,6 +63,10 @@ interface AvailabilityStore {
 	clearPendingTimes: () => void;
 	isScheduled: (timestamp: string) => boolean;
 	hydrateScheduledTimes: (timestamps: string[]) => void;
+
+	/** Personal import preview: ISO keys that exist on the current meeting grid (subset of a past meeting). */
+	importPreviewIsoSet: Set<string> | null;
+	setImportPreview: (isoStrings: readonly string[] | null) => void;
 }
 
 export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
@@ -259,4 +263,10 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 			pendingRemovals: new Set(),
 		});
 	},
+
+	importPreviewIsoSet: null,
+	setImportPreview: (isoStrings) =>
+		set({
+			importPreviewIsoSet: isoStrings === null ? null : new Set(isoStrings),
+		}),
 }));

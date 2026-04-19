@@ -4,6 +4,7 @@ import { AvailabilityBlockCell } from "@/components/availability/table/availabil
 import {
 	generateCellKey,
 	generateDateKey,
+	getTimestampFromBlockIndex,
 	spacerBeforeDate,
 } from "@/lib/availability/utils";
 import type { ProcessedCellEventSegments } from "@/lib/types/availability";
@@ -13,26 +14,35 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 interface AvailabilityBlocksProps {
 	timeBlock: number;
 	blockIndex: number;
+	fromTimeMinutes: number;
+	availabilityDates: ZotDate[];
 	availabilityTimeBlocksLength: number;
 	currentPageAvailability: {
 		availabilities: ZotDate[];
 		ifNeeded: ZotDate[];
 	};
 	processedCellSegments: ProcessedCellEventSegments;
+	timeZone: string;
 }
 
 export function AvailabilityBlocks({
 	timeBlock,
 	blockIndex,
+	fromTimeMinutes,
+	availabilityDates,
 	availabilityTimeBlocksLength,
 	currentPageAvailability,
 	processedCellSegments,
+	timeZone,
 }: AvailabilityBlocksProps) {
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
 			itemsPerPage: state.itemsPerPage,
 		})),
+	);
+	const importPreviewIsoSet = useAvailabilityStore(
+		(s) => s.importPreviewIsoSet,
 	);
 
 	const isTopOfHour = timeBlock % 60 === 0;
@@ -63,6 +73,16 @@ export function AvailabilityBlocks({
 						const cellKey = generateCellKey(zotDateIndex, blockIndex);
 						const segmentsForCell = processedCellSegments.get(cellKey) || [];
 
+						const slotIso = getTimestampFromBlockIndex(
+							blockIndex,
+							zotDateIndex,
+							fromTimeMinutes,
+							availabilityDates,
+							timeZone,
+						);
+						const showImportPreview =
+							Boolean(slotIso) && Boolean(importPreviewIsoSet?.has(slotIso));
+
 						return (
 							<React.Fragment key={key}>
 								{spacers[pageDateIndex] && (
@@ -78,6 +98,7 @@ export function AvailabilityBlocks({
 									isLastRow={isLastRow}
 									eventSegments={segmentsForCell}
 									hasSpacerBefore={spacers[pageDateIndex]}
+									showImportPreview={showImportPreview}
 								/>
 							</React.Fragment>
 						);

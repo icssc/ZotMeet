@@ -2,13 +2,10 @@
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { useDrag } from "@use-gesture/react";
-import { formatInTimeZone } from "date-fns-tz";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
-import {
-	GroupAvailability,
-	getTimestampFromBlockIndex,
-} from "@/components/availability/group-availability";
+import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
@@ -19,11 +16,18 @@ import { TimeZoneDropdown } from "@/components/availability/table/availability-t
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import type { UserProfile } from "@/lib/auth/user";
+
 import {
+	buildMeetingGridIsoSet,
+	buildZotDateRowsForMeetingDays,
 	convertTimeFromUTC,
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
+	getTimestampFromBlockIndex,
+	mergeImportedGridSlots,
 } from "@/lib/availability/utils";
+import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
+import { getBestTimeRanges } from "@/lib/rooms/utils";
 import type {
 	GoogleCalendarEvent,
 	MemberMeetingAvailability,
@@ -45,6 +49,7 @@ const deriveInitialAvailability = ({
 	allAvailabilties,
 	availabilityTimeBlocks,
 	mode,
+	timezone,
 }: {
 	timezone: string;
 	meetingDates: string[];
@@ -91,8 +96,7 @@ const deriveInitialAvailability = ({
 	return meetingDates
 		.map((meetingDate) => {
 			const dateStr = meetingDate.split("T")[0];
-			const [year, month, day] = dateStr.split("-").map(Number);
-			const date = new Date(year, month - 1, day);
+			const date = fromZonedTime(`${dateStr}T00:00:00`, timezone);
 
 			const earliestMinutes = availabilityTimeBlocks[0] || 480;
 			const latestMinutes =
@@ -106,6 +110,7 @@ const deriveInitialAvailability = ({
 				false,
 				availabilitiesByDate.get(dateStr) || [],
 				Object.fromEntries(timestampsByDate.get(dateStr) || new Map()),
+				timezone,
 			);
 		})
 		.sort((a, b) => a.day.getTime() - b.day.getTime());
@@ -138,6 +143,7 @@ export function Availability({
 	const toggleHoverGrid = useAvailabilityStore(
 		(state) => state.toggleHoverGrid,
 	);
+	const setImportPreview = useAvailabilityStore((s) => s.setImportPreview);
 
 	const handleMouseLeave = useCallback(() => {
 		if (availabilityView === "group" && !selectionIsLocked) {
@@ -196,6 +202,30 @@ export function Availability({
 		[fromTimeMinutes, toTimeMinutes],
 	);
 
+	const importGridIsoSet = useMemo(
+		() =>
+			buildMeetingGridIsoSet(
+				buildZotDateRowsForMeetingDays(
+					meetingData.dates,
+					availabilityTimeBlocks,
+					userTimezone,
+				),
+				fromTimeMinutes,
+				availabilityTimeBlocks.length,
+				userTimezone,
+			),
+		[meetingData.dates, fromTimeMinutes, availabilityTimeBlocks, userTimezone],
+	);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: clear import overlay when meeting or viewer TZ changes
+	useEffect(() => {
+		setImportPreview(null);
+	}, [meetingData.id, userTimezone, setImportPreview]);
+
+	useEffect(() => {
+		if (availabilityView !== "personal") setImportPreview(null);
+	}, [availabilityView, setImportPreview]);
+
 	const anchorNormalizedDate = useMemo(() => {
 		return isAnchorDateMeeting(meetingData.dates)
 			? convertAnchorDatesToCurrentWeek(meetingData.dates).map(
@@ -229,6 +259,9 @@ export function Availability({
 			mode: "if-needed",
 		}),
 	);
+	const bestTimeRanges = useMemo(() => {
+		return getBestTimeRanges(availabilityDates);
+	}, [availabilityDates]);
 
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
@@ -286,6 +319,25 @@ export function Availability({
 			}
 		},
 		[availabilitySelectionMode],
+	);
+
+	const handleImportSlotsFromMeeting = useCallback(
+		(slotIsoStrings: string[]) => {
+			if (!user?.memberId || slotIsoStrings.length === 0) return;
+			const merged = mergeImportedGridSlots(
+				availabilityDates,
+				slotIsoStrings,
+				user.memberId,
+			);
+			handleUserAvailabilityChange(merged);
+			setImportPreview(null);
+		},
+		[
+			availabilityDates,
+			user?.memberId,
+			handleUserAvailabilityChange,
+			setImportPreview,
+		],
 	);
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
@@ -448,6 +500,36 @@ export function Availability({
 		}
 	}, [startBlockSelection, endBlockSelection, setSelectionState]);
 
+	//currently unused as we only have console log for now
+	const [_studyRooms, setStudyRooms] = useState<any[]>([]);
+
+	useEffect(() => {
+		if (!bestTimeRanges.length) {
+			setStudyRooms([]);
+			return;
+		}
+
+		const fetchRooms = async () => {
+			try {
+				// Make one API call per (date, time) pair
+				const promises = bestTimeRanges.map(({ date, time }) => {
+					console.log("Fetching with:", { date, time });
+					return fetchStudyRooms({ date: date, timeRange: time });
+				});
+				const results = await Promise.all(promises);
+
+				console.log("Fetched study rooms:", results); // console log for now
+				const combined = results.flatMap((res) => res.data ?? []);
+
+				setStudyRooms(combined);
+			} catch (err) {
+				console.error("Failed to fetch study rooms:", err);
+			}
+		};
+
+		fetchRooms();
+	}, [bestTimeRanges]);
+
 	// Helper to get block info from pointer position
 	const getBlockAtPosition = useCallback((x: number, y: number) => {
 		const elements = document.elementsFromPoint(x, y);
@@ -522,6 +604,7 @@ export function Availability({
 								day,
 								fromTimeMinutes,
 								availabilityDates,
+								userTimezone,
 							);
 							if (timestamp) timestamps.push(timestamp);
 						}
@@ -581,6 +664,7 @@ export function Availability({
 									dateIndex,
 									fromTimeMinutes,
 									availabilityDates,
+									userTimezone,
 								);
 
 								if (!currentDate.groupAvailability[timestamp]) {
@@ -694,16 +778,19 @@ export function Availability({
 												members={members}
 												onMouseLeave={handleMouseLeave}
 												isScheduling={availabilityView === "schedule"}
+												timeZone={userTimezone}
 											/>
 										) : (
 											<PersonalAvailability
 												timeBlock={timeBlock}
 												blockIndex={blockIndex}
+												fromTimeMinutes={fromTimeMinutes}
 												availabilityDates={availabilityDates}
 												availabilityTimeBlocks={availabilityTimeBlocks}
 												currentPageAvailability={currentPageAvailability}
 												googleCalendarEvents={googleCalendarEvents}
 												meetingDates={meetingData.dates}
+												userTimezone={userTimezone}
 											/>
 										)}
 									</tr>
@@ -743,6 +830,11 @@ export function Availability({
 					<PersonalAvailabilitySidebar
 						availability={availabilitySelectionMode}
 						setAvailability={setAvailabilitySelectionMode}
+						meetingId={meetingData.id}
+						userTimezone={userTimezone}
+						importGridIsoSet={importGridIsoSet}
+						canImport={Boolean(user?.memberId)}
+						onImportSlots={handleImportSlotsFromMeeting}
 					/>
 				)}
 			</div>

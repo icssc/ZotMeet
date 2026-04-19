@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, eq, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
 	availabilities,
@@ -123,4 +123,54 @@ export async function getScheduledTimeBlocks(meetingId: string) {
 	}
 
 	return rows; // array of scheduled blocks
+}
+
+/** Non-archived meetings the member has availability for, excluding one meeting (e.g. current poll). */
+export async function getMeetingsWithMemberAvailabilityExcluding({
+	memberId,
+	excludeMeetingId,
+}: {
+	memberId: string;
+	excludeMeetingId: string;
+}) {
+	const respondedMeetingIds = db
+		.select({ meetingId: availabilities.meetingId })
+		.from(availabilities)
+		.where(eq(availabilities.memberId, memberId));
+
+	return db
+		.select({
+			id: meetings.id,
+			title: meetings.title,
+			createdAt: meetings.createdAt,
+		})
+		.from(meetings)
+		.where(
+			and(
+				eq(meetings.archived, false),
+				sql`${meetings.id} IN ${respondedMeetingIds}`,
+				ne(meetings.id, excludeMeetingId),
+			),
+		)
+		.orderBy(desc(meetings.createdAt));
+}
+
+/** Availability rows for one member across many meetings (e.g. import/copy flows). */
+export async function getMemberAvailabilitiesForMeetingIds({
+	memberId,
+	meetingIds,
+}: {
+	memberId: string;
+	meetingIds: string[];
+}) {
+	if (meetingIds.length === 0) {
+		return [];
+	}
+
+	return db.query.availabilities.findMany({
+		where: and(
+			eq(availabilities.memberId, memberId),
+			inArray(availabilities.meetingId, meetingIds),
+		),
+	});
 }

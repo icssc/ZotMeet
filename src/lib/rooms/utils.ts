@@ -1,10 +1,12 @@
+import { formatLocalDateKey } from "@/lib/meetings/utils";
+
 export const formatISOToLocalTime = (isoString: string): string => {
 	return new Date(isoString)
 		.toLocaleTimeString("en-US", {
 			hour: "numeric",
 			minute: "2-digit",
 			hour12: true,
-			//timeZone: "UTC",
+			timeZone: "America/Los_Angeles",
 		})
 		.toLowerCase();
 };
@@ -142,4 +144,73 @@ export function groupSlotsIntoIntervals<
 			slots: matching,
 		};
 	});
+}
+
+// to fit api format, am/pm is needed
+function formatRange(start: Date, end: Date) {
+	const format = (d: Date) => {
+		let hours = d.getHours();
+		const minutes = d.getMinutes().toString().padStart(2, "0");
+
+		const ampm = hours >= 12 ? "pm" : "am";
+		hours = hours % 12;
+		if (hours === 0) hours = 12;
+
+		return `${hours}:${minutes}${ampm}`;
+	};
+	const rangeEnd = new Date(end.getTime() + 15 * 60 * 1000);
+	return `${format(start)}-${format(rangeEnd)}`;
+}
+
+export function getBestTimeRanges(availabilityDates: any[]) {
+	let max = 0;
+
+	availabilityDates.forEach((date) => {
+		Object.values(date.groupAvailability).forEach((memberIds) => {
+			max = Math.max(max, (memberIds as string[]).length);
+		});
+	});
+
+	const timestamps: string[] = [];
+
+	availabilityDates.forEach((date) => {
+		Object.entries(date.groupAvailability).forEach(
+			([timestamp, memberIds]: [string, unknown]) => {
+				if ((memberIds as string[]).length === max && max > 0) {
+					timestamps.push(timestamp);
+				}
+			},
+		);
+	});
+
+	if (!timestamps.length) return [];
+	const sorted = [...timestamps].sort();
+	const results: { date: string; time: string }[] = [];
+
+	let start = new Date(sorted[0]);
+	let prev = start;
+
+	for (let i = 1; i < sorted.length; i++) {
+		const curr = new Date(sorted[i]);
+
+		const diffMinutes = (curr.getTime() - prev.getTime()) / 60000;
+
+		const sameDay = formatLocalDateKey(curr) === formatLocalDateKey(prev);
+
+		if (diffMinutes !== 15 || !sameDay) {
+			results.push({
+				date: formatLocalDateKey(start),
+				time: formatRange(start, prev),
+			});
+			start = curr;
+		}
+		prev = curr;
+	}
+
+	results.push({
+		date: formatLocalDateKey(start),
+		time: formatRange(start, prev),
+	});
+
+	return results;
 }

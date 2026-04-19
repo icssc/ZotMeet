@@ -4,23 +4,18 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { availabilities } from "@/db/schema";
 
-export async function getMemberMeetingAvailability({
+/** One row or `undefined` if the member has not saved availability for this meeting. */
+export async function findMemberMeetingAvailability({
 	memberId,
 	meetingId,
 }: {
 	memberId: string;
 	meetingId: string;
 }) {
-	const availabilityData = await db.query.availabilities.findFirst({
+	return db.query.availabilities.findFirst({
 		where: and(
 			eq(availabilities.memberId, memberId),
 			eq(availabilities.meetingId, meetingId),
 		),
 	});
-
-	if (!availabilityData) {
-		throw new Error("Availability not found");
-	}
-
-	return availabilityData;
 }

@@ -1,7 +1,10 @@
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { CalendarConstants } from "@/lib/types/chrono";
 
 export class ZotDate {
 	readonly day: Date;
+	/** When set, slot ISO strings use this zone (not the process default). */
+	ianaTimeZone?: string;
 	isSelected: boolean;
 	availability: string[];
 	/**
@@ -26,6 +29,7 @@ export class ZotDate {
 		isSelected: boolean = false,
 		availability: string[] = [],
 		groupAvailability: Record<string, string[]> = {},
+		ianaTimeZone?: string,
 	) {
 		if (day instanceof ZotDate) {
 			this.day = new Date(day.day);
@@ -35,6 +39,7 @@ export class ZotDate {
 			this.blockLength = 15;
 			this.availability = [...day.availability];
 			this.groupAvailability = structuredClone(day.groupAvailability);
+			this.ianaTimeZone = day.ianaTimeZone;
 		} else {
 			if (day) {
 				this.day = day;
@@ -47,6 +52,7 @@ export class ZotDate {
 			this.blockLength = 15;
 			this.availability = availability;
 			this.groupAvailability = groupAvailability;
+			this.ianaTimeZone = ianaTimeZone;
 		}
 	}
 
@@ -56,11 +62,22 @@ export class ZotDate {
 	 * @return ISO string representing the start time of the block
 	 */
 	private getISOStringForBlock(blockIndex: number): string {
-		const minutesFromMidnight =
-			this.earliestTime + blockIndex * this.blockLength;
+		const totalMinutes = this.earliestTime + blockIndex * this.blockLength;
+		if (this.ianaTimeZone) {
+			const datePart = formatInTimeZone(
+				this.day,
+				this.ianaTimeZone,
+				"yyyy-MM-dd",
+			);
+			const hours = Math.floor(totalMinutes / 60);
+			const minutes = totalMinutes % 60;
+			const pad = (n: number) => n.toString().padStart(2, "0");
+			const localDateTime = `${datePart}T${pad(hours)}:${pad(minutes)}:00`;
+			return fromZonedTime(localDateTime, this.ianaTimeZone).toISOString();
+		}
 		const newDate = new Date(this.day);
-		newDate.setHours(Math.floor(minutesFromMidnight / 60));
-		newDate.setMinutes(minutesFromMidnight % 60);
+		newDate.setHours(Math.floor(totalMinutes / 60));
+		newDate.setMinutes(totalMinutes % 60);
 		newDate.setSeconds(0);
 		newDate.setMilliseconds(0);
 		return newDate.toISOString();
@@ -72,8 +89,15 @@ export class ZotDate {
 	 * @return the corresponding block index for the given time
 	 */
 	private getBlockIndexFromISOString(ISOString: string): number {
-		const date = new Date(ISOString);
-		const minutesFromMidnight = date.getHours() * 60 + date.getMinutes();
+		let minutesFromMidnight: number;
+		if (this.ianaTimeZone) {
+			minutesFromMidnight =
+				Number(formatInTimeZone(ISOString, this.ianaTimeZone, "H")) * 60 +
+				Number(formatInTimeZone(ISOString, this.ianaTimeZone, "m"));
+		} else {
+			const date = new Date(ISOString);
+			minutesFromMidnight = date.getHours() * 60 + date.getMinutes();
+		}
 		return Math.floor(
 			(minutesFromMidnight - this.earliestTime) / this.blockLength,
 		);
@@ -470,6 +494,7 @@ export class ZotDate {
 					[...value],
 				]),
 			),
+			this.ianaTimeZone,
 		);
 		return clonedDate;
 	}

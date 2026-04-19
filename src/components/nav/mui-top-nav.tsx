@@ -1,7 +1,13 @@
 "use client";
 
 import { deleteNotification, readNotification } from "@actions/user/action";
-import { Close, Login, Person } from "@mui/icons-material";
+import {
+	Close,
+	DarkModeOutlined,
+	LightModeOutlined,
+	Login,
+	Person,
+} from "@mui/icons-material";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import {
 	AppBar,
@@ -24,6 +30,7 @@ import { useState } from "react";
 import { AcceptGroupInvite } from "@/components/groups/accept-group-invite";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
 import { logoutAction } from "@/server/actions/auth/logout/action";
+import { useThemeMode } from "../theme/theme-provider";
 
 const navItems = [
 	{ title: "Meetings", url: "/summary" },
@@ -38,6 +45,7 @@ type MuiTopNavProps = {
 
 export function MuiTopNav({ user, notifications }: MuiTopNavProps) {
 	const pathname = usePathname();
+	const { mode, setMode } = useThemeMode();
 
 	return (
 		<AppBar
@@ -78,8 +86,7 @@ export function MuiTopNav({ user, notifications }: MuiTopNavProps) {
 								sx={{
 									color: "text.primary",
 									fontWeight: isActive ? 700 : 400,
-									fontSize: "18px",
-									lineHeight: "24px",
+									fontSize: "20px",
 									borderRadius: 0,
 									borderBottom: "2px solid transparent",
 									"&:hover": {
@@ -100,11 +107,18 @@ export function MuiTopNav({ user, notifications }: MuiTopNavProps) {
 						display: "flex",
 						justifyContent: "flex-end",
 						alignItems: "center",
-						gap: 2,
+						gap: 0.5,
 					}}
 				>
+					<IconButton
+						onClick={() => setMode(mode === "dark" ? "light" : "dark")}
+					>
+						{mode === "dark" ? <LightModeOutlined /> : <DarkModeOutlined />}
+					</IconButton>
 					<Notifications notifications={notifications} />
-					<NavUser user={user} />
+					<Box sx={{ ml: 1 }}>
+						<NavUser user={user} />
+					</Box>
 				</Box>
 			</Toolbar>
 		</AppBar>
@@ -169,16 +183,11 @@ function Notifications({
 
 	return (
 		<>
-			<Box>
-				<Badge
-					badgeContent={unread.length}
-					onClick={handleClick}
-					color="primary"
-					sx={{ cursor: "pointer" }}
-				>
+			<IconButton onClick={handleClick}>
+				<Badge badgeContent={unread.length} color="primary">
 					<NotificationsOutlinedIcon />
 				</Badge>
-			</Box>
+			</IconButton>
 			<Menu
 				open={Boolean(anchorEl)}
 				anchorEl={anchorEl}
