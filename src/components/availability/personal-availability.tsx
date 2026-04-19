@@ -9,21 +9,25 @@ import type { ZotDate } from "@/lib/zotdate";
 interface PersonalAvailabilityProps {
 	timeBlock: number;
 	blockIndex: number;
+	fromTimeMinutes: number;
 	availabilityTimeBlocks: number[];
 	availabilityDates: ZotDate[];
 	currentPageAvailability: ZotDate[];
 	googleCalendarEvents: GoogleCalendarEvent[];
 	meetingDates: string[];
+	userTimezone: string;
 }
 
 export function PersonalAvailability({
 	timeBlock,
 	blockIndex,
+	fromTimeMinutes,
 	availabilityTimeBlocks,
 	availabilityDates,
 	currentPageAvailability,
 	googleCalendarEvents,
 	meetingDates,
+	userTimezone,
 }: PersonalAvailabilityProps) {
 	const [isStateUnsaved, setIsStateUnsaved] = useState(false);
 	const initialAvailabilityRef = useRef<string | null>(null);
@@ -74,9 +78,12 @@ export function PersonalAvailability({
 		<AvailabilityBlocks
 			timeBlock={timeBlock}
 			blockIndex={blockIndex}
+			fromTimeMinutes={fromTimeMinutes}
+			availabilityDates={availabilityDates}
 			availabilityTimeBlocksLength={availabilityTimeBlocks.length}
 			currentPageAvailability={currentPageAvailability}
 			processedCellSegments={processedCellSegments}
+			timeZone={userTimezone}
 		/>
 	);
 }

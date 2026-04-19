@@ -2,13 +2,10 @@
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { useDrag } from "@use-gesture/react";
-import { formatInTimeZone } from "date-fns-tz";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
-import {
-	GroupAvailability,
-	getTimestampFromBlockIndex,
-} from "@/components/availability/group-availability";
+import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
@@ -19,10 +16,15 @@ import { TimeZoneDropdown } from "@/components/availability/table/availability-t
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import type { UserProfile } from "@/lib/auth/user";
+
 import {
+	buildMeetingGridIsoSet,
+	buildZotDateRowsForMeetingDays,
 	convertTimeFromUTC,
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
+	getTimestampFromBlockIndex,
+	mergeImportedGridSlots,
 } from "@/lib/availability/utils";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import { getBestTimeRanges } from "@/lib/rooms/utils";
@@ -45,6 +47,7 @@ const deriveInitialAvailability = ({
 	userId,
 	allAvailabilties,
 	availabilityTimeBlocks,
+	timezone,
 }: {
 	timezone: string;
 	meetingDates: string[];
@@ -58,9 +61,11 @@ const deriveInitialAvailability = ({
 	const availabilitiesByDate = new Map<string, string[]>();
 	if (userAvailability?.meetingAvailabilities) {
 		userAvailability.meetingAvailabilities.forEach((timeStr) => {
-			// Convert UTC timestamp to local date to get the correct day
-			const localDate = new Date(timeStr);
-			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
+			const dateStr = formatInTimeZone(
+				new Date(timeStr),
+				timezone,
+				"yyyy-MM-dd",
+			);
 
 			if (!availabilitiesByDate.has(dateStr)) {
 				availabilitiesByDate.set(dateStr, []);
@@ -73,9 +78,11 @@ const deriveInitialAvailability = ({
 	const timestampsByDate = new Map<string, Map<string, string[]>>();
 	for (const member of allAvailabilties) {
 		for (const timestamp of member.meetingAvailabilities) {
-			// Convert UTC timestamp to local date to get the correct day
-			const localDate = new Date(timestamp);
-			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
+			const dateStr = formatInTimeZone(
+				new Date(timestamp),
+				timezone,
+				"yyyy-MM-dd",
+			);
 
 			let dateMap = timestampsByDate.get(dateStr);
 			if (dateMap === undefined) {
@@ -92,11 +99,8 @@ const deriveInitialAvailability = ({
 
 	const initialAvailability = meetingDates
 		.map((meetingDate) => {
-			// Extract the date part and create a Date object in LOCAL timezone
 			const dateStr = meetingDate.split("T")[0];
-			const [year, month, day] = dateStr.split("-").map(Number);
-			// Create date at midnight in LOCAL timezone
-			const date = new Date(year, month - 1, day);
+			const date = fromZonedTime(`${dateStr}T00:00:00`, timezone);
 
 			const earliestMinutes = availabilityTimeBlocks[0] || 480;
 			const latestMinutes =
@@ -115,6 +119,7 @@ const deriveInitialAvailability = ({
 				false,
 				dateAvailabilities,
 				dateGroupAvailabilities,
+				timezone,
 			);
 		})
 		.sort((a, b) => a.day.getTime() - b.day.getTime());
@@ -147,6 +152,7 @@ export function Availability({
 	const toggleHoverGrid = useAvailabilityStore(
 		(state) => state.toggleHoverGrid,
 	);
+	const setImportPreview = useAvailabilityStore((s) => s.setImportPreview);
 
 	const handleMouseLeave = useCallback(() => {
 		if (availabilityView === "group" && !selectionIsLocked) {
@@ -204,6 +210,30 @@ export function Availability({
 		() => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
 		[fromTimeMinutes, toTimeMinutes],
 	);
+
+	const importGridIsoSet = useMemo(
+		() =>
+			buildMeetingGridIsoSet(
+				buildZotDateRowsForMeetingDays(
+					meetingData.dates,
+					availabilityTimeBlocks,
+					userTimezone,
+				),
+				fromTimeMinutes,
+				availabilityTimeBlocks.length,
+				userTimezone,
+			),
+		[meetingData.dates, fromTimeMinutes, availabilityTimeBlocks, userTimezone],
+	);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: clear import overlay when meeting or viewer TZ changes
+	useEffect(() => {
+		setImportPreview(null);
+	}, [meetingData.id, userTimezone, setImportPreview]);
+
+	useEffect(() => {
+		if (availabilityView !== "personal") setImportPreview(null);
+	}, [availabilityView, setImportPreview]);
 
 	const anchorNormalizedDate = useMemo(() => {
 		return isAnchorDateMeeting(meetingData.dates)
@@ -270,6 +300,25 @@ export function Availability({
 			setAvailabilityDates([...updatedDates]);
 		},
 		[],
+	);
+
+	const handleImportSlotsFromMeeting = useCallback(
+		(slotIsoStrings: string[]) => {
+			if (!user?.memberId || slotIsoStrings.length === 0) return;
+			const merged = mergeImportedGridSlots(
+				availabilityDates,
+				slotIsoStrings,
+				user.memberId,
+			);
+			handleUserAvailabilityChange(merged);
+			setImportPreview(null);
+		},
+		[
+			availabilityDates,
+			user?.memberId,
+			handleUserAvailabilityChange,
+			setImportPreview,
+		],
 	);
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
@@ -530,6 +579,7 @@ export function Availability({
 								day,
 								fromTimeMinutes,
 								availabilityDates,
+								userTimezone,
 							);
 							if (timestamp) timestamps.push(timestamp);
 						}
@@ -570,6 +620,7 @@ export function Availability({
 									dateIndex,
 									fromTimeMinutes,
 									availabilityDates,
+									userTimezone,
 								);
 
 								if (!currentDate.groupAvailability[timestamp]) {
@@ -675,16 +726,19 @@ export function Availability({
 												members={members}
 												onMouseLeave={handleMouseLeave}
 												isScheduling={availabilityView === "schedule"}
+												timeZone={userTimezone}
 											/>
 										) : (
 											<PersonalAvailability
 												timeBlock={timeBlock}
 												blockIndex={blockIndex}
+												fromTimeMinutes={fromTimeMinutes}
 												availabilityDates={availabilityDates}
 												availabilityTimeBlocks={availabilityTimeBlocks}
 												currentPageAvailability={currentPageAvailability}
 												googleCalendarEvents={googleCalendarEvents}
 												meetingDates={meetingData.dates}
+												userTimezone={userTimezone}
 											/>
 										)}
 									</tr>
@@ -720,7 +774,15 @@ export function Availability({
 						doesntNeedDay={doesntNeedDay}
 					/>
 				)}
-				{availabilityView === "personal" && <PersonalAvailabilitySidebar />}
+				{availabilityView === "personal" && (
+					<PersonalAvailabilitySidebar
+						meetingId={meetingData.id}
+						userTimezone={userTimezone}
+						importGridIsoSet={importGridIsoSet}
+						canImport={Boolean(user?.memberId)}
+						onImportSlots={handleImportSlotsFromMeeting}
+					/>
+				)}
 			</div>
 		</div>
 	);

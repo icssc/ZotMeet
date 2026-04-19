@@ -171,6 +171,7 @@ export const newZonedPageAvailAndDates = (
 			false,
 			[],
 			{},
+			prevDay.ianaTimeZone,
 		);
 		if (availabilityDates) {
 			newAvailDates.push(
@@ -181,6 +182,7 @@ export const newZonedPageAvailAndDates = (
 					false,
 					[],
 					{},
+					prevDay.ianaTimeZone,
 				),
 			);
 		}
@@ -205,3 +207,132 @@ export const formatDateToUSNumeric = (date: Date) =>
 		month: "numeric",
 		day: "numeric",
 	});
+
+/** ISO string for the start of a 15-minute slot; matches ZotDate / drag-save encoding. */
+export function getTimestampFromBlockIndex(
+	blockIndex: number,
+	zotDateIndex: number,
+	fromTimeMinutes: number,
+	availabilityDates: ZotDate[],
+	timeZone?: string,
+): string {
+	const totalMinutes = fromTimeMinutes + blockIndex * BLOCK_LENGTH;
+
+	const selectedDate = availabilityDates.at(zotDateIndex);
+	if (!selectedDate) return "";
+
+	if (timeZone) {
+		const datePart = formatInTimeZone(selectedDate.day, timeZone, "yyyy-MM-dd");
+		const hours = Math.floor(totalMinutes / 60);
+		const minutes = totalMinutes % 60;
+		const localTime = `${datePart}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`;
+		return fromZonedTime(localTime, timeZone).toISOString();
+	}
+
+	const hours = Math.floor(totalMinutes / 60);
+	const minutes = totalMinutes % 60;
+	const date = new Date(selectedDate.day);
+	date.setHours(hours, minutes, 0, 0);
+
+	return date.toISOString();
+}
+
+/** Same day layout as `deriveInitialAvailability` in availability.tsx, without member data. */
+export function buildZotDateRowsForMeetingDays(
+	meetingDates: string[],
+	availabilityTimeBlocks: number[],
+	timeZone?: string,
+): ZotDate[] {
+	return meetingDates
+		.map((meetingDate) => {
+			const dateStr = meetingDate.split("T")[0];
+			const [year, month, day] = dateStr.split("-").map(Number);
+			const date = timeZone
+				? fromZonedTime(`${dateStr}T00:00:00`, timeZone)
+				: new Date(year, month - 1, day);
+
+			const earliestMinutes = availabilityTimeBlocks[0] ?? 480;
+			const latestMinutes =
+				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] ?? 1035) +
+				15;
+
+			return new ZotDate(
+				date,
+				earliestMinutes,
+				latestMinutes,
+				false,
+				[],
+				{},
+				timeZone,
+			);
+		})
+		.sort((a, b) => a.day.getTime() - b.day.getTime());
+}
+
+export function buildMeetingGridIsoSet(
+	availabilityDates: ZotDate[],
+	fromTimeMinutes: number,
+	blockCount: number,
+	timeZone?: string,
+): Set<string> {
+	const set = new Set<string>();
+	for (let d = 0; d < availabilityDates.length; d++) {
+		for (let b = 0; b < blockCount; b++) {
+			const iso = getTimestampFromBlockIndex(
+				b,
+				d,
+				fromTimeMinutes,
+				availabilityDates,
+				timeZone,
+			);
+			if (iso) set.add(iso);
+		}
+	}
+	return set;
+}
+
+export function filterTimestampsToMeetingGrid(
+	timestamps: readonly string[],
+	gridIsoSet: ReadonlySet<string>,
+): string[] {
+	return timestamps.filter((ts) => gridIsoSet.has(ts));
+}
+
+export function hasTimestampOnMeetingGrid(
+	timestamps: readonly string[] | null | undefined,
+	gridIsoSet: ReadonlySet<string>,
+): boolean {
+	if (!timestamps?.length) return false;
+	return timestamps.some((ts) => gridIsoSet.has(ts));
+}
+
+/** Merges grid-filtered slot ISOs into local editor state (caller persists via Save). */
+export function mergeImportedGridSlots(
+	availabilityDates: readonly ZotDate[],
+	slotIsoStrings: readonly string[],
+	memberId: string,
+): ZotDate[] {
+	const updated = availabilityDates.map((d) => d.clone());
+	const unique = new Set(slotIsoStrings);
+	const timeZone = updated.find((z) => z.ianaTimeZone)?.ianaTimeZone;
+	const calendarDayKey = (d: Date) =>
+		timeZone
+			? formatInTimeZone(d, timeZone, "yyyy-MM-dd")
+			: d.toLocaleDateString("en-CA");
+
+	for (const iso of unique) {
+		const slotDay = calendarDayKey(new Date(iso));
+		const zot = updated.find((z) => calendarDayKey(z.day) === slotDay);
+		if (!zot) continue;
+
+		if (!zot.availability.includes(iso)) {
+			zot.availability.push(iso);
+			zot.availability.sort();
+		}
+		const members = zot.groupAvailability[iso] ?? [];
+		if (!members.includes(memberId)) {
+			zot.groupAvailability[iso] = [...members, memberId];
+		}
+	}
+	return updated;
+}

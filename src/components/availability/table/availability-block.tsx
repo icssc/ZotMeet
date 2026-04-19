@@ -7,6 +7,7 @@ interface AvailabilityBlockProps {
 	zotDateIndex: number;
 	blockIndex: number;
 	selectionState: SelectionStateType | undefined;
+	showImportPreview?: boolean;
 }
 
 export function AvailabilityBlock({
@@ -14,6 +15,7 @@ export function AvailabilityBlock({
 	zotDateIndex,
 	blockIndex,
 	selectionState,
+	showImportPreview = false,
 }: AvailabilityBlockProps) {
 	/**
 	 * Computes the background color of a single time block cell
@@ -40,11 +42,14 @@ export function AvailabilityBlock({
 	}, [selectionState, isAvailable, zotDateIndex, blockIndex]);
 
 	return (
-		<div
-			className={cn(
-				"pointer-events-none block h-full w-full py-2",
-				backgroundColor,
+		<div className="pointer-events-none relative block h-full w-full py-2">
+			<div className={cn("absolute inset-0", backgroundColor)} />
+			{showImportPreview && (
+				<div
+					className="absolute inset-0 border-2 border-primary/70 bg-primary/20"
+					aria-hidden
+				/>
 			)}
-		/>
+		</div>
 	);
 }
