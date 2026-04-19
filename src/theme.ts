@@ -2,14 +2,7 @@
 
 import { blue, green, orange, red } from "@mui/material/colors";
 import { createTheme } from "@mui/material/styles";
-import { Figtree } from "next/font/google";
-
-export const figtree = Figtree({
-	subsets: ["latin"],
-	variable: "--font-figtree",
-	display: "swap",
-	weight: ["400", "500", "600", "700"],
-});
+import { figtree } from "@/fonts";
 
 export const getTheme = (mode: "light" | "dark") =>
 	createTheme({
