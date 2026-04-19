@@ -289,7 +289,8 @@ export function Availability({
 	);
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
-		setAvailabilityDates(originalDates);
+		setAvailabilityDates(originalDates[0]);
+		setIfNeededDates(originalDates[1]);
 	}, [cancelEdit]);
 
 	const handleSuccessfulSave = useCallback(() => {

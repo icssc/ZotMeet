@@ -20,6 +20,9 @@ export function useEditState({
 	const [originalAvailabilityDates, setOriginalAvailabilityDates] = useState<
 		ZotDate[]
 	>([]);
+	const [originalIfNeededDates, setOriginalIfNeededDates] = useState<ZotDate[]>(
+		[],
+	);
 	const [isEditingAvailability, setIsEditingAvailability] = useState(false);
 
 	useEffect(() => {
@@ -27,21 +30,33 @@ export function useEditState({
 			setOriginalAvailabilityDates(
 				currentAvailabilityDates.map((date) => date.clone()),
 			);
+			setOriginalIfNeededDates(
+				currentIfNeededDates.map((date) => date.clone()),
+			);
 			setIsEditingAvailability(true);
 		} else if (availabilityView === "group" && isEditingAvailability) {
 			setIsEditingAvailability(false);
 		}
-	}, [availabilityView, isEditingAvailability, currentAvailabilityDates]);
+	}, [
+		availabilityView,
+		isEditingAvailability,
+		currentAvailabilityDates,
+		currentIfNeededDates,
+	]);
 
 	const cancelEdit = () => {
 		setIsEditingAvailability(false);
-		return originalAvailabilityDates.map((date) => date.clone());
+		return [
+			originalAvailabilityDates.map((date) => date.clone()),
+			originalIfNeededDates.map((date) => date.clone()),
+		];
 	};
 
 	const confirmSave = () => {
 		setOriginalAvailabilityDates(
 			currentAvailabilityDates.map((date) => date.clone()),
 		);
+		setOriginalIfNeededDates(currentIfNeededDates.map((date) => date.clone()));
 		setIsEditingAvailability(false);
 	};
 
