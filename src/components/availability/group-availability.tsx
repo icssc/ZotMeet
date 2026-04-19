@@ -525,7 +525,7 @@ export function GroupAvailability({
 				);
 
 				const block = selectedDate.groupAvailability[timestamp] || [];
-				const ifNeededBlock = ifNeededDate.groupAvailability[timestamp] || [];
+				const ifNeededBlock = ifNeededDate?.groupAvailability[timestamp] || [];
 				//console.log(ifNeededBlock, block)
 				const blockColor = isScheduled(timestamp)
 					? "rgba(255, 215, 0, 0.6)" // gold
