@@ -96,7 +96,7 @@ export function AvailabilityHeader({
 		};
 		const ifNeeded = {
 			meetingId: meetingData.id,
-			availabilityTimes: ifNeededDates.flatMap((date) => date.availability), // 👈 use ifNeededDates
+			availabilityTimes: ifNeededDates.flatMap((date) => date.availability),
 			displayName: user.displayName,
 		};
 		const response = await saveAvailability(availability);

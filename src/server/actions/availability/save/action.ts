@@ -65,7 +65,7 @@ export async function saveAvailability({
 				target: [availabilities.memberId, availabilities.meetingId],
 				set: {
 					meetingAvailabilities: availabilityTimes,
-					ifNeededAvailabilities: filteredIfNeeded, // 👈 write both columns
+					ifNeededAvailabilities: filteredIfNeeded,
 				},
 			});
 
