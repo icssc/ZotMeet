@@ -6,7 +6,7 @@ export const formatISOToLocalTime = (isoString: string): string => {
 			hour: "numeric",
 			minute: "2-digit",
 			hour12: true,
-			//timeZone: "UTC",
+			timeZone: "America/Los_Angeles",
 		})
 		.toLowerCase();
 };
@@ -195,8 +195,7 @@ export function getBestTimeRanges(availabilityDates: any[]) {
 
 		const diffMinutes = (curr.getTime() - prev.getTime()) / 60000;
 
-		const sameDay =
-			formatLocalDateKey(curr) === formatLocalDateKey(prev);
+		const sameDay = formatLocalDateKey(curr) === formatLocalDateKey(prev);
 
 		if (diffMinutes !== 15 || !sameDay) {
 			results.push({
