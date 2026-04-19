@@ -314,12 +314,15 @@ export function mergeImportedGridSlots(
 ): ZotDate[] {
 	const updated = availabilityDates.map((d) => d.clone());
 	const unique = new Set(slotIsoStrings);
+	const timeZone = updated.find((z) => z.ianaTimeZone)?.ianaTimeZone;
+	const calendarDayKey = (d: Date) =>
+		timeZone
+			? formatInTimeZone(d, timeZone, "yyyy-MM-dd")
+			: d.toLocaleDateString("en-CA");
 
 	for (const iso of unique) {
-		const slotDay = new Date(iso).toLocaleDateString("en-CA");
-		const zot = updated.find(
-			(z) => z.day.toLocaleDateString("en-CA") === slotDay,
-		);
+		const slotDay = calendarDayKey(new Date(iso));
+		const zot = updated.find((z) => calendarDayKey(z.day) === slotDay);
 		if (!zot) continue;
 
 		if (!zot.availability.includes(iso)) {
