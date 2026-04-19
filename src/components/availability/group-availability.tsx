@@ -3,37 +3,16 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
-import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
+
+import {
+	generateDateKey,
+	getTimestampFromBlockIndex,
+	spacerBeforeDate,
+} from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
-
-export const getTimestampFromBlockIndex = (
-	blockIndex: number,
-	zotDateIndex: number,
-	fromTime: number,
-	availabilityDates: ZotDate[],
-) => {
-	const minutesFromMidnight = fromTime + blockIndex * 15;
-	const hours = Math.floor(minutesFromMidnight / 60);
-	const minutes = minutesFromMidnight % 60;
-
-	const selectedDate = availabilityDates.at(zotDateIndex);
-
-	if (!selectedDate) {
-		return "";
-	}
-
-	const date = new Date(selectedDate.day);
-	date.setHours(hours);
-	date.setMinutes(minutes);
-	date.setSeconds(0);
-	date.setMilliseconds(0);
-
-	const isoString = date.toISOString();
-	return isoString;
-};
 
 function calculateBlockColor({
 	block,
@@ -94,6 +73,7 @@ interface GroupAvailabilityProps {
 	members: Member[];
 	onMouseLeave: () => void;
 	isScheduling: boolean;
+	timeZone: string;
 }
 
 export function GroupAvailability({
@@ -106,6 +86,7 @@ export function GroupAvailability({
 	members,
 	onMouseLeave,
 	isScheduling,
+	timeZone,
 }: GroupAvailabilityProps) {
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
@@ -366,6 +347,7 @@ export function GroupAvailability({
 					day,
 					fromTime,
 					availabilityDates,
+					timeZone,
 				);
 				if (timestamp) {
 					timestamps.push(timestamp);
@@ -388,6 +370,7 @@ export function GroupAvailability({
 		endBlockSelection,
 		fromTime,
 		availabilityDates,
+		timeZone,
 		replaceEntireSelection,
 		setStartBlockSelection,
 		setEndBlockSelection,
@@ -473,6 +456,7 @@ export function GroupAvailability({
 					day,
 					fromTime,
 					availabilityDates,
+					timeZone,
 				);
 				if (timestamp) timestamps.push(timestamp);
 			}
@@ -512,6 +496,7 @@ export function GroupAvailability({
 				zotDateIndex,
 				fromTime,
 				availabilityDates,
+				timeZone,
 			);
 
 			const block = selectedDate.groupAvailability[timestamp] || [];
