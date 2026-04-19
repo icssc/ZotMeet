@@ -1,10 +1,10 @@
 import React from "react";
 import { useShallow } from "zustand/shallow";
 import { AvailabilityBlockCell } from "@/components/availability/table/availability-block-cell";
-import { getTimestampFromBlockIndex } from "@/lib/availability/grid-timestamps";
 import {
 	generateCellKey,
 	generateDateKey,
+	getTimestampFromBlockIndex,
 	spacerBeforeDate,
 } from "@/lib/availability/utils";
 import type { ProcessedCellEventSegments } from "@/lib/types/availability";

@@ -3,14 +3,16 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
-import { getTimestampFromBlockIndex } from "@/lib/availability/grid-timestamps";
-import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
+
+import {
+	generateDateKey,
+	getTimestampFromBlockIndex,
+	spacerBeforeDate,
+} from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
-
-export { getTimestampFromBlockIndex } from "@/lib/availability/grid-timestamps";
 
 function calculateBlockColor({
 	block,

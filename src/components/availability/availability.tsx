@@ -16,16 +16,15 @@ import { TimeZoneDropdown } from "@/components/availability/table/availability-t
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import type { UserProfile } from "@/lib/auth/user";
-import { getTimestampFromBlockIndex } from "@/lib/availability/grid-timestamps";
+
 import {
 	buildMeetingGridIsoSet,
 	buildZotDateRowsForMeetingDays,
-	mergeImportedGridSlots,
-} from "@/lib/availability/meeting-grid";
-import {
 	convertTimeFromUTC,
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
+	getTimestampFromBlockIndex,
+	mergeImportedGridSlots,
 } from "@/lib/availability/utils";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import { getBestTimeRanges } from "@/lib/rooms/utils";

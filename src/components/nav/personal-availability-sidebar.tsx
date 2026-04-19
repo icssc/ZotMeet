@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { filterTimestampsToMeetingGrid } from "@/lib/availability/meeting-grid";
+import { filterTimestampsToMeetingGrid } from "@/lib/availability/utils";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 type RespondedMeeting = { id: string; title: string; createdAt: Date };

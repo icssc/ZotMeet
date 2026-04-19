@@ -1,21 +1,21 @@
 "use server";
 
-import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { availabilities, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import {
 	buildMeetingGridIsoSet,
 	buildZotDateRowsForMeetingDays,
-	hasTimestampOnMeetingGrid,
-} from "@/lib/availability/meeting-grid";
-import {
 	convertTimeFromUTC,
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
+	hasTimestampOnMeetingGrid,
 } from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
-import { getExistingMeeting } from "@/server/data/meeting/queries";
+import { findMemberMeetingAvailability } from "@/server/data/availability/queries";
+import {
+	getExistingMeeting,
+	getMeetingsWithMemberAvailabilityExcluding,
+	getMemberAvailabilitiesForMeetingIds,
+} from "@/server/data/meeting/queries";
 
 /** Past meetings where the user saved at least one slot that overlaps the current meeting’s grid (viewer timezone). */
 export async function getImportableMeetings(
@@ -69,26 +69,10 @@ export async function getImportableMeetings(
 			viewerTimezone,
 		);
 
-		const respondedMeetingIds = db
-			.select({ meetingId: availabilities.meetingId })
-			.from(availabilities)
-			.where(eq(availabilities.memberId, memberId));
-
-		const respondedMeetings = await db
-			.select({
-				id: meetings.id,
-				title: meetings.title,
-				createdAt: meetings.createdAt,
-			})
-			.from(meetings)
-			.where(
-				and(
-					eq(meetings.archived, false),
-					sql`${meetings.id} IN ${respondedMeetingIds}`,
-					ne(meetings.id, currentMeetingId),
-				),
-			)
-			.orderBy(desc(meetings.createdAt));
+		const respondedMeetings = await getMeetingsWithMemberAvailabilityExcluding({
+			memberId,
+			excludeMeetingId: currentMeetingId,
+		});
 
 		if (respondedMeetings.length === 0) {
 			return { success: true as const, meetings: [] as const };
@@ -96,11 +80,9 @@ export async function getImportableMeetings(
 
 		const candidateIds = respondedMeetings.map((m) => m.id);
 
-		const availabilityRows = await db.query.availabilities.findMany({
-			where: and(
-				eq(availabilities.memberId, memberId),
-				inArray(availabilities.meetingId, candidateIds),
-			),
+		const availabilityRows = await getMemberAvailabilitiesForMeetingIds({
+			memberId,
+			meetingIds: candidateIds,
 		});
 
 		const overlappingIds = new Set(
@@ -136,11 +118,9 @@ export async function getUserAvailabilityForMeeting(meetingId: string) {
 	}
 
 	try {
-		const availabilityData = await db.query.availabilities.findFirst({
-			where: and(
-				eq(availabilities.memberId, user.memberId),
-				eq(availabilities.meetingId, meetingId),
-			),
+		const availabilityData = await findMemberMeetingAvailability({
+			memberId: user.memberId,
+			meetingId,
 		});
 
 		if (!availabilityData) {

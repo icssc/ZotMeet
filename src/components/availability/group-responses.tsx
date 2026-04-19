@@ -2,8 +2,10 @@ import { Button, Chip, Switch, Typography } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
-import { getTimestampFromBlockIndex } from "@/lib/availability/grid-timestamps";
-import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
+import {
+	getTimestampFromBlockIndex,
+	newZonedPageAvailAndDates,
+} from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
