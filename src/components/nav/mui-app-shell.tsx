@@ -32,7 +32,7 @@ export function MuiAppShell({
 			<Box sx={{ flex: 1, overflow: "auto", paddingBottom: isMobile ? 7 : 0 }}>
 				{children}
 			</Box>
-			{isMobile && <MuiBottomNav />}
+			{isMobile && <MuiBottomNav user={user} />}
 		</Box>
 	);
 }
