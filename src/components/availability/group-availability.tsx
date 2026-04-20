@@ -1,5 +1,6 @@
 "use client";
 
+import { alpha, useTheme } from "@mui/material/styles";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -133,6 +134,8 @@ export function GroupAvailability({
 	isScheduling,
 	timeZone,
 }: GroupAvailabilityProps) {
+	const theme = useTheme();
+
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
@@ -566,45 +569,6 @@ export function GroupAvailability({
 					timeZone,
 				);
 
-<<<<<<< HEAD
-				const block = selectedDate.groupAvailability[timestamp] || [];
-				const ifNeededBlock = ifNeededDate?.groupAvailability[timestamp] || [];
-				//console.log(ifNeededBlock, block)
-				const blockColor = calculateBlockColor({
-					block,
-					hoveredMember,
-					selectedMembers,
-					numMembers,
-					showBestTimes,
-					maxAvailability,
-					ifNeededBlock,
-					primaryColor: theme.palette.primary.main,
-				});
-				const blockIsScheduled = isScheduled(timestamp);
-
-				const prevTimestamp =
-					blockIndex > 0
-						? getTimestampFromBlockIndex(
-								blockIndex - 1,
-								zotDateIndex,
-								fromTime,
-								availabilityDates,
-							)
-						: "";
-				const nextTimestamp =
-					blockIndex < availabilityTimeBlocks.length - 1
-						? getTimestampFromBlockIndex(
-								blockIndex + 1,
-								zotDateIndex,
-								fromTime,
-								availabilityDates,
-							)
-						: "";
-				const isTopEdge =
-					blockIsScheduled && (!prevTimestamp || !isScheduled(prevTimestamp));
-				const isBottomEdge =
-					blockIsScheduled && (!nextTimestamp || !isScheduled(nextTimestamp));
-=======
 			const block = selectedDate.groupAvailability[timestamp] || [];
 			const ifNeededBlock = ifNeededDate?.groupAvailability[timestamp] || [];
 			//console.log(ifNeededBlock, block)
@@ -642,7 +606,6 @@ export function GroupAvailability({
 				blockIsScheduled && (!prevTimestamp || !isScheduled(prevTimestamp));
 			const isBottomEdge =
 				blockIsScheduled && (!nextTimestamp || !isScheduled(nextTimestamp));
->>>>>>> 3113d6142 (chore: 🔧 apply styling to scheduled meeting block)
 
 				const tableCellStyles = cn(
 					isTopOfHour ? "border-t-[1px] border-t-gray-medium" : "",
@@ -653,7 +616,6 @@ export function GroupAvailability({
 						: "",
 				);
 
-<<<<<<< HEAD
 				return (
 					<React.Fragment key={key}>
 						{spacers[pageDateIndex] && (
@@ -711,60 +673,4 @@ export function GroupAvailability({
 			}
 		},
 	);
-=======
-			return (
-				<React.Fragment key={key}>
-					{spacers[pageDateIndex] && (
-						<td className="w-3 md:w-4" aria-hidden="true" />
-					)}
-					<td className={cn("px-0 py-0", isTopEdge && "relative z-[1]")}>
-						<GroupAvailabilityBlock
-							className={cn(
-								"group-availability-block block",
-								isScheduling && "cursor-row-resize [touch-action:pinch-zoom]",
-							)}
-							onClick={() =>
-								handleCellClick({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onHover={() =>
-								handleCellHover({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							blockColor={blockColor}
-							isScheduled={blockIsScheduled}
-							isScheduledTopEdge={isTopEdge}
-							isScheduledBottomEdge={isBottomEdge}
-							scheduledMeetingTitle={isTopEdge ? meetingTitle : undefined}
-							scheduledTimeRange={isTopEdge ? scheduledTimeRange : undefined}
-							scheduledBlockCount={isTopEdge ? scheduledBlockCount : undefined}
-							tableCellStyles={tableCellStyles}
-							hasSpacerBefore={spacers[pageDateIndex]}
-							dateIndex={zotDateIndex}
-							blockIndex={blockIndex}
-						/>
-					</td>
-				</React.Fragment>
-			);
-		} else {
-			return (
-				// Because these elements are hidden spacers, we consider mouse hovers to be "leaving" the table
-				<React.Fragment key={key}>
-					{spacers[pageDateIndex] && (
-						<td
-							className="w-3 md:w-4"
-							aria-hidden="true"
-							onMouseEnter={onMouseLeave}
-						/>
-					)}
-					<td onMouseEnter={onMouseLeave}></td>
-				</React.Fragment>
-			);
-		}
-	});
->>>>>>> 1238eeb86 (chore: 🔧 apply styling to scheduled meeting block)
 }
