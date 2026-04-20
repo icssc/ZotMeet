@@ -21,7 +21,7 @@ export function GroupCard({
 	return (
 		<Link
 			href={`/groups/${id}`}
-			className="flex h-42 w-full flex-col gap-1 overflow-hidden rounded-xl border border-gray-300 px-8 py-8 sm:h-70"
+			className="flex h-42 w-full flex-col gap-1 overflow-hidden rounded-md border border-gray-200 bg-gray-100 px-8 py-8 sm:h-70"
 		>
 			<div className="flex h-full flex-col gap-3">
 				<div className="flex w-full items-center gap-2">
@@ -53,13 +53,14 @@ export function GroupCard({
 				<div className="hidden w-full items-center text-gray-600 text-sm sm:flex sm:text-base">
 					<div className="flex gap-1">
 						<PeopleOutline fontSize="small" />
-						<p>{totalMembers} Members</p>
+						<p>{totalMembers}</p>
 					</div>
 
-					<div className="mr-1 ml-auto flex size-5 shrink-0 items-center justify-center rounded-full bg-gray-400 text-white">
+					<p className="ml-auto">Created by {creatorName}</p>
+
+					<div className="ml-2 flex size-5 shrink-0 items-center justify-center rounded-full bg-gray-400 text-white">
 						{creatorName[0]}
 					</div>
-					<p className="uppercase">Owned by {creatorName}</p>
 				</div>
 			</div>
 		</Link>
