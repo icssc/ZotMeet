@@ -178,7 +178,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 	);
 }
 
-function FilterChip({
+export function FilterChip({
 	label,
 	count,
 	active,

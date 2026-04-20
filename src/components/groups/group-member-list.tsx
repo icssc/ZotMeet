@@ -36,6 +36,7 @@ import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
 import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import { updateMemberRole } from "@/server/actions/group/update-member-role/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
+import { FilterChip } from "./groups-page";
 
 type Member = {
 	userId: string;
@@ -345,6 +346,9 @@ export function GroupMemberList({
 	const [showSettings, setShowSettings] = useState(false);
 	const canShareInvites = group.createdBy === currentUserId;
 	const { showSuccess, showError } = useSnackbar();
+	const [activeFilter, setActiveFilter] = useState<
+		"all" | "created" | "upcoming"
+	>("all");
 
 	async function handleCreateInviteLink() {
 		if (!canShareInvites) {
@@ -397,6 +401,27 @@ export function GroupMemberList({
 	}, [meetings]);
 
 	const theme = useTheme();
+	const counts = {
+		all: meetings.length,
+		created: meetings.filter((m) => m.hostId === currentMemberId).length,
+		upcoming: meetings.filter(
+			(m) => m.scheduledDate && new Date(m.scheduledDate) > new Date(),
+		).length,
+	};
+	const displayedMeetings = allMeetings.filter((meeting) => {
+		if (activeFilter === "created") {
+			return meeting.hostId === currentMemberId;
+		}
+
+		if (activeFilter === "upcoming") {
+			return (
+				meeting.scheduledDate && new Date(meeting.scheduledDate) > new Date()
+			);
+		}
+
+		return true;
+	});
+
 	return (
 		<div>
 			{/* Header */}
@@ -463,29 +488,61 @@ export function GroupMemberList({
 			</Tabs>
 
 			{/* Toolbar */}
-			<div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-				<input
-					type="text"
-					placeholder="Search..."
-					className="h-11 w-full rounded-lg border border-gray-300 px-4 text-sm outline-none focus:border-gray-500 md:max-w-sm"
-				/>
+			<div className="mt-4 flex flex-col gap-4">
+				{/* Top Row */}
+				<div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+					<input
+						type="text"
+						placeholder="Search..."
+						className="h-11 w-full rounded-lg border border-gray-300 px-4 text-sm outline-none focus:border-gray-500 md:max-w-sm"
+					/>
 
-				<div className="flex items-center gap-3">
-					<Link href={`/?groupId=${group.id}`}>
-						<Button variant="contained" startIcon={<Plus className="size-4" />}>
-							Create New Meeting
+					<div className="flex items-center gap-3">
+						<Link href={`/?groupId=${group.id}`}>
+							<Button
+								variant="contained"
+								startIcon={<Plus className="size-4" />}
+							>
+								Create New Meeting
+							</Button>
+						</Link>
+
+						<Button
+							variant="outlined"
+							startIcon={<Share2 className="size-4" />}
+							onClick={handleCreateInviteLink}
+							disabled={!canShareInvites || isCreatingInvite}
+						>
+							{isCreatingInvite ? "Generating..." : "Share"}
 						</Button>
-					</Link>
-
-					<Button
-						variant="outlined"
-						startIcon={<Share2 className="size-4" />}
-						onClick={handleCreateInviteLink}
-						disabled={!canShareInvites || isCreatingInvite}
-					>
-						{isCreatingInvite ? "Generating..." : "Share"}
-					</Button>
+					</div>
 				</div>
+
+				{/* Filter Chips Row */}
+				{tab === 0 && (
+					<div className="flex flex-wrap gap-2">
+						<FilterChip
+							label="All"
+							count={counts.all}
+							active={activeFilter === "all"}
+							onClick={() => setActiveFilter("all")}
+						/>
+
+						<FilterChip
+							label="By You"
+							count={counts.created}
+							active={activeFilter === "created"}
+							onClick={() => setActiveFilter("created")}
+						/>
+
+						<FilterChip
+							label="Upcoming"
+							count={counts.upcoming}
+							active={activeFilter === "upcoming"}
+							onClick={() => setActiveFilter("upcoming")}
+						/>
+					</div>
+				)}
 			</div>
 
 			{/* Existing tab content below here */}
@@ -515,10 +572,10 @@ export function GroupMemberList({
 
 								<div className="mt-8">
 									<p className="mb-5 font-bold text-[#969696] text-xs uppercase tracking-wide">
-										All ({allMeetings.length})
+										All ({displayedMeetings.length})
 									</p>
 
-									{allMeetings.map((meeting) => (
+									{displayedMeetings.map((meeting) => (
 										<div
 											key={meeting.id}
 											className="mb-3 rounded-xl border border-gray-300"
