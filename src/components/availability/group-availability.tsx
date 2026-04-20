@@ -569,43 +569,45 @@ export function GroupAvailability({
 					timeZone,
 				);
 
-			const block = selectedDate.groupAvailability[timestamp] || [];
-			const ifNeededBlock = ifNeededDate?.groupAvailability[timestamp] || [];
-			//console.log(ifNeededBlock, block)
-			const blockColor = calculateBlockColor({
-				block,
-				hoveredMember,
-				selectedMembers,
-				numMembers,
-				showBestTimes,
-				maxAvailability,
-				ifNeededBlock,
-				primaryColor: theme.palette.primary.main,
-			});
-			const blockIsScheduled = isScheduled(timestamp);
+				const block = selectedDate.groupAvailability[timestamp] || [];
+				const ifNeededBlock = ifNeededDate?.groupAvailability[timestamp] || [];
+				//console.log(ifNeededBlock, block)
+				const blockColor = calculateBlockColor({
+					block,
+					hoveredMember,
+					selectedMembers,
+					numMembers,
+					showBestTimes,
+					maxAvailability,
+					ifNeededBlock,
+					primaryColor: theme.palette.primary.main,
+				});
+				const blockIsScheduled = isScheduled(timestamp);
 
-			const prevTimestamp =
-				blockIndex > 0
-					? getTimestampFromBlockIndex(
-							blockIndex - 1,
-							zotDateIndex,
-							fromTime,
-							availabilityDates,
-						)
-					: "";
-			const nextTimestamp =
-				blockIndex < availabilityTimeBlocks.length - 1
-					? getTimestampFromBlockIndex(
-							blockIndex + 1,
-							zotDateIndex,
-							fromTime,
-							availabilityDates,
-						)
-					: "";
-			const isTopEdge =
-				blockIsScheduled && (!prevTimestamp || !isScheduled(prevTimestamp));
-			const isBottomEdge =
-				blockIsScheduled && (!nextTimestamp || !isScheduled(nextTimestamp));
+				const prevTimestamp =
+					blockIndex > 0
+						? getTimestampFromBlockIndex(
+								blockIndex - 1,
+								zotDateIndex,
+								fromTime,
+								availabilityDates,
+								timeZone,
+							)
+						: "";
+				const nextTimestamp =
+					blockIndex < availabilityTimeBlocks.length - 1
+						? getTimestampFromBlockIndex(
+								blockIndex + 1,
+								zotDateIndex,
+								fromTime,
+								availabilityDates,
+								timeZone,
+							)
+						: "";
+				const isTopEdge =
+					blockIsScheduled && (!prevTimestamp || !isScheduled(prevTimestamp));
+				const isBottomEdge =
+					blockIsScheduled && (!nextTimestamp || !isScheduled(nextTimestamp));
 
 				const tableCellStyles = cn(
 					isTopOfHour ? "border-t-[1px] border-t-gray-medium" : "",
