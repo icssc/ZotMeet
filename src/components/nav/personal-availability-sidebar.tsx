@@ -17,12 +17,14 @@ import {
 	Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import type React from "react";
+import type { Dispatch, SetStateAction } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { filterTimestampsToMeetingGrid } from "@/lib/availability/utils";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+import type { Availability } from "../availability/availability";
 
 type RespondedMeeting = { id: string; title: string; createdAt: Date };
-type Availability = "available" | "if-needed" | "unavailable";
 
 const options: { value: Availability; label: string; icon: React.ReactNode }[] =
 	[
@@ -77,6 +79,8 @@ const options: { value: Availability; label: string; icon: React.ReactNode }[] =
 interface PersonalAvailabilitySidebarProps {
 	meetingId: string;
 	userTimezone: string;
+	availability: Availability;
+	setAvailability: Dispatch<SetStateAction<Availability>>;
 	importGridIsoSet: ReadonlySet<string>;
 	canImport: boolean;
 	onImportSlots: (slotIsoStrings: string[]) => void;
@@ -88,9 +92,9 @@ export function PersonalAvailabilitySidebar({
 	importGridIsoSet,
 	canImport,
 	onImportSlots,
+	availability,
+	setAvailability,
 }: PersonalAvailabilitySidebarProps) {
-	const [availability, setAvailability] =
-		React.useState<Availability>("available");
 	const [importableMeetings, setImportableMeetings] = useState<
 		RespondedMeeting[]
 	>([]);

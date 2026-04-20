@@ -277,6 +277,10 @@ export const availabilities = pgTable(
 			.$type<string[]>()
 			.notNull()
 			.default([]),
+		ifNeededAvailabilities: jsonb("ifNeeded_availabilities")
+			.$type<string[]>()
+			.notNull()
+			.default([]),
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.memberId, table.meetingId] }),

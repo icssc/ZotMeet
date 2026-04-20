@@ -67,6 +67,7 @@ export const getAllMemberAvailability = async ({
 	return availabilityData.map((a) => ({
 		memberId: a.memberId,
 		meetingAvailabilities: a.meetingAvailabilities,
+		ifNeededAvailabilities: a.ifNeededAvailabilities,
 		displayName: a.member.displayName,
 	}));
 };

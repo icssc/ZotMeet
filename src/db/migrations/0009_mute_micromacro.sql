@@ -1,0 +1,1 @@
+ALTER TABLE "availabilities" ADD COLUMN IF NOT EXISTS "ifNeeded_availabilities" jsonb DEFAULT '[]'::jsonb NOT NULL;

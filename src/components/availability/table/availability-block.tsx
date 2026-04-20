@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 
 interface AvailabilityBlockProps {
 	isAvailable: boolean;
+	isIfNeeded: boolean;
 	zotDateIndex: number;
 	blockIndex: number;
 	selectionState: SelectionStateType | undefined;
@@ -12,6 +13,7 @@ interface AvailabilityBlockProps {
 
 export function AvailabilityBlock({
 	isAvailable,
+	isIfNeeded,
 	zotDateIndex,
 	blockIndex,
 	selectionState,
@@ -38,8 +40,12 @@ export function AvailabilityBlock({
 				return "bg-primary/40";
 			}
 		}
-		return isAvailable ? "bg-primary" : "bg-transparent";
-	}, [selectionState, isAvailable, zotDateIndex, blockIndex]);
+		return isAvailable
+			? "bg-[#F26489]"
+			: isIfNeeded
+				? "bg-[#006489]"
+				: "transparent";
+	}, [selectionState, isAvailable, isIfNeeded, zotDateIndex, blockIndex]);
 
 	return (
 		<div className="pointer-events-none relative block h-full w-full py-2">
