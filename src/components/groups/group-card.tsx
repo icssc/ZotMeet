@@ -38,7 +38,10 @@ export function GroupCard({
 	upcomingMeetingName,
 }: GroupCardProps) {
 	return (
-		<Link href={`/groups/${id}`} style={{ textDecoration: "none" }}>
+		<Link
+			href={`/groups/${id}`}
+			style={{ textDecoration: "none", height: "100%", display: "block" }}
+		>
 			<MuiCard
 				sx={[
 					{
@@ -48,6 +51,9 @@ export function GroupCard({
 						borderColor: "divider",
 						px: { xs: 2, sm: 3 },
 						py: { xs: 1.5, sm: 4 },
+						height: "100%",
+						display: "flex",
+						flexDirection: "column",
 					},
 					actionRequired &&
 						((theme) => ({
@@ -169,6 +175,7 @@ export function GroupCard({
 						pt: "10px",
 						pb: "16px",
 						"&:last-child": { pb: "16px" },
+						flexGrow: 1,
 					}}
 				>
 					<Typography
@@ -178,7 +185,7 @@ export function GroupCard({
 							display: actionRequired
 								? { xs: "none", sm: "-webkit-box" }
 								: "-webkit-box",
-							WebkitLineClamp: { xs: 2, sm: 3 },
+							WebkitLineClamp: 3,
 							WebkitBoxOrient: "vertical",
 							overflow: "hidden",
 						}}
