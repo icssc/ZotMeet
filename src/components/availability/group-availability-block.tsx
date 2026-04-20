@@ -1,4 +1,5 @@
 import { Typography } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { memo } from "react";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +46,9 @@ export const GroupAvailabilityBlock = memo(
 		dateIndex,
 		blockIndex,
 	}: GroupAvailabilityBlockProps) => {
+		const theme = useTheme();
+		const dashColor = theme.palette.secondary.main;
+
 		return (
 			<button
 				type="button"
@@ -71,14 +75,54 @@ export const GroupAvailabilityBlock = memo(
 					data-block-index={blockIndex}
 				/>
 				{isScheduled && (
-					<div
+					<svg
 						aria-hidden="true"
-						className={cn(
-							"pointer-events-none absolute inset-0 animate-meeting-pulse border-primary border-x-2",
-							isScheduledTopEdge && "border-t-2",
-							isScheduledBottomEdge && "border-b-2",
+						className="pointer-events-none absolute inset-0"
+						width="100%"
+						height="100%"
+						overflow="visible"
+					>
+						<line
+							x1="1"
+							y1="0"
+							x2="1"
+							y2="100%"
+							stroke={dashColor}
+							strokeWidth="2"
+							strokeDasharray="12 6"
+						/>
+						<line
+							x1="calc(100% - 1px)"
+							y1="0"
+							x2="calc(100% - 1px)"
+							y2="100%"
+							stroke={dashColor}
+							strokeWidth="2"
+							strokeDasharray="12 6"
+						/>
+						{isScheduledTopEdge && (
+							<line
+								x1="0"
+								y1="1"
+								x2="100%"
+								y2="1"
+								stroke={dashColor}
+								strokeWidth="2"
+								strokeDasharray="12 6"
+							/>
 						)}
-					/>
+						{isScheduledBottomEdge && (
+							<line
+								x1="0"
+								y1="calc(100% - 1px)"
+								x2="100%"
+								y2="calc(100% - 1px)"
+								stroke={dashColor}
+								strokeWidth="2"
+								strokeDasharray="12 6"
+							/>
+						)}
+					</svg>
 				)}
 				{isScheduledTopEdge &&
 					(scheduledMeetingTitle || scheduledTimeRange) && (

@@ -1,6 +1,5 @@
 "use client";
 
-import { alpha, useTheme } from "@mui/material/styles";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -43,7 +42,6 @@ function calculateBlockColor({
 	numMembers,
 	showBestTimes,
 	maxAvailability,
-	primaryColor,
 }: {
 	block: string[];
 	hoveredMember: string | null;
@@ -51,7 +49,6 @@ function calculateBlockColor({
 	numMembers: number;
 	showBestTimes: boolean;
 	maxAvailability: number;
-	primaryColor: string;
 }): string {
 	if (selectedMembers.length) {
 		const selectedInBlock = selectedMembers.filter((memberId) =>
@@ -59,28 +56,28 @@ function calculateBlockColor({
 		);
 		if (selectedInBlock.length) {
 			const proportion = selectedInBlock.length / selectedMembers.length;
-			return alpha(primaryColor, proportion);
+			return `rgba(55, 124, 251, ${proportion})`;
 		}
 		return "transparent";
 	}
 
 	if (hoveredMember) {
 		if (block.includes(hoveredMember)) {
-			return alpha(primaryColor, 1);
+			return "rgba(55, 124, 251)";
 		}
 		return "transparent";
 	}
 
 	if (showBestTimes) {
 		if (block.length === maxAvailability && maxAvailability > 0) {
-			return alpha(primaryColor, 1);
+			return "rgba(55, 124, 251, 1)";
 		}
 		return "transparent";
 	}
 
 	if (numMembers) {
 		const opacity = block.length / numMembers;
-		return alpha(primaryColor, opacity);
+		return `rgba(55, 124, 251, ${opacity})`;
 	}
 
 	return "transparent";
@@ -131,7 +128,6 @@ export function GroupAvailability({
 	onMouseLeave,
 	isScheduling,
 }: GroupAvailabilityProps) {
-	const theme = useTheme();
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
@@ -566,7 +562,6 @@ export function GroupAvailability({
 				numMembers,
 				showBestTimes,
 				maxAvailability,
-				primaryColor: theme.palette.primary.main,
 			});
 			const blockIsScheduled = isScheduled(timestamp);
 
