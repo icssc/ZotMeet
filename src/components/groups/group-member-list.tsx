@@ -403,11 +403,11 @@ export function GroupMemberList({
 			<div className="flex items-start justify-between gap-4">
 				<div className="flex items-center gap-4">
 					<Avatar
-						src="/icssc-logo.svg"
-						alt="group-icon"
+						src={group.icon ?? "/icssc-logo.svg"}
+						alt="Group Icon"
 						sx={{
-							width: { xs: 72, md: 80 },
-							height: { xs: 72, md: 80 },
+							width: { xs: 100, md: 80 },
+							height: { xs: 100, md: 80 },
 						}}
 					/>
 

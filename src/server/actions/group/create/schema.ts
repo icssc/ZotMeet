@@ -16,6 +16,7 @@ export const createGroupSchema = z.object({
 		})
 		.optional(),
 	memberIds: z.array(z.string()).optional(),
+	icon: z.string().optional(),
 });
 
 export type CreateGroupInput = z.infer<typeof createGroupSchema>;

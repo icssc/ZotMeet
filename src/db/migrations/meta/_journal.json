@@ -71,6 +71,13 @@
       "when": 1776640110077,
       "tag": "0009_mute_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776720912375,
+      "tag": "0010_pretty_titania",
+      "breakpoints": true
     }
   ]
 }

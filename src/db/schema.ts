@@ -125,6 +125,7 @@ export const groups = pgTable("groups", {
 	createdAt: timestamp("created_at"),
 	createdBy: text("user_id").references(() => users.id),
 	archived: boolean("archived").default(false).notNull(),
+	icon: text("icon"),
 });
 
 export type InsertGroup = InferInsertModel<typeof groups>;

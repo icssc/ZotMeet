@@ -1,6 +1,7 @@
 "use client";
 
 import { searchUsers } from "@actions/user/action";
+import { AddAPhoto } from "@mui/icons-material";
 import Autocomplete from "@mui/material/Autocomplete";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -15,6 +16,8 @@ import { Check, Copy } from "lucide-react";
 import { useCallback, useRef, useState, useTransition } from "react";
 import { createGroup } from "@/server/actions/group/create/action";
 
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
 interface SelectedMember {
 	id: string;
 	email: string;
@@ -24,6 +27,34 @@ interface CreateGroupDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 }
+
+const compressImage = async (file: File) => {
+	const bitmap = await createImageBitmap(file);
+
+	const canvas = document.createElement("canvas");
+	const ctx = canvas.getContext("2d")!;
+
+	const maxSize = 256;
+
+	canvas.width = maxSize;
+	canvas.height = maxSize;
+
+	ctx.drawImage(bitmap, 0, 0, maxSize, maxSize);
+
+	return new Promise<string>((resolve) => {
+		canvas.toBlob(
+			(blob) => {
+				if (!blob) return;
+
+				const reader = new FileReader();
+				reader.onloadend = () => resolve(reader.result as string);
+				reader.readAsDataURL(blob);
+			},
+			"image/jpeg",
+			0.7,
+		);
+	});
+};
 
 export function CreateGroupDialog({
 	open,
@@ -39,7 +70,10 @@ export function CreateGroupDialog({
 	const [inviteLink, setInviteLink] = useState("");
 	const [copied, setCopied] = useState(false);
 	const [isPending, startTransition] = useTransition();
+	const [iconBase64, setIconBase64] = useState("");
 	const [error, setError] = useState("");
+
+	const fileInputRef = useRef<HTMLInputElement | null>(null);
 	const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	const resetForm = useCallback(() => {
@@ -50,6 +84,7 @@ export function CreateGroupDialog({
 		setSearchResults([]);
 		setInviteLink("");
 		setCopied(false);
+		setIconBase64("");
 		setError("");
 	}, []);
 
@@ -60,6 +95,26 @@ export function CreateGroupDialog({
 		},
 		[onOpenChange, resetForm],
 	);
+
+	const handleImageUpload = useCallback(async (file: File) => {
+		if (!file.type.startsWith("image/")) {
+			setError("Only image files are allowed.");
+			return;
+		}
+
+		if (file.size > MAX_FILE_SIZE) {
+			setError("Image must be under 5MB.");
+			return;
+		}
+
+		try {
+			const compressedBase64 = await compressImage(file);
+			setIconBase64(compressedBase64);
+			setError("");
+		} catch {
+			setError("Failed to process image.");
+		}
+	}, []);
 
 	const handleMemberSearch = useCallback(
 		(query: string) => {
@@ -119,6 +174,7 @@ export function CreateGroupDialog({
 				name: name.trim(),
 				description: description.trim() || undefined,
 				memberIds: members.map((m) => m.id),
+				icon: iconBase64 || undefined,
 			});
 
 			if (result.success && result.groupId) {
@@ -129,7 +185,7 @@ export function CreateGroupDialog({
 				setError(result.message);
 			}
 		});
-	}, [name, description, members, handleOpenChange]);
+	}, [name, description, members, handleOpenChange, iconBase64]);
 
 	const getInitials = (email: string) => {
 		const name = email.split("@")[0] ?? "";
@@ -147,6 +203,34 @@ export function CreateGroupDialog({
 
 			<DialogContent>
 				<div className="flex flex-col gap-5 pt-1">
+					<div className="flex flex-col items-center gap-3">
+						<button
+							type="button"
+							onClick={() => fileInputRef.current?.click()}
+							className="relative"
+						>
+							<Avatar
+								src={iconBase64 || undefined}
+								sx={{ width: 82, height: 82 }}
+							>
+								<AddAPhoto className="size-7" />
+							</Avatar>
+						</button>
+
+						<input
+							ref={fileInputRef}
+							type="file"
+							accept="image/*"
+							hidden
+							onChange={(e) => {
+								const file = e.target.files?.[0];
+								if (file) handleImageUpload(file);
+							}}
+						/>
+
+						<p className="text-gray-500 text-xs">Upload group icon (max 5MB)</p>
+					</div>
+
 					<TextField
 						label="Group Name*"
 						variant="outlined"

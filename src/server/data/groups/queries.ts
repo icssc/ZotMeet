@@ -43,6 +43,7 @@ export async function getGroupsByUserId(
 			createdAt: groups.createdAt,
 			createdBy: groups.createdBy,
 			archived: groups.archived,
+			icon: groups.icon,
 		})
 		.from(groups)
 		.innerJoin(usersInGroup, eq(groups.id, usersInGroup.groupId))
