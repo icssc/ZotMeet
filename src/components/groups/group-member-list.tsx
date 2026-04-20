@@ -1,7 +1,15 @@
 "use client";
 
 import { People } from "@mui/icons-material";
-import { Button, IconButton, Menu, MenuItem, Tab, Tabs } from "@mui/material";
+import {
+	Avatar,
+	Button,
+	IconButton,
+	Menu,
+	MenuItem,
+	Tab,
+	Tabs,
+} from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import {
 	Calendar,
@@ -9,7 +17,6 @@ import {
 	MoreVertical,
 	Pencil,
 	Plus,
-	Settings,
 	Share2,
 	Users,
 } from "lucide-react";
@@ -163,7 +170,6 @@ function MeetingRow({
 						onClick={(e) => {
 							e.stopPropagation();
 							setAnchorEl(null);
-							// handle nudge members
 						}}
 					>
 						<People className="mr-2 size-4" />
@@ -366,7 +372,7 @@ export function GroupMemberList({
 		}
 	}
 
-	const { upcomingMeetings, allMeetings } = useMemo(() => {
+	const { meetingsPendingAvailability, allMeetings } = useMemo(() => {
 		const now = new Date();
 
 		const getSortDate = (meeting: MeetingWithStats) =>
@@ -374,11 +380,10 @@ export function GroupMemberList({
 				? new Date(meeting.scheduledDate)
 				: new Date(meeting.dates[0]); // meeting window start
 
-		// Upcoming section: scheduled + future
-		const upcomingMeetings = meetings
+		// Pending Availability section
+		const meetingsPendingAvailability = meetings
 			.filter((meeting) => {
-				if (!meeting.scheduledDate) return false;
-				return new Date(meeting.scheduledDate) > now;
+				return !meeting.userHasResponded;
 			})
 			.sort((a, b) => getSortDate(a).getTime() - getSortDate(b).getTime());
 
@@ -387,40 +392,85 @@ export function GroupMemberList({
 			(a, b) => getSortDate(a).getTime() - getSortDate(b).getTime(),
 		);
 
-		return { upcomingMeetings, allMeetings };
+		return { meetingsPendingAvailability, allMeetings };
 	}, [meetings]);
 
 	return (
 		<div>
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-3">
-					<h1 className="font-bold font-figtree text-5xl">{group.name}</h1>
-					<button
-						type="button"
-						className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-					>
-						<Pencil className="size-5" />
-					</button>
+			<div className="flex flex-col items-center gap-6 md:flex-row md:items-start md:justify-between">
+				<div className="flex flex-col items-center gap-4 text-center md:flex-row md:items-center md:gap-6 md:text-left">
+					<Avatar
+						src={"/icssc-logo.svg"}
+						alt="group-icon"
+						sx={{
+							width: { xs: 100, md: 80 },
+							height: { xs: 100, md: 80 },
+						}}
+					/>
+
+					<div className="flex flex-col gap-1">
+						<div className="flex items-center justify-center gap-3 md:justify-start">
+							<h1 className="font-bold font-figtree text-4xl md:text-5xl">
+								{group.name}
+							</h1>
+							<button
+								type="button"
+								className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100"
+							>
+								<Pencil className="size-5" />
+							</button>
+						</div>
+						{group.description && (
+							<p className="max-w-md text-gray-600 text-sm md:max-w-none">
+								{group.description}
+							</p>
+						)}
+					</div>
 				</div>
+
 				<div className="flex items-center gap-3">
-					<Link href={`/?groupId=${group.id}`}>
+					{/* Desktop */}
+					<Link
+						href={`/?groupId=${group.id}`}
+						className="hidden md:inline-flex"
+					>
 						<Button variant="contained" startIcon={<Plus className="size-4" />}>
 							Create New Meeting
 						</Button>
 					</Link>
-					<Button
-						variant="outlined"
-						startIcon={<Share2 className="size-4" />}
-						onClick={handleCreateInviteLink}
-						disabled={!canShareInvites || isCreatingInvite}
-						title={
-							!canShareInvites
-								? "Only the group creator can share invite links."
-								: undefined
-						}
-					>
-						{isCreatingInvite ? "Generating..." : "Share"}
-					</Button>
+
+					{/* Mobile */}
+					<Link href={`/?groupId=${group.id}`} className="md:hidden">
+						<Button variant="contained">
+							<Plus className="size-6" />
+						</Button>
+					</Link>
+
+					{/* Share: Icon Only on Mobile, Outlined on Desktop */}
+					<div className="md:block">
+						{/* Desktop */}
+						<div className="hidden md:block">
+							<Button
+								variant="outlined"
+								startIcon={<Share2 className="size-4" />}
+								onClick={handleCreateInviteLink}
+								disabled={!canShareInvites || isCreatingInvite}
+							>
+								{isCreatingInvite ? "Generating..." : "Share"}
+							</Button>
+						</div>
+
+						{/* Mobile */}
+						<div className="md:hidden">
+							<Button
+								variant="text"
+								onClick={handleCreateInviteLink}
+								disabled={!canShareInvites || isCreatingInvite}
+							>
+								<Share2 className="size-6" />
+							</Button>
+						</div>
+					</div>
 				</div>
 			</div>
 
@@ -446,13 +496,13 @@ export function GroupMemberList({
 						<div>
 							<div className="mt-8">
 								<p className="mb-2 font-bold text-[#969696] text-xs uppercase tracking-wide">
-									Upcoming ({upcomingMeetings.length})
+									Action Required ({meetingsPendingAvailability.length})
 								</p>
 
-								{upcomingMeetings.map((meeting) => (
+								{meetingsPendingAvailability.map((meeting) => (
 									<div
 										key={meeting.id}
-										className="mb-2 rounded-xl border border-gray-300"
+										className="mb-3 rounded-xl border border-gray-300"
 									>
 										<MeetingRow
 											key={meeting.id}
@@ -471,7 +521,7 @@ export function GroupMemberList({
 								{allMeetings.map((meeting) => (
 									<div
 										key={meeting.id}
-										className="mb-2 rounded-xl border border-gray-300"
+										className="mb-3 rounded-xl border border-gray-300"
 									>
 										<MeetingRow
 											key={meeting.id}

@@ -1,7 +1,8 @@
 "use server";
 
 //import { createGuest } from "@/lib/auth/user";
-import { getExistingMeeting } from "@data/meeting/queries";
+import { getExistingMeeting, getGroupIdOfMeeting } from "@data/meeting/queries";
+import { revalidatePath } from "next/dist/server/web/spec-extension/revalidate";
 import { db } from "@/db";
 import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
@@ -59,6 +60,10 @@ export async function saveAvailability({
 					meetingAvailabilities: availabilityTimes,
 				},
 			});
+		const groupId = await getGroupIdOfMeeting(meetingId);
+		if (groupId) {
+			revalidatePath(`/groups/${groupId}`);
+		}
 
 		return {
 			status: 200,

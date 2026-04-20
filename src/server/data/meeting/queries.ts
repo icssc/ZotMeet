@@ -173,3 +173,18 @@ export async function getMemberAvailabilitiesForMeetingIds({
 		),
 	});
 }
+
+export async function getGroupIdOfMeeting(meetingId: string) {
+	const meeting = await db.query.meetings.findFirst({
+		where: eq(meetings.id, meetingId),
+		with: {
+			group: true,
+		},
+	});
+
+	if (!meeting) {
+		throw new Error("Meeting not found");
+	}
+
+	return meeting.group?.id;
+}

@@ -211,6 +211,7 @@ export type MeetingWithStats = SelectMeeting & {
 	scheduledDate: Date | null;
 	totalMembers: number;
 	respondedCount: number;
+	userHasResponded: boolean;
 };
 
 export async function getGroupMeetingsWithStats(
@@ -255,6 +256,7 @@ export async function getGroupMeetingsWithStats(
 				scheduledDate: scheduledBlock?.scheduledDate ?? null,
 				totalMembers,
 				respondedCount: responseMap.get(meeting.id) ?? 0,
+				userHasResponded: responseMap.has(meeting.id),
 			};
 		}),
 	);
