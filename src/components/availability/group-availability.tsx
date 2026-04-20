@@ -65,7 +65,7 @@ function calculateBlockColor({
 
 	if (showBestTimes) {
 		if (block.length === maxAvailability && maxAvailability > 0) {
-			return "rgba(55, 124, 251, 1)";
+			return "rgba(242, 100, 137, 1)";
 		}
 		return "transparent";
 	}
