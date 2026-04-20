@@ -769,6 +769,7 @@ export function Availability({
 										availabilityView === "schedule" ? (
 											<GroupAvailability
 												meetingId={meetingData.id}
+												meetingTitle={meetingData.title}
 												timeBlock={timeBlock}
 												blockIndex={blockIndex}
 												availabilityTimeBlocks={availabilityTimeBlocks}

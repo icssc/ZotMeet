@@ -208,6 +208,25 @@ export const formatDateToUSNumeric = (date: Date) =>
 		day: "numeric",
 	});
 
+export function formatScheduledTimeRange(timestamps: string[]): string {
+	if (timestamps.length === 0) return "";
+	const sorted = [...timestamps].sort();
+	const start = new Date(sorted[0]);
+	const last = new Date(sorted[sorted.length - 1]);
+	last.setMinutes(last.getMinutes() + 15);
+
+	const fmt = (d: Date) => {
+		const h = d.getHours();
+		const m = d.getMinutes();
+		const ampm = h >= 12 ? "PM" : "AM";
+		const hour = h % 12 || 12;
+		return m === 0
+			? `${hour}${ampm}`
+			: `${hour}:${String(m).padStart(2, "0")}${ampm}`;
+	};
+	return `${fmt(start)} - ${fmt(last)}`;
+}
+
 /** ISO string for the start of a 15-minute slot; matches ZotDate / drag-save encoding. */
 export function getTimestampFromBlockIndex(
 	blockIndex: number,

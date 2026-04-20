@@ -187,6 +187,17 @@ export const getTheme = (mode: "light" | "dark") =>
 					},
 				},
 			},
+			MuiCard: {
+				defaultProps: {
+					elevation: 1,
+				},
+				styleOverrides: {
+					root: ({ theme }) => ({
+						borderRadius: 8,
+						backgroundColor: theme.palette.background.paper,
+					}),
+				},
+			},
 			MuiButton: {
 				styleOverrides: {
 					root: {
@@ -195,17 +206,30 @@ export const getTheme = (mode: "light" | "dark") =>
 					contained: ({ theme }) => ({
 						boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 ${theme.palette.primary.main}`,
 						"&:hover": {
-							boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 2px 0 0 ${theme.palette.primary.main}`,
+							boxShadow: `0 2px 0 0 rgba(0,0,0,0.15), 0 2px 0 0 ${theme.palette.primary.main}`,
+							transform: "translateY(2px)",
 						},
 						"&:active": {
 							boxShadow: "none",
 							transform: "translateY(4px)",
 						},
 					}),
+					containedPrimary: ({ theme }) => ({
+						"&:hover": {
+							backgroundColor: theme.palette.primary.main,
+						},
+					}),
+					containedSecondary: ({ theme }) => ({
+						"&:hover": {
+							backgroundColor: theme.palette.secondary.main,
+						},
+					}),
 					outlined: {
 						boxShadow: "0px 4px 0px 0px rgba(0,0,0,0.25)",
 						"&:hover": {
 							boxShadow: "0px 2px 0px 0px rgba(0,0,0,0.25)",
+							transform: "translateY(2px)",
+							backgroundColor: "transparent",
 						},
 						"&:active": {
 							boxShadow: "none",
