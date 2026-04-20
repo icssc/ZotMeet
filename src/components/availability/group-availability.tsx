@@ -1,6 +1,5 @@
 "use client";
 
-import { alpha, useTheme } from "@mui/material/styles";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
@@ -65,7 +64,7 @@ function calculateBlockColor({
 
 	if (showBestTimes) {
 		if (block.length === maxAvailability && maxAvailability > 0) {
-			return alpha(primaryColor, 1);
+			return "rgba(55, 124, 251, 1)";
 		}
 		return "transparent";
 	}
@@ -134,7 +133,6 @@ export function GroupAvailability({
 	isScheduling,
 	timeZone,
 }: GroupAvailabilityProps) {
-	const theme = useTheme();
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
