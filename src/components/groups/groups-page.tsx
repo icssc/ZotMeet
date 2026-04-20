@@ -229,12 +229,20 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 						color="text.disabled"
 						sx={{ display: "block", mb: 2 }}
 					>
-						All ({filteredGroups.filter((g) => g.ownerEmail !== null).length})
+						All (
+						{
+							filteredGroups.filter(
+								(g) => g.ownerEmail !== null && !g.needsAvailability,
+							).length
+						}
+						)
 					</Typography>
-					{filteredGroups.filter((g) => g.ownerEmail !== null).length > 0 ? (
+					{filteredGroups.filter(
+						(g) => g.ownerEmail !== null && !g.needsAvailability,
+					).length > 0 ? (
 						<Stack spacing={1.5}>
 							{filteredGroups
-								.filter((g) => g.ownerEmail !== null)
+								.filter((g) => g.ownerEmail !== null && !g.needsAvailability)
 								.map((group) => (
 									<GroupCard
 										key={group.id}
@@ -287,6 +295,11 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					>
 						{filteredGroups
 							.filter((group) => group.ownerEmail !== null)
+							.toSorted((a, b) => {
+								const priority = (g: typeof a) =>
+									g.needsAvailability ? 0 : g.upcomingMeetingName ? 1 : 2;
+								return priority(a) - priority(b);
+							})
 							.map((group) => (
 								<GroupCard
 									key={group.id}
