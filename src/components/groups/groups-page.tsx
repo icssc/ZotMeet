@@ -1,7 +1,8 @@
 "use client";
 
-import { Add, People } from "@mui/icons-material";
-import { Button } from "@mui/material";
+import { Add, ExpandMore, People } from "@mui/icons-material";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
@@ -15,10 +16,13 @@ interface GroupsPageProps {
 	groups: GroupWithDetails[];
 }
 
+const INITIAL_ACTION_REQUIRED_COUNT = 2;
+
 export function GroupsPage({ groups }: GroupsPageProps) {
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
+	const [showAllActionRequired, setShowAllActionRequired] = useState(false);
 
 	const filteredGroups = useMemo(() => {
 		let result = groups;
@@ -33,7 +37,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 				result = result.filter((g) => g.isCreator);
 				break;
 			case "availability":
-				result = result.filter((g) => g.needsAvailability);
+				result = result.filter((g) => g.upcomingMeetingName);
 				break;
 		}
 
@@ -44,18 +48,36 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 		() => ({
 			all: groups.length,
 			created: groups.filter((g) => g.isCreator).length,
-			availability: groups.filter((g) => g.needsAvailability).length,
+			availability: groups.filter((g) => g.upcomingMeetingName).length,
 		}),
 		[groups],
 	);
 
+	const actionRequiredGroups = useMemo(
+		() =>
+			filteredGroups.filter(
+				(g) => g.needsAvailability && g.ownerEmail !== null,
+			),
+		[filteredGroups],
+	);
+
+	const visibleActionGroups = showAllActionRequired
+		? actionRequiredGroups
+		: actionRequiredGroups.slice(0, INITIAL_ACTION_REQUIRED_COUNT);
+
 	const [showJoinGroup, setShowJoinGroup] = useState(false);
 
 	return (
-		<div className="w-full">
-			<div className="mt-6 mb-8 flex items-center sm:hidden">
-				<h1 className="text-5xl">Groups</h1>
-
+		<Box sx={{ width: "100%" }}>
+			<Box
+				sx={{
+					mt: 3,
+					mb: 4,
+					display: { xs: "flex", sm: "none" },
+					alignItems: "center",
+				}}
+			>
+				<Typography variant="h3">Groups</Typography>
 				<Button
 					type="button"
 					variant="contained"
@@ -63,7 +85,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					sx={{
 						fontSize: "2rem",
 						padding: 0,
-						marginLeft: "auto",
+						ml: "auto",
 						minWidth: 0,
 						width: "3rem",
 						height: "3rem",
@@ -71,11 +93,21 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 				>
 					+
 				</Button>
-			</div>
+			</Box>
 
-			<div className="block sm:flex">
-				<div className="flex items-center gap-2.5 rounded-full bg-gray-100 px-4 py-2">
-					<Search className="size-5 text-gray-400" />
+			<Box sx={{ display: { xs: "block", sm: "flex" } }}>
+				<Box
+					sx={{
+						display: "flex",
+						alignItems: "center",
+						gap: 1.25,
+						borderRadius: 99,
+						bgcolor: "grey.100",
+						px: 2,
+						py: 1,
+					}}
+				>
+					<Search size={20} color="var(--mui-palette-text-disabled, #9e9e9e)" />
 					<input
 						type="text"
 						placeholder="Search"
@@ -83,9 +115,16 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 						onChange={(e) => setSearch(e.target.value)}
 						className="bg-transparent text-base outline-none placeholder:text-gray-400"
 					/>
-				</div>
+				</Box>
 
-				<div className="ml-auto hidden items-center gap-2 sm:flex">
+				<Box
+					sx={{
+						ml: "auto",
+						display: { xs: "none", sm: "flex" },
+						alignItems: "center",
+						gap: 1,
+					}}
+				>
 					<Button
 						type="button"
 						variant="outlined"
@@ -105,40 +144,164 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					>
 						Create Group
 					</Button>
-				</div>
-			</div>
+				</Box>
+			</Box>
 
-			<div className="mt-4 border-gray-200 border-b" />
+			<Divider sx={{ mt: 2 }} />
 
-			<div className="mt-4 flex flex-col flex-wrap gap-3">
-				<div className="flex gap-1">
-					<FilterChip
-						label="All"
-						count={counts.all}
-						active={activeFilter === "all"}
-						onClick={() => setActiveFilter("all")}
-					/>
-					<FilterChip
-						label="By You"
-						count={counts.created}
-						active={activeFilter === "created"}
-						onClick={() => setActiveFilter("created")}
-					/>
-					<FilterChip
-						label="Availability Needed"
-						count={counts.availability}
-						active={activeFilter === "availability"}
-						onClick={() => setActiveFilter("availability")}
-					/>
-				</div>
-			</div>
+			<Box sx={{ mt: 2, display: "flex", gap: 0.5 }}>
+				<FilterChip
+					label="All"
+					count={counts.all}
+					active={activeFilter === "all"}
+					onClick={() => setActiveFilter("all")}
+				/>
+				<FilterChip
+					label="By You"
+					count={counts.created}
+					active={activeFilter === "created"}
+					onClick={() => setActiveFilter("created")}
+				/>
+				<FilterChip
+					label="Upcoming"
+					count={counts.availability}
+					active={activeFilter === "availability"}
+					onClick={() => setActiveFilter("availability")}
+				/>
+			</Box>
 
-			<div className="mt-8">
-				<p className="p-1 text-gray-400">All ({counts.all})</p>
+			<Box sx={{ mt: 3, display: { sm: "none" } }}>
+				{actionRequiredGroups.length > 0 && (
+					<Box sx={{ mb: 3 }}>
+						<Typography
+							variant="overline"
+							color="text.disabled"
+							sx={{ display: "block", mb: 2 }}
+						>
+							Action Required ({actionRequiredGroups.length})
+						</Typography>
+						<Stack spacing={1.5}>
+							{visibleActionGroups.map((group) => (
+								<GroupCard
+									key={group.id}
+									id={group.id}
+									name={group.name}
+									description={group.description}
+									memberEmails={group.memberEmails}
+									totalMembers={group.totalMembers}
+									creatorName={group.creatorName}
+									actionRequired={true}
+									pendingMeetingName={group.pendingMeetingName}
+								/>
+							))}
+						</Stack>
+						{actionRequiredGroups.length > INITIAL_ACTION_REQUIRED_COUNT && (
+							<Button
+								type="button"
+								onClick={() => setShowAllActionRequired((v) => !v)}
+								endIcon={
+									<ExpandMore
+										sx={{
+											fontSize: 14,
+											transform: showAllActionRequired
+												? "rotate(180deg)"
+												: "none",
+											transition: "transform 0.2s",
+										}}
+									/>
+								}
+								sx={{
+									mt: 1.5,
+									width: "100%",
+									color: "text.disabled",
+									fontSize: "0.75rem",
+									fontWeight: 700,
+									letterSpacing: "0.4px",
+								}}
+							>
+								{showAllActionRequired ? "Show Less" : "Show More"}
+							</Button>
+						)}
+					</Box>
+				)}
+
+				<Box>
+					<Typography
+						variant="overline"
+						color="text.disabled"
+						sx={{ display: "block", mb: 2 }}
+					>
+						All (
+						{
+							filteredGroups.filter(
+								(g) => g.ownerEmail !== null && !g.needsAvailability,
+							).length
+						}
+						)
+					</Typography>
+					{filteredGroups.filter(
+						(g) => g.ownerEmail !== null && !g.needsAvailability,
+					).length > 0 ? (
+						<Stack spacing={1.5}>
+							{filteredGroups
+								.filter((g) => g.ownerEmail !== null && !g.needsAvailability)
+								.map((group) => (
+									<GroupCard
+										key={group.id}
+										id={group.id}
+										name={group.name}
+										description={group.description}
+										memberEmails={group.memberEmails}
+										totalMembers={group.totalMembers}
+										creatorName={group.creatorName}
+										actionRequired={false}
+										upcomingMeetingName={
+											group.needsAvailability ? null : group.upcomingMeetingName
+										}
+									/>
+								))}
+						</Stack>
+					) : (
+						<Box
+							sx={{
+								display: "flex",
+								flexDirection: "column",
+								alignItems: "center",
+								justifyContent: "center",
+								py: 10,
+							}}
+						>
+							<Typography
+								variant="body1"
+								color="text.secondary"
+								fontWeight={500}
+							>
+								No groups found
+							</Typography>
+						</Box>
+					)}
+				</Box>
+			</Box>
+
+			<Box sx={{ mt: 4, display: { xs: "none", sm: "block" } }}>
+				<Typography color="text.disabled" sx={{ p: 0.5 }}>
+					All ({counts.all})
+				</Typography>
 				{filteredGroups.length > 0 ? (
-					<div className="grid grid-cols-1 gap-y-2 sm:grid-cols-3 sm:gap-x-8 sm:gap-y-8">
+					<Box
+						sx={{
+							display: "grid",
+							gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
+							gap: { xs: 0.5, sm: 4 },
+						}}
+					>
 						{filteredGroups
 							.filter((group) => group.ownerEmail !== null)
+							.toSorted((a, b) => {
+								const priority = (g: typeof a) =>
+									g.needsAvailability ? 0 : g.upcomingMeetingName ? 1 : 2;
+								return priority(a) - priority(b);
+							})
 							.map((group) => (
 								<GroupCard
 									key={group.id}
@@ -148,9 +311,11 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									memberEmails={group.memberEmails}
 									totalMembers={group.totalMembers}
 									creatorName={group.creatorName}
+									actionRequired={group.needsAvailability}
+									upcomingMeetingName={group.upcomingMeetingName}
 								/>
 							))}
-					</div>
+					</Box>
 				) : (
 					<div className="flex min-h-[500px] flex-col items-center justify-center py-20 text-gray-400">
 						<div
@@ -166,7 +331,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 						</p>
 					</div>
 				)}
-			</div>
+			</Box>
 
 			<CreateGroupDialog
 				open={createDialogOpen}
@@ -174,7 +339,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 			/>
 
 			<InviteDecision open={showJoinGroup} onOpenChange={setShowJoinGroup} />
-		</div>
+		</Box>
 	);
 }
 
@@ -194,10 +359,10 @@ export function FilterChip({
 			onClick={onClick}
 			disableElevation
 			sx={{
-				bgcolor: active ? "secondary.main" : "rgba(0,0,0,0.04)",
+				bgcolor: active ? "secondary.main" : "action.hover",
 				color: active ? "secondary.contrastText" : "text.primary",
 				"&:hover": {
-					bgcolor: active ? "secondary.dark" : "rgba(0,0,0,0.08)",
+					bgcolor: active ? "secondary.dark" : "action.selected",
 				},
 				boxShadow: "none",
 				borderRadius: 1,

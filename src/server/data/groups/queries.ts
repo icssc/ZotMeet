@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, countDistinct, eq, inArray } from "drizzle-orm";
+import { and, count, countDistinct, eq, gte, inArray, lte } from "drizzle-orm";
 import { db } from "@/db";
 import {
 	availabilities,
@@ -149,6 +149,8 @@ export type GroupWithDetails = SelectGroup & {
 	totalMembers: number;
 	isCreator: boolean;
 	needsAvailability: boolean;
+	pendingMeetingName: string | null;
+	upcomingMeetingName: string | null;
 	ownerEmail: string;
 	creatorName: string;
 };
@@ -169,6 +171,7 @@ export async function getGroupsWithDetails(
 
 			// Check if any meetings in this group need availability from this user
 			let needsAvailability = false;
+			let pendingMeetingName: string | null = null;
 			if (groupMeetings.length > 0) {
 				const meetingIds = groupMeetings.map((m) => m.id);
 				const userAvailabilities = await db
@@ -184,9 +187,41 @@ export async function getGroupsWithDetails(
 				const respondedMeetingIds = new Set(
 					userAvailabilities.map((a) => a.meetingId),
 				);
-				needsAvailability = meetingIds.some(
-					(id) => !respondedMeetingIds.has(id),
+				const today = new Date();
+				today.setHours(0, 0, 0, 0);
+				const pendingMeeting = groupMeetings.find(
+					(m) =>
+						!m.scheduled &&
+						!respondedMeetingIds.has(m.id) &&
+						(m.meetingType === "days" ||
+							m.dates.some((d) => new Date(d) >= today)),
 				);
+				needsAvailability = pendingMeeting !== undefined;
+				pendingMeetingName = pendingMeeting?.title ?? null;
+			}
+
+			// Check for a scheduled meeting within the next 3 days
+			let upcomingMeetingName: string | null = null;
+			if (groupMeetings.length > 0) {
+				const meetingIds = groupMeetings.map((m) => m.id);
+				const now = new Date();
+				const threeDaysFromNow = new Date(
+					now.getTime() + 3 * 24 * 60 * 60 * 1000,
+				);
+				const upcoming = await db
+					.select({ title: meetings.title })
+					.from(scheduledMeetings)
+					.innerJoin(meetings, eq(scheduledMeetings.meetingId, meetings.id))
+					.where(
+						and(
+							inArray(scheduledMeetings.meetingId, meetingIds),
+							gte(scheduledMeetings.scheduledDate, now),
+							lte(scheduledMeetings.scheduledDate, threeDaysFromNow),
+						),
+					)
+					.orderBy(scheduledMeetings.scheduledDate)
+					.limit(1);
+				upcomingMeetingName = upcoming[0]?.title ?? null;
 			}
 
 			const creator = members.find((m) => m.userId === group.createdBy);
@@ -198,6 +233,8 @@ export async function getGroupsWithDetails(
 				totalMembers: members.length,
 				isCreator: group.createdBy === userId,
 				needsAvailability,
+				pendingMeetingName,
+				upcomingMeetingName,
 				ownerEmail: creator?.email ?? "",
 				creatorName: creator?.displayName ?? "",
 			};

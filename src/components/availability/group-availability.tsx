@@ -1,10 +1,12 @@
 "use client";
 
+import { alpha, useTheme } from "@mui/material/styles";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 
 import {
+	formatScheduledTimeRange,
 	generateDateKey,
 	getTimestampFromBlockIndex,
 	spacerBeforeDate,
@@ -21,6 +23,7 @@ function calculateBlockColor({
 	numMembers,
 	showBestTimes,
 	maxAvailability,
+	primaryColor,
 	ifNeededBlock,
 }: {
 	block: string[];
@@ -29,6 +32,7 @@ function calculateBlockColor({
 	numMembers: number;
 	showBestTimes: boolean;
 	maxAvailability: number;
+	primaryColor: string;
 	ifNeededBlock: string[];
 }): string {
 	if (selectedMembers.length) {
@@ -41,7 +45,7 @@ function calculateBlockColor({
 
 		if (selectedInBlock.length) {
 			const proportion = selectedInBlock.length / selectedMembers.length;
-			return `rgba(242, 100, 137, ${proportion})`; // available = pink
+			return alpha(primaryColor, proportion); // available = pink
 		}
 		if (ifNeededInBlock.length) {
 			const proportion = ifNeededInBlock.length / selectedMembers.length;
@@ -52,7 +56,7 @@ function calculateBlockColor({
 
 	if (hoveredMember) {
 		if (block.includes(hoveredMember)) {
-			return "rgba(242, 100, 137, 1)"; // available = pink
+			return alpha(primaryColor, 1); // available = pink
 		}
 		if (ifNeededBlock.includes(hoveredMember)) {
 			return "rgba(0, 100, 137, 1)"; // if-needed = blue
@@ -74,7 +78,7 @@ function calculateBlockColor({
 		}
 		if (block.length > 0) {
 			const opacity = block.length / numMembers;
-			return `rgba(242, 100, 137, ${opacity})`; // available = pink
+			return alpha(primaryColor, opacity); // available = pink
 		}
 	}
 
@@ -83,6 +87,7 @@ function calculateBlockColor({
 
 interface GroupAvailabilityProps {
 	meetingId: string;
+	meetingTitle?: string;
 	timeBlock: number;
 	blockIndex: number;
 	availabilityTimeBlocks: number[];
@@ -99,6 +104,7 @@ interface GroupAvailabilityProps {
 }
 
 export function GroupAvailability({
+	meetingTitle,
 	timeBlock,
 	blockIndex,
 	availabilityTimeBlocks,
@@ -110,6 +116,8 @@ export function GroupAvailability({
 	isScheduling,
 	timeZone,
 }: GroupAvailabilityProps) {
+	const theme = useTheme();
+
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
@@ -145,6 +153,25 @@ export function GroupAvailability({
 
 	const numMembers = members.length;
 	const showBestTimes = useAvailabilityStore((state) => state.enabled);
+
+	const { scheduledTimes, pendingAdds, pendingRemovals } = useAvailabilityStore(
+		useShallow((state) => ({
+			scheduledTimes: state.scheduledTimes,
+			pendingAdds: state.pendingAdds,
+			pendingRemovals: state.pendingRemovals,
+		})),
+	);
+
+	const { scheduledTimeRange, scheduledBlockCount } = useMemo(() => {
+		const effective = new Set([...scheduledTimes, ...pendingAdds]);
+		for (const ts of pendingRemovals) {
+			effective.delete(ts);
+		}
+		return {
+			scheduledTimeRange: formatScheduledTimeRange([...effective]),
+			scheduledBlockCount: effective.size,
+		};
+	}, [scheduledTimes, pendingAdds, pendingRemovals]);
 
 	const maxAvailability = useMemo(() => {
 		if (!showBestTimes || numMembers === 0) return 0;
@@ -527,17 +554,42 @@ export function GroupAvailability({
 				const block = selectedDate.groupAvailability[timestamp] || [];
 				const ifNeededBlock = ifNeededDate?.groupAvailability[timestamp] || [];
 				//console.log(ifNeededBlock, block)
-				const blockColor = isScheduled(timestamp)
-					? "rgba(255, 215, 0, 0.6)" // gold
-					: calculateBlockColor({
-							block,
-							hoveredMember,
-							selectedMembers,
-							numMembers,
-							showBestTimes,
-							maxAvailability,
-							ifNeededBlock,
-						});
+				const blockColor = calculateBlockColor({
+					block,
+					hoveredMember,
+					selectedMembers,
+					numMembers,
+					showBestTimes,
+					maxAvailability,
+					ifNeededBlock,
+					primaryColor: theme.palette.primary.main,
+				});
+				const blockIsScheduled = isScheduled(timestamp);
+
+				const prevTimestamp =
+					blockIndex > 0
+						? getTimestampFromBlockIndex(
+								blockIndex - 1,
+								zotDateIndex,
+								fromTime,
+								availabilityDates,
+								timeZone,
+							)
+						: "";
+				const nextTimestamp =
+					blockIndex < availabilityTimeBlocks.length - 1
+						? getTimestampFromBlockIndex(
+								blockIndex + 1,
+								zotDateIndex,
+								fromTime,
+								availabilityDates,
+								timeZone,
+							)
+						: "";
+				const isTopEdge =
+					blockIsScheduled && (!prevTimestamp || !isScheduled(prevTimestamp));
+				const isBottomEdge =
+					blockIsScheduled && (!nextTimestamp || !isScheduled(nextTimestamp));
 
 				const tableCellStyles = cn(
 					isTopOfHour ? "border-t-[1px] border-t-gray-medium" : "",
@@ -553,7 +605,7 @@ export function GroupAvailability({
 						{spacers[pageDateIndex] && (
 							<td className="w-3 md:w-4" aria-hidden="true" />
 						)}
-						<td className="px-0 py-0">
+						<td className={cn("px-0 py-0", isTopEdge && "relative z-[1]")}>
 							<GroupAvailabilityBlock
 								className={cn(
 									"group-availability-block block",
@@ -572,6 +624,14 @@ export function GroupAvailability({
 									})
 								}
 								blockColor={blockColor}
+								isScheduled={blockIsScheduled}
+								isScheduledTopEdge={isTopEdge}
+								isScheduledBottomEdge={isBottomEdge}
+								scheduledMeetingTitle={isTopEdge ? meetingTitle : undefined}
+								scheduledTimeRange={isTopEdge ? scheduledTimeRange : undefined}
+								scheduledBlockCount={
+									isTopEdge ? scheduledBlockCount : undefined
+								}
 								tableCellStyles={tableCellStyles}
 								hasSpacerBefore={spacers[pageDateIndex]}
 								dateIndex={zotDateIndex}
