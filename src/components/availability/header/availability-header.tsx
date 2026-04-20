@@ -1,7 +1,10 @@
 "use client";
 
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
-import { saveAvailability } from "@actions/availability/save/action";
+import {
+	saveAvailability,
+	saveIfNeeded,
+} from "@actions/availability/save/action";
 import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
@@ -20,25 +23,30 @@ import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+import type { Availability } from "../availability";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
 	user: UserProfile | null;
 	availabilityDates: ZotDate[];
+	ifNeededDates: ZotDate[];
 	onCancel: () => void;
 	onSave: () => void;
 	setChangeableTimezone: (can: boolean) => void;
 	setTimezone: (timezone: string) => void;
+	availabilityEditState: Availability;
 }
 
 export function AvailabilityHeader({
 	meetingData,
 	user,
 	availabilityDates,
+	ifNeededDates,
 	onCancel,
 	onSave,
 	setChangeableTimezone,
 	setTimezone,
+	availabilityEditState,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
 	const { showSuccess, showError } = useSnackbar();
@@ -86,10 +94,16 @@ export function AvailabilityHeader({
 			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
 			displayName: user.displayName,
 		};
-
+		const ifNeeded = {
+			meetingId: meetingData.id,
+			availabilityTimes: ifNeededDates.flatMap((date) => date.availability),
+			displayName: user.displayName,
+		};
 		const response = await saveAvailability(availability);
 
-		if (response.status === 200) {
+		const ifNeededResponse = await saveIfNeeded(ifNeeded);
+
+		if (response.status === 200 && ifNeededResponse.status === 200) {
 			setHasAvailability(true);
 			setAvailabilityView("group");
 			onSave();

@@ -17,7 +17,10 @@ interface GroupResponsesProps {
 	fromTime: number;
 	timezone: string;
 	anchorNormalizedDate: Date[];
-	currentPageAvailability: ZotDate[];
+	currentPageAvailability: {
+		availabilities: ZotDate[];
+		ifNeeded: ZotDate[];
+	};
 	availabilityTimeBlocks: number[];
 	doesntNeedDay: boolean;
 }
@@ -31,7 +34,7 @@ export function GroupResponses({
 	doesntNeedDay,
 }: GroupResponsesProps) {
 	const [_newBlocks, newAvailDates] = newZonedPageAvailAndDates(
-		currentPageAvailability,
+		currentPageAvailability["availabilities"],
 		availabilityDates,
 		doesntNeedDay,
 	);
@@ -93,6 +96,7 @@ export function GroupResponses({
 		) {
 			return {
 				availableMembers: [],
+				ifNeededMembers: [],
 			};
 		}
 		const selectedDate = newAvailDates[selectedZotDateIndex];
@@ -103,17 +107,31 @@ export function GroupResponses({
 			newAvailDates,
 			timezone,
 		);
+
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
+		const [_ifNeededBlocks, newIfNeededDates] = newZonedPageAvailAndDates(
+			currentPageAvailability["ifNeeded"],
+			availabilityDates,
+			doesntNeedDay,
+		);
+		const ifNeededDate = newIfNeededDates[selectedZotDateIndex];
+		const ifNeededMemberIds = ifNeededDate?.groupAvailability[timestamp] || [];
 
 		return {
 			availableMembers: members.filter((member) =>
 				availableMemberIds.includes(member.memberId),
+			),
+			ifNeededMembers: members.filter((m) =>
+				ifNeededMemberIds.includes(m.memberId),
 			),
 		};
 	}, [
 		selectedZotDateIndex,
 		selectedBlockIndex,
 		newAvailDates,
+		currentPageAvailability,
+		availabilityDates,
+		doesntNeedDay,
 		fromTime,
 		timezone,
 		members,
