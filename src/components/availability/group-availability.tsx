@@ -6,6 +6,7 @@ import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
 
 import {
+	formatScheduledTimeRange,
 	generateDateKey,
 	getTimestampFromBlockIndex,
 	spacerBeforeDate,
@@ -82,25 +83,6 @@ function calculateBlockColor({
 	}
 
 	return "transparent";
-}
-
-function formatScheduledTimeRange(timestamps: string[]): string {
-	if (timestamps.length === 0) return "";
-	const sorted = [...timestamps].sort();
-	const start = new Date(sorted[0]);
-	const last = new Date(sorted[sorted.length - 1]);
-	last.setMinutes(last.getMinutes() + 15);
-
-	const fmt = (d: Date) => {
-		const h = d.getHours();
-		const m = d.getMinutes();
-		const ampm = h >= 12 ? "PM" : "AM";
-		const hour = h % 12 || 12;
-		return m === 0
-			? `${hour}${ampm}`
-			: `${hour}:${String(m).padStart(2, "0")}${ampm}`;
-	};
-	return `${fmt(start)} - ${fmt(last)}`;
 }
 
 interface GroupAvailabilityProps {
