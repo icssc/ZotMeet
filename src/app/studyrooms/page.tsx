@@ -54,10 +54,18 @@ function getDefaultWindow() {
 }
 
 export default function Page() {
-	const { start: defaultStart, end: defaultEnd } = getDefaultWindow();
-	const defaultDate = new Date(defaultStart);
-	defaultDate.setHours(0, 0, 0, 0);
-
+	const [{ defaultDate, defaultStart, defaultEnd }] = useState(() => {
+		const { start, end } = getDefaultWindow();
+		return {
+			defaultStart: start,
+			defaultEnd: end,
+			defaultDate: new Date(
+				start.getFullYear(),
+				start.getMonth(),
+				start.getDate(),
+			),
+		};
+	});
 	const [date, setDate] = useState<Date | null>(defaultDate);
 	const [startTime, setStartTime] = useState<Date | null>(defaultStart);
 	const [endTime, setEndTime] = useState<Date | null>(defaultEnd);
