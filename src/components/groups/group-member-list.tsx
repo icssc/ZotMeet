@@ -2,6 +2,7 @@
 
 import { People } from "@mui/icons-material";
 import { Button, IconButton, Menu, MenuItem, Tab, Tabs } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import {
 	Calendar,
 	Clock,
@@ -106,12 +107,12 @@ function MeetingRow({
 			: `Created by ${meeting.hostName}`;
 
 	return (
-		<div className="flex items-center justify-between border-gray-200 border-b px-4 py-4 transition-colors hover:bg-gray-50">
+		<div className="flex items-center justify-between rounded-xl border-gray-200 border-b px-4 py-4 transition-colors hover:bg-gray-50">
 			<Link
 				href={`/availability/${meeting.id}`}
 				className="flex flex-1 flex-col gap-1"
 			>
-				<h3 className="font-medium text-base text-gray-900">{meeting.title}</h3>
+				<h3 className="font-medium text-base">{meeting.title}</h3>
 
 				<div className="flex flex-wrap items-center gap-x-4 text-gray-500 text-sm">
 					<div className="flex items-center gap-1">
@@ -193,6 +194,7 @@ function AdminMemberRow({
 	isSelf: boolean;
 }) {
 	const [isPending, startTransition] = useTransition();
+	const theme = useTheme();
 
 	function handleRoleChange(value: string) {
 		startTransition(async () => {
@@ -205,23 +207,51 @@ function AdminMemberRow({
 	}
 
 	return (
-		<div className="flex h-[83px] items-center justify-between border-black/10 border-b px-4">
+		<div
+			style={{ borderBottom: `1px solid ${theme.palette.divider}` }}
+			className="flex h-[83px] items-center justify-between px-4 transition-colors hover:bg-gray-50/50"
+		>
 			<div className="flex items-center gap-4">
 				<MemberAvatar email={member.email} />
-				<span className="font-medium text-[#0a0a0a] text-base">
+				<span
+					style={{ color: theme.palette.text.primary }}
+					className="font-medium text-base"
+				>
 					{member.email.split("@")[0]}
-					{isSelf && <span className="ml-2 text-gray-400 text-xs">(you)</span>}
+					{isSelf && (
+						<span
+							style={{ color: theme.palette.text.secondary }}
+							className="ml-2 text-xs"
+						>
+							(you)
+						</span>
+					)}
 				</span>
 			</div>
+
 			<Select
 				value={member.role}
 				onValueChange={handleRoleChange}
 				disabled={isSelf || isPending}
 			>
-				<SelectTrigger className="h-9 w-[140px] rounded-lg border-0 bg-[#f5f5f5] text-sm focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50">
+				<SelectTrigger
+					style={{
+						backgroundColor: theme.palette.background.default,
+						color: theme.palette.text.primary,
+						border: `1px solid ${theme.palette.divider}`, // Added subtle border to trigger
+					}}
+					className="h-9 w-[140px] rounded-lg text-sm focus:ring-0 focus:ring-offset-0 disabled:opacity-50"
+				>
 					<SelectValue />
 				</SelectTrigger>
-				<SelectContent>
+
+				<SelectContent
+					style={{
+						backgroundColor: theme.palette.background.paper,
+						color: theme.palette.text.primary,
+						borderColor: theme.palette.divider,
+					}}
+				>
 					<SelectItem value={GroupRole.ADMIN}>Admin</SelectItem>
 					<SelectItem value={GroupRole.MEMBER}>Member</SelectItem>
 				</SelectContent>
@@ -241,36 +271,57 @@ function MembersList({
 	groupId: string;
 	currentUserId: string;
 }) {
+	const theme = useTheme();
+
 	return (
-		<div className="overflow-clip rounded-[10px] border border-black/10 bg-white">
-			<div className="border-black/10 border-b bg-[#f5f5f5] px-4 py-4">
-				<h2 className="font-semibold text-[#0a0a0a] text-base">All Members</h2>
-			</div>
-			{members.map((member) =>
-				isAdmin ? (
-					<AdminMemberRow
-						key={member.userId}
-						member={member}
-						groupId={groupId}
-						isSelf={member.userId === currentUserId}
-					/>
-				) : (
-					<div
-						key={member.userId}
-						className="flex h-[83px] items-center justify-between border-black/10 border-b px-4 last:border-b-0"
-					>
-						<div className="flex items-center gap-4">
-							<MemberAvatar email={member.email} />
-							<span className="font-medium text-[#0a0a0a] text-base">
-								{member.email.split("@")[0]}
+		<div className="mt-4">
+			<p className="mb-2 px-4 font-bold text-[#969696] text-xs uppercase tracking-wide">
+				All Members ({members.length})
+			</p>
+
+			<div className="flex flex-col">
+				{members.map((member) =>
+					isAdmin ? (
+						<AdminMemberRow
+							key={member.userId}
+							member={member}
+							groupId={groupId}
+							isSelf={member.userId === currentUserId}
+						/>
+					) : (
+						<div
+							key={member.userId}
+							style={{ borderBottom: `1px solid ${theme.palette.divider}` }}
+							className="flex h-[83px] items-center justify-between px-4 transition-colors hover:bg-gray-50/50"
+						>
+							<div className="flex items-center gap-4">
+								<MemberAvatar email={member.email} />
+								<span
+									style={{ color: theme.palette.text.primary }}
+									className="font-medium text-base"
+								>
+									{member.email.split("@")[0]}
+									{member.userId === currentUserId && (
+										<span
+											style={{ color: theme.palette.text.secondary }}
+											className="ml-2 text-xs"
+										>
+											(you)
+										</span>
+									)}
+								</span>
+							</div>
+
+							<span
+								style={{ color: theme.palette.text.secondary }}
+								className="font-medium text-sm italic"
+							>
+								{member.role === GroupRole.ADMIN ? "Admin" : "Member"}
 							</span>
 						</div>
-						<span className="font-medium text-[#3d3d3d] text-sm italic">
-							{member.role === GroupRole.ADMIN ? "Admin" : "Member"}
-						</span>
-					</div>
-				),
-			)}
+					),
+				)}
+			</div>
 		</div>
 	);
 }
@@ -379,20 +430,14 @@ export function GroupMemberList({
 				sx={{ mt: 3, borderBottom: 1, borderColor: "divider" }}
 			>
 				<Tab
-					icon={<Calendar className="size-4" />}
-					iconPosition="start"
-					label={`All Meetings (${meetings.length})`}
+					label={`Meetings (${meetings.length})`}
+					sx={{ textTransform: "none" }}
 				/>
 				<Tab
-					icon={<Users className="size-4" />}
-					iconPosition="start"
 					label={`Members (${members.length})`}
+					sx={{ textTransform: "none" }}
 				/>
-				<Tab
-					icon={<Settings className="size-4" />}
-					iconPosition="start"
-					label="Settings"
-				/>
+				<Tab label="Settings" sx={{ textTransform: "none" }} />
 			</Tabs>
 
 			{tab === 0 && (
@@ -407,7 +452,7 @@ export function GroupMemberList({
 								{upcomingMeetings.map((meeting) => (
 									<div
 										key={meeting.id}
-										className="rounded-lg border border-gray-200"
+										className="mb-2 rounded-xl border border-gray-300"
 									>
 										<MeetingRow
 											key={meeting.id}
@@ -419,14 +464,14 @@ export function GroupMemberList({
 							</div>
 
 							<div className="mt-8">
-								<p className="mb-2 font-bold text-[#969696] text-xs uppercase tracking-wide">
+								<p className="mb-5 font-bold text-[#969696] text-xs uppercase tracking-wide">
 									All ({allMeetings.length})
 								</p>
 
 								{allMeetings.map((meeting) => (
 									<div
 										key={meeting.id}
-										className="rounded-lg border border-gray-200"
+										className="mb-2 rounded-xl border border-gray-300"
 									>
 										<MeetingRow
 											key={meeting.id}
