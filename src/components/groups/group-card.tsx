@@ -188,7 +188,7 @@ export function GroupCard({
 							WebkitLineClamp: 3,
 							WebkitBoxOrient: "vertical",
 							overflow: "hidden",
-							height: "calc(3 * 1.3rem)",
+							height: "calc(3 * 1.25rem)",
 						}}
 					>
 						{description || "No Description Provided"}
