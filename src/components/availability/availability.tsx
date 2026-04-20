@@ -41,12 +41,14 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 
+type DeriveMode = "availabilities" | "if-needed";
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
 	meetingDates,
 	userId,
 	allAvailabilties,
 	availabilityTimeBlocks,
+	mode,
 	timezone,
 }: {
 	timezone: string;
@@ -54,42 +56,36 @@ const deriveInitialAvailability = ({
 	userId: string | null;
 	allAvailabilties: MemberMeetingAvailability[];
 	availabilityTimeBlocks: number[];
+	mode: DeriveMode;
 }) => {
+	const getTimestamps = (member: MemberMeetingAvailability) =>
+		mode === "availabilities"
+			? member.meetingAvailabilities
+			: member.ifNeededAvailabilities;
+
 	const userAvailability =
 		allAvailabilties.find((a) => a.memberId === userId) ?? null;
 
 	const availabilitiesByDate = new Map<string, string[]>();
-	if (userAvailability?.meetingAvailabilities) {
-		userAvailability.meetingAvailabilities.forEach((timeStr) => {
-			const dateStr = formatInTimeZone(
-				new Date(timeStr),
-				timezone,
-				"yyyy-MM-dd",
-			);
-
+	if (userAvailability) {
+		getTimestamps(userAvailability).forEach((timeStr) => {
+			const dateStr = new Date(timeStr).toLocaleDateString("en-CA");
 			if (!availabilitiesByDate.has(dateStr)) {
 				availabilitiesByDate.set(dateStr, []);
 			}
-
 			availabilitiesByDate.get(dateStr)?.push(timeStr);
 		});
 	}
 
 	const timestampsByDate = new Map<string, Map<string, string[]>>();
 	for (const member of allAvailabilties) {
-		for (const timestamp of member.meetingAvailabilities) {
-			const dateStr = formatInTimeZone(
-				new Date(timestamp),
-				timezone,
-				"yyyy-MM-dd",
-			);
-
+		for (const timestamp of getTimestamps(member)) {
+			const dateStr = new Date(timestamp).toLocaleDateString("en-CA");
 			let dateMap = timestampsByDate.get(dateStr);
 			if (dateMap === undefined) {
 				dateMap = new Map();
 				timestampsByDate.set(dateStr, dateMap);
 			}
-
 			if (!dateMap.has(timestamp)) {
 				dateMap.set(timestamp, []);
 			}
@@ -97,7 +93,7 @@ const deriveInitialAvailability = ({
 		}
 	}
 
-	const initialAvailability = meetingDates
+	return meetingDates
 		.map((meetingDate) => {
 			const dateStr = meetingDate.split("T")[0];
 			const date = fromZonedTime(`${dateStr}T00:00:00`, timezone);
@@ -107,26 +103,19 @@ const deriveInitialAvailability = ({
 				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] || 1035) +
 				15;
 
-			const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
-
-			const dateGroupAvailabilities = Object.fromEntries(
-				timestampsByDate.get(dateStr) || new Map(),
-			);
 			return new ZotDate(
 				date,
 				earliestMinutes,
 				latestMinutes,
 				false,
-				dateAvailabilities,
-				dateGroupAvailabilities,
+				availabilitiesByDate.get(dateStr) || [],
+				Object.fromEntries(timestampsByDate.get(dateStr) || new Map()),
 				timezone,
 			);
 		})
 		.sort((a, b) => a.day.getTime() - b.day.getTime());
-
-	return initialAvailability;
 };
-
+export type Availability = "available" | "if-needed" | "unavailable";
 export function Availability({
 	meetingData,
 	allAvailabilities,
@@ -138,6 +127,8 @@ export function Availability({
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
 }) {
+	const [availabilitySelectionMode, setAvailabilitySelectionMode] =
+		useState<Availability>("available");
 	const availabilityView = useAvailabilityStore(
 		(state) => state.availabilityView,
 	);
@@ -254,6 +245,18 @@ export function Availability({
 			userId: user?.memberId ?? null,
 			allAvailabilties: allAvailabilities,
 			availabilityTimeBlocks,
+			mode: "availabilities",
+		}),
+	);
+
+	const [ifNeededDates, setIfNeededDates] = useState(() =>
+		deriveInitialAvailability({
+			timezone: userTimezone,
+			meetingDates: meetingData.dates,
+			userId: user?.memberId ?? null,
+			allAvailabilties: allAvailabilities,
+			availabilityTimeBlocks,
+			mode: "if-needed",
 		}),
 	);
 	const bestTimeRanges = useMemo(() => {
@@ -262,6 +265,7 @@ export function Availability({
 
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
+		currentIfNeededDates: ifNeededDates,
 	});
 
 	const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
@@ -274,20 +278,29 @@ export function Availability({
 	const datesToOffset = currentPage * itemsPerPage;
 
 	const currentPageAvailability = useMemo(() => {
-		let pageAvailability = availabilityDates.slice(
-			datesToOffset,
-			datesToOffset + itemsPerPage,
-		);
+		const pageAvailability = {
+			availabilities: availabilityDates.slice(
+				datesToOffset,
+				datesToOffset + itemsPerPage,
+			),
+			ifNeeded: ifNeededDates.slice(
+				datesToOffset,
+				datesToOffset + itemsPerPage,
+			),
+		};
 
 		if (currentPage === lastPage) {
-			pageAvailability = pageAvailability.concat(
-				new Array(numPaddingDates).fill(null),
-			);
+			const padding = new Array(numPaddingDates).fill(null);
+			return {
+				availabilities: pageAvailability.availabilities.concat(padding),
+				ifNeeded: pageAvailability.ifNeeded.concat(padding),
+			};
 		}
 
 		return pageAvailability;
 	}, [
 		availabilityDates,
+		ifNeededDates,
 		datesToOffset,
 		itemsPerPage,
 		currentPage,
@@ -297,9 +310,15 @@ export function Availability({
 
 	const handleUserAvailabilityChange = useCallback(
 		(updatedDates: ZotDate[]) => {
-			setAvailabilityDates([...updatedDates]);
+			if (availabilitySelectionMode === "available") {
+				setAvailabilityDates(updatedDates);
+				console.log("s");
+			} else if (availabilitySelectionMode === "if-needed") {
+				setIfNeededDates(updatedDates);
+				console.log("dat");
+			}
 		},
-		[],
+		[availabilitySelectionMode],
 	);
 
 	const handleImportSlotsFromMeeting = useCallback(
@@ -322,7 +341,8 @@ export function Availability({
 	);
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
-		setAvailabilityDates([...originalDates]);
+		setAvailabilityDates(originalDates[0]);
+		setIfNeededDates(originalDates[1]);
 	}, [cancelEdit]);
 
 	const handleSuccessfulSave = useCallback(() => {
@@ -354,11 +374,14 @@ export function Availability({
 
 	const members = useMemo(() => {
 		const presentMemberIds = [
-			...new Set(
-				availabilityDates.flatMap((date) =>
+			...new Set([
+				...availabilityDates.flatMap((date) =>
 					Object.values(date.groupAvailability).flat(),
 				),
-			),
+				...ifNeededDates.flatMap((date) =>
+					Object.values(date.groupAvailability).flat(),
+				),
+			]),
 		];
 
 		const allMembers = new Map(
@@ -377,7 +400,7 @@ export function Availability({
 		}
 
 		return Array.from(allMembers.values());
-	}, [allAvailabilities, availabilityDates, user]);
+	}, [allAvailabilities, availabilityDates, ifNeededDates, user]);
 
 	let doesntNeedDay = true;
 	let past = availabilityTimeBlocks[0];
@@ -394,8 +417,11 @@ export function Availability({
 
 	const lastUTCDateTime = useMemo(() => {
 		const day = new Date(availabilityDates[availabilityDates.length - 1].day);
-		const hours = Math.floor(currentPageAvailability[0].latestTime / 60);
-		const minutes = currentPageAvailability[0].latestTime % 60;
+		const hours = Math.floor(
+			currentPageAvailability["availabilities"][0].latestTime / 60,
+		);
+		const minutes =
+			currentPageAvailability["availabilities"][0].latestTime % 60;
 		day.setHours(hours, minutes, 0, 0);
 		return day;
 	}, [availabilityDates, currentPageAvailability]);
@@ -566,7 +592,6 @@ export function Availability({
 					);
 
 					if (availabilityView === "schedule") {
-						// Schedule selection stays on the day the drag started (no cross-day rectangle).
 						const day = startBlockSelection.zotDateIndex;
 						const timestamps: string[] = [];
 						for (
@@ -585,17 +610,28 @@ export function Availability({
 						}
 
 						if (timestamps.length > 0) {
-							// Each drag replaces the full scheduled selection (one contiguous rectangle).
 							replaceEntireSelection(timestamps);
 						}
 					} else if (availabilityView === "personal") {
-						const startZotDate =
-							availabilityDates[startBlockSelection.zotDateIndex];
+						const memberId = user?.memberId;
+						if (!memberId) {
+							console.log("GRAVEERROR");
+							return;
+						}
+						const ref =
+							availabilitySelectionMode === "available"
+								? availabilityDates
+								: ifNeededDates;
+						const otherRef =
+							availabilitySelectionMode === "available"
+								? ifNeededDates
+								: availabilityDates;
+						const startZotDate = ref[startBlockSelection.zotDateIndex];
 						const toggleValue = !startZotDate.getBlockAvailability(
 							startBlockSelection.blockIndex,
 						);
-
-						const updatedDates = [...availabilityDates];
+						const updatedDates = ref.map((d) => d.clone());
+						const updatedOtherDates = otherRef.map((d) => d.clone());
 
 						for (
 							let dateIndex = earlierDateIndex;
@@ -603,13 +639,21 @@ export function Availability({
 							dateIndex++
 						) {
 							const currentDate = updatedDates[dateIndex];
+							const otherDate = updatedOtherDates[dateIndex];
 							currentDate.setBlockAvailabilities(
 								earlierBlockIndex,
 								laterBlockIndex,
 								toggleValue,
 							);
+							if (toggleValue && otherDate) {
+								// Clear the same range from the other array
+								otherDate.setBlockAvailabilities(
+									earlierBlockIndex,
+									laterBlockIndex,
+									false,
+								);
+							}
 
-							// Update group availability for each block
 							for (
 								let blockI = earlierBlockIndex;
 								blockI <= laterBlockIndex;
@@ -628,26 +672,32 @@ export function Availability({
 								}
 
 								if (toggleValue) {
-									// Add user to availability
 									if (
-										!currentDate.groupAvailability[timestamp].includes(
-											user?.memberId ?? "",
-										)
+										!currentDate.groupAvailability[timestamp].includes(memberId)
 									) {
-										currentDate.groupAvailability[timestamp].push(
-											user?.memberId ?? "",
-										);
+										currentDate.groupAvailability[timestamp].push(memberId);
+									}
+									if (otherDate?.groupAvailability[timestamp]) {
+										otherDate.groupAvailability[timestamp] =
+											otherDate.groupAvailability[timestamp].filter(
+												(id) => id !== memberId,
+											);
 									}
 								} else {
 									currentDate.groupAvailability[timestamp] =
 										currentDate.groupAvailability[timestamp].filter(
-											(id) => id !== (user?.memberId ?? ""),
+											(id) => id !== memberId,
 										);
 								}
 							}
 						}
 
 						handleUserAvailabilityChange(updatedDates);
+						if (availabilitySelectionMode === "available") {
+							setIfNeededDates(updatedOtherDates);
+						} else {
+							setAvailabilityDates(updatedOtherDates);
+						}
 					}
 				}
 
@@ -675,6 +725,7 @@ export function Availability({
 			pointer: { touch: true, capture: true },
 			filterTaps: true,
 			threshold: 3,
+			eventOptions: { passive: false },
 		},
 	);
 
@@ -685,10 +736,12 @@ export function Availability({
 				meetingData={meetingData}
 				user={user}
 				availabilityDates={availabilityDates}
+				ifNeededDates={ifNeededDates}
 				onCancel={handleCancelEditing}
 				onSave={handleSuccessfulSave}
 				setChangeableTimezone={setChangeableTimezone}
 				setTimezone={setUserTimezone}
+				availabilityEditState={availabilitySelectionMode}
 			/>
 
 			<div className="flex min-h-0 w-full min-w-0 flex-row items-start justify-start">
@@ -775,6 +828,8 @@ export function Availability({
 				)}
 				{availabilityView === "personal" && (
 					<PersonalAvailabilitySidebar
+						availability={availabilitySelectionMode}
+						setAvailability={setAvailabilitySelectionMode}
 						meetingId={meetingData.id}
 						userTimezone={userTimezone}
 						importGridIsoSet={importGridIsoSet}

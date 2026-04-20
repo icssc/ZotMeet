@@ -7,6 +7,7 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 interface AvailabilityBlockCellProps {
 	blockIndex: number;
 	isAvailable: boolean;
+	isIfNeeded: boolean;
 	zotDateIndex: number;
 	isTopOfHour: boolean;
 	isHalfHour: boolean;
@@ -19,6 +20,7 @@ interface AvailabilityBlockCellProps {
 export function AvailabilityBlockCell({
 	blockIndex,
 	isAvailable,
+	isIfNeeded,
 	zotDateIndex,
 	isTopOfHour,
 	isHalfHour,
@@ -45,6 +47,7 @@ export function AvailabilityBlockCell({
 			>
 				<AvailabilityBlock
 					isAvailable={isAvailable}
+					isIfNeeded={isIfNeeded}
 					zotDateIndex={zotDateIndex}
 					blockIndex={blockIndex}
 					selectionState={selectionState}
