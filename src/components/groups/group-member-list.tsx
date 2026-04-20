@@ -1,6 +1,6 @@
 "use client";
 
-import { People } from "@mui/icons-material";
+import { People, Settings } from "@mui/icons-material";
 import {
 	Avatar,
 	Button,
@@ -21,7 +21,7 @@ import {
 	Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
+import { use, useMemo, useState, useTransition } from "react";
 import {
 	Select,
 	SelectContent,
@@ -342,6 +342,7 @@ export function GroupMemberList({
 }: GroupMemberListProps) {
 	const [isCreatingInvite, setIsCreatingInvite] = useState(false);
 	const [tab, setTab] = useState(0);
+	const [showSettings, setShowSettings] = useState(false);
 	const canShareInvites = group.createdBy === currentUserId;
 	const { showSuccess, showError } = useSnackbar();
 
@@ -395,89 +396,61 @@ export function GroupMemberList({
 		return { meetingsPendingAvailability, allMeetings };
 	}, [meetings]);
 
+	const theme = useTheme();
 	return (
 		<div>
-			<div className="flex flex-col items-center gap-6 md:flex-row md:items-start md:justify-between">
-				<div className="flex flex-col items-center gap-4 text-center md:flex-row md:items-center md:gap-6 md:text-left">
+			{/* Header */}
+			<div className="flex items-start justify-between gap-4">
+				<div className="flex items-center gap-4">
 					<Avatar
-						src={"/icssc-logo.svg"}
+						src="/icssc-logo.svg"
 						alt="group-icon"
 						sx={{
-							width: { xs: 100, md: 80 },
-							height: { xs: 100, md: 80 },
+							width: { xs: 72, md: 80 },
+							height: { xs: 72, md: 80 },
 						}}
 					/>
 
-					<div className="flex flex-col gap-1">
-						<div className="flex items-center justify-center gap-3 md:justify-start">
-							<h1 className="font-bold font-figtree text-4xl md:text-5xl">
+					<div>
+						<div className="flex items-center gap-2">
+							<h1 className="font-bold font-figtree text-3xl md:text-5xl">
 								{group.name}
 							</h1>
-							<button
-								type="button"
-								className="rounded p-1 text-gray-400 transition-colors hover:bg-gray-100"
-							>
-								<Pencil className="size-5" />
-							</button>
-						</div>
-						{group.description && (
-							<p className="max-w-md text-gray-600 text-sm md:max-w-none">
-								{group.description}
-							</p>
-						)}
-					</div>
-				</div>
 
-				<div className="flex items-center gap-3">
-					{/* Desktop */}
-					<Link
-						href={`/?groupId=${group.id}`}
-						className="hidden md:inline-flex"
-					>
-						<Button variant="contained" startIcon={<Plus className="size-4" />}>
-							Create New Meeting
-						</Button>
-					</Link>
-
-					{/* Mobile */}
-					<Link href={`/?groupId=${group.id}`} className="md:hidden">
-						<Button variant="contained">
-							<Plus className="size-6" />
-						</Button>
-					</Link>
-
-					{/* Share: Icon Only on Mobile, Outlined on Desktop */}
-					<div className="md:block">
-						{/* Desktop */}
-						<div className="hidden md:block">
-							<Button
-								variant="outlined"
-								startIcon={<Share2 className="size-4" />}
-								onClick={handleCreateInviteLink}
-								disabled={!canShareInvites || isCreatingInvite}
-							>
-								{isCreatingInvite ? "Generating..." : "Share"}
-							</Button>
-						</div>
-
-						{/* Mobile */}
-						<div className="md:hidden">
-							<Button
-								variant="text"
-								onClick={handleCreateInviteLink}
-								disabled={!canShareInvites || isCreatingInvite}
-							>
-								<Share2 className="size-6" />
-							</Button>
+							<IconButton size="small">
+								<Pencil className="size-4" />
+							</IconButton>
 						</div>
 					</div>
 				</div>
+
+				<IconButton onClick={() => setShowSettings(true)}>
+					<Settings className="size-6" />
+				</IconButton>
 			</div>
 
+			{/* Description */}
+			{group.description && (
+				<p
+					className="mt-4 text-sm leading-relaxed md:text-base"
+					style={{ color: theme.palette.text.primary }}
+				>
+					{group.description}
+				</p>
+			)}
+
+			{/* Tabs */}
 			<Tabs
 				value={tab}
-				onChange={(_, v) => setTab(v)}
-				sx={{ mt: 3, borderBottom: 1, borderColor: "divider" }}
+				onChange={(_, v) => {
+					setTab(v);
+					setShowSettings(false);
+				}}
+				sx={{
+					mt: 4,
+					borderBottom: "none",
+					borderColor: "divider",
+				}}
 			>
 				<Tab
 					label={`Meetings (${meetings.length})`}
@@ -487,61 +460,89 @@ export function GroupMemberList({
 					label={`Members (${members.length})`}
 					sx={{ textTransform: "none" }}
 				/>
-				<Tab label="Settings" sx={{ textTransform: "none" }} />
 			</Tabs>
 
-			{tab === 0 && (
-				<div className="mt-4">
-					{meetings.length > 0 ? (
-						<div>
-							<div className="mt-8">
-								<p className="mb-2 font-bold text-[#969696] text-xs uppercase tracking-wide">
-									Action Required ({meetingsPendingAvailability.length})
-								</p>
+			{/* Toolbar */}
+			<div className="mt-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+				<input
+					type="text"
+					placeholder="Search..."
+					className="h-11 w-full rounded-lg border border-gray-300 px-4 text-sm outline-none focus:border-gray-500 md:max-w-sm"
+				/>
 
-								{meetingsPendingAvailability.map((meeting) => (
-									<div
-										key={meeting.id}
-										className="mb-3 rounded-xl border border-gray-300"
-									>
-										<MeetingRow
+				<div className="flex items-center gap-3">
+					<Link href={`/?groupId=${group.id}`}>
+						<Button variant="contained" startIcon={<Plus className="size-4" />}>
+							Create New Meeting
+						</Button>
+					</Link>
+
+					<Button
+						variant="outlined"
+						startIcon={<Share2 className="size-4" />}
+						onClick={handleCreateInviteLink}
+						disabled={!canShareInvites || isCreatingInvite}
+					>
+						{isCreatingInvite ? "Generating..." : "Share"}
+					</Button>
+				</div>
+			</div>
+
+			{/* Existing tab content below here */}
+			{tab === 0 && !showSettings && (
+				<div className="mt-6">
+					<div className="mt-4">
+						{meetings.length > 0 ? (
+							<div>
+								<div className="mt-8">
+									<p className="mb-2 font-bold text-[#969696] text-xs uppercase tracking-wide">
+										Action Required ({meetingsPendingAvailability.length})
+									</p>
+
+									{meetingsPendingAvailability.map((meeting) => (
+										<div
 											key={meeting.id}
-											meeting={meeting}
-											currentMemberId={currentMemberId}
-										/>
-									</div>
-								))}
-							</div>
+											className="mb-3 rounded-xl border border-gray-300"
+										>
+											<MeetingRow
+												key={meeting.id}
+												meeting={meeting}
+												currentMemberId={currentMemberId}
+											/>
+										</div>
+									))}
+								</div>
 
-							<div className="mt-8">
-								<p className="mb-5 font-bold text-[#969696] text-xs uppercase tracking-wide">
-									All ({allMeetings.length})
-								</p>
+								<div className="mt-8">
+									<p className="mb-5 font-bold text-[#969696] text-xs uppercase tracking-wide">
+										All ({allMeetings.length})
+									</p>
 
-								{allMeetings.map((meeting) => (
-									<div
-										key={meeting.id}
-										className="mb-3 rounded-xl border border-gray-300"
-									>
-										<MeetingRow
+									{allMeetings.map((meeting) => (
+										<div
 											key={meeting.id}
-											meeting={meeting}
-											currentMemberId={currentMemberId}
-										/>
-									</div>
-								))}
+											className="mb-3 rounded-xl border border-gray-300"
+										>
+											<MeetingRow
+												key={meeting.id}
+												meeting={meeting}
+												currentMemberId={currentMemberId}
+											/>
+										</div>
+									))}
+								</div>
 							</div>
-						</div>
-					) : (
-						<div className="flex items-center justify-center py-32">
-							<p className="text-gray-500 text-lg italic">No meetings yet!</p>
-						</div>
-					)}
+						) : (
+							<div className="flex items-center justify-center py-32">
+								<p className="text-gray-500 text-lg italic">No meetings yet!</p>
+							</div>
+						)}
+					</div>
 				</div>
 			)}
 
-			{tab === 1 && (
-				<div className="mt-4">
+			{tab === 1 && !showSettings && (
+				<div className="mt-6">
 					<MembersList
 						members={members}
 						isAdmin={isAdmin}
@@ -551,8 +552,8 @@ export function GroupMemberList({
 				</div>
 			)}
 
-			{tab === 2 && (
-				<div className="mt-4 flex items-center justify-center py-32">
+			{showSettings && (
+				<div className="mt-6 flex items-center justify-center py-32">
 					<p className="text-gray-500 text-lg">Settings coming soon</p>
 				</div>
 			)}
