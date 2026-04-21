@@ -130,7 +130,17 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 						variant="outlined"
 						startIcon={<People sx={{ color: "secondary.contrastText" }} />}
 						onClick={() => setShowJoinGroup(true)}
-						sx={{ bgcolor: "secondary.main", color: "secondary.contrastText" }}
+						sx={{
+							bgcolor: "secondary.main",
+							color: "secondary.contrastText",
+							borderColor: "secondary.main",
+
+							"&:hover": {
+								bgcolor: "secondary.main",
+								color: "secondary.contrastText",
+								borderColor: "secondary.main",
+							},
+						}}
 					>
 						Join Group
 					</Button>
@@ -140,7 +150,17 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 						variant="outlined"
 						startIcon={<Add sx={{ color: "primary.contrastText" }} />}
 						onClick={() => setCreateDialogOpen(true)}
-						sx={{ bgcolor: "primary.main", color: "primary.contrastText" }}
+						sx={{
+							bgcolor: "primary.main",
+							color: "primary.contrastText",
+							borderColor: "primary.main",
+
+							"&:hover": {
+								bgcolor: "primary.main",
+								color: "primary.contrastText",
+								borderColor: "primary.main",
+							},
+						}}
 					>
 						Create Group
 					</Button>

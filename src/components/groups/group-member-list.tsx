@@ -9,6 +9,7 @@ import {
 	MenuItem,
 	Tab,
 	Tabs,
+	Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import {
@@ -425,8 +426,8 @@ export function GroupMemberList({
 	return (
 		<div>
 			{/* Header */}
-			<div className="flex items-start justify-between gap-4">
-				<div className="flex items-center gap-4">
+			<div className="mb-4 flex flex-col items-center gap-4 text-center md:flex-row md:items-start md:justify-between md:text-left">
+				<div className="flex flex-col items-center gap-4 md:flex-row md:items-center md:gap-4">
 					<Avatar
 						src={group.icon ?? "/icssc-logo.svg"}
 						alt="Group Icon"
@@ -436,7 +437,7 @@ export function GroupMemberList({
 						}}
 					/>
 
-					<div>
+					<div className="flex flex-col items-center md:items-start">
 						<div className="flex items-center gap-2">
 							<h1 className="font-bold font-figtree text-3xl md:text-5xl">
 								{group.name}
@@ -449,43 +450,115 @@ export function GroupMemberList({
 					</div>
 				</div>
 
-				<IconButton onClick={() => setShowSettings(true)}>
-					<Settings className="size-6" />
-				</IconButton>
+				<div className="absolute top-5 right-5 flex items-center gap-1 md:static md:gap-2">
+					{/* People (mobile only) */}
+					<IconButton
+						sx={{ display: { xs: "inline-flex", md: "none" } }}
+						onClick={() => {
+							setTab(1);
+							setShowSettings(false);
+						}}
+					>
+						<People />
+					</IconButton>
+
+					{/* Settings */}
+					<IconButton onClick={() => setShowSettings(true)}>
+						<Settings className="size-6" />
+					</IconButton>
+				</div>
 			</div>
 
-			{/* Description */}
 			{group.description && (
-				<p
-					className="mt-4 text-sm leading-relaxed md:text-base"
-					style={{ color: theme.palette.text.primary }}
+				<Typography
+					className="mt-4 text-center md:text-left"
+					variant="body2"
+					sx={{
+						color: {
+							xs: "text.secondary",
+							md: "text.primary",
+						},
+					}}
 				>
 					{group.description}
-				</p>
+				</Typography>
 			)}
 
 			{/* Tabs */}
-			<Tabs
-				value={tab}
-				onChange={(_, v) => {
-					setTab(v);
-					setShowSettings(false);
-				}}
-				sx={{
-					mt: 4,
-					borderBottom: "none",
-					borderColor: "divider",
-				}}
-			>
-				<Tab
-					label={`Meetings (${meetings.length})`}
-					sx={{ textTransform: "none" }}
-				/>
-				<Tab
-					label={`Members (${members.length})`}
-					sx={{ textTransform: "none" }}
-				/>
-			</Tabs>
+			<div className="hidden md:block">
+				{" "}
+				{/* tabs only on desktop */}
+				<Tabs
+					value={tab}
+					onChange={(_, v) => {
+						setTab(v);
+						setShowSettings(false);
+					}}
+					sx={{
+						mt: 4,
+						borderBottom: "none",
+						borderColor: "divider",
+					}}
+				>
+					<Tab
+						label={`Meetings (${meetings.length})`}
+						sx={{ textTransform: "none" }}
+					/>
+					<Tab
+						label={`Members (${members.length})`}
+						sx={{ textTransform: "none" }}
+					/>
+				</Tabs>
+			</div>
+
+			{/* Meetings header (mobile only) */}
+			{tab === 0 && (
+				<div className="mt-4 flex items-center justify-between md:hidden">
+					<h2 className="font-semibold text-2xl">Meetings</h2>
+
+					<div className="flex items-center gap-2">
+						<Link href={`/?groupId=${group.id}`}>
+							<Button
+								variant="contained"
+								sx={{
+									minWidth: 44,
+									width: 44,
+									height: 44,
+									p: 0,
+									borderRadius: 2,
+									bgcolor: "primary.main",
+									"&:hover": {
+										bgcolor: "primary.main",
+									},
+								}}
+							>
+								<Plus className="size-5" />
+							</Button>
+						</Link>
+
+						<Button
+							variant="outlined"
+							onClick={handleCreateInviteLink}
+							disabled={!canShareInvites || isCreatingInvite}
+							sx={{
+								minWidth: 44,
+								width: 44,
+								height: 44,
+								p: 0,
+								borderRadius: 2,
+								borderColor: "divider",
+								color: "text.primary",
+								"&:hover": {
+									borderColor: "divider",
+									backgroundColor: "action.hover",
+								},
+							}}
+						>
+							<Share2 className="size-5" />
+						</Button>
+					</div>
+				</div>
+			)}
 
 			{/* Toolbar */}
 			<div className="mt-4 flex flex-col gap-4">
@@ -498,7 +571,11 @@ export function GroupMemberList({
 					/>
 
 					<div className="flex items-center gap-3">
-						<Link href={`/?groupId=${group.id}`}>
+						{/* Desktop Create */}
+						<Link
+							href={`/?groupId=${group.id}`}
+							className="xs:none hidden md:block"
+						>
 							<Button
 								variant="contained"
 								startIcon={<Plus className="size-4" />}
@@ -507,11 +584,18 @@ export function GroupMemberList({
 							</Button>
 						</Link>
 
+						{/* Desktop Share */}
 						<Button
 							variant="outlined"
 							startIcon={<Share2 className="size-4" />}
 							onClick={handleCreateInviteLink}
 							disabled={!canShareInvites || isCreatingInvite}
+							sx={{
+								display: {
+									xs: "none",
+									md: "inline-flex",
+								},
+							}}
 						>
 							{isCreatingInvite ? "Generating..." : "Share"}
 						</Button>
