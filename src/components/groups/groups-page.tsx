@@ -244,66 +244,9 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 						)}
 					</Box>
 				)}
-
-				<Box>
-					<Typography
-						variant="overline"
-						color="text.disabled"
-						sx={{ display: "block", mb: 2 }}
-					>
-						All (
-						{
-							filteredGroups.filter(
-								(g) => g.ownerEmail !== null && !g.needsAvailability,
-							).length
-						}
-						)
-					</Typography>
-					{filteredGroups.filter(
-						(g) => g.ownerEmail !== null && !g.needsAvailability,
-					).length > 0 ? (
-						<Stack spacing={1.5}>
-							{filteredGroups
-								.filter((g) => g.ownerEmail !== null && !g.needsAvailability)
-								.map((group) => (
-									<GroupCard
-										key={group.id}
-										id={group.id}
-										name={group.name}
-										description={group.description}
-										memberEmails={group.memberEmails}
-										totalMembers={group.totalMembers}
-										creatorName={group.creatorName}
-										actionRequired={false}
-										upcomingMeetingName={
-											group.needsAvailability ? null : group.upcomingMeetingName
-										}
-									/>
-								))}
-						</Stack>
-					) : (
-						<Box
-							sx={{
-								display: "flex",
-								flexDirection: "column",
-								alignItems: "center",
-								justifyContent: "center",
-								py: 10,
-							}}
-						>
-							<Typography
-								variant="body1"
-								color="text.secondary"
-								fontWeight={500}
-							>
-								No groups found
-							</Typography>
-						</Box>
-					)}
-				</Box>
 			</Box>
 
-			<Box sx={{ mt: 4, display: { xs: "none", sm: "block" } }}>
+			<Box sx={{ mt: 4 }}>
 				<Typography color="text.disabled" sx={{ p: 0.5 }}>
 					All ({counts.all})
 				</Typography>

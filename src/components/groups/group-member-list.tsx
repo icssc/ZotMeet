@@ -128,8 +128,14 @@ function MeetingRow({
 						<Calendar className="size-4" />
 						<span>
 							<DateRange
-								dates={meeting.dates}
-								meetingType={meeting.meetingType}
+								dates={
+									meeting.scheduledDate
+										? [meeting.scheduledDate.toISOString()]
+										: meeting.dates
+								}
+								meetingType={
+									meeting.scheduledDate ? "dates" : meeting.meetingType
+								}
 							/>
 						</span>
 					</div>
