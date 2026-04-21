@@ -45,7 +45,11 @@ export default async function Page(props: PageProps) {
 		getUsersInGroup(id),
 		isGroupAdmin({ userId: session.user.id, groupId: id }),
 	]);
-	const meetingsWithStats = await getGroupMeetingsWithStats(id, members.length);
+	const meetingsWithStats = await getGroupMeetingsWithStats(
+		id,
+		members.length,
+		session.user.memberId,
+	);
 
 	return (
 		<div className="px-8 py-8">

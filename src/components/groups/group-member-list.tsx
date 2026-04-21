@@ -116,7 +116,7 @@ function MeetingRow({
 			: `Created by ${meeting.hostName}`;
 
 	return (
-		<div className="flex items-center justify-between rounded-xl border-gray-200 border-b px-4 py-4 transition-colors hover:bg-gray-50">
+		<div className="flex items-center justify-between rounded-xl border-gray-200 border-b px-4 py-4 transition-colors hover:bg-primary/5">
 			<Link
 				href={`/availability/${meeting.id}`}
 				className="flex flex-1 flex-col gap-1"
@@ -401,7 +401,6 @@ export function GroupMemberList({
 		return { meetingsPendingAvailability, allMeetings };
 	}, [meetings]);
 
-	const theme = useTheme();
 	const counts = {
 		all: meetings.length,
 		created: meetings.filter((m) => m.hostId === currentMemberId).length,
