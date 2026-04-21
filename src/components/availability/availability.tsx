@@ -140,6 +140,7 @@ export function Availability({
 	autoOpenInviteDialog?: boolean;
 	inviteQueryInUrl?: boolean;
 }) {
+	const isMobile = useIsMobile();
 	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 	const isMobile = useIsMobile();
 	const [availabilitySelectionMode, setAvailabilitySelectionMode] =
@@ -194,7 +195,7 @@ export function Availability({
 			setItemsPerPage: state.setItemsPerPage,
 		})),
 	);
-	const isMobile = useIsMobile();
+
 
 	useEffect(() => {
 		setItemsPerPage(isMobile ? 2 : 5);
