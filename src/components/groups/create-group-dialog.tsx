@@ -41,10 +41,13 @@ const compressImage = async (file: File) => {
 
 	ctx.drawImage(bitmap, 0, 0, maxSize, maxSize);
 
-	return new Promise<string>((resolve) => {
+	return new Promise<string>((resolve, reject) => {
 		canvas.toBlob(
 			(blob) => {
-				if (!blob) return;
+				if (!blob) {
+					reject(new Error("Image compression failed"));
+					return;
+				}
 
 				const reader = new FileReader();
 				reader.onloadend = () => resolve(reader.result as string);
