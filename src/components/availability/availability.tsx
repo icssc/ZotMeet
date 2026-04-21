@@ -3,6 +3,7 @@
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailability } from "@/components/availability/group-availability";
@@ -15,6 +16,7 @@ import { AvailabilityTimeTicks } from "@/components/availability/table/availabil
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { UserProfile } from "@/lib/auth/user";
 
 import {
@@ -39,7 +41,10 @@ import {
 } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+
+import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability-sidebar";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
+import { MobileGroupResponses } from "./mobile-group-responses";
 
 type DeriveMode = "availabilities" | "if-needed";
 // Helper function to derive initial availability data
@@ -115,6 +120,7 @@ const deriveInitialAvailability = ({
 		})
 		.sort((a, b) => a.day.getTime() - b.day.getTime());
 };
+
 export type Availability = "available" | "if-needed" | "unavailable";
 export function Availability({
 	meetingData,
@@ -127,12 +133,16 @@ export function Availability({
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
 }) {
+	const isMobile = useIsMobile();
 	const [availabilitySelectionMode, setAvailabilitySelectionMode] =
 		useState<Availability>("available");
+	const router = useRouter();
 	const availabilityView = useAvailabilityStore(
 		(state) => state.availabilityView,
 	);
-
+	const setAvailabilityView = useAvailabilityStore(
+		(state) => state.setAvailabilityView,
+	);
 	const selectionIsLocked = useAvailabilityStore(
 		(state) => state.selectionIsLocked,
 	);
@@ -179,6 +189,26 @@ export function Availability({
 	);
 	const [changeableTimezone, setChangeableTimezone] = useState(true);
 	const referenceDate = meetingData.dates[0];
+
+	const isMeetingOwner = Boolean(user && meetingData.hostId === user.memberId);
+
+	const handleMobileAddAvailability = useCallback(() => {
+		if (!user) {
+			router.push("/auth/login/google");
+			return;
+		}
+		setChangeableTimezone(false);
+		setUserTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+		setAvailabilityView("personal");
+	}, [user, router, setAvailabilityView]);
+
+	const handleMobileOpenAttendees = useCallback(() => {
+		setIsMobileDrawerOpen(true);
+	}, [setIsMobileDrawerOpen]);
+
+	const handleMobileSchedule = useCallback(() => {
+		setAvailabilityView("schedule");
+	}, [setAvailabilityView]);
 
 	const fromTimeLocal = useMemo(
 		() => convertTimeFromUTC(meetingData.fromTime, userTimezone, referenceDate),
@@ -815,20 +845,41 @@ export function Availability({
 					/>
 				</div>
 
-				{(availabilityView === "group" || availabilityView === "schedule") && (
-					<GroupResponses
-						availabilityDates={availabilityDates}
-						fromTime={fromTimeMinutes}
-						members={members}
-						timezone={userTimezone}
-						anchorNormalizedDate={anchorNormalizedDate}
-						currentPageAvailability={currentPageAvailability}
-						availabilityTimeBlocks={availabilityTimeBlocks}
-						doesntNeedDay={doesntNeedDay}
+				{(availabilityView === "group" || availabilityView === "schedule") &&
+					(isMobile ? (
+						<MobileGroupResponses
+							isOwner={isMeetingOwner}
+							onAddAvailability={handleMobileAddAvailability}
+							onOpenAttendees={handleMobileOpenAttendees}
+							onSchedule={handleMobileSchedule}
+						/>
+					) : (
+						<GroupResponses
+							availabilityDates={availabilityDates}
+							fromTime={fromTimeMinutes}
+							members={members}
+							timezone={userTimezone}
+							anchorNormalizedDate={anchorNormalizedDate}
+							currentPageAvailability={currentPageAvailability}
+							availabilityTimeBlocks={availabilityTimeBlocks}
+							doesntNeedDay={doesntNeedDay}
+						/>
+					))}
+
+				{availabilityView === "personal" && !isMobile && (
+					<PersonalAvailabilitySidebar
+						availability={availabilitySelectionMode}
+						setAvailability={setAvailabilitySelectionMode}
+						meetingId={meetingData.id}
+						userTimezone={userTimezone}
+						importGridIsoSet={importGridIsoSet}
+						canImport={Boolean(user?.memberId)}
+						onImportSlots={handleImportSlotsFromMeeting}
 					/>
 				)}
-				{availabilityView === "personal" && (
-					<PersonalAvailabilitySidebar
+
+				{availabilityView === "personal" && isMobile && (
+					<MobilePersonalAvailabilitySidebar
 						availability={availabilitySelectionMode}
 						setAvailability={setAvailabilitySelectionMode}
 						meetingId={meetingData.id}
