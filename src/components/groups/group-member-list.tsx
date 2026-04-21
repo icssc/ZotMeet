@@ -1,6 +1,6 @@
 "use client";
 
-import { People, Settings } from "@mui/icons-material";
+import { ArrowBack, People, Settings } from "@mui/icons-material";
 import {
 	Avatar,
 	Button,
@@ -448,6 +448,20 @@ export function GroupMemberList({
 							</IconButton>
 						</div>
 					</div>
+				</div>
+
+				{/* Top left back button on mobile */}
+				<div className="absolute top-5 left-5 md:hidden">
+					{(tab === 1 || showSettings) && (
+						<IconButton
+							onClick={() => {
+								setTab(0);
+								setShowSettings(false);
+							}}
+						>
+							<ArrowBack className="size-6" />
+						</IconButton>
+					)}
 				</div>
 
 				<div className="absolute top-5 right-5 flex items-center gap-1 md:static md:gap-2">
