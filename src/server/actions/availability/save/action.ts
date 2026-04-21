@@ -1,8 +1,8 @@
 "use server";
 
 //import { createGuest } from "@/lib/auth/user";
-import { getExistingMeeting, getGroupIdOfMeeting } from "@data/meeting/queries";
-import { revalidatePath } from "next/dist/server/web/spec-extension/revalidate";
+import { getExistingMeeting } from "@data/meeting/queries";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
@@ -69,7 +69,7 @@ export async function saveAvailability({
 					ifNeededAvailabilities: filteredIfNeeded,
 				},
 			});
-		const groupId = await getGroupIdOfMeeting(meetingId);
+		const groupId = meeting.group_id;
 		if (groupId) {
 			revalidatePath(`/groups/${groupId}`);
 		}

@@ -394,7 +394,7 @@ export function GroupMemberList({
 			.sort((a, b) => getSortDate(a).getTime() - getSortDate(b).getTime());
 
 		// All meeting section
-		const allMeetings = meetings.sort(
+		const allMeetings = [...meetings].sort(
 			(a, b) => getSortDate(a).getTime() - getSortDate(b).getTime(),
 		);
 
