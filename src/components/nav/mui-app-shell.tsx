@@ -1,7 +1,9 @@
 "use client";
 
 import { Box, useMediaQuery, useTheme } from "@mui/material";
+import { usePathname } from "next/navigation";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MuiBottomNav } from "./mui-bottom-nav";
 import { MuiTopNav } from "./mui-top-nav";
 
@@ -18,6 +20,12 @@ export function MuiAppShell({
 }: MuiAppShellProps) {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+	const pathname = usePathname();
+	const availabilityView = useAvailabilityStore(
+		(state) => state.availabilityView,
+	);
+	const hideBottomNavWhileAddingAvailability =
+		pathname.startsWith("/availability/") && availabilityView === "personal";
 	return (
 		<Box
 			sx={{
@@ -29,10 +37,19 @@ export function MuiAppShell({
 			}}
 		>
 			{!isMobile && <MuiTopNav user={user} notifications={notifications} />}
-			<Box sx={{ flex: 1, overflow: "auto", paddingBottom: isMobile ? 7 : 0 }}>
+			<Box
+				sx={{
+					flex: 1,
+					overflow: "auto",
+					paddingBottom:
+						isMobile && !hideBottomNavWhileAddingAvailability ? 7 : 0,
+				}}
+			>
 				{children}
 			</Box>
-			{isMobile && <MuiBottomNav user={user} />}
+			{isMobile && !hideBottomNavWhileAddingAvailability && (
+				<MuiBottomNav user={user} />
+			)}
 		</Box>
 	);
 }
