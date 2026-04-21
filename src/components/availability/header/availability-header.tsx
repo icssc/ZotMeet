@@ -8,18 +8,18 @@ import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
-import GoogleIcon from "@mui/icons-material/Google";
 import {
 	AccessTime,
 	CalendarMonth,
 	ContentCopy,
+	Create,
+	InsertInvitationRounded,
 	LocationOn,
 	Settings,
-	Create,
-	InsertInvitationRounded 
 } from "@mui/icons-material";
+import GoogleIcon from "@mui/icons-material/Google";
 import { Button, IconButton, Paper, Typography } from "@mui/material";
-import { DeleteIcon, MoreVerticalIcon, EditIcon } from "lucide-react";
+import { DeleteIcon, EditIcon, MoreVerticalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -29,14 +29,15 @@ import { InviteMembersDialog } from "@/components/availability/invite-members-di
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
-import type { ZotDate } from "@/lib/zotdate";
-import { useAvailabilityStore } from "@/store/useAvailabilityStore";
-import type { Availability } from "../availability";
 import {
+	convertTimeFromUTC,
 	formatDateToUSNumeric,
 	formatTimeWithHoursAndMins,
 } from "@/lib/availability/utils";
 import { copyTextToClipboard } from "@/lib/clipboard/utils";
+import type { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+import type { Availability } from "../availability";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
@@ -203,9 +204,16 @@ export function AvailabilityHeader({
 		new Date(meetingData.dates[meetingData.dates.length - 1]),
 	);
 
-	const formattedStartTime = formatTimeWithHoursAndMins(meetingData.fromTime);
+	const displayTimezone =
+		meetingData.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+	const referenceDate = meetingData.dates[0];
+	const formattedStartTime = formatTimeWithHoursAndMins(
+		convertTimeFromUTC(meetingData.fromTime, displayTimezone, referenceDate),
+	);
 
-	const formattedEndTime = formatTimeWithHoursAndMins(meetingData.toTime);
+	const formattedEndTime = formatTimeWithHoursAndMins(
+		convertTimeFromUTC(meetingData.toTime, displayTimezone, referenceDate),
+	);
 
 	async function handleCopy() {
 		try {
