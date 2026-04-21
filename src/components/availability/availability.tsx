@@ -17,6 +17,7 @@ import { AvailabilityTimeTicks } from "@/components/availability/table/availabil
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { UserProfile } from "@/lib/auth/user";
 
 import {
@@ -165,16 +166,28 @@ export function Availability({
 		toggleHoverGrid,
 	]);
 
-	const { currentPage, itemsPerPage, isFirstPage, nextPage, prevPage } =
-		useAvailabilityStore(
-			useShallow((state) => ({
-				currentPage: state.currentPage,
-				itemsPerPage: state.itemsPerPage,
-				isFirstPage: state.isFirstPage,
-				nextPage: state.nextPage,
-				prevPage: state.prevPage,
-			})),
-		);
+	const {
+		currentPage,
+		itemsPerPage,
+		isFirstPage,
+		nextPage,
+		prevPage,
+		setItemsPerPage,
+	} = useAvailabilityStore(
+		useShallow((state) => ({
+			currentPage: state.currentPage,
+			itemsPerPage: state.itemsPerPage,
+			isFirstPage: state.isFirstPage,
+			nextPage: state.nextPage,
+			prevPage: state.prevPage,
+			setItemsPerPage: state.setItemsPerPage,
+		})),
+	);
+	const isMobile = useIsMobile();
+
+	useEffect(() => {
+		setItemsPerPage(isMobile ? 2 : 5);
+	}, [isMobile, setItemsPerPage]);
 	const isLastPage =
 		currentPage === Math.floor((meetingData.dates.length - 1) / itemsPerPage);
 
