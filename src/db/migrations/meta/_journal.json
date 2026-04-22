@@ -71,6 +71,13 @@
       "when": 1776640110077,
       "tag": "0009_mute_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776640200000,
+      "tag": "0010_meeting_invites_and_responses",
+      "breakpoints": true
     }
   ]
 }
