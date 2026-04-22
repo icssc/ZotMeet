@@ -23,9 +23,13 @@ export const AvailabilityTimeTicks = memo(
 							{ZotDate.toTimeBlockString(minutesInDay, true)}
 						</Typography>
 
-						<span className="float-right flex whitespace-nowrap font-bold text-[10px] text-gray-medium md:hidden md:text-xs">
+						<Typography
+							variant="caption"
+							color="textSecondary"
+							className="float-right flex whitespace-nowrap md:hidden"
+						>
 							{ZotDate.toTimeBlockString(minutesInDay, true)}
-						</span>
+						</Typography>
 					</>
 				)}
 			</td>
