@@ -1,8 +1,11 @@
 "use client";
 
 import { ArrowBack, People, Settings } from "@mui/icons-material";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import {
 	Avatar,
+	Box,
 	Button,
 	IconButton,
 	Menu,
@@ -11,7 +14,7 @@ import {
 	Tabs,
 	Typography,
 } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import {
 	Calendar,
 	Clock,
@@ -22,7 +25,7 @@ import {
 	Users,
 } from "lucide-react";
 import Link from "next/link";
-import { use, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import {
 	Select,
 	SelectContent,
@@ -101,12 +104,50 @@ function DateRange({
 	return <>{`${first} - ${last}`}</>;
 }
 
+function StatusBadge({
+	status,
+}: {
+	status: "actionRequired" | "upcoming" | null;
+}) {
+	const isAction = status === "actionRequired";
+
+	return (
+		<Box
+			sx={(theme) => ({
+				display: "inline-flex",
+				alignItems: "center",
+				gap: 0.5,
+				px: 1.25,
+				py: 0.5,
+				borderRadius: 2,
+				fontSize: "0.75rem",
+				fontWeight: 700,
+				lineHeight: 1,
+				bgcolor: isAction
+					? alpha(theme.palette.error.main, 0.14)
+					: alpha(theme.palette.success.main, 0.14),
+				color: isAction ? "error.main" : "success.main",
+			})}
+		>
+			{isAction ? (
+				<ErrorOutlineIcon sx={{ fontSize: 16, color: "error.main" }} />
+			) : (
+				<EventAvailableIcon sx={{ fontSize: 16, color: "success.main" }} />
+			)}
+
+			{isAction ? "Action Required" : "Upcoming"}
+		</Box>
+	);
+}
+
 function MeetingRow({
 	meeting,
 	currentMemberId,
+	status,
 }: {
 	meeting: MeetingWithStats;
 	currentMemberId: string;
+	status: "actionRequired" | "upcoming" | null;
 }) {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
@@ -121,7 +162,11 @@ function MeetingRow({
 				href={`/availability/${meeting.id}`}
 				className="flex flex-1 flex-col gap-1"
 			>
-				<h3 className="font-medium text-base">{meeting.title}</h3>
+				<div className="flex flex-wrap items-center gap-2">
+					<h3 className="font-medium text-base">{meeting.title}</h3>
+
+					{status && <StatusBadge status={status} />}
+				</div>
 
 				<div className="flex flex-wrap items-center gap-x-4 text-gray-500 text-sm">
 					<div className="flex items-center gap-1">
@@ -385,8 +430,6 @@ export function GroupMemberList({
 	}
 
 	const { meetingsPendingAvailability, allMeetings } = useMemo(() => {
-		const now = new Date();
-
 		const getSortDate = (meeting: MeetingWithStats) =>
 			meeting.scheduledDate
 				? new Date(meeting.scheduledDate)
@@ -427,6 +470,12 @@ export function GroupMemberList({
 
 		return true;
 	});
+
+	// map is good for passing in the StatusBadge for each meeting with O(1) lookup
+	const meetingsPendingAvailabilityMap = useMemo(
+		() => new Set(meetingsPendingAvailability.map((m) => m.id)),
+		[meetingsPendingAvailability],
+	);
 
 	return (
 		<div>
@@ -668,6 +717,7 @@ export function GroupMemberList({
 												key={meeting.id}
 												meeting={meeting}
 												currentMemberId={currentMemberId}
+												status="actionRequired"
 											/>
 										</div>
 									))}
@@ -687,6 +737,13 @@ export function GroupMemberList({
 												key={meeting.id}
 												meeting={meeting}
 												currentMemberId={currentMemberId}
+												status={
+													meetingsPendingAvailabilityMap.has(meeting.id)
+														? "actionRequired"
+														: meeting.scheduledDate
+															? "upcoming"
+															: null
+												}
 											/>
 										</div>
 									))}
