@@ -36,6 +36,7 @@ import {
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import { GroupRole, type SelectGroup } from "@/db/schema";
 import { formatDateToUSNumeric } from "@/lib/availability/utils";
+import { copyTextToClipboard } from "@/lib/clipboard/utils";
 import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
 import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import { updateMemberRole } from "@/server/actions/group/update-member-role/action";
@@ -417,7 +418,10 @@ export function GroupMemberList({
 			}
 
 			try {
-				await navigator.clipboard.writeText(res.inviteUrl);
+				const copied = await copyTextToClipboard(res.inviteUrl);
+				if (!copied) {
+					throw new Error("Clipboard write failed");
+				}
 				showSuccess("Invite link copied to clipboard.");
 			} catch (_clipboardError) {
 				showError("Invite link generated, but failed to copy to clipboard.");

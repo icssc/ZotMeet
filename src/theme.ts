@@ -250,6 +250,16 @@ export const getTheme = (mode: "light" | "dark") =>
 					}),
 				},
 			},
+			MuiPaper: {
+				styleOverrides: {
+					outlined: ({ theme }) => ({
+						border: `1px solid ${theme.palette.divider}`,
+						borderRadius: 12,
+						padding: theme.spacing(1.5),
+						backgroundImage: "none",
+					}),
+				},
+			},
 		},
 	});
 

@@ -1,13 +1,16 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
+import { Paper } from "@mui/material";
 import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
+import { AvailabilityActions } from "@/components/availability/availability-actions";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
+import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
@@ -15,6 +18,7 @@ import { AvailabilityTimeTicks } from "@/components/availability/table/availabil
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { UserProfile } from "@/lib/auth/user";
 
 import {
@@ -131,6 +135,7 @@ export function Availability({
 	autoOpenInviteDialog?: boolean;
 	inviteQueryInUrl?: boolean;
 }) {
+	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 	const [availabilitySelectionMode, setAvailabilitySelectionMode] =
 		useState<Availability>("available");
 	const availabilityView = useAvailabilityStore(
@@ -163,16 +168,35 @@ export function Availability({
 		toggleHoverGrid,
 	]);
 
-	const { currentPage, itemsPerPage, isFirstPage, nextPage, prevPage } =
-		useAvailabilityStore(
-			useShallow((state) => ({
-				currentPage: state.currentPage,
-				itemsPerPage: state.itemsPerPage,
-				isFirstPage: state.isFirstPage,
-				nextPage: state.nextPage,
-				prevPage: state.prevPage,
-			})),
-		);
+	const {
+		currentPage,
+		itemsPerPage,
+		isFirstPage,
+		nextPage,
+		prevPage,
+		setItemsPerPage,
+	} = useAvailabilityStore(
+		useShallow((state) => ({
+			currentPage: state.currentPage,
+			itemsPerPage: state.itemsPerPage,
+			isFirstPage: state.isFirstPage,
+			nextPage: state.nextPage,
+			prevPage: state.prevPage,
+			setItemsPerPage: state.setItemsPerPage,
+		})),
+	);
+	const isMobile = useIsMobile();
+
+	useEffect(() => {
+		setItemsPerPage(isMobile ? 2 : 5);
+	}, [isMobile, setItemsPerPage]);
+
+	useEffect(() => {
+		if (autoOpenInviteDialog) {
+			setIsInviteDialogOpen(true);
+		}
+	}, [autoOpenInviteDialog]);
+
 	const isLastPage =
 		currentPage === Math.floor((meetingData.dates.length - 1) / itemsPerPage);
 
@@ -743,7 +767,7 @@ export function Availability({
 
 	// TODO: Could add selection clearing with the escape key
 	return (
-		<div className="space-y-6">
+		<div className="flex min-h-[80vh] flex-col gap-6">
 			<AvailabilityHeader
 				meetingData={meetingData}
 				user={user}
@@ -754,19 +778,36 @@ export function Availability({
 				setChangeableTimezone={setChangeableTimezone}
 				setTimezone={setUserTimezone}
 				availabilityEditState={availabilitySelectionMode}
-				autoOpenInviteDialog={autoOpenInviteDialog}
 				inviteQueryInUrl={inviteQueryInUrl}
 			/>
 
-			<div className="flex min-h-0 w-full min-w-0 flex-row items-start justify-start">
-				<div className="flex h-fit min-w-0 flex-1 items-center justify-between overflow-x-auto font-dm-sans lg:pr-14">
-					<AvailabilityNavButton
-						direction="left"
-						handleClick={prevPage}
-						disabled={isFirstPage}
-					/>
-
+			<div className="flex min-h-0 w-full min-w-0 flex-1 flex-row items-stretch justify-start">
+				<Paper
+					component="div"
+					variant="outlined"
+					className="mr-4 flex min-h-0 min-w-0 flex-1 items-start justify-between self-stretch overflow-x-auto lg:overflow-x-hidden lg:pr-14"
+				>
+					<div className="-mt-2 translate-x-3">
+						<AvailabilityNavButton
+							direction="left"
+							handleClick={prevPage}
+							disabled={isFirstPage}
+						/>
+					</div>
 					<div className="flex flex-col gap-4" {...bind()}>
+						<div className="shrink-0 lg:hidden">
+							<AvailabilityActions
+								meetingData={meetingData}
+								user={user}
+								availabilityDates={availabilityDates}
+								ifNeededDates={ifNeededDates}
+								onCancel={handleCancelEditing}
+								onSave={handleSuccessfulSave}
+								setChangeableTimezone={setChangeableTimezone}
+								setTimezone={setUserTimezone}
+								onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
+							/>
+						</div>
 						<table className="w-full table-fixed">
 							<AvailabilityTableHeader
 								currentPageAvailability={currentPageAvailability}
@@ -822,38 +863,81 @@ export function Availability({
 						</div>
 					</div>
 
-					<AvailabilityNavButton
-						direction="right"
-						handleClick={() => nextPage(availabilityDates.length)}
-						disabled={isLastPage}
-					/>
-				</div>
+					<div className="-mt-2 -translate-x-9">
+						<AvailabilityNavButton
+							direction="right"
+							handleClick={() => nextPage(availabilityDates.length)}
+							disabled={isLastPage}
+						/>
+					</div>
+				</Paper>
 
 				{(availabilityView === "group" || availabilityView === "schedule") && (
-					<GroupResponses
-						availabilityDates={availabilityDates}
-						fromTime={fromTimeMinutes}
-						members={members}
-						pendingMembers={pendingMembers}
-						timezone={userTimezone}
-						anchorNormalizedDate={anchorNormalizedDate}
-						currentPageAvailability={currentPageAvailability}
-						availabilityTimeBlocks={availabilityTimeBlocks}
-						doesntNeedDay={doesntNeedDay}
-					/>
+					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+						<AvailabilityActions
+							meetingData={meetingData}
+							user={user}
+							availabilityDates={availabilityDates}
+							ifNeededDates={ifNeededDates}
+							onCancel={handleCancelEditing}
+							onSave={handleSuccessfulSave}
+							setChangeableTimezone={setChangeableTimezone}
+							setTimezone={setUserTimezone}
+							onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
+						/>
+						<Paper
+							variant="outlined"
+							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+						>
+							<GroupResponses
+								availabilityDates={availabilityDates}
+								fromTime={fromTimeMinutes}
+								members={members}
+								pendingMembers={pendingMembers}
+								timezone={userTimezone}
+								anchorNormalizedDate={anchorNormalizedDate}
+								currentPageAvailability={currentPageAvailability}
+								availabilityTimeBlocks={availabilityTimeBlocks}
+								doesntNeedDay={doesntNeedDay}
+							/>
+						</Paper>
+					</div>
 				)}
 				{availabilityView === "personal" && (
-					<PersonalAvailabilitySidebar
-						availability={availabilitySelectionMode}
-						setAvailability={setAvailabilitySelectionMode}
-						meetingId={meetingData.id}
-						userTimezone={userTimezone}
-						importGridIsoSet={importGridIsoSet}
-						canImport={Boolean(user?.memberId)}
-						onImportSlots={handleImportSlotsFromMeeting}
-					/>
+					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+						<AvailabilityActions
+							meetingData={meetingData}
+							user={user}
+							availabilityDates={availabilityDates}
+							ifNeededDates={ifNeededDates}
+							onCancel={handleCancelEditing}
+							onSave={handleSuccessfulSave}
+							setChangeableTimezone={setChangeableTimezone}
+							setTimezone={setUserTimezone}
+							onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
+						/>
+						<Paper
+							variant="outlined"
+							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+						>
+							<PersonalAvailabilitySidebar
+								availability={availabilitySelectionMode}
+								setAvailability={setAvailabilitySelectionMode}
+								meetingId={meetingData.id}
+								userTimezone={userTimezone}
+								importGridIsoSet={importGridIsoSet}
+								canImport={Boolean(user?.memberId)}
+								onImportSlots={handleImportSlotsFromMeeting}
+							/>
+						</Paper>
+					</div>
 				)}
 			</div>
+			<InviteMembersDialog
+				open={isInviteDialogOpen}
+				onOpenChange={setIsInviteDialogOpen}
+				meetingId={meetingData.id}
+			/>
 		</div>
 	);
 }

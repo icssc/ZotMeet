@@ -592,8 +592,10 @@ export function GroupAvailability({
 					blockIsScheduled && (!nextTimestamp || !isScheduled(nextTimestamp));
 
 				const tableCellStyles = cn(
-					isTopOfHour ? "border-t-[1px] border-t-gray-medium" : "",
-					isHalfHour ? "border-t-[1px] border-t-gray-base" : "",
+					isTopOfHour ? "border-t-[1px] border-t-gray-base" : "",
+					isHalfHour
+						? "border-t border-t-gray-base [border-top-style:dotted]"
+						: "",
 					isLastRow ? "border-b-[1px]" : "",
 					isSelected && !isScheduling
 						? "outline-dashed outline-2 outline-slate-500"
