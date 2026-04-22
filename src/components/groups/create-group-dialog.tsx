@@ -30,12 +30,9 @@ interface CreateGroupDialogProps {
 
 const compressImage = async (file: File) => {
 	const bitmap = await createImageBitmap(file);
-
 	const canvas = document.createElement("canvas");
 	const ctx = canvas.getContext("2d")!;
-
 	const maxSize = 256;
-
 	canvas.width = maxSize;
 	canvas.height = maxSize;
 
@@ -48,7 +45,6 @@ const compressImage = async (file: File) => {
 					reject(new Error("Image compression failed"));
 					return;
 				}
-
 				const reader = new FileReader();
 				reader.onloadend = () => resolve(reader.result as string);
 				reader.readAsDataURL(blob);

@@ -135,7 +135,6 @@ function StatusBadge({
 			) : (
 				<EventAvailableIcon sx={{ fontSize: 16, color: "success.main" }} />
 			)}
-
 			{isAction ? "Action Required" : "Upcoming"}
 		</Box>
 	);
@@ -165,7 +164,6 @@ function MeetingRow({
 			>
 				<div className="flex flex-wrap items-center gap-2">
 					<h3 className="font-medium text-base">{meeting.title}</h3>
-
 					{status && <StatusBadge status={status} />}
 				</div>
 
@@ -304,7 +302,6 @@ function AdminMemberRow({
 				>
 					<SelectValue />
 				</SelectTrigger>
-
 				<SelectContent
 					style={{
 						backgroundColor: theme.palette.background.paper,
@@ -332,7 +329,6 @@ function MembersList({
 	currentUserId: string;
 }) {
 	const theme = useTheme();
-
 	return (
 		<div className="mt-4">
 			<p className="mb-2 px-4 font-bold text-[#969696] text-xs uppercase tracking-wide">
@@ -371,7 +367,6 @@ function MembersList({
 									)}
 								</span>
 							</div>
-
 							<span
 								style={{ color: theme.palette.text.secondary }}
 								className="font-medium text-sm italic"
@@ -408,7 +403,6 @@ export function GroupMemberList({
 			showError("Only the group creator can generate invite links.");
 			return;
 		}
-
 		setIsCreatingInvite(true);
 		try {
 			const res = await createGroupInvite(group.id);
@@ -416,7 +410,6 @@ export function GroupMemberList({
 				showError(res.message || "Failed to generate invite link.");
 				return;
 			}
-
 			try {
 				const copied = await copyTextToClipboard(res.inviteUrl);
 				if (!copied) {
@@ -438,19 +431,16 @@ export function GroupMemberList({
 			meeting.scheduledDate
 				? new Date(meeting.scheduledDate)
 				: new Date(meeting.dates[0]); // meeting window start
-
 		// Pending Availability section
 		const meetingsPendingAvailability = meetings
 			.filter((meeting) => {
 				return !meeting.userHasResponded;
 			})
 			.sort((a, b) => getSortDate(a).getTime() - getSortDate(b).getTime());
-
 		// All meeting section
 		const allMeetings = [...meetings].sort(
 			(a, b) => getSortDate(a).getTime() - getSortDate(b).getTime(),
 		);
-
 		return { meetingsPendingAvailability, allMeetings };
 	}, [meetings]);
 
@@ -471,7 +461,6 @@ export function GroupMemberList({
 				meeting.scheduledDate && new Date(meeting.scheduledDate) > new Date()
 			);
 		}
-
 		return true;
 	});
 
@@ -607,7 +596,6 @@ export function GroupMemberList({
 								<Plus className="size-5" />
 							</Button>
 						</Link>
-
 						<Button
 							variant="outlined"
 							onClick={handleCreateInviteLink}
@@ -641,7 +629,6 @@ export function GroupMemberList({
 						placeholder="Search..."
 						className="h-11 w-full rounded-lg border border-gray-300 px-4 text-sm outline-none focus:border-gray-500 md:max-w-sm"
 					/>
-
 					<div className="flex items-center gap-3">
 						{/* Desktop Create */}
 						<Link
@@ -711,7 +698,6 @@ export function GroupMemberList({
 									<p className="mb-2 font-bold text-[#969696] text-xs uppercase tracking-wide">
 										Action Required ({meetingsPendingAvailability.length})
 									</p>
-
 									{meetingsPendingAvailability.map((meeting) => (
 										<div
 											key={meeting.id}
@@ -726,7 +712,6 @@ export function GroupMemberList({
 										</div>
 									))}
 								</div>
-
 								<div className="mt-8">
 									<p className="mb-5 font-bold text-[#969696] text-xs uppercase tracking-wide">
 										All ({displayedMeetings.length})
@@ -762,7 +747,6 @@ export function GroupMemberList({
 					</div>
 				</div>
 			)}
-
 			{tab === 1 && !showSettings && (
 				<div className="mt-6">
 					<MembersList
@@ -773,7 +757,6 @@ export function GroupMemberList({
 					/>
 				</div>
 			)}
-
 			{showSettings && (
 				<div className="mt-6 flex items-center justify-center py-32">
 					<p className="text-gray-500 text-lg">Settings coming soon</p>
