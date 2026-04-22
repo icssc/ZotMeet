@@ -10,6 +10,7 @@ import { AvailabilityActions } from "@/components/availability/availability-acti
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
+import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
@@ -134,6 +135,7 @@ export function Availability({
 	autoOpenInviteDialog?: boolean;
 	inviteQueryInUrl?: boolean;
 }) {
+	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 	const [availabilitySelectionMode, setAvailabilitySelectionMode] =
 		useState<Availability>("available");
 	const availabilityView = useAvailabilityStore(
@@ -188,6 +190,13 @@ export function Availability({
 	useEffect(() => {
 		setItemsPerPage(isMobile ? 2 : 5);
 	}, [isMobile, setItemsPerPage]);
+
+	useEffect(() => {
+		if (autoOpenInviteDialog) {
+			setIsInviteDialogOpen(true);
+		}
+	}, [autoOpenInviteDialog]);
+
 	const isLastPage =
 		currentPage === Math.floor((meetingData.dates.length - 1) / itemsPerPage);
 
@@ -769,7 +778,6 @@ export function Availability({
 				setChangeableTimezone={setChangeableTimezone}
 				setTimezone={setUserTimezone}
 				availabilityEditState={availabilitySelectionMode}
-				autoOpenInviteDialog={autoOpenInviteDialog}
 				inviteQueryInUrl={inviteQueryInUrl}
 			/>
 
@@ -797,6 +805,7 @@ export function Availability({
 								onSave={handleSuccessfulSave}
 								setChangeableTimezone={setChangeableTimezone}
 								setTimezone={setUserTimezone}
+								onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
 							/>
 						</div>
 						<table className="w-full table-fixed">
@@ -874,6 +883,7 @@ export function Availability({
 							onSave={handleSuccessfulSave}
 							setChangeableTimezone={setChangeableTimezone}
 							setTimezone={setUserTimezone}
+							onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
 						/>
 						<Paper
 							variant="outlined"
@@ -904,6 +914,7 @@ export function Availability({
 							onSave={handleSuccessfulSave}
 							setChangeableTimezone={setChangeableTimezone}
 							setTimezone={setUserTimezone}
+							onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
 						/>
 						<Paper
 							variant="outlined"
@@ -922,6 +933,11 @@ export function Availability({
 					</div>
 				)}
 			</div>
+			<InviteMembersDialog
+				open={isInviteDialogOpen}
+				onOpenChange={setIsInviteDialogOpen}
+				meetingId={meetingData.id}
+			/>
 		</div>
 	);
 }

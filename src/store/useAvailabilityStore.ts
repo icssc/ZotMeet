@@ -53,6 +53,7 @@ interface AvailabilityStore {
 
 	// Schedule Selection
 	scheduledTimes: Set<string>;
+	hasHydratedScheduledTimes: boolean;
 	pendingAdds: Set<string>;
 	pendingRemovals: Set<string>;
 	addPendingTime: (timestamp: string) => void;
@@ -160,6 +161,7 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 
 	// Schedule Selection
 	scheduledTimes: new Set<string>(),
+	hasHydratedScheduledTimes: false,
 	pendingAdds: new Set<string>(),
 	pendingRemovals: new Set<string>(),
 
@@ -212,6 +214,7 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 			});
 			return {
 				scheduledTimes: nextScheduled,
+				hasHydratedScheduledTimes: true,
 				pendingAdds: new Set(),
 				pendingRemovals: new Set(),
 			};
@@ -259,6 +262,7 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	hydrateScheduledTimes: (timestamps: string[]) => {
 		set({
 			scheduledTimes: new Set(timestamps),
+			hasHydratedScheduledTimes: true,
 			pendingAdds: new Set(),
 			pendingRemovals: new Set(),
 		});

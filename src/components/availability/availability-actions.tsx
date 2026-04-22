@@ -19,7 +19,6 @@ import { Button } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
-import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
@@ -35,6 +34,7 @@ export interface AvailabilityActionsProps {
 	onSave: () => void;
 	setChangeableTimezone: (can: boolean) => void;
 	setTimezone: (timezone: string) => void;
+	onOpenInviteDialog: () => void;
 }
 
 export function AvailabilityActions({
@@ -46,13 +46,13 @@ export function AvailabilityActions({
 	onSave,
 	setChangeableTimezone,
 	setTimezone,
+	onOpenInviteDialog,
 }: AvailabilityActionsProps) {
 	const router = useRouter();
 	const { showSuccess, showError } = useSnackbar();
 	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false);
-	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
 	const {
 		hasAvailability,
@@ -99,14 +99,21 @@ export function AvailabilityActions({
 		};
 
 		const response = await saveAvailability(availability);
-		const ifNeededResponse = await saveIfNeeded(ifNeeded);
+		if (response.status !== 200) {
+			console.error("Error saving availability:", response.body.error);
+			return;
+		}
 
-		if (response.status === 200 && ifNeededResponse.status === 200) {
+		const ifNeededResponse = await saveIfNeeded(ifNeeded);
+		if (ifNeededResponse.status === 200) {
 			setHasAvailability(true);
 			setAvailabilityView("group");
 			onSave();
 		} else {
-			console.error("Error saving availability:", response.body.error);
+			console.error(
+				"Error saving if-needed availability:",
+				ifNeededResponse.body.error,
+			);
 		}
 	};
 
@@ -290,7 +297,7 @@ export function AvailabilityActions({
 								startIcon={<GroupAddOutlined />}
 								className="w-full"
 								sx={{ py: 0.75 }}
-								onClick={() => setIsInviteDialogOpen(true)}
+								onClick={onOpenInviteDialog}
 							>
 								<span className="hidden md:flex">Invite Members</span>
 							</Button>
@@ -298,11 +305,6 @@ export function AvailabilityActions({
 					)}
 				</div>
 			)}
-			<InviteMembersDialog
-				open={isInviteDialogOpen}
-				onOpenChange={setIsInviteDialogOpen}
-				meetingId={meetingData.id}
-			/>
 		</div>
 	);
 }

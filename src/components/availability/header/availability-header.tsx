@@ -38,7 +38,6 @@ interface AvailabilityHeaderProps {
 	setChangeableTimezone: (can: boolean) => void;
 	setTimezone: (timezone: string) => void;
 	availabilityEditState: Availability;
-	autoOpenInviteDialog?: boolean;
 	inviteQueryInUrl?: boolean;
 }
 
@@ -52,7 +51,6 @@ export function AvailabilityHeader({
 	setChangeableTimezone: _setChangeableTimezone,
 	setTimezone: _setTimezone,
 	availabilityEditState: _availabilityEditState,
-	autoOpenInviteDialog: _autoOpenInviteDialog = false,
 	inviteQueryInUrl = false,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
@@ -60,15 +58,20 @@ export function AvailabilityHeader({
 	const { showSuccess, showError } = useSnackbar();
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const isScheduled = meetingData.scheduled;
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
-	const { availabilityView } = useAvailabilityStore(
-		useShallow((state) => ({
-			availabilityView: state.availabilityView,
-		})),
-	);
+	const { availabilityView, scheduledTimesCount, hasHydratedScheduledTimes } =
+		useAvailabilityStore(
+			useShallow((state) => ({
+				availabilityView: state.availabilityView,
+				scheduledTimesCount: state.scheduledTimes.size,
+				hasHydratedScheduledTimes: state.hasHydratedScheduledTimes,
+			})),
+		);
+	const isScheduled = hasHydratedScheduledTimes
+		? scheduledTimesCount > 0
+		: meetingData.scheduled;
 
 	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
 	// const [guestName, setGuestName] = useState("");
