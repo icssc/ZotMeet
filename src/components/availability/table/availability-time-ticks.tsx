@@ -1,3 +1,4 @@
+import { Typography } from "@mui/material";
 import { memo } from "react";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -14,12 +15,21 @@ export const AvailabilityTimeTicks = memo(
 			<td className="w-2 border-r-[1px] border-r-gray-medium py-0 pr-3 align-top">
 				{isTopOfHour && (
 					<>
-						<span className="float-right hidden whitespace-nowrap font-bold text-[10px] text-gray-medium md:flex md:text-xs">
-							{ZotDate.toTimeBlockString(minutesInDay, false)}
-						</span>
-						<span className="float-right flex whitespace-nowrap font-bold text-[10px] text-gray-medium md:hidden md:text-xs">
+						<Typography
+							variant="caption"
+							color="textSecondary"
+							className="float-right hidden whitespace-nowrap md:flex"
+						>
 							{ZotDate.toTimeBlockString(minutesInDay, true)}
-						</span>
+						</Typography>
+
+						<Typography
+							variant="caption"
+							color="textSecondary"
+							className="float-right flex whitespace-nowrap md:hidden"
+						>
+							{ZotDate.toTimeBlockString(minutesInDay, true)}
+						</Typography>
 					</>
 				)}
 			</td>

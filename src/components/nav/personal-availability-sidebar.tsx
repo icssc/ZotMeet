@@ -150,7 +150,7 @@ export function PersonalAvailabilitySidebar({
 	);
 
 	return (
-		<div className="fixed h-96 w-full px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:h-auto lg:w-96 lg:shrink-0">
+		<div className="fixed h-96 w-full px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:flex lg:h-full lg:min-h-0 lg:w-full lg:flex-1 lg:shrink-0 lg:flex-col lg:overflow-y-auto lg:px-4">
 			<div>
 				<Typography variant="h6">Add Availability</Typography>
 				<Typography variant="caption" color="textSecondary">

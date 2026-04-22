@@ -1,27 +1,29 @@
 "use client";
-
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
 import {
-	saveAvailability,
-	saveIfNeeded,
-} from "@actions/availability/save/action";
-import {
-	deleteScheduledTimeBlock,
-	saveScheduledTimeBlock,
-} from "@actions/meeting/schedule/action";
-import { Create, InsertInvitationRounded } from "@mui/icons-material";
+	AccessTime,
+	CalendarMonth,
+	ContentCopy,
+	LocationOn,
+	Settings,
+} from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
-import { Button } from "@mui/material";
-import { DeleteIcon, EditIcon } from "lucide-react";
+import { Button, IconButton, Paper, Typography } from "@mui/material";
+import { DeleteIcon, MoreVerticalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
-import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
+import {
+	convertTimeFromUTC,
+	formatDateToUSNumeric,
+	formatTimeWithHoursAndMins,
+} from "@/lib/availability/utils";
+import { copyTextToClipboard } from "@/lib/clipboard/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import type { Availability } from "../availability";
@@ -36,347 +38,212 @@ interface AvailabilityHeaderProps {
 	setChangeableTimezone: (can: boolean) => void;
 	setTimezone: (timezone: string) => void;
 	availabilityEditState: Availability;
-	autoOpenInviteDialog?: boolean;
 	inviteQueryInUrl?: boolean;
 }
 
 export function AvailabilityHeader({
 	meetingData,
 	user,
-	availabilityDates,
-	ifNeededDates,
-	onCancel,
-	onSave,
-	setChangeableTimezone,
-	setTimezone,
-	availabilityEditState,
-	autoOpenInviteDialog = false,
+	availabilityDates: _availabilityDates,
+	ifNeededDates: _ifNeededDates,
+	onCancel: _onCancel,
+	onSave: _onSave,
+	setChangeableTimezone: _setChangeableTimezone,
+	setTimezone: _setTimezone,
+	availabilityEditState: _availabilityEditState,
 	inviteQueryInUrl = false,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const { showSuccess, showError } = useSnackbar();
+	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
-	const {
-		hasAvailability,
-		availabilityView,
-		setHasAvailability,
-		setAvailabilityView,
-	} = useAvailabilityStore(
-		useShallow((state) => ({
-			hasAvailability: state.hasAvailability,
-			availabilityView: state.availabilityView,
-			setHasAvailability: state.setHasAvailability,
-			setAvailabilityView: state.setAvailabilityView,
-		})),
-	);
-
-	const handleCancel = () => {
-		onCancel();
-		setChangeableTimezone(true);
-		setAvailabilityView("group");
-	};
+	const isOwner = !!user && meetingData.hostId === user.memberId;
+	const { availabilityView, scheduledTimesCount, hasHydratedScheduledTimes } =
+		useAvailabilityStore(
+			useShallow((state) => ({
+				availabilityView: state.availabilityView,
+				scheduledTimesCount: state.scheduledTimes.size,
+				hasHydratedScheduledTimes: state.hasHydratedScheduledTimes,
+			})),
+		);
+	const isScheduled = hasHydratedScheduledTimes
+		? scheduledTimesCount > 0
+		: meetingData.scheduled;
 
 	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
 	// const [guestName, setGuestName] = useState("");
-
-	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [isInviteDialogOpen, setIsInviteDialogOpen] =
-		useState(autoOpenInviteDialog);
 
 	useEffect(() => {
 		if (!inviteQueryInUrl) return;
 		router.replace(pathname, { scroll: false });
 	}, [inviteQueryInUrl, pathname, router]);
-	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
-	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
-	const isOwner = !!user && meetingData.hostId === user.memberId;
-
-	const handleSave = async () => {
-		if (!user) {
-			// setIsGuestDialogOpen(true);
-
-			return;
-		}
-		setChangeableTimezone(true);
-		const availability = {
-			meetingId: meetingData.id,
-			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-		const ifNeeded = {
-			meetingId: meetingData.id,
-			availabilityTimes: ifNeededDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-		const response = await saveAvailability(availability);
-
-		const ifNeededResponse = await saveIfNeeded(ifNeeded);
-
-		if (response.status === 200 && ifNeededResponse.status === 200) {
-			setHasAvailability(true);
-			setAvailabilityView("group");
-			onSave();
-
-			// Clear guest member name
-			if (!user) {
-				// setGuestName("");
-			}
-		} else {
-			console.error("Error saving availability:", response.body.error);
-		}
-	};
-
-	const { commitPendingTimes, clearPendingTimes } = useAvailabilityStore(
-		useShallow((state) => ({
-			pendingAdds: state.pendingAdds,
-			commitPendingTimes: state.commitPendingTimes,
-			clearPendingTimes: state.clearPendingTimes,
-		})),
+	const formattedStartDate = formatDateToUSNumeric(
+		new Date(meetingData.dates[0]),
+	);
+	const formattedEndDate = formatDateToUSNumeric(
+		new Date(meetingData.dates[meetingData.dates.length - 1]),
 	);
 
-	const handleScheduleCancel = () => {
-		clearPendingTimes();
-		setAvailabilityView("group");
-	};
+	const displayTimezone =
+		meetingData.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+	const referenceDate = meetingData.dates[0];
+	const formattedStartTime = formatTimeWithHoursAndMins(
+		convertTimeFromUTC(meetingData.fromTime, displayTimezone, referenceDate),
+	);
 
-	const handleScheduleSave = async () => {
+	const formattedEndTime = formatTimeWithHoursAndMins(
+		convertTimeFromUTC(meetingData.toTime, displayTimezone, referenceDate),
+	);
+
+	async function handleCopy() {
 		try {
-			const { pendingAdds, pendingRemovals } = useAvailabilityStore.getState();
-
-			// Remove pending removals
-			for (const timestamp of pendingRemovals) {
-				const date = new Date(timestamp);
-				const scheduledDate = new Date(
-					date.getFullYear(),
-					date.getMonth(),
-					date.getDate(),
-				);
-				const scheduledFromTime = date.toTimeString().slice(0, 8); // HH:mm:ss
-				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-					.toTimeString()
-					.slice(0, 8);
-
-				await deleteScheduledTimeBlock({
-					meetingId: meetingData.id,
-					scheduledDate,
-					scheduledFromTime,
-					scheduledToTime,
-				});
+			const copied = await copyTextToClipboard(meetingData.title);
+			if (!copied) {
+				throw new Error("Clipboard write failed");
 			}
-			// Add new pending times
-			for (const timestamp of pendingAdds) {
-				const date = new Date(timestamp);
-				const scheduledDate = new Date(
-					date.getFullYear(),
-					date.getMonth(),
-					date.getDate(),
-				);
-				const scheduledFromTime = date.toTimeString().slice(0, 8); // HH:mm:ss
-				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-					.toTimeString()
-					.slice(0, 8);
-
-				await saveScheduledTimeBlock({
-					meetingId: meetingData.id,
-					scheduledDate,
-					scheduledFromTime,
-					scheduledToTime,
-				});
-			}
-
-			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
-				// Move pending to scheduled after successful save
-				commitPendingTimes();
-				const { scheduledTimes } = useAvailabilityStore.getState();
-				setIsScheduled(scheduledTimes.size > 0);
-			}
-			setAvailabilityView("group");
-		} catch (error) {
-			console.error("Failed to save meeting blocks", error);
+			showSuccess("Meeting name copied to clipboard");
+		} catch (_clipboardError) {
+			showError("Failed to copy Meeting name");
 		}
-	};
+	}
 
 	return (
-		<>
-			<div className="">
-				<div className="mt-16 flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-[auto_auto] lg:items-start lg:gap-x-4">
-					<h1 className="order-1 line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl lg:col-start-1 lg:row-start-1">
+		<Paper variant="outlined" className="mt-10">
+			<div className="flex flex-col gap-4">
+				<div className="flex w-full items-center">
+					<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
 						{meetingData.title}
 					</h1>
 
-					<div className="order-2 flex w-full shrink-0 flex-col gap-2 self-start lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:w-full">
-						{availabilityView === "personal" ||
-						availabilityView === "schedule" ? (
-							<div className="flex flex-wrap justify-end gap-2">
-								<Button
-									variant="outlined"
-									color="inherit"
-									size="small"
-									onClick={
-										availabilityView === "personal"
-											? handleCancel
-											: handleScheduleCancel
-									}
-								>
-									<span className="hidden md:flex">Cancel</span>
-								</Button>
-								<Button
-									variant="contained"
-									size="small"
-									type="submit"
-									onClick={
-										availabilityView === "personal"
-											? handleSave
-											: handleScheduleSave
-									}
-								>
-									<span className="hidden md:flex">Save</span>
-								</Button>
+					<div className="ml-auto sm:ml-8">
+						<IconButton size="small" onClick={handleCopy}>
+							<ContentCopy />
+						</IconButton>
+					</div>
+
+					{isOwner && (
+						<div className="block sm:hidden">
+							<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
+								<MoreVerticalIcon />
+							</IconButton>
+						</div>
+					)}
+				</div>
+				<div className="flex flex-wrap items-start gap-4">
+					<div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-2">
+						<div className="flex items-center gap-2">
+							<CalendarMonth fontSize="small" />
+							<Typography color="textSecondary" className="whitespace-nowrap">
+								{formattedStartDate} - {formattedEndDate}
+							</Typography>
+						</div>
+
+						<div className="flex items-center gap-2">
+							<AccessTime />
+							<Typography color="textSecondary" className="whitespace-nowrap">
+								{formattedStartTime} - {formattedEndTime}
+							</Typography>
+						</div>
+
+						{meetingData.location && (
+							<div className="flex items-center gap-2">
+								<LocationOn />
+								<Typography color="textSecondary" className="whitespace-nowrap">
+									{meetingData.location}
+								</Typography>
 							</div>
-						) : (
-							<div className="flex flex-wrap justify-end gap-2">
-								{isScheduled && (
-									<Button
-										variant="outlined"
-										size="medium"
-										startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
-										onClick={async () => {
-											if (isGeneratingLink) return;
-											setIsGeneratingLink(true);
-											try {
-												const { success, link } =
-													await getGoogleCalendarPrefilledLink({
-														meetingId: meetingData.id,
-														meetingTitle: meetingData.title,
-														meetingDescription: meetingData.description,
-														meetingLocation: meetingData.location,
-														timezone: meetingData.timezone,
-													});
+						)}
 
-												if (!success || !link) {
-													showError("Failed to generate Google Calendar link.");
-													return;
-												}
-
-												window.open(link, "_blank", "noopener,noreferrer");
-
-												showSuccess(
-													"Google Calendar link opened! Confirm the event in your calendar.",
-												);
-											} catch (error) {
-												console.error(
-													"Error generating Google Calendar link:",
-													error,
-												);
-												showError(
-													"An error occurred while generating the Google Calendar link.",
-												);
-											} finally {
-												setIsGeneratingLink(false);
-											}
-										}}
-									>
-										Add to Calendar
-									</Button>
-								)}
+						{isOwner && (
+							<div className="-ml-2 hidden items-center gap-x-1 sm:flex">
+								<Button
+									onClick={() => setIsEditModalOpen(true)}
+									variant="text"
+									size="medium"
+									color="primary"
+									startIcon={<Settings sx={{ color: "primary.main" }} />}
+								>
+									<Typography>Edit Meeting</Typography>
+								</Button>
 
 								<Button
-									variant="contained"
-									startIcon={<Create sx={{ color: "inherit" }} />}
-									className="w-full max-w-full normal-case"
-									sx={{ py: 0.75 }}
-									onClick={() => {
-										if (!user) {
-											setIsAuthModalOpen(true);
-											router.push("/auth/login/google");
-											return;
-										}
-										setChangeableTimezone(false);
-										setTimezone(
-											Intl.DateTimeFormat().resolvedOptions().timeZone,
-										);
-										setAvailabilityView("personal");
-									}}
+									onClick={() => setIsDeleteModalOpen(true)}
+									variant="text"
+									size="medium"
+									startIcon={<DeleteIcon />}
 								>
-									<span className="hidden md:flex">
-										{hasAvailability ? "Edit Availability" : "Add Availability"}
-									</span>
+									<Typography>Delete Meeting</Typography>
 								</Button>
-								{isOwner && (
-									<>
-										<Button
-											variant="outlined"
-											startIcon={<InsertInvitationRounded />}
-											className="w-full"
-											sx={{ py: 0.75 }}
-											onClick={() => setAvailabilityView("schedule")}
-										>
-											<span className="hidden md:flex">Schedule Meeting</span>
-										</Button>
-										<Button
-											variant="outlined"
-											className="w-full"
-											sx={{ py: 0.75 }}
-											onClick={() => setIsInviteDialogOpen(true)}
-										>
-											<span className="hidden md:flex">Invite Members</span>
-										</Button>
-									</>
-								)}
 							</div>
 						)}
 					</div>
 
-					{isOwner && (
-						<div className="order-3 -ml-2 flex items-center gap-x-1 self-start lg:col-start-1 lg:row-start-2">
-							<Button
-								onClick={() => setIsEditModalOpen(true)}
-								variant="text"
-								size="small"
-								startIcon={<EditIcon />}
-								sx={{ color: "text.secondary" }}
-							>
-								Edit Meeting
-							</Button>
+					{availabilityView === "group" && isScheduled && (
+						<div className="order-2 flex w-full flex-col gap-2 self-start md:order-none md:ml-auto md:w-auto md:shrink-0">
+							<div className="flex flex-wrap justify-end gap-2">
+								<Button
+									variant="outlined"
+									size="medium"
+									startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
+									onClick={async () => {
+										if (isGeneratingLink) return;
+										setIsGeneratingLink(true);
+										try {
+											const { success, link } =
+												await getGoogleCalendarPrefilledLink({
+													meetingId: meetingData.id,
+													meetingTitle: meetingData.title,
+													meetingDescription: meetingData.description,
+													meetingLocation: meetingData.location,
+													timezone: meetingData.timezone,
+												});
 
-							<Button
-								onClick={() => setIsDeleteModalOpen(true)}
-								variant="text"
-								size="small"
-								startIcon={<DeleteIcon />}
-								sx={{
-									color: "text.secondary",
-									"&:hover": { color: "error.main" },
-								}}
-							>
-								Delete Meeting
-							</Button>
+											if (!success || !link) {
+												showError("Failed to generate Google Calendar link.");
+												return;
+											}
+
+											window.open(link, "_blank", "noopener,noreferrer");
+
+											showSuccess(
+												"Google Calendar link opened! Confirm the event in your calendar.",
+											);
+										} catch (error) {
+											console.error(
+												"Error generating Google Calendar link:",
+												error,
+											);
+											showError(
+												"An error occurred while generating the Google Calendar link.",
+											);
+										} finally {
+											setIsGeneratingLink(false);
+										}
+									}}
+								>
+									Add to Calendar
+								</Button>
+							</div>
 						</div>
 					)}
 				</div>
+
+				<EditModal
+					meetingData={meetingData}
+					isOpen={isEditModalOpen}
+					handleOpenChange={setIsEditModalOpen}
+				/>
+
+				<DeleteModal
+					meetingData={meetingData}
+					isOpen={isDeleteModalOpen}
+					handleOpenChange={setIsDeleteModalOpen}
+				/>
 			</div>
-
-			<EditModal
-				meetingData={meetingData}
-				isOpen={isEditModalOpen}
-				handleOpenChange={setIsEditModalOpen}
-			/>
-
-			<DeleteModal
-				meetingData={meetingData}
-				isOpen={isDeleteModalOpen}
-				handleOpenChange={setIsDeleteModalOpen}
-			/>
-
-			<InviteMembersDialog
-				open={isInviteDialogOpen}
-				onOpenChange={setIsInviteDialogOpen}
-				meetingId={meetingData.id}
-			/>
-		</>
+		</Paper>
 	);
 }
