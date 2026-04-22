@@ -115,7 +115,6 @@ const BUILDINGS = [
 	"Science Library",
 	"Langson Library",
 	"Gateway Study Center",
-	"Courtyard Study Lounge",
 ] as const;
 type Building = (typeof BUILDINGS)[number];
 

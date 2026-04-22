@@ -12,10 +12,6 @@ import {
 } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
-import {
-	BottomSheet,
-	FloatingControlBar,
-} from "@/components/availability/mobile-control";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import {
 	RoomRecommendationSettings,
@@ -750,62 +746,6 @@ export function Availability({
 				)}
 				{availabilityView === "personal" && <PersonalAvailabilitySidebar />}
 			</div>
-			{(availabilityView === "group" || availabilityView === "schedule") && (
-				<div className="md:hidden">
-					<FloatingControlBar
-						onOpen={() => setIsSheetOpen(true)}
-						numRooms={studyRooms.length}
-						numAttendees={members.length}
-					/>
-					<BottomSheet open={isSheetOpen} onClose={() => setIsSheetOpen(false)}>
-						<div className="flex flex-col gap-6">
-							{/* Tabs */}
-							<div className="flex border-b">
-								<Button
-									className={`flex-1 py-2 text-sm ${
-										activeTab === "attendees"
-											? "border-pink-500 border-b-2 font-medium"
-											: "text-gray-400"
-									}`}
-									onClick={() => setActiveTab("attendees")}
-								>
-									Attendees
-								</Button>
-
-								<Button
-									className={`flex-1 py-2 text-sm ${
-										activeTab === "rooms"
-											? "border-pink-500 border-b-2 font-medium"
-											: "text-gray-400"
-									}`}
-									onClick={() => setActiveTab("rooms")}
-								>
-									Rooms
-								</Button>
-							</div>
-
-							{activeTab === "attendees" ? (
-								<GroupResponses
-									availabilityDates={availabilityDates}
-									fromTime={fromTimeMinutes}
-									members={members}
-									timezone={userTimezone}
-									anchorNormalizedDate={anchorNormalizedDate}
-									currentPageAvailability={currentPageAvailability}
-									availabilityTimeBlocks={availabilityTimeBlocks}
-									doesntNeedDay={doesntNeedDay}
-								/>
-							) : (
-								<RoomRecommendationSettings
-									rawRooms={studyRooms}
-									onFiltersChange={setRoomFilters}
-									onShowBestRooms={handleShowBestRooms}
-								/>
-							)}
-						</div>
-					</BottomSheet>
-				</div>
-			)}
 		</div>
 	);
 }
