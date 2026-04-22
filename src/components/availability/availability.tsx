@@ -121,11 +121,15 @@ export function Availability({
 	allAvailabilities,
 	user,
 	scheduledBlocks,
+	autoOpenInviteDialog = false,
+	inviteQueryInUrl = false,
 }: {
 	meetingData: SelectMeeting;
 	allAvailabilities: MemberMeetingAvailability[];
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
+	autoOpenInviteDialog?: boolean;
+	inviteQueryInUrl?: boolean;
 }) {
 	const [availabilitySelectionMode, setAvailabilitySelectionMode] =
 		useState<Availability>("available");
@@ -401,6 +405,14 @@ export function Availability({
 
 		return Array.from(allMembers.values());
 	}, [allAvailabilities, availabilityDates, ifNeededDates, user]);
+
+	const pendingMembers = useMemo(
+		() =>
+			allAvailabilities
+				.filter((a) => a.meetingAvailabilities.length === 0)
+				.map(({ memberId, displayName }) => ({ memberId, displayName })),
+		[allAvailabilities],
+	);
 
 	let doesntNeedDay = true;
 	let past = availabilityTimeBlocks[0];
@@ -742,6 +754,8 @@ export function Availability({
 				setChangeableTimezone={setChangeableTimezone}
 				setTimezone={setUserTimezone}
 				availabilityEditState={availabilitySelectionMode}
+				autoOpenInviteDialog={autoOpenInviteDialog}
+				inviteQueryInUrl={inviteQueryInUrl}
 			/>
 
 			<div className="flex min-h-0 w-full min-w-0 flex-row items-start justify-start">
@@ -820,6 +834,7 @@ export function Availability({
 						availabilityDates={availabilityDates}
 						fromTime={fromTimeMinutes}
 						members={members}
+						pendingMembers={pendingMembers}
 						timezone={userTimezone}
 						anchorNormalizedDate={anchorNormalizedDate}
 						currentPageAvailability={currentPageAvailability}
