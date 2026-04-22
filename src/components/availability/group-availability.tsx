@@ -591,14 +591,16 @@ export function GroupAvailability({
 				const isBottomEdge =
 					blockIsScheduled && (!nextTimestamp || !isScheduled(nextTimestamp));
 
-			const tableCellStyles = cn(
-				isTopOfHour ? "border-t-[1px] border-t-gray-base" : "",
-				isHalfHour ? "border-t border-t-gray-base border-dotted" : "",
-				isLastRow ? "border-b-[1px]" : "",
-				isSelected && !isScheduling
-					? "outline-dashed outline-2 outline-slate-500"
-					: "",
-			);
+				const tableCellStyles = cn(
+					isTopOfHour ? "border-t-[1px] border-t-gray-base" : "",
+					isHalfHour
+						? "border-t border-t-gray-base [border-top-style:dotted]"
+						: "",
+					isLastRow ? "border-b-[1px]" : "",
+					isSelected && !isScheduling
+						? "outline-dashed outline-2 outline-slate-500"
+						: "",
+				);
 
 				return (
 					<React.Fragment key={key}>
