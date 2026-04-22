@@ -208,11 +208,7 @@ export function InviteMembersDialog({
 					)}
 
 					<div>
-						<Typography
-							variant="caption"
-							color="textSecondary"
-							className="mb-4"
-						>
+						<Typography variant="caption" color="textSecondary">
 							Or Share Invite Link
 						</Typography>
 						<div className="flex items-center gap-2">
