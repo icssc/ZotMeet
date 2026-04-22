@@ -221,7 +221,6 @@ export function CreateGroupDialog({
 			fullWidth
 		>
 			<DialogTitle>Create New Group</DialogTitle>
-
 			<DialogContent>
 				<div className="flex flex-col gap-5 pt-1">
 					<div className="flex flex-col items-center gap-3">
