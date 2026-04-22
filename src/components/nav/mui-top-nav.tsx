@@ -25,7 +25,7 @@ import type { BadgeProps } from "@mui/material/Badge";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { AcceptGroupInvite } from "@/components/groups/accept-group-invite";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
@@ -170,6 +170,7 @@ function Notifications({
 }: {
 	notifications: NotificationItem[];
 }) {
+	const router = useRouter();
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const [showGroupInvite, setShowGroupInvite] = useState(false);
 	const [activeNotification, setActiveNotification] =
@@ -257,8 +258,13 @@ function Notifications({
 											size="small"
 											sx={{ ml: "auto", my: 2 }}
 											onClick={() => {
-												setActiveNotification(notif);
-												setShowGroupInvite(true);
+												if (notif.type === "Meeting Invite") {
+													setAnchorEl(null);
+													router.push(notif.redirect ?? "");
+												} else {
+													setActiveNotification(notif);
+													setShowGroupInvite(true);
+												}
 											}}
 										>
 											View
