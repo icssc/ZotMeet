@@ -740,7 +740,8 @@ export function GroupMemberList({
 												status={
 													meetingsPendingAvailabilityMap.has(meeting.id)
 														? "actionRequired"
-														: meeting.scheduledDate
+														: meeting.scheduledDate &&
+																new Date(meeting.scheduledDate) > new Date()
 															? "upcoming"
 															: null
 												}
