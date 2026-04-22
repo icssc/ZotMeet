@@ -12,6 +12,7 @@ import { Button } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
+import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
@@ -42,6 +43,7 @@ export function AvailabilityActions({
 	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 
 	const {
 		hasAvailability,
@@ -258,18 +260,33 @@ export function AvailabilityActions({
 						</span>
 					</Button>
 					{isOwner && (
-						<Button
-							variant="outlined"
-							startIcon={<InsertInvitationRounded />}
-							className="w-full"
-							sx={{ py: 0.75 }}
-							onClick={() => setAvailabilityView("schedule")}
-						>
-							<span className="hidden md:flex">Schedule Meeting</span>
-						</Button>
+						<>
+							<Button
+								variant="outlined"
+								startIcon={<InsertInvitationRounded />}
+								className="w-full"
+								sx={{ py: 0.75 }}
+								onClick={() => setAvailabilityView("schedule")}
+							>
+								<span className="hidden md:flex">Schedule Meeting</span>
+							</Button>
+							<Button
+								variant="outlined"
+								className="w-full"
+								sx={{ py: 0.75 }}
+								onClick={() => setIsInviteDialogOpen(true)}
+							>
+								<span className="hidden md:flex">Invite Members</span>
+							</Button>
+						</>
 					)}
 				</div>
 			)}
+			<InviteMembersDialog
+				open={isInviteDialogOpen}
+				onOpenChange={setIsInviteDialogOpen}
+				meetingId={meetingData.id}
+			/>
 		</div>
 	);
 }

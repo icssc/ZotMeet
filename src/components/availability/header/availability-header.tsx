@@ -12,20 +12,17 @@ import {
 	AccessTime,
 	CalendarMonth,
 	ContentCopy,
-	Create,
-	InsertInvitationRounded,
 	LocationOn,
 	Settings,
 } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Button, IconButton, Paper, Typography } from "@mui/material";
-import { DeleteIcon, EditIcon, MoreVerticalIcon } from "lucide-react";
+import { DeleteIcon, MoreVerticalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
-import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
@@ -61,9 +58,9 @@ export function AvailabilityHeader({
 	onCancel,
 	onSave,
 	setChangeableTimezone,
-	setTimezone,
+	setTimezone: _setTimezone,
 	availabilityEditState: _availabilityEditState,
-	autoOpenInviteDialog = false,
+	autoOpenInviteDialog: _autoOpenInviteDialog = false,
 	inviteQueryInUrl = false,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
@@ -71,25 +68,18 @@ export function AvailabilityHeader({
 	const { showSuccess, showError } = useSnackbar();
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [isInviteDialogOpen, setIsInviteDialogOpen] =
-		useState(autoOpenInviteDialog);
 	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
-	const {
-		hasAvailability,
-		availabilityView,
-		setHasAvailability,
-		setAvailabilityView,
-	} = useAvailabilityStore(
-		useShallow((state) => ({
-			hasAvailability: state.hasAvailability,
-			availabilityView: state.availabilityView,
-			setHasAvailability: state.setHasAvailability,
-			setAvailabilityView: state.setAvailabilityView,
-		})),
-	);
+	const { availabilityView, setHasAvailability, setAvailabilityView } =
+		useAvailabilityStore(
+			useShallow((state) => ({
+				availabilityView: state.availabilityView,
+				setHasAvailability: state.setHasAvailability,
+				setAvailabilityView: state.setAvailabilityView,
+			})),
+		);
 
 	const handleCancel = () => {
 		onCancel();
@@ -99,8 +89,6 @@ export function AvailabilityHeader({
 
 	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
 	// const [guestName, setGuestName] = useState("");
-
-	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
 	useEffect(() => {
 		if (!inviteQueryInUrl) return;
@@ -249,53 +237,134 @@ export function AvailabilityHeader({
 						</div>
 					)}
 				</div>
-				<div className="flex gap-8">
-					<div className="flex items-center gap-2">
-						<CalendarMonth fontSize="small" />
-						<Typography color="textSecondary" className="whitespace-nowrap">
-							{formattedStartDate} - {formattedEndDate}
-						</Typography>
-					</div>
-
-					<div className="flex items-center gap-2">
-						<AccessTime />
-						<Typography color="textSecondary" className="whitespace-nowrap">
-							{formattedStartTime} - {formattedEndTime}
-						</Typography>
-					</div>
-
-					{meetingData.location && (
-						<div>
-							<LocationOn />
-							<Typography color="textSecondary">
-								{meetingData.location}
+				<div className="flex flex-wrap items-start gap-4">
+					<div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-2">
+						<div className="flex items-center gap-2">
+							<CalendarMonth fontSize="small" />
+							<Typography color="textSecondary" className="whitespace-nowrap">
+								{formattedStartDate} - {formattedEndDate}
 							</Typography>
 						</div>
-					)}
-				</div>
 
-				{isOwner && (
-					<div className="-ml-2 hidden items-center gap-x-1 sm:flex">
-						<Button
-							onClick={() => setIsEditModalOpen(true)}
-							variant="text"
-							size="medium"
-							color="primary"
-							startIcon={<Settings sx={{ color: "primary.main" }} />}
-						>
-							<Typography>Edit Meeting</Typography>
-						</Button>
+						<div className="flex items-center gap-2">
+							<AccessTime />
+							<Typography color="textSecondary" className="whitespace-nowrap">
+								{formattedStartTime} - {formattedEndTime}
+							</Typography>
+						</div>
 
-						<Button
-							onClick={() => setIsDeleteModalOpen(true)}
-							variant="text"
-							size="medium"
-							startIcon={<DeleteIcon />}
-						>
-							<Typography>Delete Meeting</Typography>
-						</Button>
+						{meetingData.location && (
+							<div className="flex items-center gap-2">
+								<LocationOn />
+								<Typography color="textSecondary" className="whitespace-nowrap">
+									{meetingData.location}
+								</Typography>
+							</div>
+						)}
+
+						{isOwner && (
+							<div className="-ml-2 hidden items-center gap-x-1 sm:flex">
+								<Button
+									onClick={() => setIsEditModalOpen(true)}
+									variant="text"
+									size="medium"
+									color="primary"
+									startIcon={<Settings sx={{ color: "primary.main" }} />}
+								>
+									<Typography>Edit Meeting</Typography>
+								</Button>
+
+								<Button
+									onClick={() => setIsDeleteModalOpen(true)}
+									variant="text"
+									size="medium"
+									startIcon={<DeleteIcon />}
+								>
+									<Typography>Delete Meeting</Typography>
+								</Button>
+							</div>
+						)}
 					</div>
-				)}
+
+					<div className="order-2 flex w-full flex-col gap-2 self-start md:order-none md:ml-auto md:w-auto md:shrink-0">
+						{availabilityView === "personal" ||
+						availabilityView === "schedule" ? (
+							<div className="flex flex-wrap justify-end gap-2">
+								<Button
+									variant="outlined"
+									color="inherit"
+									size="small"
+									onClick={
+										availabilityView === "personal"
+											? handleCancel
+											: handleScheduleCancel
+									}
+								>
+									<span className="hidden md:flex">Cancel</span>
+								</Button>
+								<Button
+									variant="contained"
+									size="small"
+									type="submit"
+									onClick={
+										availabilityView === "personal"
+											? handleSave
+											: handleScheduleSave
+									}
+								>
+									<span className="hidden md:flex">Save</span>
+								</Button>
+							</div>
+						) : (
+							<div className="flex flex-wrap justify-end gap-2">
+								{isScheduled && (
+									<Button
+										variant="outlined"
+										size="medium"
+										startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
+										onClick={async () => {
+											if (isGeneratingLink) return;
+											setIsGeneratingLink(true);
+											try {
+												const { success, link } =
+													await getGoogleCalendarPrefilledLink({
+														meetingId: meetingData.id,
+														meetingTitle: meetingData.title,
+														meetingDescription: meetingData.description,
+														meetingLocation: meetingData.location,
+														timezone: meetingData.timezone,
+													});
+
+												if (!success || !link) {
+													showError("Failed to generate Google Calendar link.");
+													return;
+												}
+
+												window.open(link, "_blank", "noopener,noreferrer");
+
+												showSuccess(
+													"Google Calendar link opened! Confirm the event in your calendar.",
+												);
+											} catch (error) {
+												console.error(
+													"Error generating Google Calendar link:",
+													error,
+												);
+												showError(
+													"An error occurred while generating the Google Calendar link.",
+												);
+											} finally {
+												setIsGeneratingLink(false);
+											}
+										}}
+									>
+										Add to Calendar
+									</Button>
+								)}
+							</div>
+						)}
+					</div>
+				</div>
 
 				<EditModal
 					meetingData={meetingData}
@@ -309,12 +378,6 @@ export function AvailabilityHeader({
 					handleOpenChange={setIsDeleteModalOpen}
 				/>
 			</div>
-
-			<InviteMembersDialog
-				open={isInviteDialogOpen}
-				onOpenChange={setIsInviteDialogOpen}
-				meetingId={meetingData.id}
-			/>
 		</Paper>
 	);
 }
