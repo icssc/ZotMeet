@@ -762,13 +762,6 @@ export function Availability({
 			<AvailabilityHeader
 				meetingData={meetingData}
 				user={user}
-				availabilityDates={availabilityDates}
-				ifNeededDates={ifNeededDates}
-				onCancel={handleCancelEditing}
-				onSave={handleSuccessfulSave}
-				setChangeableTimezone={setChangeableTimezone}
-				setTimezone={setUserTimezone}
-				availabilityEditState={availabilitySelectionMode}
 				autoOpenInviteDialog={autoOpenInviteDialog}
 				inviteQueryInUrl={inviteQueryInUrl}
 			/>
@@ -792,6 +785,7 @@ export function Availability({
 								meetingData={meetingData}
 								user={user}
 								availabilityDates={availabilityDates}
+								ifNeededDates={ifNeededDates}
 								onCancel={handleCancelEditing}
 								onSave={handleSuccessfulSave}
 								setChangeableTimezone={setChangeableTimezone}
@@ -868,6 +862,7 @@ export function Availability({
 							meetingData={meetingData}
 							user={user}
 							availabilityDates={availabilityDates}
+							ifNeededDates={ifNeededDates}
 							onCancel={handleCancelEditing}
 							onSave={handleSuccessfulSave}
 							setChangeableTimezone={setChangeableTimezone}
@@ -897,6 +892,7 @@ export function Availability({
 							meetingData={meetingData}
 							user={user}
 							availabilityDates={availabilityDates}
+							ifNeededDates={ifNeededDates}
 							onCancel={handleCancelEditing}
 							onSave={handleSuccessfulSave}
 							setChangeableTimezone={setChangeableTimezone}

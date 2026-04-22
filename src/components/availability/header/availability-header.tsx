@@ -1,14 +1,6 @@
 "use client";
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
 import {
-	saveAvailability,
-	saveIfNeeded,
-} from "@actions/availability/save/action";
-import {
-	deleteScheduledTimeBlock,
-	saveScheduledTimeBlock,
-} from "@actions/meeting/schedule/action";
-import {
 	AccessTime,
 	CalendarMonth,
 	ContentCopy,
@@ -53,11 +45,11 @@ interface AvailabilityHeaderProps {
 export function AvailabilityHeader({
 	meetingData,
 	user,
-	availabilityDates,
-	ifNeededDates,
-	onCancel,
-	onSave,
-	setChangeableTimezone,
+	availabilityDates: _availabilityDates,
+	ifNeededDates: _ifNeededDates,
+	onCancel: _onCancel,
+	onSave: _onSave,
+	setChangeableTimezone: _setChangeableTimezone,
 	setTimezone: _setTimezone,
 	availabilityEditState: _availabilityEditState,
 	autoOpenInviteDialog: _autoOpenInviteDialog = false,
@@ -68,24 +60,15 @@ export function AvailabilityHeader({
 	const { showSuccess, showError } = useSnackbar();
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
+	const isScheduled = meetingData.scheduled;
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
-	const { availabilityView, setHasAvailability, setAvailabilityView } =
-		useAvailabilityStore(
-			useShallow((state) => ({
-				availabilityView: state.availabilityView,
-				setHasAvailability: state.setHasAvailability,
-				setAvailabilityView: state.setAvailabilityView,
-			})),
-		);
-
-	const handleCancel = () => {
-		onCancel();
-		setChangeableTimezone(true);
-		setAvailabilityView("group");
-	};
+	const { availabilityView } = useAvailabilityStore(
+		useShallow((state) => ({
+			availabilityView: state.availabilityView,
+		})),
+	);
 
 	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
 	// const [guestName, setGuestName] = useState("");
@@ -94,96 +77,6 @@ export function AvailabilityHeader({
 		if (!inviteQueryInUrl) return;
 		router.replace(pathname, { scroll: false });
 	}, [inviteQueryInUrl, pathname, router]);
-
-	const handleSave = async () => {
-		if (!user) {
-			// setIsGuestDialogOpen(true);
-
-			return;
-		}
-		setChangeableTimezone(true);
-		const availability = {
-			meetingId: meetingData.id,
-			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-		const ifNeeded = {
-			meetingId: meetingData.id,
-			availabilityTimes: ifNeededDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-		const response = await saveAvailability(availability);
-
-		const ifNeededResponse = await saveIfNeeded(ifNeeded);
-
-		if (response.status === 200 && ifNeededResponse.status === 200) {
-			setHasAvailability(true);
-			setAvailabilityView("group");
-			onSave();
-
-			// Clear guest member name
-			if (!user) {
-				// setGuestName("");
-			}
-		} else {
-			console.error("Error saving availability:", response.body.error);
-		}
-	};
-
-	const { commitPendingTimes, clearPendingTimes } = useAvailabilityStore(
-		useShallow((state) => ({
-			commitPendingTimes: state.commitPendingTimes,
-			clearPendingTimes: state.clearPendingTimes,
-		})),
-	);
-
-	const handleScheduleCancel = () => {
-		clearPendingTimes();
-		setAvailabilityView("group");
-	};
-
-	const handleScheduleSave = async () => {
-		try {
-			const { pendingAdds, pendingRemovals } = useAvailabilityStore.getState();
-			const toSchedulePayload = (timestamp: string) => {
-				const date = new Date(timestamp);
-				const scheduledDate = new Date(
-					date.getFullYear(),
-					date.getMonth(),
-					date.getDate(),
-				);
-				const scheduledFromTime = date.toTimeString().slice(0, 8); // HH:mm:ss
-				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-					.toTimeString()
-					.slice(0, 8);
-				return {
-					meetingId: meetingData.id,
-					scheduledDate,
-					scheduledFromTime,
-					scheduledToTime,
-				};
-			};
-
-			// Remove pending removals
-			for (const timestamp of pendingRemovals) {
-				await deleteScheduledTimeBlock(toSchedulePayload(timestamp));
-			}
-			// Add new pending times
-			for (const timestamp of pendingAdds) {
-				await saveScheduledTimeBlock(toSchedulePayload(timestamp));
-			}
-
-			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
-				// Move pending to scheduled after successful save
-				commitPendingTimes();
-				const { scheduledTimes } = useAvailabilityStore.getState();
-				setIsScheduled(scheduledTimes.size > 0);
-			}
-			setAvailabilityView("group");
-		} catch (error) {
-			console.error("Failed to save meeting blocks", error);
-		}
-	};
 
 	const formattedStartDate = formatDateToUSNumeric(
 		new Date(meetingData.dates[0]),
@@ -286,84 +179,54 @@ export function AvailabilityHeader({
 						)}
 					</div>
 
-					<div className="order-2 flex w-full flex-col gap-2 self-start md:order-none md:ml-auto md:w-auto md:shrink-0">
-						{availabilityView === "personal" ||
-						availabilityView === "schedule" ? (
+					{availabilityView === "group" && isScheduled && (
+						<div className="order-2 flex w-full flex-col gap-2 self-start md:order-none md:ml-auto md:w-auto md:shrink-0">
 							<div className="flex flex-wrap justify-end gap-2">
 								<Button
 									variant="outlined"
-									color="inherit"
-									size="small"
-									onClick={
-										availabilityView === "personal"
-											? handleCancel
-											: handleScheduleCancel
-									}
-								>
-									<span className="hidden md:flex">Cancel</span>
-								</Button>
-								<Button
-									variant="contained"
-									size="small"
-									type="submit"
-									onClick={
-										availabilityView === "personal"
-											? handleSave
-											: handleScheduleSave
-									}
-								>
-									<span className="hidden md:flex">Save</span>
-								</Button>
-							</div>
-						) : (
-							<div className="flex flex-wrap justify-end gap-2">
-								{isScheduled && (
-									<Button
-										variant="outlined"
-										size="medium"
-										startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
-										onClick={async () => {
-											if (isGeneratingLink) return;
-											setIsGeneratingLink(true);
-											try {
-												const { success, link } =
-													await getGoogleCalendarPrefilledLink({
-														meetingId: meetingData.id,
-														meetingTitle: meetingData.title,
-														meetingDescription: meetingData.description,
-														meetingLocation: meetingData.location,
-														timezone: meetingData.timezone,
-													});
+									size="medium"
+									startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
+									onClick={async () => {
+										if (isGeneratingLink) return;
+										setIsGeneratingLink(true);
+										try {
+											const { success, link } =
+												await getGoogleCalendarPrefilledLink({
+													meetingId: meetingData.id,
+													meetingTitle: meetingData.title,
+													meetingDescription: meetingData.description,
+													meetingLocation: meetingData.location,
+													timezone: meetingData.timezone,
+												});
 
-												if (!success || !link) {
-													showError("Failed to generate Google Calendar link.");
-													return;
-												}
-
-												window.open(link, "_blank", "noopener,noreferrer");
-
-												showSuccess(
-													"Google Calendar link opened! Confirm the event in your calendar.",
-												);
-											} catch (error) {
-												console.error(
-													"Error generating Google Calendar link:",
-													error,
-												);
-												showError(
-													"An error occurred while generating the Google Calendar link.",
-												);
-											} finally {
-												setIsGeneratingLink(false);
+											if (!success || !link) {
+												showError("Failed to generate Google Calendar link.");
+												return;
 											}
-										}}
-									>
-										Add to Calendar
-									</Button>
-								)}
+
+											window.open(link, "_blank", "noopener,noreferrer");
+
+											showSuccess(
+												"Google Calendar link opened! Confirm the event in your calendar.",
+											);
+										} catch (error) {
+											console.error(
+												"Error generating Google Calendar link:",
+												error,
+											);
+											showError(
+												"An error occurred while generating the Google Calendar link.",
+											);
+										} finally {
+											setIsGeneratingLink(false);
+										}
+									}}
+								>
+									Add to Calendar
+								</Button>
 							</div>
-						)}
-					</div>
+						</div>
+					)}
 				</div>
 
 				<EditModal

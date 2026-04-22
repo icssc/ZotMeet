@@ -1,12 +1,19 @@
 "use client";
 
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
-import { saveAvailability } from "@actions/availability/save/action";
+import {
+	saveAvailability,
+	saveIfNeeded,
+} from "@actions/availability/save/action";
 import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
-import { Create, InsertInvitationRounded } from "@mui/icons-material";
+import {
+	Create,
+	GroupAddOutlined,
+	InsertInvitationRounded,
+} from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Button } from "@mui/material";
 import { useRouter } from "next/navigation";
@@ -23,6 +30,7 @@ export interface AvailabilityActionsProps {
 	meetingData: SelectMeeting;
 	user: UserProfile | null;
 	availabilityDates: ZotDate[];
+	ifNeededDates: ZotDate[];
 	onCancel: () => void;
 	onSave: () => void;
 	setChangeableTimezone: (can: boolean) => void;
@@ -33,6 +41,7 @@ export function AvailabilityActions({
 	meetingData,
 	user,
 	availabilityDates,
+	ifNeededDates,
 	onCancel,
 	onSave,
 	setChangeableTimezone,
@@ -83,10 +92,16 @@ export function AvailabilityActions({
 			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
 			displayName: user.displayName,
 		};
+		const ifNeeded = {
+			meetingId: meetingData.id,
+			availabilityTimes: ifNeededDates.flatMap((date) => date.availability),
+			displayName: user.displayName,
+		};
 
 		const response = await saveAvailability(availability);
+		const ifNeededResponse = await saveIfNeeded(ifNeeded);
 
-		if (response.status === 200) {
+		if (response.status === 200 && ifNeededResponse.status === 200) {
 			setHasAvailability(true);
 			setAvailabilityView("group");
 			onSave();
@@ -272,6 +287,7 @@ export function AvailabilityActions({
 							</Button>
 							<Button
 								variant="outlined"
+								startIcon={<GroupAddOutlined />}
 								className="w-full"
 								sx={{ py: 0.75 }}
 								onClick={() => setIsInviteDialogOpen(true)}
