@@ -31,12 +31,34 @@ interface CreateGroupDialogProps {
 const compressImage = async (file: File) => {
 	const bitmap = await createImageBitmap(file);
 	const canvas = document.createElement("canvas");
-	const ctx = canvas.getContext("2d")!;
-	const maxSize = 256;
-	canvas.width = maxSize;
-	canvas.height = maxSize;
+	const ctx = canvas.getContext("2d");
+	if (!ctx) {
+		throw new Error("Canvas context unavailable");
+	}
+	const outputSize = 256;
+	canvas.width = outputSize;
+	canvas.height = outputSize;
 
-	ctx.drawImage(bitmap, 0, 0, maxSize, maxSize);
+	// Center-crop image to a square before resizing
+	const srcW = bitmap.width;
+	const srcH = bitmap.height;
+	const cropSize = Math.min(srcW, srcH);
+	const sx = Math.floor((srcW - cropSize) / 2);
+	const sy = Math.floor((srcH - cropSize) / 2);
+	// resizing
+	ctx.imageSmoothingEnabled = true;
+	ctx.imageSmoothingQuality = "high";
+	ctx.drawImage(
+		bitmap,
+		sx,
+		sy,
+		cropSize,
+		cropSize,
+		0,
+		0,
+		outputSize,
+		outputSize,
+	);
 
 	return new Promise<string>((resolve, reject) => {
 		canvas.toBlob(

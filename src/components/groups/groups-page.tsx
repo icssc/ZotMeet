@@ -127,39 +127,18 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					<Button
 						type="button"
 						variant="outlined"
+						color="secondary"
 						startIcon={<People sx={{ color: "secondary.contrastText" }} />}
 						onClick={() => setShowJoinGroup(true)}
-						sx={{
-							bgcolor: "secondary.main",
-							color: "secondary.contrastText",
-							borderColor: "secondary.main",
-
-							"&:hover": {
-								bgcolor: "secondary.main",
-								color: "secondary.contrastText",
-								borderColor: "secondary.main",
-							},
-						}}
 					>
 						Join Group
 					</Button>
 
 					<Button
 						type="button"
-						variant="outlined"
-						startIcon={<Add sx={{ color: "primary.contrastText" }} />}
+						variant="contained"
+						startIcon={<Add />}
 						onClick={() => setCreateDialogOpen(true)}
-						sx={{
-							bgcolor: "primary.main",
-							color: "primary.contrastText",
-							borderColor: "primary.main",
-
-							"&:hover": {
-								bgcolor: "primary.main",
-								color: "primary.contrastText",
-								borderColor: "primary.main",
-							},
-						}}
 					>
 						Create Group
 					</Button>
@@ -282,17 +261,17 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					</Box>
 				) : (
 					<div className="flex min-h-[500px] flex-col items-center justify-center py-20 text-gray-400">
-						<div
-							className="mb-6 flex h-24 w-24 items-center justify-center rounded-full"
-							style={{ backgroundColor: "rgba(0,0,0,0.04)" }}
-						>
+						<div className="mb-6">
 							<People sx={{ fontSize: "3.75rem", color: "divider" }} />
 						</div>
 
-						<p className="max-w-sm text-center text-gray-400 text-lg italic leading-relaxed">
+						<Typography
+							variant="h6"
+							className="text-center italic leading-relaxed"
+						>
 							Create your first group to start <br />
 							scheduling meetings.
-						</p>
+						</Typography>
 					</div>
 				)}
 			</Box>
