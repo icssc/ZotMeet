@@ -1,8 +1,8 @@
 import "server-only";
 
-import { and, eq, ilike, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { notifications, users } from "@/db/schema";
+import { groups, notifications, users } from "@/db/schema";
 
 export async function getUserIdExists(id: string) {
 	const user = await db.query.users.findFirst({
@@ -51,10 +51,23 @@ export async function searchUsersByEmail(
 }
 
 export async function getNotificationsByMemberId(memberId: string) {
-	const notification = await db.query.notifications.findMany({
-		where: eq(notifications.memberId, memberId),
-		orderBy: (notification) => notification.createdAt,
-	});
+	const notification = await db
+		.select({
+			id: notifications.id,
+			createdAt: notifications.createdAt,
+			memberId: notifications.memberId,
+			createdBy: notifications.createdBy,
+			title: notifications.title,
+			type: notifications.type,
+			readAt: notifications.readAt,
+			message: notifications.message,
+			redirect: notifications.redirect,
+			groupIcon: groups.icon,
+		})
+		.from(notifications)
+		.leftJoin(groups, eq(notifications.groupId, groups.id))
+		.where(eq(notifications.memberId, memberId))
+		.orderBy(desc(notifications.createdAt));
 
 	return notification;
 }
@@ -65,6 +78,7 @@ export async function createNewNotification(
 	message: string = "You have a new notification",
 	type: string = "info",
 	link: string,
+	groupId?: string | null,
 ) {
 	if (userIds.length === 0) return;
 
@@ -82,6 +96,7 @@ export async function createNewNotification(
 				message,
 				type,
 				redirect: link,
+				groupId: groupId ?? null,
 			})),
 		)
 		.returning();

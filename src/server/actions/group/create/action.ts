@@ -80,6 +80,7 @@ export async function createGroup(
 				`You've been invited to join ${name.trim()}!`,
 				"Group Invite",
 				inviteToken,
+				result.id,
 			);
 		} catch (notificationError) {
 			console.error(notificationError);

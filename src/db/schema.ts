@@ -296,6 +296,9 @@ export const notifications = pgTable("notifications", {
 	title: text("title").notNull(),
 	message: text("message"),
 	redirect: text("redirect"),
+	groupId: uuid("group_id").references(() => groups.id, {
+		onDelete: "cascade",
+	}),
 });
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({

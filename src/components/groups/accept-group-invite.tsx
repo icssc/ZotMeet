@@ -44,7 +44,7 @@ const AcceptGroupInvite = ({
 			<DialogContent>
 				<div className="flex items-center gap-3">
 					<Avatar
-						src="/icssc-logo.svg"
+						src={notification.groupIcon || "/icssc-logo.svg"}
 						alt="group-icon"
 						sx={{ width: 50, height: 50 }}
 					/>

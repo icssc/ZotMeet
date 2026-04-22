@@ -25,6 +25,7 @@ export type NotificationItem = {
 	readAt: Date | null;
 	message: string | null;
 	redirect: string | null;
+	groupIcon: string | null;
 };
 //TODO: Guest
 // export type GuestMember = {
