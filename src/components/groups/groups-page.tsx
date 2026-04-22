@@ -1,7 +1,6 @@
 "use client";
 
 import { Add, ExpandMore, People } from "@mui/icons-material";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -212,6 +211,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									creatorName={group.creatorName}
 									actionRequired={true}
 									pendingMeetingName={group.pendingMeetingName}
+									icon={group.icon}
 								/>
 							))}
 						</Stack>
@@ -276,6 +276,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									creatorName={group.creatorName}
 									actionRequired={group.needsAvailability}
 									upcomingMeetingName={group.upcomingMeetingName}
+									icon={group.icon}
 								/>
 							))}
 					</Box>
