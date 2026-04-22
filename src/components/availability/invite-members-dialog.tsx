@@ -208,7 +208,13 @@ export function InviteMembersDialog({
 					)}
 
 					<div>
-						<p className="mb-1.5 text-gray-500 text-sm">Or Share Invite Link</p>
+						<Typography
+							variant="caption"
+							color="textSecondary"
+							className="mb-4"
+						>
+							Or Share Invite Link
+						</Typography>
 						<div className="flex items-center gap-2">
 							<TextField
 								value={meetingLink}
@@ -228,9 +234,9 @@ export function InviteMembersDialog({
 								{copied ? "Copied" : "Copy"}
 							</Button>
 						</div>
-						<p className="mt-1 text-gray-400 text-xs">
+						<Typography variant="caption" color="textSecondary">
 							Anyone with this link can view the meeting
-						</p>
+						</Typography>
 					</div>
 
 					{error && (
