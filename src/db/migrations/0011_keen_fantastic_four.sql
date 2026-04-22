@@ -1,1 +1,1 @@
-DROP TABLE "meeting_invite_responses" CASCADE;
+DROP TABLE IF EXISTS "meeting_invite_responses" CASCADE;
