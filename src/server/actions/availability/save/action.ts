@@ -2,6 +2,7 @@
 
 //import { createGuest } from "@/lib/auth/user";
 import { getExistingMeeting } from "@data/meeting/queries";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
@@ -68,6 +69,10 @@ export async function saveAvailability({
 					ifNeededAvailabilities: filteredIfNeeded,
 				},
 			});
+		const groupId = meeting.group_id;
+		if (groupId) {
+			revalidatePath(`/groups/${groupId}`);
+		}
 
 		return {
 			status: 200,

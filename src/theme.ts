@@ -242,6 +242,16 @@ export const getTheme = (mode: "light" | "dark") =>
 							borderColor: theme.palette.primary.main,
 						},
 					}),
+					outlinedSecondary: ({ theme }) => ({
+						backgroundColor: theme.palette.secondary.main,
+						color: theme.palette.secondary.contrastText,
+						borderColor: theme.palette.secondary.main,
+						"&:hover": {
+							backgroundColor: theme.palette.secondary.main,
+							color: theme.palette.secondary.contrastText,
+							borderColor: theme.palette.secondary.main,
+						},
+					}),
 					outlinedInherit: ({ theme }) => ({
 						borderColor:
 							theme.palette.mode === "dark"

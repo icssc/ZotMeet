@@ -35,7 +35,7 @@ export async function createGroup(
 		};
 	}
 
-	const { name, description, memberIds } = parsed.data;
+	const { name, description, memberIds, icon } = parsed.data;
 
 	try {
 		const { result, inviteToken } = await db.transaction(async (tx) => {
@@ -46,6 +46,7 @@ export async function createGroup(
 					description: description || null,
 					createdAt: new Date(),
 					createdBy: user.id,
+					icon: icon || null,
 				})
 				.returning({ id: groups.id });
 
@@ -79,6 +80,7 @@ export async function createGroup(
 				`You've been invited to join ${name.trim()}!`,
 				"Group Invite",
 				inviteToken,
+				result.id,
 			);
 		} catch (notificationError) {
 			console.error(notificationError);

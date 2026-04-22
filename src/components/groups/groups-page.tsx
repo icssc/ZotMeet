@@ -1,7 +1,6 @@
 "use client";
 
-import { Add, ExpandMore } from "@mui/icons-material";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { Add, ExpandMore, People } from "@mui/icons-material";
 import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -128,7 +127,8 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					<Button
 						type="button"
 						variant="outlined"
-						startIcon={<PersonAddIcon />}
+						color="secondary"
+						startIcon={<People sx={{ color: "secondary.contrastText" }} />}
 						onClick={() => setShowJoinGroup(true)}
 					>
 						Join Group
@@ -136,7 +136,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 
 					<Button
 						type="button"
-						variant="outlined"
+						variant="contained"
 						startIcon={<Add />}
 						onClick={() => setCreateDialogOpen(true)}
 					>
@@ -190,6 +190,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									creatorName={group.creatorName}
 									actionRequired={true}
 									pendingMeetingName={group.pendingMeetingName}
+									icon={group.icon}
 								/>
 							))}
 						</Stack>
@@ -222,66 +223,9 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 						)}
 					</Box>
 				)}
-
-				<Box>
-					<Typography
-						variant="overline"
-						color="text.disabled"
-						sx={{ display: "block", mb: 2 }}
-					>
-						All (
-						{
-							filteredGroups.filter(
-								(g) => g.ownerEmail !== null && !g.needsAvailability,
-							).length
-						}
-						)
-					</Typography>
-					{filteredGroups.filter(
-						(g) => g.ownerEmail !== null && !g.needsAvailability,
-					).length > 0 ? (
-						<Stack spacing={1.5}>
-							{filteredGroups
-								.filter((g) => g.ownerEmail !== null && !g.needsAvailability)
-								.map((group) => (
-									<GroupCard
-										key={group.id}
-										id={group.id}
-										name={group.name}
-										description={group.description}
-										memberEmails={group.memberEmails}
-										totalMembers={group.totalMembers}
-										creatorName={group.creatorName}
-										actionRequired={false}
-										upcomingMeetingName={
-											group.needsAvailability ? null : group.upcomingMeetingName
-										}
-									/>
-								))}
-						</Stack>
-					) : (
-						<Box
-							sx={{
-								display: "flex",
-								flexDirection: "column",
-								alignItems: "center",
-								justifyContent: "center",
-								py: 10,
-							}}
-						>
-							<Typography
-								variant="body1"
-								color="text.secondary"
-								fontWeight={500}
-							>
-								No groups found
-							</Typography>
-						</Box>
-					)}
-				</Box>
 			</Box>
 
-			<Box sx={{ mt: 4, display: { xs: "none", sm: "block" } }}>
+			<Box sx={{ mt: 4 }}>
 				<Typography color="text.disabled" sx={{ p: 0.5 }}>
 					All ({counts.all})
 				</Typography>
@@ -311,23 +255,24 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									creatorName={group.creatorName}
 									actionRequired={group.needsAvailability}
 									upcomingMeetingName={group.upcomingMeetingName}
+									icon={group.icon}
 								/>
 							))}
 					</Box>
 				) : (
-					<Box
-						sx={{
-							display: "flex",
-							flexDirection: "column",
-							alignItems: "center",
-							justifyContent: "center",
-							py: 10,
-						}}
-					>
-						<Typography variant="body1" color="text.secondary" fontWeight={500}>
-							No groups found
+					<div className="flex min-h-[500px] flex-col items-center justify-center py-20 text-gray-400">
+						<div className="mb-6">
+							<People sx={{ fontSize: "3.75rem", color: "divider" }} />
+						</div>
+
+						<Typography
+							variant="h6"
+							className="text-center italic leading-relaxed"
+						>
+							Create your first group to start <br />
+							scheduling meetings.
 						</Typography>
-					</Box>
+					</div>
 				)}
 			</Box>
 
@@ -341,7 +286,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 	);
 }
 
-function FilterChip({
+export function FilterChip({
 	label,
 	count,
 	active,
