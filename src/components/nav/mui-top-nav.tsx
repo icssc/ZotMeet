@@ -240,7 +240,10 @@ function Notifications({
 											flexDirection: "row",
 										}}
 									>
-										<Avatar alt="ICSSC" src="/icssc-logo.svg" />
+										<Avatar
+											alt={notif.title || "Group icon"}
+											src={notif.groupIcon || "/icssc-logo.svg"}
+										/>
 										<Box sx={{ p: 1 }}>
 											<Typography variant="body1">{notif.title}</Typography>
 											<Typography variant="body2" color="text.secondary">

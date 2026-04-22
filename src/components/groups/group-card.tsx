@@ -25,6 +25,7 @@ interface GroupCardProps {
 	actionRequired?: boolean;
 	pendingMeetingName?: string | null;
 	upcomingMeetingName?: string | null;
+	icon?: string | null;
 }
 
 export function GroupCard({
@@ -36,6 +37,7 @@ export function GroupCard({
 	actionRequired = false,
 	pendingMeetingName,
 	upcomingMeetingName,
+	icon,
 }: GroupCardProps) {
 	return (
 		<Link
@@ -134,13 +136,15 @@ export function GroupCard({
 								width: 40,
 								height: 40,
 								flexShrink: 0,
+								borderRadius: "50%",
+								overflow: "hidden",
 							}}
 						>
 							<Image
-								src="/icssc-logo.svg"
+								src={icon || "/icssc-logo.svg"}
 								alt="group-pfp"
 								fill
-								style={{ objectFit: "contain" }}
+								style={{ objectFit: "cover" }}
 							/>
 						</Box>
 					}

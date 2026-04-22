@@ -125,6 +125,7 @@ export const groups = pgTable("groups", {
 	createdAt: timestamp("created_at"),
 	createdBy: text("user_id").references(() => users.id),
 	archived: boolean("archived").default(false).notNull(),
+	icon: text("icon"),
 });
 
 export type InsertGroup = InferInsertModel<typeof groups>;
@@ -295,6 +296,9 @@ export const notifications = pgTable("notifications", {
 	title: text("title").notNull(),
 	message: text("message"),
 	redirect: text("redirect"),
+	groupId: uuid("group_id").references(() => groups.id, {
+		onDelete: "cascade",
+	}),
 });
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
