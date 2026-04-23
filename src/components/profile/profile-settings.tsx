@@ -43,9 +43,23 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 		user.profilePicture ?? "",
 	);
 	const [isPending, startTransition] = useTransition();
+	const [usernameError, setUsernameError] = useState<string | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
+	const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const value = e.target.value.toLowerCase();
+		setUsername(value);
+		if (value && /[^a-z0-9._]/.test(value)) {
+			setUsernameError(
+				'Username can only contain the following special characters: "_" and "."',
+			);
+		} else {
+			setUsernameError(null);
+		}
+	};
+
 	const handleSave = () => {
+		if (usernameError) return;
 		startTransition(async () => {
 			const result = await updateUserProfile({
 				displayName,
@@ -55,8 +69,11 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 			});
 			if (result.success) {
 				toast.success("Profile saved", { duration: 1200 });
+				if (!displayName.trim())
+					setDisplayName(user.googleName ?? user.displayName);
+				if (!username.trim()) setUsername(user.username ?? "");
 			} else {
-				toast.error(result.message);
+				setUsernameError(result.message ?? null);
 			}
 		});
 	};
@@ -157,15 +174,22 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 				<hr className="border-gray-200" />
 
 				<ProfileRow label="Username" description="Your unique username">
-					<TextField
-						label="Username"
-						value={username}
-						onChange={(e) => setUsername(e.target.value)}
-						fullWidth
-						size="small"
-						variant="outlined"
-						inputProps={{ maxLength: 30 }}
-					/>
+					<div className="flex flex-col gap-1">
+						<TextField
+							label="Username"
+							value={username}
+							onChange={handleUsernameChange}
+							fullWidth
+							size="small"
+							variant="outlined"
+							inputProps={{ maxLength: 30 }}
+						/>
+						{usernameError && (
+							<p className="flex items-center gap-1 text-red-500 text-xs">
+								<span>&#10007;</span> {usernameError}
+							</p>
+						)}
+					</div>
 				</ProfileRow>
 
 				<hr className="border-gray-200" />

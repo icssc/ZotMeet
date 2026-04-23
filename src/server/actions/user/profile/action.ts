@@ -15,7 +15,15 @@ export async function updateUserProfile(data: {
 	const { user } = await getCurrentSession();
 	if (!user) return { success: false, message: "Not authenticated" };
 
-	const trimmedUsername = data.username.trim();
+	const trimmedUsername = data.username.trim().toLowerCase();
+
+	if (trimmedUsername && /[^a-z0-9._]/.test(trimmedUsername)) {
+		return {
+			success: false,
+			message:
+				"Username can only contain letters, numbers, periods, and underscores",
+		};
+	}
 
 	if (trimmedUsername) {
 		const existing = await db.query.members.findFirst({
@@ -31,8 +39,9 @@ export async function updateUserProfile(data: {
 	await db
 		.update(members)
 		.set({
-			displayName: data.displayName.trim() || user.displayName,
-			username: trimmedUsername || null,
+			displayName:
+				data.displayName.trim() || user.googleName || user.displayName,
+			username: trimmedUsername || user.username,
 			year: data.year.trim() || null,
 			school: data.school.trim() || null,
 		})

@@ -1,5 +1,30 @@
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { members, oauthAccounts, users } from "@/db/schema";
+
+export async function generateUsername(displayName: string): Promise<string> {
+	const base = displayName
+		.toLowerCase()
+		.replace(/\s+/g, ".")
+		.replace(/[^a-z0-9._]/g, "")
+		.replace(/[._]{2,}/g, ".")
+		.replace(/^[._]+|[._]+$/g, "");
+
+	const isTaken = (candidate: string) =>
+		db.query.members.findFirst({
+			where: eq(members.username, candidate),
+			columns: { id: true },
+		});
+
+	if (!(await isTaken(base))) return base;
+
+	let i = 2;
+	while (true) {
+		const candidate = `${base}${i}`;
+		if (!(await isTaken(candidate))) return candidate;
+		i++;
+	}
+}
 
 // Projection of user table for db queries to limit what is returned
 export const userProfileProjection = {
@@ -7,6 +32,7 @@ export const userProfileProjection = {
 	email: users.email,
 	memberId: users.memberId,
 	displayName: members.displayName,
+	googleName: members.googleName,
 	username: members.username,
 	year: members.year,
 	school: members.school,
@@ -18,6 +44,7 @@ export type UserProfile = {
 	email: string;
 	memberId: string;
 	displayName: string;
+	googleName: string | null;
 	username: string | null;
 	year: string | null;
 	school: string | null;
@@ -46,10 +73,16 @@ export async function createGoogleUser(
 	username: string,
 	_picture: string | null,
 ): Promise<UserProfile> {
+	const generatedUsername = await generateUsername(username);
+
 	const newGoogleUser = await db.transaction(async (tx) => {
 		const [newMember] = await tx
 			.insert(members)
-			.values({ displayName: username })
+			.values({
+				displayName: username,
+				googleName: username,
+				username: generatedUsername,
+			})
 			.returning({
 				id: members.id,
 			});
@@ -78,11 +111,15 @@ export async function createGoogleUser(
 	}
 
 	return {
-		...newGoogleUser,
 		id: googleUserId,
 		email: email,
 		memberId: newGoogleUser.memberId,
 		displayName: username,
+		googleName: username,
+		username: generatedUsername,
+		year: null,
+		school: null,
+		profilePicture: null,
 	};
 }
 
