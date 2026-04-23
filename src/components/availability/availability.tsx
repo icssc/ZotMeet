@@ -196,7 +196,6 @@ export function Availability({
 		})),
 	);
 
-
 	useEffect(() => {
 		setItemsPerPage(isMobile ? 2 : 5);
 	}, [isMobile, setItemsPerPage]);
@@ -467,7 +466,6 @@ export function Availability({
 				.map(({ memberId, displayName }) => ({ memberId, displayName })),
 		[allAvailabilities],
 	);
-
 	let doesntNeedDay = true;
 	let past = availabilityTimeBlocks[0];
 	availabilityTimeBlocks.forEach((minutes, index) => {
@@ -825,19 +823,6 @@ export function Availability({
 						/>
 					</div>
 					<div className="flex flex-col gap-4" {...bind()}>
-						<div className="shrink-0 lg:hidden">
-							<AvailabilityActions
-								meetingData={meetingData}
-								user={user}
-								availabilityDates={availabilityDates}
-								ifNeededDates={ifNeededDates}
-								onCancel={handleCancelEditing}
-								onSave={handleSuccessfulSave}
-								setChangeableTimezone={setChangeableTimezone}
-								setTimezone={setUserTimezone}
-								onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
-							/>
-						</div>
 						<table className="w-full table-fixed">
 							<AvailabilityTableHeader
 								currentPageAvailability={currentPageAvailability}
@@ -906,40 +891,42 @@ export function Availability({
 					(isMobile ? (
 						<MobileGroupResponses
 							isOwner={isMeetingOwner}
+							respondedMembersCount={members.length}
+							pendingMembersCount={pendingMembers.length}
 							onAddAvailability={handleMobileAddAvailability}
 							onOpenAttendees={handleMobileOpenAttendees}
 							onSchedule={handleMobileSchedule}
 						/>
 					) : (
 						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-						<AvailabilityActions
-							meetingData={meetingData}
-							user={user}
-							availabilityDates={availabilityDates}
-							ifNeededDates={ifNeededDates}
-							onCancel={handleCancelEditing}
-							onSave={handleSuccessfulSave}
-							setChangeableTimezone={setChangeableTimezone}
-							setTimezone={setUserTimezone}
-							onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
-						/>
-						<Paper
-							variant="outlined"
-							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
-						>
-							<GroupResponses
+							<AvailabilityActions
+								meetingData={meetingData}
+								user={user}
+								availabilityDates={availabilityDates}
+								ifNeededDates={ifNeededDates}
+								onCancel={handleCancelEditing}
+								onSave={handleSuccessfulSave}
+								setChangeableTimezone={setChangeableTimezone}
+								setTimezone={setUserTimezone}
+								onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
+							/>
+							<Paper
+								variant="outlined"
+								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+							>
+								<GroupResponses
 									availabilityDates={availabilityDates}
 									fromTime={fromTimeMinutes}
 									members={members}
 									pendingMembers={pendingMembers}
-								timezone={userTimezone}
+									timezone={userTimezone}
 									anchorNormalizedDate={anchorNormalizedDate}
 									currentPageAvailability={currentPageAvailability}
 									availabilityTimeBlocks={availabilityTimeBlocks}
 									doesntNeedDay={doesntNeedDay}
 								/>
-						</Paper>
-					</div>
+							</Paper>
+						</div>
 					))}
 
 				{availabilityView === "personal" && !isMobile && (

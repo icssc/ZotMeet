@@ -1,6 +1,11 @@
 "use client";
 
-import { ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import {
+	Paper,
+	ToggleButton,
+	ToggleButtonGroup,
+	Typography,
+} from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import type React from "react";
 import type { Dispatch, SetStateAction } from "react";
@@ -66,45 +71,58 @@ export interface MobilePersonalAvailabilitySidebarProps {
 	onImportSlots: (slotIsoStrings: string[]) => void;
 }
 
-/** Fixed bottom bar to switch paint mode while editing personal availability on small screens. */
 export function MobilePersonalAvailabilitySidebar({
 	availability,
 	setAvailability,
 }: MobilePersonalAvailabilitySidebarProps) {
 	return (
-		<div className="fixed bottom-0 left-1/2 z-[1001] w-[min(100vw-1rem,28rem)] -translate-x-1/2 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-			<ToggleButtonGroup
-				exclusive
-				fullWidth
-				value={availability}
-				onChange={(_, val) => val && setAvailability(val)}
-				aria-label="availability"
+		<div className="pointer-events-none fixed inset-x-0 bottom-0 z-[1001] flex justify-center px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+			<Paper
+				elevation={3}
+				sx={{
+					pointerEvents: "auto",
+					display: "inline-flex",
+					alignItems: "stretch",
+					borderRadius: 3,
+					p: 0.5,
+					boxShadow: 3,
+					bgcolor: "background.paper",
+					width: "min(100vw - 1rem, 28rem)",
+				}}
 			>
-				{options.map(({ value, label, icon }) => (
-					<ToggleButton
-						key={value}
-						value={value}
-						aria-label={label}
-						sx={(theme) => ({
-							display: "flex",
-							flexDirection: "column",
-							gap: 1,
-							px: 1.5,
-							py: 1.25,
-							"&.Mui-selected": {
-								backgroundColor: alpha(
-									theme.palette.primary.main,
-									theme.palette.mode === "dark" ? 0.2 : 0.12,
-								),
-								borderColor: theme.palette.primary.main,
-							},
-						})}
-					>
-						{icon}
-						<Typography variant="caption">{label}</Typography>
-					</ToggleButton>
-				))}
-			</ToggleButtonGroup>
+				<ToggleButtonGroup
+					exclusive
+					fullWidth
+					value={availability}
+					onChange={(_, val) => val && setAvailability(val)}
+					aria-label="availability"
+				>
+					{options.map(({ value, label, icon }) => (
+						<ToggleButton
+							key={value}
+							value={value}
+							aria-label={label}
+							sx={(theme) => ({
+								display: "flex",
+								flexDirection: "column",
+								gap: 1,
+								px: 1.5,
+								py: 1.25,
+								"&.Mui-selected": {
+									backgroundColor: alpha(
+										theme.palette.primary.main,
+										theme.palette.mode === "dark" ? 0.2 : 0.12,
+									),
+									borderColor: theme.palette.primary.main,
+								},
+							})}
+						>
+							{icon}
+							<Typography variant="caption">{label}</Typography>
+						</ToggleButton>
+					))}
+				</ToggleButtonGroup>
+			</Paper>
 		</div>
 	);
 }

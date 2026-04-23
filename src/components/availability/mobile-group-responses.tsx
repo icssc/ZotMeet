@@ -5,10 +5,19 @@ import {
 	EditCalendarOutlined,
 	PeopleAltOutlined,
 } from "@mui/icons-material";
-import { ButtonBase, Divider, Paper, Stack, Typography } from "@mui/material";
+import {
+	Button,
+	ButtonBase,
+	Divider,
+	Paper,
+	Stack,
+	Typography,
+} from "@mui/material";
 
 export interface MobileGroupResponsesProps {
 	isOwner: boolean;
+	respondedMembersCount: number;
+	pendingMembersCount: number;
 	onAddAvailability: () => void;
 	onOpenAttendees: () => void;
 	onSchedule: () => void;
@@ -16,6 +25,8 @@ export interface MobileGroupResponsesProps {
 
 export function MobileGroupResponses({
 	isOwner,
+	respondedMembersCount,
+	pendingMembersCount,
 	onAddAvailability,
 	onOpenAttendees,
 	onSchedule,
@@ -35,38 +46,32 @@ export function MobileGroupResponses({
 					maxWidth: "min(100vw - 1rem, 28rem)",
 				}}
 			>
-				<ButtonBase
+				<Button
 					sx={{ px: 2, py: 1.25, borderRadius: 2 }}
 					onClick={onOpenAttendees}
 				>
 					<Stack spacing={0.5} alignItems="center">
 						<PeopleAltOutlined fontSize="small" />
-						<Typography variant="caption">20/25 Attendees</Typography>
+						<Typography variant="caption">
+							{respondedMembersCount} /{" "}
+							{pendingMembersCount + respondedMembersCount} Responders
+						</Typography>
 					</Stack>
-				</ButtonBase>
+				</Button>
 
 				<Divider orientation="vertical" flexItem />
 
-				<ButtonBase
-					sx={{
-						px: 2,
-						py: 1.25,
-						borderRadius: 2,
-						border: "1px solid",
-						borderColor: "primary.main",
-					}}
-					onClick={onAddAvailability}
-				>
+				<Button onClick={onAddAvailability}>
 					<Stack spacing={0.5} alignItems="center">
 						<EditCalendarOutlined fontSize="small" />
 						<Typography variant="caption">Add Availability</Typography>
 					</Stack>
-				</ButtonBase>
+				</Button>
 
 				{isOwner && (
 					<>
 						<Divider orientation="vertical" flexItem />
-						<ButtonBase
+						<Button
 							sx={{ px: 2, py: 1.25, borderRadius: 2 }}
 							onClick={onSchedule}
 						>
@@ -74,7 +79,7 @@ export function MobileGroupResponses({
 								<CalendarMonthOutlined fontSize="small" />
 								<Typography variant="caption">Schedule Meeting</Typography>
 							</Stack>
-						</ButtonBase>
+						</Button>
 					</>
 				)}
 			</Paper>
