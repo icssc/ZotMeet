@@ -13,6 +13,14 @@ export const formatISOToLocalTime = (isoString: string): string => {
 
 const HALF_HOUR_MS = 30 * 60 * 1000;
 
+/** Round `from` up to the next 30-min boundary. Rolls to next day if needed. */
+export function getNextHalfHour(from: Date = new Date()): Date {
+	const d = new Date(from);
+	const roundedMins = Math.ceil(d.getMinutes() / 30) * 30;
+	d.setMinutes(roundedMins, 0, 0);
+	return d;
+}
+
 /** Calendar day + clock from `time` (same semantics as date pickers + time pickers). */
 export function mergeDateAndTime(date: Date, time: Date): Date {
 	const d = new Date(date);
