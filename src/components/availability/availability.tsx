@@ -1,7 +1,7 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { Paper } from "@mui/material";
+import { Button, Paper } from "@mui/material";
 import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -12,6 +12,10 @@ import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
+import {
+	RoomRecommendationSettings,
+	type StudyRoomApiEntry,
+} from "@/components/availability/room-recommendations";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
@@ -31,7 +35,7 @@ import {
 	mergeImportedGridSlots,
 } from "@/lib/availability/utils";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
-import { getBestTimeRanges } from "@/lib/rooms/utils";
+import { getBestTimeRanges, getCapacityRange } from "@/lib/rooms/utils";
 import type {
 	GoogleCalendarEvent,
 	MemberMeetingAvailability,
@@ -291,6 +295,17 @@ export function Availability({
 		return getBestTimeRanges(availabilityDates);
 	}, [availabilityDates]);
 
+	const [roomFilters, setRoomFilters] = useState({
+		capacities: ["3-4"] as string[],
+		buildings: [] as string[],
+		lengths: [60] as number[],
+	});
+
+	const [isSheetOpen, setIsSheetOpen] = useState(false);
+	const [activeTab, setActiveTab] = useState<"attendees" | "rooms">(
+		"attendees",
+	);
+
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
 		currentIfNeededDates: ifNeededDates,
@@ -376,6 +391,37 @@ export function Availability({
 	const handleSuccessfulSave = useCallback(() => {
 		confirmSave();
 	}, [confirmSave]);
+
+	const handleShowBestRooms = useCallback(async () => {
+		try {
+			const { capacityMin, capacityMax } = getCapacityRange(
+				roomFilters.capacities,
+			);
+
+			const promises = bestTimeRanges.map(({ date, time }) =>
+				fetchStudyRooms({
+					date,
+					timeRange: time,
+					capacityMin,
+					capacityMax,
+				}),
+			);
+
+			const results = await Promise.all(promises);
+
+			const combined = results
+				.flatMap((res) => res.data ?? [])
+				.map((room) => ({
+					...room,
+					description: room.description ?? "",
+					directions: room.directions ?? "",
+				}));
+
+			setStudyRooms(combined);
+		} catch (err) {
+			console.error("Failed to fetch study rooms:", err);
+		}
+	}, [roomFilters.capacities, bestTimeRanges]);
 
 	useEffect(() => {
 		if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
@@ -536,35 +582,7 @@ export function Availability({
 		}
 	}, [startBlockSelection, endBlockSelection, setSelectionState]);
 
-	//currently unused as we only have console log for now
-	const [_studyRooms, setStudyRooms] = useState<any[]>([]);
-
-	useEffect(() => {
-		if (!bestTimeRanges.length) {
-			setStudyRooms([]);
-			return;
-		}
-
-		const fetchRooms = async () => {
-			try {
-				// Make one API call per (date, time) pair
-				const promises = bestTimeRanges.map(({ date, time }) => {
-					console.log("Fetching with:", { date, time });
-					return fetchStudyRooms({ date: date, timeRange: time });
-				});
-				const results = await Promise.all(promises);
-
-				console.log("Fetched study rooms:", results); // console log for now
-				const combined = results.flatMap((res) => res.data ?? []);
-
-				setStudyRooms(combined);
-			} catch (err) {
-				console.error("Failed to fetch study rooms:", err);
-			}
-		};
-
-		fetchRooms();
-	}, [bestTimeRanges]);
+	const [studyRooms, setStudyRooms] = useState<StudyRoomApiEntry[]>([]);
 
 	// Helper to get block info from pointer position
 	const getBlockAtPosition = useCallback((x: number, y: number) => {
@@ -901,6 +919,11 @@ export function Availability({
 								doesntNeedDay={doesntNeedDay}
 							/>
 						</Paper>
+						<RoomRecommendationSettings
+							rawRooms={studyRooms}
+							onFiltersChange={setRoomFilters}
+							onShowBestRooms={handleShowBestRooms}
+						/>
 					</div>
 				)}
 				{availabilityView === "personal" && (
