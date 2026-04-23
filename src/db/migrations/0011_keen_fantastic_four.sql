@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS "meeting_invite_responses" CASCADE;

@@ -4,16 +4,20 @@ import { cn } from "@/lib/utils";
 
 interface AvailabilityBlockProps {
 	isAvailable: boolean;
+	isIfNeeded: boolean;
 	zotDateIndex: number;
 	blockIndex: number;
 	selectionState: SelectionStateType | undefined;
+	showImportPreview?: boolean;
 }
 
 export function AvailabilityBlock({
 	isAvailable,
+	isIfNeeded,
 	zotDateIndex,
 	blockIndex,
 	selectionState,
+	showImportPreview = false,
 }: AvailabilityBlockProps) {
 	/**
 	 * Computes the background color of a single time block cell
@@ -33,18 +37,25 @@ export function AvailabilityBlock({
 				earlierBlockIndex <= blockIndex && blockIndex <= laterBlockIndex;
 
 			if (dateInRange && timeInRange) {
-				return "bg-[#BFD1F5]";
+				return "bg-primary/40";
 			}
 		}
-		return isAvailable ? "bg-primary" : "bg-transparent";
-	}, [selectionState, isAvailable, zotDateIndex, blockIndex]);
+		return isAvailable
+			? "bg-[#F26489]"
+			: isIfNeeded
+				? "bg-[#006489]"
+				: "transparent";
+	}, [selectionState, isAvailable, isIfNeeded, zotDateIndex, blockIndex]);
 
 	return (
-		<div
-			className={cn(
-				"pointer-events-none block h-full w-full py-2",
-				backgroundColor,
+		<div className="pointer-events-none relative block h-full w-full py-2">
+			<div className={cn("absolute inset-0", backgroundColor)} />
+			{showImportPreview && (
+				<div
+					className="absolute inset-0 border-2 border-primary/70 bg-primary/20"
+					aria-hidden
+				/>
 			)}
-		/>
+		</div>
 	);
 }

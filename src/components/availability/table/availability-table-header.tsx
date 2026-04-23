@@ -1,3 +1,4 @@
+import { Typography } from "@mui/material";
 import React from "react";
 import type { SelectMeeting } from "@/db/schema";
 import {
@@ -8,7 +9,10 @@ import {
 import type { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityTableHeaderProps {
-	currentPageAvailability: ZotDate[];
+	currentPageAvailability: {
+		availabilities: ZotDate[];
+		ifNeeded: ZotDate[];
+	};
 	meetingType: SelectMeeting["meetingType"];
 	doesntNeedDay: boolean;
 }
@@ -20,8 +24,8 @@ export function AvailabilityTableHeader({
 }: AvailabilityTableHeaderProps) {
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
-	const [newBlocks, newAvailDates] = newZonedPageAvailAndDates(
-		currentPageAvailability,
+	const [newBlocks, _newAvailDates] = newZonedPageAvailAndDates(
+		currentPageAvailability["availabilities"],
 		null,
 		doesntNeedDay,
 	);
@@ -41,15 +45,20 @@ export function AvailabilityTableHeader({
 						)}
 						<th className="font-normal text-sm">
 							<div className="flex flex-col">
-								<span className="font-bold text-[10px] text-gray-500 uppercase md:text-xs">
+								<Typography
+									variant="caption"
+									color="textSecondary"
+									className="uppercase"
+								>
 									{dateHeader?.day.toLocaleDateString("en-US", {
 										weekday: "short",
 									})}
-								</span>
+								</Typography>
+
 								{meetingType === "dates" && (
-									<span className="text-center text-[12px] text-gray-medium uppercase md:text-base">
+									<Typography>
 										{dateHeader?.day && formatDateToUSNumeric(dateHeader.day)}
-									</span>
+									</Typography>
 								)}
 							</div>
 						</th>

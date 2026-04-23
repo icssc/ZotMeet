@@ -9,6 +9,7 @@ import { oauth } from "@/lib/auth/oauth";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
 import { createGoogleUser } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
+import { availabilityPathWithOpenInvite } from "@/lib/meeting-open-invite";
 import { createMeetingFromData } from "@/server/actions/meeting/create/action";
 import { getUserById } from "@/server/data/user/queries";
 
@@ -205,7 +206,7 @@ export async function GET(request: Request): Promise<Response> {
 				return new Response(null, {
 					status: 302,
 					headers: {
-						Location: `/availability/${result.id}`,
+						Location: availabilityPathWithOpenInvite(result.id),
 					},
 				});
 			} else {

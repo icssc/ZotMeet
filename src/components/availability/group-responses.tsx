@@ -1,9 +1,11 @@
-import { Button, Checkbox, Chip, Divider, FormControlLabel, Switch, Typography } from "@mui/material/";
+import { Button, Chip, Switch, Typography } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
-import { getTimestampFromBlockIndex } from "@/components/availability/group-availability";
-import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
+import {
+	getTimestampFromBlockIndex,
+	newZonedPageAvailAndDates,
+} from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -12,10 +14,14 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 interface GroupResponsesProps {
 	availabilityDates: ZotDate[];
 	members: Member[];
+	pendingMembers: Member[];
 	fromTime: number;
 	timezone: string;
 	anchorNormalizedDate: Date[];
-	currentPageAvailability: ZotDate[];
+	currentPageAvailability: {
+		availabilities: ZotDate[];
+		ifNeeded: ZotDate[];
+	};
 	availabilityTimeBlocks: number[];
 	doesntNeedDay: boolean;
 }
@@ -24,11 +30,13 @@ export function GroupResponses({
 	availabilityDates,
 	fromTime,
 	members,
+	pendingMembers,
+	timezone,
 	currentPageAvailability,
 	doesntNeedDay,
 }: GroupResponsesProps) {
 	const [_newBlocks, newAvailDates] = newZonedPageAvailAndDates(
-		currentPageAvailability,
+		currentPageAvailability["availabilities"],
 		availabilityDates,
 		doesntNeedDay,
 	);
@@ -90,6 +98,7 @@ export function GroupResponses({
 		) {
 			return {
 				availableMembers: [],
+				ifNeededMembers: [],
 			};
 		}
 		const selectedDate = newAvailDates[selectedZotDateIndex];
@@ -98,21 +107,42 @@ export function GroupResponses({
 			selectedZotDateIndex,
 			fromTime,
 			newAvailDates,
+			timezone,
 		);
+
 		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
+		const [_ifNeededBlocks, newIfNeededDates] = newZonedPageAvailAndDates(
+			currentPageAvailability["ifNeeded"],
+			availabilityDates,
+			doesntNeedDay,
+		);
+		const ifNeededDate = newIfNeededDates[selectedZotDateIndex];
+		const ifNeededMemberIds = ifNeededDate?.groupAvailability[timestamp] || [];
 
 		return {
 			availableMembers: members.filter((member) =>
 				availableMemberIds.includes(member.memberId),
+			),
+			ifNeededMembers: members.filter((m) =>
+				ifNeededMemberIds.includes(m.memberId),
 			),
 		};
 	}, [
 		selectedZotDateIndex,
 		selectedBlockIndex,
 		newAvailDates,
+		currentPageAvailability,
+		availabilityDates,
+		doesntNeedDay,
 		fromTime,
+		timezone,
 		members,
 	]);
+
+	const respondedMembers = useMemo(() => {
+		const pendingMemberIds = new Set(pendingMembers.map((m) => m.memberId));
+		return members.filter((member) => !pendingMemberIds.has(member.memberId));
+	}, [members, pendingMembers]);
 
 	useEffect(() => {
 		if (
@@ -144,11 +174,11 @@ export function GroupResponses({
 	}, [selectedZotDateIndex, selectedBlockIndex, newAvailDates]);
 
 	return (
-		<div className="min-w-0 lg:shrink-0">
+		<div className="flex min-h-0 min-w-0 flex-1 flex-col lg:shrink-0">
 			<div
 				className={cn(
 					// Cap height so the flex row does not grow with responder count (see availability layout).
-					"fixed bottom-0 h-96 max-h-[85dvh] w-full min-w-0 translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:max-h-[min(calc(100dvh-10rem),56rem)] lg:w-96 lg:shrink-0 lg:translate-y-0 lg:self-start lg:overflow-y-auto lg:overscroll-y-contain lg:rounded-l-xl lg:bg-opacity-50",
+					"fixed bottom-0 h-96 max-h-[85dvh] w-full min-w-0 translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:h-full lg:max-h-none lg:min-h-0 lg:w-full lg:flex-1 lg:shrink-0 lg:translate-y-0 lg:self-stretch lg:overflow-y-auto lg:overscroll-y-contain lg:rounded-l-xl lg:bg-opacity-50",
 					isMobileDrawerOpen && "translate-y-0",
 				)}
 			>
@@ -205,12 +235,15 @@ export function GroupResponses({
 						<h2 className="font-medium text-xl">Responders</h2>
 						<Typography variant="caption" color="textSecondary">
 							Available (
-							{isHoveringGrid ? availableMembers.length : members.length})
+							{isHoveringGrid
+								? availableMembers.length
+								: respondedMembers.length}
+							)
 						</Typography>
 					</div>
 
 					<ul className="mt-3 flex flex-wrap gap-2">
-						{members.map((member) => (
+						{respondedMembers.map((member) => (
 							<Chip
 								key={member.memberId}
 								clickable
@@ -244,6 +277,35 @@ export function GroupResponses({
 							Clear Selected
 						</Button>
 					</div>
+				</div>
+
+				<div className="flex flex-col py-2">
+					<Typography variant="h6">Pending Responders</Typography>
+
+					{pendingMembers.length > 0 ? (
+						<div>
+							<Typography variant="caption" color="textSecondary">
+								Waiting on responses for your group ({pendingMembers.length})
+							</Typography>
+							<ul className="mt-3 flex flex-wrap gap-2">
+								{pendingMembers.map((member) => (
+									<Chip
+										key={member.memberId}
+										label={member.displayName}
+										variant="outlined"
+									/>
+								))}
+							</ul>
+						</div>
+					) : (
+						<Typography
+							variant="caption"
+							color="textSecondary"
+							className="mt-2"
+						>
+							Everyone has submitted availability.
+						</Typography>
+					)}
 				</div>
 			</div>
 		</div>

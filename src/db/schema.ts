@@ -125,6 +125,7 @@ export const groups = pgTable("groups", {
 	createdAt: timestamp("created_at"),
 	createdBy: text("user_id").references(() => users.id),
 	archived: boolean("archived").default(false).notNull(),
+	icon: text("icon"),
 });
 
 export type InsertGroup = InferInsertModel<typeof groups>;
@@ -235,6 +236,51 @@ export type SelectScheduledMeeting = InferSelectModel<typeof scheduledMeetings>;
 export type InsertMeeting = InferInsertModel<typeof meetings>;
 export type SelectMeeting = InferSelectModel<typeof meetings>;
 
+export const meetingInvites = pgTable("meeting_invites", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	meetingId: uuid("meeting_id")
+		.notNull()
+		.references(() => meetings.id, { onDelete: "cascade" }),
+	inviteToken: text("invite_token").notNull().unique(),
+	inviterId: text("inviter_id")
+		.notNull()
+		.references(() => users.id, { onDelete: "cascade" }),
+	sentAt: timestamp("sent_at", { mode: "date" }).defaultNow().notNull(),
+	expiresAt: timestamp("expires_at", { mode: "date" }),
+});
+
+export const meetingInviteResponses = pgTable(
+	"meeting_invite_responses",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		inviteId: uuid("invite_id")
+			.notNull()
+			.references(() => meetingInvites.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		email: text("email").notNull(),
+		status: inviteStatusEnum("status").notNull().default("pending"),
+		respondedAt: timestamp("responded_at", { mode: "date" }),
+	},
+	(table) => ({
+		inviteUserUnique: unique("meeting_invite_responses_invite_user_unique").on(
+			table.inviteId,
+			table.userId,
+		),
+	}),
+);
+
+export type InsertMeetingInvite = InferInsertModel<typeof meetingInvites>;
+export type SelectMeetingInvite = InferSelectModel<typeof meetingInvites>;
+
+export type InsertMeetingInviteResponse = InferInsertModel<
+	typeof meetingInviteResponses
+>;
+export type SelectMeetingInviteResponse = InferSelectModel<
+	typeof meetingInviteResponses
+>;
+
 export const notifications = pgTable("notifications", {
 	id: uuid("id").defaultRandom().primaryKey(),
 	memberId: uuid("user_id")
@@ -250,6 +296,9 @@ export const notifications = pgTable("notifications", {
 	title: text("title").notNull(),
 	message: text("message"),
 	redirect: text("redirect"),
+	groupId: uuid("group_id").references(() => groups.id, {
+		onDelete: "cascade",
+	}),
 });
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
@@ -274,6 +323,10 @@ export const availabilities = pgTable(
 		 * @example ["2025-04-11T00:00:00.000Z", "2025-04-12T00:00:00.000Z"]
 		 */
 		meetingAvailabilities: jsonb("meeting_availabilities")
+			.$type<string[]>()
+			.notNull()
+			.default([]),
+		ifNeededAvailabilities: jsonb("ifNeeded_availabilities")
 			.$type<string[]>()
 			.notNull()
 			.default([]),

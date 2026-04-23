@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, countDistinct, eq, inArray } from "drizzle-orm";
+import { and, count, countDistinct, eq, gte, inArray, lte } from "drizzle-orm";
 import { db } from "@/db";
 import {
 	availabilities,
@@ -10,6 +10,7 @@ import {
 	members,
 	type SelectGroup,
 	type SelectMeeting,
+	scheduledMeetings,
 	users,
 	usersInGroup,
 } from "@/db/schema";
@@ -42,6 +43,7 @@ export async function getGroupsByUserId(
 			createdAt: groups.createdAt,
 			createdBy: groups.createdBy,
 			archived: groups.archived,
+			icon: groups.icon,
 		})
 		.from(groups)
 		.innerJoin(usersInGroup, eq(groups.id, usersInGroup.groupId))
@@ -147,6 +149,8 @@ export type GroupWithDetails = SelectGroup & {
 	totalMembers: number;
 	isCreator: boolean;
 	needsAvailability: boolean;
+	pendingMeetingName: string | null;
+	upcomingMeetingName: string | null;
 	ownerEmail: string;
 	creatorName: string;
 };
@@ -167,6 +171,7 @@ export async function getGroupsWithDetails(
 
 			// Check if any meetings in this group need availability from this user
 			let needsAvailability = false;
+			let pendingMeetingName: string | null = null;
 			if (groupMeetings.length > 0) {
 				const meetingIds = groupMeetings.map((m) => m.id);
 				const userAvailabilities = await db
@@ -182,9 +187,41 @@ export async function getGroupsWithDetails(
 				const respondedMeetingIds = new Set(
 					userAvailabilities.map((a) => a.meetingId),
 				);
-				needsAvailability = meetingIds.some(
-					(id) => !respondedMeetingIds.has(id),
+				const today = new Date();
+				today.setHours(0, 0, 0, 0);
+				const pendingMeeting = groupMeetings.find(
+					(m) =>
+						!m.scheduled &&
+						!respondedMeetingIds.has(m.id) &&
+						(m.meetingType === "days" ||
+							m.dates.some((d) => new Date(d) >= today)),
 				);
+				needsAvailability = pendingMeeting !== undefined;
+				pendingMeetingName = pendingMeeting?.title ?? null;
+			}
+
+			// Check for a scheduled meeting within the next 3 days
+			let upcomingMeetingName: string | null = null;
+			if (groupMeetings.length > 0) {
+				const meetingIds = groupMeetings.map((m) => m.id);
+				const now = new Date();
+				const threeDaysFromNow = new Date(
+					now.getTime() + 3 * 24 * 60 * 60 * 1000,
+				);
+				const upcoming = await db
+					.select({ title: meetings.title })
+					.from(scheduledMeetings)
+					.innerJoin(meetings, eq(scheduledMeetings.meetingId, meetings.id))
+					.where(
+						and(
+							inArray(scheduledMeetings.meetingId, meetingIds),
+							gte(scheduledMeetings.scheduledDate, now),
+							lte(scheduledMeetings.scheduledDate, threeDaysFromNow),
+						),
+					)
+					.orderBy(scheduledMeetings.scheduledDate)
+					.limit(1);
+				upcomingMeetingName = upcoming[0]?.title ?? null;
 			}
 
 			const creator = members.find((m) => m.userId === group.createdBy);
@@ -196,6 +233,8 @@ export async function getGroupsWithDetails(
 				totalMembers: members.length,
 				isCreator: group.createdBy === userId,
 				needsAvailability,
+				pendingMeetingName,
+				upcomingMeetingName,
 				ownerEmail: creator?.email ?? "",
 				creatorName: creator?.displayName ?? "",
 			};
@@ -206,13 +245,17 @@ export async function getGroupsWithDetails(
 }
 
 export type MeetingWithStats = SelectMeeting & {
+	hostName: string;
+	scheduledDate: Date | null;
 	totalMembers: number;
 	respondedCount: number;
+	userHasResponded: boolean;
 };
 
 export async function getGroupMeetingsWithStats(
 	groupId: string,
 	totalMembers: number,
+	currentMemberId: string,
 ): Promise<MeetingWithStats[]> {
 	const groupMeetings = await getMeetingsByGroupId(groupId);
 
@@ -221,23 +264,58 @@ export async function getGroupMeetingsWithStats(
 	}
 
 	const meetingIds = groupMeetings.map((m) => m.id);
+	const hostIds = Array.from(new Set(groupMeetings.map((m) => m.hostId)));
 
-	const responseCounts = await db
-		.select({
-			meetingId: availabilities.meetingId,
-			respondedCount: countDistinct(availabilities.memberId),
-		})
-		.from(availabilities)
-		.where(inArray(availabilities.meetingId, meetingIds))
-		.groupBy(availabilities.meetingId);
+	// Fetch everything in bulk
+	const [responseCounts, userResponses, scheduledBlocks, hosts] =
+		await Promise.all([
+			// Count responses per meeting
+			db
+				.select({
+					meetingId: availabilities.meetingId,
+					respondedCount: countDistinct(availabilities.memberId),
+				})
+				.from(availabilities)
+				.where(inArray(availabilities.meetingId, meetingIds))
+				.groupBy(availabilities.meetingId),
+
+			// Check if the current user responded
+			db
+				.select({ meetingId: availabilities.meetingId })
+				.from(availabilities)
+				.where(
+					and(
+						eq(availabilities.memberId, currentMemberId),
+						inArray(availabilities.meetingId, meetingIds),
+					),
+				),
+
+			// Get all scheduled dates for these meetings
+			db.query.scheduledMeetings.findMany({
+				where: inArray(scheduledMeetings.meetingId, meetingIds),
+			}),
+
+			// Get all host names at once
+			db.query.members.findMany({
+				where: inArray(members.id, hostIds),
+			}),
+		]);
 
 	const responseMap = new Map(
 		responseCounts.map((r) => [r.meetingId, r.respondedCount]),
 	);
+	const userRespondedSet = new Set(userResponses.map((r) => r.meetingId));
+	const scheduledMap = new Map(
+		scheduledBlocks.map((s) => [s.meetingId, s.scheduledDate]),
+	);
+	const hostMap = new Map(hosts.map((h) => [h.id, h.displayName]));
 
 	return groupMeetings.map((meeting) => ({
 		...meeting,
+		hostName: hostMap.get(meeting.hostId) ?? "Unknown",
+		scheduledDate: scheduledMap.get(meeting.id) ?? null,
 		totalMembers,
 		respondedCount: responseMap.get(meeting.id) ?? 0,
+		userHasResponded: userRespondedSet.has(meeting.id),
 	}));
 }

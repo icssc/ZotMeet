@@ -53,6 +53,7 @@ interface AvailabilityStore {
 
 	// Schedule Selection
 	scheduledTimes: Set<string>;
+	hasHydratedScheduledTimes: boolean;
 	pendingAdds: Set<string>;
 	pendingRemovals: Set<string>;
 	addPendingTime: (timestamp: string) => void;
@@ -63,6 +64,10 @@ interface AvailabilityStore {
 	clearPendingTimes: () => void;
 	isScheduled: (timestamp: string) => boolean;
 	hydrateScheduledTimes: (timestamps: string[]) => void;
+
+	/** Personal import preview: ISO keys that exist on the current meeting grid (subset of a past meeting). */
+	importPreviewIsoSet: Set<string> | null;
+	setImportPreview: (isoStrings: readonly string[] | null) => void;
 }
 
 export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
@@ -156,6 +161,7 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 
 	// Schedule Selection
 	scheduledTimes: new Set<string>(),
+	hasHydratedScheduledTimes: false,
 	pendingAdds: new Set<string>(),
 	pendingRemovals: new Set<string>(),
 
@@ -208,6 +214,7 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 			});
 			return {
 				scheduledTimes: nextScheduled,
+				hasHydratedScheduledTimes: true,
 				pendingAdds: new Set(),
 				pendingRemovals: new Set(),
 			};
@@ -255,8 +262,15 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	hydrateScheduledTimes: (timestamps: string[]) => {
 		set({
 			scheduledTimes: new Set(timestamps),
+			hasHydratedScheduledTimes: true,
 			pendingAdds: new Set(),
 			pendingRemovals: new Set(),
 		});
 	},
+
+	importPreviewIsoSet: null,
+	setImportPreview: (isoStrings) =>
+		set({
+			importPreviewIsoSet: isoStrings === null ? null : new Set(isoStrings),
+		}),
 }));

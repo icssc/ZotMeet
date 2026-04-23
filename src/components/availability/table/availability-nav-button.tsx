@@ -18,7 +18,11 @@ export const AvailabilityNavButton = memo(
 				size="small"
 				sx={{ opacity: disabled ? 0 : 1 }}
 			>
-				{direction === "left" ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+				{direction === "left" ? (
+					<ChevronLeftIcon fontSize="large" />
+				) : (
+					<ChevronRightIcon fontSize="large" />
+				)}
 			</IconButton>
 		);
 	},

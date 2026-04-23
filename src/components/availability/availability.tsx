@@ -1,17 +1,16 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { Button } from "@mui/material";
+import { Button, Paper } from "@mui/material";
 import { useDrag } from "@use-gesture/react";
-import { formatInTimeZone } from "date-fns-tz";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
-import {
-	GroupAvailability,
-	getTimestampFromBlockIndex,
-} from "@/components/availability/group-availability";
+import { AvailabilityActions } from "@/components/availability/availability-actions";
+import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
+import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import {
 	RoomRecommendationSettings,
@@ -23,11 +22,17 @@ import { AvailabilityTimeTicks } from "@/components/availability/table/availabil
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { UserProfile } from "@/lib/auth/user";
+
 import {
+	buildMeetingGridIsoSet,
+	buildZotDateRowsForMeetingDays,
 	convertTimeFromUTC,
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
+	getTimestampFromBlockIndex,
+	mergeImportedGridSlots,
 } from "@/lib/availability/utils";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import { getBestTimeRanges, getCapacityRange } from "@/lib/rooms/utils";
@@ -44,50 +49,51 @@ import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 
+type DeriveMode = "availabilities" | "if-needed";
 // Helper function to derive initial availability data
 const deriveInitialAvailability = ({
 	meetingDates,
 	userId,
 	allAvailabilties,
 	availabilityTimeBlocks,
+	mode,
+	timezone,
 }: {
 	timezone: string;
 	meetingDates: string[];
 	userId: string | null;
 	allAvailabilties: MemberMeetingAvailability[];
 	availabilityTimeBlocks: number[];
+	mode: DeriveMode;
 }) => {
+	const getTimestamps = (member: MemberMeetingAvailability) =>
+		mode === "availabilities"
+			? member.meetingAvailabilities
+			: member.ifNeededAvailabilities;
+
 	const userAvailability =
 		allAvailabilties.find((a) => a.memberId === userId) ?? null;
 
 	const availabilitiesByDate = new Map<string, string[]>();
-	if (userAvailability?.meetingAvailabilities) {
-		userAvailability.meetingAvailabilities.forEach((timeStr) => {
-			// Convert UTC timestamp to local date to get the correct day
-			const localDate = new Date(timeStr);
-			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
-
+	if (userAvailability) {
+		getTimestamps(userAvailability).forEach((timeStr) => {
+			const dateStr = new Date(timeStr).toLocaleDateString("en-CA");
 			if (!availabilitiesByDate.has(dateStr)) {
 				availabilitiesByDate.set(dateStr, []);
 			}
-
 			availabilitiesByDate.get(dateStr)?.push(timeStr);
 		});
 	}
 
 	const timestampsByDate = new Map<string, Map<string, string[]>>();
 	for (const member of allAvailabilties) {
-		for (const timestamp of member.meetingAvailabilities) {
-			// Convert UTC timestamp to local date to get the correct day
-			const localDate = new Date(timestamp);
-			const dateStr = localDate.toLocaleDateString("en-CA"); // YYYY-MM-DD format
-
+		for (const timestamp of getTimestamps(member)) {
+			const dateStr = new Date(timestamp).toLocaleDateString("en-CA");
 			let dateMap = timestampsByDate.get(dateStr);
 			if (dateMap === undefined) {
 				dateMap = new Map();
 				timestampsByDate.set(dateStr, dateMap);
 			}
-
 			if (!dateMap.has(timestamp)) {
 				dateMap.set(timestamp, []);
 			}
@@ -95,49 +101,47 @@ const deriveInitialAvailability = ({
 		}
 	}
 
-	const initialAvailability = meetingDates
+	return meetingDates
 		.map((meetingDate) => {
-			// Extract the date part and create a Date object in LOCAL timezone
 			const dateStr = meetingDate.split("T")[0];
-			const [year, month, day] = dateStr.split("-").map(Number);
-			// Create date at midnight in LOCAL timezone
-			const date = new Date(year, month - 1, day);
+			const date = fromZonedTime(`${dateStr}T00:00:00`, timezone);
 
 			const earliestMinutes = availabilityTimeBlocks[0] || 480;
 			const latestMinutes =
 				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] || 1035) +
 				15;
 
-			const dateAvailabilities = availabilitiesByDate.get(dateStr) || [];
-
-			const dateGroupAvailabilities = Object.fromEntries(
-				timestampsByDate.get(dateStr) || new Map(),
-			);
 			return new ZotDate(
 				date,
 				earliestMinutes,
 				latestMinutes,
 				false,
-				dateAvailabilities,
-				dateGroupAvailabilities,
+				availabilitiesByDate.get(dateStr) || [],
+				Object.fromEntries(timestampsByDate.get(dateStr) || new Map()),
+				timezone,
 			);
 		})
 		.sort((a, b) => a.day.getTime() - b.day.getTime());
-
-	return initialAvailability;
 };
-
+export type Availability = "available" | "if-needed" | "unavailable";
 export function Availability({
 	meetingData,
 	allAvailabilities,
 	user,
 	scheduledBlocks,
+	autoOpenInviteDialog = false,
+	inviteQueryInUrl = false,
 }: {
 	meetingData: SelectMeeting;
 	allAvailabilities: MemberMeetingAvailability[];
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
+	autoOpenInviteDialog?: boolean;
+	inviteQueryInUrl?: boolean;
 }) {
+	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+	const [availabilitySelectionMode, setAvailabilitySelectionMode] =
+		useState<Availability>("available");
 	const availabilityView = useAvailabilityStore(
 		(state) => state.availabilityView,
 	);
@@ -152,6 +156,7 @@ export function Availability({
 	const toggleHoverGrid = useAvailabilityStore(
 		(state) => state.toggleHoverGrid,
 	);
+	const setImportPreview = useAvailabilityStore((s) => s.setImportPreview);
 
 	const handleMouseLeave = useCallback(() => {
 		if (availabilityView === "group" && !selectionIsLocked) {
@@ -167,16 +172,35 @@ export function Availability({
 		toggleHoverGrid,
 	]);
 
-	const { currentPage, itemsPerPage, isFirstPage, nextPage, prevPage } =
-		useAvailabilityStore(
-			useShallow((state) => ({
-				currentPage: state.currentPage,
-				itemsPerPage: state.itemsPerPage,
-				isFirstPage: state.isFirstPage,
-				nextPage: state.nextPage,
-				prevPage: state.prevPage,
-			})),
-		);
+	const {
+		currentPage,
+		itemsPerPage,
+		isFirstPage,
+		nextPage,
+		prevPage,
+		setItemsPerPage,
+	} = useAvailabilityStore(
+		useShallow((state) => ({
+			currentPage: state.currentPage,
+			itemsPerPage: state.itemsPerPage,
+			isFirstPage: state.isFirstPage,
+			nextPage: state.nextPage,
+			prevPage: state.prevPage,
+			setItemsPerPage: state.setItemsPerPage,
+		})),
+	);
+	const isMobile = useIsMobile();
+
+	useEffect(() => {
+		setItemsPerPage(isMobile ? 2 : 5);
+	}, [isMobile, setItemsPerPage]);
+
+	useEffect(() => {
+		if (autoOpenInviteDialog) {
+			setIsInviteDialogOpen(true);
+		}
+	}, [autoOpenInviteDialog]);
+
 	const isLastPage =
 		currentPage === Math.floor((meetingData.dates.length - 1) / itemsPerPage);
 
@@ -210,6 +234,30 @@ export function Availability({
 		[fromTimeMinutes, toTimeMinutes],
 	);
 
+	const importGridIsoSet = useMemo(
+		() =>
+			buildMeetingGridIsoSet(
+				buildZotDateRowsForMeetingDays(
+					meetingData.dates,
+					availabilityTimeBlocks,
+					userTimezone,
+				),
+				fromTimeMinutes,
+				availabilityTimeBlocks.length,
+				userTimezone,
+			),
+		[meetingData.dates, fromTimeMinutes, availabilityTimeBlocks, userTimezone],
+	);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: clear import overlay when meeting or viewer TZ changes
+	useEffect(() => {
+		setImportPreview(null);
+	}, [meetingData.id, userTimezone, setImportPreview]);
+
+	useEffect(() => {
+		if (availabilityView !== "personal") setImportPreview(null);
+	}, [availabilityView, setImportPreview]);
+
 	const anchorNormalizedDate = useMemo(() => {
 		return isAnchorDateMeeting(meetingData.dates)
 			? convertAnchorDatesToCurrentWeek(meetingData.dates).map(
@@ -229,6 +277,18 @@ export function Availability({
 			userId: user?.memberId ?? null,
 			allAvailabilties: allAvailabilities,
 			availabilityTimeBlocks,
+			mode: "availabilities",
+		}),
+	);
+
+	const [ifNeededDates, setIfNeededDates] = useState(() =>
+		deriveInitialAvailability({
+			timezone: userTimezone,
+			meetingDates: meetingData.dates,
+			userId: user?.memberId ?? null,
+			allAvailabilties: allAvailabilities,
+			availabilityTimeBlocks,
+			mode: "if-needed",
 		}),
 	);
 	const bestTimeRanges = useMemo(() => {
@@ -248,6 +308,7 @@ export function Availability({
 
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
+		currentIfNeededDates: ifNeededDates,
 	});
 
 	const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
@@ -260,20 +321,29 @@ export function Availability({
 	const datesToOffset = currentPage * itemsPerPage;
 
 	const currentPageAvailability = useMemo(() => {
-		let pageAvailability = availabilityDates.slice(
-			datesToOffset,
-			datesToOffset + itemsPerPage,
-		);
+		const pageAvailability = {
+			availabilities: availabilityDates.slice(
+				datesToOffset,
+				datesToOffset + itemsPerPage,
+			),
+			ifNeeded: ifNeededDates.slice(
+				datesToOffset,
+				datesToOffset + itemsPerPage,
+			),
+		};
 
 		if (currentPage === lastPage) {
-			pageAvailability = pageAvailability.concat(
-				new Array(numPaddingDates).fill(null),
-			);
+			const padding = new Array(numPaddingDates).fill(null);
+			return {
+				availabilities: pageAvailability.availabilities.concat(padding),
+				ifNeeded: pageAvailability.ifNeeded.concat(padding),
+			};
 		}
 
 		return pageAvailability;
 	}, [
 		availabilityDates,
+		ifNeededDates,
 		datesToOffset,
 		itemsPerPage,
 		currentPage,
@@ -283,13 +353,39 @@ export function Availability({
 
 	const handleUserAvailabilityChange = useCallback(
 		(updatedDates: ZotDate[]) => {
-			setAvailabilityDates([...updatedDates]);
+			if (availabilitySelectionMode === "available") {
+				setAvailabilityDates(updatedDates);
+				console.log("s");
+			} else if (availabilitySelectionMode === "if-needed") {
+				setIfNeededDates(updatedDates);
+				console.log("dat");
+			}
 		},
-		[],
+		[availabilitySelectionMode],
+	);
+
+	const handleImportSlotsFromMeeting = useCallback(
+		(slotIsoStrings: string[]) => {
+			if (!user?.memberId || slotIsoStrings.length === 0) return;
+			const merged = mergeImportedGridSlots(
+				availabilityDates,
+				slotIsoStrings,
+				user.memberId,
+			);
+			handleUserAvailabilityChange(merged);
+			setImportPreview(null);
+		},
+		[
+			availabilityDates,
+			user?.memberId,
+			handleUserAvailabilityChange,
+			setImportPreview,
+		],
 	);
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
-		setAvailabilityDates([...originalDates]);
+		setAvailabilityDates(originalDates[0]);
+		setIfNeededDates(originalDates[1]);
 	}, [cancelEdit]);
 
 	const handleSuccessfulSave = useCallback(() => {
@@ -352,11 +448,14 @@ export function Availability({
 
 	const members = useMemo(() => {
 		const presentMemberIds = [
-			...new Set(
-				availabilityDates.flatMap((date) =>
+			...new Set([
+				...availabilityDates.flatMap((date) =>
 					Object.values(date.groupAvailability).flat(),
 				),
-			),
+				...ifNeededDates.flatMap((date) =>
+					Object.values(date.groupAvailability).flat(),
+				),
+			]),
 		];
 
 		const allMembers = new Map(
@@ -375,7 +474,15 @@ export function Availability({
 		}
 
 		return Array.from(allMembers.values());
-	}, [allAvailabilities, availabilityDates, user]);
+	}, [allAvailabilities, availabilityDates, ifNeededDates, user]);
+
+	const pendingMembers = useMemo(
+		() =>
+			allAvailabilities
+				.filter((a) => a.meetingAvailabilities.length === 0)
+				.map(({ memberId, displayName }) => ({ memberId, displayName })),
+		[allAvailabilities],
+	);
 
 	let doesntNeedDay = true;
 	let past = availabilityTimeBlocks[0];
@@ -392,8 +499,11 @@ export function Availability({
 
 	const lastUTCDateTime = useMemo(() => {
 		const day = new Date(availabilityDates[availabilityDates.length - 1].day);
-		const hours = Math.floor(currentPageAvailability[0].latestTime / 60);
-		const minutes = currentPageAvailability[0].latestTime % 60;
+		const hours = Math.floor(
+			currentPageAvailability["availabilities"][0].latestTime / 60,
+		);
+		const minutes =
+			currentPageAvailability["availabilities"][0].latestTime % 60;
 		day.setHours(hours, minutes, 0, 0);
 		return day;
 	}, [availabilityDates, currentPageAvailability]);
@@ -536,7 +646,6 @@ export function Availability({
 					);
 
 					if (availabilityView === "schedule") {
-						// Schedule selection stays on the day the drag started (no cross-day rectangle).
 						const day = startBlockSelection.zotDateIndex;
 						const timestamps: string[] = [];
 						for (
@@ -549,22 +658,34 @@ export function Availability({
 								day,
 								fromTimeMinutes,
 								availabilityDates,
+								userTimezone,
 							);
 							if (timestamp) timestamps.push(timestamp);
 						}
 
 						if (timestamps.length > 0) {
-							// Each drag replaces the full scheduled selection (one contiguous rectangle).
 							replaceEntireSelection(timestamps);
 						}
 					} else if (availabilityView === "personal") {
-						const startZotDate =
-							availabilityDates[startBlockSelection.zotDateIndex];
+						const memberId = user?.memberId;
+						if (!memberId) {
+							console.log("GRAVEERROR");
+							return;
+						}
+						const ref =
+							availabilitySelectionMode === "available"
+								? availabilityDates
+								: ifNeededDates;
+						const otherRef =
+							availabilitySelectionMode === "available"
+								? ifNeededDates
+								: availabilityDates;
+						const startZotDate = ref[startBlockSelection.zotDateIndex];
 						const toggleValue = !startZotDate.getBlockAvailability(
 							startBlockSelection.blockIndex,
 						);
-
-						const updatedDates = [...availabilityDates];
+						const updatedDates = ref.map((d) => d.clone());
+						const updatedOtherDates = otherRef.map((d) => d.clone());
 
 						for (
 							let dateIndex = earlierDateIndex;
@@ -572,13 +693,21 @@ export function Availability({
 							dateIndex++
 						) {
 							const currentDate = updatedDates[dateIndex];
+							const otherDate = updatedOtherDates[dateIndex];
 							currentDate.setBlockAvailabilities(
 								earlierBlockIndex,
 								laterBlockIndex,
 								toggleValue,
 							);
+							if (toggleValue && otherDate) {
+								// Clear the same range from the other array
+								otherDate.setBlockAvailabilities(
+									earlierBlockIndex,
+									laterBlockIndex,
+									false,
+								);
+							}
 
-							// Update group availability for each block
 							for (
 								let blockI = earlierBlockIndex;
 								blockI <= laterBlockIndex;
@@ -589,6 +718,7 @@ export function Availability({
 									dateIndex,
 									fromTimeMinutes,
 									availabilityDates,
+									userTimezone,
 								);
 
 								if (!currentDate.groupAvailability[timestamp]) {
@@ -596,26 +726,32 @@ export function Availability({
 								}
 
 								if (toggleValue) {
-									// Add user to availability
 									if (
-										!currentDate.groupAvailability[timestamp].includes(
-											user?.memberId ?? "",
-										)
+										!currentDate.groupAvailability[timestamp].includes(memberId)
 									) {
-										currentDate.groupAvailability[timestamp].push(
-											user?.memberId ?? "",
-										);
+										currentDate.groupAvailability[timestamp].push(memberId);
+									}
+									if (otherDate?.groupAvailability[timestamp]) {
+										otherDate.groupAvailability[timestamp] =
+											otherDate.groupAvailability[timestamp].filter(
+												(id) => id !== memberId,
+											);
 									}
 								} else {
 									currentDate.groupAvailability[timestamp] =
 										currentDate.groupAvailability[timestamp].filter(
-											(id) => id !== (user?.memberId ?? ""),
+											(id) => id !== memberId,
 										);
 								}
 							}
 						}
 
 						handleUserAvailabilityChange(updatedDates);
+						if (availabilitySelectionMode === "available") {
+							setIfNeededDates(updatedOtherDates);
+						} else {
+							setAvailabilityDates(updatedOtherDates);
+						}
 					}
 				}
 
@@ -643,31 +779,53 @@ export function Availability({
 			pointer: { touch: true, capture: true },
 			filterTaps: true,
 			threshold: 3,
+			eventOptions: { passive: false },
 		},
 	);
 
 	// TODO: Could add selection clearing with the escape key
 	return (
-		<div className="space-y-6">
+		<div className="flex min-h-[80vh] flex-col gap-6">
 			<AvailabilityHeader
 				meetingData={meetingData}
 				user={user}
 				availabilityDates={availabilityDates}
+				ifNeededDates={ifNeededDates}
 				onCancel={handleCancelEditing}
 				onSave={handleSuccessfulSave}
 				setChangeableTimezone={setChangeableTimezone}
 				setTimezone={setUserTimezone}
+				availabilityEditState={availabilitySelectionMode}
+				inviteQueryInUrl={inviteQueryInUrl}
 			/>
 
-			<div className="flex min-h-0 w-full min-w-0 flex-row items-start justify-start">
-				<div className="flex h-fit min-w-0 flex-1 items-center justify-between overflow-x-auto font-dm-sans lg:pr-14">
-					<AvailabilityNavButton
-						direction="left"
-						handleClick={prevPage}
-						disabled={isFirstPage}
-					/>
-
+			<div className="flex min-h-0 w-full min-w-0 flex-1 flex-row items-stretch justify-start">
+				<Paper
+					component="div"
+					variant="outlined"
+					className="mr-4 flex min-h-0 min-w-0 flex-1 items-start justify-between self-stretch overflow-x-auto lg:overflow-x-hidden lg:pr-14"
+				>
+					<div className="-mt-2 translate-x-3">
+						<AvailabilityNavButton
+							direction="left"
+							handleClick={prevPage}
+							disabled={isFirstPage}
+						/>
+					</div>
 					<div className="flex flex-col gap-4" {...bind()}>
+						<div className="shrink-0 lg:hidden">
+							<AvailabilityActions
+								meetingData={meetingData}
+								user={user}
+								availabilityDates={availabilityDates}
+								ifNeededDates={ifNeededDates}
+								onCancel={handleCancelEditing}
+								onSave={handleSuccessfulSave}
+								setChangeableTimezone={setChangeableTimezone}
+								setTimezone={setUserTimezone}
+								onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
+							/>
+						</div>
 						<table className="w-full table-fixed">
 							<AvailabilityTableHeader
 								currentPageAvailability={currentPageAvailability}
@@ -684,6 +842,7 @@ export function Availability({
 										availabilityView === "schedule" ? (
 											<GroupAvailability
 												meetingId={meetingData.id}
+												meetingTitle={meetingData.title}
 												timeBlock={timeBlock}
 												blockIndex={blockIndex}
 												availabilityTimeBlocks={availabilityTimeBlocks}
@@ -693,16 +852,19 @@ export function Availability({
 												members={members}
 												onMouseLeave={handleMouseLeave}
 												isScheduling={availabilityView === "schedule"}
+												timeZone={userTimezone}
 											/>
 										) : (
 											<PersonalAvailability
 												timeBlock={timeBlock}
 												blockIndex={blockIndex}
+												fromTimeMinutes={fromTimeMinutes}
 												availabilityDates={availabilityDates}
 												availabilityTimeBlocks={availabilityTimeBlocks}
 												currentPageAvailability={currentPageAvailability}
 												googleCalendarEvents={googleCalendarEvents}
 												meetingDates={meetingData.dates}
+												userTimezone={userTimezone}
 											/>
 										)}
 									</tr>
@@ -719,24 +881,44 @@ export function Availability({
 						</div>
 					</div>
 
-					<AvailabilityNavButton
-						direction="right"
-						handleClick={() => nextPage(availabilityDates.length)}
-						disabled={isLastPage}
-					/>
-				</div>
-				{(availabilityView === "group" || availabilityView === "schedule") && (
-					<div className="hidden flex-col md:flex">
-						<GroupResponses
-							availabilityDates={availabilityDates}
-							fromTime={fromTimeMinutes}
-							members={members}
-							timezone={userTimezone}
-							anchorNormalizedDate={anchorNormalizedDate}
-							currentPageAvailability={currentPageAvailability}
-							availabilityTimeBlocks={availabilityTimeBlocks}
-							doesntNeedDay={doesntNeedDay}
+					<div className="-mt-2 -translate-x-9">
+						<AvailabilityNavButton
+							direction="right"
+							handleClick={() => nextPage(availabilityDates.length)}
+							disabled={isLastPage}
 						/>
+					</div>
+				</Paper>
+
+				{(availabilityView === "group" || availabilityView === "schedule") && (
+					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+						<AvailabilityActions
+							meetingData={meetingData}
+							user={user}
+							availabilityDates={availabilityDates}
+							ifNeededDates={ifNeededDates}
+							onCancel={handleCancelEditing}
+							onSave={handleSuccessfulSave}
+							setChangeableTimezone={setChangeableTimezone}
+							setTimezone={setUserTimezone}
+							onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
+						/>
+						<Paper
+							variant="outlined"
+							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+						>
+							<GroupResponses
+								availabilityDates={availabilityDates}
+								fromTime={fromTimeMinutes}
+								members={members}
+								pendingMembers={pendingMembers}
+								timezone={userTimezone}
+								anchorNormalizedDate={anchorNormalizedDate}
+								currentPageAvailability={currentPageAvailability}
+								availabilityTimeBlocks={availabilityTimeBlocks}
+								doesntNeedDay={doesntNeedDay}
+							/>
+						</Paper>
 						<RoomRecommendationSettings
 							rawRooms={studyRooms}
 							onFiltersChange={setRoomFilters}
@@ -744,8 +926,41 @@ export function Availability({
 						/>
 					</div>
 				)}
-				{availabilityView === "personal" && <PersonalAvailabilitySidebar />}
+				{availabilityView === "personal" && (
+					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+						<AvailabilityActions
+							meetingData={meetingData}
+							user={user}
+							availabilityDates={availabilityDates}
+							ifNeededDates={ifNeededDates}
+							onCancel={handleCancelEditing}
+							onSave={handleSuccessfulSave}
+							setChangeableTimezone={setChangeableTimezone}
+							setTimezone={setUserTimezone}
+							onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
+						/>
+						<Paper
+							variant="outlined"
+							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+						>
+							<PersonalAvailabilitySidebar
+								availability={availabilitySelectionMode}
+								setAvailability={setAvailabilitySelectionMode}
+								meetingId={meetingData.id}
+								userTimezone={userTimezone}
+								importGridIsoSet={importGridIsoSet}
+								canImport={Boolean(user?.memberId)}
+								onImportSlots={handleImportSlotsFromMeeting}
+							/>
+						</Paper>
+					</div>
+				)}
 			</div>
+			<InviteMembersDialog
+				open={isInviteDialogOpen}
+				onOpenChange={setIsInviteDialogOpen}
+				meetingId={meetingData.id}
+			/>
 		</div>
 	);
 }

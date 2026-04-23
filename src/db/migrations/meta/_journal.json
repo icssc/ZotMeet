@@ -64,6 +64,48 @@
       "when": 1775256149767,
       "tag": "0008_curvy_epoch",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1776640110077,
+      "tag": "0009_mute_micromacro",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776640200000,
+      "tag": "0010_meeting_invites_and_responses",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1776823567333,
+      "tag": "0011_keen_fantastic_four",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1776824417533,
+      "tag": "0012_simple_karen_page",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1776832889690,
+      "tag": "0013_smooth_shiver_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1776834446978,
+      "tag": "0014_natural_firebird",
+      "breakpoints": true
     }
   ]
 }

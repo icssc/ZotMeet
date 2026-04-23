@@ -14,13 +14,28 @@ interface RoomResultsProps {
 }
 
 export function RoomResults({ rooms, startTime, endTime }: RoomResultsProps) {
-	const toMinutes = (d: Date) => d.getHours() * 60 + d.getMinutes();
-	const windowStart = startTime ? toMinutes(startTime) : 0;
-	const windowEnd = endTime ? toMinutes(endTime) : 24 * 60;
+	const toPSTMinutes = (d: Date) => {
+		const pstStr = d.toLocaleTimeString("en-US", {
+			timeZone: "America/Los_Angeles",
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: false,
+		});
+		const [h, m] = pstStr.split(":").map(Number);
+		return h * 60 + m;
+	};
+	const windowStart = startTime ? toPSTMinutes(startTime) : 0;
+	const windowEnd = endTime ? toPSTMinutes(endTime) : 24 * 60;
 
 	const isInWindow = (isoString: string) => {
-		const d = new Date(isoString);
-		const minutes = d.getHours() * 60 + d.getMinutes();
+		const pstStr = new Date(isoString).toLocaleTimeString("en-US", {
+			timeZone: "America/Los_Angeles",
+			hour: "2-digit",
+			minute: "2-digit",
+			hour12: false,
+		});
+		const [h, m] = pstStr.split(":").map(Number);
+		const minutes = h * 60 + m;
 		return minutes >= windowStart && minutes < windowEnd;
 	};
 	if (rooms.length === 0) {
@@ -65,12 +80,14 @@ export function RoomResults({ rooms, startTime, endTime }: RoomResultsProps) {
 											hour: "numeric",
 											minute: "2-digit",
 											hour12: true,
+											timeZone: "America/Los_Angeles",
 										})}
 										{" – "}
 										{new Date(slot.end).toLocaleTimeString("en-US", {
 											hour: "numeric",
 											minute: "2-digit",
 											hour12: true,
+											timeZone: "America/Los_Angeles",
 										})}
 										{": "}
 										{slot.isAvailable ? "Available" : "Unavailable"}

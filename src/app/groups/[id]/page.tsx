@@ -25,7 +25,7 @@ export default async function Page(props: PageProps) {
 
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/");
+		redirect("/auth/login/google");
 	}
 
 	const group = await getExistingGroup(id).catch(() => null);
@@ -45,7 +45,11 @@ export default async function Page(props: PageProps) {
 		getUsersInGroup(id),
 		isGroupAdmin({ userId: session.user.id, groupId: id }),
 	]);
-	const meetingsWithStats = await getGroupMeetingsWithStats(id, members.length);
+	const meetingsWithStats = await getGroupMeetingsWithStats(
+		id,
+		members.length,
+		session.user.memberId,
+	);
 
 	return (
 		<div className="px-8 py-8">
@@ -55,6 +59,7 @@ export default async function Page(props: PageProps) {
 				meetings={meetingsWithStats}
 				isAdmin={isAdmin}
 				currentUserId={session.user.id}
+				currentMemberId={session.user.memberId}
 			/>
 		</div>
 	);

@@ -1,39 +1,20 @@
 "use client";
 
+import { alpha, useTheme } from "@mui/material/styles";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
-import { generateDateKey, spacerBeforeDate } from "@/lib/availability/utils";
+
+import {
+	formatScheduledTimeRange,
+	generateDateKey,
+	getTimestampFromBlockIndex,
+	spacerBeforeDate,
+} from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
-
-export const getTimestampFromBlockIndex = (
-	blockIndex: number,
-	zotDateIndex: number,
-	fromTime: number,
-	availabilityDates: ZotDate[],
-) => {
-	const minutesFromMidnight = fromTime + blockIndex * 15;
-	const hours = Math.floor(minutesFromMidnight / 60);
-	const minutes = minutesFromMidnight % 60;
-
-	const selectedDate = availabilityDates.at(zotDateIndex);
-
-	if (!selectedDate) {
-		return "";
-	}
-
-	const date = new Date(selectedDate.day);
-	date.setHours(hours);
-	date.setMinutes(minutes);
-	date.setSeconds(0);
-	date.setMilliseconds(0);
-
-	const isoString = date.toISOString();
-	return isoString;
-};
 
 function calculateBlockColor({
 	block,
@@ -42,6 +23,8 @@ function calculateBlockColor({
 	numMembers,
 	showBestTimes,
 	maxAvailability,
+	primaryColor,
+	ifNeededBlock,
 }: {
 	block: string[];
 	hoveredMember: string | null;
@@ -49,35 +32,54 @@ function calculateBlockColor({
 	numMembers: number;
 	showBestTimes: boolean;
 	maxAvailability: number;
+	primaryColor: string;
+	ifNeededBlock: string[];
 }): string {
 	if (selectedMembers.length) {
 		const selectedInBlock = selectedMembers.filter((memberId) =>
 			block.includes(memberId),
 		);
+		const ifNeededInBlock = selectedMembers.filter((memberId) =>
+			ifNeededBlock.includes(memberId),
+		);
+
 		if (selectedInBlock.length) {
 			const proportion = selectedInBlock.length / selectedMembers.length;
-			return `rgba(55, 124, 251, ${proportion})`;
+			return alpha(primaryColor, proportion); // available = pink
+		}
+		if (ifNeededInBlock.length) {
+			const proportion = ifNeededInBlock.length / selectedMembers.length;
+			return `rgba(0, 100, 137, ${proportion})`; // if-needed = blue
 		}
 		return "transparent";
 	}
 
 	if (hoveredMember) {
 		if (block.includes(hoveredMember)) {
-			return "rgba(55, 124, 251)";
+			return alpha(primaryColor, 1); // available = pink
+		}
+		if (ifNeededBlock.includes(hoveredMember)) {
+			return "rgba(0, 100, 137, 1)"; // if-needed = blue
 		}
 		return "transparent";
 	}
 
 	if (showBestTimes) {
 		if (block.length === maxAvailability && maxAvailability > 0) {
-			return "rgba(55, 124, 251, 1)";
+			return "rgba(242, 100, 137, 1)";
 		}
 		return "transparent";
 	}
 
 	if (numMembers) {
-		const opacity = block.length / numMembers;
-		return `rgba(55, 124, 251, ${opacity})`;
+		if (ifNeededBlock.length > 0) {
+			const opacity = ifNeededBlock.length / numMembers;
+			return `rgba(0, 100, 137, ${opacity})`; // if-needed = blue
+		}
+		if (block.length > 0) {
+			const opacity = block.length / numMembers;
+			return alpha(primaryColor, opacity); // available = pink
+		}
 	}
 
 	return "transparent";
@@ -85,18 +87,24 @@ function calculateBlockColor({
 
 interface GroupAvailabilityProps {
 	meetingId: string;
+	meetingTitle?: string;
 	timeBlock: number;
 	blockIndex: number;
 	availabilityTimeBlocks: number[];
 	fromTime: number;
 	availabilityDates: ZotDate[];
-	currentPageAvailability: ZotDate[];
+	currentPageAvailability: {
+		availabilities: ZotDate[];
+		ifNeeded: ZotDate[];
+	};
 	members: Member[];
 	onMouseLeave: () => void;
 	isScheduling: boolean;
+	timeZone: string;
 }
 
 export function GroupAvailability({
+	meetingTitle,
 	timeBlock,
 	blockIndex,
 	availabilityTimeBlocks,
@@ -106,7 +114,10 @@ export function GroupAvailability({
 	members,
 	onMouseLeave,
 	isScheduling,
+	timeZone,
 }: GroupAvailabilityProps) {
+	const theme = useTheme();
+
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
@@ -142,6 +153,25 @@ export function GroupAvailability({
 
 	const numMembers = members.length;
 	const showBestTimes = useAvailabilityStore((state) => state.enabled);
+
+	const { scheduledTimes, pendingAdds, pendingRemovals } = useAvailabilityStore(
+		useShallow((state) => ({
+			scheduledTimes: state.scheduledTimes,
+			pendingAdds: state.pendingAdds,
+			pendingRemovals: state.pendingRemovals,
+		})),
+	);
+
+	const { scheduledTimeRange, scheduledBlockCount } = useMemo(() => {
+		const effective = new Set([...scheduledTimes, ...pendingAdds]);
+		for (const ts of pendingRemovals) {
+			effective.delete(ts);
+		}
+		return {
+			scheduledTimeRange: formatScheduledTimeRange([...effective]),
+			scheduledBlockCount: effective.size,
+		};
+	}, [scheduledTimes, pendingAdds, pendingRemovals]);
 
 	const maxAvailability = useMemo(() => {
 		if (!showBestTimes || numMembers === 0) return 0;
@@ -366,6 +396,7 @@ export function GroupAvailability({
 					day,
 					fromTime,
 					availabilityDates,
+					timeZone,
 				);
 				if (timestamp) {
 					timestamps.push(timestamp);
@@ -388,6 +419,7 @@ export function GroupAvailability({
 		endBlockSelection,
 		fromTime,
 		availabilityDates,
+		timeZone,
 		replaceEntireSelection,
 		setStartBlockSelection,
 		setEndBlockSelection,
@@ -473,6 +505,7 @@ export function GroupAvailability({
 					day,
 					fromTime,
 					availabilityDates,
+					timeZone,
 				);
 				if (timestamp) timestamps.push(timestamp);
 			}
@@ -491,96 +524,139 @@ export function GroupAvailability({
 	const isHalfHour = timeBlock % 60 === 30;
 	const isLastRow = blockIndex === availabilityTimeBlocks.length - 1;
 
-	const spacers = spacerBeforeDate(currentPageAvailability);
+	const spacers = spacerBeforeDate(currentPageAvailability["availabilities"]);
 
-	return currentPageAvailability.map((selectedDate, pageDateIndex) => {
-		const key = generateDateKey({
-			selectedDate,
-			timeBlock,
-			pageDateIndex,
-		});
+	return currentPageAvailability.availabilities.map(
+		(selectedDate, pageDateIndex) => {
+			const ifNeededDate = currentPageAvailability.ifNeeded[pageDateIndex];
 
-		if (selectedDate) {
-			const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
+			const key = generateDateKey({
+				selectedDate,
+				timeBlock,
+				pageDateIndex,
+			});
 
-			const isSelected =
-				selectedZotDateIndex === zotDateIndex &&
-				selectedBlockIndex === blockIndex;
+			if (selectedDate) {
+				const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
 
-			const timestamp = getTimestampFromBlockIndex(
-				blockIndex,
-				zotDateIndex,
-				fromTime,
-				availabilityDates,
-			);
+				const isSelected =
+					selectedZotDateIndex === zotDateIndex &&
+					selectedBlockIndex === blockIndex;
 
-			const block = selectedDate.groupAvailability[timestamp] || [];
-			const blockColor = isScheduled(timestamp)
-				? "rgba(255, 215, 0, 0.6)" // gold
-				: calculateBlockColor({
-						block,
-						hoveredMember,
-						selectedMembers,
-						numMembers,
-						showBestTimes,
-						maxAvailability,
-					});
+				const timestamp = getTimestampFromBlockIndex(
+					blockIndex,
+					zotDateIndex,
+					fromTime,
+					availabilityDates,
+					timeZone,
+				);
 
-			const tableCellStyles = cn(
-				isTopOfHour ? "border-t-[1px] border-t-gray-medium" : "",
-				isHalfHour ? "border-t-[1px] border-t-gray-base" : "",
-				isLastRow ? "border-b-[1px]" : "",
-				isSelected && !isScheduling
-					? "outline-dashed outline-2 outline-slate-500"
-					: "",
-			);
+				const block = selectedDate.groupAvailability[timestamp] || [];
+				const ifNeededBlock = ifNeededDate?.groupAvailability[timestamp] || [];
+				//console.log(ifNeededBlock, block)
+				const blockColor = calculateBlockColor({
+					block,
+					hoveredMember,
+					selectedMembers,
+					numMembers,
+					showBestTimes,
+					maxAvailability,
+					ifNeededBlock,
+					primaryColor: theme.palette.primary.main,
+				});
+				const blockIsScheduled = isScheduled(timestamp);
 
-			return (
-				<React.Fragment key={key}>
-					{spacers[pageDateIndex] && (
-						<td className="w-3 md:w-4" aria-hidden="true" />
-					)}
-					<td className="px-0 py-0">
-						<GroupAvailabilityBlock
-							className={cn(
-								"group-availability-block block",
-								isScheduling && "cursor-row-resize [touch-action:pinch-zoom]",
-							)}
-							onClick={() =>
-								handleCellClick({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							onHover={() =>
-								handleCellHover({
-									zotDateIndex,
-									blockIndex,
-								})
-							}
-							blockColor={blockColor}
-							tableCellStyles={tableCellStyles}
-							hasSpacerBefore={spacers[pageDateIndex]}
-							dateIndex={zotDateIndex}
-							blockIndex={blockIndex}
-						/>
-					</td>
-				</React.Fragment>
-			);
-		} else {
-			return (
-				// Because these elements are hidden spacers, we consider mouse hovers to be "leaving" the table
-				<React.Fragment key={key}>
-					{spacers[pageDateIndex] && (
-						<td
-							className="w-3 md:w-4"
-							aria-hidden="true"
-							onMouseEnter={onMouseLeave}
-						/>
-					)}
-					<td onMouseEnter={onMouseLeave}></td>
-				</React.Fragment>
-			);
-		}
-	});
+				const prevTimestamp =
+					blockIndex > 0
+						? getTimestampFromBlockIndex(
+								blockIndex - 1,
+								zotDateIndex,
+								fromTime,
+								availabilityDates,
+								timeZone,
+							)
+						: "";
+				const nextTimestamp =
+					blockIndex < availabilityTimeBlocks.length - 1
+						? getTimestampFromBlockIndex(
+								blockIndex + 1,
+								zotDateIndex,
+								fromTime,
+								availabilityDates,
+								timeZone,
+							)
+						: "";
+				const isTopEdge =
+					blockIsScheduled && (!prevTimestamp || !isScheduled(prevTimestamp));
+				const isBottomEdge =
+					blockIsScheduled && (!nextTimestamp || !isScheduled(nextTimestamp));
+
+				const tableCellStyles = cn(
+					isTopOfHour ? "border-t-[1px] border-t-gray-base" : "",
+					isHalfHour
+						? "border-t border-t-gray-base [border-top-style:dotted]"
+						: "",
+					isLastRow ? "border-b-[1px]" : "",
+					isSelected && !isScheduling
+						? "outline-dashed outline-2 outline-slate-500"
+						: "",
+				);
+
+				return (
+					<React.Fragment key={key}>
+						{spacers[pageDateIndex] && (
+							<td className="w-3 md:w-4" aria-hidden="true" />
+						)}
+						<td className={cn("px-0 py-0", isTopEdge && "relative z-[1]")}>
+							<GroupAvailabilityBlock
+								className={cn(
+									"group-availability-block block",
+									isScheduling && "cursor-row-resize [touch-action:pinch-zoom]",
+								)}
+								onClick={() =>
+									handleCellClick({
+										zotDateIndex,
+										blockIndex,
+									})
+								}
+								onHover={() =>
+									handleCellHover({
+										zotDateIndex,
+										blockIndex,
+									})
+								}
+								blockColor={blockColor}
+								isScheduled={blockIsScheduled}
+								isScheduledTopEdge={isTopEdge}
+								isScheduledBottomEdge={isBottomEdge}
+								scheduledMeetingTitle={isTopEdge ? meetingTitle : undefined}
+								scheduledTimeRange={isTopEdge ? scheduledTimeRange : undefined}
+								scheduledBlockCount={
+									isTopEdge ? scheduledBlockCount : undefined
+								}
+								tableCellStyles={tableCellStyles}
+								hasSpacerBefore={spacers[pageDateIndex]}
+								dateIndex={zotDateIndex}
+								blockIndex={blockIndex}
+							/>
+						</td>
+					</React.Fragment>
+				);
+			} else {
+				return (
+					// Because these elements are hidden spacers, we consider mouse hovers to be "leaving" the table
+					<React.Fragment key={key}>
+						{spacers[pageDateIndex] && (
+							<td
+								className="w-3 md:w-4"
+								aria-hidden="true"
+								onMouseEnter={onMouseLeave}
+							/>
+						)}
+						<td onMouseEnter={onMouseLeave}></td>
+					</React.Fragment>
+				);
+			}
+		},
+	);
 }

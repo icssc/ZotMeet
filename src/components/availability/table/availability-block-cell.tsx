@@ -7,23 +7,27 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 interface AvailabilityBlockCellProps {
 	blockIndex: number;
 	isAvailable: boolean;
+	isIfNeeded: boolean;
 	zotDateIndex: number;
 	isTopOfHour: boolean;
 	isHalfHour: boolean;
 	isLastRow: boolean;
 	eventSegments: EventSegment[];
 	hasSpacerBefore?: boolean;
+	showImportPreview?: boolean;
 }
 
 export function AvailabilityBlockCell({
 	blockIndex,
 	isAvailable,
+	isIfNeeded,
 	zotDateIndex,
 	isTopOfHour,
 	isHalfHour,
 	isLastRow,
 	eventSegments,
 	hasSpacerBefore = false,
+	showImportPreview = false,
 }: AvailabilityBlockCellProps) {
 	const selectionState = useAvailabilityStore((state) => state.selectionState);
 
@@ -36,16 +40,18 @@ export function AvailabilityBlockCell({
 				className={cn(
 					"block h-full w-full cursor-row-resize border-gray-medium border-r-[1px] [touch-action:none]",
 					isTopOfHour && "border-t-[1px] border-t-gray-medium",
-					isHalfHour && "border-t-[1px] border-t-gray-base",
+					isHalfHour && "border-top-style:dotted border-t border-t-gray-base",
 					isLastRow && "border-b-[1px]",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
 				)}
 			>
 				<AvailabilityBlock
 					isAvailable={isAvailable}
+					isIfNeeded={isIfNeeded}
 					zotDateIndex={zotDateIndex}
 					blockIndex={blockIndex}
 					selectionState={selectionState}
+					showImportPreview={showImportPreview}
 				/>
 			</button>
 
