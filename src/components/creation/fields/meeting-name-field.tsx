@@ -5,11 +5,13 @@ import type { Dispatch, SetStateAction } from "react";
 interface MeetingNameFieldProps {
 	meetingName: string;
 	setMeetingName: Dispatch<SetStateAction<string>>;
+	onBlur?: () => void;
 }
 
 export function MeetingNameField({
 	meetingName,
 	setMeetingName,
+	onBlur,
 }: MeetingNameFieldProps) {
 	const theme = useTheme();
 	const isSmallUp = useMediaQuery(theme.breakpoints.up("sm"));
@@ -28,6 +30,7 @@ export function MeetingNameField({
 				placeholder="Enter Meeting Name"
 				value={meetingName}
 				onChange={handleChange}
+				onBlur={onBlur}
 				autoFocus
 			/>
 		</div>

@@ -53,13 +53,9 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		});
 	};
 
-	const meetingName = urlState.meetingName;
-	const setMeetingName = (nameOrUpdater: React.SetStateAction<string>) => {
-		const newName =
-			typeof nameOrUpdater === "function"
-				? nameOrUpdater(urlState.meetingName)
-				: nameOrUpdater;
-		void setUrlState({ meetingName: newName });
+	const [meetingName, setMeetingName] = useState(urlState.meetingName);
+	const flushMeetingName = () => {
+		void setUrlState({ meetingName });
 	};
 
 	const meetingLocation = urlState.meetingLocation;
@@ -194,6 +190,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 					<MeetingNameField
 						meetingName={meetingName}
 						setMeetingName={setMeetingName}
+						onBlur={flushMeetingName}
 					/>
 					<div className="flex flex-col md:grid md:grid-cols-2 md:gap-8">
 						<div className="mb-4 flex flex-col gap-y-12">
