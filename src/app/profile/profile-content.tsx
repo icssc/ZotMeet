@@ -1,17 +1,19 @@
 "use client";
 
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import { useThemeMode } from "@/components/theme/theme-provider";
 
 export function ProfileContent() {
 	const { mode, setMode } = useThemeMode();
 
 	return (
-		<div className="px-8 py-8">
-			<h1 className="font-figtree font-medium text-3xl">Profile</h1>
-			<div className="max-w-sm">
-				<p className="mb-2 font-medium">Preferred Display Mode</p>
-
+		<Box>
+			<Typography variant="body1" sx={{ fontWeight: 500, mb: 1 }}>
+				Preferred Display Mode
+			</Typography>
+			<Box sx={{ maxWidth: "24rem" }}>
 				<FormControl fullWidth>
 					<InputLabel id="theme-select-label">Mode</InputLabel>
 					<Select
@@ -27,7 +29,7 @@ export function ProfileContent() {
 						<MenuItem value="system">System</MenuItem>
 					</Select>
 				</FormControl>
-			</div>
-		</div>
+			</Box>
+		</Box>
 	);
 }

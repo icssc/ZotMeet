@@ -329,7 +329,11 @@ function NavUser({ user }: { user: UserProfile | null }) {
 					gap: 1,
 				}}
 			>
-				<Avatar sx={{ width: 32, height: 32 }}>
+				<Avatar
+					src={user.profilePicture ?? undefined}
+					slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+					sx={{ width: 32, height: 32 }}
+				>
 					<Person fontSize="small" />
 				</Avatar>
 				<Typography

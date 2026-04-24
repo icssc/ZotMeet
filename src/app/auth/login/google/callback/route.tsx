@@ -3,11 +3,11 @@ import { decodeIdToken } from "arctic";
 import { and, eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "@/db";
-import { oauthAccounts, users } from "@/db/schema";
+import { members, oauthAccounts } from "@/db/schema";
 import { setSessionTokenCookie } from "@/lib/auth/cookies";
 import { oauth } from "@/lib/auth/oauth";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
-import { createGoogleUser } from "@/lib/auth/user";
+import { createGoogleUser, generateUsername } from "@/lib/auth/user";
 import { convertTimeToUTC } from "@/lib/availability/utils";
 import { availabilityPathWithOpenInvite } from "@/lib/meeting-open-invite";
 import { createMeetingFromData } from "@/server/actions/meeting/create/action";
@@ -61,6 +61,7 @@ export async function GET(request: Request): Promise<Response> {
 		sub: string;
 		name: string;
 		email: string;
+		picture?: string;
 	};
 
 	const oidcAccessToken = tokens.accessToken();
@@ -93,6 +94,7 @@ export async function GET(request: Request): Promise<Response> {
 	const oauthUserId = claims.sub;
 	const username = claims.name;
 	const email = claims.email;
+	const picture = claims.picture ?? null;
 
 	const existingUser = await db.query.users.findFirst({
 		where: (users) => eq(users.email, email),
@@ -135,8 +137,24 @@ export async function GET(request: Request): Promise<Response> {
 			return new Response(null, { status: 500 });
 		}
 		memberId = userRecord.memberId;
+
+		const member = await db.query.members.findFirst({
+			where: eq(members.id, memberId),
+			columns: { googleName: true, username: true },
+		});
+		const backfill: {
+			googleName?: string;
+			username?: string;
+			profilePicture?: string | null;
+		} = {};
+		if (!member?.googleName) backfill.googleName = username;
+		if (!member?.username) backfill.username = await generateUsername(username);
+		if (picture !== null) backfill.profilePicture = picture;
+		if (Object.keys(backfill).length > 0) {
+			await db.update(members).set(backfill).where(eq(members.id, memberId));
+		}
 	} else {
-		const user = await createGoogleUser(oauthUserId, email, username, null);
+		const user = await createGoogleUser(oauthUserId, email, username, picture);
 
 		const sessionToken = generateSessionToken();
 		const session = await createSession(sessionToken, user.id, {

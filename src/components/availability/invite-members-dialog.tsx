@@ -19,6 +19,7 @@ import { useSnackbar } from "@/components/ui/snackbar-provider";
 interface SelectedMember {
 	id: string;
 	email: string;
+	profilePicture: string | null;
 }
 
 interface InviteMembersDialogProps {
@@ -40,7 +41,7 @@ export function InviteMembersDialog({
 	const [members, setMembers] = useState<SelectedMember[]>([]);
 	const [memberQuery, setMemberQuery] = useState("");
 	const [searchResults, setSearchResults] = useState<
-		{ id: string; email: string }[]
+		{ id: string; email: string; profilePicture: string | null }[]
 	>([]);
 	const [meetingLink, setMeetingLink] = useState("");
 	const [copied, setCopied] = useState(false);
@@ -101,9 +102,16 @@ export function InviteMembersDialog({
 	);
 
 	const addMember = useCallback(
-		(user: { id: string; email: string }) => {
+		(user: { id: string; email: string; profilePicture: string | null }) => {
 			if (!members.some((m) => m.id === user.id)) {
-				setMembers((prev) => [...prev, { id: user.id, email: user.email }]);
+				setMembers((prev) => [
+					...prev,
+					{
+						id: user.id,
+						email: user.email,
+						profilePicture: user.profilePicture,
+					},
+				]);
 			}
 			setMemberQuery("");
 			setSearchResults([]);
@@ -184,9 +192,12 @@ export function InviteMembersDialog({
 						renderOption={({ key, ...optionProps }, option) => (
 							<li key={key ?? option.id} {...optionProps}>
 								<div className="flex items-center gap-3">
-									<div className="flex size-8 items-center justify-center rounded-full bg-blue-100 font-medium text-blue-700 text-xs">
+									<Avatar
+										src={option.profilePicture ?? undefined}
+										slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+									>
 										{getInitials(option.email)}
-									</div>
+									</Avatar>
 									<span className="text-sm">{option.email}</span>
 								</div>
 							</li>
@@ -198,7 +209,14 @@ export function InviteMembersDialog({
 							{members.map((member) => (
 								<Chip
 									key={member.id}
-									avatar={<Avatar>{getInitials(member.email)}</Avatar>}
+									avatar={
+										<Avatar
+											src={member.profilePicture ?? undefined}
+											slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+										>
+											{getInitials(member.email)}
+										</Avatar>
+									}
 									label={member.email.split("@")[0]}
 									onDelete={() => removeMember(member.id)}
 									variant="filled"

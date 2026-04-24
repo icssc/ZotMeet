@@ -2,7 +2,7 @@ import "server-only";
 
 import { and, desc, eq, ilike, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { groups, notifications, users } from "@/db/schema";
+import { groups, members, notifications, users } from "@/db/schema";
 
 export async function getUserIdExists(id: string) {
 	const user = await db.query.users.findFirst({
@@ -44,8 +44,10 @@ export async function searchUsersByEmail(
 		.select({
 			id: users.id,
 			email: users.email,
+			profilePicture: members.profilePicture,
 		})
 		.from(users)
+		.innerJoin(members, eq(users.memberId, members.id))
 		.where(and(ilike(users.email, `%${query}%`), ne(users.id, excludeUserId)))
 		.limit(limit);
 }
