@@ -251,6 +251,7 @@ export function GroupResponses({
 									<Avatar
 										alt={member.displayName}
 										src={member.profilePicture ?? undefined}
+										slotProps={{ img: { referrerPolicy: "no-referrer" } }}
 										sx={{ width: 24, height: 24, fontSize: 12 }}
 									/>
 								}
@@ -301,6 +302,7 @@ export function GroupResponses({
 											<Avatar
 												alt={member.displayName}
 												src={member.profilePicture ?? undefined}
+												slotProps={{ img: { referrerPolicy: "no-referrer" } }}
 												sx={{ height: 24, width: 24 }}
 											/>
 										}
