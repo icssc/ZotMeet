@@ -38,16 +38,23 @@ export async function updateUserProfile(data: {
 		}
 	}
 
-	await db
-		.update(members)
-		.set({
-			displayName:
-				data.displayName.trim() || user.googleName || user.displayName,
-			username: trimmedUsername || user.username,
-			year: data.year.trim() || null,
-			school: data.school.trim() || null,
-		})
-		.where(eq(members.id, user.memberId));
+	try {
+		await db
+			.update(members)
+			.set({
+				displayName:
+					data.displayName.trim() || user.googleName || user.displayName,
+				username: trimmedUsername || user.username,
+				year: data.year.trim() || null,
+				school: data.school.trim() || null,
+			})
+			.where(eq(members.id, user.memberId));
+	} catch (e) {
+		if (e instanceof Error && "code" in e && e.code === "23505") {
+			return { success: false, message: "Username is already taken" };
+		}
+		throw e;
+	}
 
 	revalidatePath("/profile");
 	return { success: true, message: "Profile updated" };

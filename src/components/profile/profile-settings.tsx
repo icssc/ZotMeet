@@ -59,6 +59,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 	const [usernameError, setUsernameError] = useState<string | null>(null);
 	const [usernameAvailable, setUsernameAvailable] = useState(false);
 	const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const checkCounterRef = useRef(0);
 	const { showSuccess, showError } = useSnackbar();
 
 	const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,13 +78,16 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 
 		if (!value || value === initial.username) return;
 
+		const counter = ++checkCounterRef.current;
 		debounceRef.current = setTimeout(async () => {
 			const { available } = await checkUsernameAvailability(value);
-			setUsernameAvailable(available);
+			if (counter === checkCounterRef.current) setUsernameAvailable(available);
 		}, 500);
 	};
 
 	const handleDiscard = () => {
+		if (debounceRef.current) clearTimeout(debounceRef.current);
+		checkCounterRef.current++;
 		setDisplayName(initial.displayName);
 		setUsername(initial.username);
 		setYear(initial.year);

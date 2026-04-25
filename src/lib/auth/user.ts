@@ -4,12 +4,14 @@ import { members, oauthAccounts, users } from "@/db/schema";
 
 // Projection of user table for db queries to limit what is returned
 export async function generateUsername(displayName: string): Promise<string> {
-	const base = displayName
+	let base = displayName
 		.toLowerCase()
 		.replace(/\s+/g, ".")
 		.replace(/[^a-z0-9._]/g, "")
 		.replace(/[._]{2,}/g, ".")
 		.replace(/^[._]+|[._]+$/g, "");
+
+	if (!base) base = "user";
 
 	const isTaken = (candidate: string) =>
 		db.query.members.findFirst({
