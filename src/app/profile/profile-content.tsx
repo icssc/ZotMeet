@@ -10,8 +10,8 @@ export function ProfileContent() {
 
 	return (
 		<Box>
-			<Typography variant="body1" sx={{ fontWeight: 500, mb: 1 }}>
-				Preferred Display Mode
+			<Typography variant="h6" sx={{ mb: 2 }}>
+				Appearance
 			</Typography>
 			<Box sx={{ maxWidth: "24rem" }}>
 				<FormControl fullWidth>

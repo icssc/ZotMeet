@@ -2,6 +2,7 @@
 
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { Box } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -11,6 +12,7 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useRef, useState, useTransition } from "react";
+import { ProfileContent } from "@/app/profile/profile-content";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { UserProfile } from "@/lib/auth/user";
 import {
@@ -132,11 +134,11 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 		: user.email.slice(0, 2).toUpperCase();
 
 	return (
-		<Stack direction="row" spacing={6}>
+		<Stack direction={{ xs: "column", md: "row" }} spacing={6}>
 			<Stack
 				alignItems="center"
 				spacing={1.5}
-				sx={{ width: 160, flexShrink: 0 }}
+				sx={{ width: { xs: "100%", md: 160 }, flexShrink: 0 }}
 			>
 				<Avatar
 					src={user.profilePicture ?? undefined}
@@ -150,7 +152,9 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 
 			<Stack sx={{ flex: 1 }} spacing={4}>
 				<Stack spacing={2}>
-					<Typography variant="h6">Profile</Typography>
+					<Typography variant="h6" className="hidden md:block">
+						Profile
+					</Typography>
 					<TextField
 						label="Full Name"
 						required
@@ -195,11 +199,11 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 					</Stack>
 				</Stack>
 
-				<Divider />
+				<Divider className="hidden md:block" />
 
 				<Stack spacing={2}>
 					<Typography variant="h6">About You</Typography>
-					<Stack direction="row" spacing={2}>
+					<Stack spacing={2} direction={{ xs: "column", sm: "row" }}>
 						<Autocomplete
 							sx={{ flex: 1 }}
 							options={UCI_SCHOOLS}
@@ -220,6 +224,10 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 						/>
 					</Stack>
 				</Stack>
+
+				<Box className="mt-8 block md:hidden">
+					<ProfileContent />
+				</Box>
 
 				<Stack direction="row" justifyContent="flex-end" spacing={2}>
 					<Button variant="text" color="primary" onClick={handleDiscard}>

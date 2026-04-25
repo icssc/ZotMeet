@@ -17,18 +17,16 @@ export default async function ProfilePage() {
 
 	return (
 		<Box sx={{ px: 8, py: 8 }}>
-			<Typography
-				variant="h4"
-				sx={{ fontWeight: 600, fontFamily: "Figtree, sans-serif" }}
-			>
+			<Typography variant="h4" className="hidden md:block">
 				Settings
 			</Typography>
 
-			<Box sx={{ mt: 8 }}>
+			<Typography variant="h4" className="block md:hidden">
+				Profile
+			</Typography>
+
+			<Box className="mt-8">
 				<ProfileSettings user={session.user} />
-			</Box>
-			<Box sx={{ mt: 8, display: { md: "none" } }}>
-				<ProfileContent />
 			</Box>
 		</Box>
 	);
