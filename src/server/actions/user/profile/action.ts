@@ -34,7 +34,7 @@ export async function updateUserProfile(data: {
 			columns: { id: true },
 		});
 		if (existing) {
-			return { success: false, message: "Username is already taken" };
+			return { success: false, message: "Username has already been taken" };
 		}
 	}
 
@@ -51,7 +51,7 @@ export async function updateUserProfile(data: {
 			.where(eq(members.id, user.memberId));
 	} catch (e) {
 		if (e instanceof Error && "code" in e && e.code === "23505") {
-			return { success: false, message: "Username is already taken" };
+			return { success: false, message: "Username has already been taken" };
 		}
 		throw e;
 	}
