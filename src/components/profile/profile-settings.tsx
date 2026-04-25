@@ -69,6 +69,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 		if (debounceRef.current) clearTimeout(debounceRef.current);
 
 		if (value && USERNAME_INVALID_CHARS.test(value)) {
+			checkCounterRef.current++;
 			setUsernameError(
 				'Username can only contain the following special characters: "_" and "."',
 			);
@@ -76,7 +77,10 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 		}
 		setUsernameError(null);
 
-		if (!value || value === initial.username) return;
+		if (!value || value === initial.username) {
+			checkCounterRef.current++;
+			return;
+		}
 
 		const counter = ++checkCounterRef.current;
 		debounceRef.current = setTimeout(async () => {
