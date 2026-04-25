@@ -58,16 +58,19 @@ export async function getNotificationsByMemberId(memberId: string) {
 			id: notifications.id,
 			createdAt: notifications.createdAt,
 			memberId: notifications.memberId,
-			createdBy: notifications.createdBy,
+			createdBy: members.displayName,
 			title: notifications.title,
 			type: notifications.type,
 			readAt: notifications.readAt,
 			message: notifications.message,
 			redirect: notifications.redirect,
 			groupIcon: groups.icon,
+			createdByAvatar: members.profilePicture,
 		})
 		.from(notifications)
 		.leftJoin(groups, eq(notifications.groupId, groups.id))
+		.leftJoin(users, eq(notifications.createdBy, users.id))
+		.leftJoin(members, eq(users.memberId, members.id))
 		.where(eq(notifications.memberId, memberId))
 		.orderBy(desc(notifications.createdAt));
 
@@ -81,6 +84,7 @@ export async function createNewNotification(
 	type: string = "info",
 	link: string,
 	groupId?: string | null,
+	createdBy?: string | null,
 ) {
 	if (userIds.length === 0) return;
 
@@ -99,6 +103,7 @@ export async function createNewNotification(
 				type,
 				redirect: link,
 				groupId: groupId ?? null,
+				createdBy: createdBy ?? null,
 			})),
 		)
 		.returning();

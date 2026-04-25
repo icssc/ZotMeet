@@ -57,6 +57,7 @@ export type NotificationItem = {
 	createdAt: Date | null;
 	memberId: string;
 	createdBy: string | null;
+	createdByAvatar: string | null;
 	title: string;
 	type: string;
 	readAt: Date | null;

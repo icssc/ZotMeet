@@ -242,7 +242,12 @@ function Notifications({
 									>
 										<Avatar
 											alt={notif.title || "Group icon"}
-											src={notif.groupIcon || "/icssc-logo.svg"}
+											src={
+												notif.createdByAvatar ||
+												notif.groupIcon ||
+												"/icssc-logo.svg"
+											}
+											slotProps={{ img: { referrerPolicy: "no-referrer" } }}
 										/>
 										<Box sx={{ p: 1 }}>
 											<Typography variant="body1">{notif.title}</Typography>
