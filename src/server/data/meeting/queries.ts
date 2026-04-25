@@ -69,6 +69,7 @@ export const getAllMemberAvailability = async ({
 		meetingAvailabilities: a.meetingAvailabilities,
 		ifNeededAvailabilities: a.ifNeededAvailabilities,
 		displayName: a.member.displayName,
+		profilePicture: a.member.profilePicture,
 	}));
 };
 

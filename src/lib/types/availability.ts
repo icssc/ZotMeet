@@ -25,11 +25,11 @@ export type MemberMeetingAvailability = Pick<
 	SelectAvailability,
 	"memberId" | "meetingAvailabilities" | "ifNeededAvailabilities"
 > &
-	Pick<SelectMember, "displayName">;
+	Pick<SelectMember, "displayName" | "profilePicture">;
 
 export type Member = Pick<
 	MemberMeetingAvailability,
-	"memberId" | "displayName"
+	"memberId" | "displayName" | "profilePicture"
 >;
 
 export interface GoogleCalendarEvent {

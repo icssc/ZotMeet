@@ -413,9 +413,9 @@ export function Availability({
 		];
 
 		const allMembers = new Map(
-			allAvailabilities.map(({ memberId, displayName }) => [
+			allAvailabilities.map(({ memberId, displayName, profilePicture }) => [
 				memberId,
-				{ memberId, displayName },
+				{ memberId, displayName, profilePicture },
 			]),
 		);
 
@@ -434,7 +434,11 @@ export function Availability({
 		() =>
 			allAvailabilities
 				.filter((a) => a.meetingAvailabilities.length === 0)
-				.map(({ memberId, displayName }) => ({ memberId, displayName })),
+				.map(({ memberId, displayName, profilePicture }) => ({
+					memberId,
+					displayName,
+					profilePicture,
+				})),
 		[allAvailabilities],
 	);
 

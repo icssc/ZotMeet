@@ -1,4 +1,4 @@
-import { Button, Chip, Switch, Typography } from "@mui/material/";
+import { Avatar, Button, Chip, Switch, Typography } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -247,7 +247,13 @@ export function GroupResponses({
 							<Chip
 								key={member.memberId}
 								clickable
-								//put pfp here once user settings merged. icon={}
+								icon={
+									<Avatar
+										alt={member.displayName}
+										src={member.profilePicture ?? undefined}
+										sx={{ width: 24, height: 24, fontSize: 12 }}
+									/>
+								}
 								label={member.displayName}
 								color={
 									selectedMembers.includes(member.memberId)
@@ -291,6 +297,13 @@ export function GroupResponses({
 								{pendingMembers.map((member) => (
 									<Chip
 										key={member.memberId}
+										icon={
+											<Avatar
+												alt={member.displayName}
+												src={member.profilePicture ?? undefined}
+												sx={{ height: 24, width: 24 }}
+											/>
+										}
 										label={member.displayName}
 										variant="outlined"
 									/>
