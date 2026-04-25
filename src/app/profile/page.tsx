@@ -1,4 +1,7 @@
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import { notFound, redirect } from "next/navigation";
+import { ProfileSettings } from "@/components/profile/profile-settings";
 import { getCurrentSession } from "@/lib/auth";
 import { ProfileContent } from "./profile-content";
 
@@ -12,5 +15,19 @@ export default async function ProfilePage() {
 		notFound();
 	}
 
-	return <ProfileContent />;
+	return (
+		<Box sx={{ px: 8, py: 8 }}>
+			<Typography variant="h4" className="hidden md:block">
+				Settings
+			</Typography>
+
+			<Typography variant="h4" className="block md:hidden">
+				Profile
+			</Typography>
+
+			<Box className="mt-8">
+				<ProfileSettings user={session.user} />
+			</Box>
+		</Box>
+	);
 }

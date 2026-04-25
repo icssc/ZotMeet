@@ -66,6 +66,8 @@ export async function inviteMeetingMembers(
 			`You've been invited to join "${meeting.title}". Click to view the meeting.`,
 			"Meeting Invite",
 			meetingLink,
+			null,
+			user.id,
 		);
 
 		const invitedUsers = await db
