@@ -74,24 +74,24 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					mb: 4,
 					display: { xs: "flex", sm: "none" },
 					alignItems: "center",
+					width: "100%",
 				}}
 			>
-				<Typography variant="h3">Groups</Typography>
-				<Button
-					type="button"
-					variant="contained"
-					onClick={() => setCreateDialogOpen(true)}
-					sx={{
-						fontSize: "2rem",
-						padding: 0,
-						ml: "auto",
-						minWidth: 0,
-						width: "3rem",
-						height: "3rem",
-					}}
-				>
-					+
-				</Button>
+				<div className="flex w-full min-w-0 items-center">
+					<Typography variant="h3">Groups</Typography>
+
+					<div className="ml-auto shrink-0">
+						<Button
+							type="button"
+							variant="contained"
+							size="square"
+							aria-label="Create group"
+							onClick={() => setCreateDialogOpen(true)}
+						>
+							<Add />
+						</Button>
+					</div>
+				</div>
 			</Box>
 
 			<Box sx={{ display: { xs: "block", sm: "flex" } }}>

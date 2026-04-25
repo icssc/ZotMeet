@@ -3,6 +3,7 @@ import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/cal
 import {
 	AccessTime,
 	CalendarMonth,
+	Close,
 	ContentCopy,
 	LocationOn,
 	Settings,
@@ -39,6 +40,7 @@ interface AvailabilityHeaderProps {
 	setTimezone: (timezone: string) => void;
 	availabilityEditState: Availability;
 	inviteQueryInUrl?: boolean;
+	isMobileAvailabilitySidebarActive?: boolean;
 }
 
 export function AvailabilityHeader({
@@ -52,6 +54,7 @@ export function AvailabilityHeader({
 	setTimezone: _setTimezone,
 	availabilityEditState: _availabilityEditState,
 	inviteQueryInUrl = false,
+	isMobileAvailabilitySidebarActive = false,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
 	const pathname = usePathname();
@@ -61,14 +64,19 @@ export function AvailabilityHeader({
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
-	const { availabilityView, scheduledTimesCount, hasHydratedScheduledTimes } =
-		useAvailabilityStore(
-			useShallow((state) => ({
-				availabilityView: state.availabilityView,
-				scheduledTimesCount: state.scheduledTimes.size,
-				hasHydratedScheduledTimes: state.hasHydratedScheduledTimes,
-			})),
-		);
+	const {
+		availabilityView,
+		scheduledTimesCount,
+		hasHydratedScheduledTimes,
+		setAvailabilityView,
+	} = useAvailabilityStore(
+		useShallow((state) => ({
+			availabilityView: state.availabilityView,
+			scheduledTimesCount: state.scheduledTimes.size,
+			hasHydratedScheduledTimes: state.hasHydratedScheduledTimes,
+			setAvailabilityView: state.setAvailabilityView,
+		})),
+	);
 	const isScheduled = hasHydratedScheduledTimes
 		? scheduledTimesCount > 0
 		: meetingData.scheduled;
@@ -126,10 +134,25 @@ export function AvailabilityHeader({
 					</div>
 
 					{isOwner && (
-						<div className="block sm:hidden">
-							<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
-								<MoreVerticalIcon />
-							</IconButton>
+						<div className="flex sm:hidden">
+							{isMobileAvailabilitySidebarActive ? (
+								<Button
+									type="button"
+									variant="contained"
+									size="square"
+									aria-label="Exit personal availability"
+									onClick={() => setAvailabilityView("group")}
+								>
+									<Close />
+								</Button>
+							) : (
+								<IconButton
+									size="small"
+									onClick={() => setIsEditModalOpen(true)}
+								>
+									<MoreVerticalIcon />
+								</IconButton>
+							)}
 						</div>
 					)}
 				</div>

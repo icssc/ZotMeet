@@ -199,6 +199,20 @@ export const getTheme = (mode: "light" | "dark") =>
 				},
 			},
 			MuiButton: {
+				variants: [
+					{
+						props: { size: "square" },
+						style: {
+							minWidth: 0,
+							padding: 0,
+							width: "3rem",
+							height: "3rem",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+						},
+					},
+				],
 				styleOverrides: {
 					root: {
 						textTransform: "none",
