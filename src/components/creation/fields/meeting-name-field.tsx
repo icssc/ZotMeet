@@ -1,23 +1,22 @@
 import { TextField, useMediaQuery, useTheme } from "@mui/material";
 import type React from "react";
-import type { Dispatch, SetStateAction } from "react";
+import { useState } from "react";
 
 interface MeetingNameFieldProps {
-	meetingName: string;
-	setMeetingName: Dispatch<SetStateAction<string>>;
-	onBlur?: () => void;
+	initialValue: string;
+	onBlur: (value: string) => void;
 }
 
 export function MeetingNameField({
-	meetingName,
-	setMeetingName,
+	initialValue,
 	onBlur,
 }: MeetingNameFieldProps) {
+	const [value, setValue] = useState(initialValue);
 	const theme = useTheme();
 	const isSmallUp = useMediaQuery(theme.breakpoints.up("sm"));
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setMeetingName(e.target.value);
+		setValue(e.target.value);
 	};
 
 	return (
@@ -28,9 +27,9 @@ export function MeetingNameField({
 				variant={isSmallUp ? "standard" : "outlined"}
 				size="medium"
 				placeholder="Enter Meeting Name"
-				value={meetingName}
+				value={value}
 				onChange={handleChange}
-				onBlur={onBlur}
+				onBlur={() => onBlur(value)}
 				autoFocus
 			/>
 		</div>
