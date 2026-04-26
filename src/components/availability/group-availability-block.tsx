@@ -8,10 +8,10 @@ interface GroupAvailabilityBlockProps {
 	tableCellStyles?: string;
 	onClick: VoidFunction;
 	onHover?: VoidFunction;
-	onPointerDown?: (e: React.PointerEvent) => void;
-	onPointerMove?: (e: React.PointerEvent) => void;
-	onPointerUp?: (e: React.PointerEvent) => void;
-	onPointerCancel?: (e: React.PointerEvent) => void;
+	onPointerDown?: React.PointerEventHandler<HTMLElement>;
+	onPointerMove?: React.PointerEventHandler<HTMLElement>;
+	onPointerUp?: React.PointerEventHandler<HTMLElement>;
+	onPointerCancel?: React.PointerEventHandler<HTMLElement>;
 	blockColor: string;
 	hasSpacerBefore?: boolean;
 	isScheduled?: boolean;
