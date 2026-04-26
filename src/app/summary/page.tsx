@@ -1,13 +1,9 @@
-import { Add } from "@mui/icons-material";
-import { Button } from "@mui/material";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-// import { GroupsDisplay } from "@/components/summary/GroupsDisplay";
 import { Meetings } from "@/components/summary/meetings";
 import { getCurrentSession } from "@/lib/auth";
 import {
 	getMeetings,
-	getScheduledTimeBlocks,
+	getResponderCountsByMeetingIds,
 } from "@/server/data/meeting/queries";
 
 export default async function Page() {
@@ -22,24 +18,15 @@ export default async function Page() {
 	}
 
 	const meetings = await getMeetings(memberId);
-	// Fetch scheduled time blocks for each meeting
-	const scheduledTimeBlocksByMeetingId = Object.fromEntries(
-		await Promise.all(
-			meetings.map(async (meeting) => {
-				const blocks = meeting.scheduled
-					? await getScheduledTimeBlocks(meeting.id)
-					: [];
-				return [meeting.id, blocks] as const;
-			}),
-		),
-	);
+	const meetingIds = meetings.map((m) => m.id);
+	const meetingCounts = await getResponderCountsByMeetingIds(meetingIds);
 
 	return (
-		<div className="px-8 py-8">
+		<div className="px-4 py-8 sm:px-8">
 			<Meetings
 				meetings={meetings}
 				userId={memberId}
-				scheduledTimeBlocksByMeetingId={scheduledTimeBlocksByMeetingId}
+				meetingCounts={meetingCounts}
 			/>
 		</div>
 	);

@@ -1,6 +1,15 @@
 import "server-only";
 
-import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
+import {
+	and,
+	countDistinct,
+	desc,
+	eq,
+	inArray,
+	ne,
+	or,
+	sql,
+} from "drizzle-orm";
 import { db } from "@/db";
 import {
 	availabilities,
@@ -95,8 +104,10 @@ export async function getMeetings(memberId: string) {
 			createdAt: meetings.createdAt,
 			archived: meetings.archived,
 			meetingType: meetings.meetingType,
+			hostDisplayName: members.displayName,
 		})
 		.from(meetings)
+		.leftJoin(members, eq(meetings.hostId, members.id))
 		.where(
 			and(
 				eq(meetings.archived, false),
@@ -108,6 +119,27 @@ export async function getMeetings(memberId: string) {
 		);
 
 	return userMeetings;
+}
+
+export async function getResponderCountsByMeetingIds(
+	meetingIds: string[],
+): Promise<Record<string, number>> {
+	if (meetingIds.length === 0) {
+		return {};
+	}
+
+	const rows = await db
+		.select({
+			meetingId: availabilities.meetingId,
+			respondedCount: countDistinct(availabilities.memberId),
+		})
+		.from(availabilities)
+		.where(inArray(availabilities.meetingId, meetingIds))
+		.groupBy(availabilities.meetingId);
+
+	return Object.fromEntries(
+		rows.map((row) => [row.meetingId, Number(row.respondedCount)]),
+	);
 }
 
 /**
