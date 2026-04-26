@@ -672,85 +672,142 @@ export function Availability({
 							console.log("GRAVEERROR");
 							return;
 						}
-						const ref =
-							availabilitySelectionMode === "available"
-								? availabilityDates
-								: ifNeededDates;
-						const otherRef =
-							availabilitySelectionMode === "available"
-								? ifNeededDates
-								: availabilityDates;
-						const startZotDate = ref[startBlockSelection.zotDateIndex];
-						const toggleValue = !startZotDate.getBlockAvailability(
-							startBlockSelection.blockIndex,
-						);
-						const updatedDates = ref.map((d) => d.clone());
-						const updatedOtherDates = otherRef.map((d) => d.clone());
-
-						for (
-							let dateIndex = earlierDateIndex;
-							dateIndex <= laterDateIndex;
-							dateIndex++
-						) {
-							const currentDate = updatedDates[dateIndex];
-							const otherDate = updatedOtherDates[dateIndex];
-							currentDate.setBlockAvailabilities(
-								earlierBlockIndex,
-								laterBlockIndex,
-								toggleValue,
+						if (availabilitySelectionMode === "unavailable") {
+							const updatedAvailabilityDates = availabilityDates.map((d) =>
+								d.clone(),
 							);
-							if (toggleValue && otherDate) {
-								// Clear the same range from the other array
-								otherDate.setBlockAvailabilities(
+							const updatedIfNeededDates = ifNeededDates.map((d) => d.clone());
+
+							for (
+								let dateIndex = earlierDateIndex;
+								dateIndex <= laterDateIndex;
+								dateIndex++
+							) {
+								const availableDate = updatedAvailabilityDates[dateIndex];
+								const ifNeededDate = updatedIfNeededDates[dateIndex];
+								availableDate.setBlockAvailabilities(
 									earlierBlockIndex,
 									laterBlockIndex,
 									false,
 								);
-							}
-
-							for (
-								let blockI = earlierBlockIndex;
-								blockI <= laterBlockIndex;
-								blockI++
-							) {
-								const timestamp = getTimestampFromBlockIndex(
-									blockI,
-									dateIndex,
-									fromTimeMinutes,
-									availabilityDates,
-									userTimezone,
+								ifNeededDate.setBlockAvailabilities(
+									earlierBlockIndex,
+									laterBlockIndex,
+									false,
 								);
 
-								if (!currentDate.groupAvailability[timestamp]) {
-									currentDate.groupAvailability[timestamp] = [];
-								}
-
-								if (toggleValue) {
-									if (
-										!currentDate.groupAvailability[timestamp].includes(memberId)
-									) {
-										currentDate.groupAvailability[timestamp].push(memberId);
-									}
-									if (otherDate?.groupAvailability[timestamp]) {
-										otherDate.groupAvailability[timestamp] =
-											otherDate.groupAvailability[timestamp].filter(
+								for (
+									let blockI = earlierBlockIndex;
+									blockI <= laterBlockIndex;
+									blockI++
+								) {
+									const timestamp = getTimestampFromBlockIndex(
+										blockI,
+										dateIndex,
+										fromTimeMinutes,
+										availabilityDates,
+										userTimezone,
+									);
+									if (availableDate.groupAvailability[timestamp]) {
+										availableDate.groupAvailability[timestamp] =
+											availableDate.groupAvailability[timestamp].filter(
 												(id) => id !== memberId,
 											);
 									}
-								} else {
-									currentDate.groupAvailability[timestamp] =
-										currentDate.groupAvailability[timestamp].filter(
-											(id) => id !== memberId,
-										);
+									if (ifNeededDate.groupAvailability[timestamp]) {
+										ifNeededDate.groupAvailability[timestamp] =
+											ifNeededDate.groupAvailability[timestamp].filter(
+												(id) => id !== memberId,
+											);
+									}
 								}
 							}
-						}
 
-						handleUserAvailabilityChange(updatedDates);
-						if (availabilitySelectionMode === "available") {
-							setIfNeededDates(updatedOtherDates);
+							setAvailabilityDates(updatedAvailabilityDates);
+							setIfNeededDates(updatedIfNeededDates);
 						} else {
-							setAvailabilityDates(updatedOtherDates);
+							const ref =
+								availabilitySelectionMode === "available"
+									? availabilityDates
+									: ifNeededDates;
+							const otherRef =
+								availabilitySelectionMode === "available"
+									? ifNeededDates
+									: availabilityDates;
+							const startZotDate = ref[startBlockSelection.zotDateIndex];
+							const toggleValue = !startZotDate.getBlockAvailability(
+								startBlockSelection.blockIndex,
+							);
+							const updatedDates = ref.map((d) => d.clone());
+							const updatedOtherDates = otherRef.map((d) => d.clone());
+
+							for (
+								let dateIndex = earlierDateIndex;
+								dateIndex <= laterDateIndex;
+								dateIndex++
+							) {
+								const currentDate = updatedDates[dateIndex];
+								const otherDate = updatedOtherDates[dateIndex];
+								currentDate.setBlockAvailabilities(
+									earlierBlockIndex,
+									laterBlockIndex,
+									toggleValue,
+								);
+								if (toggleValue && otherDate) {
+									// Clear the same range from the other array
+									otherDate.setBlockAvailabilities(
+										earlierBlockIndex,
+										laterBlockIndex,
+										false,
+									);
+								}
+
+								for (
+									let blockI = earlierBlockIndex;
+									blockI <= laterBlockIndex;
+									blockI++
+								) {
+									const timestamp = getTimestampFromBlockIndex(
+										blockI,
+										dateIndex,
+										fromTimeMinutes,
+										availabilityDates,
+										userTimezone,
+									);
+
+									if (!currentDate.groupAvailability[timestamp]) {
+										currentDate.groupAvailability[timestamp] = [];
+									}
+
+									if (toggleValue) {
+										if (
+											!currentDate.groupAvailability[timestamp].includes(
+												memberId,
+											)
+										) {
+											currentDate.groupAvailability[timestamp].push(memberId);
+										}
+										if (otherDate?.groupAvailability[timestamp]) {
+											otherDate.groupAvailability[timestamp] =
+												otherDate.groupAvailability[timestamp].filter(
+													(id) => id !== memberId,
+												);
+										}
+									} else {
+										currentDate.groupAvailability[timestamp] =
+											currentDate.groupAvailability[timestamp].filter(
+												(id) => id !== memberId,
+											);
+									}
+								}
+							}
+
+							handleUserAvailabilityChange(updatedDates);
+							if (availabilitySelectionMode === "available") {
+								setIfNeededDates(updatedOtherDates);
+							} else {
+								setAvailabilityDates(updatedOtherDates);
+							}
 						}
 					}
 				}
