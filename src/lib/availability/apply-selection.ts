@@ -109,9 +109,10 @@ export function applyPersonalSelection(args: {
 					].filter((id) => id !== memberId);
 				}
 			} else {
-				currentDate.groupAvailability[timestamp] = currentDate.groupAvailability[
-					timestamp
-				].filter((id) => id !== memberId);
+				currentDate.groupAvailability[timestamp] =
+					currentDate.groupAvailability[timestamp].filter(
+						(id) => id !== memberId,
+					);
 			}
 		}
 	}

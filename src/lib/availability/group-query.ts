@@ -22,13 +22,8 @@ export function computeGroupMembersForRange(args: {
 	fromTimeMinutes: number;
 	timeZone: string;
 }): { availableMemberIds: string[]; ifNeededMemberIds: string[] } {
-	const {
-		range,
-		availabilityDates,
-		ifNeededDates,
-		fromTimeMinutes,
-		timeZone,
-	} = args;
+	const { range, availabilityDates, ifNeededDates, fromTimeMinutes, timeZone } =
+		args;
 
 	let availableAcc: Set<string> | null = null;
 	let ifNeededAcc: Set<string> | null = null;

@@ -71,8 +71,6 @@ export const GroupAvailabilityBlock = memo(
 				<div
 					className="pointer-events-none block h-full w-full py-2"
 					style={{ background: blockColor }}
-					data-date-index={dateIndex}
-					data-block-index={blockIndex}
 				/>
 				{isScheduled && (
 					<svg

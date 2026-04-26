@@ -115,74 +115,76 @@ export function useGridDragSelection(
 		captureTargetRef.current = null;
 	}, []);
 
-	const onPointerDown = useCallback<
-		React.PointerEventHandler<HTMLElement>
-	>((event) => {
-		const { enabled = true } = optsRef.current;
-		if (!enabled) return;
-		const target = event.currentTarget;
-		const cell = readCellFromElement(target);
-		if (!cell) return;
+	const onPointerDown = useCallback<React.PointerEventHandler<HTMLElement>>(
+		(event) => {
+			const { enabled = true } = optsRef.current;
+			if (!enabled) return;
+			const target = event.currentTarget;
+			const cell = readCellFromElement(target);
+			if (!cell) return;
 
-		try {
-			target.setPointerCapture(event.pointerId);
-		} catch {
-			// Ignore: some browsers throw if the pointer is already captured elsewhere.
-		}
-
-		activePointerIdRef.current = event.pointerId;
-		startCellRef.current = cell;
-		endCellRef.current = cell;
-		startXYRef.current = { x: event.clientX, y: event.clientY };
-		movedPastThresholdRef.current = false;
-		captureTargetRef.current = target;
-
-		optsRef.current.onDragStart?.(cell);
-		const lock = optsRef.current.lockToStartRow ?? false;
-		const range = buildRange(cell, cell, lock);
-		optsRef.current.onDragUpdate?.(range, { start: cell, end: cell });
-	}, []);
-
-	const onPointerMove = useCallback<
-		React.PointerEventHandler<HTMLElement>
-	>((event) => {
-		const { enabled = true } = optsRef.current;
-		if (!enabled) return;
-		if (activePointerIdRef.current !== event.pointerId) return;
-		const start = startCellRef.current;
-		if (!start) return;
-
-		if (!movedPastThresholdRef.current && startXYRef.current) {
-			const dx = event.clientX - startXYRef.current.x;
-			const dy = event.clientY - startXYRef.current.y;
-			const threshold = optsRef.current.tapThreshold ?? 3;
-			if (Math.hypot(dx, dy) > threshold) {
-				movedPastThresholdRef.current = true;
+			try {
+				target.setPointerCapture(event.pointerId);
+			} catch {
+				// Ignore: some browsers throw if the pointer is already captured elsewhere.
 			}
-		}
 
-		const hit = readCellFromElement(
-			document.elementFromPoint(event.clientX, event.clientY),
-		);
-		if (!hit) return;
+			activePointerIdRef.current = event.pointerId;
+			startCellRef.current = cell;
+			endCellRef.current = cell;
+			startXYRef.current = { x: event.clientX, y: event.clientY };
+			movedPastThresholdRef.current = false;
+			captureTargetRef.current = target;
 
-		const lock = optsRef.current.lockToStartRow ?? false;
-		const clampedEnd: GridCell = lock
-			? { zotDateIndex: start.zotDateIndex, blockIndex: hit.blockIndex }
-			: hit;
+			optsRef.current.onDragStart?.(cell);
+			const lock = optsRef.current.lockToStartRow ?? false;
+			const range = buildRange(cell, cell, lock);
+			optsRef.current.onDragUpdate?.(range, { start: cell, end: cell });
+		},
+		[],
+	);
 
-		const prevEnd = endCellRef.current;
-		if (
-			prevEnd &&
-			prevEnd.zotDateIndex === clampedEnd.zotDateIndex &&
-			prevEnd.blockIndex === clampedEnd.blockIndex
-		) {
-			return;
-		}
-		endCellRef.current = clampedEnd;
-		const range = buildRange(start, clampedEnd, lock);
-		optsRef.current.onDragUpdate?.(range, { start, end: clampedEnd });
-	}, []);
+	const onPointerMove = useCallback<React.PointerEventHandler<HTMLElement>>(
+		(event) => {
+			const { enabled = true } = optsRef.current;
+			if (!enabled) return;
+			if (activePointerIdRef.current !== event.pointerId) return;
+			const start = startCellRef.current;
+			if (!start) return;
+
+			if (!movedPastThresholdRef.current && startXYRef.current) {
+				const dx = event.clientX - startXYRef.current.x;
+				const dy = event.clientY - startXYRef.current.y;
+				const threshold = optsRef.current.tapThreshold ?? 3;
+				if (Math.hypot(dx, dy) > threshold) {
+					movedPastThresholdRef.current = true;
+				}
+			}
+
+			const hit = readCellFromElement(
+				document.elementFromPoint(event.clientX, event.clientY),
+			);
+			if (!hit) return;
+
+			const lock = optsRef.current.lockToStartRow ?? false;
+			const clampedEnd: GridCell = lock
+				? { zotDateIndex: start.zotDateIndex, blockIndex: hit.blockIndex }
+				: hit;
+
+			const prevEnd = endCellRef.current;
+			if (
+				prevEnd &&
+				prevEnd.zotDateIndex === clampedEnd.zotDateIndex &&
+				prevEnd.blockIndex === clampedEnd.blockIndex
+			) {
+				return;
+			}
+			endCellRef.current = clampedEnd;
+			const range = buildRange(start, clampedEnd, lock);
+			optsRef.current.onDragUpdate?.(range, { start, end: clampedEnd });
+		},
+		[],
+	);
 
 	const onPointerUp = useCallback<React.PointerEventHandler<HTMLElement>>(
 		(event) => {
@@ -205,9 +207,7 @@ export function useGridDragSelection(
 		[resetState],
 	);
 
-	const onPointerCancel = useCallback<
-		React.PointerEventHandler<HTMLElement>
-	>(
+	const onPointerCancel = useCallback<React.PointerEventHandler<HTMLElement>>(
 		(event) => {
 			if (activePointerIdRef.current !== event.pointerId) return;
 			const target = captureTargetRef.current ?? event.currentTarget;
