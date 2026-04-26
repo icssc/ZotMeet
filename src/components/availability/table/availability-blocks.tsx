@@ -41,9 +41,7 @@ export function AvailabilityBlocks({
 			itemsPerPage: state.itemsPerPage,
 		})),
 	);
-	const importPreviewIsoSet = useAvailabilityStore(
-		(s) => s.importPreviewIsoSet,
-	);
+	const importPreview = useAvailabilityStore((s) => s.importPreview);
 
 	const isTopOfHour = timeBlock % 60 === 0;
 	const isHalfHour = timeBlock % 60 === 30;
@@ -80,8 +78,12 @@ export function AvailabilityBlocks({
 							availabilityDates,
 							timeZone,
 						);
-						const showImportPreview =
-							Boolean(slotIso) && Boolean(importPreviewIsoSet?.has(slotIso));
+						const importPreviewType =
+							slotIso && importPreview?.ifNeededIsoSet.has(slotIso)
+								? "if-needed"
+								: slotIso && importPreview?.availableIsoSet.has(slotIso)
+									? "available"
+									: null;
 
 						return (
 							<React.Fragment key={key}>
@@ -98,7 +100,7 @@ export function AvailabilityBlocks({
 									isLastRow={isLastRow}
 									eventSegments={segmentsForCell}
 									hasSpacerBefore={spacers[pageDateIndex]}
-									showImportPreview={showImportPreview}
+									importPreviewType={importPreviewType}
 								/>
 							</React.Fragment>
 						);

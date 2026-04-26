@@ -141,7 +141,20 @@ export function PersonalAvailabilitySidebar({
 				[...raw.meetingAvailabilities, ...raw.ifNeededAvailabilities],
 				importGridIsoSet,
 			);
-			setImportPreview(filtered.length ? filtered : null);
+			if (filtered.length === 0) {
+				setImportPreview(null);
+				return;
+			}
+			setImportPreview({
+				availableIsoStrings: filterTimestampsToMeetingGrid(
+					raw.meetingAvailabilities,
+					importGridIsoSet,
+				),
+				ifNeededIsoStrings: filterTimestampsToMeetingGrid(
+					raw.ifNeededAvailabilities,
+					importGridIsoSet,
+				),
+			});
 		},
 		[importGridIsoSet, setImportPreview],
 	);

@@ -14,7 +14,7 @@ interface AvailabilityBlockCellProps {
 	isLastRow: boolean;
 	eventSegments: EventSegment[];
 	hasSpacerBefore?: boolean;
-	showImportPreview?: boolean;
+	importPreviewType?: "available" | "if-needed" | null;
 }
 
 export function AvailabilityBlockCell({
@@ -27,7 +27,7 @@ export function AvailabilityBlockCell({
 	isLastRow,
 	eventSegments,
 	hasSpacerBefore = false,
-	showImportPreview = false,
+	importPreviewType = null,
 }: AvailabilityBlockCellProps) {
 	const selectionState = useAvailabilityStore((state) => state.selectionState);
 
@@ -51,7 +51,7 @@ export function AvailabilityBlockCell({
 					zotDateIndex={zotDateIndex}
 					blockIndex={blockIndex}
 					selectionState={selectionState}
-					showImportPreview={showImportPreview}
+					importPreviewType={importPreviewType}
 				/>
 			</button>
 
