@@ -2,10 +2,8 @@ import { Avatar, Button, Chip, Switch, Typography } from "@mui/material/";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
-import {
-	getTimestampFromBlockIndex,
-	newZonedPageAvailAndDates,
-} from "@/lib/availability/utils";
+import { computeGroupMembersForRange } from "@/lib/availability/group-query";
+import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
 import type { Member } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -40,10 +38,14 @@ export function GroupResponses({
 		availabilityDates,
 		doesntNeedDay,
 	);
+	const [_newIfNeededBlocks, newIfNeededDates] = newZonedPageAvailAndDates(
+		currentPageAvailability["ifNeeded"],
+		availabilityDates,
+		doesntNeedDay,
+	);
 
 	const {
-		selectedZotDateIndex,
-		selectedBlockIndex,
+		committedRange,
 		isMobileDrawerOpen,
 		setIsMobileDrawerOpen,
 		setHoveredMember,
@@ -55,8 +57,7 @@ export function GroupResponses({
 		setEnabled: setShowBestTimes,
 	} = useAvailabilityStore(
 		useShallow((state) => ({
-			selectedZotDateIndex: state.selectedZotDateIndex,
-			selectedBlockIndex: state.selectedBlockIndex,
+			committedRange: state.committedRange,
 			isMobileDrawerOpen: state.isMobileDrawerOpen,
 			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
 			setHoveredMember: state.setHoveredMember,
@@ -92,48 +93,33 @@ export function GroupResponses({
 	);
 
 	const { availableMembers } = useMemo(() => {
-		if (
-			selectedZotDateIndex === undefined ||
-			selectedBlockIndex === undefined
-		) {
+		if (!committedRange) {
 			return {
-				availableMembers: [],
-				ifNeededMembers: [],
+				availableMembers: [] as Member[],
+				ifNeededMembers: [] as Member[],
 			};
 		}
-		const selectedDate = newAvailDates[selectedZotDateIndex];
-		const timestamp = getTimestampFromBlockIndex(
-			selectedBlockIndex,
-			selectedZotDateIndex,
-			fromTime,
-			newAvailDates,
-			timezone,
-		);
-
-		const availableMemberIds = selectedDate.groupAvailability[timestamp] || [];
-		const [_ifNeededBlocks, newIfNeededDates] = newZonedPageAvailAndDates(
-			currentPageAvailability["ifNeeded"],
-			availabilityDates,
-			doesntNeedDay,
-		);
-		const ifNeededDate = newIfNeededDates[selectedZotDateIndex];
-		const ifNeededMemberIds = ifNeededDate?.groupAvailability[timestamp] || [];
-
+		const { availableMemberIds, ifNeededMemberIds } =
+			computeGroupMembersForRange({
+				range: committedRange,
+				availabilityDates: newAvailDates,
+				ifNeededDates: newIfNeededDates,
+				fromTimeMinutes: fromTime,
+				timeZone: timezone,
+			});
+		const byId = new Map(members.map((m) => [m.memberId, m]));
 		return {
-			availableMembers: members.filter((member) =>
-				availableMemberIds.includes(member.memberId),
-			),
-			ifNeededMembers: members.filter((m) =>
-				ifNeededMemberIds.includes(m.memberId),
-			),
+			availableMembers: availableMemberIds
+				.map((id) => byId.get(id))
+				.filter((m): m is Member => Boolean(m)),
+			ifNeededMembers: ifNeededMemberIds
+				.map((id) => byId.get(id))
+				.filter((m): m is Member => Boolean(m)),
 		};
 	}, [
-		selectedZotDateIndex,
-		selectedBlockIndex,
+		committedRange,
 		newAvailDates,
-		currentPageAvailability,
-		availabilityDates,
-		doesntNeedDay,
+		newIfNeededDates,
 		fromTime,
 		timezone,
 		members,
@@ -145,33 +131,35 @@ export function GroupResponses({
 	}, [members, pendingMembers]);
 
 	useEffect(() => {
-		if (
-			selectedZotDateIndex !== undefined &&
-			selectedBlockIndex !== undefined
-		) {
-			const displayDate = newAvailDates[selectedZotDateIndex].day;
-
-			const formattedDate = displayDate.toLocaleDateString("en-US", {
-				month: "short",
-				day: "numeric",
-			});
-
-			const earliestTime = newAvailDates[selectedZotDateIndex].earliestTime;
-			const blockLength = newAvailDates[selectedZotDateIndex].blockLength;
-
-			const startTime = ZotDate.toTimeBlockString(
-				earliestTime + selectedBlockIndex * blockLength,
-				false,
-			);
-			const endTime = ZotDate.toTimeBlockString(
-				earliestTime + selectedBlockIndex * blockLength + blockLength,
-				false,
-			);
-			setBlockInfoString(`${formattedDate}, ${startTime} - ${endTime}`);
-		} else {
+		if (!committedRange) {
 			setBlockInfoString("Select a cell to view");
+			return;
 		}
-	}, [selectedZotDateIndex, selectedBlockIndex, newAvailDates]);
+		const startDay = newAvailDates[committedRange.earlierDateIndex]?.day;
+		const endDay = newAvailDates[committedRange.laterDateIndex]?.day;
+		const reference = newAvailDates[committedRange.earlierDateIndex];
+		if (!startDay || !endDay || !reference) {
+			setBlockInfoString("Select a cell to view");
+			return;
+		}
+		const fmtDay = (d: Date) =>
+			d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+		const earliestTime = reference.earliestTime;
+		const blockLength = reference.blockLength;
+		const startTime = ZotDate.toTimeBlockString(
+			earliestTime + committedRange.earlierBlockIndex * blockLength,
+			false,
+		);
+		const endTime = ZotDate.toTimeBlockString(
+			earliestTime + (committedRange.laterBlockIndex + 1) * blockLength,
+			false,
+		);
+		const dayPart =
+			committedRange.earlierDateIndex === committedRange.laterDateIndex
+				? fmtDay(startDay)
+				: `${fmtDay(startDay)} - ${fmtDay(endDay)}`;
+		setBlockInfoString(`${dayPart}, ${startTime} - ${endTime}`);
+	}, [committedRange, newAvailDates]);
 
 	return (
 		<div className="flex min-h-0 min-w-0 flex-1 flex-col lg:shrink-0">
