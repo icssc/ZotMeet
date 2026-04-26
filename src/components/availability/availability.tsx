@@ -2,7 +2,6 @@
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { Paper } from "@mui/material";
-import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -18,8 +17,13 @@ import { AvailabilityTimeTicks } from "@/components/availability/table/availabil
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
+import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { UserProfile } from "@/lib/auth/user";
+import {
+	applyPersonalSelection,
+	applyScheduleSelection,
+} from "@/lib/availability/apply-selection";
 
 import {
 	buildMeetingGridIsoSet,
@@ -27,7 +31,6 @@ import {
 	convertTimeFromUTC,
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
-	getTimestampFromBlockIndex,
 	mergeImportedGridSlots,
 } from "@/lib/availability/utils";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
@@ -35,6 +38,7 @@ import { getBestTimeRanges } from "@/lib/rooms/utils";
 import type {
 	GoogleCalendarEvent,
 	MemberMeetingAvailability,
+	SelectionStateType,
 } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import {
@@ -340,10 +344,8 @@ export function Availability({
 		(updatedDates: ZotDate[]) => {
 			if (availabilitySelectionMode === "available") {
 				setAvailabilityDates(updatedDates);
-				console.log("s");
 			} else if (availabilitySelectionMode === "if-needed") {
 				setIfNeededDates(updatedDates);
-				console.log("dat");
 			}
 		},
 		[availabilitySelectionMode],
@@ -494,51 +496,14 @@ export function Availability({
 		useAvailabilityStore.getState().hydrateScheduledTimes(timestamps);
 	}, [scheduledBlocks]);
 
-	// Drag selection for group and schedule views
-	const {
-		startBlockSelection,
-		endBlockSelection,
-		setStartBlockSelection,
-		setEndBlockSelection,
-		setSelectionState,
-	} = useAvailabilityStore(
-		useShallow((state) => ({
-			startBlockSelection: state.startBlockSelection,
-			endBlockSelection: state.endBlockSelection,
-			setStartBlockSelection: state.setStartBlockSelection,
-			setEndBlockSelection: state.setEndBlockSelection,
-			setSelectionState: state.setSelectionState,
-		})),
+	// Drag commit plumbing: the drag primitive lives in each grid component.
+	// Here we only build the pure-function commit callbacks and thread them down.
+	const setSelectionState = useAvailabilityStore(
+		(state) => state.setSelectionState,
 	);
-
-	const { replaceEntireSelection } = useAvailabilityStore(
-		useShallow((state) => ({
-			replaceEntireSelection: state.replaceEntireSelection,
-		})),
+	const replaceEntireSelection = useAvailabilityStore(
+		(state) => state.replaceEntireSelection,
 	);
-
-	useEffect(() => {
-		if (startBlockSelection && endBlockSelection) {
-			setSelectionState({
-				earlierDateIndex: Math.min(
-					startBlockSelection.zotDateIndex,
-					endBlockSelection.zotDateIndex,
-				),
-				laterDateIndex: Math.max(
-					startBlockSelection.zotDateIndex,
-					endBlockSelection.zotDateIndex,
-				),
-				earlierBlockIndex: Math.min(
-					startBlockSelection.blockIndex,
-					endBlockSelection.blockIndex,
-				),
-				laterBlockIndex: Math.max(
-					startBlockSelection.blockIndex,
-					endBlockSelection.blockIndex,
-				),
-			});
-		}
-	}, [startBlockSelection, endBlockSelection, setSelectionState]);
 
 	//currently unused as we only have console log for now
 	const [_studyRooms, setStudyRooms] = useState<any[]>([]);
@@ -570,203 +535,56 @@ export function Availability({
 		fetchRooms();
 	}, [bestTimeRanges]);
 
-	// Helper to get block info from pointer position
-	const getBlockAtPosition = useCallback((x: number, y: number) => {
-		const elements = document.elementsFromPoint(x, y);
-		for (const element of elements) {
-			if (
-				element.hasAttribute("data-date-index") &&
-				element.hasAttribute("data-block-index")
-			) {
-				const zotDateIndex = parseInt(
-					element.getAttribute("data-date-index") || "",
-					10,
-				);
-				const blockIndex = parseInt(
-					element.getAttribute("data-block-index") || "",
-					10,
-				);
-
-				if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIndex)) {
-					return { zotDateIndex, blockIndex };
-				}
-			}
-		}
-		return null;
-	}, []);
-
-	// Drag gesture for overdragging across cells
-	const bind = useDrag(
-		({ first, last, xy: [x, y], event, cancel }) => {
-			event?.preventDefault();
-
-			const blockInfo = getBlockAtPosition(x, y);
-
-			if (first) {
-				if (!blockInfo) {
-					cancel();
-					return;
-				}
-				const { zotDateIndex, blockIndex } = blockInfo;
-				setStartBlockSelection({ zotDateIndex, blockIndex });
-				setEndBlockSelection({ zotDateIndex, blockIndex });
-			} else if (last) {
-				const { startBlockSelection, endBlockSelection } =
-					useAvailabilityStore.getState();
-				if (startBlockSelection && endBlockSelection) {
-					const earlierDateIndex = Math.min(
-						startBlockSelection.zotDateIndex,
-						endBlockSelection.zotDateIndex,
-					);
-					const laterDateIndex = Math.max(
-						startBlockSelection.zotDateIndex,
-						endBlockSelection.zotDateIndex,
-					);
-					const earlierBlockIndex = Math.min(
-						startBlockSelection.blockIndex,
-						endBlockSelection.blockIndex,
-					);
-					const laterBlockIndex = Math.max(
-						startBlockSelection.blockIndex,
-						endBlockSelection.blockIndex,
-					);
-
-					if (availabilityView === "schedule") {
-						const day = startBlockSelection.zotDateIndex;
-						const timestamps: string[] = [];
-						for (
-							let blockI = earlierBlockIndex;
-							blockI <= laterBlockIndex;
-							blockI++
-						) {
-							const timestamp = getTimestampFromBlockIndex(
-								blockI,
-								day,
-								fromTimeMinutes,
-								availabilityDates,
-								userTimezone,
-							);
-							if (timestamp) timestamps.push(timestamp);
-						}
-
-						if (timestamps.length > 0) {
-							replaceEntireSelection(timestamps);
-						}
-					} else if (availabilityView === "personal") {
-						const memberId = user?.memberId;
-						if (!memberId) {
-							console.log("GRAVEERROR");
-							return;
-						}
-						const ref =
-							availabilitySelectionMode === "available"
-								? availabilityDates
-								: ifNeededDates;
-						const otherRef =
-							availabilitySelectionMode === "available"
-								? ifNeededDates
-								: availabilityDates;
-						const startZotDate = ref[startBlockSelection.zotDateIndex];
-						const toggleValue = !startZotDate.getBlockAvailability(
-							startBlockSelection.blockIndex,
-						);
-						const updatedDates = ref.map((d) => d.clone());
-						const updatedOtherDates = otherRef.map((d) => d.clone());
-
-						for (
-							let dateIndex = earlierDateIndex;
-							dateIndex <= laterDateIndex;
-							dateIndex++
-						) {
-							const currentDate = updatedDates[dateIndex];
-							const otherDate = updatedOtherDates[dateIndex];
-							currentDate.setBlockAvailabilities(
-								earlierBlockIndex,
-								laterBlockIndex,
-								toggleValue,
-							);
-							if (toggleValue && otherDate) {
-								// Clear the same range from the other array
-								otherDate.setBlockAvailabilities(
-									earlierBlockIndex,
-									laterBlockIndex,
-									false,
-								);
-							}
-
-							for (
-								let blockI = earlierBlockIndex;
-								blockI <= laterBlockIndex;
-								blockI++
-							) {
-								const timestamp = getTimestampFromBlockIndex(
-									blockI,
-									dateIndex,
-									fromTimeMinutes,
-									availabilityDates,
-									userTimezone,
-								);
-
-								if (!currentDate.groupAvailability[timestamp]) {
-									currentDate.groupAvailability[timestamp] = [];
-								}
-
-								if (toggleValue) {
-									if (
-										!currentDate.groupAvailability[timestamp].includes(memberId)
-									) {
-										currentDate.groupAvailability[timestamp].push(memberId);
-									}
-									if (otherDate?.groupAvailability[timestamp]) {
-										otherDate.groupAvailability[timestamp] =
-											otherDate.groupAvailability[timestamp].filter(
-												(id) => id !== memberId,
-											);
-									}
-								} else {
-									currentDate.groupAvailability[timestamp] =
-										currentDate.groupAvailability[timestamp].filter(
-											(id) => id !== memberId,
-										);
-								}
-							}
-						}
-
-						handleUserAvailabilityChange(updatedDates);
-						if (availabilitySelectionMode === "available") {
-							setIfNeededDates(updatedOtherDates);
-						} else {
-							setAvailabilityDates(updatedOtherDates);
-						}
-					}
-				}
-
-				setStartBlockSelection(undefined);
-				setEndBlockSelection(undefined);
-				setSelectionState(undefined);
-			} else {
-				if (blockInfo) {
-					const { zotDateIndex, blockIndex } = blockInfo;
-					if (availabilityView === "schedule") {
-						const start = useAvailabilityStore.getState().startBlockSelection;
-						if (start) {
-							setEndBlockSelection({
-								zotDateIndex: start.zotDateIndex,
-								blockIndex,
-							});
-							return;
-						}
-					}
-					setEndBlockSelection({ zotDateIndex, blockIndex });
-				}
-			}
+	const handleCommitPersonal = useCallback(
+		(range: SelectionStateType, startCell: GridCell) => {
+			const memberId = user?.memberId;
+			if (!memberId) return;
+			const next = applyPersonalSelection({
+				availabilityDates,
+				ifNeededDates,
+				mode:
+					availabilitySelectionMode === "if-needed" ? "if-needed" : "available",
+				range,
+				startCell,
+				memberId,
+				fromTimeMinutes,
+				timeZone: userTimezone,
+			});
+			setAvailabilityDates(next.availabilityDates);
+			setIfNeededDates(next.ifNeededDates);
+			setSelectionState(undefined);
 		},
-		{
-			pointer: { touch: true, capture: true },
-			filterTaps: true,
-			threshold: 3,
-			eventOptions: { passive: false },
+		[
+			availabilityDates,
+			ifNeededDates,
+			availabilitySelectionMode,
+			user?.memberId,
+			fromTimeMinutes,
+			userTimezone,
+			setSelectionState,
+		],
+	);
+
+	const handleCommitSchedule = useCallback(
+		(range: SelectionStateType) => {
+			const timestamps = applyScheduleSelection({
+				availabilityDates,
+				range,
+				fromTimeMinutes,
+				timeZone: userTimezone,
+			});
+			if (timestamps.length > 0) {
+				replaceEntireSelection(timestamps);
+			}
+			setSelectionState(undefined);
 		},
+		[
+			availabilityDates,
+			fromTimeMinutes,
+			userTimezone,
+			replaceEntireSelection,
+			setSelectionState,
+		],
 	);
 
 	// TODO: Could add selection clearing with the escape key
@@ -798,7 +616,7 @@ export function Availability({
 							disabled={isFirstPage}
 						/>
 					</div>
-					<div className="flex flex-col gap-4" {...bind()}>
+					<div className="flex flex-col gap-4">
 						<div className="shrink-0 lg:hidden">
 							<AvailabilityActions
 								meetingData={meetingData}
@@ -839,6 +657,7 @@ export function Availability({
 												onMouseLeave={handleMouseLeave}
 												isScheduling={availabilityView === "schedule"}
 												timeZone={userTimezone}
+												onCommitSchedule={handleCommitSchedule}
 											/>
 										) : (
 											<PersonalAvailability
@@ -851,6 +670,7 @@ export function Availability({
 												googleCalendarEvents={googleCalendarEvents}
 												meetingDates={meetingData.dates}
 												userTimezone={userTimezone}
+												onCommitPersonal={handleCommitPersonal}
 											/>
 										)}
 									</tr>

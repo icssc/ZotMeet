@@ -1,10 +1,18 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { useGoogleCalendar } from "@/hooks/use-google-calendar";
-import type { GoogleCalendarEvent } from "@/lib/types/availability";
+import {
+	type GridCell,
+	useGridDragSelection,
+} from "@/hooks/use-grid-drag-selection";
+import type {
+	GoogleCalendarEvent,
+	SelectionStateType,
+} from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface PersonalAvailabilityProps {
 	timeBlock: number;
@@ -19,6 +27,7 @@ interface PersonalAvailabilityProps {
 	googleCalendarEvents: GoogleCalendarEvent[];
 	meetingDates: string[];
 	userTimezone: string;
+	onCommitPersonal: (range: SelectionStateType, startCell: GridCell) => void;
 }
 
 export function PersonalAvailability({
@@ -31,9 +40,14 @@ export function PersonalAvailability({
 	googleCalendarEvents,
 	meetingDates,
 	userTimezone,
+	onCommitPersonal,
 }: PersonalAvailabilityProps) {
 	const [isStateUnsaved, setIsStateUnsaved] = useState(false);
 	const initialAvailabilityRef = useRef<string | null>(null);
+
+	const setSelectionState = useAvailabilityStore(
+		(state) => state.setSelectionState,
+	);
 
 	const { processedCellSegments } = useGoogleCalendar({
 		googleCalendarEvents,
@@ -77,6 +91,21 @@ export function PersonalAvailability({
 		};
 	}, [isStateUnsaved]);
 
+	const handlers = useGridDragSelection(
+		useMemo(
+			() => ({
+				enabled: true,
+				lockToStartRow: false,
+				onDragUpdate: (range) => setSelectionState(range),
+				onCommit: (range, { start }) => {
+					onCommitPersonal(range, start);
+				},
+				onCancel: () => setSelectionState(undefined),
+			}),
+			[onCommitPersonal, setSelectionState],
+		),
+	);
+
 	return (
 		<AvailabilityBlocks
 			timeBlock={timeBlock}
@@ -87,6 +116,11 @@ export function PersonalAvailability({
 			currentPageAvailability={currentPageAvailability}
 			processedCellSegments={processedCellSegments}
 			timeZone={userTimezone}
+			onPointerDown={handlers.onPointerDown}
+			onPointerMove={handlers.onPointerMove}
+			onPointerUp={handlers.onPointerUp}
+			onPointerCancel={handlers.onPointerCancel}
+			onKeyCommit={handlers.onKeyCommit}
 		/>
 	);
 }

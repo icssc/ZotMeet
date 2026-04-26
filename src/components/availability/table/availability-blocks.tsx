@@ -1,6 +1,8 @@
-import React from "react";
+import type React from "react";
+import { Fragment } from "react";
 import { useShallow } from "zustand/shallow";
 import { AvailabilityBlockCell } from "@/components/availability/table/availability-block-cell";
+import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import {
 	generateCellKey,
 	generateDateKey,
@@ -23,6 +25,11 @@ interface AvailabilityBlocksProps {
 	};
 	processedCellSegments: ProcessedCellEventSegments;
 	timeZone: string;
+	onPointerDown?: React.PointerEventHandler<HTMLElement>;
+	onPointerMove?: React.PointerEventHandler<HTMLElement>;
+	onPointerUp?: React.PointerEventHandler<HTMLElement>;
+	onPointerCancel?: React.PointerEventHandler<HTMLElement>;
+	onKeyCommit?: (cell: GridCell) => void;
 }
 
 export function AvailabilityBlocks({
@@ -34,6 +41,11 @@ export function AvailabilityBlocks({
 	currentPageAvailability,
 	processedCellSegments,
 	timeZone,
+	onPointerDown,
+	onPointerMove,
+	onPointerUp,
+	onPointerCancel,
+	onKeyCommit,
 }: AvailabilityBlocksProps) {
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
@@ -84,7 +96,7 @@ export function AvailabilityBlocks({
 							Boolean(slotIso) && Boolean(importPreviewIsoSet?.has(slotIso));
 
 						return (
-							<React.Fragment key={key}>
+							<Fragment key={key}>
 								{spacers[pageDateIndex] && (
 									<td className="w-3 md:w-4" aria-hidden="true" />
 								)}
@@ -99,17 +111,22 @@ export function AvailabilityBlocks({
 									eventSegments={segmentsForCell}
 									hasSpacerBefore={spacers[pageDateIndex]}
 									showImportPreview={showImportPreview}
+									onPointerDown={onPointerDown}
+									onPointerMove={onPointerMove}
+									onPointerUp={onPointerUp}
+									onPointerCancel={onPointerCancel}
+									onKeyCommit={onKeyCommit}
 								/>
-							</React.Fragment>
+							</Fragment>
 						);
 					} else {
 						return (
-							<React.Fragment key={key}>
+							<Fragment key={key}>
 								{spacers[pageDateIndex] && (
 									<td className="w-3 md:w-4" aria-hidden="true" />
 								)}
 								<td></td>
-							</React.Fragment>
+							</Fragment>
 						);
 					}
 				},
