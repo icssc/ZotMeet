@@ -34,15 +34,13 @@ interface AvailabilityStore {
 	setSelectionState: (state: SelectionStateType | undefined) => void;
 
 	// Group Selection
-	selectedZotDateIndex: number | undefined;
-	selectedBlockIndex: number | undefined;
+	committedRange: SelectionStateType | undefined;
 	selectionIsLocked: boolean;
 	hoveredMember: string | null;
 	isHoveringGrid: boolean;
 	selectedMembers: string[];
 	isMobileDrawerOpen: boolean;
-	setSelectedZotDateIndex: (index: number | undefined) => void;
-	setSelectedBlockIndex: (index: number | undefined) => void;
+	setCommittedRange: (range: SelectionStateType | undefined) => void;
 	setSelectionIsLocked: (locked: boolean) => void;
 	setHoveredMember: (member: string | null) => void;
 	toggleHoverGrid: (val: boolean) => void;
@@ -123,15 +121,13 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	setSelectionState: (state) => set({ selectionState: state }),
 
 	// Group Selection
-	selectedZotDateIndex: undefined,
-	selectedBlockIndex: undefined,
+	committedRange: undefined,
 	selectionIsLocked: false,
 	hoveredMember: null,
 	isHoveringGrid: false,
 	selectedMembers: [],
 	isMobileDrawerOpen: false,
-	setSelectedZotDateIndex: (index) => set({ selectedZotDateIndex: index }),
-	setSelectedBlockIndex: (index) => set({ selectedBlockIndex: index }),
+	setCommittedRange: (range) => set({ committedRange: range }),
 	setSelectionIsLocked: (locked) => set({ selectionIsLocked: locked }),
 	setHoveredMember: (member) => set({ hoveredMember: member }),
 	toggleHoverGrid: (val) => set({ isHoveringGrid: val }),
@@ -154,8 +150,7 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	setIsMobileDrawerOpen: (open) => set({ isMobileDrawerOpen: open }),
 	resetSelection: () =>
 		set({
-			selectedZotDateIndex: undefined,
-			selectedBlockIndex: undefined,
+			committedRange: undefined,
 			hoveredMember: null,
 		}),
 
