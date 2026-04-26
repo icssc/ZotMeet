@@ -21,6 +21,7 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 interface SelectedMember {
 	id: string;
 	email: string;
+	username: string | null;
 	profilePicture: string | null;
 }
 
@@ -87,7 +88,12 @@ export function CreateGroupDialog({
 	const [members, setMembers] = useState<SelectedMember[]>([]);
 	const [memberQuery, setMemberQuery] = useState("");
 	const [searchResults, setSearchResults] = useState<
-		{ id: string; email: string; profilePicture: string | null }[]
+		{
+			id: string;
+			email: string;
+			username: string | null;
+			profilePicture: string | null;
+		}[]
 	>([]);
 	const [inviteLink, setInviteLink] = useState("");
 	const [copied, setCopied] = useState(false);
@@ -163,13 +169,19 @@ export function CreateGroupDialog({
 	);
 
 	const addMember = useCallback(
-		(user: { id: string; email: string; profilePicture: string | null }) => {
+		(user: {
+			id: string;
+			email: string;
+			username: string | null;
+			profilePicture: string | null;
+		}) => {
 			if (!members.some((m) => m.id === user.id)) {
 				setMembers((prev) => [
 					...prev,
 					{
 						id: user.id,
 						email: user.email,
+						username: user.username,
 						profilePicture: user.profilePicture,
 					},
 				]);
@@ -310,7 +322,14 @@ export function CreateGroupDialog({
 									>
 										{getInitials(option.email)}
 									</Avatar>
-									<span className="text-sm">{option.email}</span>
+									<div className="flex flex-col">
+										<span className="text-sm">{option.email}</span>
+										{option.username ? (
+											<span className="text-muted-foreground text-xs">
+												@{option.username}
+											</span>
+										) : null}
+									</div>
 								</div>
 							</li>
 						)}
