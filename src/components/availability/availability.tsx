@@ -24,6 +24,7 @@ import type { UserProfile } from "@/lib/auth/user";
 import {
 	buildMeetingGridIsoSet,
 	buildZotDateRowsForMeetingDays,
+	clearPersonalGridSlots,
 	convertTimeFromUTC,
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
@@ -367,6 +368,19 @@ export function Availability({
 			setImportPreview,
 		],
 	);
+
+	const handleClearPersonalAvailability = useCallback(() => {
+		if (!user?.memberId) return;
+		const cleared = clearPersonalGridSlots(
+			availabilityDates,
+			ifNeededDates,
+			user.memberId,
+		);
+		setAvailabilityDates(cleared.availabilityDates);
+		setIfNeededDates(cleared.ifNeededDates);
+		setImportPreview(null);
+	}, [availabilityDates, ifNeededDates, user?.memberId, setImportPreview]);
+
 	const handleCancelEditing = useCallback(() => {
 		const originalDates = cancelEdit();
 		setAvailabilityDates(originalDates[0]);
@@ -932,6 +946,7 @@ export function Availability({
 								importGridIsoSet={importGridIsoSet}
 								canImport={Boolean(user?.memberId)}
 								onImportSlots={handleImportSlotsFromMeeting}
+								onClearAvailability={handleClearPersonalAvailability}
 							/>
 						</Paper>
 					</div>

@@ -84,6 +84,7 @@ interface PersonalAvailabilitySidebarProps {
 	importGridIsoSet: ReadonlySet<string>;
 	canImport: boolean;
 	onImportSlots: (slotIsoStrings: string[]) => void;
+	onClearAvailability: () => void;
 }
 
 export function PersonalAvailabilitySidebar({
@@ -92,6 +93,7 @@ export function PersonalAvailabilitySidebar({
 	importGridIsoSet,
 	canImport,
 	onImportSlots,
+	onClearAvailability,
 	availability,
 	setAvailability,
 }: PersonalAvailabilitySidebarProps) {
@@ -199,7 +201,13 @@ export function PersonalAvailabilitySidebar({
 					))}
 				</ToggleButtonGroup>
 
-				<Button variant="outlined" color="inherit" fullWidth>
+				<Button
+					variant="outlined"
+					color="inherit"
+					fullWidth
+					disabled={!canImport}
+					onClick={onClearAvailability}
+				>
 					Clear availability
 				</Button>
 
