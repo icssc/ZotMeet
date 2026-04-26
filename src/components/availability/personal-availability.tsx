@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { GridCellHandlers } from "@/components/availability/table/availability-block-cell";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { useGoogleCalendar } from "@/hooks/use-google-calendar";
+import type { PaintMode } from "@/lib/availability/paint-selection";
 import type { GoogleCalendarEvent } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
 
@@ -19,6 +21,8 @@ interface PersonalAvailabilityProps {
 	googleCalendarEvents: GoogleCalendarEvent[];
 	meetingDates: string[];
 	userTimezone: string;
+	handlers: GridCellHandlers;
+	paintMode: PaintMode;
 }
 
 export function PersonalAvailability({
@@ -31,6 +35,8 @@ export function PersonalAvailability({
 	googleCalendarEvents,
 	meetingDates,
 	userTimezone,
+	handlers,
+	paintMode,
 }: PersonalAvailabilityProps) {
 	const [isStateUnsaved, setIsStateUnsaved] = useState(false);
 	const initialAvailabilityRef = useRef<string | null>(null);
@@ -87,6 +93,12 @@ export function PersonalAvailability({
 			currentPageAvailability={currentPageAvailability}
 			processedCellSegments={processedCellSegments}
 			timeZone={userTimezone}
+			paintMode={paintMode}
+			onPointerDown={handlers.onPointerDown}
+			onPointerMove={handlers.onPointerMove}
+			onPointerUp={handlers.onPointerUp}
+			onPointerCancel={handlers.onPointerCancel}
+			onKeyDown={handlers.onKeyDown}
 		/>
 	);
 }

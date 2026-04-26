@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import type {
-	AvailabilityBlockType,
-	SelectionStateType,
-} from "@/lib/types/availability";
+import type { PaintMode } from "@/lib/availability/paint-selection";
+import type { SelectionStateType } from "@/lib/types/availability";
+
+type AvailabilityView = "group" | "personal" | "schedule";
 
 interface AvailabilityStore {
 	// Pagination
@@ -15,35 +15,28 @@ interface AvailabilityStore {
 	setItemsPerPage: (itemsPerPage: number) => void;
 	setIsFirstPage: (isFirstPage: boolean) => void;
 
-	// View
-	availabilityView: "group" | "personal" | "schedule";
+	availabilityView: AvailabilityView;
 	hasAvailability: boolean;
-	setAvailabilityView: (view: "group" | "personal" | "schedule") => void;
+	setAvailabilityView: (view: AvailabilityView) => void;
 	setHasAvailability: (hasAvailability: boolean) => void;
 
 	// Best Times
 	enabled: boolean;
 	setEnabled: (v: boolean) => void;
 
-	// Block Selection
-	startBlockSelection: AvailabilityBlockType | undefined;
-	endBlockSelection: AvailabilityBlockType | undefined;
-	selectionState: SelectionStateType | undefined;
-	setStartBlockSelection: (block: AvailabilityBlockType | undefined) => void;
-	setEndBlockSelection: (block: AvailabilityBlockType | undefined) => void;
-	setSelectionState: (state: SelectionStateType | undefined) => void;
+	draftRange: SelectionStateType | undefined;
+	hoverRange: SelectionStateType | undefined;
+	committedRange: SelectionStateType | undefined;
+	setDraftRange: (range: SelectionStateType | undefined) => void;
+	setHoverRange: (range: SelectionStateType | undefined) => void;
+	setCommittedRange: (range: SelectionStateType | undefined) => void;
+	paintMode: PaintMode;
+	setPaintMode: (mode: PaintMode) => void;
 
-	// Group Selection
-	selectedZotDateIndex: number | undefined;
-	selectedBlockIndex: number | undefined;
-	selectionIsLocked: boolean;
 	hoveredMember: string | null;
 	isHoveringGrid: boolean;
 	selectedMembers: string[];
 	isMobileDrawerOpen: boolean;
-	setSelectedZotDateIndex: (index: number | undefined) => void;
-	setSelectedBlockIndex: (index: number | undefined) => void;
-	setSelectionIsLocked: (locked: boolean) => void;
 	setHoveredMember: (member: string | null) => void;
 	toggleHoverGrid: (val: boolean) => void;
 	toggleSelectedMember: (memberId: string) => void;
@@ -107,32 +100,41 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	// View
 	availabilityView: "group",
 	hasAvailability: false,
-	setAvailabilityView: (view) => set({ availabilityView: view }),
+	setAvailabilityView: (view) =>
+		set((state) => {
+			if (state.availabilityView === view) return {};
+			return {
+				availabilityView: view,
+				draftRange: undefined,
+				hoverRange: undefined,
+				committedRange: undefined,
+				isMobileDrawerOpen: false,
+				paintMode: "available",
+			};
+		}),
 	setHasAvailability: (hasAvailability) => set({ hasAvailability }),
 
 	// Best Times
 	enabled: false,
 	setEnabled: (enabled) => set({ enabled }),
 
-	// Block Selection
-	startBlockSelection: undefined,
-	endBlockSelection: undefined,
-	selectionState: undefined,
-	setStartBlockSelection: (block) => set({ startBlockSelection: block }),
-	setEndBlockSelection: (block) => set({ endBlockSelection: block }),
-	setSelectionState: (state) => set({ selectionState: state }),
+	// Selection ranges
+	draftRange: undefined,
+	hoverRange: undefined,
+	committedRange: undefined,
+	setDraftRange: (range) => set({ draftRange: range }),
+	setHoverRange: (range) => set({ hoverRange: range }),
+	setCommittedRange: (range) => set({ committedRange: range }),
 
-	// Group Selection
-	selectedZotDateIndex: undefined,
-	selectedBlockIndex: undefined,
-	selectionIsLocked: false,
+	// Paint mode
+	paintMode: "available",
+	setPaintMode: (mode) => set({ paintMode: mode }),
+
+	// Group ancillary state
 	hoveredMember: null,
 	isHoveringGrid: false,
 	selectedMembers: [],
 	isMobileDrawerOpen: false,
-	setSelectedZotDateIndex: (index) => set({ selectedZotDateIndex: index }),
-	setSelectedBlockIndex: (index) => set({ selectedBlockIndex: index }),
-	setSelectionIsLocked: (locked) => set({ selectionIsLocked: locked }),
 	setHoveredMember: (member) => set({ hoveredMember: member }),
 	toggleHoverGrid: (val) => set({ isHoveringGrid: val }),
 	setSelectedMember: (members) => set({ selectedMembers: members }),
@@ -154,8 +156,9 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	setIsMobileDrawerOpen: (open) => set({ isMobileDrawerOpen: open }),
 	resetSelection: () =>
 		set({
-			selectedZotDateIndex: undefined,
-			selectedBlockIndex: undefined,
+			draftRange: undefined,
+			hoverRange: undefined,
+			committedRange: undefined,
 			hoveredMember: null,
 		}),
 

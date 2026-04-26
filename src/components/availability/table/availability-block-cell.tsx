@@ -1,10 +1,26 @@
+import type React from "react";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
 import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
+import type { GridCell } from "@/hooks/use-grid-drag-selection";
+import type { PaintMode } from "@/lib/availability/paint-selection";
 import type { EventSegment } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
-interface AvailabilityBlockCellProps {
+export interface GridCellHandlers {
+	onPointerDown: React.PointerEventHandler<HTMLElement>;
+	onPointerMove: React.PointerEventHandler<HTMLElement>;
+	onPointerUp: React.PointerEventHandler<HTMLElement>;
+	onPointerCancel: React.PointerEventHandler<HTMLElement>;
+	onKeyDown: React.KeyboardEventHandler<HTMLElement>;
+	/**
+	 * Optional hover callback; used by the group view for the hoverRange
+	 * preview. Called with the cell under the pointer on `pointerenter`.
+	 */
+	onCellHover?: (cell: GridCell) => void;
+}
+
+interface AvailabilityBlockCellProps extends GridCellHandlers {
 	blockIndex: number;
 	isAvailable: boolean;
 	isIfNeeded: boolean;
@@ -15,6 +31,7 @@ interface AvailabilityBlockCellProps {
 	eventSegments: EventSegment[];
 	hasSpacerBefore?: boolean;
 	showImportPreview?: boolean;
+	paintMode: PaintMode;
 }
 
 export function AvailabilityBlockCell({
@@ -28,8 +45,14 @@ export function AvailabilityBlockCell({
 	eventSegments,
 	hasSpacerBefore = false,
 	showImportPreview = false,
+	paintMode,
+	onPointerDown,
+	onPointerMove,
+	onPointerUp,
+	onPointerCancel,
+	onKeyDown,
 }: AvailabilityBlockCellProps) {
-	const selectionState = useAvailabilityStore((state) => state.selectionState);
+	const draftRange = useAvailabilityStore((s) => s.draftRange);
 
 	return (
 		<td className="relative px-0 py-0">
@@ -37,8 +60,14 @@ export function AvailabilityBlockCell({
 				type="button"
 				data-date-index={zotDateIndex}
 				data-block-index={blockIndex}
+				tabIndex={0}
+				onPointerDown={onPointerDown}
+				onPointerMove={onPointerMove}
+				onPointerUp={onPointerUp}
+				onPointerCancel={onPointerCancel}
+				onKeyDown={onKeyDown}
 				className={cn(
-					"block h-full w-full cursor-row-resize border-gray-medium border-r-[1px] [touch-action:none]",
+					"block h-full w-full cursor-pointer border-gray-medium border-r-[1px] [touch-action:none]",
 					isTopOfHour && "border-t-[1px] border-t-gray-medium",
 					isHalfHour && "border-top-style:dotted border-t border-t-gray-base",
 					isLastRow && "border-b-[1px]",
@@ -50,7 +79,8 @@ export function AvailabilityBlockCell({
 					isIfNeeded={isIfNeeded}
 					zotDateIndex={zotDateIndex}
 					blockIndex={blockIndex}
-					selectionState={selectionState}
+					draftRange={draftRange}
+					paintMode={paintMode}
 					showImportPreview={showImportPreview}
 				/>
 			</button>

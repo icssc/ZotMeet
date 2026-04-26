@@ -1,6 +1,10 @@
-import React from "react";
+import { Fragment } from "react";
 import { useShallow } from "zustand/shallow";
-import { AvailabilityBlockCell } from "@/components/availability/table/availability-block-cell";
+import {
+	AvailabilityBlockCell,
+	type GridCellHandlers,
+} from "@/components/availability/table/availability-block-cell";
+import type { PaintMode } from "@/lib/availability/paint-selection";
 import {
 	generateCellKey,
 	generateDateKey,
@@ -11,7 +15,7 @@ import type { ProcessedCellEventSegments } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
-interface AvailabilityBlocksProps {
+interface AvailabilityBlocksProps extends GridCellHandlers {
 	timeBlock: number;
 	blockIndex: number;
 	fromTimeMinutes: number;
@@ -23,6 +27,7 @@ interface AvailabilityBlocksProps {
 	};
 	processedCellSegments: ProcessedCellEventSegments;
 	timeZone: string;
+	paintMode: PaintMode;
 }
 
 export function AvailabilityBlocks({
@@ -34,6 +39,12 @@ export function AvailabilityBlocks({
 	currentPageAvailability,
 	processedCellSegments,
 	timeZone,
+	paintMode,
+	onPointerDown,
+	onPointerMove,
+	onPointerUp,
+	onPointerCancel,
+	onKeyDown,
 }: AvailabilityBlocksProps) {
 	const { currentPage, itemsPerPage } = useAvailabilityStore(
 		useShallow((state) => ({
@@ -84,7 +95,7 @@ export function AvailabilityBlocks({
 							Boolean(slotIso) && Boolean(importPreviewIsoSet?.has(slotIso));
 
 						return (
-							<React.Fragment key={key}>
+							<Fragment key={key}>
 								{spacers[pageDateIndex] && (
 									<td className="w-3 md:w-4" aria-hidden="true" />
 								)}
@@ -99,17 +110,23 @@ export function AvailabilityBlocks({
 									eventSegments={segmentsForCell}
 									hasSpacerBefore={spacers[pageDateIndex]}
 									showImportPreview={showImportPreview}
+									paintMode={paintMode}
+									onPointerDown={onPointerDown}
+									onPointerMove={onPointerMove}
+									onPointerUp={onPointerUp}
+									onPointerCancel={onPointerCancel}
+									onKeyDown={onKeyDown}
 								/>
-							</React.Fragment>
+							</Fragment>
 						);
 					} else {
 						return (
-							<React.Fragment key={key}>
+							<Fragment key={key}>
 								{spacers[pageDateIndex] && (
 									<td className="w-3 md:w-4" aria-hidden="true" />
 								)}
 								<td></td>
-							</React.Fragment>
+							</Fragment>
 						);
 					}
 				},

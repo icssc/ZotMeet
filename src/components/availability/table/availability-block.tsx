@@ -1,4 +1,8 @@
 import { useMemo } from "react";
+import {
+	type PaintMode,
+	paintWillChange,
+} from "@/lib/availability/paint-selection";
 import type { SelectionStateType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 
@@ -7,8 +11,23 @@ interface AvailabilityBlockProps {
 	isIfNeeded: boolean;
 	zotDateIndex: number;
 	blockIndex: number;
-	selectionState: SelectionStateType | undefined;
+	draftRange: SelectionStateType | undefined;
+	paintMode: PaintMode;
 	showImportPreview?: boolean;
+}
+
+function covers(
+	range: SelectionStateType | undefined,
+	zotDateIndex: number,
+	blockIndex: number,
+): boolean {
+	if (!range) return false;
+	return (
+		range.earlierDateIndex <= zotDateIndex &&
+		zotDateIndex <= range.laterDateIndex &&
+		range.earlierBlockIndex <= blockIndex &&
+		blockIndex <= range.laterBlockIndex
+	);
 }
 
 export function AvailabilityBlock({
@@ -16,36 +35,29 @@ export function AvailabilityBlock({
 	isIfNeeded,
 	zotDateIndex,
 	blockIndex,
-	selectionState,
+	draftRange,
+	paintMode,
 	showImportPreview = false,
 }: AvailabilityBlockProps) {
-	/**
-	 * Computes the background color of a single time block cell
-	 */
 	const backgroundColor = useMemo(() => {
-		// Render different background color if user is in middle of making a selection and is in range
-		if (selectionState) {
-			const {
-				earlierDateIndex,
-				laterDateIndex,
-				earlierBlockIndex,
-				laterBlockIndex,
-			} = selectionState;
-			const dateInRange =
-				earlierDateIndex <= zotDateIndex && zotDateIndex <= laterDateIndex;
-			const timeInRange =
-				earlierBlockIndex <= blockIndex && blockIndex <= laterBlockIndex;
+		const showDraftOverlay =
+			covers(draftRange, zotDateIndex, blockIndex) &&
+			paintWillChange(paintMode, { isAvailable, isIfNeeded });
 
-			if (dateInRange && timeInRange) {
-				return "bg-primary/40";
-			}
-		}
+		if (showDraftOverlay) return "bg-primary/40";
 		return isAvailable
-			? "bg-[#F26489]"
+			? "bg-primary"
 			: isIfNeeded
-				? "bg-[#006489]"
+				? "bg-if-needed"
 				: "transparent";
-	}, [selectionState, isAvailable, isIfNeeded, zotDateIndex, blockIndex]);
+	}, [
+		draftRange,
+		paintMode,
+		isAvailable,
+		isIfNeeded,
+		zotDateIndex,
+		blockIndex,
+	]);
 
 	return (
 		<div className="pointer-events-none relative block h-full w-full py-2">
