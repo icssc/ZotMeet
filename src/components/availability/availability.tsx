@@ -29,7 +29,7 @@ import {
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
 	getTimestampFromBlockIndex,
-	mergeImportedGridSlots,
+	mergeImportedPersonalGridSlots,
 } from "@/lib/availability/utils";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import { getBestTimeRanges } from "@/lib/rooms/utils";
@@ -351,22 +351,32 @@ export function Availability({
 	);
 
 	const handleImportSlotsFromMeeting = useCallback(
-		(slotIsoStrings: string[]) => {
-			if (!user?.memberId || slotIsoStrings.length === 0) return;
-			const merged = mergeImportedGridSlots(
+		({
+			meetingAvailabilities,
+			ifNeededAvailabilities,
+		}: {
+			meetingAvailabilities: string[];
+			ifNeededAvailabilities: string[];
+		}) => {
+			if (
+				!user?.memberId ||
+				(meetingAvailabilities.length === 0 &&
+					ifNeededAvailabilities.length === 0)
+			) {
+				return;
+			}
+			const merged = mergeImportedPersonalGridSlots({
 				availabilityDates,
-				slotIsoStrings,
-				user.memberId,
-			);
-			handleUserAvailabilityChange(merged);
+				ifNeededDates,
+				meetingAvailabilities,
+				ifNeededAvailabilities,
+				memberId: user.memberId,
+			});
+			setAvailabilityDates(merged.availabilityDates);
+			setIfNeededDates(merged.ifNeededDates);
 			setImportPreview(null);
 		},
-		[
-			availabilityDates,
-			user?.memberId,
-			handleUserAvailabilityChange,
-			setImportPreview,
-		],
+		[availabilityDates, ifNeededDates, user?.memberId, setImportPreview],
 	);
 
 	const handleClearPersonalAvailability = useCallback(() => {
@@ -472,10 +482,9 @@ export function Availability({
 	const lastUTCDateTime = useMemo(() => {
 		const day = new Date(availabilityDates[availabilityDates.length - 1].day);
 		const hours = Math.floor(
-			currentPageAvailability["availabilities"][0].latestTime / 60,
+			currentPageAvailability.availabilities[0].latestTime / 60,
 		);
-		const minutes =
-			currentPageAvailability["availabilities"][0].latestTime % 60;
+		const minutes = currentPageAvailability.availabilities[0].latestTime % 60;
 		day.setHours(hours, minutes, 0, 0);
 		return day;
 	}, [availabilityDates, currentPageAvailability]);

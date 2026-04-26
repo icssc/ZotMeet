@@ -25,6 +25,10 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import type { Availability } from "../availability/availability";
 
 type RespondedMeeting = { id: string; title: string; createdAt: Date };
+type ImportedMeetingAvailability = {
+	meetingAvailabilities: string[];
+	ifNeededAvailabilities: string[];
+};
 
 const options: { value: Availability; label: string; icon: React.ReactNode }[] =
 	[
@@ -83,7 +87,7 @@ interface PersonalAvailabilitySidebarProps {
 	setAvailability: Dispatch<SetStateAction<Availability>>;
 	importGridIsoSet: ReadonlySet<string>;
 	canImport: boolean;
-	onImportSlots: (slotIsoStrings: string[]) => void;
+	onImportSlots: (slots: ImportedMeetingAvailability) => void;
 	onClearAvailability: () => void;
 }
 
@@ -100,7 +104,9 @@ export function PersonalAvailabilitySidebar({
 	const [importableMeetings, setImportableMeetings] = useState<
 		RespondedMeeting[]
 	>([]);
-	const availabilityCache = useRef(new Map<string, string[]>());
+	const availabilityCache = useRef(
+		new Map<string, ImportedMeetingAvailability>(),
+	);
 	const setImportPreview = useAvailabilityStore((s) => s.setImportPreview);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: reset cached rows when switching meetings
@@ -121,14 +127,20 @@ export function PersonalAvailabilitySidebar({
 			let raw = availabilityCache.current.get(sourceMeetingId);
 			if (raw === undefined) {
 				const result = await getUserAvailabilityForMeeting(sourceMeetingId);
-				if (!result.success || !result.meetingAvailabilities?.length) {
+				if (!result.success) {
 					setImportPreview(null);
 					return;
 				}
-				raw = result.meetingAvailabilities;
+				raw = {
+					meetingAvailabilities: result.meetingAvailabilities ?? [],
+					ifNeededAvailabilities: result.ifNeededAvailabilities ?? [],
+				};
 				availabilityCache.current.set(sourceMeetingId, raw);
 			}
-			const filtered = filterTimestampsToMeetingGrid(raw, importGridIsoSet);
+			const filtered = filterTimestampsToMeetingGrid(
+				[...raw.meetingAvailabilities, ...raw.ifNeededAvailabilities],
+				importGridIsoSet,
+			);
 			setImportPreview(filtered.length ? filtered : null);
 		},
 		[importGridIsoSet, setImportPreview],
@@ -140,13 +152,31 @@ export function PersonalAvailabilitySidebar({
 			let raw = availabilityCache.current.get(sourceMeetingId);
 			if (raw === undefined) {
 				const result = await getUserAvailabilityForMeeting(sourceMeetingId);
-				if (!result.success || !result.meetingAvailabilities?.length) return;
-				raw = result.meetingAvailabilities;
+				if (!result.success) return;
+				raw = {
+					meetingAvailabilities: result.meetingAvailabilities ?? [],
+					ifNeededAvailabilities: result.ifNeededAvailabilities ?? [],
+				};
 				availabilityCache.current.set(sourceMeetingId, raw);
 			}
-			const filtered = filterTimestampsToMeetingGrid(raw, importGridIsoSet);
-			if (filtered.length === 0) return;
-			onImportSlots(filtered);
+			const filteredMeetingAvailabilities = filterTimestampsToMeetingGrid(
+				raw.meetingAvailabilities,
+				importGridIsoSet,
+			);
+			const filteredIfNeededAvailabilities = filterTimestampsToMeetingGrid(
+				raw.ifNeededAvailabilities,
+				importGridIsoSet,
+			);
+			if (
+				filteredMeetingAvailabilities.length === 0 &&
+				filteredIfNeededAvailabilities.length === 0
+			) {
+				return;
+			}
+			onImportSlots({
+				meetingAvailabilities: filteredMeetingAvailabilities,
+				ifNeededAvailabilities: filteredIfNeededAvailabilities,
+			});
 		},
 		[canImport, importGridIsoSet, onImportSlots],
 	);

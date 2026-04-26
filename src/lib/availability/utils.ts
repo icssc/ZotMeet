@@ -356,6 +356,80 @@ export function mergeImportedGridSlots(
 	return updated;
 }
 
+/** Merges imported available + if-needed slots while keeping states mutually exclusive. */
+export function mergeImportedPersonalGridSlots({
+	availabilityDates,
+	ifNeededDates,
+	meetingAvailabilities,
+	ifNeededAvailabilities,
+	memberId,
+}: {
+	availabilityDates: readonly ZotDate[];
+	ifNeededDates: readonly ZotDate[];
+	meetingAvailabilities: readonly string[];
+	ifNeededAvailabilities: readonly string[];
+	memberId: string;
+}): { availabilityDates: ZotDate[]; ifNeededDates: ZotDate[] } {
+	const mergedAvailabilityDates = mergeImportedGridSlots(
+		availabilityDates,
+		meetingAvailabilities,
+		memberId,
+	);
+	const mergedIfNeededDates = mergeImportedGridSlots(
+		ifNeededDates,
+		ifNeededAvailabilities,
+		memberId,
+	);
+
+	const availableSet = new Set(meetingAvailabilities);
+	const ifNeededSet = new Set(ifNeededAvailabilities);
+
+	for (
+		let dateIndex = 0;
+		dateIndex < mergedAvailabilityDates.length;
+		dateIndex++
+	) {
+		const availableDate = mergedAvailabilityDates[dateIndex];
+		const ifNeededDate = mergedIfNeededDates[dateIndex];
+		if (!availableDate || !ifNeededDate) continue;
+
+		for (const timestamp of availableSet) {
+			if (ifNeededSet.has(timestamp)) continue;
+			if (ifNeededDate.availability.includes(timestamp)) {
+				ifNeededDate.availability = ifNeededDate.availability.filter(
+					(ts) => ts !== timestamp,
+				);
+			}
+			if (ifNeededDate.groupAvailability[timestamp]) {
+				ifNeededDate.groupAvailability[timestamp] =
+					ifNeededDate.groupAvailability[timestamp].filter(
+						(id) => id !== memberId,
+					);
+			}
+		}
+
+		for (const timestamp of ifNeededSet) {
+			if (availableSet.has(timestamp)) continue;
+			if (availableDate.availability.includes(timestamp)) {
+				availableDate.availability = availableDate.availability.filter(
+					(ts) => ts !== timestamp,
+				);
+			}
+			if (availableDate.groupAvailability[timestamp]) {
+				availableDate.groupAvailability[timestamp] =
+					availableDate.groupAvailability[timestamp].filter(
+						(id) => id !== memberId,
+					);
+			}
+		}
+	}
+
+	return {
+		availabilityDates: mergedAvailabilityDates,
+		ifNeededDates: mergedIfNeededDates,
+	};
+}
+
 /** Clears personal available/if-needed slots */
 export function clearPersonalGridSlots(
 	availabilityDates: readonly ZotDate[],
