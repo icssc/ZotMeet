@@ -192,9 +192,12 @@ export const getTheme = (mode: "light" | "dark") =>
 					elevation: 1,
 				},
 				styleOverrides: {
-					root: ({ theme }) => ({
+					root: ({ theme, ownerState }) => ({
 						borderRadius: 8,
 						backgroundColor: theme.palette.background.paper,
+						...(ownerState.variant === "outlined" && {
+							boxShadow: "0px 4px 0px rgba(0,0,0,0.25)",
+						}),
 					}),
 				},
 			},
@@ -205,6 +208,7 @@ export const getTheme = (mode: "light" | "dark") =>
 					},
 					contained: ({ theme }) => ({
 						boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 ${theme.palette.primary.main}`,
+						"& .MuiSvgIcon-root": { color: "inherit" },
 						"&:hover": {
 							boxShadow: `0 2px 0 0 rgba(0,0,0,0.15), 0 2px 0 0 ${theme.palette.primary.main}`,
 							transform: "translateY(2px)",
