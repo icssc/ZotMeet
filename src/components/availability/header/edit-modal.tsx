@@ -120,7 +120,7 @@ export const EditModal = ({
 			<DialogContent>
 				<div className="flex flex-col space-y-6 pt-2">
 					<MeetingNameField
-						initialValue={meetingData.title}
+						initialValue={meetingName}
 						onBlur={setMeetingName}
 					/>
 
