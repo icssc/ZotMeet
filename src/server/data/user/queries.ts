@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, ilike, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, ne, or } from "drizzle-orm";
 import { db } from "@/db";
 import { groups, members, notifications, users } from "@/db/schema";
 
@@ -33,7 +33,7 @@ export async function getUserById(id: string) {
 	return user ?? null;
 }
 
-export async function searchUsersByEmail(
+export async function searchUsersByEmailOrUsername(
 	query: string,
 	excludeUserId: string,
 	limit = 5,
@@ -44,11 +44,20 @@ export async function searchUsersByEmail(
 		.select({
 			id: users.id,
 			email: users.email,
+			username: members.username,
 			profilePicture: members.profilePicture,
 		})
 		.from(users)
 		.innerJoin(members, eq(users.memberId, members.id))
-		.where(and(ilike(users.email, `%${query}%`), ne(users.id, excludeUserId)))
+		.where(
+			and(
+				or(
+					ilike(users.email, `%${query}%`),
+					ilike(members.username, `%${query}%`),
+				),
+				ne(users.id, excludeUserId),
+			),
+		)
 		.limit(limit);
 }
 
