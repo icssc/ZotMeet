@@ -77,10 +77,12 @@ export function Availability({
 	// Import-preview overlay (cleared on meeting/tz change and on view-switch
 	// away from personal). Lives in the store so the sidebar and cells can
 	// read it uniformly.
-	const setImportPreview = useAvailabilityStore((s) => s.setImportPreview);
-	const setCommittedRange = useAvailabilityStore((s) => s.setCommittedRange);
-	const setDraftRange = useAvailabilityStore((s) => s.setDraftRange);
-	const setHoverRange = useAvailabilityStore((s) => s.setHoverRange);
+	const { setImportPreview, resetSelection } = useAvailabilityStore(
+		useShallow((state) => ({
+			setImportPreview: state.setImportPreview,
+			resetSelection: state.resetSelection,
+		})),
+	);
 
 	const isMobile = useIsMobile();
 	useEffect(() => {
@@ -145,6 +147,7 @@ export function Availability({
 		currentPageAvailability,
 		cancelEdit,
 		confirmSave,
+		isDirty,
 	} = useAvailabilityData({
 		meetingData,
 		allAvailabilities,
@@ -224,9 +227,7 @@ export function Availability({
 		setAvailabilityDates(cleared.availabilityDates);
 		setIfNeededDates(cleared.ifNeededDates);
 		setImportPreview(null);
-		setCommittedRange(undefined);
-		setDraftRange(undefined);
-		setHoverRange(undefined);
+		resetSelection();
 	}, [
 		user?.memberId,
 		availabilityDates,
@@ -234,9 +235,7 @@ export function Availability({
 		setAvailabilityDates,
 		setIfNeededDates,
 		setImportPreview,
-		setCommittedRange,
-		setDraftRange,
-		setHoverRange,
+		resetSelection,
 	]);
 
 	const handleSuccessfulSave = useCallback(() => {
@@ -295,7 +294,6 @@ export function Availability({
 								{availabilityView === "group" ||
 								availabilityView === "schedule" ? (
 									<GroupAvailability
-										meetingId={meetingData.id}
 										meetingTitle={meetingData.title}
 										availabilityTimeBlocks={availabilityTimeBlocks}
 										fromTime={fromTimeMinutes}
@@ -318,6 +316,7 @@ export function Availability({
 										userTimezone={userTimezone}
 										handlers={handlers}
 										paintMode={paintMode}
+										isDirty={isDirty}
 									/>
 								)}
 							</tbody>

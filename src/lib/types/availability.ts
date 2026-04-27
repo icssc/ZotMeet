@@ -15,6 +15,20 @@ export type SelectionStateType = {
 	laterBlockIndex: number;
 };
 
+export function rangeCoversCell(
+	range: SelectionStateType | undefined,
+	zotDateIndex: number,
+	blockIndex: number,
+): boolean {
+	if (!range) return false;
+	return (
+		range.earlierDateIndex <= zotDateIndex &&
+		zotDateIndex <= range.laterDateIndex &&
+		range.earlierBlockIndex <= blockIndex &&
+		blockIndex <= range.laterBlockIndex
+	);
+}
+
 //TODO: Guest
 // export interface GuestSession {
 //     guestName: string;

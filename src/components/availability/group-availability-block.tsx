@@ -28,16 +28,7 @@ interface GroupAvailabilityBlockProps {
 	blockIndex: number;
 }
 
-const selectionVariantBorder: Record<SelectionEdges["variant"], string> = {
-	draft: "border-slate-medium",
-	committed: "border-slate-medium",
-	hover: "border-slate-medium",
-};
-
-const SELECTION_EDGE_WIDTH: Record<
-	keyof Omit<SelectionEdges, "variant">,
-	string
-> = {
+const SELECTION_EDGE_WIDTH: Record<keyof SelectionEdges, string> = {
 	top: "border-t-2",
 	bottom: "border-b-2",
 	left: "border-l",
@@ -68,9 +59,6 @@ export const GroupAvailabilityBlock = memo(
 	}: GroupAvailabilityBlockProps) => {
 		const theme = useTheme();
 		const dashColor = theme.palette.secondary.main;
-		const selectionBorder = selectionEdges
-			? selectionVariantBorder[selectionEdges.variant]
-			: "";
 
 		const onMouseEnter = useMemo(
 			() =>
@@ -110,8 +98,7 @@ export const GroupAvailabilityBlock = memo(
 					<div
 						aria-hidden="true"
 						className={cn(
-							"pointer-events-none absolute inset-0 border-dashed",
-							selectionBorder,
+							"pointer-events-none absolute inset-0 border-slate-medium border-dashed",
 							selectionEdges.top && SELECTION_EDGE_WIDTH.top,
 							selectionEdges.bottom && SELECTION_EDGE_WIDTH.bottom,
 							selectionEdges.left && SELECTION_EDGE_WIDTH.left,

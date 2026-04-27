@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import type { GridCellHandlers } from "@/components/availability/table/availability-block-cell";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
@@ -22,6 +22,7 @@ interface PersonalAvailabilityProps {
 	userTimezone: string;
 	handlers: Omit<GridCellHandlers, "onCellHover">;
 	paintMode: PaintMode;
+	isDirty: boolean;
 }
 
 export function PersonalAvailability({
@@ -34,10 +35,8 @@ export function PersonalAvailability({
 	userTimezone,
 	handlers,
 	paintMode,
+	isDirty,
 }: PersonalAvailabilityProps) {
-	const [isStateUnsaved, setIsStateUnsaved] = useState(false);
-	const initialAvailabilityRef = useRef<string | null>(null);
-
 	const { processedCellSegments } = useGoogleCalendar({
 		googleCalendarEvents,
 		currentPageAvailability: currentPageAvailability.availabilities,
@@ -45,39 +44,19 @@ export function PersonalAvailability({
 		meetingDates,
 	});
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: Only run once on mount to capture initial state
 	useEffect(() => {
-		if (initialAvailabilityRef.current === null) {
-			initialAvailabilityRef.current = JSON.stringify(
-				availabilityDates.map((date) => date.availability),
-			);
-		}
-	}, []);
-
-	useEffect(() => {
-		if (initialAvailabilityRef.current !== null) {
-			const currentState = JSON.stringify(
-				availabilityDates.map((date) => date.availability),
-			);
-			setIsStateUnsaved(currentState !== initialAvailabilityRef.current);
-		}
-	}, [availabilityDates]);
-
-	useEffect(() => {
+		if (!isDirty) return;
 		const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-			if (isStateUnsaved) {
-				event.preventDefault();
-				event.returnValue =
-					"Are you sure you want to leave? You have unsaved changes!";
-			}
+			event.preventDefault();
+			event.returnValue =
+				"Are you sure you want to leave? You have unsaved changes!";
 		};
 
 		window.addEventListener("beforeunload", handleBeforeUnload);
-
 		return () => {
 			window.removeEventListener("beforeunload", handleBeforeUnload);
 		};
-	}, [isStateUnsaved]);
+	}, [isDirty]);
 
 	return (
 		<>

@@ -13,7 +13,6 @@ interface AvailabilityStore {
 	prevPage: () => void;
 	setCurrentPage: (page: number) => void;
 	setItemsPerPage: (itemsPerPage: number) => void;
-	setIsFirstPage: (isFirstPage: boolean) => void;
 
 	availabilityView: AvailabilityView;
 	hasAvailability: boolean;
@@ -34,11 +33,9 @@ interface AvailabilityStore {
 	setPaintMode: (mode: PaintMode) => void;
 
 	hoveredMember: string | null;
-	isHoveringGrid: boolean;
 	selectedMembers: string[];
 	isMobileDrawerOpen: boolean;
 	setHoveredMember: (member: string | null) => void;
-	toggleHoverGrid: (val: boolean) => void;
 	toggleSelectedMember: (memberId: string) => void;
 	setSelectedMember: (members: string[]) => void;
 	setIsMobileDrawerOpen: (open: boolean) => void;
@@ -49,11 +46,8 @@ interface AvailabilityStore {
 	hasHydratedScheduledTimes: boolean;
 	pendingAdds: Set<string>;
 	pendingRemovals: Set<string>;
-	addPendingTime: (timestamp: string) => void;
-	addPendingTimeRange: (timestamps: string[]) => void;
 	replaceEntireSelection: (timestamps: string[]) => void;
 	commitPendingTimes: () => void;
-	togglePendingTime: (timestamp: string) => void;
 	clearPendingTimes: () => void;
 	isScheduled: (timestamp: string) => boolean;
 	hydrateScheduledTimes: (timestamps: string[]) => void;
@@ -103,7 +97,6 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 			isFirstPage: page === 0,
 		}),
 	setItemsPerPage: (itemsPerPage) => set({ itemsPerPage }),
-	setIsFirstPage: (isFirstPage) => set({ isFirstPage }),
 
 	// View
 	availabilityView: "group",
@@ -140,11 +133,9 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 
 	// Group ancillary state
 	hoveredMember: null,
-	isHoveringGrid: false,
 	selectedMembers: [],
 	isMobileDrawerOpen: false,
 	setHoveredMember: (member) => set({ hoveredMember: member }),
-	toggleHoverGrid: (val) => set({ isHoveringGrid: val }),
 	setSelectedMember: (members) => set({ selectedMembers: members }),
 	toggleSelectedMember: (memberId) =>
 		set((state) => {
@@ -155,11 +146,10 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 						(id) => id !== memberId,
 					),
 				};
-			} else {
-				return {
-					selectedMembers: [...state.selectedMembers, memberId],
-				};
 			}
+			return {
+				selectedMembers: [...state.selectedMembers, memberId],
+			};
 		}),
 	setIsMobileDrawerOpen: (open) => set({ isMobileDrawerOpen: open }),
 	resetSelection: () =>
@@ -175,24 +165,6 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	hasHydratedScheduledTimes: false,
 	pendingAdds: new Set<string>(),
 	pendingRemovals: new Set<string>(),
-
-	addPendingTime: (timestamp: string) => {
-		set((state) => {
-			const newPending = new Set(state.pendingAdds);
-			newPending.add(timestamp);
-			return { pendingAdds: newPending };
-		});
-	},
-
-	addPendingTimeRange: (timestamps: string[]) => {
-		set((state) => {
-			const newPending = new Set(state.pendingAdds);
-			timestamps.forEach((ts) => {
-				newPending.add(ts);
-			});
-			return { pendingAdds: newPending };
-		});
-	},
 
 	replaceEntireSelection: (timestamps: string[]) => {
 		set((state) => {
@@ -229,29 +201,6 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 				pendingAdds: new Set(),
 				pendingRemovals: new Set(),
 			};
-		});
-	},
-
-	togglePendingTime: (timestamp: string) => {
-		set((state) => {
-			const newPending = new Set(state.pendingAdds);
-			const newPendingRemovals = new Set(state.pendingRemovals || []);
-
-			if (state.scheduledTimes.has(timestamp)) {
-				if (newPendingRemovals.has(timestamp)) {
-					newPendingRemovals.delete(timestamp);
-				} else {
-					newPendingRemovals.add(timestamp);
-				}
-			} else {
-				if (newPending.has(timestamp)) {
-					newPending.delete(timestamp);
-				} else {
-					newPending.add(timestamp);
-				}
-			}
-
-			return { pendingAdds: newPending, pendingRemovals: newPendingRemovals };
 		});
 	},
 

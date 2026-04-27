@@ -256,7 +256,7 @@ export function getTimestampFromBlockIndex(
 	return date.toISOString();
 }
 
-/** Same day layout as `deriveInitialAvailability` in availability.tsx, without member data. */
+/** Same day layout as `deriveInitialAvailability` in use-availability-data, without member data. */
 export function buildZotDateRowsForMeetingDays(
 	meetingDates: string[],
 	availabilityTimeBlocks: number[],
@@ -325,8 +325,7 @@ export function hasTimestampOnMeetingGrid(
 	return timestamps.some((ts) => gridIsoSet.has(ts));
 }
 
-/** Merges grid-filtered slot ISOs into local editor state (caller persists via Save). */
-export function mergeImportedGridSlots(
+function mergeImportedGridSlots(
 	availabilityDates: readonly ZotDate[],
 	slotIsoStrings: readonly string[],
 	memberId: string,

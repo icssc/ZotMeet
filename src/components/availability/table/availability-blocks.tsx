@@ -11,29 +11,15 @@ import {
 	getTimestampFromBlockIndex,
 	spacerBeforeDate,
 } from "@/lib/availability/utils";
-import type {
-	EventSegment,
-	ProcessedCellEventSegments,
-	SelectionStateType,
+import {
+	type EventSegment,
+	type ProcessedCellEventSegments,
+	rangeCoversCell,
 } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 const EMPTY_EVENT_SEGMENTS: EventSegment[] = [];
-
-function coversCell(
-	range: SelectionStateType | undefined,
-	zotDateIndex: number,
-	blockIndex: number,
-): boolean {
-	if (!range) return false;
-	return (
-		range.earlierDateIndex <= zotDateIndex &&
-		zotDateIndex <= range.laterDateIndex &&
-		range.earlierBlockIndex <= blockIndex &&
-		blockIndex <= range.laterBlockIndex
-	);
-}
 
 interface AvailabilityBlocksProps extends GridCellHandlers {
 	timeBlock: number;
@@ -122,7 +108,7 @@ export function AvailabilityBlocks({
 									? "available"
 									: null;
 
-						const isInDraftRange = coversCell(
+						const isInDraftRange = rangeCoversCell(
 							draftRange,
 							zotDateIndex,
 							blockIndex,

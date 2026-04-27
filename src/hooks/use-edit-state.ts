@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface UseAvailabilityEditorProps {
 	currentAvailabilityDates: ZotDate[];
 	currentIfNeededDates: ZotDate[];
+}
+
+function signature(dates: ZotDate[]): string {
+	return JSON.stringify(dates.map((d) => d.availability));
 }
 
 export function useEditState({
@@ -60,8 +64,26 @@ export function useEditState({
 		setIsEditingAvailability(false);
 	};
 
+	const isDirty = useMemo(() => {
+		if (!isEditingAvailability) return false;
+		if (
+			signature(currentAvailabilityDates) !==
+			signature(originalAvailabilityDates)
+		) {
+			return true;
+		}
+		return signature(currentIfNeededDates) !== signature(originalIfNeededDates);
+	}, [
+		isEditingAvailability,
+		currentAvailabilityDates,
+		currentIfNeededDates,
+		originalAvailabilityDates,
+		originalIfNeededDates,
+	]);
+
 	return {
 		isEditingAvailability,
+		isDirty,
 		cancelEdit,
 		confirmSave,
 	};

@@ -13,7 +13,11 @@ import {
 	getTimestampFromBlockIndex,
 	spacerBeforeDate,
 } from "@/lib/availability/utils";
-import type { Member, SelectionStateType } from "@/lib/types/availability";
+import {
+	type Member,
+	rangeCoversCell,
+	type SelectionStateType,
+} from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
@@ -89,40 +93,30 @@ function calculateBlockColor({
 	return "transparent";
 }
 
-export type SelectionEdgeVariant = "draft" | "hover" | "committed";
-
 export interface SelectionEdges {
 	top: boolean;
 	right: boolean;
 	bottom: boolean;
 	left: boolean;
-	variant: SelectionEdgeVariant;
 }
 
 function edgesFor(
 	range: SelectionStateType | undefined,
 	zotDateIndex: number,
 	blockIndex: number,
-	variant: SelectionEdgeVariant,
 ): SelectionEdges | null {
-	if (!range) return null;
-	const inside =
-		range.earlierDateIndex <= zotDateIndex &&
-		zotDateIndex <= range.laterDateIndex &&
-		range.earlierBlockIndex <= blockIndex &&
-		blockIndex <= range.laterBlockIndex;
-	if (!inside) return null;
+	if (!rangeCoversCell(range, zotDateIndex, blockIndex)) return null;
+	// biome-ignore lint/style/noNonNullAssertion: rangeCoversCell guarantees range is defined
+	const r = range!;
 	return {
-		top: blockIndex === range.earlierBlockIndex,
-		bottom: blockIndex === range.laterBlockIndex,
-		left: zotDateIndex === range.earlierDateIndex,
-		right: zotDateIndex === range.laterDateIndex,
-		variant,
+		top: blockIndex === r.earlierBlockIndex,
+		bottom: blockIndex === r.laterBlockIndex,
+		left: zotDateIndex === r.earlierDateIndex,
+		right: zotDateIndex === r.laterDateIndex,
 	};
 }
 
 interface GroupAvailabilityProps {
-	meetingId: string;
 	meetingTitle?: string;
 	availabilityTimeBlocks: number[];
 	fromTime: number;
@@ -272,20 +266,14 @@ export function GroupAvailability({
 									draftRange,
 									zotDateIndex,
 									blockIndex,
-									"draft",
 								);
 								const hoverEdges =
 									draftEdges === null
-										? edgesFor(hoverRange, zotDateIndex, blockIndex, "hover")
+										? edgesFor(hoverRange, zotDateIndex, blockIndex)
 										: null;
 								const committedEdges =
 									draftEdges === null && hoverEdges === null && !isScheduling
-										? edgesFor(
-												committedRange,
-												zotDateIndex,
-												blockIndex,
-												"committed",
-											)
+										? edgesFor(committedRange, zotDateIndex, blockIndex)
 										: null;
 								const selectionEdges =
 									draftEdges ?? hoverEdges ?? committedEdges ?? null;

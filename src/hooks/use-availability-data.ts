@@ -133,6 +133,7 @@ export interface UseAvailabilityDataResult {
 	};
 	cancelEdit: () => ZotDate[][];
 	confirmSave: () => void;
+	isDirty: boolean;
 }
 
 export function useAvailabilityData({
@@ -168,7 +169,7 @@ export function useAvailabilityData({
 		}),
 	);
 
-	const { cancelEdit, confirmSave } = useEditState({
+	const { cancelEdit, confirmSave, isDirty } = useEditState({
 		currentAvailabilityDates: availabilityDates,
 		currentIfNeededDates: ifNeededDates,
 	});
@@ -359,5 +360,6 @@ export function useAvailabilityData({
 		currentPageAvailability,
 		cancelEdit,
 		confirmSave,
+		isDirty,
 	};
 }

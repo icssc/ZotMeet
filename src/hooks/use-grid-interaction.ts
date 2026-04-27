@@ -78,7 +78,6 @@ export function useGridInteraction({
 		setHoverRange,
 		setCommittedRange,
 		setIsMobileDrawerOpen,
-		toggleHoverGrid,
 		resetSelection,
 		replaceEntireSelection,
 	} = useAvailabilityStore(
@@ -88,7 +87,6 @@ export function useGridInteraction({
 			setHoverRange: state.setHoverRange,
 			setCommittedRange: state.setCommittedRange,
 			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
-			toggleHoverGrid: state.toggleHoverGrid,
 			resetSelection: state.resetSelection,
 			replaceEntireSelection: state.replaceEntireSelection,
 		})),
@@ -142,7 +140,6 @@ export function useGridInteraction({
 		}
 		setCommittedRange(range);
 		setIsMobileDrawerOpen(true);
-		toggleHoverGrid(true);
 	};
 
 	const handlers = useGridDragSelection({
@@ -158,7 +155,6 @@ export function useGridInteraction({
 
 	const handleCellHover = useCallback(
 		(cell: GridCell) => {
-			toggleHoverGrid(true);
 			if (availabilityView !== "group") return;
 			if (groupSelectionIsLocked) return;
 			setHoverRange({
@@ -168,7 +164,7 @@ export function useGridInteraction({
 				laterBlockIndex: cell.blockIndex,
 			});
 		},
-		[availabilityView, groupSelectionIsLocked, setHoverRange, toggleHoverGrid],
+		[availabilityView, groupSelectionIsLocked, setHoverRange],
 	);
 
 	const gridHandlers = useMemo<GridCellHandlers>(
@@ -182,25 +178,22 @@ export function useGridInteraction({
 			resetSelection();
 		}
 		setHoverRange(undefined);
-		toggleHoverGrid(false);
 	}, [
 		availabilityView,
 		groupSelectionIsLocked,
 		setIsMobileDrawerOpen,
 		resetSelection,
 		setHoverRange,
-		toggleHoverGrid,
 	]);
 
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.key !== "Escape") return;
 			resetSelection();
-			setDraftRange(undefined);
 		};
 		window.addEventListener("keydown", onKeyDown);
 		return () => window.removeEventListener("keydown", onKeyDown);
-	}, [resetSelection, setDraftRange]);
+	}, [resetSelection]);
 
 	return { handlers, gridHandlers, handleMouseLeave };
 }
