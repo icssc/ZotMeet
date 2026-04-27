@@ -39,6 +39,7 @@ export const userProfileProjection = {
 	year: members.year,
 	school: members.school,
 	profilePicture: members.profilePicture,
+	emailNotifications: users.emailNotifications,
 };
 
 export type UserProfile = {
@@ -51,6 +52,7 @@ export type UserProfile = {
 	year: string | null;
 	school: string | null;
 	profilePicture: string | null;
+	emailNotifications: boolean;
 };
 export type NotificationItem = {
 	id: string;
@@ -125,6 +127,7 @@ export async function createGoogleUser(
 		year: null,
 		school: null,
 		profilePicture: picture,
+		emailNotifications: false,
 	};
 }
 

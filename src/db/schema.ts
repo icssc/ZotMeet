@@ -72,6 +72,7 @@ export const users = pgTable("users", {
 	email: text("email").unique().notNull(),
 	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 	themeMode: themeModeEnum("theme_mode").default("light").notNull(),
+	emailNotifications: boolean("email_notifications").default(false).notNull(),
 });
 
 export type SelectUser = InferSelectModel<typeof users>;

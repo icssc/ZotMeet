@@ -1,9 +1,9 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { notFound, redirect } from "next/navigation";
+import { NotificationPreferences } from "@/components/profile/notification-preferences";
 import { ProfileSettings } from "@/components/profile/profile-settings";
 import { getCurrentSession } from "@/lib/auth";
-import { ProfileContent } from "./profile-content";
 
 export default async function ProfilePage() {
 	const session = await getCurrentSession();
@@ -28,6 +28,10 @@ export default async function ProfilePage() {
 			<Box className="mt-8">
 				<ProfileSettings user={session.user} />
 			</Box>
+
+			<NotificationPreferences
+				emailNotifications={session.user.emailNotifications}
+			/>
 		</Box>
 	);
 }

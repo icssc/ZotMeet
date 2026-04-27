@@ -7,6 +7,7 @@ import {
 	getUserThemeModeFromDB,
 	markNotificationAsRead,
 	searchUsersByEmail,
+	updateUserEmailNotifications,
 	updateUserThemeMode,
 } from "@/server/data/user/queries";
 export async function searchUsers(query: string) {
@@ -43,4 +44,13 @@ export async function getUserThemeMode() {
 	const { user } = await getCurrentSession();
 	if (!user) return "light";
 	return await getUserThemeModeFromDB(user.id);
+}
+
+export async function saveEmailPreferences(enabled: boolean) {
+	const { user } = await getCurrentSession();
+	if (!user) return;
+
+	await updateUserEmailNotifications(user.id, enabled);
+	revalidatePath("/profile");
+	revalidatePath("/", "layout");
 }

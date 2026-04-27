@@ -1,0 +1,1 @@
+ALTER TABLE "users" ALTER COLUMN "email_notifications" SET DEFAULT false;

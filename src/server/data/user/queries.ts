@@ -146,3 +146,14 @@ export async function getUserThemeModeFromDB(userId: string) {
 
 	return user?.themeMode ?? "light";
 }
+
+export async function updateUserEmailNotifications(
+	userId: string,
+	enabled: boolean,
+) {
+	return await db
+		.update(users)
+		.set({ emailNotifications: enabled })
+		.where(eq(users.id, userId))
+		.returning();
+}
