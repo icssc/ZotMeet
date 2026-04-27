@@ -4,7 +4,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { GroupSettingsForm } from "@/components/groups/group-settings-form";
 import { getCurrentSession } from "@/lib/auth";
-import { getExistingGroup, isUserInGroup } from "@/server/data/groups/queries";
+import {
+	getExistingGroup,
+	isGroupAdmin,
+	isUserInGroup,
+} from "@/server/data/groups/queries";
 
 interface PageProps {
 	params: Promise<{
@@ -36,6 +40,14 @@ export default async function GroupSettingsPage(props: PageProps) {
 	});
 	if (!userInGroup) {
 		redirect("/groups");
+	}
+
+	const admin = await isGroupAdmin({
+		userId: session.user.id,
+		groupId: id,
+	});
+	if (!admin) {
+		redirect(`/groups/${id}`);
 	}
 
 	return (

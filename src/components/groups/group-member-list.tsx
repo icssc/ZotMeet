@@ -520,19 +520,23 @@ export function GroupMemberList({
 						<People />
 					</IconButton>
 
-					{/* Settings page (mobile only) */}
-					<Link href={`/groups/${group.id}/settings`} className="md:hidden">
-						<IconButton>
-							<Settings className="size-6" />
-						</IconButton>
-					</Link>
+					{isAdmin && (
+						<>
+							{/* Settings page (mobile only) */}
+							<Link href={`/groups/${group.id}/settings`} className="md:hidden">
+								<IconButton>
+									<Settings className="size-6" />
+								</IconButton>
+							</Link>
 
-					<IconButton
-						sx={{ display: { xs: "none", md: "inline-flex" } }}
-						onClick={() => setShowSettings(true)}
-					>
-						<Settings className="size-6" />
-					</IconButton>
+							<IconButton
+								sx={{ display: { xs: "none", md: "inline-flex" } }}
+								onClick={() => setShowSettings(true)}
+							>
+								<Settings className="size-6" />
+							</IconButton>
+						</>
+					)}
 				</div>
 			</div>
 
