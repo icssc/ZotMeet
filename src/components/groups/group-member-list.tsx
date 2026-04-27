@@ -160,11 +160,13 @@ function MeetingRow({
 			: `Created by ${meeting.hostName}`;
 
 	return (
-		<div className="flex items-center justify-between rounded-xl border-gray-200 border-b px-4 py-4 transition-colors hover:bg-primary/5">
+		<div className="relative flex items-center justify-between rounded-xl border-gray-200 border-b px-4 py-4 transition-colors hover:bg-primary/5">
 			<Link
 				href={`/availability/${meeting.id}`}
-				className="flex flex-1 flex-col gap-1"
-			>
+				className="absolute inset-0 rounded-xl"
+				aria-label={`Open ${meeting.title}`}
+			/>
+			<div className="pointer-events-none relative z-10 flex flex-1 flex-col gap-1">
 				<div className="flex flex-wrap items-center gap-2">
 					<h3 className="font-medium text-base">{meeting.title}</h3>
 					{status && <StatusBadge status={status} />}
@@ -199,10 +201,10 @@ function MeetingRow({
 						</span>
 					</div>
 				</div>
-			</Link>
+			</div>
 
-			<div className="ml-4 flex items-center gap-3">
-				<p className="whitespace-nowrap font-medium text-gray-400 text-xs uppercase tracking-wide">
+			<div className="relative z-20 ml-4 flex items-center gap-3">
+				<p className="pointer-events-none whitespace-nowrap font-medium text-gray-400 text-xs uppercase tracking-wide">
 					{createdByLabel}
 				</p>
 				<IconButton
