@@ -58,9 +58,17 @@ interface AvailabilityStore {
 	isScheduled: (timestamp: string) => boolean;
 	hydrateScheduledTimes: (timestamps: string[]) => void;
 
-	/** Personal import preview: ISO keys that exist on the current meeting grid (subset of a past meeting). */
-	importPreviewIsoSet: Set<string> | null;
-	setImportPreview: (isoStrings: readonly string[] | null) => void;
+	/** Personal import preview split by source availability type. */
+	importPreview: {
+		availableIsoSet: Set<string>;
+		ifNeededIsoSet: Set<string>;
+	} | null;
+	setImportPreview: (
+		preview: {
+			availableIsoStrings: readonly string[];
+			ifNeededIsoStrings: readonly string[];
+		} | null,
+	) => void;
 }
 
 export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
@@ -271,9 +279,15 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 		});
 	},
 
-	importPreviewIsoSet: null,
-	setImportPreview: (isoStrings) =>
+	importPreview: null,
+	setImportPreview: (preview) =>
 		set({
-			importPreviewIsoSet: isoStrings === null ? null : new Set(isoStrings),
+			importPreview:
+				preview === null
+					? null
+					: {
+							availableIsoSet: new Set(preview.availableIsoStrings),
+							ifNeededIsoSet: new Set(preview.ifNeededIsoStrings),
+						},
 		}),
 }));

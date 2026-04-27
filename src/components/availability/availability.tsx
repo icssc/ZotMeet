@@ -17,12 +17,12 @@ import { useAvailabilityData } from "@/hooks/use-availability-data";
 import { useGridInteraction } from "@/hooks/use-grid-interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { UserProfile } from "@/lib/auth/user";
-import { paintPersonalSelection } from "@/lib/availability/paint-selection";
 import {
+	clearPersonalGridSlots,
 	convertTimeFromUTC,
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
-	mergeImportedGridSlots,
+	mergeImportedPersonalGridSlots,
 } from "@/lib/availability/utils";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
@@ -93,7 +93,6 @@ export function Availability({
 		}
 	}, [autoOpenInviteDialog]);
 
-	// ─── Timezone + time-block derivation ────────────────────────────────
 	const [userTimezone, setUserTimezone] = useState(
 		Intl.DateTimeFormat().resolvedOptions().timeZone,
 	);
@@ -174,17 +173,39 @@ export function Availability({
 	});
 
 	const handleImportSlotsFromMeeting = useCallback(
-		(slotIsoStrings: string[]) => {
-			if (!user?.memberId || slotIsoStrings.length === 0) return;
-			const merged = mergeImportedGridSlots(
+		({
+			meetingAvailabilities,
+			ifNeededAvailabilities,
+		}: {
+			meetingAvailabilities: string[];
+			ifNeededAvailabilities: string[];
+		}) => {
+			if (
+				!user?.memberId ||
+				(meetingAvailabilities.length === 0 &&
+					ifNeededAvailabilities.length === 0)
+			) {
+				return;
+			}
+			const merged = mergeImportedPersonalGridSlots({
 				availabilityDates,
-				slotIsoStrings,
-				user.memberId,
-			);
-			setAvailabilityDates(merged);
+				ifNeededDates,
+				meetingAvailabilities,
+				ifNeededAvailabilities,
+				memberId: user.memberId,
+			});
+			setAvailabilityDates(merged.availabilityDates);
+			setIfNeededDates(merged.ifNeededDates);
 			setImportPreview(null);
 		},
-		[availabilityDates, user?.memberId, setAvailabilityDates, setImportPreview],
+		[
+			availabilityDates,
+			ifNeededDates,
+			user?.memberId,
+			setAvailabilityDates,
+			setIfNeededDates,
+			setImportPreview,
+		],
 	);
 
 	const handleCancelEditing = useCallback(() => {
@@ -194,27 +215,15 @@ export function Availability({
 	}, [cancelEdit, setAvailabilityDates, setIfNeededDates]);
 
 	const handleClearAvailability = useCallback(() => {
-		const memberId = user?.memberId;
-		if (!memberId) return;
-		if (availabilityDates.length === 0 || availabilityTimeBlocks.length === 0) {
-			return;
-		}
-		const next = paintPersonalSelection({
+		if (!user?.memberId) return;
+		const cleared = clearPersonalGridSlots(
 			availabilityDates,
 			ifNeededDates,
-			mode: "unavailable",
-			range: {
-				earlierDateIndex: 0,
-				laterDateIndex: availabilityDates.length - 1,
-				earlierBlockIndex: 0,
-				laterBlockIndex: availabilityTimeBlocks.length - 1,
-			},
-			memberId,
-			fromTimeMinutes,
-			timeZone: userTimezone,
-		});
-		setAvailabilityDates(next.availabilityDates);
-		setIfNeededDates(next.ifNeededDates);
+			user.memberId,
+		);
+		setAvailabilityDates(cleared.availabilityDates);
+		setIfNeededDates(cleared.ifNeededDates);
+		setImportPreview(null);
 		setCommittedRange(undefined);
 		setDraftRange(undefined);
 		setHoverRange(undefined);
@@ -222,11 +231,9 @@ export function Availability({
 		user?.memberId,
 		availabilityDates,
 		ifNeededDates,
-		availabilityTimeBlocks.length,
-		fromTimeMinutes,
-		userTimezone,
 		setAvailabilityDates,
 		setIfNeededDates,
+		setImportPreview,
 		setCommittedRange,
 		setDraftRange,
 		setHoverRange,

@@ -30,7 +30,7 @@ interface AvailabilityBlockCellProps extends GridCellHandlers {
 	isLastRow: boolean;
 	eventSegments: EventSegment[];
 	hasSpacerBefore?: boolean;
-	showImportPreview?: boolean;
+	importPreviewType?: "available" | "if-needed" | null;
 	isInDraftRange: boolean;
 	paintMode: PaintMode;
 }
@@ -45,7 +45,7 @@ export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 	isLastRow,
 	eventSegments,
 	hasSpacerBefore = false,
-	showImportPreview = false,
+	importPreviewType = null,
 	isInDraftRange,
 	paintMode,
 	onPointerDown,
@@ -79,7 +79,7 @@ export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 					isIfNeeded={isIfNeeded}
 					isInDraftRange={isInDraftRange}
 					paintMode={paintMode}
-					showImportPreview={showImportPreview}
+					importPreviewType={importPreviewType}
 				/>
 			</button>
 
