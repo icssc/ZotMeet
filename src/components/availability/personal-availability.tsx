@@ -3,16 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import type { GridCellHandlers } from "@/components/availability/table/availability-block-cell";
 import { AvailabilityBlocks } from "@/components/availability/table/availability-blocks";
+import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import { useGoogleCalendar } from "@/hooks/use-google-calendar";
 import type { PaintMode } from "@/lib/availability/paint-selection";
 import type { GoogleCalendarEvent } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
 
 interface PersonalAvailabilityProps {
-	timeBlock: number;
-	blockIndex: number;
-	fromTimeMinutes: number;
 	availabilityTimeBlocks: number[];
+	fromTimeMinutes: number;
 	availabilityDates: ZotDate[];
 	currentPageAvailability: {
 		availabilities: ZotDate[];
@@ -21,15 +20,13 @@ interface PersonalAvailabilityProps {
 	googleCalendarEvents: GoogleCalendarEvent[];
 	meetingDates: string[];
 	userTimezone: string;
-	handlers: GridCellHandlers;
+	handlers: Omit<GridCellHandlers, "onCellHover">;
 	paintMode: PaintMode;
 }
 
 export function PersonalAvailability({
-	timeBlock,
-	blockIndex,
-	fromTimeMinutes,
 	availabilityTimeBlocks,
+	fromTimeMinutes,
 	availabilityDates,
 	currentPageAvailability,
 	googleCalendarEvents,
@@ -43,12 +40,11 @@ export function PersonalAvailability({
 
 	const { processedCellSegments } = useGoogleCalendar({
 		googleCalendarEvents,
-		currentPageAvailability: currentPageAvailability["availabilities"],
+		currentPageAvailability: currentPageAvailability.availabilities,
 		availabilityTimeBlocks,
 		meetingDates,
 	});
 
-	// Store initial availability state on mount
 	// biome-ignore lint/correctness/useExhaustiveDependencies: Only run once on mount to capture initial state
 	useEffect(() => {
 		if (initialAvailabilityRef.current === null) {
@@ -84,21 +80,24 @@ export function PersonalAvailability({
 	}, [isStateUnsaved]);
 
 	return (
-		<AvailabilityBlocks
-			timeBlock={timeBlock}
-			blockIndex={blockIndex}
-			fromTimeMinutes={fromTimeMinutes}
-			availabilityDates={availabilityDates}
-			availabilityTimeBlocksLength={availabilityTimeBlocks.length}
-			currentPageAvailability={currentPageAvailability}
-			processedCellSegments={processedCellSegments}
-			timeZone={userTimezone}
-			paintMode={paintMode}
-			onPointerDown={handlers.onPointerDown}
-			onPointerMove={handlers.onPointerMove}
-			onPointerUp={handlers.onPointerUp}
-			onPointerCancel={handlers.onPointerCancel}
-			onKeyDown={handlers.onKeyDown}
-		/>
+		<>
+			{availabilityTimeBlocks.map((timeBlock, blockIndex) => (
+				<tr key={`block-${timeBlock}`}>
+					<AvailabilityTimeTicks timeBlock={timeBlock} />
+					<AvailabilityBlocks
+						timeBlock={timeBlock}
+						blockIndex={blockIndex}
+						fromTimeMinutes={fromTimeMinutes}
+						availabilityDates={availabilityDates}
+						availabilityTimeBlocksLength={availabilityTimeBlocks.length}
+						currentPageAvailability={currentPageAvailability}
+						processedCellSegments={processedCellSegments}
+						timeZone={userTimezone}
+						paintMode={paintMode}
+						{...handlers}
+					/>
+				</tr>
+			))}
+		</>
 	);
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { SelectionStateType } from "@/lib/types/availability";
 
 export interface GridCell {
@@ -10,7 +10,6 @@ export interface GridCell {
 }
 
 export interface UseGridDragSelectionOptions {
-	enabled?: boolean;
 	lockToStartRow?: boolean;
 	tapThreshold?: number;
 	onDragStart?: (cell: GridCell) => void;
@@ -111,8 +110,6 @@ export function useGridDragSelection(
 
 	const onPointerDown = useCallback<React.PointerEventHandler<HTMLElement>>(
 		(event) => {
-			const { enabled = true } = optsRef.current;
-			if (!enabled) return;
 			if (event.button !== undefined && event.button !== 0) return;
 			const target = event.currentTarget;
 			const cell = readCellFromElement(target);
@@ -143,8 +140,6 @@ export function useGridDragSelection(
 
 	const onPointerMove = useCallback<React.PointerEventHandler<HTMLElement>>(
 		(event) => {
-			const { enabled = true } = optsRef.current;
-			if (!enabled) return;
 			if (activePointerIdRef.current !== event.pointerId) return;
 			const start = startCellRef.current;
 			if (!start) return;
@@ -219,8 +214,6 @@ export function useGridDragSelection(
 
 	const onKeyDown = useCallback<React.KeyboardEventHandler<HTMLElement>>(
 		(event) => {
-			const { enabled = true } = optsRef.current;
-			if (!enabled) return;
 			if (event.key !== "Enter" && event.key !== " ") return;
 			// Ignore while a pointer drag is in progress.
 			if (activePointerIdRef.current !== null) return;
@@ -234,11 +227,14 @@ export function useGridDragSelection(
 		[],
 	);
 
-	return {
-		onPointerDown,
-		onPointerMove,
-		onPointerUp,
-		onPointerCancel,
-		onKeyDown,
-	};
+	return useMemo(
+		() => ({
+			onPointerDown,
+			onPointerMove,
+			onPointerUp,
+			onPointerCancel,
+			onKeyDown,
+		}),
+		[onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onKeyDown],
+	);
 }

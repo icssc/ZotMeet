@@ -1,8 +1,9 @@
 import { Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import type React from "react";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import type { SelectionEdges } from "@/components/availability/group-availability";
+import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import { cn } from "@/lib/utils";
 
 interface GroupAvailabilityBlockProps {
@@ -13,7 +14,7 @@ interface GroupAvailabilityBlockProps {
 	onPointerUp?: React.PointerEventHandler<HTMLElement>;
 	onPointerCancel?: React.PointerEventHandler<HTMLElement>;
 	onKeyDown?: React.KeyboardEventHandler<HTMLElement>;
-	onHover?: VoidFunction;
+	onHoverCell?: (cell: GridCell) => void;
 	blockColor: string;
 	hasSpacerBefore?: boolean;
 	isScheduled?: boolean;
@@ -52,7 +53,7 @@ export const GroupAvailabilityBlock = memo(
 		onPointerUp,
 		onPointerCancel,
 		onKeyDown,
-		onHover,
+		onHoverCell,
 		blockColor,
 		hasSpacerBefore = false,
 		isScheduled = false,
@@ -71,6 +72,14 @@ export const GroupAvailabilityBlock = memo(
 			? selectionVariantBorder[selectionEdges.variant]
 			: "";
 
+		const onMouseEnter = useMemo(
+			() =>
+				onHoverCell
+					? () => onHoverCell({ zotDateIndex: dateIndex, blockIndex })
+					: undefined,
+			[onHoverCell, dateIndex, blockIndex],
+		);
+
 		return (
 			<button
 				type="button"
@@ -82,7 +91,7 @@ export const GroupAvailabilityBlock = memo(
 					tableCellStyles,
 					className,
 				)}
-				onMouseEnter={onHover}
+				onMouseEnter={onMouseEnter}
 				onPointerDown={onPointerDown}
 				onPointerMove={onPointerMove}
 				onPointerUp={onPointerUp}

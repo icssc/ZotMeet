@@ -1,11 +1,11 @@
 import type React from "react";
+import { memo } from "react";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
 import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import type { PaintMode } from "@/lib/availability/paint-selection";
 import type { EventSegment } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
-import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 export interface GridCellHandlers {
 	onPointerDown: React.PointerEventHandler<HTMLElement>;
@@ -31,10 +31,11 @@ interface AvailabilityBlockCellProps extends GridCellHandlers {
 	eventSegments: EventSegment[];
 	hasSpacerBefore?: boolean;
 	showImportPreview?: boolean;
+	isInDraftRange: boolean;
 	paintMode: PaintMode;
 }
 
-export function AvailabilityBlockCell({
+export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 	blockIndex,
 	isAvailable,
 	isIfNeeded,
@@ -45,6 +46,7 @@ export function AvailabilityBlockCell({
 	eventSegments,
 	hasSpacerBefore = false,
 	showImportPreview = false,
+	isInDraftRange,
 	paintMode,
 	onPointerDown,
 	onPointerMove,
@@ -52,8 +54,6 @@ export function AvailabilityBlockCell({
 	onPointerCancel,
 	onKeyDown,
 }: AvailabilityBlockCellProps) {
-	const draftRange = useAvailabilityStore((s) => s.draftRange);
-
 	return (
 		<td className="relative px-0 py-0">
 			<button
@@ -77,9 +77,7 @@ export function AvailabilityBlockCell({
 				<AvailabilityBlock
 					isAvailable={isAvailable}
 					isIfNeeded={isIfNeeded}
-					zotDateIndex={zotDateIndex}
-					blockIndex={blockIndex}
-					draftRange={draftRange}
+					isInDraftRange={isInDraftRange}
 					paintMode={paintMode}
 					showImportPreview={showImportPreview}
 				/>
@@ -91,4 +89,4 @@ export function AvailabilityBlockCell({
 			/>
 		</td>
 	);
-}
+});
