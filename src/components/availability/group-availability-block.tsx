@@ -1,17 +1,20 @@
 import { Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { memo } from "react";
+import type React from "react";
+import { memo, useMemo } from "react";
+import type { SelectionEdges } from "@/components/availability/group-availability";
+import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import { cn } from "@/lib/utils";
 
 interface GroupAvailabilityBlockProps {
 	className?: string;
 	tableCellStyles?: string;
-	onClick: VoidFunction;
-	onHover?: VoidFunction;
-	onPointerDown?: (e: React.PointerEvent) => void;
-	onPointerMove?: (e: React.PointerEvent) => void;
-	onPointerUp?: (e: React.PointerEvent) => void;
-	onPointerCancel?: (e: React.PointerEvent) => void;
+	onPointerDown?: React.PointerEventHandler<HTMLElement>;
+	onPointerMove?: React.PointerEventHandler<HTMLElement>;
+	onPointerUp?: React.PointerEventHandler<HTMLElement>;
+	onPointerCancel?: React.PointerEventHandler<HTMLElement>;
+	onKeyDown?: React.KeyboardEventHandler<HTMLElement>;
+	onHoverCell?: (cell: GridCell) => void;
 	blockColor: string;
 	hasSpacerBefore?: boolean;
 	isScheduled?: boolean;
@@ -20,21 +23,28 @@ interface GroupAvailabilityBlockProps {
 	scheduledMeetingTitle?: string;
 	scheduledTimeRange?: string;
 	scheduledBlockCount?: number;
-	isInSelectionRange?: boolean;
+	selectionEdges?: SelectionEdges | null;
 	dateIndex: number;
 	blockIndex: number;
 }
+
+const SELECTION_EDGE_WIDTH: Record<keyof SelectionEdges, string> = {
+	top: "border-t-2",
+	bottom: "border-b-2",
+	left: "border-l",
+	right: "border-r",
+};
 
 export const GroupAvailabilityBlock = memo(
 	({
 		tableCellStyles = "",
 		className = "",
-		onClick,
-		onHover,
 		onPointerDown,
 		onPointerMove,
 		onPointerUp,
 		onPointerCancel,
+		onKeyDown,
+		onHoverCell,
 		blockColor,
 		hasSpacerBefore = false,
 		isScheduled = false,
@@ -43,15 +53,25 @@ export const GroupAvailabilityBlock = memo(
 		scheduledMeetingTitle,
 		scheduledTimeRange,
 		scheduledBlockCount = 1,
+		selectionEdges = null,
 		dateIndex,
 		blockIndex,
 	}: GroupAvailabilityBlockProps) => {
 		const theme = useTheme();
 		const dashColor = theme.palette.secondary.main;
 
+		const onMouseEnter = useMemo(
+			() =>
+				onHoverCell
+					? () => onHoverCell({ zotDateIndex: dateIndex, blockIndex })
+					: undefined,
+			[onHoverCell, dateIndex, blockIndex],
+		);
+
 		return (
 			<button
 				type="button"
+				tabIndex={0}
 				className={cn(
 					"relative h-full w-full border-gray-medium border-r-[1px] transition-opacity duration-200 [touch-action:none]",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
@@ -59,12 +79,12 @@ export const GroupAvailabilityBlock = memo(
 					tableCellStyles,
 					className,
 				)}
-				onClick={onClick}
-				onMouseEnter={onHover}
+				onMouseEnter={onMouseEnter}
 				onPointerDown={onPointerDown}
 				onPointerMove={onPointerMove}
 				onPointerUp={onPointerUp}
 				onPointerCancel={onPointerCancel}
+				onKeyDown={onKeyDown}
 				data-date-index={dateIndex}
 				data-block-index={blockIndex}
 			>
@@ -74,6 +94,18 @@ export const GroupAvailabilityBlock = memo(
 					data-date-index={dateIndex}
 					data-block-index={blockIndex}
 				/>
+				{selectionEdges && (
+					<div
+						aria-hidden="true"
+						className={cn(
+							"pointer-events-none absolute inset-0 border-slate-medium border-dashed",
+							selectionEdges.top && SELECTION_EDGE_WIDTH.top,
+							selectionEdges.bottom && SELECTION_EDGE_WIDTH.bottom,
+							selectionEdges.left && SELECTION_EDGE_WIDTH.left,
+							selectionEdges.right && SELECTION_EDGE_WIDTH.right,
+						)}
+					/>
+				)}
 				{isScheduled && (
 					<svg
 						aria-hidden="true"

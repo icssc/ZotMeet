@@ -24,33 +24,17 @@ import {
 	formatTimeWithHoursAndMins,
 } from "@/lib/availability/utils";
 import { copyTextToClipboard } from "@/lib/clipboard/utils";
-import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
-import type { Availability } from "../availability";
 
 interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
 	user: UserProfile | null;
-	availabilityDates: ZotDate[];
-	ifNeededDates: ZotDate[];
-	onCancel: () => void;
-	onSave: () => void;
-	setChangeableTimezone: (can: boolean) => void;
-	setTimezone: (timezone: string) => void;
-	availabilityEditState: Availability;
 	inviteQueryInUrl?: boolean;
 }
 
 export function AvailabilityHeader({
 	meetingData,
 	user,
-	availabilityDates: _availabilityDates,
-	ifNeededDates: _ifNeededDates,
-	onCancel: _onCancel,
-	onSave: _onSave,
-	setChangeableTimezone: _setChangeableTimezone,
-	setTimezone: _setTimezone,
-	availabilityEditState: _availabilityEditState,
 	inviteQueryInUrl = false,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();

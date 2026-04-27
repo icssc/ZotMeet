@@ -20,6 +20,8 @@
 		--popover-foreground: 222.2 84% 4.9%;
 		--primary: 344.4 84.5% 67.1%;
 		--primary-foreground: 0 0% 100%;
+		--if-needed: 196 100% 27%;
+		--if-needed-foreground: 0 0% 100%;
 		--secondary: 210 40% 96.1%;
 		--secondary-foreground: 222.2 47.4% 11.2%;
 		--muted: 210 40% 96.1%;
@@ -56,6 +58,8 @@
 		--popover-foreground: 210 40% 98%;
 		--primary: 344.4 84.5% 67.1%;
 		--primary-foreground: 0 0% 100%;
+		--if-needed: 196 100% 27%;
+		--if-needed-foreground: 0 0% 100%;
 		--secondary: 217.2 32.6% 17.5%;
 		--secondary-foreground: 210 40% 98%;
 		--muted: 217.2 32.6% 17.5%;

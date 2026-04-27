@@ -96,7 +96,7 @@ export const generateDateKey = ({
 	timeBlock,
 	pageDateIndex,
 }: {
-	selectedDate: ZotDate;
+	selectedDate: ZotDate | null;
 	timeBlock: number;
 	pageDateIndex: number;
 }) => {
@@ -122,14 +122,15 @@ export function generateCellKey(
 }
 
 export const spacerBeforeDate = (
-	currentPageAvailability: ZotDate[],
+	currentPageAvailability: (ZotDate | null)[],
 ): boolean[] => {
 	return currentPageAvailability.map((date, index, arr) => {
 		if (index === 0) return false;
 
-		if (!date || !arr[index - 1]) return false;
+		const prev = arr[index - 1];
+		if (!date || !prev) return false;
 
-		const prevDate = arr[index - 1].day;
+		const prevDate = prev.day;
 		const currentDate = date.day;
 
 		return (
@@ -139,17 +140,18 @@ export const spacerBeforeDate = (
 };
 
 export const newZonedPageAvailAndDates = (
-	currentPageAvailability: ZotDate[],
+	currentPageAvailability: (ZotDate | null)[],
 	availabilityDates: ZotDate[] | null,
 	doesntNeedDay: boolean,
-): [ZotDate[], ZotDate[]] => {
-	const newBlocks = currentPageAvailability.map((date, index) => {
-		if (date) {
-			return new ZotDate(date);
-		} else {
+): [(ZotDate | null)[], ZotDate[]] => {
+	const newBlocks: (ZotDate | null)[] = currentPageAvailability.map(
+		(date, index) => {
+			if (date) {
+				return new ZotDate(date);
+			}
 			return currentPageAvailability[index];
-		}
-	});
+		},
+	);
 
 	let dayIndex = currentPageAvailability.length - 1;
 	while (currentPageAvailability[dayIndex] == null) {
@@ -160,8 +162,9 @@ export const newZonedPageAvailAndDates = (
 		newAvailDates = availabilityDates.map((date) => new ZotDate(date));
 	}
 
-	if (!doesntNeedDay) {
+	if (!doesntNeedDay && dayIndex >= 0) {
 		const prevDay = currentPageAvailability[dayIndex];
+		if (!prevDay) return [newBlocks, newAvailDates];
 		const newDay = new Date(prevDay.day);
 		newDay.setDate(newDay.getDate() + 1);
 		newBlocks[dayIndex + 1] = new ZotDate(
@@ -256,7 +259,7 @@ export function getTimestampFromBlockIndex(
 	return date.toISOString();
 }
 
-/** Same day layout as `deriveInitialAvailability` in availability.tsx, without member data. */
+/** Same day layout as `deriveInitialAvailability` in use-availability-data, without member data. */
 export function buildZotDateRowsForMeetingDays(
 	meetingDates: string[],
 	availabilityTimeBlocks: number[],
@@ -325,8 +328,7 @@ export function hasTimestampOnMeetingGrid(
 	return timestamps.some((ts) => gridIsoSet.has(ts));
 }
 
-/** Merges grid-filtered slot ISOs into local editor state (caller persists via Save). */
-export function mergeImportedGridSlots(
+function mergeImportedGridSlots(
 	availabilityDates: readonly ZotDate[],
 	slotIsoStrings: readonly string[],
 	memberId: string,

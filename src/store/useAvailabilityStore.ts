@@ -1,6 +1,7 @@
 import { create } from "zustand";
+import type { PaintMode } from "@/lib/availability/paint-selection";
 import type {
-	AvailabilityBlockType,
+	AvailabilityView,
 	SelectionStateType,
 } from "@/lib/types/availability";
 
@@ -13,39 +14,29 @@ interface AvailabilityStore {
 	prevPage: () => void;
 	setCurrentPage: (page: number) => void;
 	setItemsPerPage: (itemsPerPage: number) => void;
-	setIsFirstPage: (isFirstPage: boolean) => void;
 
-	// View
-	availabilityView: "group" | "personal" | "schedule";
+	availabilityView: AvailabilityView;
 	hasAvailability: boolean;
-	setAvailabilityView: (view: "group" | "personal" | "schedule") => void;
+	setAvailabilityView: (view: AvailabilityView) => void;
 	setHasAvailability: (hasAvailability: boolean) => void;
 
 	// Best Times
 	enabled: boolean;
 	setEnabled: (v: boolean) => void;
 
-	// Block Selection
-	startBlockSelection: AvailabilityBlockType | undefined;
-	endBlockSelection: AvailabilityBlockType | undefined;
-	selectionState: SelectionStateType | undefined;
-	setStartBlockSelection: (block: AvailabilityBlockType | undefined) => void;
-	setEndBlockSelection: (block: AvailabilityBlockType | undefined) => void;
-	setSelectionState: (state: SelectionStateType | undefined) => void;
+	draftRange: SelectionStateType | undefined;
+	hoverRange: SelectionStateType | undefined;
+	committedRange: SelectionStateType | undefined;
+	setDraftRange: (range: SelectionStateType | undefined) => void;
+	setHoverRange: (range: SelectionStateType | undefined) => void;
+	setCommittedRange: (range: SelectionStateType | undefined) => void;
+	paintMode: PaintMode;
+	setPaintMode: (mode: PaintMode) => void;
 
-	// Group Selection
-	selectedZotDateIndex: number | undefined;
-	selectedBlockIndex: number | undefined;
-	selectionIsLocked: boolean;
 	hoveredMember: string | null;
-	isHoveringGrid: boolean;
 	selectedMembers: string[];
 	isMobileDrawerOpen: boolean;
-	setSelectedZotDateIndex: (index: number | undefined) => void;
-	setSelectedBlockIndex: (index: number | undefined) => void;
-	setSelectionIsLocked: (locked: boolean) => void;
 	setHoveredMember: (member: string | null) => void;
-	toggleHoverGrid: (val: boolean) => void;
 	toggleSelectedMember: (memberId: string) => void;
 	setSelectedMember: (members: string[]) => void;
 	setIsMobileDrawerOpen: (open: boolean) => void;
@@ -56,11 +47,8 @@ interface AvailabilityStore {
 	hasHydratedScheduledTimes: boolean;
 	pendingAdds: Set<string>;
 	pendingRemovals: Set<string>;
-	addPendingTime: (timestamp: string) => void;
-	addPendingTimeRange: (timestamps: string[]) => void;
 	replaceEntireSelection: (timestamps: string[]) => void;
 	commitPendingTimes: () => void;
-	togglePendingTime: (timestamp: string) => void;
 	clearPendingTimes: () => void;
 	isScheduled: (timestamp: string) => boolean;
 	hydrateScheduledTimes: (timestamps: string[]) => void;
@@ -110,39 +98,46 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 			isFirstPage: page === 0,
 		}),
 	setItemsPerPage: (itemsPerPage) => set({ itemsPerPage }),
-	setIsFirstPage: (isFirstPage) => set({ isFirstPage }),
 
 	// View
 	availabilityView: "group",
 	hasAvailability: false,
-	setAvailabilityView: (view) => set({ availabilityView: view }),
+	setAvailabilityView: (view) =>
+		set((state) => {
+			if (state.availabilityView === view) return {};
+			return {
+				availabilityView: view,
+				draftRange: undefined,
+				hoverRange: undefined,
+				committedRange: undefined,
+				isMobileDrawerOpen: false,
+				paintMode: "available",
+				importPreview: null,
+			};
+		}),
 	setHasAvailability: (hasAvailability) => set({ hasAvailability }),
 
 	// Best Times
 	enabled: false,
 	setEnabled: (enabled) => set({ enabled }),
 
-	// Block Selection
-	startBlockSelection: undefined,
-	endBlockSelection: undefined,
-	selectionState: undefined,
-	setStartBlockSelection: (block) => set({ startBlockSelection: block }),
-	setEndBlockSelection: (block) => set({ endBlockSelection: block }),
-	setSelectionState: (state) => set({ selectionState: state }),
+	// Selection ranges
+	draftRange: undefined,
+	hoverRange: undefined,
+	committedRange: undefined,
+	setDraftRange: (range) => set({ draftRange: range }),
+	setHoverRange: (range) => set({ hoverRange: range }),
+	setCommittedRange: (range) => set({ committedRange: range }),
 
-	// Group Selection
-	selectedZotDateIndex: undefined,
-	selectedBlockIndex: undefined,
-	selectionIsLocked: false,
+	// Paint mode
+	paintMode: "available",
+	setPaintMode: (mode) => set({ paintMode: mode }),
+
+	// Group ancillary state
 	hoveredMember: null,
-	isHoveringGrid: false,
 	selectedMembers: [],
 	isMobileDrawerOpen: false,
-	setSelectedZotDateIndex: (index) => set({ selectedZotDateIndex: index }),
-	setSelectedBlockIndex: (index) => set({ selectedBlockIndex: index }),
-	setSelectionIsLocked: (locked) => set({ selectionIsLocked: locked }),
 	setHoveredMember: (member) => set({ hoveredMember: member }),
-	toggleHoverGrid: (val) => set({ isHoveringGrid: val }),
 	setSelectedMember: (members) => set({ selectedMembers: members }),
 	toggleSelectedMember: (memberId) =>
 		set((state) => {
@@ -153,17 +148,17 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 						(id) => id !== memberId,
 					),
 				};
-			} else {
-				return {
-					selectedMembers: [...state.selectedMembers, memberId],
-				};
 			}
+			return {
+				selectedMembers: [...state.selectedMembers, memberId],
+			};
 		}),
 	setIsMobileDrawerOpen: (open) => set({ isMobileDrawerOpen: open }),
 	resetSelection: () =>
 		set({
-			selectedZotDateIndex: undefined,
-			selectedBlockIndex: undefined,
+			draftRange: undefined,
+			hoverRange: undefined,
+			committedRange: undefined,
 			hoveredMember: null,
 		}),
 
@@ -172,24 +167,6 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	hasHydratedScheduledTimes: false,
 	pendingAdds: new Set<string>(),
 	pendingRemovals: new Set<string>(),
-
-	addPendingTime: (timestamp: string) => {
-		set((state) => {
-			const newPending = new Set(state.pendingAdds);
-			newPending.add(timestamp);
-			return { pendingAdds: newPending };
-		});
-	},
-
-	addPendingTimeRange: (timestamps: string[]) => {
-		set((state) => {
-			const newPending = new Set(state.pendingAdds);
-			timestamps.forEach((ts) => {
-				newPending.add(ts);
-			});
-			return { pendingAdds: newPending };
-		});
-	},
 
 	replaceEntireSelection: (timestamps: string[]) => {
 		set((state) => {
@@ -226,29 +203,6 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 				pendingAdds: new Set(),
 				pendingRemovals: new Set(),
 			};
-		});
-	},
-
-	togglePendingTime: (timestamp: string) => {
-		set((state) => {
-			const newPending = new Set(state.pendingAdds);
-			const newPendingRemovals = new Set(state.pendingRemovals || []);
-
-			if (state.scheduledTimes.has(timestamp)) {
-				if (newPendingRemovals.has(timestamp)) {
-					newPendingRemovals.delete(timestamp);
-				} else {
-					newPendingRemovals.add(timestamp);
-				}
-			} else {
-				if (newPending.has(timestamp)) {
-					newPending.delete(timestamp);
-				} else {
-					newPending.add(timestamp);
-				}
-			}
-
-			return { pendingAdds: newPending, pendingRemovals: newPendingRemovals };
 		});
 	},
 
