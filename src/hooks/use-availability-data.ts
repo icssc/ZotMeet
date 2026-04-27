@@ -128,10 +128,10 @@ export interface UseAvailabilityDataResult {
 	importGridIsoSet: ReadonlySet<string>;
 	doesntNeedDay: boolean;
 	currentPageAvailability: {
-		availabilities: ZotDate[];
-		ifNeeded: ZotDate[];
+		availabilities: (ZotDate | null)[];
+		ifNeeded: (ZotDate | null)[];
 	};
-	cancelEdit: () => ZotDate[][];
+	cancelEdit: () => { availabilityDates: ZotDate[]; ifNeededDates: ZotDate[] };
 	confirmSave: () => void;
 	isDirty: boolean;
 }
@@ -201,26 +201,24 @@ export function useAvailabilityData({
 		GoogleCalendarEvent[]
 	>([]);
 	useEffect(() => {
-		if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
-			const firstDateISO = anchorNormalizedDate[0].toISOString();
-			const lastDateObj = new Date(
-				anchorNormalizedDate[anchorNormalizedDate.length - 1],
-			);
-			lastDateObj.setHours(23, 59, 59, 999);
-			const lastDateISO = lastDateObj.toISOString();
-
-			fetchGoogleCalendarEvents(firstDateISO, lastDateISO)
-				.then((events) => {
-					setGoogleCalendarEvents(events);
-				})
-				.catch((error) => {
-					console.error("Error fetching Google Calendar events:", error);
-					setGoogleCalendarEvents([]);
-				});
-		} else {
+		if (anchorNormalizedDate.length === 0) {
 			setGoogleCalendarEvents([]);
+			return;
 		}
-	}, [availabilityDates, anchorNormalizedDate]);
+		const firstDateISO = anchorNormalizedDate[0].toISOString();
+		const lastDateObj = new Date(
+			anchorNormalizedDate[anchorNormalizedDate.length - 1],
+		);
+		lastDateObj.setHours(23, 59, 59, 999);
+		const lastDateISO = lastDateObj.toISOString();
+
+		fetchGoogleCalendarEvents(firstDateISO, lastDateISO)
+			.then(setGoogleCalendarEvents)
+			.catch((error) => {
+				console.error("Error fetching Google Calendar events:", error);
+				setGoogleCalendarEvents([]);
+			});
+	}, [anchorNormalizedDate]);
 
 	useEffect(() => {
 		const timestamps: string[] = [];
@@ -266,7 +264,11 @@ export function useAvailabilityData({
 	const pendingMembers = useMemo<Member[]>(
 		() =>
 			allAvailabilities
-				.filter((a) => a.meetingAvailabilities.length === 0)
+				.filter(
+					(a) =>
+						a.meetingAvailabilities.length === 0 &&
+						a.ifNeededAvailabilities.length === 0,
+				)
 				.map(({ memberId, displayName, profilePicture }) => ({
 					memberId,
 					displayName,
@@ -295,13 +297,13 @@ export function useAvailabilityData({
 		};
 
 		if (currentPage === lastPage) {
-			const padding = Array.from(
+			const padding: (ZotDate | null)[] = Array.from(
 				{ length: numPaddingDates },
 				() => null,
-			) as unknown as ZotDate[];
+			);
 			return {
-				availabilities: pageAvailability.availabilities.concat(padding),
-				ifNeeded: pageAvailability.ifNeeded.concat(padding),
+				availabilities: [...pageAvailability.availabilities, ...padding],
+				ifNeeded: [...pageAvailability.ifNeeded, ...padding],
 			};
 		}
 

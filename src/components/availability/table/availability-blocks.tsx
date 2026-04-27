@@ -28,8 +28,8 @@ interface AvailabilityBlocksProps extends GridCellHandlers {
 	availabilityDates: ZotDate[];
 	availabilityTimeBlocksLength: number;
 	currentPageAvailability: {
-		availabilities: ZotDate[];
-		ifNeeded: ZotDate[];
+		availabilities: (ZotDate | null)[];
+		ifNeeded: (ZotDate | null)[];
 	};
 	processedCellSegments: ProcessedCellEventSegments;
 	timeZone: string;

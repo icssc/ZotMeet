@@ -12,11 +12,12 @@ import {
 	paintPersonalSelection,
 } from "@/lib/availability/paint-selection";
 import { applyScheduleSelection } from "@/lib/availability/schedule-selection";
-import type { SelectionStateType } from "@/lib/types/availability";
+import type {
+	AvailabilityView,
+	SelectionStateType,
+} from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
-
-type AvailabilityView = "group" | "personal" | "schedule";
 
 interface UseGridInteractionArgs {
 	availabilityView: AvailabilityView;
@@ -114,7 +115,6 @@ export function useGridInteraction({
 			});
 			setAvailabilityDates(next.availabilityDates);
 			setIfNeededDates(next.ifNeededDates);
-			setCommittedRange(range);
 			return;
 		}
 
@@ -128,7 +128,6 @@ export function useGridInteraction({
 			if (timestamps.length > 0) {
 				replaceEntireSelection(timestamps);
 			}
-			setCommittedRange(range);
 			return;
 		}
 

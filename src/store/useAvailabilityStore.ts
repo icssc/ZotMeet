@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import type { PaintMode } from "@/lib/availability/paint-selection";
-import type { SelectionStateType } from "@/lib/types/availability";
-
-type AvailabilityView = "group" | "personal" | "schedule";
+import type {
+	AvailabilityView,
+	SelectionStateType,
+} from "@/lib/types/availability";
 
 interface AvailabilityStore {
 	// Pagination
@@ -111,6 +112,7 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 				committedRange: undefined,
 				isMobileDrawerOpen: false,
 				paintMode: "available",
+				importPreview: null,
 			};
 		}),
 	setHasAvailability: (hasAvailability) => set({ hasAvailability }),

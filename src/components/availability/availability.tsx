@@ -122,16 +122,10 @@ export function Availability({
 		[fromTimeMinutes, toTimeMinutes],
 	);
 
-	// Import overlay lifecycle — clear on meeting/tz change and whenever the
-	// view leaves personal.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: clear overlay when meeting or viewer TZ changes
+	// biome-ignore lint/correctness/useExhaustiveDependencies: trigger on meeting/tz change
 	useEffect(() => {
 		setImportPreview(null);
 	}, [meetingData.id, userTimezone, setImportPreview]);
-
-	useEffect(() => {
-		if (availabilityView !== "personal") setImportPreview(null);
-	}, [availabilityView, setImportPreview]);
 
 	const {
 		availabilityDates,
@@ -200,6 +194,7 @@ export function Availability({
 			setAvailabilityDates(merged.availabilityDates);
 			setIfNeededDates(merged.ifNeededDates);
 			setImportPreview(null);
+			resetSelection();
 		},
 		[
 			availabilityDates,
@@ -208,13 +203,17 @@ export function Availability({
 			setAvailabilityDates,
 			setIfNeededDates,
 			setImportPreview,
+			resetSelection,
 		],
 	);
 
 	const handleCancelEditing = useCallback(() => {
-		const originalDates = cancelEdit();
-		setAvailabilityDates(originalDates[0]);
-		setIfNeededDates(originalDates[1]);
+		const {
+			availabilityDates: originalAvailability,
+			ifNeededDates: originalIfNeeded,
+		} = cancelEdit();
+		setAvailabilityDates(originalAvailability);
+		setIfNeededDates(originalIfNeeded);
 	}, [cancelEdit, setAvailabilityDates, setIfNeededDates]);
 
 	const handleClearAvailability = useCallback(() => {
@@ -238,21 +237,28 @@ export function Availability({
 		resetSelection,
 	]);
 
-	const handleSuccessfulSave = useCallback(() => {
-		confirmSave();
-	}, [confirmSave]);
+	const handleOpenInviteDialog = useCallback(
+		() => setIsInviteDialogOpen(true),
+		[],
+	);
+
+	const actionsProps = {
+		meetingData,
+		user,
+		availabilityDates,
+		ifNeededDates,
+		onCancel: handleCancelEditing,
+		onSave: confirmSave,
+		setChangeableTimezone,
+		setTimezone: setUserTimezone,
+		onOpenInviteDialog: handleOpenInviteDialog,
+	} as const;
 
 	return (
 		<div className="flex min-h-[80vh] flex-col gap-6">
 			<AvailabilityHeader
 				meetingData={meetingData}
 				user={user}
-				availabilityDates={availabilityDates}
-				ifNeededDates={ifNeededDates}
-				onCancel={handleCancelEditing}
-				onSave={handleSuccessfulSave}
-				setChangeableTimezone={setChangeableTimezone}
-				setTimezone={setUserTimezone}
 				inviteQueryInUrl={inviteQueryInUrl}
 			/>
 
@@ -271,17 +277,7 @@ export function Availability({
 					</div>
 					<div className="flex flex-col gap-4">
 						<div className="shrink-0 lg:hidden">
-							<AvailabilityActions
-								meetingData={meetingData}
-								user={user}
-								availabilityDates={availabilityDates}
-								ifNeededDates={ifNeededDates}
-								onCancel={handleCancelEditing}
-								onSave={handleSuccessfulSave}
-								setChangeableTimezone={setChangeableTimezone}
-								setTimezone={setUserTimezone}
-								onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
-							/>
+							<AvailabilityActions {...actionsProps} />
 						</div>
 						<table className="w-full table-fixed">
 							<AvailabilityTableHeader
@@ -342,17 +338,7 @@ export function Availability({
 
 				{(availabilityView === "group" || availabilityView === "schedule") && (
 					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-						<AvailabilityActions
-							meetingData={meetingData}
-							user={user}
-							availabilityDates={availabilityDates}
-							ifNeededDates={ifNeededDates}
-							onCancel={handleCancelEditing}
-							onSave={handleSuccessfulSave}
-							setChangeableTimezone={setChangeableTimezone}
-							setTimezone={setUserTimezone}
-							onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
-						/>
+						<AvailabilityActions {...actionsProps} />
 						<Paper
 							variant="outlined"
 							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
@@ -373,17 +359,7 @@ export function Availability({
 				)}
 				{availabilityView === "personal" && (
 					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-						<AvailabilityActions
-							meetingData={meetingData}
-							user={user}
-							availabilityDates={availabilityDates}
-							ifNeededDates={ifNeededDates}
-							onCancel={handleCancelEditing}
-							onSave={handleSuccessfulSave}
-							setChangeableTimezone={setChangeableTimezone}
-							setTimezone={setUserTimezone}
-							onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
-						/>
+						<AvailabilityActions {...actionsProps} />
 						<Paper
 							variant="outlined"
 							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"

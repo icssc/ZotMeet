@@ -8,6 +8,8 @@ export type AvailabilityBlockType = {
 	blockIndex: number;
 };
 
+export type AvailabilityView = "group" | "personal" | "schedule";
+
 export type SelectionStateType = {
 	earlierDateIndex: number;
 	laterDateIndex: number;

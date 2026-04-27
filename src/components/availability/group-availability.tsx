@@ -122,8 +122,8 @@ interface GroupAvailabilityProps {
 	fromTime: number;
 	availabilityDates: ZotDate[];
 	currentPageAvailability: {
-		availabilities: ZotDate[];
-		ifNeeded: ZotDate[];
+		availabilities: (ZotDate | null)[];
+		ifNeeded: (ZotDate | null)[];
 	};
 	members: Member[];
 	onMouseLeave: () => void;

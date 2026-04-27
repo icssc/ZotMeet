@@ -14,8 +14,8 @@ interface PersonalAvailabilityProps {
 	fromTimeMinutes: number;
 	availabilityDates: ZotDate[];
 	currentPageAvailability: {
-		availabilities: ZotDate[];
-		ifNeeded: ZotDate[];
+		availabilities: (ZotDate | null)[];
+		ifNeeded: (ZotDate | null)[];
 	};
 	googleCalendarEvents: GoogleCalendarEvent[];
 	meetingDates: string[];

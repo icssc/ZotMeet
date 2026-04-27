@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
@@ -9,8 +9,16 @@ interface UseAvailabilityEditorProps {
 	currentIfNeededDates: ZotDate[];
 }
 
-function signature(dates: ZotDate[]): string {
-	return JSON.stringify(dates.map((d) => d.availability));
+function availabilityEqual(a: ZotDate[], b: ZotDate[]): boolean {
+	if (a.length !== b.length) return false;
+	for (let i = 0; i < a.length; i++) {
+		const av = a[i].availability;
+		const bv = b[i].availability;
+		if (av.length !== bv.length) return false;
+		const aSet = new Set(av);
+		for (const t of bv) if (!aSet.has(t)) return false;
+	}
+	return true;
 }
 
 export function useEditState({
@@ -27,33 +35,29 @@ export function useEditState({
 	const [originalIfNeededDates, setOriginalIfNeededDates] = useState<ZotDate[]>(
 		[],
 	);
-	const [isEditingAvailability, setIsEditingAvailability] = useState(false);
+	const prevViewRef = useRef(availabilityView);
 
 	useEffect(() => {
-		if (availabilityView === "personal" && !isEditingAvailability) {
+		const prev = prevViewRef.current;
+		prevViewRef.current = availabilityView;
+		if (prev !== "personal" && availabilityView === "personal") {
 			setOriginalAvailabilityDates(
 				currentAvailabilityDates.map((date) => date.clone()),
 			);
 			setOriginalIfNeededDates(
 				currentIfNeededDates.map((date) => date.clone()),
 			);
-			setIsEditingAvailability(true);
-		} else if (availabilityView === "group" && isEditingAvailability) {
-			setIsEditingAvailability(false);
 		}
-	}, [
-		availabilityView,
-		isEditingAvailability,
-		currentAvailabilityDates,
-		currentIfNeededDates,
-	]);
+	}, [availabilityView, currentAvailabilityDates, currentIfNeededDates]);
 
-	const cancelEdit = () => {
-		setIsEditingAvailability(false);
-		return [
-			originalAvailabilityDates.map((date) => date.clone()),
-			originalIfNeededDates.map((date) => date.clone()),
-		];
+	const cancelEdit = (): {
+		availabilityDates: ZotDate[];
+		ifNeededDates: ZotDate[];
+	} => {
+		return {
+			availabilityDates: originalAvailabilityDates.map((date) => date.clone()),
+			ifNeededDates: originalIfNeededDates.map((date) => date.clone()),
+		};
 	};
 
 	const confirmSave = () => {
@@ -61,20 +65,16 @@ export function useEditState({
 			currentAvailabilityDates.map((date) => date.clone()),
 		);
 		setOriginalIfNeededDates(currentIfNeededDates.map((date) => date.clone()));
-		setIsEditingAvailability(false);
 	};
 
 	const isDirty = useMemo(() => {
-		if (!isEditingAvailability) return false;
-		if (
-			signature(currentAvailabilityDates) !==
-			signature(originalAvailabilityDates)
-		) {
-			return true;
-		}
-		return signature(currentIfNeededDates) !== signature(originalIfNeededDates);
+		if (availabilityView !== "personal") return false;
+		return (
+			!availabilityEqual(currentAvailabilityDates, originalAvailabilityDates) ||
+			!availabilityEqual(currentIfNeededDates, originalIfNeededDates)
+		);
 	}, [
-		isEditingAvailability,
+		availabilityView,
 		currentAvailabilityDates,
 		currentIfNeededDates,
 		originalAvailabilityDates,
@@ -82,7 +82,6 @@ export function useEditState({
 	]);
 
 	return {
-		isEditingAvailability,
 		isDirty,
 		cancelEdit,
 		confirmSave,

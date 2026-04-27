@@ -1,6 +1,6 @@
 import { Avatar, Button, Chip, Switch, Typography } from "@mui/material/";
 import { XIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { computeGroupMembersForRange } from "@/lib/availability/group-query";
 import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
@@ -56,8 +56,8 @@ interface GroupResponsesProps {
 	timezone: string;
 	anchorNormalizedDate: Date[];
 	currentPageAvailability: {
-		availabilities: ZotDate[];
-		ifNeeded: ZotDate[];
+		availabilities: (ZotDate | null)[];
+		ifNeeded: (ZotDate | null)[];
 	};
 	availabilityTimeBlocks: number[];
 	doesntNeedDay: boolean;
@@ -111,10 +111,6 @@ export function GroupResponses({
 
 	const activeRange = draftRange ?? committedRange;
 
-	const [blockInfoString, setBlockInfoString] = useState(
-		"Filter through responders and find the best meeting time",
-	);
-
 	const handleClearSelected = useCallback(() => {
 		setSelectedMember([]);
 	}, [setSelectedMember]);
@@ -160,13 +156,9 @@ export function GroupResponses({
 		return members.filter((member) => !pendingMemberIds.has(member.memberId));
 	}, [members, pendingMembers]);
 
-	useEffect(() => {
-		if (!activeRange) {
-			setBlockInfoString("Select a cell to view");
-			return;
-		}
-		setBlockInfoString(formatRangeLabel(activeRange, newAvailDates));
-	}, [activeRange, newAvailDates]);
+	const blockInfoString = activeRange
+		? formatRangeLabel(activeRange, newAvailDates)
+		: "Select a cell to view";
 
 	return (
 		<div className="flex min-h-0 min-w-0 flex-1 flex-col lg:shrink-0">
