@@ -7,6 +7,9 @@ import {
 	Avatar,
 	Box,
 	Button,
+	Dialog,
+	DialogContent,
+	DialogTitle,
 	IconButton,
 	Menu,
 	MenuItem,
@@ -19,7 +22,6 @@ import {
 	Calendar,
 	Clock,
 	MoreVertical,
-	Pencil,
 	Plus,
 	Share2,
 	Users,
@@ -41,6 +43,7 @@ import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
 import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import { updateMemberRole } from "@/server/actions/group/update-member-role/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
+import { GroupSettingsForm } from "./group-settings-form";
 import { FilterChip } from "./groups-page";
 
 type Member = {
@@ -489,21 +492,16 @@ export function GroupMemberList({
 							<h1 className="font-bold font-figtree text-3xl md:text-5xl">
 								{group.name}
 							</h1>
-
-							<IconButton size="small">
-								<Pencil className="size-4" />
-							</IconButton>
 						</div>
 					</div>
 				</div>
 
 				{/* Top left back button on mobile */}
 				<div className="absolute top-5 left-5 md:hidden">
-					{(tab === 1 || showSettings) && (
+					{tab === 1 && (
 						<IconButton
 							onClick={() => {
 								setTab(0);
-								setShowSettings(false);
 							}}
 						>
 							<ArrowBack className="size-6" />
@@ -517,14 +515,22 @@ export function GroupMemberList({
 						sx={{ display: { xs: "inline-flex", md: "none" } }}
 						onClick={() => {
 							setTab(1);
-							setShowSettings(false);
 						}}
 					>
 						<People />
 					</IconButton>
 
-					{/* Settings */}
-					<IconButton onClick={() => setShowSettings(true)}>
+					{/* Settings page (mobile only) */}
+					<Link href={`/groups/${group.id}/settings`} className="md:hidden">
+						<IconButton>
+							<Settings className="size-6" />
+						</IconButton>
+					</Link>
+
+					<IconButton
+						sx={{ display: { xs: "none", md: "inline-flex" } }}
+						onClick={() => setShowSettings(true)}
+					>
 						<Settings className="size-6" />
 					</IconButton>
 				</div>
@@ -553,7 +559,6 @@ export function GroupMemberList({
 					value={tab}
 					onChange={(_, v) => {
 						setTab(v);
-						setShowSettings(false);
 					}}
 					sx={{
 						mt: 4,
@@ -689,7 +694,7 @@ export function GroupMemberList({
 			</div>
 
 			{/* Existing tab content below here */}
-			{tab === 0 && !showSettings && (
+			{tab === 0 && (
 				<div className="mt-6">
 					<div className="mt-4">
 						{meetings.length > 0 ? (
@@ -747,7 +752,7 @@ export function GroupMemberList({
 					</div>
 				</div>
 			)}
-			{tab === 1 && !showSettings && (
+			{tab === 1 && (
 				<div className="mt-6">
 					<MembersList
 						members={members}
@@ -757,11 +762,21 @@ export function GroupMemberList({
 					/>
 				</div>
 			)}
-			{showSettings && (
-				<div className="mt-6 flex items-center justify-center py-32">
-					<p className="text-gray-500 text-lg">Settings coming soon</p>
-				</div>
-			)}
+			{/* Settings Dialog (desktop only) */}
+			<Dialog
+				open={showSettings}
+				onClose={() => setShowSettings(false)}
+				maxWidth="sm"
+				fullWidth
+			>
+				<DialogTitle>Group Settings</DialogTitle>
+				<DialogContent>
+					<GroupSettingsForm
+						group={group}
+						onCancel={() => setShowSettings(false)}
+					/>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }
