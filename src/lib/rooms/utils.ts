@@ -15,9 +15,12 @@ const HALF_HOUR_MS = 30 * 60 * 1000;
 
 /** Round `from` up to the next 30-min boundary. Rolls to next day if needed. */
 export function getNextHalfHour(from: Date = new Date()): Date {
-	const ms = from.getTime();
-	const remainder = ms % HALF_HOUR_MS;
-	return new Date(remainder === 0 ? ms : ms - remainder + HALF_HOUR_MS);
+	const d = new Date(from);
+	const remainder = d.getMinutes() % 30;
+	if (remainder === 0 && d.getSeconds() === 0 && d.getMilliseconds() === 0)
+		return d;
+	d.setMinutes(d.getMinutes() + (remainder === 0 ? 30 : 30 - remainder), 0, 0);
+	return d;
 }
 
 /** Calendar day + clock from `time` (same semantics as date pickers + time pickers). */
