@@ -142,7 +142,6 @@ export function Availability({
 }) {
 	const isMobile = useIsMobile();
 	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
-	const isMobile = useIsMobile();
 	const [availabilitySelectionMode, setAvailabilitySelectionMode] =
 		useState<Availability>("available");
 	const router = useRouter();
