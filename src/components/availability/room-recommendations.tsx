@@ -2,27 +2,20 @@
 
 import { Button, Chip, Collapse, Divider, Typography } from "@mui/material";
 import { ChevronDownIcon, ChevronUpIcon, SparklesIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import type { paths } from "@/lib/types/anteater-api-types";
+import type { Building, Capacity, MeetingLength } from "@/lib/types/studyrooms";
+import {
+	BUILDINGS,
+	CAPACITIES,
+	MEETING_LENGTHS,
+	MeetingLengthSchema,
+} from "@/lib/types/studyrooms";
 import { cn } from "@/lib/utils";
 
-export interface StudyRoomApiEntry {
-	id: string;
-	name: string;
-	capacity: number | null;
-	location: string;
-	description: string;
-	directions: string;
-	techEnhanced: boolean | null;
-	url: string;
-	slots: {
-		studyRoomId: string;
-		start: string;
-		end: string;
-		url: string;
-		isAvailable: boolean;
-	}[];
-}
-
+export type StudyRoomApiEntry = NonNullable<
+	paths["/v2/rest/studyRooms"]["get"]["responses"]["200"]["content"]["application/json"]
+>["data"][number];
 interface RoomResult {
 	id: string;
 	label: string;
@@ -33,7 +26,7 @@ interface RoomResult {
 	//I added it if we implement anything with that in the future
 	techEnhanced: boolean | null;
 	bookingUrl: string;
-	durations: number[];
+	durations: MeetingLength[];
 }
 
 function toggle<T>(arr: T[], val: T): T[] {
@@ -53,8 +46,9 @@ export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 		const firstAvailableSlot = room.slots.find((s) => s.isAvailable);
 		const bookingUrl = firstAvailableSlot?.url ?? room.url;
 		const durationMatch = room.name.match(/\((\d+)\s*hours?\)/i);
-		const duration = durationMatch ? Number(durationMatch[1]) * 60 : null;
-
+		const rawDuration = durationMatch ? Number(durationMatch[1]) * 60 : null;
+		const parsed = MeetingLengthSchema.safeParse(rawDuration);
+		const duration = parsed.success ? parsed.data : null;
 		const existing = seen.get(key);
 		if (!existing) {
 			seen.set(key, {
@@ -62,7 +56,7 @@ export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 				label: baseName || room.name,
 				location: room.location,
 				capacity: room.capacity,
-				description: room.description,
+				description: room.description ?? null,
 				techEnhanced: room.techEnhanced,
 				bookingUrl,
 				durations: duration ? [duration] : [],
@@ -97,26 +91,17 @@ interface RoomRecommendationSettingsProps {
 	onShowBestRooms?: () => void;
 	onRoomSelect?: (room: RoomResult, selected: boolean) => void;
 	rawRooms?: StudyRoomApiEntry[];
-	onFiltersChange?: (filters: {
-		capacities: string[];
-		buildings: string[];
-		lengths: number[];
+	filters: {
+		capacities: Capacity[];
+		buildings: Building[];
+		lengths: MeetingLength[];
+	};
+	onFiltersChange: (filters: {
+		capacities: Capacity[];
+		buildings: Building[];
+		lengths: MeetingLength[];
 	}) => void;
 }
-
-const MEETING_LENGTHS = [30, 60, 90, 120] as const;
-type MeetingLength = (typeof MEETING_LENGTHS)[number];
-
-const CAPACITIES = ["1-2", "3-4", "5-6", "7-8", "9-12", "13+"] as const;
-type Capacity = (typeof CAPACITIES)[number];
-
-const BUILDINGS = [
-	"Anteater Learning Pavilion",
-	"Science Library",
-	"Langson Library",
-	"Gateway Study Center",
-] as const;
-type Building = (typeof BUILDINGS)[number];
 
 function FilterChipGroup<T extends string | number>({
 	options,
@@ -166,20 +151,18 @@ export function RoomRecommendationSettings({
 	onShowBestRooms,
 	onRoomSelect,
 	onFiltersChange,
+	filters,
 	rawRooms = [],
 }: RoomRecommendationSettingsProps) {
 	const [isOpen, setIsOpen] = useState(false);
 
-	const roomResults = useMemo(
-		() => deduplicateRooms(rawRooms ?? []),
-		[rawRooms],
-	);
+	const roomResults = useMemo(() => deduplicateRooms(rawRooms), [rawRooms]);
+	const {
+		lengths: selectedLengths,
+		capacities: selectedCapacities,
+		buildings: selectedBuildings,
+	} = filters;
 
-	const [selectedLengths, setSelectedLengths] = useState<MeetingLength[]>([60]);
-	const [selectedCapacities, setSelectedCapacities] = useState<Capacity[]>([
-		"3-4",
-	]);
-	const [selectedBuildings, setSelectedBuildings] = useState<Building[]>([]);
 	const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
 
 	const filteredRooms = useMemo(() => {
@@ -207,7 +190,7 @@ export function RoomRecommendationSettings({
 
 			if (selectedLengths.length > 0 && room.durations.length > 0) {
 				const matchesLength = room.durations.some((d) =>
-					selectedLengths.includes(d as MeetingLength),
+					selectedLengths.includes(d),
 				);
 				if (!matchesLength) return false;
 			}
@@ -216,17 +199,50 @@ export function RoomRecommendationSettings({
 		});
 	}, [roomResults, selectedCapacities, selectedBuildings, selectedLengths]);
 
-	const handleToggleLength = useCallback((v: MeetingLength) => {
-		setSelectedLengths((prev) => toggle(prev, v));
-	}, []);
+	const roomState = useMemo(() => {
+		if (!rawRooms.length) {
+			return { status: "initial" as const };
+		}
 
-	const handleToggleCapacity = useCallback((v: Capacity) => {
-		setSelectedCapacities((prev) => toggle(prev, v));
-	}, []);
+		if (!roomResults.length) {
+			return { status: "empty" as const };
+		}
 
-	const handleToggleBuilding = useCallback((v: Building) => {
-		setSelectedBuildings((prev) => toggle(prev, v));
-	}, []);
+		return {
+			status: "results" as const,
+			rooms: filteredRooms,
+		};
+	}, [rawRooms.length, roomResults.length, filteredRooms]);
+
+	const handleToggleLength = useCallback(
+		(v: MeetingLength) => {
+			onFiltersChange({
+				...filters,
+				lengths: toggle(selectedLengths, v),
+			});
+		},
+		[filters, selectedLengths, onFiltersChange],
+	);
+
+	const handleToggleCapacity = useCallback(
+		(v: Capacity) => {
+			onFiltersChange({
+				...filters,
+				capacities: toggle(selectedCapacities, v),
+			});
+		},
+		[filters, selectedCapacities, onFiltersChange],
+	);
+
+	const handleToggleBuilding = useCallback(
+		(v: Building) => {
+			onFiltersChange({
+				...filters,
+				buildings: toggle(selectedBuildings, v),
+			});
+		},
+		[filters, selectedBuildings, onFiltersChange],
+	);
 
 	const handleToggleRoom = useCallback(
 		(room: RoomResult) => {
@@ -238,13 +254,6 @@ export function RoomRecommendationSettings({
 		},
 		[onRoomSelect],
 	);
-	useEffect(() => {
-		onFiltersChange?.({
-			capacities: selectedCapacities,
-			buildings: selectedBuildings,
-			lengths: selectedLengths,
-		});
-	}, [selectedCapacities, selectedBuildings, selectedLengths, onFiltersChange]);
 
 	return (
 		<div className="min-w-0 lg:shrink-0">
@@ -300,7 +309,12 @@ export function RoomRecommendationSettings({
 									options={MEETING_LENGTHS}
 									selected={selectedLengths}
 									onToggle={handleToggleLength}
-									onClear={() => setSelectedLengths([])}
+									onClear={() =>
+										onFiltersChange({
+											...filters,
+											lengths: [],
+										})
+									}
 								/>
 							</div>
 
@@ -312,7 +326,12 @@ export function RoomRecommendationSettings({
 									options={CAPACITIES}
 									selected={selectedCapacities}
 									onToggle={handleToggleCapacity}
-									onClear={() => setSelectedCapacities([])}
+									onClear={() =>
+										onFiltersChange({
+											...filters,
+											capacities: [],
+										})
+									}
 								/>
 							</div>
 
@@ -324,7 +343,12 @@ export function RoomRecommendationSettings({
 									options={BUILDINGS}
 									selected={selectedBuildings}
 									onToggle={handleToggleBuilding}
-									onClear={() => setSelectedBuildings([])}
+									onClear={() =>
+										onFiltersChange({
+											...filters,
+											buildings: [],
+										})
+									}
 								/>
 							</div>
 						</div>
@@ -340,17 +364,29 @@ export function RoomRecommendationSettings({
 								</Typography>
 							</div>
 
-							{filteredRooms.length === 0 ? (
+							{roomState.status === "initial" && (
 								<Typography
 									variant="caption"
 									color="textSecondary"
 									className="italic"
 								>
-									No rooms found. Click "Show Best Rooms" to search.
+									Click "Show Best Rooms" to search for available study rooms.
 								</Typography>
-							) : (
+							)}
+
+							{roomState.status === "empty" && (
+								<Typography
+									variant="caption"
+									color="textSecondary"
+									className="italic"
+								>
+									No rooms match your current filters.
+								</Typography>
+							)}
+
+							{roomState.status === "results" && (
 								<div className="flex flex-wrap gap-2">
-									{filteredRooms.map((room) => {
+									{roomState.rooms.map((room) => {
 										const isSelected = selectedRooms.includes(room.id);
 										const label = [
 											room.label,

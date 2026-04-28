@@ -19,15 +19,7 @@ import { useEffect, useState } from "react";
 import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import type { StudyRooms } from "@/lib/types/studyrooms";
-
-const LOCATION_OPTIONS = [
-	"Plaza Verde",
-	"Langson Library",
-	"Science Library",
-	"Multimedia Resources Center",
-	"Gateway Study Center",
-	"Ayala Science Library",
-];
+import { BUILDINGS } from "@/lib/types/studyrooms";
 
 const toLocalStr = (d: Date) => {
 	const h = d.getHours();
@@ -198,7 +190,7 @@ export default function Page() {
 
 				<Autocomplete
 					freeSolo
-					options={LOCATION_OPTIONS}
+					options={BUILDINGS}
 					value={location}
 					onChange={(_, val) => setLocation(val)}
 					onInputChange={(_, val, reason) => {

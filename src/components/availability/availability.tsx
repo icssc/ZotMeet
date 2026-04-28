@@ -1,7 +1,7 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { Button, Paper } from "@mui/material";
+import { Paper } from "@mui/material";
 import { useDrag } from "@use-gesture/react";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -45,6 +45,7 @@ import {
 	convertAnchorDatesToCurrentWeek,
 	isAnchorDateMeeting,
 } from "@/lib/types/chrono";
+import type { Building, Capacity, MeetingLength } from "@/lib/types/studyrooms";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
@@ -234,6 +235,8 @@ export function Availability({
 		[fromTimeMinutes, toTimeMinutes],
 	);
 
+	const [studyRooms, setStudyRooms] = useState<StudyRoomApiEntry[]>([]);
+
 	const importGridIsoSet = useMemo(
 		() =>
 			buildMeetingGridIsoSet(
@@ -295,16 +298,15 @@ export function Availability({
 		return getBestTimeRanges(availabilityDates);
 	}, [availabilityDates]);
 
-	const [roomFilters, setRoomFilters] = useState({
-		capacities: ["3-4"] as string[],
-		buildings: [] as string[],
-		lengths: [60] as number[],
+	const [roomFilters, setRoomFilters] = useState<{
+		capacities: Capacity[];
+		buildings: Building[];
+		lengths: MeetingLength[];
+	}>({
+		capacities: ["3-4"],
+		buildings: [],
+		lengths: [60],
 	});
-
-	const [isSheetOpen, setIsSheetOpen] = useState(false);
-	const [activeTab, setActiveTab] = useState<"attendees" | "rooms">(
-		"attendees",
-	);
 
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
@@ -408,14 +410,18 @@ export function Availability({
 			);
 
 			const results = await Promise.all(promises);
+			const combined = results.flatMap((res, i) => {
+				const { date, time } = bestTimeRanges[i];
 
-			const combined = results
-				.flatMap((res) => res.data ?? [])
-				.map((room) => ({
+				return (res.data ?? []).map((room) => ({
 					...room,
 					description: room.description ?? "",
 					directions: room.directions ?? "",
+
+					availableDate: date,
+					availableTimeRange: time,
 				}));
+			});
 
 			setStudyRooms(combined);
 		} catch (err) {
@@ -500,10 +506,9 @@ export function Availability({
 	const lastUTCDateTime = useMemo(() => {
 		const day = new Date(availabilityDates[availabilityDates.length - 1].day);
 		const hours = Math.floor(
-			currentPageAvailability["availabilities"][0].latestTime / 60,
+			currentPageAvailability.availabilities[0].latestTime / 60,
 		);
-		const minutes =
-			currentPageAvailability["availabilities"][0].latestTime % 60;
+		const minutes = currentPageAvailability.availabilities[0].latestTime % 60;
 		day.setHours(hours, minutes, 0, 0);
 		return day;
 	}, [availabilityDates, currentPageAvailability]);
@@ -581,8 +586,6 @@ export function Availability({
 			});
 		}
 	}, [startBlockSelection, endBlockSelection, setSelectionState]);
-
-	const [studyRooms, setStudyRooms] = useState<StudyRoomApiEntry[]>([]);
 
 	// Helper to get block info from pointer position
 	const getBlockAtPosition = useCallback((x: number, y: number) => {
@@ -921,6 +924,7 @@ export function Availability({
 						</Paper>
 						<RoomRecommendationSettings
 							rawRooms={studyRooms}
+							filters={roomFilters}
 							onFiltersChange={setRoomFilters}
 							onShowBestRooms={handleShowBestRooms}
 						/>

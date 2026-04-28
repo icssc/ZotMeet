@@ -217,7 +217,6 @@ export function getBestTimeRanges(availabilityDates: ZotDate[]) {
 	return results;
 }
 
-// helper function for capacity - move somewhere else?
 export function getCapacityRange(capacities: string[]) {
 	if (capacities.length === 0) return {};
 
@@ -227,16 +226,17 @@ export function getCapacityRange(capacities: string[]) {
 	for (const cap of capacities) {
 		if (cap === "13+") {
 			min = Math.min(min, 13);
-			max = Infinity;
-		} else {
-			const [low, high] = cap.split("-").map(Number);
-			min = Math.min(min, low);
-			max = Math.max(max, high);
+			max = Math.max(max, 14);
+			continue;
 		}
+
+		const [low, high] = cap.split("-").map(Number);
+		min = Math.min(min, low);
+		max = Math.max(max, high);
 	}
 
 	return {
 		capacityMin: min !== Infinity ? min : undefined,
-		capacityMax: max !== Infinity ? max : undefined,
+		capacityMax: max !== -Infinity ? max : undefined,
 	};
 }
