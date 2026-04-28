@@ -189,6 +189,9 @@ export default function Page() {
 				}
 			}
 			setRooms([]);
+			setCommittedDate(null);
+			setCommittedStart(null);
+			setCommittedEnd(null);
 			setError(`No rooms available in the next ${MAX_FALLBACK_DAYS} days.`);
 		},
 		[],
