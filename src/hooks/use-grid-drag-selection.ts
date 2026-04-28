@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import type { SelectionStateType } from "@/lib/types/availability";
 
 export interface GridCell {
@@ -88,9 +88,7 @@ export function useGridDragSelection(
 	opts: UseGridDragSelectionOptions,
 ): UseGridDragSelectionHandlers {
 	const optsRef = useRef(opts);
-	useEffect(() => {
-		optsRef.current = opts;
-	});
+	optsRef.current = opts;
 
 	const activePointerIdRef = useRef<number | null>(null);
 	const startCellRef = useRef<GridCell | null>(null);

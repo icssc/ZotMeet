@@ -57,7 +57,11 @@ function deriveInitialAvailability(args: {
 	const availabilitiesByDate = new Map<string, string[]>();
 	if (userAvailability) {
 		getTimestamps(userAvailability).forEach((timeStr) => {
-			const dateStr = new Date(timeStr).toLocaleDateString("en-CA");
+			const dateStr = formatInTimeZone(
+				new Date(timeStr),
+				timezone,
+				"yyyy-MM-dd",
+			);
 			if (!availabilitiesByDate.has(dateStr)) {
 				availabilitiesByDate.set(dateStr, []);
 			}
@@ -68,7 +72,11 @@ function deriveInitialAvailability(args: {
 	const timestampsByDate = new Map<string, Map<string, string[]>>();
 	for (const member of allAvailabilties) {
 		for (const timestamp of getTimestamps(member)) {
-			const dateStr = new Date(timestamp).toLocaleDateString("en-CA");
+			const dateStr = formatInTimeZone(
+				new Date(timestamp),
+				timezone,
+				"yyyy-MM-dd",
+			);
 			let dateMap = timestampsByDate.get(dateStr);
 			if (dateMap === undefined) {
 				dateMap = new Map();
@@ -319,7 +327,7 @@ export function useAvailabilityData({
 	]);
 
 	const doesntNeedDay = useMemo(() => {
-		for (let i = 1; i < availabilityTimeBlocks.length - 1; i++) {
+		for (let i = 1; i < availabilityTimeBlocks.length; i++) {
 			const gap = availabilityTimeBlocks[i] - availabilityTimeBlocks[i - 1];
 			if (gap !== 15) return false;
 		}

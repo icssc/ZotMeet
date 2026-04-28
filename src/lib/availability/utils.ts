@@ -154,7 +154,7 @@ export const newZonedPageAvailAndDates = (
 	);
 
 	let dayIndex = currentPageAvailability.length - 1;
-	while (currentPageAvailability[dayIndex] == null) {
+	while (dayIndex >= 0 && currentPageAvailability[dayIndex] == null) {
 		dayIndex -= 1;
 	}
 	let newAvailDates: ZotDate[] = [];

@@ -104,7 +104,7 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	hasAvailability: false,
 	setAvailabilityView: (view) =>
 		set((state) => {
-			if (state.availabilityView === view) return {};
+			if (state.availabilityView === view) return state;
 			return {
 				availabilityView: view,
 				draftRange: undefined,

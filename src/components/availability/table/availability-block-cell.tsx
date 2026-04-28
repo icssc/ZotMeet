@@ -20,7 +20,8 @@ export interface GridCellHandlers {
 	onCellHover?: (cell: GridCell) => void;
 }
 
-interface AvailabilityBlockCellProps extends GridCellHandlers {
+interface AvailabilityBlockCellProps
+	extends Omit<GridCellHandlers, "onCellHover"> {
 	blockIndex: number;
 	isAvailable: boolean;
 	isIfNeeded: boolean;

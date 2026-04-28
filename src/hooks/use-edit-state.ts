@@ -38,9 +38,14 @@ export function useEditState({
 	const prevViewRef = useRef(availabilityView);
 
 	useEffect(() => {
-		const prev = prevViewRef.current;
-		prevViewRef.current = availabilityView;
-		if (prev !== "personal" && availabilityView === "personal") {
+		if (availabilityView !== "personal") {
+			prevViewRef.current = availabilityView;
+			return;
+		}
+		const shouldSnapshot =
+			prevViewRef.current !== "personal" ||
+			originalAvailabilityDates.length === 0;
+		if (shouldSnapshot) {
 			setOriginalAvailabilityDates(
 				currentAvailabilityDates.map((date) => date.clone()),
 			);
@@ -48,7 +53,13 @@ export function useEditState({
 				currentIfNeededDates.map((date) => date.clone()),
 			);
 		}
-	}, [availabilityView, currentAvailabilityDates, currentIfNeededDates]);
+		prevViewRef.current = availabilityView;
+	}, [
+		availabilityView,
+		currentAvailabilityDates,
+		currentIfNeededDates,
+		originalAvailabilityDates.length,
+	]);
 
 	const cancelEdit = (): {
 		availabilityDates: ZotDate[];
