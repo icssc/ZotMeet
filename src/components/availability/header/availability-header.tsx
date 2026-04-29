@@ -2,7 +2,9 @@
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
 import {
 	AccessTime,
+	Add,
 	CalendarMonth,
+	Check,
 	ContentCopy,
 	LocationOn,
 	Settings,
@@ -46,7 +48,7 @@ export function AvailabilityHeader({
 	user,
 	availabilityDates: _availabilityDates,
 	ifNeededDates: _ifNeededDates,
-	onCancel: _onCancel,
+	onCancel,
 	onSave: _onSave,
 	setChangeableTimezone: _setChangeableTimezone,
 	setTimezone: _setTimezone,
@@ -61,14 +63,19 @@ export function AvailabilityHeader({
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
-	const { availabilityView, scheduledTimesCount, hasHydratedScheduledTimes } =
-		useAvailabilityStore(
-			useShallow((state) => ({
-				availabilityView: state.availabilityView,
-				scheduledTimesCount: state.scheduledTimes.size,
-				hasHydratedScheduledTimes: state.hasHydratedScheduledTimes,
-			})),
-		);
+	const {
+		availabilityView,
+		setAvailabilityView,
+		scheduledTimesCount,
+		hasHydratedScheduledTimes,
+	} = useAvailabilityStore(
+		useShallow((state) => ({
+			availabilityView: state.availabilityView,
+			setAvailabilityView: state.setAvailabilityView,
+			scheduledTimesCount: state.scheduledTimes.size,
+			hasHydratedScheduledTimes: state.hasHydratedScheduledTimes,
+		})),
+	);
 	const isScheduled = hasHydratedScheduledTimes
 		? scheduledTimesCount > 0
 		: meetingData.scheduled;
@@ -125,7 +132,18 @@ export function AvailabilityHeader({
 						</IconButton>
 					</div>
 
-					{isOwner && (
+					{availabilityView === "personal" ? (
+						<Button
+							size="square"
+							variant="contained"
+							onClick={() => {
+								onCancel();
+								setAvailabilityView("group");
+							}}
+						>
+							<Check />
+						</Button>
+					) : (
 						<div className="block sm:hidden">
 							<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
 								<MoreVerticalIcon />

@@ -199,6 +199,17 @@ export const getTheme = (mode: "light" | "dark") =>
 				},
 			},
 			MuiButton: {
+				variants: [
+					{
+						props: { size: "square" },
+						style: {
+							width: 40,
+							minWidth: 40,
+							height: 40,
+							padding: 0,
+						},
+					},
+				],
 				styleOverrides: {
 					root: {
 						textTransform: "none",
