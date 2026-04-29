@@ -18,7 +18,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
-import { getNextHalfHour } from "@/lib/rooms/utils";
+import { getDefaultWindow, toLocalStr } from "@/lib/rooms/utils";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
 const MAX_FALLBACK_DAYS = 7;
@@ -31,29 +31,6 @@ const LOCATION_OPTIONS = [
 	"Gateway Study Center",
 	"Ayala Science Library",
 ];
-
-const toLocalStr = (d: Date) => {
-	const h = d.getHours();
-	const m = d.getMinutes();
-	return `${h % 12 || 12}:${m.toString().padStart(2, "0")}${h >= 12 ? "pm" : "am"}`;
-};
-
-function getDefaultWindow() {
-	const start = getNextHalfHour();
-	const fivePm = new Date(start);
-	fivePm.setHours(17, 0, 0, 0);
-
-	if (start >= fivePm) {
-		const nextDay = new Date(start);
-		nextDay.setDate(nextDay.getDate() + 1);
-		nextDay.setHours(11, 0, 0, 0);
-		const end = new Date(nextDay);
-		end.setHours(17, 0, 0, 0);
-		return { start: nextDay, end };
-	}
-
-	return { start, end: fivePm };
-}
 
 export default function Page() {
 	const [{ defaultDate, defaultStart, defaultEnd }] = useState(() => {

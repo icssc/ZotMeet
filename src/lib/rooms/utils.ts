@@ -224,3 +224,30 @@ export function getBestTimeRanges(availabilityDates: any[]) {
 
 	return results;
 }
+
+export const toLocalStr = (d: Date) => {
+	const h = d.getHours();
+	const m = d.getMinutes();
+	return `${h % 12 || 12}:${m.toString().padStart(2, "0")}${h >= 12 ? "pm" : "am"}`;
+};
+
+const WINDOW_MS = 6 * 60 * 60 * 1000;
+
+export function getDefaultWindow() {
+	const start = getNextHalfHour();
+
+	const elevenPm = new Date(start);
+	elevenPm.setHours(23, 0, 0, 0);
+
+	if (start >= elevenPm) {
+		const nextDay = new Date(start);
+		nextDay.setDate(nextDay.getDate() + 1);
+		nextDay.setHours(11, 0, 0, 0);
+		const end = new Date(nextDay.getTime() + WINDOW_MS);
+		return { start: nextDay, end };
+	}
+
+	const rawEnd = new Date(start.getTime() + WINDOW_MS);
+	const end = rawEnd > elevenPm ? elevenPm : rawEnd;
+	return { start, end };
+}
