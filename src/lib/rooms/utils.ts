@@ -222,11 +222,12 @@ export function getCapacityRange(capacities: string[]) {
 
 	let min = Infinity;
 	let max = -Infinity;
+	let hasOpenEnded = false;
 
 	for (const cap of capacities) {
 		if (cap === "13+") {
 			min = Math.min(min, 13);
-			max = Math.max(max, 14);
+			hasOpenEnded = true;
 			continue;
 		}
 
@@ -237,6 +238,6 @@ export function getCapacityRange(capacities: string[]) {
 
 	return {
 		capacityMin: min !== Infinity ? min : undefined,
-		capacityMax: max !== -Infinity ? max : undefined,
+		capacityMax: hasOpenEnded ? undefined : max !== -Infinity ? max : undefined,
 	};
 }

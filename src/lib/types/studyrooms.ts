@@ -26,6 +26,5 @@ export const BUILDINGS = [
 	"Gateway Study Center",
 	"Plaza Verde",
 	"Multimedia Resources Center",
-	"Ayala Science Library",
 ] as const;
 export type Building = (typeof BUILDINGS)[number];
