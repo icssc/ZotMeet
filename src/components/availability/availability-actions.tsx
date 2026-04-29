@@ -194,7 +194,7 @@ export function AvailabilityActions({
 							Add to Calendar
 						</Button>
 					)}
-					<div className="hidden sm:block">
+					<div className="hidden flex-col gap-2 sm:flex">
 						<Button
 							variant="contained"
 							startIcon={<Create sx={{ color: "inherit" }} />}
