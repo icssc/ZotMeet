@@ -234,13 +234,14 @@ export const toLocalStr = (d: Date) => {
 const WINDOW_MS = 6 * 60 * 60 * 1000;
 
 export function getDefaultWindow() {
-	const start = getNextHalfHour();
+	const now = new Date();
+	const start = getNextHalfHour(now);
 
-	const elevenPm = new Date(start);
+	const elevenPm = new Date(now);
 	elevenPm.setHours(23, 0, 0, 0);
 
 	if (start >= elevenPm) {
-		const nextDay = new Date(start);
+		const nextDay = new Date(now);
 		nextDay.setDate(nextDay.getDate() + 1);
 		nextDay.setHours(11, 0, 0, 0);
 		const end = new Date(nextDay.getTime() + WINDOW_MS);
