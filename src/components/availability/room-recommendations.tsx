@@ -204,7 +204,7 @@ export function RoomRecommendationSettings({
 			return { status: "initial" as const };
 		}
 
-		if (!roomResults.length) {
+		if (!filteredRooms.length) {
 			return { status: "empty" as const };
 		}
 
