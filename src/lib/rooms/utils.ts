@@ -1,4 +1,5 @@
 import { formatLocalDateKey } from "@/lib/meetings/utils";
+import type { ZotDate } from "@/lib/zotdate";
 
 export const formatISOToLocalTime = (isoString: string): string => {
 	return new Date(isoString)
@@ -162,7 +163,7 @@ function formatRange(start: Date, end: Date) {
 	return `${format(start)}-${format(rangeEnd)}`;
 }
 
-export function getBestTimeRanges(availabilityDates: any[]) {
+export function getBestTimeRanges(availabilityDates: ZotDate[]) {
 	let max = 0;
 
 	availabilityDates.forEach((date) => {
@@ -176,7 +177,8 @@ export function getBestTimeRanges(availabilityDates: any[]) {
 	availabilityDates.forEach((date) => {
 		Object.entries(date.groupAvailability).forEach(
 			([timestamp, memberIds]: [string, unknown]) => {
-				if ((memberIds as string[]).length === max && max > 0) {
+				const threshold = Math.max(1, max - 1); // allows near-best and single user availability
+				if ((memberIds as string[]).length >= threshold) {
 					timestamps.push(timestamp);
 				}
 			},
@@ -213,4 +215,29 @@ export function getBestTimeRanges(availabilityDates: any[]) {
 	});
 
 	return results;
+}
+
+export function getCapacityRange(capacities: string[]) {
+	if (capacities.length === 0) return {};
+
+	let min = Infinity;
+	let max = -Infinity;
+	let hasOpenEnded = false;
+
+	for (const cap of capacities) {
+		if (cap === "13+") {
+			min = Math.min(min, 13);
+			hasOpenEnded = true;
+			continue;
+		}
+
+		const [low, high] = cap.split("-").map(Number);
+		min = Math.min(min, low);
+		max = Math.max(max, high);
+	}
+
+	return {
+		capacityMin: min !== Infinity ? min : undefined,
+		capacityMax: hasOpenEnded ? undefined : max !== -Infinity ? max : undefined,
+	};
 }

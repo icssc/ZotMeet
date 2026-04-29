@@ -12,6 +12,10 @@ import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
+import {
+	RoomRecommendationSettings,
+	type StudyRoomApiEntry,
+} from "@/components/availability/room-recommendations";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
@@ -32,7 +36,7 @@ import {
 	mergeImportedPersonalGridSlots,
 } from "@/lib/availability/utils";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
-import { getBestTimeRanges } from "@/lib/rooms/utils";
+import { getBestTimeRanges, getCapacityRange } from "@/lib/rooms/utils";
 import type {
 	GoogleCalendarEvent,
 	MemberMeetingAvailability,
@@ -42,6 +46,7 @@ import {
 	convertAnchorDatesToCurrentWeek,
 	isAnchorDateMeeting,
 } from "@/lib/types/chrono";
+import type { Building, Capacity, MeetingLength } from "@/lib/types/studyrooms";
 import { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
@@ -231,6 +236,8 @@ export function Availability({
 		[fromTimeMinutes, toTimeMinutes],
 	);
 
+	const [studyRooms, setStudyRooms] = useState<StudyRoomApiEntry[]>([]);
+
 	const importGridIsoSet = useMemo(
 		() =>
 			buildMeetingGridIsoSet(
@@ -291,6 +298,16 @@ export function Availability({
 	const bestTimeRanges = useMemo(() => {
 		return getBestTimeRanges(availabilityDates);
 	}, [availabilityDates]);
+
+	const [roomFilters, setRoomFilters] = useState<{
+		capacities: Capacity[];
+		buildings: Building[];
+		lengths: MeetingLength[];
+	}>({
+		capacities: ["3-4"],
+		buildings: [],
+		lengths: [60],
+	});
 
 	const { cancelEdit, confirmSave } = useEditState({
 		currentAvailabilityDates: availabilityDates,
@@ -400,6 +417,41 @@ export function Availability({
 	const handleSuccessfulSave = useCallback(() => {
 		confirmSave();
 	}, [confirmSave]);
+
+	const handleShowBestRooms = useCallback(async () => {
+		try {
+			const { capacityMin, capacityMax } = getCapacityRange(
+				roomFilters.capacities,
+			);
+
+			const promises = bestTimeRanges.map(({ date, time }) =>
+				fetchStudyRooms({
+					date,
+					timeRange: time,
+					capacityMin,
+					capacityMax,
+				}),
+			);
+
+			const results = await Promise.all(promises);
+			const combined = results.flatMap((res, i) => {
+				const { date, time } = bestTimeRanges[i];
+
+				return (res.data ?? []).map((room) => ({
+					...room,
+					description: room.description ?? "",
+					directions: room.directions ?? "",
+
+					availableDate: date,
+					availableTimeRange: time,
+				}));
+			});
+
+			setStudyRooms(combined);
+		} catch (err) {
+			console.error("Failed to fetch study rooms:", err);
+		}
+	}, [roomFilters.capacities, bestTimeRanges]);
 
 	useEffect(() => {
 		if (availabilityDates.length > 0 && anchorNormalizedDate.length > 0) {
@@ -562,36 +614,6 @@ export function Availability({
 			});
 		}
 	}, [startBlockSelection, endBlockSelection, setSelectionState]);
-
-	//currently unused as we only have console log for now
-	const [_studyRooms, setStudyRooms] = useState<any[]>([]);
-
-	useEffect(() => {
-		if (!bestTimeRanges.length) {
-			setStudyRooms([]);
-			return;
-		}
-
-		const fetchRooms = async () => {
-			try {
-				// Make one API call per (date, time) pair
-				const promises = bestTimeRanges.map(({ date, time }) => {
-					console.log("Fetching with:", { date, time });
-					return fetchStudyRooms({ date: date, timeRange: time });
-				});
-				const results = await Promise.all(promises);
-
-				console.log("Fetched study rooms:", results); // console log for now
-				const combined = results.flatMap((res) => res.data ?? []);
-
-				setStudyRooms(combined);
-			} catch (err) {
-				console.error("Failed to fetch study rooms:", err);
-			}
-		};
-
-		fetchRooms();
-	}, [bestTimeRanges]);
 
 	// Helper to get block info from pointer position
 	const getBlockAtPosition = useCallback((x: number, y: number) => {
@@ -985,6 +1007,12 @@ export function Availability({
 								doesntNeedDay={doesntNeedDay}
 							/>
 						</Paper>
+						<RoomRecommendationSettings
+							rawRooms={studyRooms}
+							filters={roomFilters}
+							onFiltersChange={setRoomFilters}
+							onShowBestRooms={handleShowBestRooms}
+						/>
 					</div>
 				)}
 				{availabilityView === "personal" && (
