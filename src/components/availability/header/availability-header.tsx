@@ -5,10 +5,12 @@ import {
 	Add,
 	CalendarMonth,
 	Check,
+	Close,
 	ContentCopy,
 	LocationOn,
 	Settings,
 } from "@mui/icons-material";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Button, IconButton, Paper, Typography } from "@mui/material";
 import { DeleteIcon, MoreVerticalIcon } from "lucide-react";
@@ -121,10 +123,40 @@ export function AvailabilityHeader({
 	return (
 		<Paper variant="outlined" className="mt-10">
 			<div className="flex flex-col gap-4">
+				{availabilityView === "group" && (
+					<div className="flex items-center">
+						<Button
+							color="inherit"
+							startIcon={
+								<ChevronLeftIcon fontSize="small" sx={{ display: "block" }} />
+							}
+							sx={{ pl: 0 }}
+							href="/summary"
+						>
+							Back
+						</Button>
+					</div>
+				)}
+
 				<div className="flex w-full items-center">
-					<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
-						{meetingData.title}
-					</h1>
+					{availabilityView === "personal" && (
+						<Button size="square">
+							<Close />
+						</Button>
+					)}
+
+					{availabilityView === "group" ? (
+						<h1 className="line-clamp-1 min-w-0 truncate font-medium text-xl md:text-3xl">
+							{meetingData.title}
+						</h1>
+					) : (
+						<div>
+							<Typography>Add Availability</Typography>
+							<Typography variant="caption" color="textSecondary">
+								Drag to add availability
+							</Typography>
+						</div>
+					)}
 
 					<div className="ml-auto sm:ml-8">
 						<IconButton size="small" onClick={handleCopy}>
