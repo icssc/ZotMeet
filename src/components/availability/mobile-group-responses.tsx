@@ -7,6 +7,14 @@ import {
 } from "@mui/icons-material";
 import { Button, Divider, Paper, Stack, Typography } from "@mui/material";
 
+const actionButtonSx = {
+	flex: 1,
+	minWidth: 0,
+	px: 2,
+	py: 1.25,
+	borderRadius: 2,
+};
+
 export interface MobileGroupResponsesProps {
 	isOwner: boolean;
 	respondedMembersCount: number;
@@ -32,15 +40,12 @@ export function MobileGroupResponses({
 					pointerEvents: "auto",
 					display: "inline-flex",
 					borderRadius: 3,
+					alignItems: "stretch",
 					p: 0.5,
 					width: "min(90vw)",
 				}}
 			>
-				<Button
-					color="inherit"
-					sx={{ px: 2, py: 1.25, borderRadius: 2 }}
-					onClick={onOpenAttendees}
-				>
+				<Button color="inherit" sx={actionButtonSx} onClick={onOpenAttendees}>
 					<Stack spacing={0.5} alignItems="center">
 						<PeopleAltOutlined fontSize="small" />
 						<Typography variant="caption">
@@ -52,7 +57,7 @@ export function MobileGroupResponses({
 
 				<Divider orientation="vertical" flexItem />
 
-				<Button onClick={onAddAvailability} color="inherit">
+				<Button onClick={onAddAvailability} color="inherit" sx={actionButtonSx}>
 					<Stack spacing={0.5} alignItems="center">
 						<EditCalendarOutlined fontSize="small" />
 						<Typography variant="caption">Add Availability</Typography>
@@ -62,11 +67,7 @@ export function MobileGroupResponses({
 				{isOwner && (
 					<>
 						<Divider orientation="vertical" flexItem />
-						<Button
-							color="inherit"
-							sx={{ px: 2, py: 1.25, borderRadius: 2 }}
-							onClick={onSchedule}
-						>
+						<Button color="inherit" sx={actionButtonSx} onClick={onSchedule}>
 							<Stack spacing={0.5} alignItems="center">
 								<CalendarMonthOutlined fontSize="small" />
 								<Typography variant="caption">Schedule Meeting</Typography>
