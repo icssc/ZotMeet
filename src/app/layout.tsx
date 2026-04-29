@@ -26,8 +26,9 @@ export default async function RootLayout({
 	const initialMode = await getUserThemeMode();
 
 	return (
-		<html lang="en" className={figtree.className}>
+		<html lang="en" className={figtree.className} suppressHydrationWarning>
 			<body
+				suppressHydrationWarning
 				className={cn(
 					`${figtree.variable} antialiased`,
 					"bg-gradient-to-tl from-[#EEEEEE] to-[#EAEFF2]",

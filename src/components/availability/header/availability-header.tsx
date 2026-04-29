@@ -2,7 +2,6 @@
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
 import {
 	AccessTime,
-	Add,
 	CalendarMonth,
 	Check,
 	Close,
@@ -28,6 +27,10 @@ import {
 	formatTimeWithHoursAndMins,
 } from "@/lib/availability/utils";
 import { copyTextToClipboard } from "@/lib/clipboard/utils";
+import {
+	savePersonalAvailabilityChanges,
+	saveScheduleChanges,
+} from "@/lib/meetings/save/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import type { Availability } from "../availability";
@@ -68,12 +71,18 @@ export function AvailabilityHeader({
 	const {
 		availabilityView,
 		setAvailabilityView,
+		clearPendingTimes,
+		commitPendingTimes,
+		setHasAvailability,
 		scheduledTimesCount,
 		hasHydratedScheduledTimes,
 	} = useAvailabilityStore(
 		useShallow((state) => ({
 			availabilityView: state.availabilityView,
 			setAvailabilityView: state.setAvailabilityView,
+			clearPendingTimes: state.clearPendingTimes,
+			commitPendingTimes: state.commitPendingTimes,
+			setHasAvailability: state.setHasAvailability,
 			scheduledTimesCount: state.scheduledTimes.size,
 			hasHydratedScheduledTimes: state.hasHydratedScheduledTimes,
 		})),
@@ -120,11 +129,51 @@ export function AvailabilityHeader({
 		}
 	}
 
+	function handleCloseEditing() {
+		onCancel();
+		clearPendingTimes();
+		setAvailabilityView("group");
+	}
+
+	async function handleConfirmEditing() {
+		if (availabilityView === "personal") {
+			const didSave = await savePersonalAvailabilityChanges({
+				meetingId: meetingData.id,
+				user,
+				availabilityDates: _availabilityDates,
+				ifNeededDates: _ifNeededDates,
+				onError: showError,
+			});
+			if (!didSave) return;
+
+			setHasAvailability(true);
+			_onSave();
+			setAvailabilityView("group");
+			return;
+		}
+
+		if (availabilityView === "schedule") {
+			const { pendingAdds, pendingRemovals } = useAvailabilityStore.getState();
+			const didSave = await saveScheduleChanges({
+				meetingId: meetingData.id,
+				pendingAdds,
+				pendingRemovals,
+				onError: showError,
+			});
+			if (!didSave) return;
+
+			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
+				commitPendingTimes();
+			}
+			setAvailabilityView("group");
+		}
+	}
+
 	return (
 		<Paper variant="outlined" className="mt-10">
 			<div className="flex flex-col gap-4">
 				{availabilityView === "group" && (
-					<div className="flex items-center">
+					<div className="flex items-center sm:hidden">
 						<Button
 							color="inherit"
 							startIcon={
@@ -139,21 +188,33 @@ export function AvailabilityHeader({
 				)}
 
 				<div className="flex w-full items-center">
-					{availabilityView === "personal" && (
-						<Button size="square">
+					{(availabilityView === "personal" ||
+						availabilityView === "schedule") && (
+						<Button size="square" onClick={handleCloseEditing}>
 							<Close />
 						</Button>
 					)}
 
-					{availabilityView === "group" ? (
+					{availabilityView === "group" && (
 						<h1 className="line-clamp-1 min-w-0 truncate font-medium text-xl md:text-3xl">
 							{meetingData.title}
 						</h1>
-					) : (
+					)}
+
+					{availabilityView === "personal" && (
 						<div>
 							<Typography>Add Availability</Typography>
 							<Typography variant="caption" color="textSecondary">
 								Drag to add availability
+							</Typography>
+						</div>
+					)}
+
+					{availabilityView === "schedule" && (
+						<div>
+							<Typography>Schedule Meeting</Typography>
+							<Typography variant="caption" color="textSecondary">
+								Drag to schedule
 							</Typography>
 						</div>
 					)}
@@ -165,14 +226,12 @@ export function AvailabilityHeader({
 					</div>
 
 					<div className="block sm:hidden">
-						{availabilityView === "personal" ? (
+						{availabilityView === "personal" ||
+						availabilityView === "schedule" ? (
 							<Button
 								size="square"
 								variant="contained"
-								onClick={() => {
-									onCancel();
-									setAvailabilityView("group");
-								}}
+								onClick={handleConfirmEditing}
 							>
 								<Check />
 							</Button>
