@@ -260,49 +260,50 @@ export function AvailabilityActions({
 							Add to Calendar
 						</Button>
 					)}
-
-					<Button
-						variant="contained"
-						startIcon={<Create sx={{ color: "inherit" }} />}
-						className="w-full max-w-full normal-case"
-						sx={{ py: 0.75 }}
-						onClick={() => {
-							if (!user) {
-								setIsAuthModalOpen(true);
-								router.push("/auth/login/google");
-								return;
-							}
-							setChangeableTimezone(false);
-							setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-							setAvailabilityView("personal");
-						}}
-					>
-						<span className="hidden md:flex">
-							{hasAvailability ? "Edit Availability" : "Add Availability"}
-						</span>
-					</Button>
-					{isOwner && (
-						<>
-							<Button
-								variant="outlined"
-								startIcon={<InsertInvitationRounded />}
-								className="w-full"
-								sx={{ py: 0.75 }}
-								onClick={() => setAvailabilityView("schedule")}
-							>
-								<span className="hidden md:flex">Schedule Meeting</span>
-							</Button>
-							<Button
-								variant="outlined"
-								startIcon={<GroupAddOutlined />}
-								className="w-full"
-								sx={{ py: 0.75 }}
-								onClick={onOpenInviteDialog}
-							>
-								<span className="hidden md:flex">Invite Members</span>
-							</Button>
-						</>
-					)}
+					<div className="hidden sm:block">
+						<Button
+							variant="contained"
+							startIcon={<Create sx={{ color: "inherit" }} />}
+							className="w-full max-w-full normal-case"
+							sx={{ py: 0.75 }}
+							onClick={() => {
+								if (!user) {
+									setIsAuthModalOpen(true);
+									router.push("/auth/login/google");
+									return;
+								}
+								setChangeableTimezone(false);
+								setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+								setAvailabilityView("personal");
+							}}
+						>
+							<span className="hidden md:flex">
+								{hasAvailability ? "Edit Availability" : "Add Availability"}
+							</span>
+						</Button>
+						{isOwner && (
+							<>
+								<Button
+									variant="outlined"
+									startIcon={<InsertInvitationRounded />}
+									className="w-full"
+									sx={{ py: 0.75 }}
+									onClick={() => setAvailabilityView("schedule")}
+								>
+									<span className="hidden md:flex">Schedule Meeting</span>
+								</Button>
+								<Button
+									variant="outlined"
+									startIcon={<GroupAddOutlined />}
+									className="w-full"
+									sx={{ py: 0.75 }}
+									onClick={onOpenInviteDialog}
+								>
+									<span className="hidden md:flex">Invite Members</span>
+								</Button>
+							</>
+						)}
+					</div>
 				</div>
 			)}
 		</div>
