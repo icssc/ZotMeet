@@ -897,19 +897,6 @@ export function Availability({
 						/>
 					</div>
 					<div className="flex flex-col gap-4" {...bind()}>
-						<div className="shrink-0 lg:hidden">
-							<AvailabilityActions
-								meetingData={meetingData}
-								user={user}
-								availabilityDates={availabilityDates}
-								ifNeededDates={ifNeededDates}
-								onCancel={handleCancelEditing}
-								onSave={handleSuccessfulSave}
-								setChangeableTimezone={setChangeableTimezone}
-								setTimezone={setUserTimezone}
-								onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
-							/>
-						</div>
 						<table className="w-full table-fixed">
 							<AvailabilityTableHeader
 								currentPageAvailability={currentPageAvailability}
@@ -1039,6 +1026,7 @@ export function Availability({
 								setTimezone={setUserTimezone}
 								onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
 							/>
+
 							<Paper
 								variant="outlined"
 								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"

@@ -132,24 +132,29 @@ export function AvailabilityHeader({
 						</IconButton>
 					</div>
 
-					{availabilityView === "personal" ? (
-						<Button
-							size="square"
-							variant="contained"
-							onClick={() => {
-								onCancel();
-								setAvailabilityView("group");
-							}}
-						>
-							<Check />
-						</Button>
-					) : (
-						<div className="block sm:hidden">
-							<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
-								<MoreVerticalIcon />
-							</IconButton>
-						</div>
-					)}
+					<div className="block sm:hidden">
+						{availabilityView === "personal" ? (
+							<Button
+								size="square"
+								variant="contained"
+								onClick={() => {
+									onCancel();
+									setAvailabilityView("group");
+								}}
+							>
+								<Check />
+							</Button>
+						) : (
+							<div className="block sm:hidden">
+								<IconButton
+									size="small"
+									onClick={() => setIsEditModalOpen(true)}
+								>
+									<MoreVerticalIcon />
+								</IconButton>
+							</div>
+						)}
+					</div>
 				</div>
 				<div className="flex flex-wrap items-start gap-4">
 					<div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-2">
