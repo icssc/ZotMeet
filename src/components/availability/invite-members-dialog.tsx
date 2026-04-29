@@ -211,11 +211,11 @@ export function InviteMembersDialog({
 										{getInitials(option.email)}
 									</Avatar>
 									<div className="flex flex-col">
-										<span className="text-sm">{option.email}</span>
+										<Typography variant="caption">{option.email}</Typography>
 										{option.username ? (
-											<span className="text-muted-foreground text-xs">
+											<Typography variant="caption" color="textSecondary">
 												@{option.username}
-											</span>
+											</Typography>
 										) : null}
 									</div>
 								</div>
