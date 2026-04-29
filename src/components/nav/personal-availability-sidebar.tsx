@@ -17,68 +17,18 @@ import {
 	Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import type React from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { filterTimestampsToMeetingGrid } from "@/lib/availability/utils";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import type { Availability } from "../availability/availability";
+import { PERSONAL_AVAILABILITY_OPTIONS } from "./personal-availability-options";
 
 type RespondedMeeting = { id: string; title: string; createdAt: Date };
 type ImportedMeetingAvailability = {
 	meetingAvailabilities: string[];
 	ifNeededAvailabilities: string[];
 };
-
-const options: { value: Availability; label: string; icon: React.ReactNode }[] =
-	[
-		{
-			value: "available",
-			label: "Available",
-			icon: (
-				<div
-					style={{
-						width: 20,
-						height: 20,
-						borderRadius: "50%",
-						background: "#D4537E",
-					}}
-				/>
-			),
-		},
-		{
-			value: "if-needed",
-			label: "If Needed",
-			icon: (
-				<div
-					style={{
-						width: 20,
-						height: 20,
-						borderRadius: "50%",
-						border: "2px solid #ED93B1",
-						background:
-							"repeating-linear-gradient(45deg, #ED93B1 0px, #ED93B1 1.5px, transparent 1.5px, transparent 4px)",
-						boxSizing: "border-box",
-					}}
-				/>
-			),
-		},
-		{
-			value: "unavailable",
-			label: "Unavailable",
-			icon: (
-				<div
-					style={{
-						width: 20,
-						height: 20,
-						borderRadius: "50%",
-						border: "2px solid #D3D1C7",
-						boxSizing: "border-box",
-					}}
-				/>
-			),
-		},
-	];
 
 interface PersonalAvailabilitySidebarProps {
 	meetingId: string;
@@ -218,7 +168,7 @@ export function PersonalAvailabilitySidebar({
 					onChange={(_, val) => val && setAvailability(val)}
 					aria-label="availability"
 				>
-					{options.map(({ value, label, icon }) => (
+					{PERSONAL_AVAILABILITY_OPTIONS.map(({ value, label, icon }) => (
 						<ToggleButton
 							key={value}
 							value={value}

@@ -136,36 +136,41 @@ export function AvailabilityHeader({
 	}
 
 	async function handleConfirmEditing() {
-		if (availabilityView === "personal") {
-			const didSave = await savePersonalAvailabilityChanges({
-				meetingId: meetingData.id,
-				user,
-				availabilityDates: _availabilityDates,
-				ifNeededDates: _ifNeededDates,
-				onError: showError,
-			});
-			if (!didSave) return;
+		try {
+			if (availabilityView === "personal") {
+				const didSave = await savePersonalAvailabilityChanges({
+					meetingId: meetingData.id,
+					user,
+					availabilityDates: _availabilityDates,
+					ifNeededDates: _ifNeededDates,
+					onError: showError,
+				});
+				if (!didSave) return;
 
-			setHasAvailability(true);
-			_onSave();
-			setAvailabilityView("group");
-			return;
-		}
-
-		if (availabilityView === "schedule") {
-			const { pendingAdds, pendingRemovals } = useAvailabilityStore.getState();
-			const didSave = await saveScheduleChanges({
-				meetingId: meetingData.id,
-				pendingAdds,
-				pendingRemovals,
-				onError: showError,
-			});
-			if (!didSave) return;
-
-			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
-				commitPendingTimes();
+				setHasAvailability(true);
+				_onSave();
+				setAvailabilityView("group");
+				return;
 			}
-			setAvailabilityView("group");
+
+			if (availabilityView === "schedule") {
+				const { pendingAdds, pendingRemovals } =
+					useAvailabilityStore.getState();
+				const didSave = await saveScheduleChanges({
+					meetingId: meetingData.id,
+					pendingAdds,
+					pendingRemovals,
+					onError: showError,
+				});
+				if (!didSave) return;
+
+				if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
+					commitPendingTimes();
+				}
+				setAvailabilityView("group");
+			}
+		} catch (_error) {
+			showError("An unexpected error occurred while saving. Please try again.");
 		}
 	}
 
@@ -195,7 +200,7 @@ export function AvailabilityHeader({
 						</Button>
 					)}
 
-					{availabilityView === "group" && (
+					{availabilityView !== "personal" && (
 						<h1 className="line-clamp-1 min-w-0 truncate font-medium text-xl md:text-3xl">
 							{meetingData.title}
 						</h1>
@@ -206,15 +211,6 @@ export function AvailabilityHeader({
 							<Typography>Add Availability</Typography>
 							<Typography variant="caption" color="textSecondary">
 								Drag to add availability
-							</Typography>
-						</div>
-					)}
-
-					{availabilityView === "schedule" && (
-						<div>
-							<Typography>Schedule Meeting</Typography>
-							<Typography variant="caption" color="textSecondary">
-								Drag to schedule
 							</Typography>
 						</div>
 					)}
@@ -235,7 +231,7 @@ export function AvailabilityHeader({
 							>
 								<Check />
 							</Button>
-						) : (
+						) : isOwner ? (
 							<div className="block sm:hidden">
 								<IconButton
 									size="small"
@@ -244,7 +240,7 @@ export function AvailabilityHeader({
 									<MoreVerticalIcon />
 								</IconButton>
 							</div>
-						)}
+						) : null}
 					</div>
 				</div>
 				<div className="flex flex-wrap items-start gap-4">
