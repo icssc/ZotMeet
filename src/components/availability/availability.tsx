@@ -965,7 +965,10 @@ export function Availability({
 					(isMobile ? (
 						<MobileGroupResponses
 							isOwner={isMeetingOwner}
-							respondedMembersCount={members.length}
+							respondedMembersCount={Math.max(
+								0,
+								members.length - pendingMembers.length,
+							)}
 							pendingMembersCount={pendingMembers.length}
 							onAddAvailability={handleMobileAddAvailability}
 							onOpenAttendees={handleMobileOpenAttendees}
