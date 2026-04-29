@@ -5,14 +5,7 @@ import {
 	EditCalendarOutlined,
 	PeopleAltOutlined,
 } from "@mui/icons-material";
-import {
-	Button,
-	ButtonBase,
-	Divider,
-	Paper,
-	Stack,
-	Typography,
-} from "@mui/material";
+import { Button, Divider, Paper, Stack, Typography } from "@mui/material";
 
 export interface MobileGroupResponsesProps {
 	isOwner: boolean;
@@ -38,15 +31,13 @@ export function MobileGroupResponses({
 				sx={{
 					pointerEvents: "auto",
 					display: "inline-flex",
-					alignItems: "stretch",
 					borderRadius: 3,
 					p: 0.5,
-					boxShadow: 3,
-					bgcolor: "background.paper",
-					maxWidth: "min(100vw - 1rem, 28rem)",
+					width: "min(90vw)",
 				}}
 			>
 				<Button
+					color="inherit"
 					sx={{ px: 2, py: 1.25, borderRadius: 2 }}
 					onClick={onOpenAttendees}
 				>
@@ -61,7 +52,7 @@ export function MobileGroupResponses({
 
 				<Divider orientation="vertical" flexItem />
 
-				<Button onClick={onAddAvailability}>
+				<Button onClick={onAddAvailability} color="inherit">
 					<Stack spacing={0.5} alignItems="center">
 						<EditCalendarOutlined fontSize="small" />
 						<Typography variant="caption">Add Availability</Typography>
@@ -72,6 +63,7 @@ export function MobileGroupResponses({
 					<>
 						<Divider orientation="vertical" flexItem />
 						<Button
+							color="inherit"
 							sx={{ px: 2, py: 1.25, borderRadius: 2 }}
 							onClick={onSchedule}
 						>

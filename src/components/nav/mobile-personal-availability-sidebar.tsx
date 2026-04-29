@@ -85,17 +85,14 @@ export function MobilePersonalAvailabilitySidebar({
 				sx={{
 					pointerEvents: "auto",
 					display: "inline-flex",
-					alignItems: "stretch",
+					justifyContent: "center",
 					borderRadius: 3,
 					p: 0.5,
-					boxShadow: 3,
-					bgcolor: "background.paper",
-					width: "min(100vw - 1rem, 28rem)",
+					width: "min(90vw)",
 				}}
 			>
 				<ToggleButtonGroup
 					exclusive
-					fullWidth
 					value={availability}
 					onChange={(_, val) => val && setAvailability(val)}
 					aria-label="availability"
