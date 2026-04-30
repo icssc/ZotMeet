@@ -139,25 +139,58 @@ export const Meetings = ({
 					</Typography>
 				</Box>
 			) : (
-				<Box
-					sx={{
-						display: "grid",
-						gridTemplateColumns: {
-							xs: "1fr",
-							sm: "repeat(2, 1fr)",
-							lg: "repeat(3, 1fr)",
-						},
-						gap: 2,
-					}}
-				>
-					{displayMeetings.map((meeting) => {
-						const cardProps = toMeetingCardProps(meeting, {
-							responderCount: meetingCounts[meeting.id] ?? 0,
-							scheduledLabel: scheduledLabels?.[meeting.id],
-						});
-						return <MeetingCard key={meeting.id} {...cardProps} />;
-					})}
-				</Box>
+				<>
+					{/* Mobile: "ACTION REQUIRED" section header + stacked cards */}
+					<Box
+						sx={{
+							display: { xs: "flex", sm: "none" },
+							flexDirection: "column",
+							gap: 1.5,
+						}}
+					>
+						<Typography
+							sx={{
+								fontSize: 12,
+								fontWeight: 500,
+								letterSpacing: "1px",
+								textTransform: "uppercase",
+								lineHeight: 1,
+								color: "text.disabled",
+							}}
+						>
+							Action Required ({displayMeetings.length})
+						</Typography>
+						<Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+							{displayMeetings.map((meeting) => {
+								const cardProps = toMeetingCardProps(meeting, {
+									responderCount: meetingCounts[meeting.id] ?? 0,
+									scheduledLabel: scheduledLabels?.[meeting.id],
+								});
+								return <MeetingCard key={meeting.id} {...cardProps} />;
+							})}
+						</Box>
+					</Box>
+
+					{/* Desktop: grid */}
+					<Box
+						sx={{
+							display: { xs: "none", sm: "grid" },
+							gridTemplateColumns: {
+								sm: "repeat(2, 1fr)",
+								lg: "repeat(3, 1fr)",
+							},
+							gap: 2,
+						}}
+					>
+						{displayMeetings.map((meeting) => {
+							const cardProps = toMeetingCardProps(meeting, {
+								responderCount: meetingCounts[meeting.id] ?? 0,
+								scheduledLabel: scheduledLabels?.[meeting.id],
+							});
+							return <MeetingCard key={meeting.id} {...cardProps} />;
+						})}
+					</Box>
+				</>
 			)}
 		</Box>
 	);

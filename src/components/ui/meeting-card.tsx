@@ -51,11 +51,12 @@ const MeetingCard = ({
 			sx={{
 				display: "flex",
 				flexDirection: "column",
+				p: 0,
 			}}
 		>
 			<CardContent
 				sx={{
-					pt: 3,
+					pt: { xs: 2.5, sm: 3 },
 					px: 2.5,
 					pb: 0,
 					"&:last-child": { pb: 0 },
@@ -67,15 +68,24 @@ const MeetingCard = ({
 			>
 				<Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
 					<Box sx={{ flex: 1, minWidth: 0 }}>
-						<Typography variant="h5" noWrap>
+						<Typography
+							component="div"
+							noWrap
+							sx={{ typography: { xs: "h6", sm: "h5" } }}
+						>
 							{meetingName}
 						</Typography>
-						<Typography variant="body1" color="text.secondary" noWrap>
+						<Typography
+							component="div"
+							color="text.secondary"
+							noWrap
+							sx={{ typography: { xs: "body2", sm: "body1" } }}
+						>
 							{meetingOrganizer}
 						</Typography>
 					</Box>
 					<IconButton size="small" edge="end" sx={{ mt: -0.5, flexShrink: 0 }}>
-						<MoreVertIcon sx={{ fontSize: 20 }} />
+						<MoreVertIcon sx={{ fontSize: { xs: 24, sm: 20 } }} />
 					</IconButton>
 				</Box>
 
@@ -121,7 +131,11 @@ const MeetingCard = ({
 								<GroupIcon
 									sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
 								/>
-								<Typography variant="body1" color="text.secondary" noWrap>
+								<Typography
+									color="text.secondary"
+									noWrap
+									sx={{ typography: { xs: "body2", sm: "body1" } }}
+								>
 									{numResponders} Responders
 								</Typography>
 							</Box>
@@ -137,7 +151,11 @@ const MeetingCard = ({
 								<FmdGoodIcon
 									sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
 								/>
-								<Typography variant="body1" color="text.secondary" noWrap>
+								<Typography
+									color="text.secondary"
+									noWrap
+									sx={{ typography: { xs: "body2", sm: "body1" } }}
+								>
 									LOCATION
 								</Typography>
 							</Box>
@@ -165,7 +183,11 @@ const MeetingCard = ({
 							<DateRangeIcon
 								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
 							/>
-							<Typography variant="body1" color="text.secondary" noWrap>
+							<Typography
+								color="text.secondary"
+								noWrap
+								sx={{ typography: { xs: "body2", sm: "body1" } }}
+							>
 								{dateLabel}
 							</Typography>
 						</Box>
@@ -181,7 +203,11 @@ const MeetingCard = ({
 							<AccessTimeIcon
 								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
 							/>
-							<Typography variant="body1" color="text.secondary" noWrap>
+							<Typography
+								color="text.secondary"
+								noWrap
+								sx={{ typography: { xs: "body2", sm: "body1" } }}
+							>
 								{timeStart} - {timeEnd}
 							</Typography>
 						</Box>
@@ -197,7 +223,11 @@ const MeetingCard = ({
 							<GroupIcon
 								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
 							/>
-							<Typography variant="body1" color="text.secondary" noWrap>
+							<Typography
+								color="text.secondary"
+								noWrap
+								sx={{ typography: { xs: "body2", sm: "body1" } }}
+							>
 								{numResponders} Responders
 							</Typography>
 						</Box>
@@ -213,7 +243,11 @@ const MeetingCard = ({
 							<FmdGoodIcon
 								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
 							/>
-							<Typography variant="body1" color="text.secondary" noWrap>
+							<Typography
+								color="text.secondary"
+								noWrap
+								sx={{ typography: { xs: "body2", sm: "body1" } }}
+							>
 								LOCATION
 							</Typography>
 						</Box>
