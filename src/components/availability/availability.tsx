@@ -26,7 +26,7 @@ import {
 	convertTimeFromUTC,
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
-	mergeImportedPersonalGridSlots,
+	replaceImportedPersonalGridSlots,
 	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
@@ -215,15 +215,15 @@ export function Availability({
 			) {
 				return;
 			}
-			const merged = mergeImportedPersonalGridSlots({
+			const replaced = replaceImportedPersonalGridSlots({
 				availabilityDates,
 				ifNeededDates,
 				meetingAvailabilities,
 				ifNeededAvailabilities,
 				memberId: user.memberId,
 			});
-			setAvailabilityDates(merged.availabilityDates);
-			setIfNeededDates(merged.ifNeededDates);
+			setAvailabilityDates(replaced.availabilityDates);
+			setIfNeededDates(replaced.ifNeededDates);
 			setImportPreview(null);
 			resetSelection();
 		},
