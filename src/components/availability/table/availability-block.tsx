@@ -1,5 +1,7 @@
-import { useMemo } from "react";
 import {
+	type CellPaintTarget,
+	type ImportPreviewTarget,
+	importErasesCommitted,
 	type PaintMode,
 	paintWillChange,
 } from "@/lib/availability/paint-selection";
@@ -10,7 +12,7 @@ interface AvailabilityBlockProps {
 	isIfNeeded: boolean;
 	isInDraftRange: boolean;
 	paintMode: PaintMode;
-	importPreviewType?: "available" | "if-needed" | null;
+	importPreviewType?: ImportPreviewTarget;
 }
 
 export function AvailabilityBlock({
@@ -20,31 +22,47 @@ export function AvailabilityBlock({
 	paintMode,
 	importPreviewType = null,
 }: AvailabilityBlockProps) {
-	const backgroundColor = useMemo(() => {
-		const showDraftOverlay =
-			isInDraftRange && paintWillChange(paintMode, { isAvailable, isIfNeeded });
+	const state = { isAvailable, isIfNeeded };
 
-		if (showDraftOverlay) return "bg-primary/40";
-		return isAvailable
-			? "bg-primary"
-			: isIfNeeded
-				? "bg-if-needed"
-				: "transparent";
-	}, [isInDraftRange, paintMode, isAvailable, isIfNeeded]);
+	const draftTarget: CellPaintTarget | null =
+		isInDraftRange && paintWillChange(paintMode, state) ? paintMode : null;
+	const importTarget: CellPaintTarget | null =
+		!draftTarget &&
+		importPreviewType &&
+		paintWillChange(importPreviewType, state)
+			? importPreviewType
+			: null;
+
+	const importErases = importErasesCommitted(state, importPreviewType);
+	const previewTarget: CellPaintTarget | null = importErases
+		? null
+		: (draftTarget ?? importTarget);
 
 	return (
 		<div className="pointer-events-none relative block h-full w-full py-2">
-			<div className={cn("absolute inset-0", backgroundColor)} />
-			{importPreviewType && (
+			{(!isIfNeeded || importErases) && (
 				<div
-					aria-hidden
 					className={cn(
-						"absolute inset-0 border-2",
-						importPreviewType === "if-needed"
-							? "border-if-needed/70 bg-if-needed/20"
-							: "border-primary/70 bg-primary/20",
+						"absolute inset-0 bg-paper",
+						previewTarget === "if-needed" && "opacity-60",
 					)}
 				/>
+			)}
+
+			{isAvailable && !importErases && (
+				<div
+					className={cn(
+						"absolute inset-0 bg-primary",
+						previewTarget && previewTarget !== "available" && "opacity-40",
+					)}
+				/>
+			)}
+
+			{previewTarget === "available" && !isAvailable && (
+				<div className="absolute inset-0 bg-primary/40" />
+			)}
+			{draftTarget === "unavailable" && (isAvailable || isIfNeeded) && (
+				<div className="absolute inset-0 bg-paper/60" />
 			)}
 		</div>
 	);

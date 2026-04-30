@@ -4,7 +4,10 @@ import {
 	AvailabilityBlockCell,
 	type GridCellHandlers,
 } from "@/components/availability/table/availability-block-cell";
-import type { PaintMode } from "@/lib/availability/paint-selection";
+import type {
+	ImportPreviewTarget,
+	PaintMode,
+} from "@/lib/availability/paint-selection";
 import {
 	generateCellKey,
 	generateDateKey,
@@ -101,12 +104,14 @@ export function AvailabilityBlocks({
 							availabilityDates,
 							timeZone,
 						);
-						const importPreviewType =
-							slotIso && importPreview?.ifNeededIsoSet.has(slotIso)
-								? "if-needed"
-								: slotIso && importPreview?.availableIsoSet.has(slotIso)
-									? "available"
-									: null;
+						const importPreviewType: ImportPreviewTarget =
+							!importPreview || !slotIso
+								? null
+								: importPreview.ifNeededIsoSet.has(slotIso)
+									? "if-needed"
+									: importPreview.availableIsoSet.has(slotIso)
+										? "available"
+										: "unavailable";
 
 						const isInDraftRange = rangeCoversCell(
 							draftRange,
@@ -117,7 +122,7 @@ export function AvailabilityBlocks({
 						return (
 							<Fragment key={key}>
 								{spacers[pageDateIndex] && (
-									<td className="w-3 md:w-4" aria-hidden="true" />
+									<td className="w-3 bg-paper md:w-4" aria-hidden="true" />
 								)}
 								<AvailabilityBlockCell
 									blockIndex={blockIndex}
@@ -144,9 +149,9 @@ export function AvailabilityBlocks({
 						return (
 							<Fragment key={key}>
 								{spacers[pageDateIndex] && (
-									<td className="w-3 md:w-4" aria-hidden="true" />
+									<td className="w-3 bg-paper md:w-4" aria-hidden="true" />
 								)}
-								<td></td>
+								<td className="bg-paper" />
 							</Fragment>
 						);
 					}

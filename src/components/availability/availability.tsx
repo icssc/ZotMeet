@@ -22,7 +22,7 @@ import {
 	convertTimeFromUTC,
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
-	mergeImportedPersonalGridSlots,
+	replaceImportedPersonalGridSlots,
 } from "@/lib/availability/utils";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
@@ -184,15 +184,15 @@ export function Availability({
 			) {
 				return;
 			}
-			const merged = mergeImportedPersonalGridSlots({
+			const replaced = replaceImportedPersonalGridSlots({
 				availabilityDates,
 				ifNeededDates,
 				meetingAvailabilities,
 				ifNeededAvailabilities,
 				memberId: user.memberId,
 			});
-			setAvailabilityDates(merged.availabilityDates);
-			setIfNeededDates(merged.ifNeededDates);
+			setAvailabilityDates(replaced.availabilityDates);
+			setIfNeededDates(replaced.ifNeededDates);
 			setImportPreview(null);
 			resetSelection();
 		},
@@ -286,7 +286,10 @@ export function Availability({
 								doesntNeedDay={doesntNeedDay}
 							/>
 
-							<tbody onMouseLeave={handleMouseLeave}>
+							<tbody
+								className="bg-stripes-primary"
+								onMouseLeave={handleMouseLeave}
+							>
 								{availabilityView === "group" ||
 								availabilityView === "schedule" ? (
 									<GroupAvailability

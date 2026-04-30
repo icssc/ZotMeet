@@ -3,7 +3,10 @@
 import { alpha, useTheme } from "@mui/material/styles";
 import { Fragment, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
-import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
+import {
+	type BlockFill,
+	GroupAvailabilityBlock,
+} from "@/components/availability/group-availability-block";
 import type { GridCellHandlers } from "@/components/availability/table/availability-block-cell";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import {
@@ -22,7 +25,9 @@ import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
-function calculateBlockColor({
+const NONE_FILL: BlockFill = { kind: "none" };
+
+function calculateBlockFill({
 	block,
 	hoveredMember,
 	selectedMembers,
@@ -30,7 +35,6 @@ function calculateBlockColor({
 	showBestTimes,
 	maxAvailability,
 	primaryColor,
-	ifNeededColor,
 	ifNeededBlock,
 }: {
 	block: string[];
@@ -40,57 +44,54 @@ function calculateBlockColor({
 	showBestTimes: boolean;
 	maxAvailability: number;
 	primaryColor: string;
-	ifNeededColor: string;
 	ifNeededBlock: string[];
-}): string {
+}): BlockFill {
 	if (selectedMembers.length) {
 		const selectedInBlock = selectedMembers.filter((memberId) =>
 			block.includes(memberId),
 		);
+		if (selectedInBlock.length) {
+			const proportion = selectedInBlock.length / selectedMembers.length;
+			return { kind: "solid", color: alpha(primaryColor, proportion) };
+		}
 		const ifNeededInBlock = selectedMembers.filter((memberId) =>
 			ifNeededBlock.includes(memberId),
 		);
-
-		if (selectedInBlock.length) {
-			const proportion = selectedInBlock.length / selectedMembers.length;
-			return alpha(primaryColor, proportion);
-		}
 		if (ifNeededInBlock.length) {
 			const proportion = ifNeededInBlock.length / selectedMembers.length;
-			return alpha(ifNeededColor, proportion);
+			return { kind: "stripes", opacity: proportion };
 		}
-		return "transparent";
+		return NONE_FILL;
 	}
 
 	if (hoveredMember) {
 		if (block.includes(hoveredMember)) {
-			return alpha(primaryColor, 1);
+			return { kind: "solid", color: primaryColor };
 		}
 		if (ifNeededBlock.includes(hoveredMember)) {
-			return ifNeededColor;
+			return { kind: "stripes", opacity: 1 };
 		}
-		return "transparent";
+		return NONE_FILL;
 	}
 
 	if (showBestTimes) {
 		if (block.length === maxAvailability && maxAvailability > 0) {
-			return primaryColor;
+			return { kind: "solid", color: primaryColor };
 		}
-		return "transparent";
+		return NONE_FILL;
 	}
 
 	if (numMembers) {
-		if (ifNeededBlock.length > 0) {
-			const opacity = ifNeededBlock.length / numMembers;
-			return alpha(ifNeededColor, opacity);
-		}
 		if (block.length > 0) {
 			const opacity = block.length / numMembers;
-			return alpha(primaryColor, opacity);
+			return { kind: "solid", color: alpha(primaryColor, opacity) };
+		}
+		if (ifNeededBlock.length > 0) {
+			return { kind: "stripes", opacity: ifNeededBlock.length / numMembers };
 		}
 	}
 
-	return "transparent";
+	return NONE_FILL;
 }
 
 export interface SelectionEdges {
@@ -146,7 +147,6 @@ export function GroupAvailability({
 }: GroupAvailabilityProps) {
 	const theme = useTheme();
 	const primaryColor = theme.palette.primary.main;
-	const ifNeededColor = theme.palette.ifNeeded.main;
 
 	const {
 		currentPage,
@@ -250,12 +250,12 @@ export function GroupAvailability({
 										<Fragment key={key}>
 											{spacers[pageDateIndex] && (
 												<td
-													className="w-3 md:w-4"
+													className="w-3 bg-paper md:w-4"
 													aria-hidden="true"
 													onMouseEnter={onMouseLeave}
 												/>
 											)}
-											<td onMouseEnter={onMouseLeave}></td>
+											<td className="bg-paper" onMouseEnter={onMouseLeave} />
 										</Fragment>
 									);
 								}
@@ -286,7 +286,7 @@ export function GroupAvailability({
 								const block = selectedDate.groupAvailability[timestamp] || [];
 								const ifNeededBlock =
 									ifNeededDate?.groupAvailability[timestamp] || [];
-								const blockColor = calculateBlockColor({
+								const fill = calculateBlockFill({
 									block,
 									hoveredMember,
 									selectedMembers,
@@ -295,7 +295,6 @@ export function GroupAvailability({
 									maxAvailability,
 									ifNeededBlock,
 									primaryColor,
-									ifNeededColor,
 								});
 								const blockIsScheduled = isScheduled(timestamp);
 
@@ -324,12 +323,13 @@ export function GroupAvailability({
 										? "border-t border-t-gray-base [border-top-style:dotted]"
 										: "",
 									isLastRow ? "border-b-[1px]" : "",
+									isHalfHour && fill.kind !== "stripes" && "bg-paper",
 								);
 
 								return (
 									<Fragment key={key}>
 										{spacers[pageDateIndex] && (
-											<td className="w-3 md:w-4" aria-hidden="true" />
+											<td className="w-3 bg-paper md:w-4" aria-hidden="true" />
 										)}
 										<td
 											className={cn("px-0 py-0", isTopEdge && "relative z-[1]")}
@@ -346,7 +346,7 @@ export function GroupAvailability({
 												onPointerCancel={handlers.onPointerCancel}
 												onKeyDown={handlers.onKeyDown}
 												onHoverCell={handlers.onCellHover}
-												blockColor={blockColor}
+												fill={fill}
 												isScheduled={blockIsScheduled}
 												isScheduledTopEdge={isTopEdge}
 												isScheduledBottomEdge={isBottomEdge}
