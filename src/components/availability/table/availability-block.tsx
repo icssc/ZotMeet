@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import {
 	type PaintMode,
 	paintWillChange,
@@ -20,29 +19,42 @@ export function AvailabilityBlock({
 	paintMode,
 	importPreviewType = null,
 }: AvailabilityBlockProps) {
-	const backgroundColor = useMemo(() => {
-		const showDraftOverlay =
-			isInDraftRange && paintWillChange(paintMode, { isAvailable, isIfNeeded });
-
-		if (showDraftOverlay) return "bg-primary/40";
-		return isAvailable
-			? "bg-primary"
-			: isIfNeeded
-				? "bg-if-needed"
-				: "transparent";
-	}, [isInDraftRange, paintMode, isAvailable, isIfNeeded]);
+	const showDraftOverlay =
+		isInDraftRange && paintWillChange(paintMode, { isAvailable, isIfNeeded });
 
 	return (
 		<div className="pointer-events-none relative block h-full w-full py-2">
-			<div className={cn("absolute inset-0", backgroundColor)} />
+			{!isIfNeeded && (
+				<div
+					className={cn(
+						"absolute inset-0 bg-paper",
+						showDraftOverlay && paintMode === "if-needed" && "opacity-60",
+					)}
+				/>
+			)}
+
+			{isAvailable && (
+				<div
+					className={cn(
+						"absolute inset-0 bg-primary",
+						showDraftOverlay && paintMode !== "available" && "opacity-40",
+					)}
+				/>
+			)}
+
+			{showDraftOverlay && paintMode === "available" && !isAvailable && (
+				<div className="absolute inset-0 bg-primary/40" />
+			)}
+			{showDraftOverlay && paintMode === "unavailable" && (
+				<div className="absolute inset-0 bg-paper/60" />
+			)}
+
 			{importPreviewType && (
 				<div
 					aria-hidden
 					className={cn(
-						"absolute inset-0 border-2",
-						importPreviewType === "if-needed"
-							? "border-if-needed/70 bg-if-needed/20"
-							: "border-primary/70 bg-primary/20",
+						"absolute inset-0 border-2 border-primary/70",
+						importPreviewType === "available" ? "bg-primary/20" : "bg-paper/40",
 					)}
 				/>
 			)}

@@ -6,6 +6,11 @@ import type { SelectionEdges } from "@/components/availability/group-availabilit
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import { cn } from "@/lib/utils";
 
+export type BlockFill =
+	| { kind: "none" }
+	| { kind: "solid"; color: string }
+	| { kind: "stripes"; opacity: number };
+
 interface GroupAvailabilityBlockProps {
 	className?: string;
 	tableCellStyles?: string;
@@ -15,7 +20,7 @@ interface GroupAvailabilityBlockProps {
 	onPointerCancel?: React.PointerEventHandler<HTMLElement>;
 	onKeyDown?: React.KeyboardEventHandler<HTMLElement>;
 	onHoverCell?: (cell: GridCell) => void;
-	blockColor: string;
+	fill: BlockFill;
 	hasSpacerBefore?: boolean;
 	isScheduled?: boolean;
 	isScheduledTopEdge?: boolean;
@@ -45,7 +50,7 @@ export const GroupAvailabilityBlock = memo(
 		onPointerCancel,
 		onKeyDown,
 		onHoverCell,
-		blockColor,
+		fill,
 		hasSpacerBefore = false,
 		isScheduled = false,
 		isScheduledTopEdge = false,
@@ -89,11 +94,26 @@ export const GroupAvailabilityBlock = memo(
 				data-block-index={blockIndex}
 			>
 				<div
-					className="pointer-events-none block h-full w-full py-2"
-					style={{ background: blockColor }}
+					className="pointer-events-none relative block h-full w-full py-2"
 					data-date-index={dateIndex}
 					data-block-index={blockIndex}
-				/>
+				>
+					{fill.kind !== "stripes" && (
+						<div className="absolute inset-0 bg-paper" />
+					)}
+					{fill.kind === "solid" && (
+						<div
+							className="absolute inset-0"
+							style={{ background: fill.color }}
+						/>
+					)}
+					{fill.kind === "stripes" && fill.opacity < 1 && (
+						<div
+							className="absolute inset-0 bg-paper"
+							style={{ opacity: 1 - fill.opacity }}
+						/>
+					)}
+				</div>
 				{selectionEdges && (
 					<div
 						aria-hidden="true"

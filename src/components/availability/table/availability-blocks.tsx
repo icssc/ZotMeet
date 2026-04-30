@@ -117,7 +117,7 @@ export function AvailabilityBlocks({
 						return (
 							<Fragment key={key}>
 								{spacers[pageDateIndex] && (
-									<td className="w-3 md:w-4" aria-hidden="true" />
+									<td className="w-3 bg-paper md:w-4" aria-hidden="true" />
 								)}
 								<AvailabilityBlockCell
 									blockIndex={blockIndex}
@@ -144,9 +144,9 @@ export function AvailabilityBlocks({
 						return (
 							<Fragment key={key}>
 								{spacers[pageDateIndex] && (
-									<td className="w-3 md:w-4" aria-hidden="true" />
+									<td className="w-3 bg-paper md:w-4" aria-hidden="true" />
 								)}
-								<td></td>
+								<td className="bg-paper" />
 							</Fragment>
 						);
 					}

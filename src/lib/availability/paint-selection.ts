@@ -18,6 +18,20 @@ export function paintWillChange(
 	}
 }
 
+export type CellPaintTarget = PaintMode;
+
+export function effectiveCellTarget(
+	state: { isAvailable: boolean; isIfNeeded: boolean },
+	draft: { isInDraftRange: boolean; paintMode: PaintMode },
+): CellPaintTarget {
+	if (draft.isInDraftRange && paintWillChange(draft.paintMode, state)) {
+		return draft.paintMode;
+	}
+	if (state.isAvailable) return "available";
+	if (state.isIfNeeded) return "if-needed";
+	return "unavailable";
+}
+
 export function paintPersonalSelection(args: {
 	availabilityDates: ZotDate[];
 	ifNeededDates: ZotDate[];
