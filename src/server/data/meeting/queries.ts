@@ -143,14 +143,15 @@ export async function getResponderCountsByMeetingIds(
 	);
 }
 
+type ScheduledMeetingInfo = {
+	scheduledDate: Date;
+	scheduledFromTime: string;
+	scheduledToTime: string;
+};
+
 export async function getScheduledMeetingsByMeetingIds(
 	meetingIds: string[],
-): Promise<
-	Record<
-		string,
-		{ scheduledDate: Date; scheduledFromTime: string; scheduledToTime: string }
-	>
-> {
+): Promise<Record<string, ScheduledMeetingInfo>> {
 	if (meetingIds.length === 0) return {};
 
 	const rows = await db
@@ -163,10 +164,7 @@ export async function getScheduledMeetingsByMeetingIds(
 		.from(scheduledMeetings)
 		.where(inArray(scheduledMeetings.meetingId, meetingIds));
 
-	const result: Record<
-		string,
-		{ scheduledDate: Date; scheduledFromTime: string; scheduledToTime: string }
-	> = {};
+	const result: Record<string, ScheduledMeetingInfo> = {};
 	for (const row of rows) {
 		if (!result[row.meetingId]) {
 			result[row.meetingId] = {

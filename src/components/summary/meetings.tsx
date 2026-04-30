@@ -22,6 +22,53 @@ interface MeetingsProps {
 	scheduledLabels?: Record<string, string>;
 }
 
+type DisplayMeeting = MeetingsProps["meetings"][number];
+
+const sectionLabelSx = {
+	fontSize: 12,
+	fontWeight: 500,
+	letterSpacing: "1px",
+	textTransform: "uppercase",
+	lineHeight: 1,
+	color: "text.disabled",
+} as const;
+
+const toCard = (
+	meeting: DisplayMeeting,
+	meetingCounts: Record<string, number>,
+	scheduledLabels?: Record<string, string>,
+) => {
+	const cardProps = toMeetingCardProps(meeting, {
+		responderCount: meetingCounts[meeting.id] ?? 0,
+		scheduledLabel: scheduledLabels?.[meeting.id],
+	});
+	return <MeetingCard key={meeting.id} {...cardProps} />;
+};
+
+const MeetingSection = ({
+	label,
+	meetings,
+	meetingCounts,
+	scheduledLabels,
+}: {
+	label: string;
+	meetings: DisplayMeeting[];
+	meetingCounts: Record<string, number>;
+	scheduledLabels?: Record<string, string>;
+}) => {
+	if (meetings.length === 0) return null;
+	return (
+		<Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+			<Typography sx={sectionLabelSx}>
+				{label} ({meetings.length})
+			</Typography>
+			<Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+				{meetings.map((m) => toCard(m, meetingCounts, scheduledLabels))}
+			</Box>
+		</Box>
+	);
+};
+
 export const Meetings = ({
 	meetings,
 	userId,
@@ -66,7 +113,6 @@ export const Meetings = ({
 					mb: 2,
 				}}
 			>
-				{/* Search + filter chips column */}
 				<Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
 					<Box
 						sx={{
@@ -119,7 +165,6 @@ export const Meetings = ({
 				</Button>
 			</Box>
 
-			{/* Meeting cards grid */}
 			{displayMeetings.length === 0 ? (
 				<Box
 					sx={{
@@ -148,67 +193,18 @@ export const Meetings = ({
 							gap: 3,
 						}}
 					>
-						{(() => {
-							const actionRequired = displayMeetings.filter(
-								(m) => !m.scheduled,
-							);
-							const all = displayMeetings.filter((m) => m.scheduled);
-							const sectionLabel = (label: string, count: number) => (
-								<Typography
-									sx={{
-										fontSize: 12,
-										fontWeight: 500,
-										letterSpacing: "1px",
-										textTransform: "uppercase",
-										lineHeight: 1,
-										color: "text.disabled",
-									}}
-								>
-									{label} ({count})
-								</Typography>
-							);
-							const renderCards = (meetings: typeof displayMeetings) => (
-								<Box
-									sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
-								>
-									{meetings.map((meeting) => {
-										const cardProps = toMeetingCardProps(meeting, {
-											responderCount: meetingCounts[meeting.id] ?? 0,
-											scheduledLabel: scheduledLabels?.[meeting.id],
-										});
-										return <MeetingCard key={meeting.id} {...cardProps} />;
-									})}
-								</Box>
-							);
-							return (
-								<>
-									{actionRequired.length > 0 && (
-										<Box
-											sx={{
-												display: "flex",
-												flexDirection: "column",
-												gap: 1.5,
-											}}
-										>
-											{sectionLabel("Action Required", actionRequired.length)}
-											{renderCards(actionRequired)}
-										</Box>
-									)}
-									{all.length > 0 && (
-										<Box
-											sx={{
-												display: "flex",
-												flexDirection: "column",
-												gap: 1.5,
-											}}
-										>
-											{sectionLabel("All", all.length)}
-											{renderCards(all)}
-										</Box>
-									)}
-								</>
-							);
-						})()}
+						<MeetingSection
+							label="Action Required"
+							meetings={displayMeetings.filter((m) => !m.scheduled)}
+							meetingCounts={meetingCounts}
+							scheduledLabels={scheduledLabels}
+						/>
+						<MeetingSection
+							label="All"
+							meetings={displayMeetings.filter((m) => m.scheduled)}
+							meetingCounts={meetingCounts}
+							scheduledLabels={scheduledLabels}
+						/>
 					</Box>
 
 					{/* Desktop: grid */}
@@ -222,13 +218,9 @@ export const Meetings = ({
 							gap: 2,
 						}}
 					>
-						{displayMeetings.map((meeting) => {
-							const cardProps = toMeetingCardProps(meeting, {
-								responderCount: meetingCounts[meeting.id] ?? 0,
-								scheduledLabel: scheduledLabels?.[meeting.id],
-							});
-							return <MeetingCard key={meeting.id} {...cardProps} />;
-						})}
+						{displayMeetings.map((m) =>
+							toCard(m, meetingCounts, scheduledLabels),
+						)}
 					</Box>
 				</>
 			)}

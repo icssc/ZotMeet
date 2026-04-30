@@ -14,6 +14,7 @@ import {
 	Typography,
 } from "@mui/material";
 import Link from "next/link";
+import type { ElementType } from "react";
 
 interface MeetingCardProps {
 	meetingName: string;
@@ -27,6 +28,31 @@ interface MeetingCardProps {
 	scheduledLabel?: string;
 	meetingLink: string;
 }
+
+const metaIconSx = { fontSize: 16, color: "text.secondary", flexShrink: 0 };
+const metaTextSx = { typography: { xs: "body2", sm: "body1" } };
+const metaGridSx = {
+	display: "grid",
+	gridTemplateColumns: "1fr 1fr",
+	width: "100%",
+	columnGap: 1.5,
+	rowGap: 1.5,
+};
+
+const MetaItem = ({
+	icon: Icon,
+	label,
+}: {
+	icon: ElementType;
+	label: string;
+}) => (
+	<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+		<Icon sx={metaIconSx} />
+		<Typography color="text.secondary" noWrap sx={metaTextSx}>
+			{label}
+		</Typography>
+	</Box>
+);
 
 const MeetingCard = ({
 	meetingName,
@@ -48,11 +74,7 @@ const MeetingCard = ({
 	return (
 		<Card
 			variant="outlined"
-			sx={{
-				display: "flex",
-				flexDirection: "column",
-				p: 0,
-			}}
+			sx={{ display: "flex", flexDirection: "column", p: 0 }}
 		>
 			<CardContent
 				sx={{
@@ -79,7 +101,7 @@ const MeetingCard = ({
 							component="div"
 							color="text.secondary"
 							noWrap
-							sx={{ typography: { xs: "body2", sm: "body1" } }}
+							sx={metaTextSx}
 						>
 							{meetingOrganizer}
 						</Typography>
@@ -110,147 +132,23 @@ const MeetingCard = ({
 								{scheduledLabel}
 							</Typography>
 						</Box>
-
-						<Box
-							sx={{
-								display: "grid",
-								gridTemplateColumns: "1fr 1fr",
-								width: "100%",
-								columnGap: 1.5,
-							}}
-						>
-							<Box
-								sx={{
-									gridRow: "1 / span 1",
-									gridColumn: 1,
-									display: "flex",
-									alignItems: "center",
-									gap: 0.5,
-								}}
-							>
-								<GroupIcon
-									sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
-								/>
-								<Typography
-									color="text.secondary"
-									noWrap
-									sx={{ typography: { xs: "body2", sm: "body1" } }}
-								>
-									{numResponders} Responders
-								</Typography>
-							</Box>
-							<Box
-								sx={{
-									gridRow: "1 / span 1",
-									gridColumn: 2,
-									display: "flex",
-									alignItems: "center",
-									gap: 0.5,
-								}}
-							>
-								<FmdGoodIcon
-									sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
-								/>
-								<Typography
-									color="text.secondary"
-									noWrap
-									sx={{ typography: { xs: "body2", sm: "body1" } }}
-								>
-									LOCATION
-								</Typography>
-							</Box>
+						<Box sx={metaGridSx}>
+							<MetaItem
+								icon={GroupIcon}
+								label={`${numResponders} Responders`}
+							/>
+							<MetaItem icon={FmdGoodIcon} label="LOCATION" />
 						</Box>
 					</Box>
 				) : (
-					<Box
-						sx={{
-							display: "grid",
-							gridTemplateColumns: "1fr 1fr",
-							width: "100%",
-							columnGap: 1.5,
-							rowGap: 1.5,
-						}}
-					>
-						<Box
-							sx={{
-								gridRow: "1 / span 1",
-								gridColumn: 1,
-								display: "flex",
-								alignItems: "center",
-								gap: 0.5,
-							}}
-						>
-							<DateRangeIcon
-								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
-							/>
-							<Typography
-								color="text.secondary"
-								noWrap
-								sx={{ typography: { xs: "body2", sm: "body1" } }}
-							>
-								{dateLabel}
-							</Typography>
-						</Box>
-						<Box
-							sx={{
-								gridRow: "1 / span 1",
-								gridColumn: 2,
-								display: "flex",
-								alignItems: "center",
-								gap: 0.5,
-							}}
-						>
-							<AccessTimeIcon
-								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
-							/>
-							<Typography
-								color="text.secondary"
-								noWrap
-								sx={{ typography: { xs: "body2", sm: "body1" } }}
-							>
-								{timeStart} - {timeEnd}
-							</Typography>
-						</Box>
-						<Box
-							sx={{
-								gridRow: "2 / span 1",
-								gridColumn: 1,
-								display: "flex",
-								alignItems: "center",
-								gap: 0.5,
-							}}
-						>
-							<GroupIcon
-								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
-							/>
-							<Typography
-								color="text.secondary"
-								noWrap
-								sx={{ typography: { xs: "body2", sm: "body1" } }}
-							>
-								{numResponders} Responders
-							</Typography>
-						</Box>
-						<Box
-							sx={{
-								gridRow: "2 / span 1",
-								gridColumn: 2,
-								display: "flex",
-								alignItems: "center",
-								gap: 0.5,
-							}}
-						>
-							<FmdGoodIcon
-								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
-							/>
-							<Typography
-								color="text.secondary"
-								noWrap
-								sx={{ typography: { xs: "body2", sm: "body1" } }}
-							>
-								LOCATION
-							</Typography>
-						</Box>
+					<Box sx={metaGridSx}>
+						<MetaItem icon={DateRangeIcon} label={dateLabel} />
+						<MetaItem
+							icon={AccessTimeIcon}
+							label={`${timeStart} - ${timeEnd}`}
+						/>
+						<MetaItem icon={GroupIcon} label={`${numResponders} Responders`} />
+						<MetaItem icon={FmdGoodIcon} label="LOCATION" />
 					</Box>
 				)}
 			</CardContent>
