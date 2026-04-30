@@ -243,7 +243,7 @@ export function GroupCard({
 							display: "flex",
 							alignItems: "center",
 							gap: "10px",
-							flexShrink: 0,
+							minWidth: 0,
 						}}
 					>
 						<Avatar
@@ -252,11 +252,20 @@ export function GroupCard({
 								height: 18,
 								fontSize: "0.625rem",
 								bgcolor: "grey.400",
+								flexShrink: 0,
 							}}
 						>
 							{creatorName[0]}
 						</Avatar>
-						<Typography variant="overline" sx={{ color: "text.secondary" }}>
+						<Typography
+							variant="overline"
+							sx={{
+								color: "text.secondary",
+								overflow: "hidden",
+								textOverflow: "ellipsis",
+								whiteSpace: "nowrap",
+							}}
+						>
 							Owned by {creatorName}
 						</Typography>
 					</Box>
