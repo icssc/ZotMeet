@@ -12,7 +12,7 @@ export const AvailabilityTimeTicks = memo(
 		const minutesInDay = timeBlock % MINUTES_PER_DAY;
 		const isTopOfHour = minutesInDay % 60 === 0;
 		return (
-			<td className="w-2 border-r-[1px] border-r-gray-medium py-0 pr-3 align-top">
+			<td className="w-2 border-r-[1px] border-r-gray-medium bg-paper py-0 pr-3 align-top">
 				{isTopOfHour && (
 					<>
 						<Typography

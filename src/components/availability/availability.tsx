@@ -286,7 +286,10 @@ export function Availability({
 								doesntNeedDay={doesntNeedDay}
 							/>
 
-							<tbody onMouseLeave={handleMouseLeave}>
+							<tbody
+								className="bg-stripes-primary"
+								onMouseLeave={handleMouseLeave}
+							>
 								{availabilityView === "group" ||
 								availabilityView === "schedule" ? (
 									<GroupAvailability
