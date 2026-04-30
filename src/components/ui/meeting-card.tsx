@@ -23,8 +23,8 @@ interface MeetingCardProps {
 	timeStart: string;
 	timeEnd: string;
 	numResponders: number;
-	location: string | null;
 	scheduled?: boolean;
+	scheduledLabel?: string;
 	meetingLink: string;
 }
 
@@ -36,8 +36,8 @@ const MeetingCard = ({
 	timeStart,
 	timeEnd,
 	numResponders,
-	location,
 	scheduled = false,
+	scheduledLabel,
 	meetingLink,
 }: MeetingCardProps) => {
 	const dateLabel =
@@ -79,57 +79,149 @@ const MeetingCard = ({
 					</IconButton>
 				</Box>
 
-				<Box
-					sx={{
-						display: "grid",
-						gridTemplateColumns: "auto auto",
-						columnGap: 1.5,
-						rowGap: 1.5,
-					}}
-				>
-					<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-						<DateRangeIcon
-							sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
-						/>
-						<Typography variant="body1" color="text.secondary" noWrap>
-							{dateLabel}
-						</Typography>
-					</Box>
+				{scheduled && scheduledLabel ? (
+					<Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+						<Box
+							sx={{
+								display: "inline-flex",
+								alignItems: "center",
+								bgcolor: "secondary.main",
+								color: "secondary.contrastText",
+								borderRadius: "5px",
+								px: 1.25,
+								height: "24px",
+								alignSelf: "start",
+							}}
+						>
+							<Typography
+								variant="caption"
+								sx={{ fontWeight: 500, lineHeight: 1, whiteSpace: "nowrap" }}
+							>
+								{scheduledLabel}
+							</Typography>
+						</Box>
 
-					<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-						<AccessTimeIcon
-							sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
-						/>
-						<Typography variant="body1" color="text.secondary" noWrap>
-							{timeStart} - {timeEnd}
-						</Typography>
+						<Box
+							sx={{
+								display: "grid",
+								gridTemplateColumns: "1fr 1fr",
+								width: "100%",
+								columnGap: 1.5,
+							}}
+						>
+							<Box
+								sx={{
+									gridRow: "1 / span 1",
+									gridColumn: 1,
+									display: "flex",
+									alignItems: "center",
+									gap: 0.5,
+								}}
+							>
+								<GroupIcon
+									sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
+								/>
+								<Typography variant="body1" color="text.secondary" noWrap>
+									{numResponders} Responders
+								</Typography>
+							</Box>
+							<Box
+								sx={{
+									gridRow: "1 / span 1",
+									gridColumn: 2,
+									display: "flex",
+									alignItems: "center",
+									gap: 0.5,
+								}}
+							>
+								<FmdGoodIcon
+									sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
+								/>
+								<Typography variant="body1" color="text.secondary" noWrap>
+									LOCATION
+								</Typography>
+							</Box>
+						</Box>
 					</Box>
-
-					<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-						<GroupIcon
-							sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
-						/>
-						<Typography variant="body1" color="text.secondary" noWrap>
-							{numResponders} Responders
-						</Typography>
-					</Box>
-
-					{location ? (
-						<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+				) : (
+					<Box
+						sx={{
+							display: "grid",
+							gridTemplateColumns: "1fr 1fr",
+							width: "100%",
+							columnGap: 1.5,
+							rowGap: 1.5,
+						}}
+					>
+						<Box
+							sx={{
+								gridRow: "1 / span 1",
+								gridColumn: 1,
+								display: "flex",
+								alignItems: "center",
+								gap: 0.5,
+							}}
+						>
+							<DateRangeIcon
+								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
+							/>
+							<Typography variant="body1" color="text.secondary" noWrap>
+								{dateLabel}
+							</Typography>
+						</Box>
+						<Box
+							sx={{
+								gridRow: "1 / span 1",
+								gridColumn: 2,
+								display: "flex",
+								alignItems: "center",
+								gap: 0.5,
+							}}
+						>
+							<AccessTimeIcon
+								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
+							/>
+							<Typography variant="body1" color="text.secondary" noWrap>
+								{timeStart} - {timeEnd}
+							</Typography>
+						</Box>
+						<Box
+							sx={{
+								gridRow: "2 / span 1",
+								gridColumn: 1,
+								display: "flex",
+								alignItems: "center",
+								gap: 0.5,
+							}}
+						>
+							<GroupIcon
+								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
+							/>
+							<Typography variant="body1" color="text.secondary" noWrap>
+								{numResponders} Responders
+							</Typography>
+						</Box>
+						<Box
+							sx={{
+								gridRow: "2 / span 1",
+								gridColumn: 2,
+								display: "flex",
+								alignItems: "center",
+								gap: 0.5,
+							}}
+						>
 							<FmdGoodIcon
 								sx={{ fontSize: 16, color: "text.secondary", flexShrink: 0 }}
 							/>
 							<Typography variant="body1" color="text.secondary" noWrap>
-								{location}
+								LOCATION
 							</Typography>
 						</Box>
-					) : (
-						<Box />
-					)}
-				</Box>
+					</Box>
+				)}
 			</CardContent>
 
-			<CardActions sx={{ px: 2.5, pb: 2.5, pt: 0, justifyContent: "flex-end" }}>
+			<CardActions sx={{ px: 2.5, pb: 2.5, pt: 2, justifyContent: "flex-end" }}>
 				<Button
 					variant="text"
 					color="primary"
@@ -139,7 +231,7 @@ const MeetingCard = ({
 					size="small"
 					sx={{ textTransform: "capitalize", fontWeight: 600 }}
 				>
-					{scheduled ? "View schedule" : "Add availability"}
+					Add availability
 				</Button>
 			</CardActions>
 		</Card>

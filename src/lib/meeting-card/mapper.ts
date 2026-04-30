@@ -12,6 +12,7 @@ export interface MeetingCardViewModel {
 	numResponders: number;
 	location: string | null;
 	scheduled: boolean;
+	scheduledLabel?: string;
 	meetingLink: string;
 }
 
@@ -22,6 +23,7 @@ type MeetingForCard = SelectMeeting & {
 interface ToMeetingCardOptions {
 	responderCount?: number;
 	timezone?: string;
+	scheduledLabel?: string;
 }
 
 const formatSingleDate = (dateString?: string) => {
@@ -103,6 +105,7 @@ export function toMeetingCardProps(
 		numResponders: options.responderCount ?? 0,
 		location: meeting.location ?? null,
 		scheduled: Boolean(meeting.scheduled),
+		scheduledLabel: options.scheduledLabel,
 		meetingLink: `/availability/${meeting.id}`,
 	};
 }

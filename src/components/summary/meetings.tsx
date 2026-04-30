@@ -19,12 +19,14 @@ interface MeetingsProps {
 	meetings: (SelectMeeting & { hostDisplayName: string | null })[];
 	userId: string;
 	meetingCounts: Record<string, number>;
+	scheduledLabels?: Record<string, string>;
 }
 
 export const Meetings = ({
 	meetings,
 	userId,
 	meetingCounts,
+	scheduledLabels,
 }: MeetingsProps) => {
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<FilterType>("all");
@@ -151,6 +153,7 @@ export const Meetings = ({
 					{displayMeetings.map((meeting) => {
 						const cardProps = toMeetingCardProps(meeting, {
 							responderCount: meetingCounts[meeting.id] ?? 0,
+							scheduledLabel: scheduledLabels?.[meeting.id],
 						});
 						return <MeetingCard key={meeting.id} {...cardProps} />;
 					})}

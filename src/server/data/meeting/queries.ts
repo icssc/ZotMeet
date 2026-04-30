@@ -142,6 +142,42 @@ export async function getResponderCountsByMeetingIds(
 	);
 }
 
+export async function getScheduledMeetingsByMeetingIds(
+	meetingIds: string[],
+): Promise<
+	Record<
+		string,
+		{ scheduledDate: Date; scheduledFromTime: string; scheduledToTime: string }
+	>
+> {
+	if (meetingIds.length === 0) return {};
+
+	const rows = await db
+		.select({
+			meetingId: scheduledMeetings.meetingId,
+			scheduledDate: scheduledMeetings.scheduledDate,
+			scheduledFromTime: scheduledMeetings.scheduledFromTime,
+			scheduledToTime: scheduledMeetings.scheduledToTime,
+		})
+		.from(scheduledMeetings)
+		.where(inArray(scheduledMeetings.meetingId, meetingIds));
+
+	const result: Record<
+		string,
+		{ scheduledDate: Date; scheduledFromTime: string; scheduledToTime: string }
+	> = {};
+	for (const row of rows) {
+		if (!result[row.meetingId]) {
+			result[row.meetingId] = {
+				scheduledDate: row.scheduledDate,
+				scheduledFromTime: row.scheduledFromTime,
+				scheduledToTime: row.scheduledToTime,
+			};
+		}
+	}
+	return result;
+}
+
 /**
  * Fetch scheduled blocks for a meeting from scheduled_meetings table
  */
