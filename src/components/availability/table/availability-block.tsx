@@ -1,4 +1,7 @@
 import {
+	type CellPaintTarget,
+	type ImportPreviewTarget,
+	importErasesCommitted,
 	type PaintMode,
 	paintWillChange,
 } from "@/lib/availability/paint-selection";
@@ -9,7 +12,7 @@ interface AvailabilityBlockProps {
 	isIfNeeded: boolean;
 	isInDraftRange: boolean;
 	paintMode: PaintMode;
-	importPreviewType?: "available" | "if-needed" | null;
+	importPreviewType?: ImportPreviewTarget;
 }
 
 export function AvailabilityBlock({
@@ -19,44 +22,47 @@ export function AvailabilityBlock({
 	paintMode,
 	importPreviewType = null,
 }: AvailabilityBlockProps) {
-	const showDraftOverlay =
-		isInDraftRange && paintWillChange(paintMode, { isAvailable, isIfNeeded });
+	const state = { isAvailable, isIfNeeded };
+
+	const draftTarget: CellPaintTarget | null =
+		isInDraftRange && paintWillChange(paintMode, state) ? paintMode : null;
+	const importTarget: CellPaintTarget | null =
+		!draftTarget &&
+		importPreviewType &&
+		paintWillChange(importPreviewType, state)
+			? importPreviewType
+			: null;
+
+	const importErases = importErasesCommitted(state, importPreviewType);
+	const previewTarget: CellPaintTarget | null = importErases
+		? null
+		: (draftTarget ?? importTarget);
 
 	return (
 		<div className="pointer-events-none relative block h-full w-full py-2">
-			{!isIfNeeded && (
+			{(!isIfNeeded || importErases) && (
 				<div
 					className={cn(
 						"absolute inset-0 bg-paper",
-						showDraftOverlay && paintMode === "if-needed" && "opacity-60",
+						previewTarget === "if-needed" && "opacity-60",
 					)}
 				/>
 			)}
 
-			{isAvailable && (
+			{isAvailable && !importErases && (
 				<div
 					className={cn(
 						"absolute inset-0 bg-primary",
-						showDraftOverlay && paintMode !== "available" && "opacity-40",
+						previewTarget && previewTarget !== "available" && "opacity-40",
 					)}
 				/>
 			)}
 
-			{showDraftOverlay && paintMode === "available" && !isAvailable && (
+			{previewTarget === "available" && !isAvailable && (
 				<div className="absolute inset-0 bg-primary/40" />
 			)}
-			{showDraftOverlay && paintMode === "unavailable" && (
+			{draftTarget === "unavailable" && (isAvailable || isIfNeeded) && (
 				<div className="absolute inset-0 bg-paper/60" />
-			)}
-
-			{importPreviewType && (
-				<div
-					aria-hidden
-					className={cn(
-						"absolute inset-0 border-2 border-primary/70",
-						importPreviewType === "available" ? "bg-primary/20" : "bg-paper/40",
-					)}
-				/>
 			)}
 		</div>
 	);

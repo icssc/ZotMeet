@@ -4,12 +4,12 @@ import { GoogleCalendarEventSegment } from "./google-calendar-event-segment";
 
 interface GoogleCalendarEventBlockProps {
 	eventSegments: EventSegment[];
-	isAvailable: boolean;
+	rendersOverPrimary: boolean;
 }
 
 export function GoogleCalendarEventBlock({
 	eventSegments,
-	isAvailable,
+	rendersOverPrimary,
 }: GoogleCalendarEventBlockProps) {
 	if (eventSegments.length === 0) {
 		return null;
@@ -29,7 +29,7 @@ export function GoogleCalendarEventBlock({
 				<GoogleCalendarEventSegment
 					key={`${segment.eventId}-${index}`}
 					segment={segment}
-					isAvailable={isAvailable}
+					rendersOverPrimary={rendersOverPrimary}
 				/>
 			))}
 		</div>
