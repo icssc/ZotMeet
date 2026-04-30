@@ -116,7 +116,8 @@ export async function getMeetings(memberId: string) {
 					sql`${meetings.id} IN ${hasAvailability}`,
 				),
 			),
-		);
+		)
+		.orderBy(desc(meetings.createdAt));
 
 	return userMeetings;
 }
