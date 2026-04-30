@@ -31,6 +31,7 @@ const formatSingleDate = (dateString?: string) => {
 	return new Intl.DateTimeFormat("en-US", {
 		month: "numeric",
 		day: "numeric",
+		timeZone: "UTC",
 	}).format(new Date(dateString));
 };
 
