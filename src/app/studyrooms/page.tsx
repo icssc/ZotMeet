@@ -233,106 +233,6 @@ export default function Page() {
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns}>
-			<Box
-				component="form"
-				onSubmit={handleSubmit}
-				sx={{
-					display: "flex",
-					flexDirection: "column",
-					gap: 2,
-					maxWidth: "sm",
-					p: 2,
-				}}
-			>
-				<DatePicker
-					label="Date"
-					value={date}
-					onChange={setDate}
-					slotProps={{ textField: { fullWidth: true } }}
-				/>
-
-				<Stack direction="row" spacing={2}>
-					<TimePicker
-						label="Start Time"
-						value={startTime}
-						onAccept={setStartTime}
-						slotProps={{ textField: { fullWidth: true } }}
-					/>
-					<TimePicker
-						label="End Time"
-						value={endTime}
-						onAccept={setEndTime}
-						slotProps={{ textField: { fullWidth: true } }}
-					/>
-				</Stack>
-
-				<Autocomplete
-					freeSolo
-					options={LOCATION_OPTIONS}
-					value={location}
-					onChange={(_, val) => setLocation(val)}
-					onInputChange={(_, val, reason) => {
-						if (reason !== "reset") setLocation(val || null);
-					}}
-					renderInput={(params) => (
-						<TextField {...params} label="Location" fullWidth />
-					)}
-				/>
-
-				<Stack direction="row" spacing={2}>
-					<TextField
-						label="Min Capacity"
-						type="number"
-						value={capacityMin}
-						onChange={(e) => setCapacityMin(e.target.value)}
-						fullWidth
-						slotProps={{ htmlInput: { min: 0 } }}
-					/>
-					<TextField
-						label="Max Capacity"
-						type="number"
-						value={capacityMax}
-						onChange={(e) => setCapacityMax(e.target.value)}
-						fullWidth
-						slotProps={{ htmlInput: { min: 0 } }}
-					/>
-				</Stack>
-
-				<FormControlLabel
-					control={
-						<Switch
-							checked={isTechEnhanced}
-							onChange={(e) => setIsTechEnhanced(e.target.checked)}
-						/>
-					}
-					label="Tech Enhanced"
-				/>
-
-				{activeFilters.length > 0 && (
-					<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-						{activeFilters.map((f) => (
-							<Chip
-								key={f.key}
-								label={f.label}
-								onDelete={() => handleClearFilter(f.key)}
-								size="small"
-								variant="outlined"
-							/>
-						))}
-					</Stack>
-				)}
-
-				{error && (
-					<Typography color="error" variant="body2">
-						{error}
-					</Typography>
-				)}
-
-				<Button type="submit" variant="contained" fullWidth>
-					Search Rooms
-				</Button>
-			</Box>
-
 			{fallbackNotice && (
 				<Typography variant="body2" color="info.main" sx={{ mt: 2 }}>
 					{fallbackNotice}
@@ -340,12 +240,134 @@ export default function Page() {
 			)}
 
 			{rooms && committedDate && committedStart && committedEnd && (
-				<RoomsHeatmap
-					rooms={rooms}
-					searchDate={committedDate}
-					startTime={committedStart}
-					endTime={committedEnd}
-				/>
+				<Stack direction="row">
+					<Box
+						sx={{
+							flex: 3,
+							overflow: "auto",
+							width: 0,
+							minWidth: 0,
+							boxSizing: "border-box",
+							p: 2,
+						}}
+					>
+						<RoomsHeatmap
+							rooms={rooms}
+							searchDate={committedDate}
+							startTime={committedStart}
+							endTime={committedEnd}
+						/>
+					</Box>
+					<Stack
+						direction="column"
+						sx={{
+							flexShrink: 0,
+							width: 360,
+						}}
+					>
+						<Box
+							component="form"
+							onSubmit={handleSubmit}
+							sx={{
+								display: "flex",
+								flex: 1,
+								flexDirection: "column",
+								gap: 2,
+								maxWidth: "sm",
+								p: 2,
+								backgroundColor: "white",
+							}}
+						>
+							<DatePicker
+								label="Date"
+								value={date}
+								onChange={setDate}
+								slotProps={{ textField: { fullWidth: true } }}
+							/>
+
+							<Stack direction="row" spacing={2}>
+								<TimePicker
+									label="Start Time"
+									value={startTime}
+									onAccept={setStartTime}
+									slotProps={{ textField: { fullWidth: true } }}
+								/>
+								<TimePicker
+									label="End Time"
+									value={endTime}
+									onAccept={setEndTime}
+									slotProps={{ textField: { fullWidth: true } }}
+								/>
+							</Stack>
+
+							<Autocomplete
+								freeSolo
+								options={LOCATION_OPTIONS}
+								value={location}
+								onChange={(_, val) => setLocation(val)}
+								onInputChange={(_, val, reason) => {
+									if (reason !== "reset") setLocation(val || null);
+								}}
+								renderInput={(params) => (
+									<TextField {...params} label="Location" fullWidth />
+								)}
+							/>
+
+							<Stack direction="row" spacing={2}>
+								<TextField
+									label="Min Capacity"
+									type="number"
+									value={capacityMin}
+									onChange={(e) => setCapacityMin(e.target.value)}
+									fullWidth
+									slotProps={{ htmlInput: { min: 0 } }}
+								/>
+								<TextField
+									label="Max Capacity"
+									type="number"
+									value={capacityMax}
+									onChange={(e) => setCapacityMax(e.target.value)}
+									fullWidth
+									slotProps={{ htmlInput: { min: 0 } }}
+								/>
+							</Stack>
+
+							<FormControlLabel
+								control={
+									<Switch
+										checked={isTechEnhanced}
+										onChange={(e) => setIsTechEnhanced(e.target.checked)}
+									/>
+								}
+								label="Tech Enhanced"
+							/>
+
+							{activeFilters.length > 0 && (
+								<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+									{activeFilters.map((f) => (
+										<Chip
+											key={f.key}
+											label={f.label}
+											onDelete={() => handleClearFilter(f.key)}
+											size="small"
+											variant="outlined"
+										/>
+									))}
+								</Stack>
+							)}
+
+							{error && (
+								<Typography color="error" variant="body2">
+									{error}
+								</Typography>
+							)}
+
+							<Button type="submit" variant="contained" fullWidth>
+								Search Rooms
+							</Button>
+						</Box>
+					</Stack>
+				</Stack>
 			)}
 		</LocalizationProvider>
 	);

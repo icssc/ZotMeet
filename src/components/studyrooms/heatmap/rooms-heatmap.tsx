@@ -12,6 +12,7 @@ import {
 	TableRow,
 	Tooltip,
 } from "@mui/material";
+import Box from "@mui/material/Box";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
@@ -80,8 +81,13 @@ export const RoomsHeatmap = ({
 	}, [rooms, sortBy, windowStart]);
 
 	return (
-		<div>
-			<Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
+		<Box sx={{ backgroundColor: "white" }}>
+			<Stack
+				direction="row"
+				alignItems="center"
+				spacing={2}
+				sx={{ mb: 1, py: 1, px: 2 }}
+			>
 				<FormControl size="small" sx={{ minWidth: 160 }}>
 					<InputLabel>Sort by</InputLabel>
 					<Select
@@ -97,10 +103,17 @@ export const RoomsHeatmap = ({
 					</Select>
 				</FormControl>
 			</Stack>
-			<Table size="small" sx={{ borderCollapse: "collapse", borderSpacing: 0 }}>
+			<Table
+				size="small"
+				sx={{
+					borderCollapse: "collapse",
+					borderSpacing: 0,
+					fontSize: "0.7rem",
+				}}
+			>
 				<TableHead>
 					<TableRow>
-						<TableCell>Rooms</TableCell>
+						<TableCell sx={{ position: "sticky" }}>Rooms</TableCell>
 						{intervals.map((iv) => (
 							<TableCell key={iv.label} align="center">
 								<p className="w-14 whitespace-nowrap">{iv.label}</p>
@@ -168,6 +181,6 @@ export const RoomsHeatmap = ({
 					})}
 				</TableBody>
 			</Table>
-		</div>
+		</Box>
 	);
 };
