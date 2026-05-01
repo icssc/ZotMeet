@@ -14,13 +14,13 @@ export default $config({
 		};
 	},
 	async run() {
-		const domainName = `${$app.stage === "production" ? "" : `${$app.stage}.`}zotmeet.com`;
+		const domainName = `${$app.stage === "production" ? "" : `${$app.stage}.`}icssc.com`;
 		const baseUrl = `https://${domainName}`;
 
 		const notificationEmail =
 			$app.stage === "production"
 				? new sst.aws.Email("NotificationEmail", {
-						sender: "zotmeet.com",
+						sender: "icssc.com",
 						dns: sst.aws.dns({
 							zone: "Z0670880YRIE7KPL5SPX",
 						}),
