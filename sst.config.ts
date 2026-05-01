@@ -25,7 +25,7 @@ export default $config({
 							zone: "Z0670880YRIE7KPL5SPX",
 						}),
 					})
-				: sst.aws.Email.get("NotificationEmail", "zotmeet.com");
+				: sst.aws.Email.get("NotificationEmail", "icssc.com");
 
 		new sst.aws.Nextjs("site", {
 			link: [notificationEmail],
