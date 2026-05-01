@@ -17,7 +17,18 @@ export default $config({
 		const domainName = `${$app.stage === "production" ? "" : `${$app.stage}.`}zotmeet.com`;
 		const baseUrl = `https://${domainName}`;
 
+		const notificationEmail =
+			$app.stage === "production"
+				? new sst.aws.Email("NotificationEmail", {
+						sender: "zotmeet.com",
+						dns: sst.aws.dns({
+							zone: "Z0670880YRIE7KPL5SPX",
+						}),
+					})
+				: sst.aws.Email.get("NotificationEmail", "zotmeet.com");
+
 		new sst.aws.Nextjs("site", {
+			link: [notificationEmail],
 			environment: {
 				DATABASE_URL: process.env.DATABASE_URL ?? "localhost:3000",
 				OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID!,
