@@ -2,14 +2,6 @@
 
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
 import {
-	saveAvailability,
-	saveIfNeeded,
-} from "@actions/availability/save/action";
-import {
-	deleteScheduledTimeBlock,
-	saveScheduledTimeBlock,
-} from "@actions/meeting/schedule/action";
-import {
 	Create,
 	GroupAddOutlined,
 	InsertInvitationRounded,
@@ -22,6 +14,10 @@ import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
+import {
+	savePersonalAvailabilityChanges,
+	saveScheduleChanges,
+} from "@/lib/meetings/save/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
@@ -84,36 +80,17 @@ export function AvailabilityActions({
 	};
 
 	const handleSave = async () => {
-		if (!user) return;
-
 		setChangeableTimezone(true);
-		const availability = {
+		const didSave = await savePersonalAvailabilityChanges({
 			meetingId: meetingData.id,
-			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-		const ifNeeded = {
-			meetingId: meetingData.id,
-			availabilityTimes: ifNeededDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-
-		const response = await saveAvailability(availability);
-		if (response.status !== 200) {
-			console.error("Error saving availability:", response.body.error);
-			return;
-		}
-
-		const ifNeededResponse = await saveIfNeeded(ifNeeded);
-		if (ifNeededResponse.status === 200) {
+			user,
+			availabilityDates,
+			ifNeededDates,
+		});
+		if (didSave) {
 			setHasAvailability(true);
 			setAvailabilityView("group");
 			onSave();
-		} else {
-			console.error(
-				"Error saving if-needed availability:",
-				ifNeededResponse.body.error,
-			);
 		}
 	};
 
@@ -125,56 +102,13 @@ export function AvailabilityActions({
 	const handleScheduleSave = async () => {
 		try {
 			const { pendingAdds, pendingRemovals } = useAvailabilityStore.getState();
-
-			for (const timestamp of pendingRemovals) {
-				const date = new Date(timestamp);
-				const scheduledDate = new Date(
-					date.getFullYear(),
-					date.getMonth(),
-					date.getDate(),
-				);
-				const scheduledFromTime = date.toTimeString().slice(0, 8);
-				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-					.toTimeString()
-					.slice(0, 8);
-
-				const removalResult = await deleteScheduledTimeBlock({
-					meetingId: meetingData.id,
-					scheduledDate,
-					scheduledFromTime,
-					scheduledToTime,
-				});
-				if ("error" in removalResult) {
-					showError(
-						removalResult.error ?? "Failed to delete scheduled meeting.",
-					);
-					return;
-				}
-			}
-
-			for (const timestamp of pendingAdds) {
-				const date = new Date(timestamp);
-				const scheduledDate = new Date(
-					date.getFullYear(),
-					date.getMonth(),
-					date.getDate(),
-				);
-				const scheduledFromTime = date.toTimeString().slice(0, 8);
-				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-					.toTimeString()
-					.slice(0, 8);
-
-				const saveResult = await saveScheduledTimeBlock({
-					meetingId: meetingData.id,
-					scheduledDate,
-					scheduledFromTime,
-					scheduledToTime,
-				});
-				if ("error" in saveResult) {
-					showError(saveResult.error ?? "Failed to save scheduled meeting.");
-					return;
-				}
-			}
+			const didSave = await saveScheduleChanges({
+				meetingId: meetingData.id,
+				pendingAdds,
+				pendingRemovals,
+				onError: showError,
+			});
+			if (!didSave) return;
 
 			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
 				commitPendingTimes();
@@ -260,49 +194,50 @@ export function AvailabilityActions({
 							Add to Calendar
 						</Button>
 					)}
-
-					<Button
-						variant="contained"
-						startIcon={<Create sx={{ color: "inherit" }} />}
-						className="w-full max-w-full normal-case"
-						sx={{ py: 0.75 }}
-						onClick={() => {
-							if (!user) {
-								setIsAuthModalOpen(true);
-								router.push("/auth/login/google");
-								return;
-							}
-							setChangeableTimezone(false);
-							setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-							setAvailabilityView("personal");
-						}}
-					>
-						<span className="hidden md:flex">
-							{hasAvailability ? "Edit Availability" : "Add Availability"}
-						</span>
-					</Button>
-					{isOwner && (
-						<>
-							<Button
-								variant="outlined"
-								startIcon={<InsertInvitationRounded />}
-								className="w-full"
-								sx={{ py: 0.75 }}
-								onClick={() => setAvailabilityView("schedule")}
-							>
-								<span className="hidden md:flex">Schedule Meeting</span>
-							</Button>
-							<Button
-								variant="outlined"
-								startIcon={<GroupAddOutlined />}
-								className="w-full"
-								sx={{ py: 0.75 }}
-								onClick={onOpenInviteDialog}
-							>
-								<span className="hidden md:flex">Invite Members</span>
-							</Button>
-						</>
-					)}
+					<div className="hidden flex-col gap-2 sm:flex">
+						<Button
+							variant="contained"
+							startIcon={<Create sx={{ color: "inherit" }} />}
+							className="w-full max-w-full normal-case"
+							sx={{ py: 0.75 }}
+							onClick={() => {
+								if (!user) {
+									setIsAuthModalOpen(true);
+									router.push("/auth/login/google");
+									return;
+								}
+								setChangeableTimezone(false);
+								setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+								setAvailabilityView("personal");
+							}}
+						>
+							<span className="hidden md:flex">
+								{hasAvailability ? "Edit Availability" : "Add Availability"}
+							</span>
+						</Button>
+						{isOwner && (
+							<>
+								<Button
+									variant="outlined"
+									startIcon={<InsertInvitationRounded />}
+									className="w-full"
+									sx={{ py: 0.75 }}
+									onClick={() => setAvailabilityView("schedule")}
+								>
+									<span className="hidden md:flex">Schedule Meeting</span>
+								</Button>
+								<Button
+									variant="outlined"
+									startIcon={<GroupAddOutlined />}
+									className="w-full"
+									sx={{ py: 0.75 }}
+									onClick={onOpenInviteDialog}
+								>
+									<span className="hidden md:flex">Invite Members</span>
+								</Button>
+							</>
+						)}
+					</div>
 				</div>
 			)}
 		</div>

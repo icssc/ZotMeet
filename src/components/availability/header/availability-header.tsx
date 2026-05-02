@@ -2,10 +2,14 @@
 import {
 	AccessTime,
 	CalendarMonth,
+	Check,
+	Close,
 	ContentCopy,
 	LocationOn,
 	Settings,
 } from "@mui/icons-material";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import GoogleIcon from "@mui/icons-material/Google";
 import { Button, IconButton, Paper, Typography } from "@mui/material";
 import { DeleteIcon, MoreVerticalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,6 +26,10 @@ import {
 	formatTimeWithHoursAndMins,
 } from "@/lib/availability/utils";
 import { copyTextToClipboard } from "@/lib/clipboard/utils";
+import {
+	savePersonalAvailabilityChanges,
+	saveScheduleChanges,
+} from "@/lib/meetings/save/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import type { Availability } from "../availability";
@@ -44,7 +52,7 @@ export function AvailabilityHeader({
 	user,
 	availabilityDates: _availabilityDates,
 	ifNeededDates: _ifNeededDates,
-	onCancel: _onCancel,
+	onCancel,
 	onSave: _onSave,
 	setChangeableTimezone: _setChangeableTimezone,
 	setTimezone: _setTimezone,
@@ -59,14 +67,25 @@ export function AvailabilityHeader({
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
-	const { availabilityView, scheduledTimesCount, hasHydratedScheduledTimes } =
-		useAvailabilityStore(
-			useShallow((state) => ({
-				availabilityView: state.availabilityView,
-				scheduledTimesCount: state.scheduledTimes.size,
-				hasHydratedScheduledTimes: state.hasHydratedScheduledTimes,
-			})),
-		);
+	const {
+		availabilityView,
+		setAvailabilityView,
+		clearPendingTimes,
+		commitPendingTimes,
+		setHasAvailability,
+		scheduledTimesCount,
+		hasHydratedScheduledTimes,
+	} = useAvailabilityStore(
+		useShallow((state) => ({
+			availabilityView: state.availabilityView,
+			setAvailabilityView: state.setAvailabilityView,
+			clearPendingTimes: state.clearPendingTimes,
+			commitPendingTimes: state.commitPendingTimes,
+			setHasAvailability: state.setHasAvailability,
+			scheduledTimesCount: state.scheduledTimes.size,
+			hasHydratedScheduledTimes: state.hasHydratedScheduledTimes,
+		})),
+	);
 	const isScheduled = hasHydratedScheduledTimes
 		? scheduledTimesCount > 0
 		: meetingData.scheduled;
@@ -109,13 +128,91 @@ export function AvailabilityHeader({
 		}
 	}
 
+	function handleCloseEditing() {
+		onCancel();
+		clearPendingTimes();
+		setAvailabilityView("group");
+	}
+
+	async function handleConfirmEditing() {
+		try {
+			if (availabilityView === "personal") {
+				const didSave = await savePersonalAvailabilityChanges({
+					meetingId: meetingData.id,
+					user,
+					availabilityDates: _availabilityDates,
+					ifNeededDates: _ifNeededDates,
+					onError: showError,
+				});
+				if (!didSave) return;
+
+				setHasAvailability(true);
+				_onSave();
+				setAvailabilityView("group");
+				return;
+			}
+
+			if (availabilityView === "schedule") {
+				const { pendingAdds, pendingRemovals } =
+					useAvailabilityStore.getState();
+				const didSave = await saveScheduleChanges({
+					meetingId: meetingData.id,
+					pendingAdds,
+					pendingRemovals,
+					onError: showError,
+				});
+				if (!didSave) return;
+
+				if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
+					commitPendingTimes();
+				}
+				setAvailabilityView("group");
+			}
+		} catch (_error) {
+			showError("An unexpected error occurred while saving. Please try again.");
+		}
+	}
+
 	return (
 		<Paper variant="outlined" className="mt-10">
 			<div className="flex flex-col gap-4">
+				{availabilityView === "group" && (
+					<div className="flex items-center sm:hidden">
+						<Button
+							color="inherit"
+							startIcon={
+								<ChevronLeftIcon fontSize="small" sx={{ display: "block" }} />
+							}
+							sx={{ pl: 0 }}
+							href="/summary"
+						>
+							Back
+						</Button>
+					</div>
+				)}
+
 				<div className="flex w-full items-center">
-					<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
-						{meetingData.title}
-					</h1>
+					{(availabilityView === "personal" ||
+						availabilityView === "schedule") && (
+						<Button size="square" onClick={handleCloseEditing}>
+							<Close />
+						</Button>
+					)}
+
+					{availabilityView !== "personal" && (
+						<h1 className="line-clamp-1 min-w-0 truncate font-medium text-xl md:text-3xl">
+							{meetingData.title}
+						</h1>
+					)}
+
+					{availabilityView === "personal" && (
+						<div>
+							<Typography>Add Availability</Typography>
+							<Typography variant="caption" color="textSecondary">
+								Drag to add availability
+							</Typography>
+						</div>
+					)}
 
 					<div className="ml-auto sm:ml-8">
 						<IconButton size="small" onClick={handleCopy}>
@@ -123,13 +220,27 @@ export function AvailabilityHeader({
 						</IconButton>
 					</div>
 
-					{isOwner && (
-						<div className="block sm:hidden">
-							<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
-								<MoreVerticalIcon />
-							</IconButton>
-						</div>
-					)}
+					<div className="block sm:hidden">
+						{availabilityView === "personal" ||
+						availabilityView === "schedule" ? (
+							<Button
+								size="square"
+								variant="contained"
+								onClick={handleConfirmEditing}
+							>
+								<Check />
+							</Button>
+						) : isOwner ? (
+							<div className="block sm:hidden">
+								<IconButton
+									size="small"
+									onClick={() => setIsEditModalOpen(true)}
+								>
+									<MoreVerticalIcon />
+								</IconButton>
+							</div>
+						) : null}
+					</div>
 				</div>
 				<div className="flex flex-wrap items-start gap-4">
 					<div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-2">
