@@ -12,8 +12,9 @@ import {
 	TableRow,
 	Tooltip,
 } from "@mui/material";
+import Box from "@mui/material/Box";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
 	buildHalfHourIntervals,
 	formatISOToLocalTime,
@@ -50,6 +51,18 @@ export const RoomsHeatmap = ({
 		() => mergeDateAndTime(searchDate, startTime),
 		[searchDate, startTime],
 	);
+	const scrollRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const el = scrollRef.current;
+		if (!el) return;
+		const handler = (e: WheelEvent) => {
+			e.preventDefault();
+			el.scrollBy({ left: e.deltaY, behavior: "smooth" });
+		};
+		el.addEventListener("wheel", handler, { passive: false });
+		return () => el.removeEventListener("wheel", handler);
+	}, []);
 
 	const sortedRooms = useMemo(() => {
 		const copy = rooms.filter((r) => r.name);
@@ -80,8 +93,13 @@ export const RoomsHeatmap = ({
 	}, [rooms, sortBy, windowStart]);
 
 	return (
-		<div>
-			<Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 1 }}>
+		<Box sx={{ backgroundColor: "white" }}>
+			<Stack
+				direction="row"
+				alignItems="center"
+				spacing={2}
+				sx={{ mb: 1, py: 1, px: 2 }}
+			>
 				<FormControl size="small" sx={{ minWidth: 160 }}>
 					<InputLabel>Sort by</InputLabel>
 					<Select
@@ -97,77 +115,103 @@ export const RoomsHeatmap = ({
 					</Select>
 				</FormControl>
 			</Stack>
-			<Table size="small" sx={{ borderCollapse: "collapse", borderSpacing: 0 }}>
-				<TableHead>
-					<TableRow>
-						<TableCell>Rooms</TableCell>
-						{intervals.map((iv) => (
-							<TableCell key={iv.label} align="center">
-								<p className="w-14 whitespace-nowrap">{iv.label}</p>
+			<Box sx={{ overflow: "scroll", position: "relative" }} ref={scrollRef}>
+				<Table
+					size="small"
+					sx={{
+						borderCollapse: "collapse",
+						borderSpacing: 0,
+						fontSize: "0.7rem",
+					}}
+				>
+					<TableHead>
+						<TableRow>
+							<TableCell
+								sx={{
+									position: "sticky",
+									left: 0,
+									zIndex: 2,
+									backgroundColor: "white",
+								}}
+							>
+								Rooms
 							</TableCell>
-						))}
-					</TableRow>
-				</TableHead>
-
-				<TableBody>
-					{sortedRooms.map((room) => {
-						const sorted = [...room.slots]
-							.sort(
-								(a, b) =>
-									new Date(a.start).getTime() - new Date(b.start).getTime(),
-							)
-							.filter((s) => new Date(s.start) >= windowStart);
-
-						const buckets = groupSlotsIntoIntervals(sorted, intervals);
-
-						return (
-							<TableRow key={room.id}>
-								<TableCell className="whitespace-nowrap">
-									<p>{room.location}</p>
-									<div className="flex items-center gap-2 text-xs">
-										<p className="text-xs">{room.name}</p>
-										<p>{room.capacity ? `•  Cap: ${room.capacity}` : null}</p>
-									</div>
-									<p className="text-xs">{room.description?.slice(0, 50)}</p>
+							{intervals.map((iv) => (
+								<TableCell key={iv.label} align="center">
+									<p className="w-14 whitespace-nowrap">{iv.label}</p>
 								</TableCell>
+							))}
+						</TableRow>
+					</TableHead>
 
-								{buckets.map((bucket) => (
+					<TableBody>
+						{sortedRooms.map((room) => {
+							const sorted = [...room.slots]
+								.sort(
+									(a, b) =>
+										new Date(a.start).getTime() - new Date(b.start).getTime(),
+								)
+								.filter((s) => new Date(s.start) >= windowStart);
+
+							const buckets = groupSlotsIntoIntervals(sorted, intervals);
+
+							return (
+								<TableRow key={room.id}>
 									<TableCell
-										key={bucket.intervalLabel}
-										className="border border-gray-300"
-										sx={{ padding: 0, height: "1px" }}
+										className="whitespace-nowrap"
+										sx={{
+											position: "sticky",
+											left: 0,
+											zIndex: 1,
+											backgroundColor: "white",
+										}}
 									>
-										<div className="flex h-full">
-											{bucket.slots.map((s) => (
-												<ButtonBase
-													key={s.start}
-													component={Link}
-													target="_blank"
-													href={s.url}
-													className="h-full"
-													sx={{ flex: 1 }}
-												>
-													<Tooltip
-														placement="top"
-														title={`${formatISOToLocalTime(s.start)} - ${formatISOToLocalTime(s.end)}`}
-													>
-														<span
-															className={cn(
-																"h-full w-full",
-																s.isAvailable ? "bg-green-300" : "bg-red-300",
-															)}
-														/>
-													</Tooltip>
-												</ButtonBase>
-											))}
+										<p>{room.location}</p>
+										<div className="flex items-center gap-2 text-xs">
+											<p className="text-xs">{room.name}</p>
+											<p>{room.capacity ? `•  Cap: ${room.capacity}` : null}</p>
 										</div>
+										<p className="text-xs">{room.description?.slice(0, 50)}</p>
 									</TableCell>
-								))}
-							</TableRow>
-						);
-					})}
-				</TableBody>
-			</Table>
-		</div>
+
+									{buckets.map((bucket) => (
+										<TableCell
+											key={bucket.intervalLabel}
+											className="border border-gray-300"
+											sx={{ padding: 0, height: "1px" }}
+										>
+											<div className="flex h-full">
+												{bucket.slots.map((s) => (
+													<ButtonBase
+														key={s.start}
+														component={Link}
+														target="_blank"
+														href={s.url}
+														className="h-full"
+														sx={{ flex: 1 }}
+													>
+														<Tooltip
+															placement="top"
+															title={`${formatISOToLocalTime(s.start)} - ${formatISOToLocalTime(s.end)}`}
+														>
+															<span
+																className={cn(
+																	"h-full w-full",
+																	s.isAvailable ? "bg-green-300" : "bg-red-300",
+																)}
+															/>
+														</Tooltip>
+													</ButtonBase>
+												))}
+											</div>
+										</TableCell>
+									))}
+								</TableRow>
+							);
+						})}
+					</TableBody>
+				</Table>
+			</Box>
+		</Box>
 	);
 };
