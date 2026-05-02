@@ -1,6 +1,15 @@
 import "server-only";
 
-import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
+import {
+	and,
+	countDistinct,
+	desc,
+	eq,
+	inArray,
+	ne,
+	or,
+	sql,
+} from "drizzle-orm";
 import { db } from "@/db";
 import {
 	availabilities,
@@ -95,8 +104,10 @@ export async function getMeetings(memberId: string) {
 			createdAt: meetings.createdAt,
 			archived: meetings.archived,
 			meetingType: meetings.meetingType,
+			hostDisplayName: members.displayName,
 		})
 		.from(meetings)
+		.leftJoin(members, eq(meetings.hostId, members.id))
 		.where(
 			and(
 				eq(meetings.archived, false),
@@ -105,9 +116,65 @@ export async function getMeetings(memberId: string) {
 					sql`${meetings.id} IN ${hasAvailability}`,
 				),
 			),
-		);
+		)
+		.orderBy(desc(meetings.createdAt));
 
 	return userMeetings;
+}
+
+export async function getResponderCountsByMeetingIds(
+	meetingIds: string[],
+): Promise<Record<string, number>> {
+	if (meetingIds.length === 0) {
+		return {};
+	}
+
+	const rows = await db
+		.select({
+			meetingId: availabilities.meetingId,
+			respondedCount: countDistinct(availabilities.memberId),
+		})
+		.from(availabilities)
+		.where(inArray(availabilities.meetingId, meetingIds))
+		.groupBy(availabilities.meetingId);
+
+	return Object.fromEntries(
+		rows.map((row) => [row.meetingId, Number(row.respondedCount)]),
+	);
+}
+
+type ScheduledMeetingInfo = {
+	scheduledDate: Date;
+	scheduledFromTime: string;
+	scheduledToTime: string;
+};
+
+export async function getScheduledMeetingsByMeetingIds(
+	meetingIds: string[],
+): Promise<Record<string, ScheduledMeetingInfo>> {
+	if (meetingIds.length === 0) return {};
+
+	const rows = await db
+		.select({
+			meetingId: scheduledMeetings.meetingId,
+			scheduledDate: scheduledMeetings.scheduledDate,
+			scheduledFromTime: scheduledMeetings.scheduledFromTime,
+			scheduledToTime: scheduledMeetings.scheduledToTime,
+		})
+		.from(scheduledMeetings)
+		.where(inArray(scheduledMeetings.meetingId, meetingIds));
+
+	const result: Record<string, ScheduledMeetingInfo> = {};
+	for (const row of rows) {
+		if (!result[row.meetingId]) {
+			result[row.meetingId] = {
+				scheduledDate: row.scheduledDate,
+				scheduledFromTime: row.scheduledFromTime,
+				scheduledToTime: row.scheduledToTime,
+			};
+		}
+	}
+	return result;
 }
 
 /**
