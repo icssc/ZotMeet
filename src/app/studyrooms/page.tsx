@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 
 import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
+import { RoomsHeatmapLegend } from "@/components/studyrooms/legend";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import { getDefaultWindow, toLocalStr } from "@/lib/rooms/utils";
 import type { StudyRooms } from "@/lib/types/studyrooms";
@@ -244,7 +245,6 @@ export default function Page() {
 					<Box
 						sx={{
 							flex: 3,
-							overflow: "auto",
 							width: 0,
 							minWidth: 0,
 							boxSizing: "border-box",
@@ -261,10 +261,17 @@ export default function Page() {
 					<Stack
 						direction="column"
 						sx={{
-							flexShrink: 0,
 							width: 360,
+							pt: 2,
+							pr: 2,
 						}}
 					>
+						<Box sx={{ pb: 1 }}>
+							<RoomsHeatmapLegend
+								availabilityColor="#86efac"
+								notAvailableColor="#fca5a5"
+							/>
+						</Box>
 						<Box
 							component="form"
 							onSubmit={handleSubmit}
