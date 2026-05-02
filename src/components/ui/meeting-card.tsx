@@ -10,6 +10,7 @@ import {
 	Card,
 	CardActions,
 	CardContent,
+	Chip,
 	IconButton,
 	Typography,
 } from "@mui/material";
@@ -113,25 +114,12 @@ const MeetingCard = ({
 
 				{scheduled && scheduledLabel ? (
 					<Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-						<Box
-							sx={{
-								display: "inline-flex",
-								alignItems: "center",
-								bgcolor: "secondary.main",
-								color: "secondary.contrastText",
-								borderRadius: "5px",
-								px: 1.25,
-								height: "24px",
-								alignSelf: "start",
-							}}
-						>
-							<Typography
-								variant="caption"
-								sx={{ fontWeight: 500, lineHeight: 1, whiteSpace: "nowrap" }}
-							>
-								{scheduledLabel}
-							</Typography>
-						</Box>
+						<Chip
+							label={scheduledLabel}
+							size="small"
+							color="secondary"
+							sx={{ borderRadius: "5px", fontWeight: 500, alignSelf: "start" }}
+						/>
 						<Box sx={metaGridSx}>
 							<MetaItem
 								icon={GroupIcon}
