@@ -233,6 +233,10 @@ export const scheduledMeetings = pgTable("scheduled_meetings", {
 	scheduledToTime: time("scheduled_to_time", {
 		withTimezone: false,
 	}).notNull(),
+	reminderSentAt: timestamp("reminder_sent_at", {
+		withTimezone: true,
+		mode: "date",
+	}),
 });
 
 export type InsertScheduledMeeting = InferInsertModel<typeof scheduledMeetings>;
