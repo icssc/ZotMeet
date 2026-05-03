@@ -19,8 +19,9 @@ import { useSnackbar } from "@/components/ui/snackbar-provider";
 interface SelectedMember {
 	id: string;
 	email: string;
-	username: string | null;
-	profilePicture: string | null;
+	username: string;
+	displayName: string;
+	profilePicture: string;
 }
 
 interface InviteMembersDialogProps {
@@ -45,8 +46,9 @@ export function InviteMembersDialog({
 		{
 			id: string;
 			email: string;
-			username: string | null;
-			profilePicture: string | null;
+			username: string;
+			displayName: string;
+			profilePicture: string;
 		}[]
 	>([]);
 	const [meetingLink, setMeetingLink] = useState("");
@@ -111,8 +113,9 @@ export function InviteMembersDialog({
 		(user: {
 			id: string;
 			email: string;
-			username: string | null;
-			profilePicture: string | null;
+			username: string;
+			displayName: string;
+			profilePicture: string;
 		}) => {
 			if (!members.some((m) => m.id === user.id)) {
 				setMembers((prev) => [
@@ -121,6 +124,7 @@ export function InviteMembersDialog({
 						id: user.id,
 						email: user.email,
 						username: user.username,
+						displayName: user.displayName,
 						profilePicture: user.profilePicture,
 					},
 				]);
@@ -236,7 +240,7 @@ export function InviteMembersDialog({
 											{getInitials(member.email)}
 										</Avatar>
 									}
-									label={member.email.split("@")[0]}
+									label={member.displayName}
 									onDelete={() => removeMember(member.id)}
 									variant="filled"
 								/>

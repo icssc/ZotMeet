@@ -33,6 +33,10 @@ export async function getUserById(id: string) {
 	return user ?? null;
 }
 
+function escapeLikeQuery(query: string): string {
+	return query.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
+}
+
 export async function searchUsersByEmailOrUsername(
 	query: string,
 	excludeUserId: string,
@@ -40,20 +44,23 @@ export async function searchUsersByEmailOrUsername(
 ) {
 	if (!query || query.length < 2) return [];
 
+	const escaped = escapeLikeQuery(query);
+
 	return await db
 		.select({
 			id: users.id,
 			email: users.email,
 			username: members.username,
 			profilePicture: members.profilePicture,
+			displayName: members.displayName,
 		})
 		.from(users)
 		.innerJoin(members, eq(users.memberId, members.id))
 		.where(
 			and(
 				or(
-					ilike(users.email, `%${query}%`),
-					ilike(members.username, `%${query}%`),
+					ilike(users.email, `%${escaped}%`),
+					ilike(members.username, `%${escaped}%`),
 				),
 				ne(users.id, excludeUserId),
 			),
