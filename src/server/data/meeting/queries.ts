@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
 	availabilities,
@@ -108,6 +108,44 @@ export async function getMeetings(memberId: string) {
 		);
 
 	return userMeetings;
+}
+
+/**
+ * Fetch all scheduled blocks that have not yet had a reminder sent,
+ * joined with their parent meeting for timezone + title.
+ */
+export async function getScheduledMeetingsNeedingReminder() {
+	return db
+		.select({
+			id: scheduledMeetings.id,
+			meetingId: scheduledMeetings.meetingId,
+			scheduledDate: scheduledMeetings.scheduledDate,
+			scheduledFromTime: scheduledMeetings.scheduledFromTime,
+			timezone: meetings.timezone,
+			title: meetings.title,
+			groupId: meetings.group_id,
+		})
+		.from(scheduledMeetings)
+		.innerJoin(meetings, eq(scheduledMeetings.meetingId, meetings.id))
+		.where(
+			and(
+				isNull(scheduledMeetings.reminderSentAt),
+				eq(meetings.archived, false),
+				// Only consider today and the near future to keep the scan small
+				gte(
+					scheduledMeetings.scheduledDate,
+					sql`CURRENT_DATE - INTERVAL '1 day'`,
+				),
+			),
+		);
+}
+
+/** Mark all scheduled blocks for a meeting as having had their reminder sent. */
+export async function markReminderSent(meetingId: string) {
+	return db
+		.update(scheduledMeetings)
+		.set({ reminderSentAt: new Date() })
+		.where(eq(scheduledMeetings.meetingId, meetingId));
 }
 
 /**

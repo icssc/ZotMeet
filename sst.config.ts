@@ -17,13 +17,14 @@ export default $config({
 		const domainName = `${$app.stage === "production" ? "" : `${$app.stage}.`}zotmeet.com`;
 		const baseUrl = `https://${domainName}`;
 
-		new sst.aws.Nextjs("site", {
+		const site = new sst.aws.Nextjs("site", {
 			environment: {
 				DATABASE_URL: process.env.DATABASE_URL ?? "localhost:3000",
 				OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID!,
 				OIDC_ISSUER_URL: process.env.OIDC_ISSUER_URL!,
 				GOOGLE_OAUTH_REDIRECT_URI: `${baseUrl}/auth/login/google/callback`,
 				NEXT_PUBLIC_BASE_URL: baseUrl,
+				CRON_SECRET: process.env.CRON_SECRET!,
 			},
 			cachePolicy: "e6e88864-aee5-41aa-b393-c48f78e33d2d",
 			domain: {
@@ -31,6 +32,17 @@ export default $config({
 				dns: sst.aws.dns({
 					zone: "Z0670880YRIE7KPL5SPX",
 				}),
+			},
+		});
+
+		new sst.aws.Cron("MeetingReminderCron", {
+			schedule: "rate(1 minute)",
+			job: {
+				handler: "src/jobs/reminder.handler",
+				environment: {
+					SITE_URL: site.url,
+					CRON_SECRET: process.env.CRON_SECRET!,
+				},
 			},
 		});
 	},
