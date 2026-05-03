@@ -19,7 +19,9 @@ import { useSnackbar } from "@/components/ui/snackbar-provider";
 interface SelectedMember {
 	id: string;
 	email: string;
-	profilePicture: string | null;
+	username: string;
+	displayName: string;
+	profilePicture: string;
 }
 
 interface InviteMembersDialogProps {
@@ -41,7 +43,13 @@ export function InviteMembersDialog({
 	const [members, setMembers] = useState<SelectedMember[]>([]);
 	const [memberQuery, setMemberQuery] = useState("");
 	const [searchResults, setSearchResults] = useState<
-		{ id: string; email: string; profilePicture: string | null }[]
+		{
+			id: string;
+			email: string;
+			username: string;
+			displayName: string;
+			profilePicture: string;
+		}[]
 	>([]);
 	const [meetingLink, setMeetingLink] = useState("");
 	const [copied, setCopied] = useState(false);
@@ -102,13 +110,21 @@ export function InviteMembersDialog({
 	);
 
 	const addMember = useCallback(
-		(user: { id: string; email: string; profilePicture: string | null }) => {
+		(user: {
+			id: string;
+			email: string;
+			username: string;
+			displayName: string;
+			profilePicture: string;
+		}) => {
 			if (!members.some((m) => m.id === user.id)) {
 				setMembers((prev) => [
 					...prev,
 					{
 						id: user.id,
 						email: user.email,
+						username: user.username,
+						displayName: user.displayName,
 						profilePicture: user.profilePicture,
 					},
 				]);
@@ -198,7 +214,14 @@ export function InviteMembersDialog({
 									>
 										{getInitials(option.email)}
 									</Avatar>
-									<span className="text-sm">{option.email}</span>
+									<div className="flex flex-col">
+										<Typography variant="caption">{option.email}</Typography>
+										{option.username ? (
+											<Typography variant="caption" color="textSecondary">
+												@{option.username}
+											</Typography>
+										) : null}
+									</div>
 								</div>
 							</li>
 						)}
@@ -217,7 +240,7 @@ export function InviteMembersDialog({
 											{getInitials(member.email)}
 										</Avatar>
 									}
-									label={member.email.split("@")[0]}
+									label={member.displayName}
 									onDelete={() => removeMember(member.id)}
 									variant="filled"
 								/>
