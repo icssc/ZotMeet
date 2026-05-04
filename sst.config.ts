@@ -21,16 +21,12 @@ export default $config({
 			region: "us-east-2",
 		});
 
-		const notificationEmail = sst.aws.Email.get(
-			"NotificationEmail",
-			"icssc.club",
-			{
-				provider: sesProvider,
-			},
-		);
-
 		new sst.aws.Nextjs("site", {
-			link: [notificationEmail],
+			link: [
+				sst.aws.Email.get("NotificationEmail", "icssc.club", {
+					provider: sesProvider,
+				}),
+			],
 			environment: {
 				DATABASE_URL: process.env.DATABASE_URL ?? "localhost:3000",
 				OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID!,

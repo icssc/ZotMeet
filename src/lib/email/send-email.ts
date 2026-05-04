@@ -1,7 +1,6 @@
 import "server-only";
 
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
-import { Resource } from "sst";
 
 const ses = new SESv2Client({ region: "us-east-2" });
 
@@ -13,7 +12,7 @@ type SendEmailInput = {
 };
 
 export async function sendEmail({ to, subject, text, html }: SendEmailInput) {
-	const from = `ZotMeet <notifications@${Resource.NotificationEmail.sender}>`;
+	const from = `ZotMeet <no-reply@icssc.club>`;
 
 	await ses.send(
 		new SendEmailCommand({
