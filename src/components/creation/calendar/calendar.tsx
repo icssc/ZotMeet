@@ -1,8 +1,9 @@
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import { IconButton, Tab, Tabs, Typography } from "@mui/material";
+import { IconButton, Tab, Tabs } from "@mui/material";
 import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import { CalendarBody } from "@/components/creation/calendar/calendar-body";
+import { CalendarMonthCarousel } from "@/components/creation/calendar/calendar-month-carousel";
 import { Week } from "@/components/creation/calendar/week";
 import { Separator } from "@/components/ui/separator";
 import type { SelectMeeting } from "@/db/schema";
@@ -143,46 +144,55 @@ export function Calendar({
 					<Week selectedDays={selectedDays} setSelectedDays={setSelectedDays} />
 				</div>
 			) : (
-				<div className="flex items-center justify-between">
-					<IconButton
-						onClick={decrementMonth}
-						sx={{ display: { xs: "none", md: "flex" } }}
-					>
-						<ChevronLeftIcon />
-					</IconButton>
+				<>
+					<div className="hidden items-center justify-between md:flex">
+						<IconButton onClick={decrementMonth}>
+							<ChevronLeftIcon />
+						</IconButton>
 
-					<div className="mt-5 w-full md:px-2">
-						<table className="w-full table-fixed border-collapse">
-							<thead>
-								<tr>
-									{WEEKDAYS.map((dayOfWeek) => (
-										<th className="px-0" key={dayOfWeek}>
-											<div>
-												<p className="w-full text-center font-light text-slate-medium text-sm uppercase md:font-bold">
-													{dayOfWeek.slice(0, 1)}
-												</p>
-											</div>
-											<Separator className="my-2 h-[2px] bg-slate-base" />
-										</th>
-									))}
-								</tr>
-							</thead>
+						<div className="mt-5 w-full md:px-2">
+							<table className="w-full table-fixed border-collapse">
+								<thead>
+									<tr>
+										{WEEKDAYS.map((dayOfWeek) => (
+											<th className="px-0" key={dayOfWeek}>
+												<div>
+													<p className="w-full text-center font-light text-slate-medium text-sm uppercase md:font-bold">
+														{dayOfWeek.slice(0, 1)}
+													</p>
+												</div>
+												<Separator className="my-2 h-[2px] bg-slate-base" />
+											</th>
+										))}
+									</tr>
+								</thead>
 
-							<CalendarBody
-								calendarDays={calendarDays}
-								currentMonth={currentMonth}
-								updateSelectedRange={updateSelectedRange}
-							/>
-						</table>
+								<CalendarBody
+									calendarDays={calendarDays}
+									currentMonth={currentMonth}
+									updateSelectedRange={updateSelectedRange}
+								/>
+							</table>
+						</div>
+
+						<IconButton onClick={incrementMonth}>
+							<ChevronRightIcon />
+						</IconButton>
 					</div>
 
-					<IconButton
-						onClick={incrementMonth}
-						sx={{ display: { xs: "none", md: "flex" } }}
-					>
-						<ChevronRightIcon />
-					</IconButton>
-				</div>
+					<div className="md:hidden">
+						<CalendarMonthCarousel
+							currentMonth={currentMonth}
+							currentYear={currentYear}
+							selectedDays={selectedDays}
+							updateSelectedRange={updateSelectedRange}
+							onNavigateBySwipe={(direction) => {
+								if (direction === -1) decrementMonth();
+								else incrementMonth();
+							}}
+						/>
+					</div>
+				</>
 			)}
 		</div>
 	);

@@ -6,12 +6,15 @@ interface CalendarBodyProps {
 	calendarDays: ZotDate[][];
 	currentMonth: number;
 	updateSelectedRange: (startDate: ZotDate, endDate: ZotDate) => void;
+	/** Lets horizontal scroll-snap parents receive touch pans (mobile month swipe). */
+	allowScrollParentGesture?: boolean;
 }
 
 export function CalendarBody({
 	calendarDays,
 	currentMonth,
 	updateSelectedRange,
+	allowScrollParentGesture = false,
 }: CalendarBodyProps) {
 	const [startDaySelection, setStartDaySelection] = useState<ZotDate>();
 	const [endDaySelection, setEndDaySelection] = useState<ZotDate>();
@@ -30,6 +33,7 @@ export function CalendarBody({
 							setEndDaySelection={setEndDaySelection}
 							currentMonth={currentMonth}
 							updateSelectedRange={updateSelectedRange}
+							allowScrollParentGesture={allowScrollParentGesture}
 						/>
 					))}
 				</tr>

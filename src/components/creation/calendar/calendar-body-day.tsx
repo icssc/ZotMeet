@@ -11,6 +11,7 @@ interface CalendarBodyDayProps {
 	setEndDaySelection: Dispatch<SetStateAction<ZotDate | undefined>>;
 	currentMonth: number;
 	updateSelectedRange: (startDate: ZotDate, endDate: ZotDate) => void;
+	allowScrollParentGesture?: boolean;
 }
 
 export function CalendarBodyDay({
@@ -21,6 +22,7 @@ export function CalendarBodyDay({
 	setEndDaySelection,
 	currentMonth,
 	updateSelectedRange,
+	allowScrollParentGesture = false,
 }: CalendarBodyDayProps) {
 	const isDraggingRef = useRef(false);
 
@@ -107,7 +109,11 @@ export function CalendarBodyDay({
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
 				onPointerUp={handlePointerUp}
-				className="relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:pinch-zoom]"
+				className={
+					allowScrollParentGesture
+						? "relative flex w-full cursor-pointer touch-manipulation select-none justify-center py-2"
+						: "relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:pinch-zoom]"
+				}
 				data-day={calendarDay.getDay()}
 				data-month={calendarDay.getMonth()}
 				data-year={calendarDay.getYear()}
