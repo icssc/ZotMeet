@@ -12,6 +12,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Button, IconButton, Paper, Typography } from "@mui/material";
 import { DeleteIcon, MoreVerticalIcon } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -176,21 +177,6 @@ export function AvailabilityHeader({
 	return (
 		<Paper variant="outlined" className="mt-10">
 			<div className="flex flex-col gap-4">
-				{availabilityView === "group" && (
-					<div className="flex items-center sm:hidden">
-						<Button
-							color="inherit"
-							startIcon={
-								<ChevronLeftIcon fontSize="small" sx={{ display: "block" }} />
-							}
-							sx={{ pl: 0 }}
-							href="/summary"
-						>
-							Back
-						</Button>
-					</div>
-				)}
-
 				<div className="flex w-full items-center">
 					{(availabilityView === "personal" ||
 						availabilityView === "schedule") && (
@@ -200,9 +186,23 @@ export function AvailabilityHeader({
 					)}
 
 					{availabilityView !== "personal" && (
-						<h1 className="line-clamp-1 min-w-0 truncate font-medium text-xl md:text-3xl">
-							{meetingData.title}
-						</h1>
+						<div className="flex items-center">
+							<div className="block md:hidden">
+								<IconButton
+									component={Link}
+									href="/summary"
+									aria-label="Back to summary"
+									size="small"
+									className="shrink-0 sm:hidden"
+								>
+									<ChevronLeftIcon fontSize="medium" />
+								</IconButton>
+							</div>
+
+							<h1 className="line-clamp-1 min-w-0 flex-1 truncate font-medium text-xl md:text-3xl">
+								{meetingData.title}
+							</h1>
+						</div>
 					)}
 
 					{availabilityView === "personal" && (

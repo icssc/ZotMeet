@@ -961,21 +961,23 @@ export function Availability({
 					</div>
 				</Paper>
 
-				{(availabilityView === "group" || availabilityView === "schedule") &&
-					(isMobile ? (
-						<MobileGroupResponses
-							isOwner={isMeetingOwner}
-							respondedMembersCount={Math.max(
-								0,
-								members.length - pendingMembers.length,
-							)}
-							pendingMembersCount={pendingMembers.length}
-							onAddAvailability={handleMobileAddAvailability}
-							onOpenAttendees={handleMobileOpenAttendees}
-							onSchedule={handleMobileSchedule}
-						/>
-					) : (
-						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+				{(availabilityView === "group" || availabilityView === "schedule") && (
+					<div>
+						<div className="">
+							<MobileGroupResponses
+								isOwner={isMeetingOwner}
+								respondedMembersCount={Math.max(
+									0,
+									members.length - pendingMembers.length,
+								)}
+								pendingMembersCount={pendingMembers.length}
+								onAddAvailability={handleMobileAddAvailability}
+								onOpenAttendees={handleMobileOpenAttendees}
+								onSchedule={handleMobileSchedule}
+							/>
+						</div>
+
+						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 md:flex">
 							<AvailabilityActions
 								meetingData={meetingData}
 								user={user}
@@ -1004,7 +1006,8 @@ export function Availability({
 								/>
 							</Paper>
 						</div>
-					))}
+					</div>
+				)}
 				{availabilityView === "personal" &&
 					(isMobile ? (
 						<MobilePersonalAvailabilitySidebar
@@ -1017,7 +1020,7 @@ export function Availability({
 							onImportSlots={handleImportSlotsFromMeeting}
 						/>
 					) : (
-						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 md:flex lg:min-h-0">
 							<AvailabilityActions
 								meetingData={meetingData}
 								user={user}

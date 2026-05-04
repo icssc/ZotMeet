@@ -178,7 +178,7 @@ export function GroupResponses({
 			<div
 				className={cn(
 					// Cap height so the flex row does not grow with responder count (see availability layout).
-					"fixed bottom-0 h-96 max-h-[85dvh] w-full min-w-0 translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:h-full lg:max-h-none lg:min-h-0 lg:w-full lg:flex-1 lg:shrink-0 lg:translate-y-0 lg:self-stretch lg:overflow-y-auto lg:overscroll-y-contain lg:rounded-l-xl lg:bg-opacity-50",
+					"fixed bottom-0 h-96 max-h-[85dvh] w-full min-w-0 translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 md:relative md:top-0 md:h-full md:max-h-none md:min-h-0 md:w-full md:flex-1 md:shrink-0 md:translate-y-0 md:self-stretch md:overflow-y-auto md:overscroll-y-contain md:rounded-l-xl md:bg-opacity-50",
 					isMobileDrawerOpen && "translate-y-0",
 				)}
 			>
