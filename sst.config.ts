@@ -17,15 +17,17 @@ export default $config({
 		const domainName = `${$app.stage === "production" ? "" : `${$app.stage}.`}zotmeet.com`;
 		const baseUrl = `https://${domainName}`;
 
-		const notificationEmail =
-			$app.stage === "production"
-				? new sst.aws.Email("NotificationEmail", {
-						sender: "zotmeet.com",
-						dns: sst.aws.dns({
-							zone: "Z0670880YRIE7KPL5SPX",
-						}),
-					})
-				: sst.aws.Email.get("NotificationEmail", "zotmeet.com");
+		const sesProvider = new aws.Provider("SesProvider", {
+			region: "us-east-2",
+		});
+
+		const notificationEmail = sst.aws.Email.get(
+			"NotificationEmail",
+			"icssc.club",
+			{
+				provider: sesProvider,
+			},
+		);
 
 		new sst.aws.Nextjs("site", {
 			link: [notificationEmail],

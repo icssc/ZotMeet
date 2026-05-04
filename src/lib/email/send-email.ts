@@ -3,7 +3,7 @@ import "server-only";
 import { SESv2Client, SendEmailCommand } from "@aws-sdk/client-sesv2";
 import { Resource } from "sst";
 
-const ses = new SESv2Client({});
+const ses = new SESv2Client({ region: "us-east-2" });
 
 type SendEmailInput = {
 	to: string;
