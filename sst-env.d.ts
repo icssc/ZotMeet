@@ -2,11 +2,16 @@
 /* tslint:disable */
 /* eslint-disable */
 /* deno-fmt-ignore-file */
+/* biome-ignore-all lint: auto-generated */
 
 declare module "sst" {
-	export interface Resource {}
+	export interface Resource {
+		site: {
+			type: "sst.aws.Nextjs";
+			url: string;
+		};
+	}
 }
-/// <reference path="sst-env.d.ts" />
 
 import "sst";
 export {};
