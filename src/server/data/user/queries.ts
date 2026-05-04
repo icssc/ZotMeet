@@ -3,6 +3,7 @@ import "server-only";
 import { and, desc, eq, ilike, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { groups, members, notifications, users } from "@/db/schema";
+import { sendEmail } from "@/lib/email/send-email";
 
 export async function getUserIdExists(id: string) {
 	const user = await db.query.users.findFirst({
@@ -77,6 +78,16 @@ export async function getNotificationsByMemberId(memberId: string) {
 	return notification;
 }
 
+type NotificationEmail = {
+	subject: string;
+	text: string;
+	html: string;
+};
+
+type CreateNotificationOptions = {
+	email?: NotificationEmail;
+};
+
 export async function createNewNotification(
 	userIds: string[],
 	title: string = "New Notification",
@@ -85,18 +96,22 @@ export async function createNewNotification(
 	link: string,
 	groupId?: string | null,
 	createdBy?: string | null,
+	options?: CreateNotificationOptions,
 ) {
 	if (userIds.length === 0) return;
 
-	const memberRows = await db
-		.select({ memberId: users.memberId })
+	const recipientRows = await db
+		.select({
+			memberId: users.memberId,
+			email: users.email,
+		})
 		.from(users)
 		.where(inArray(users.id, userIds));
 
-	return db
+	const notificationsCreated = await db
 		.insert(notifications)
 		.values(
-			memberRows.map(({ memberId }) => ({
+			recipientRows.map(({ memberId }) => ({
 				memberId,
 				title,
 				message,
@@ -107,6 +122,26 @@ export async function createNewNotification(
 			})),
 		)
 		.returning();
+
+	if (options?.email) {
+		const payload = options.email;
+		const results = await Promise.allSettled(
+			recipientRows.map((recipient) =>
+				sendEmail({
+					to: recipient.email,
+					...payload,
+				}),
+			),
+		);
+
+		for (const result of results) {
+			if (result.status === "rejected") {
+				console.error("Failed to send notification email: ", result.reason);
+			}
+		}
+	}
+
+	return notificationsCreated;
 }
 
 export async function markNotificationAsRead(notificationId: string) {

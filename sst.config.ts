@@ -17,7 +17,16 @@ export default $config({
 		const domainName = `${$app.stage === "production" ? "" : `${$app.stage}.`}zotmeet.com`;
 		const baseUrl = `https://${domainName}`;
 
+		const sesProvider = new aws.Provider("SesProvider", {
+			region: "us-east-2",
+		});
+
 		new sst.aws.Nextjs("site", {
+			link: [
+				sst.aws.Email.get("NotificationEmail", "icssc.club", {
+					provider: sesProvider,
+				}),
+			],
 			environment: {
 				DATABASE_URL: process.env.DATABASE_URL ?? "localhost:3000",
 				OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID!,
