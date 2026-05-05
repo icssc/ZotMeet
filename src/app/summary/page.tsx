@@ -39,11 +39,15 @@ export default async function Page() {
 		scheduledDates[id] = sm.scheduledDate.getTime();
 	}
 
-	const now = new Date();
-	const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+	const startOfToday = new Date();
+	startOfToday.setUTCHours(0, 0, 0, 0);
+	const threeDaysLater = new Date(
+		startOfToday.getTime() + 3 * 24 * 60 * 60 * 1000,
+	);
 	const upcomingMeetingIds = Object.entries(scheduledMeetingMap)
 		.filter(
-			([, sm]) => sm.scheduledDate >= now && sm.scheduledDate <= threeDaysLater,
+			([, sm]) =>
+				sm.scheduledDate >= startOfToday && sm.scheduledDate <= threeDaysLater,
 		)
 		.map(([id]) => id);
 
