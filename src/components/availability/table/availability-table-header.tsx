@@ -10,8 +10,8 @@ import type { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityTableHeaderProps {
 	currentPageAvailability: {
-		availabilities: ZotDate[];
-		ifNeeded: ZotDate[];
+		availabilities: (ZotDate | null)[];
+		ifNeeded: (ZotDate | null)[];
 	};
 	meetingType: SelectMeeting["meetingType"];
 	doesntNeedDay: boolean;
@@ -25,7 +25,7 @@ export function AvailabilityTableHeader({
 	//extra day calculation for day spillover
 	//put in here to prevent infinite adding, recalculates everytime something changes
 	const [newBlocks, _newAvailDates] = newZonedPageAvailAndDates(
-		currentPageAvailability["availabilities"],
+		currentPageAvailability.availabilities,
 		null,
 		doesntNeedDay,
 	);
