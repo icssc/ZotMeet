@@ -137,6 +137,8 @@ export function Availability({
 	inviteQueryInUrl?: boolean;
 }) {
 	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+	const [isMeetingDeletionPending, setIsMeetingDeletionPending] =
+		useState(false);
 	const [availabilitySelectionMode, setAvailabilitySelectionMode] =
 		useState<Availability>("available");
 	const availabilityView = useAvailabilityStore(
@@ -863,6 +865,8 @@ export function Availability({
 				setTimezone={setUserTimezone}
 				availabilityEditState={availabilitySelectionMode}
 				inviteQueryInUrl={inviteQueryInUrl}
+				isMeetingDeletionPending={isMeetingDeletionPending}
+				onMeetingDeletionPendingChange={setIsMeetingDeletionPending}
 			/>
 
 			<div className="flex min-h-0 w-full min-w-0 flex-1 flex-row items-stretch justify-start">
@@ -890,6 +894,7 @@ export function Availability({
 								setChangeableTimezone={setChangeableTimezone}
 								setTimezone={setUserTimezone}
 								onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
+								isMeetingDeletionPending={isMeetingDeletionPending}
 							/>
 						</div>
 						<table className="w-full table-fixed">
@@ -968,6 +973,7 @@ export function Availability({
 							setChangeableTimezone={setChangeableTimezone}
 							setTimezone={setUserTimezone}
 							onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
+							isMeetingDeletionPending={isMeetingDeletionPending}
 						/>
 						<Paper
 							variant="outlined"
@@ -999,6 +1005,7 @@ export function Availability({
 							setChangeableTimezone={setChangeableTimezone}
 							setTimezone={setUserTimezone}
 							onOpenInviteDialog={() => setIsInviteDialogOpen(true)}
+							isMeetingDeletionPending={isMeetingDeletionPending}
 						/>
 						<Paper
 							variant="outlined"

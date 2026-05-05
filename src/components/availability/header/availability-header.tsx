@@ -37,6 +37,8 @@ interface AvailabilityHeaderProps {
 	setTimezone: (timezone: string) => void;
 	availabilityEditState: Availability;
 	inviteQueryInUrl?: boolean;
+	isMeetingDeletionPending: boolean;
+	onMeetingDeletionPendingChange: (pending: boolean) => void;
 }
 
 export function AvailabilityHeader({
@@ -50,6 +52,8 @@ export function AvailabilityHeader({
 	setTimezone: _setTimezone,
 	availabilityEditState: _availabilityEditState,
 	inviteQueryInUrl = false,
+	isMeetingDeletionPending,
+	onMeetingDeletionPendingChange,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
 	const pathname = usePathname();
@@ -191,6 +195,8 @@ export function AvailabilityHeader({
 					meetingData={meetingData}
 					isOpen={isDeleteModalOpen}
 					handleOpenChange={setIsDeleteModalOpen}
+					isDeletionPending={isMeetingDeletionPending}
+					onDeletionPendingChange={onMeetingDeletionPendingChange}
 				/>
 			</div>
 		</Paper>
