@@ -223,7 +223,7 @@ export const Meetings = ({
 						}}
 					>
 						<SearchIcon sx={{ fontSize: 20, color: "text.disabled" }} />
-						<input
+						<input aria-label="Search meetings"
 							type="text"
 							placeholder="Search"
 							value={search}
