@@ -15,6 +15,7 @@ export function FilterChip({
 		<Button
 			onClick={onClick}
 			disableElevation
+			aria-pressed={active}
 			sx={{
 				bgcolor: active ? "secondary.main" : "action.hover",
 				color: active ? "secondary.contrastText" : "text.primary",
