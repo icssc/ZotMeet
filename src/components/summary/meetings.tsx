@@ -2,7 +2,7 @@
 
 import { Add, CalendarMonth, Notifications } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
-import { Box, Button, IconButton, Typography } from "@mui/material";
+import { Box, Button, IconButton, TextField, Typography } from "@mui/material";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FilterChip } from "@/components/ui/filter-chip";
@@ -279,29 +279,23 @@ export const Meetings = ({
 				}}
 			>
 				<Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-					<Box
-						sx={{
-							display: "flex",
-							alignItems: "center",
-							gap: 1,
-							border: "1px solid",
-							borderColor: "divider",
-							borderRadius: 1,
-							px: 1,
-							py: 0.5,
-							minWidth: 200,
+					<TextField
+						aria-label="Search meetings"
+						placeholder="Search"
+						size="small"
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+						slotProps={{
+							input: {
+								startAdornment: (
+									<SearchIcon
+										sx={{ fontSize: 20, color: "text.disabled", mr: 0.5 }}
+									/>
+								),
+							},
 						}}
-					>
-						<SearchIcon sx={{ fontSize: 20, color: "text.disabled" }} />
-						<input
-							aria-label="Search meetings"
-							type="text"
-							placeholder="Search"
-							value={search}
-							onChange={(e) => setSearch(e.target.value)}
-							className="bg-transparent text-base outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
-						/>
-					</Box>
+						sx={{ minWidth: 200 }}
+					/>
 
 					<Box sx={{ display: "flex", gap: 0.75 }}>
 						{(["all", "unscheduled", "scheduled", "by-you"] as const).map(
