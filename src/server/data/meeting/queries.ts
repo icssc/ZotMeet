@@ -168,7 +168,10 @@ export async function getScheduledMeetingsByMeetingIds(
 		})
 		.from(scheduledMeetings)
 		.where(inArray(scheduledMeetings.meetingId, meetingIds))
-		.orderBy(asc(scheduledMeetings.scheduledDate));
+		.orderBy(
+			asc(scheduledMeetings.scheduledDate),
+			asc(scheduledMeetings.scheduledFromTime),
+		);
 
 	const result: Record<string, ScheduledMeetingInfo> = {};
 	for (const row of rows) {
