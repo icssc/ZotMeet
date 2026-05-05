@@ -1,32 +1,12 @@
 import { notFound, redirect } from "next/navigation";
 import { Meetings } from "@/components/summary/meetings";
 import { getCurrentSession } from "@/lib/auth";
+import { buildScheduledLabel } from "@/lib/meetings/utils";
 import {
 	getMeetings,
 	getResponderCountsByMeetingIds,
 	getScheduledMeetingsByMeetingIds,
 } from "@/server/data/meeting/queries";
-
-const formatScheduledTime = (time: string): string => {
-	const [hourStr = "0", minStr = "0"] = time.split(":");
-	const hour = Number(hourStr);
-	const min = Number(minStr);
-	const ampm = hour >= 12 ? "PM" : "AM";
-	const h = hour % 12 || 12;
-	return min === 0
-		? `${h}${ampm}`
-		: `${h}:${String(min).padStart(2, "0")}${ampm}`;
-};
-
-const buildScheduledLabel = (
-	scheduledDate: Date,
-	fromTime: string,
-	toTime: string,
-): string => {
-	const month = scheduledDate.getUTCMonth() + 1;
-	const day = scheduledDate.getUTCDate();
-	return `Scheduled: ${month}/${day}, ${formatScheduledTime(fromTime)}-${formatScheduledTime(toTime)}`;
-};
 
 export default async function Page() {
 	const session = await getCurrentSession();
@@ -49,13 +29,23 @@ export default async function Page() {
 	]);
 
 	const scheduledLabels: Record<string, string> = {};
+	const scheduledDates: Record<string, number> = {};
 	for (const [id, sm] of Object.entries(scheduledMeetingMap)) {
 		scheduledLabels[id] = buildScheduledLabel(
 			sm.scheduledDate,
 			sm.scheduledFromTime,
 			sm.scheduledToTime,
 		);
+		scheduledDates[id] = sm.scheduledDate.getTime();
 	}
+
+	const now = new Date();
+	const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+	const upcomingMeetingIds = Object.entries(scheduledMeetingMap)
+		.filter(
+			([, sm]) => sm.scheduledDate >= now && sm.scheduledDate <= threeDaysLater,
+		)
+		.map(([id]) => id);
 
 	return (
 		<div className="px-4 py-8 sm:px-8">
@@ -64,6 +54,8 @@ export default async function Page() {
 				userId={memberId}
 				meetingCounts={meetingCounts}
 				scheduledLabels={scheduledLabels}
+				scheduledDates={scheduledDates}
+				upcomingMeetingIds={upcomingMeetingIds}
 			/>
 		</div>
 	);

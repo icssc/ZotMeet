@@ -13,13 +13,18 @@ import {
 	toMeetingCardProps,
 } from "@/lib/meeting-card/mapper";
 
-type FilterType = "all" | "by-you" | "upcoming";
+type FilterType = "all" | "unscheduled" | "scheduled" | "by-you";
 
 interface MeetingsProps {
-	meetings: (SelectMeeting & { hostDisplayName: string | null })[];
+	meetings: (SelectMeeting & {
+		hostDisplayName: string | null;
+		needsAvailability: boolean;
+	})[];
 	userId: string;
 	meetingCounts: Record<string, number>;
 	scheduledLabels?: Record<string, string>;
+	scheduledDates?: Record<string, number>;
+	upcomingMeetingIds?: string[];
 }
 
 type DisplayMeeting = MeetingsProps["meetings"][number];
@@ -62,7 +67,14 @@ const MeetingSection = ({
 			<Typography sx={sectionLabelSx}>
 				{label} ({meetings.length})
 			</Typography>
-			<Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+			<Box
+				sx={{
+					display: { xs: "flex", sm: "grid" },
+					flexDirection: "column",
+					gridTemplateColumns: { sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
+					gap: { xs: 1.5, sm: 2 },
+				}}
+			>
 				{meetings.map((m) => toCard(m, meetingCounts, scheduledLabels))}
 			</Box>
 		</Box>
@@ -74,15 +86,23 @@ export const Meetings = ({
 	userId,
 	meetingCounts,
 	scheduledLabels,
+	scheduledDates,
+	upcomingMeetingIds,
 }: MeetingsProps) => {
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<FilterType>("all");
 
+	const upcomingSet = useMemo(
+		() => new Set(upcomingMeetingIds ?? []),
+		[upcomingMeetingIds],
+	);
+
 	const counts = useMemo(
 		() => ({
 			all: meetings.length,
+			unscheduled: meetings.filter((m) => !m.scheduled).length,
+			scheduled: meetings.filter((m) => m.scheduled === true).length,
 			"by-you": meetings.filter((m) => m.hostId === userId).length,
-			upcoming: meetings.filter((m) => m.scheduled === true).length,
 		}),
 		[meetings, userId],
 	);
@@ -91,7 +111,9 @@ export const Meetings = ({
 		switch (activeFilter) {
 			case "by-you":
 				return meetings.filter((m) => m.hostId === userId);
-			case "upcoming":
+			case "unscheduled":
+				return meetings.filter((m) => !m.scheduled);
+			case "scheduled":
 				return meetings.filter((m) => m.scheduled === true);
 			default:
 				return meetings;
@@ -102,6 +124,83 @@ export const Meetings = ({
 		() => filterMeetingsByQuery(filteredByOwner, search),
 		[filteredByOwner, search],
 	);
+
+	const renderMeetings = () => {
+		if (displayMeetings.length === 0) {
+			return (
+				<Box
+					sx={{
+						display: "flex",
+						alignItems: "center",
+						borderRadius: 3,
+						border: "2px solid",
+						borderColor: "divider",
+						bgcolor: "background.paper",
+						p: 4,
+					}}
+				>
+					<Typography variant="h6" color="text.secondary">
+						{search.trim()
+							? "No meetings match your search."
+							: "No meetings found."}
+					</Typography>
+				</Box>
+			);
+		}
+
+		if (activeFilter === "scheduled") {
+			const sorted = [...displayMeetings].sort(
+				(a, b) => (scheduledDates?.[a.id] ?? 0) - (scheduledDates?.[b.id] ?? 0),
+			);
+			const upcoming = sorted.filter((m) => upcomingSet.has(m.id));
+			const rest = sorted.filter((m) => !upcomingSet.has(m.id));
+			return (
+				<Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+					<MeetingSection
+						label="Upcoming"
+						meetings={upcoming}
+						meetingCounts={meetingCounts}
+						scheduledLabels={scheduledLabels}
+					/>
+					<MeetingSection
+						label="Scheduled"
+						meetings={rest}
+						meetingCounts={meetingCounts}
+						scheduledLabels={scheduledLabels}
+					/>
+				</Box>
+			);
+		}
+
+		if (activeFilter === "unscheduled") {
+			return (
+				<MeetingSection
+					label="Action Required"
+					meetings={displayMeetings}
+					meetingCounts={meetingCounts}
+					scheduledLabels={scheduledLabels}
+				/>
+			);
+		}
+
+		// "all" and "by-you": sections on all screen sizes
+		return (
+			<Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+				<MeetingSection
+					label="Action Required"
+					meetings={displayMeetings.filter((m) => m.needsAvailability)}
+					meetingCounts={meetingCounts}
+					scheduledLabels={scheduledLabels}
+				/>
+				<MeetingSection
+					label="All"
+					meetings={displayMeetings.filter((m) => !m.needsAvailability)}
+					meetingCounts={meetingCounts}
+					scheduledLabels={scheduledLabels}
+				/>
+			</Box>
+		);
+	};
 
 	return (
 		<Box sx={{ width: "100%" }}>
@@ -138,19 +237,25 @@ export const Meetings = ({
 					</Box>
 
 					<Box sx={{ display: "flex", gap: 0.75 }}>
-						{(["all", "by-you", "upcoming"] as const).map((f) => {
-							const label =
-								f === "all" ? "All" : f === "by-you" ? "By You" : "Upcoming";
-							return (
-								<FilterChip
-									key={f}
-									label={label}
-									count={counts[f]}
-									active={activeFilter === f}
-									onClick={() => setActiveFilter(f)}
-								/>
-							);
-						})}
+						{(["all", "unscheduled", "scheduled", "by-you"] as const).map(
+							(f) => {
+								const labels: Record<FilterType, string> = {
+									all: "All",
+									unscheduled: "Unscheduled",
+									scheduled: "Scheduled",
+									"by-you": "By You",
+								};
+								return (
+									<FilterChip
+										key={f}
+										label={labels[f]}
+										count={counts[f]}
+										active={activeFilter === f}
+										onClick={() => setActiveFilter(f)}
+									/>
+								);
+							},
+						)}
 					</Box>
 				</Box>
 
@@ -165,65 +270,7 @@ export const Meetings = ({
 				</Button>
 			</Box>
 
-			{displayMeetings.length === 0 ? (
-				<Box
-					sx={{
-						display: "flex",
-						alignItems: "center",
-						borderRadius: 3,
-						border: "2px solid",
-						borderColor: "divider",
-						bgcolor: "background.paper",
-						p: 4,
-					}}
-				>
-					<Typography variant="h6" color="text.secondary">
-						{search.trim()
-							? "No meetings match your search."
-							: "No meetings found."}
-					</Typography>
-				</Box>
-			) : (
-				<>
-					{/* Mobile: two sections */}
-					<Box
-						sx={{
-							display: { xs: "flex", sm: "none" },
-							flexDirection: "column",
-							gap: 3,
-						}}
-					>
-						<MeetingSection
-							label="Action Required"
-							meetings={displayMeetings.filter((m) => !m.scheduled)}
-							meetingCounts={meetingCounts}
-							scheduledLabels={scheduledLabels}
-						/>
-						<MeetingSection
-							label="All"
-							meetings={displayMeetings.filter((m) => m.scheduled)}
-							meetingCounts={meetingCounts}
-							scheduledLabels={scheduledLabels}
-						/>
-					</Box>
-
-					{/* Desktop: grid */}
-					<Box
-						sx={{
-							display: { xs: "none", sm: "grid" },
-							gridTemplateColumns: {
-								sm: "repeat(2, 1fr)",
-								lg: "repeat(3, 1fr)",
-							},
-							gap: 2,
-						}}
-					>
-						{displayMeetings.map((m) =>
-							toCard(m, meetingCounts, scheduledLabels),
-						)}
-					</Box>
-				</>
-			)}
+			{renderMeetings()}
 		</Box>
 	);
 };

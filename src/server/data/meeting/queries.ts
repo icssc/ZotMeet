@@ -2,6 +2,7 @@ import "server-only";
 
 import {
 	and,
+	asc,
 	countDistinct,
 	desc,
 	eq,
@@ -105,6 +106,10 @@ export async function getMeetings(memberId: string) {
 			archived: meetings.archived,
 			meetingType: meetings.meetingType,
 			hostDisplayName: members.displayName,
+			needsAvailability:
+				sql<boolean>`(NOT COALESCE(${meetings.scheduled}, false) AND ${meetings.id} NOT IN ${hasAvailability})`.as(
+					"needs_availability",
+				),
 		})
 		.from(meetings)
 		.leftJoin(members, eq(meetings.hostId, members.id))
@@ -162,7 +167,8 @@ export async function getScheduledMeetingsByMeetingIds(
 			scheduledToTime: scheduledMeetings.scheduledToTime,
 		})
 		.from(scheduledMeetings)
-		.where(inArray(scheduledMeetings.meetingId, meetingIds));
+		.where(inArray(scheduledMeetings.meetingId, meetingIds))
+		.orderBy(asc(scheduledMeetings.scheduledDate));
 
 	const result: Record<string, ScheduledMeetingInfo> = {};
 	for (const row of rows) {
