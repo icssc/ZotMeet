@@ -1,7 +1,16 @@
 "use client";
 
-import { AddAPhoto, Delete } from "@mui/icons-material";
-import { Avatar, Button, TextField, Typography } from "@mui/material";
+import { AddAPhoto, Close, Delete } from "@mui/icons-material";
+import {
+	Avatar,
+	Button,
+	Drawer,
+	IconButton,
+	TextField,
+	Typography,
+	useMediaQuery,
+	useTheme,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
 import {
@@ -32,6 +41,8 @@ export function GroupSettingsForm({ group, onCancel }: GroupSettingsFormProps) {
 	const [settingsError, setSettingsError] = useState("");
 	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 	const [deleteConfirmName, setDeleteConfirmName] = useState("");
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
 	const handleIconUpload = async (file: File) => {
 		if (!file.type.startsWith("image/")) {
@@ -163,7 +174,7 @@ export function GroupSettingsForm({ group, onCancel }: GroupSettingsFormProps) {
 					This action cannot be undone.
 				</span>
 
-				{showDeleteConfirm && (
+				{showDeleteConfirm && !isMobile && (
 					<div className="mt-3 w-full">
 						<TextField
 							label="Enter group name to confirm deletion*"
@@ -203,17 +214,78 @@ export function GroupSettingsForm({ group, onCancel }: GroupSettingsFormProps) {
 				>
 					{isSavingSettings ? "Saving..." : "Save Changes"}
 				</Button>
-				{showDeleteConfirm && (
+				{showDeleteConfirm && !isMobile && (
 					<Button
-						variant="text"
+						variant="contained"
 						color="error"
 						onClick={handleDeleteGroup}
-						disabled={isDeletingGroup}
+						disabled={
+							isDeletingGroup || deleteConfirmName.trim() !== group.name
+						}
 					>
 						{isDeletingGroup ? "Deleting..." : "Confirm Delete"}
 					</Button>
 				)}
 			</div>
+			{isMobile && (
+				<Drawer
+					anchor="bottom"
+					open={showDeleteConfirm}
+					onClose={() => {
+						setShowDeleteConfirm(false);
+						setDeleteConfirmName("");
+					}}
+					slotProps={{
+						paper: {
+							sx: {
+								borderTopLeftRadius: 16,
+								borderTopRightRadius: 16,
+								p: 3,
+							},
+						},
+					}}
+				>
+					<div className="flex flex-col gap-4">
+						<div className="flex items-center justify-between">
+							<Typography variant="h6">Delete Group</Typography>
+
+							<IconButton
+								onClick={() => {
+									setShowDeleteConfirm(false);
+									setDeleteConfirmName("");
+								}}
+							>
+								<Close />
+							</IconButton>
+						</div>
+
+						<Typography variant="body2" color="text.secondary">
+							In order to permanently delete the group and all its data, type
+							the group name below.
+						</Typography>
+
+						<TextField
+							label="Group name"
+							autoFocus
+							fullWidth
+							value={deleteConfirmName}
+							onChange={(e) => setDeleteConfirmName(e.target.value)}
+						/>
+
+						<Button
+							variant="contained"
+							color="error"
+							fullWidth
+							onClick={handleDeleteGroup}
+							disabled={
+								isDeletingGroup || deleteConfirmName.trim() !== group.name
+							}
+						>
+							{isDeletingGroup ? "Deleting..." : "Delete Group"}
+						</Button>
+					</div>
+				</Drawer>
+			)}
 		</div>
 	);
 }
