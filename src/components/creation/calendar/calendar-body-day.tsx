@@ -23,6 +23,7 @@ export function CalendarBodyDay({
 	updateSelectedRange,
 }: CalendarBodyDayProps) {
 	const isDraggingRef = useRef(false);
+	const startPosRef = useRef<{ x: number; y: number } | null>(null);
 
 	const isHighlighted =
 		startDaySelection &&
@@ -53,13 +54,10 @@ export function CalendarBodyDay({
 		setEndDaySelection,
 	]);
 
-	// Pointer event handlers
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {
-			const target = e.currentTarget;
-			target.setPointerCapture(e.pointerId);
-
-			isDraggingRef.current = true;
+			startPosRef.current = { x: e.clientX, y: e.clientY };
+			isDraggingRef.current = false;
 			setStartDaySelection(calendarDay);
 			setEndDaySelection(calendarDay);
 		},
@@ -68,9 +66,25 @@ export function CalendarBodyDay({
 
 	const handlePointerMove = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {
-			if (!isDraggingRef.current || !startDaySelection) return;
+			if (!startDaySelection || !startPosRef.current) return;
 
-			// Get element under pointer
+			if (!isDraggingRef.current) {
+				const dx = Math.abs(e.clientX - startPosRef.current.x);
+				const dy = Math.abs(e.clientY - startPosRef.current.y);
+
+				if (dx < 5 && dy < 5) return;
+
+				if (dy > dx) {
+					startPosRef.current = null;
+					setStartDaySelection(undefined);
+					setEndDaySelection(undefined);
+					return;
+				}
+
+				e.currentTarget.setPointerCapture(e.pointerId);
+				isDraggingRef.current = true;
+			}
+
 			const element = document.elementFromPoint(e.clientX, e.clientY);
 			if (!element) return;
 
@@ -82,23 +96,30 @@ export function CalendarBodyDay({
 				}
 			}
 		},
-		[startDaySelection, setEndDaySelection],
+		[startDaySelection, setStartDaySelection, setEndDaySelection],
 	);
 
 	const handlePointerUp = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {
-			if (!isDraggingRef.current) return;
+			if (!startPosRef.current && !isDraggingRef.current) return;
 
+			startPosRef.current = null;
 			const target = e.currentTarget;
 			if (target.hasPointerCapture(e.pointerId)) {
 				target.releasePointerCapture(e.pointerId);
 			}
-
 			isDraggingRef.current = false;
 			handleEndSelection();
 		},
 		[handleEndSelection],
 	);
+
+	const handlePointerCancel = useCallback(() => {
+		startPosRef.current = null;
+		isDraggingRef.current = false;
+		setStartDaySelection(undefined);
+		setEndDaySelection(undefined);
+	}, [setStartDaySelection, setEndDaySelection]);
 
 	return (
 		<td className="py-2 md:py-0">
@@ -107,7 +128,8 @@ export function CalendarBodyDay({
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
 				onPointerUp={handlePointerUp}
-				className="relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:pinch-zoom]"
+				onPointerCancel={handlePointerCancel}
+				className="relative flex w-full cursor-pointer select-none justify-center py-2 [touch-action:pan-y]"
 				data-day={calendarDay.getDay()}
 				data-month={calendarDay.getMonth()}
 				data-year={calendarDay.getYear()}
