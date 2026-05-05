@@ -5,7 +5,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import { Box, Button, Typography } from "@mui/material";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { FilterChip } from "@/components/groups/groups-page";
+import { FilterChip } from "@/components/ui/filter-chip";
 import MeetingCard from "@/components/ui/meeting-card";
 import type { SelectMeeting } from "@/db/schema";
 import {
