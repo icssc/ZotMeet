@@ -183,21 +183,17 @@ export const Meetings = ({
 			);
 		}
 
-		// "all" and "by-you": sections on all screen sizes
+		// "all" and "by-you": flat grid, no sections
 		return (
-			<Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-				<MeetingSection
-					label="Action Required"
-					meetings={displayMeetings.filter((m) => m.needsAvailability)}
-					meetingCounts={meetingCounts}
-					scheduledLabels={scheduledLabels}
-				/>
-				<MeetingSection
-					label="All"
-					meetings={displayMeetings.filter((m) => !m.needsAvailability)}
-					meetingCounts={meetingCounts}
-					scheduledLabels={scheduledLabels}
-				/>
+			<Box
+				sx={{
+					display: { xs: "flex", sm: "grid" },
+					flexDirection: "column",
+					gridTemplateColumns: { sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
+					gap: { xs: 1.5, sm: 2 },
+				}}
+			>
+				{displayMeetings.map((m) => toCard(m, meetingCounts, scheduledLabels))}
 			</Box>
 		);
 	};
