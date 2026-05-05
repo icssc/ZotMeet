@@ -14,11 +14,14 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
+import { getDefaultWindow, toLocalStr } from "@/lib/rooms/utils";
 import type { StudyRooms } from "@/lib/types/studyrooms";
+
+const MAX_FALLBACK_DAYS = 7;
 
 const LOCATION_OPTIONS = [
 	"Plaza Verde",
@@ -29,29 +32,28 @@ const LOCATION_OPTIONS = [
 	"Ayala Science Library",
 ];
 
-const toLocalStr = (d: Date) => {
-	const h = d.getHours();
-	const m = d.getMinutes();
-	return `${h % 12 || 12}:${m.toString().padStart(2, "0")}${h >= 12 ? "pm" : "am"}`;
-};
-
 export default function Page() {
-	const defaultStart = new Date();
-	defaultStart.setHours(11, 0, 0, 0);
-	const defaultEnd = new Date();
-	defaultEnd.setHours(17, 0, 0, 0);
-
-	const tomorrow = new Date();
-	tomorrow.setDate(tomorrow.getDate() + 1);
-
-	const [date, setDate] = useState<Date | null>(tomorrow);
+	const [{ defaultDate, defaultStart, defaultEnd }] = useState(() => {
+		const { start, end } = getDefaultWindow();
+		return {
+			defaultStart: start,
+			defaultEnd: end,
+			defaultDate: new Date(
+				start.getFullYear(),
+				start.getMonth(),
+				start.getDate(),
+			),
+		};
+	});
+	const [date, setDate] = useState<Date | null>(defaultDate);
 	const [startTime, setStartTime] = useState<Date | null>(defaultStart);
 	const [endTime, setEndTime] = useState<Date | null>(defaultEnd);
 	const [committedStart, setCommittedStart] = useState<Date | null>(
 		defaultStart,
 	);
 	const [committedEnd, setCommittedEnd] = useState<Date | null>(defaultEnd);
-	const [committedDate, setCommittedDate] = useState<Date | null>(tomorrow);
+	const [committedDate, setCommittedDate] = useState<Date | null>(defaultDate);
+	const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
 	const [location, setLocation] = useState<string | null>(null);
 	const [capacityMin, setCapacityMin] = useState("");
 	const [capacityMax, setCapacityMax] = useState("");
@@ -88,10 +90,95 @@ export default function Page() {
 		if (key === "techEnhanced") setIsTechEnhanced(false);
 	};
 
-	async function handleSubmit(e: React.FormEvent) {
+	const searchWithFallback = useCallback(
+		async ({
+			baseDate,
+			startTime: slotStart,
+			endTime: slotEnd,
+			fallbackStart = slotStart,
+			fallbackEnd = slotEnd,
+			filters = {},
+			updateFormState = false,
+		}: {
+			baseDate: Date;
+			startTime: Date;
+			endTime: Date;
+			fallbackStart?: Date;
+			fallbackEnd?: Date;
+			filters?: {
+				location?: string | null;
+				capacityMin?: string;
+				capacityMax?: string;
+				isTechEnhanced?: boolean;
+			};
+			updateFormState?: boolean;
+		}) => {
+			for (let offset = 0; offset < MAX_FALLBACK_DAYS; offset++) {
+				const tryDate = new Date(baseDate);
+				tryDate.setDate(tryDate.getDate() + offset);
+				const isFallback = offset > 0;
+				const start = isFallback ? fallbackStart : slotStart;
+				const end = isFallback ? fallbackEnd : slotEnd;
+
+				try {
+					const { data } = await fetchStudyRooms({
+						date: format(tryDate, "yyyy-MM-dd"),
+						timeRange: `${toLocalStr(start)}-${toLocalStr(end)}`,
+						location: filters.location || undefined,
+						capacityMin: filters.capacityMin
+							? Number(filters.capacityMin)
+							: undefined,
+						capacityMax: filters.capacityMax
+							? Number(filters.capacityMax)
+							: undefined,
+						isTechEnhanced: filters.isTechEnhanced || undefined,
+					});
+
+					if (data.length > 0) {
+						const committedStartForDay = new Date(tryDate);
+						committedStartForDay.setHours(
+							start.getHours(),
+							start.getMinutes(),
+							0,
+							0,
+						);
+						const committedEndForDay = new Date(tryDate);
+						committedEndForDay.setHours(end.getHours(), end.getMinutes(), 0, 0);
+						setRooms(data);
+						setCommittedDate(tryDate);
+						setCommittedStart(committedStartForDay);
+						setCommittedEnd(committedEndForDay);
+						if (updateFormState) {
+							setDate(tryDate);
+							setStartTime(committedStartForDay);
+							setEndTime(committedEndForDay);
+						}
+						if (isFallback) {
+							setFallbackNotice(
+								`No rooms available for ${format(baseDate, "EEEE, MMM d")}. Showing results for ${format(tryDate, "EEEE, MMM d")} instead.`,
+							);
+						}
+						return;
+					}
+				} catch (err) {
+					setError(err instanceof Error ? err.message : "API call failed");
+					return;
+				}
+			}
+			setRooms([]);
+			setCommittedDate(null);
+			setCommittedStart(null);
+			setCommittedEnd(null);
+			setError(`No rooms available in the next ${MAX_FALLBACK_DAYS} days.`);
+		},
+		[],
+	);
+
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setError(null);
 		setRooms(null);
+		setFallbackNotice(null);
 
 		if (!date || !startTime || !endTime) {
 			setError("Please select a date and time range.");
@@ -119,47 +206,30 @@ export default function Page() {
 			return;
 		}
 
-		const tr = `${toLocalStr(startTime)}-${toLocalStr(endTime)}`;
-
-		try {
-			const { data } = await fetchStudyRooms({
-				date: format(date, "yyyy-MM-dd"),
-				timeRange: tr,
-				location: location || undefined,
-				capacityMin: capacityMin ? Number(capacityMin) : undefined,
-				capacityMax: capacityMax ? Number(capacityMax) : undefined,
-				isTechEnhanced: isTechEnhanced || undefined,
-			});
-
-			setRooms(data);
-			setCommittedDate(date);
-			setCommittedStart(startTime);
-			setCommittedEnd(endTime);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "API call failed");
-		}
-	}
+		const baseDate = new Date(date);
+		baseDate.setHours(0, 0, 0, 0);
+		await searchWithFallback({
+			baseDate,
+			startTime,
+			endTime,
+			filters: { location, capacityMin, capacityMax, isTechEnhanced },
+		});
+	};
 
 	useEffect(() => {
-		const tmrw = new Date();
-		tmrw.setDate(tmrw.getDate() + 1);
-		const today = format(tmrw, "yyyy-MM-dd");
-		const defaultTr = "11:00am-5:00pm";
-		const initialCommittedStart = new Date();
-		initialCommittedStart.setHours(11, 0, 0, 0);
-		const initialCommittedEnd = new Date();
-		initialCommittedEnd.setHours(17, 0, 0, 0);
-		fetchStudyRooms({ date: today, timeRange: defaultTr })
-			.then(({ data }) => {
-				setRooms(data);
-				setCommittedDate(tmrw);
-				setCommittedStart(initialCommittedStart);
-				setCommittedEnd(initialCommittedEnd);
-			})
-			.catch((err) =>
-				setError(err instanceof Error ? err.message : "API call failed"),
-			);
-	}, []);
+		const fallbackStart = new Date(defaultDate);
+		fallbackStart.setHours(11, 0, 0, 0);
+		const fallbackEnd = new Date(defaultDate);
+		fallbackEnd.setHours(17, 0, 0, 0);
+		searchWithFallback({
+			baseDate: defaultDate,
+			startTime: defaultStart,
+			endTime: defaultEnd,
+			fallbackStart,
+			fallbackEnd,
+			updateFormState: true,
+		});
+	}, [searchWithFallback, defaultDate, defaultStart, defaultEnd]);
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -263,6 +333,12 @@ export default function Page() {
 				</Button>
 			</Box>
 
+			{fallbackNotice && (
+				<Typography variant="body2" color="info.main" sx={{ mt: 2 }}>
+					{fallbackNotice}
+				</Typography>
+			)}
+
 			{rooms && committedDate && committedStart && committedEnd && (
 				<RoomsHeatmap
 					rooms={rooms}
@@ -271,14 +347,6 @@ export default function Page() {
 					endTime={committedEnd}
 				/>
 			)}
-
-			{/*rooms && committedStart && committedEnd && (
-				<RoomResults
-					rooms={rooms}
-					startTime={committedStart}
-					endTime={committedEnd}
-				/>
-			)*/}
 		</LocalizationProvider>
 	);
 }
