@@ -89,6 +89,16 @@ export async function getMeetings(memberId: string) {
 		.from(availabilities)
 		.where(eq(availabilities.memberId, memberId));
 
+	const hasFilledAvailability = db
+		.select({ meetingId: availabilities.meetingId })
+		.from(availabilities)
+		.where(
+			and(
+				eq(availabilities.memberId, memberId),
+				sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+			),
+		);
+
 	const userMeetings = await db
 		.select({
 			id: meetings.id,
@@ -107,7 +117,7 @@ export async function getMeetings(memberId: string) {
 			meetingType: meetings.meetingType,
 			hostDisplayName: members.displayName,
 			needsAvailability:
-				sql<boolean>`(NOT COALESCE(${meetings.scheduled}, false) AND ${meetings.id} NOT IN ${hasAvailability})`.as(
+				sql<boolean>`(NOT COALESCE(${meetings.scheduled}, false) AND ${meetings.id} NOT IN ${hasFilledAvailability})`.as(
 					"needs_availability",
 				),
 		})

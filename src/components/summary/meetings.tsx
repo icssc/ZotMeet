@@ -194,13 +194,23 @@ export const Meetings = ({
 		}
 
 		if (activeFilter === "unscheduled") {
+			const actionRequired = displayMeetings.filter((m) => m.needsAvailability);
+			const rest = displayMeetings.filter((m) => !m.needsAvailability);
 			return (
-				<MeetingSection
-					label="Action Required"
-					meetings={displayMeetings}
-					meetingCounts={meetingCounts}
-					scheduledLabels={scheduledLabels}
-				/>
+				<Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+					<MeetingSection
+						label="Action Required"
+						meetings={actionRequired}
+						meetingCounts={meetingCounts}
+						scheduledLabels={scheduledLabels}
+					/>
+					<MeetingSection
+						label="Unscheduled"
+						meetings={rest}
+						meetingCounts={meetingCounts}
+						scheduledLabels={scheduledLabels}
+					/>
+				</Box>
 			);
 		}
 
@@ -245,7 +255,8 @@ export const Meetings = ({
 					>
 						<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
 					</Box>
-					<IconButton aria-label="Create a meeting"
+					<IconButton
+						aria-label="Create a meeting"
 						component={Link}
 						href="/"
 						sx={{
