@@ -25,6 +25,7 @@ interface MeetingCardProps {
 	timeStart: string;
 	timeEnd: string;
 	numResponders: number;
+	location?: string | null;
 	scheduled?: boolean;
 	scheduledLabel?: string;
 	meetingLink: string;
@@ -63,6 +64,7 @@ const MeetingCard = ({
 	timeStart,
 	timeEnd,
 	numResponders,
+	location,
 	scheduled = false,
 	scheduledLabel,
 	meetingLink,
@@ -125,7 +127,7 @@ const MeetingCard = ({
 								icon={GroupIcon}
 								label={`${numResponders} Responders`}
 							/>
-							<MetaItem icon={FmdGoodIcon} label="LOCATION" />
+							{location && <MetaItem icon={FmdGoodIcon} label={location} />}
 						</Box>
 					</Box>
 				) : (
@@ -136,7 +138,7 @@ const MeetingCard = ({
 							label={`${timeStart} - ${timeEnd}`}
 						/>
 						<MetaItem icon={GroupIcon} label={`${numResponders} Responders`} />
-						<MetaItem icon={FmdGoodIcon} label="LOCATION" />
+						{location && <MetaItem icon={FmdGoodIcon} label={location} />}
 					</Box>
 				)}
 			</CardContent>
