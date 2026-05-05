@@ -1,6 +1,6 @@
 "use client";
 
-import { Add } from "@mui/icons-material";
+import { Add, CalendarMonth } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
 import { Box, Button, Typography } from "@mui/material";
 import Link from "next/link";
@@ -131,18 +131,39 @@ export const Meetings = ({
 				<Box
 					sx={{
 						display: "flex",
+						flexDirection: "column",
 						alignItems: "center",
-						borderRadius: 3,
-						border: "2px solid",
-						borderColor: "divider",
-						bgcolor: "background.paper",
-						p: 4,
+						gap: 1.25,
+						py: 4,
 					}}
 				>
-					<Typography variant="h6" color="text.secondary">
+					<Box
+						sx={{
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							width: 137,
+							height: 137,
+							borderRadius: "50%",
+							bgcolor: "action.hover",
+							opacity: 0.4,
+						}}
+					>
+						<CalendarMonth sx={{ fontSize: 85, color: "text.disabled" }} />
+					</Box>
+					<Typography
+						variant="h5"
+						color="text.secondary"
+						sx={{
+							fontStyle: "italic",
+							textAlign: "center",
+							maxWidth: 400,
+							pt: 1,
+						}}
+					>
 						{search.trim()
 							? "No meetings match your search."
-							: "No meetings found."}
+							: "Create your first meeting to start collaborating with your team."}
 					</Typography>
 				</Box>
 			);
