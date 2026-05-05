@@ -1,8 +1,8 @@
 "use client";
 
-import { Add, CalendarMonth } from "@mui/icons-material";
+import { Add, CalendarMonth, Notifications } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, IconButton, Typography } from "@mui/material";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FilterChip } from "@/components/ui/filter-chip";
@@ -221,6 +221,44 @@ export const Meetings = ({
 
 	return (
 		<Box sx={{ width: "100%" }}>
+			{/* Mobile header */}
+			<Box
+				sx={{
+					display: { xs: "flex", sm: "none" },
+					alignItems: "center",
+					justifyContent: "space-between",
+					mb: 3,
+				}}
+			>
+				<Typography variant="h4">Meetings</Typography>
+				<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+					<Box
+						sx={{
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							border: "1px solid",
+							borderColor: "divider",
+							borderRadius: 1,
+							p: 1,
+						}}
+					>
+						<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
+					</Box>
+					<IconButton
+						component={Link}
+						href="/"
+						sx={{
+							bgcolor: "primary.main",
+							borderRadius: 1,
+							"&:hover": { bgcolor: "primary.dark" },
+						}}
+					>
+						<Add sx={{ color: "white" }} />
+					</IconButton>
+				</Box>
+			</Box>
+
 			<Box
 				sx={{
 					display: "flex",
@@ -244,7 +282,8 @@ export const Meetings = ({
 						}}
 					>
 						<SearchIcon sx={{ fontSize: 20, color: "text.disabled" }} />
-						<input aria-label="Search meetings"
+						<input
+							aria-label="Search meetings"
 							type="text"
 							placeholder="Search"
 							value={search}
