@@ -45,20 +45,19 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 		return result;
 	}, [groups, searchTrimmed, activeFilter]);
 
-	const groupsMatchingSearchCount = useMemo(() => {
-		if (!searchTrimmed) return null;
-		const q = searchTrimmed.toLowerCase();
-		return groups.filter((g) => g.name.toLowerCase().includes(q)).length;
-	}, [groups, searchTrimmed]);
+	const counts = useMemo(() => {
+		const baseGroups = searchTrimmed
+			? groups.filter((g) =>
+					g.name.toLowerCase().includes(searchTrimmed.toLowerCase()),
+				)
+			: groups;
 
-	const counts = useMemo(
-		() => ({
-			all: groups.length,
-			created: groups.filter((g) => g.isCreator).length,
-			availability: groups.filter((g) => g.upcomingMeetingName).length,
-		}),
-		[groups],
-	);
+		return {
+			all: baseGroups.length,
+			created: baseGroups.filter((g) => g.isCreator).length,
+			availability: baseGroups.filter((g) => g.upcomingMeetingName).length,
+		};
+	}, [groups, searchTrimmed]);
 
 	const actionRequiredGroups = useMemo(
 		() =>
@@ -72,8 +71,9 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 		? actionRequiredGroups
 		: actionRequiredGroups.slice(0, INITIAL_ACTION_REQUIRED_COUNT);
 
-	const noSearchResults =
-		searchTrimmed.length > 0 && filteredGroups.length === 0;
+	const showNoGroupsFound =
+		filteredGroups.length === 0 &&
+		(searchTrimmed.length > 0 || activeFilter !== "all");
 
 	const [showJoinGroup, setShowJoinGroup] = useState(false);
 
@@ -161,7 +161,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 			<Box sx={{ mt: 2, display: "flex", gap: 0.5 }}>
 				<FilterChip
 					label="All"
-					count={groupsMatchingSearchCount ?? counts.all}
+					count={counts.all}
 					active={activeFilter === "all"}
 					onClick={() => setActiveFilter("all")}
 				/>
@@ -272,7 +272,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					</Box>
 				) : (
 					<div className="flex min-h-[500px] flex-col items-center justify-center py-20 text-gray-400">
-						{noSearchResults ? (
+						{showNoGroupsFound ? (
 							<Typography variant="h6" className="text-center text-gray-500">
 								No groups found!
 							</Typography>
