@@ -23,11 +23,13 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 	const [showAllActionRequired, setShowAllActionRequired] = useState(false);
 
+	const searchTrimmed = search.trim();
+
 	const filteredGroups = useMemo(() => {
 		let result = groups;
 
-		if (search) {
-			const query = search.toLowerCase();
+		if (searchTrimmed) {
+			const query = searchTrimmed.toLowerCase();
 			result = result.filter((g) => g.name.toLowerCase().includes(query));
 		}
 
@@ -41,7 +43,13 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 		}
 
 		return result;
-	}, [groups, search, activeFilter]);
+	}, [groups, searchTrimmed, activeFilter]);
+
+	const groupsMatchingSearchCount = useMemo(() => {
+		if (!searchTrimmed) return null;
+		const q = searchTrimmed.toLowerCase();
+		return groups.filter((g) => g.name.toLowerCase().includes(q)).length;
+	}, [groups, searchTrimmed]);
 
 	const counts = useMemo(
 		() => ({
@@ -63,6 +71,9 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 	const visibleActionGroups = showAllActionRequired
 		? actionRequiredGroups
 		: actionRequiredGroups.slice(0, INITIAL_ACTION_REQUIRED_COUNT);
+
+	const noSearchResults =
+		searchTrimmed.length > 0 && filteredGroups.length === 0;
 
 	const [showJoinGroup, setShowJoinGroup] = useState(false);
 
@@ -150,7 +161,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 			<Box sx={{ mt: 2, display: "flex", gap: 0.5 }}>
 				<FilterChip
 					label="All"
-					count={counts.all}
+					count={groupsMatchingSearchCount ?? counts.all}
 					active={activeFilter === "all"}
 					onClick={() => setActiveFilter("all")}
 				/>
@@ -227,7 +238,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 
 			<Box sx={{ mt: 4 }}>
 				<Typography color="text.disabled" sx={{ p: 0.5 }}>
-					All ({counts.all})
+					All ({searchTrimmed.length > 0 ? filteredGroups.length : counts.all})
 				</Typography>
 				{filteredGroups.length > 0 ? (
 					<Box
@@ -261,17 +272,25 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					</Box>
 				) : (
 					<div className="flex min-h-[500px] flex-col items-center justify-center py-20 text-gray-400">
-						<div className="mb-6">
-							<People sx={{ fontSize: "3.75rem", color: "divider" }} />
-						</div>
+						{noSearchResults ? (
+							<Typography variant="h6" className="text-center text-gray-500">
+								No groups found!
+							</Typography>
+						) : (
+							<>
+								<div className="mb-6">
+									<People sx={{ fontSize: "3.75rem", color: "divider" }} />
+								</div>
 
-						<Typography
-							variant="h6"
-							className="text-center italic leading-relaxed"
-						>
-							Create your first group to start <br />
-							scheduling meetings.
-						</Typography>
+								<Typography
+									variant="h6"
+									className="text-center italic leading-relaxed"
+								>
+									Create your first group to start <br />
+									scheduling meetings.
+								</Typography>
+							</>
+						)}
 					</div>
 				)}
 			</Box>
