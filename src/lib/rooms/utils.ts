@@ -13,6 +13,16 @@ export const formatISOToLocalTime = (isoString: string): string => {
 
 const HALF_HOUR_MS = 30 * 60 * 1000;
 
+/** Round `from` up to the next 30-min boundary. Rolls to next day if needed. */
+export function getNextHalfHour(from: Date = new Date()): Date {
+	const d = new Date(from);
+	const remainder = d.getMinutes() % 30;
+	if (remainder === 0 && d.getSeconds() === 0 && d.getMilliseconds() === 0)
+		return d;
+	d.setMinutes(d.getMinutes() + (remainder === 0 ? 30 : 30 - remainder), 0, 0);
+	return d;
+}
+
 /** Calendar day + clock from `time` (same semantics as date pickers + time pickers). */
 export function mergeDateAndTime(date: Date, time: Date): Date {
 	const d = new Date(date);
@@ -213,4 +223,32 @@ export function getBestTimeRanges(availabilityDates: any[]) {
 	});
 
 	return results;
+}
+
+export const toLocalStr = (d: Date) => {
+	const h = d.getHours();
+	const m = d.getMinutes();
+	return `${h % 12 || 12}:${m.toString().padStart(2, "0")}${h >= 12 ? "pm" : "am"}`;
+};
+
+const WINDOW_MS = 6 * 60 * 60 * 1000;
+
+export function getDefaultWindow() {
+	const now = new Date();
+	const start = getNextHalfHour(now);
+
+	const elevenPm = new Date(now);
+	elevenPm.setHours(23, 0, 0, 0);
+
+	if (start >= elevenPm) {
+		const nextDay = new Date(now);
+		nextDay.setDate(nextDay.getDate() + 1);
+		nextDay.setHours(11, 0, 0, 0);
+		const end = new Date(nextDay.getTime() + WINDOW_MS);
+		return { start: nextDay, end };
+	}
+
+	const rawEnd = new Date(start.getTime() + WINDOW_MS);
+	const end = rawEnd > elevenPm ? elevenPm : rawEnd;
+	return { start, end };
 }

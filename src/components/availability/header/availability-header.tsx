@@ -1,5 +1,4 @@
 "use client";
-import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
 import {
 	AccessTime,
 	CalendarMonth,
@@ -7,7 +6,6 @@ import {
 	LocationOn,
 	Settings,
 } from "@mui/icons-material";
-import GoogleIcon from "@mui/icons-material/Google";
 import { Button, IconButton, Paper, Typography } from "@mui/material";
 import { DeleteIcon, MoreVerticalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -181,55 +179,6 @@ export function AvailabilityHeader({
 							</div>
 						)}
 					</div>
-
-					{availabilityView === "group" && isScheduled && (
-						<div className="order-2 flex w-full flex-col gap-2 self-start md:order-none md:ml-auto md:w-auto md:shrink-0">
-							<div className="flex flex-wrap justify-end gap-2">
-								<Button
-									variant="outlined"
-									size="medium"
-									startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
-									onClick={async () => {
-										if (isGeneratingLink) return;
-										setIsGeneratingLink(true);
-										try {
-											const { success, link } =
-												await getGoogleCalendarPrefilledLink({
-													meetingId: meetingData.id,
-													meetingTitle: meetingData.title,
-													meetingDescription: meetingData.description,
-													meetingLocation: meetingData.location,
-													timezone: meetingData.timezone,
-												});
-
-											if (!success || !link) {
-												showError("Failed to generate Google Calendar link.");
-												return;
-											}
-
-											window.open(link, "_blank", "noopener,noreferrer");
-
-											showSuccess(
-												"Google Calendar link opened! Confirm the event in your calendar.",
-											);
-										} catch (error) {
-											console.error(
-												"Error generating Google Calendar link:",
-												error,
-											);
-											showError(
-												"An error occurred while generating the Google Calendar link.",
-											);
-										} finally {
-											setIsGeneratingLink(false);
-										}
-									}}
-								>
-									Add to Calendar
-								</Button>
-							</div>
-						</div>
-					)}
 				</div>
 
 				<EditModal
