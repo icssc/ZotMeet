@@ -144,7 +144,6 @@ export function useGridInteraction({
 	const handlers = useGridDragSelection({
 		lockToStartRow: availabilityView === "schedule",
 		onDragStart: () => {
-			setCommittedRange(undefined);
 			setHoverRange(undefined);
 		},
 		onDragUpdate: (range) => setDraftRange(range),

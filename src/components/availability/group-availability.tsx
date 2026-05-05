@@ -272,7 +272,9 @@ export function GroupAvailability({
 										? edgesFor(hoverRange, zotDateIndex, blockIndex)
 										: null;
 								const committedEdges =
-									draftEdges === null && hoverEdges === null && !isScheduling
+									draftRange === undefined &&
+									hoverEdges === null &&
+									!isScheduling
 										? edgesFor(committedRange, zotDateIndex, blockIndex)
 										: null;
 								const selectionEdges =
