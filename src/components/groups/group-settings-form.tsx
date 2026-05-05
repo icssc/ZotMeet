@@ -167,6 +167,7 @@ export function GroupSettingsForm({ group, onCancel }: GroupSettingsFormProps) {
 					<div className="mt-3 w-full">
 						<TextField
 							label="Enter group name to confirm deletion*"
+							disabled={isSavingSettings || isDeletingGroup}
 							fullWidth
 							size="small"
 							value={deleteConfirmName}
@@ -198,7 +199,7 @@ export function GroupSettingsForm({ group, onCancel }: GroupSettingsFormProps) {
 				<Button
 					variant="contained"
 					onClick={handleSaveSettings}
-					disabled={isSavingSettings || !editedName.trim()}
+					disabled={isSavingSettings || isDeletingGroup || !editedName.trim()}
 				>
 					{isSavingSettings ? "Saving..." : "Save Changes"}
 				</Button>
