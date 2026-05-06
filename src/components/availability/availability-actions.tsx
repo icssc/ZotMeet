@@ -222,47 +222,49 @@ export function AvailabilityActions({
 			) : (
 				<div className="flex flex-col gap-2">
 					{isScheduled && (
-						<Button
-							variant="outlined"
-							size="medium"
-							startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
-							onClick={async () => {
-								if (isGeneratingLink) return;
-								setIsGeneratingLink(true);
-								try {
-									const { success, link } =
-										await getGoogleCalendarPrefilledLink({
-											meetingId: meetingData.id,
-											meetingTitle: meetingData.title,
-											meetingDescription: meetingData.description,
-											meetingLocation: meetingData.location,
-											timezone: meetingData.timezone,
-										});
+						<div className="hidden flex-col sm:flex">
+							<Button
+								variant="outlined"
+								size="medium"
+								startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
+								onClick={async () => {
+									if (isGeneratingLink) return;
+									setIsGeneratingLink(true);
+									try {
+										const { success, link } =
+											await getGoogleCalendarPrefilledLink({
+												meetingId: meetingData.id,
+												meetingTitle: meetingData.title,
+												meetingDescription: meetingData.description,
+												meetingLocation: meetingData.location,
+												timezone: meetingData.timezone,
+											});
 
-									if (!success || !link) {
-										showError("Failed to generate Google Calendar link.");
-										return;
+										if (!success || !link) {
+											showError("Failed to generate Google Calendar link.");
+											return;
+										}
+
+										window.open(link, "_blank", "noopener,noreferrer");
+										showSuccess(
+											"Google Calendar link opened! Confirm the event in your calendar.",
+										);
+									} catch (error) {
+										console.error(
+											"Error generating Google Calendar link:",
+											error,
+										);
+										showError(
+											"An error occurred while generating the Google Calendar link.",
+										);
+									} finally {
+										setIsGeneratingLink(false);
 									}
-
-									window.open(link, "_blank", "noopener,noreferrer");
-									showSuccess(
-										"Google Calendar link opened! Confirm the event in your calendar.",
-									);
-								} catch (error) {
-									console.error(
-										"Error generating Google Calendar link:",
-										error,
-									);
-									showError(
-										"An error occurred while generating the Google Calendar link.",
-									);
-								} finally {
-									setIsGeneratingLink(false);
-								}
-							}}
-						>
-							Add to Calendar
-						</Button>
+								}}
+							>
+								Add to Calendar
+							</Button>
+						</div>
 					)}
 					<div className="hidden sm:block">
 						<Button
