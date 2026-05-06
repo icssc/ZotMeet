@@ -7,7 +7,10 @@ import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
 import type { Member, SelectionStateType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
-import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+import {
+	useActiveSelectionRange,
+	useAvailabilityStore,
+} from "@/store/useAvailabilityStore";
 
 const EN_DASH = "\u2013";
 
@@ -84,8 +87,6 @@ export function GroupResponses({
 	);
 
 	const {
-		draftRange,
-		committedRange,
 		isMobileDrawerOpen,
 		setIsMobileDrawerOpen,
 		setHoveredMember,
@@ -96,8 +97,6 @@ export function GroupResponses({
 		setEnabled: setShowBestTimes,
 	} = useAvailabilityStore(
 		useShallow((state) => ({
-			draftRange: state.draftRange,
-			committedRange: state.committedRange,
 			isMobileDrawerOpen: state.isMobileDrawerOpen,
 			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
 			setHoveredMember: state.setHoveredMember,
@@ -109,7 +108,7 @@ export function GroupResponses({
 		})),
 	);
 
-	const activeRange = draftRange ?? committedRange;
+	const activeRange = useActiveSelectionRange();
 
 	const handleClearSelected = useCallback(() => {
 		setSelectedMember([]);
