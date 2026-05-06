@@ -28,6 +28,7 @@ import {
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
 
@@ -52,10 +53,11 @@ export function Availability({
 
 	// View + paint mode live in the store (paint mode is reset atomically in
 	// `setAvailabilityView`, so it cannot drift across view switches).
-	const { availabilityView, paintMode } = useAvailabilityStore(
+	const { availabilityView, paintMode, setPaintMode } = useAvailabilityStore(
 		useShallow((state) => ({
 			availabilityView: state.availabilityView,
 			paintMode: state.paintMode,
+			setPaintMode: state.setPaintMode,
 		})),
 	);
 
@@ -411,7 +413,7 @@ export function Availability({
 							<GroupResponses {...groupResponsesProps} />
 						</div>
 
-						<div className="lg:hidden">
+						<div className="block sm:hidden">
 							<MobileGroupResponses
 								isOwner={isMeetingOwner}
 								respondedMembersCount={Math.max(
@@ -427,21 +429,39 @@ export function Availability({
 					</div>
 				)}
 				{availabilityView === "personal" && (
-					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-						<AvailabilityActions {...actionsProps} />
-						<Paper
-							variant="outlined"
-							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
-						>
-							<PersonalAvailabilitySidebar
+					<div>
+						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+							<AvailabilityActions {...actionsProps} />
+							<Paper
+								variant="outlined"
+								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+							>
+								<PersonalAvailabilitySidebar
+									meetingId={meetingData.id}
+									userTimezone={userTimezone}
+									importGridIsoSet={importGridIsoSet}
+									canImport={Boolean(user?.memberId)}
+									onImportSlots={handleImportSlotsFromMeeting}
+									onClearAvailability={handleClearAvailability}
+								/>
+							</Paper>
+						</div>
+
+						<div className="block sm:hidden">
+							<MobilePersonalAvailabilitySidebar
 								meetingId={meetingData.id}
 								userTimezone={userTimezone}
+								availability={paintMode}
+								setAvailability={(next) =>
+									setPaintMode(
+										typeof next === "function" ? next(paintMode) : next,
+									)
+								}
 								importGridIsoSet={importGridIsoSet}
 								canImport={Boolean(user?.memberId)}
 								onImportSlots={handleImportSlotsFromMeeting}
-								onClearAvailability={handleClearAvailability}
 							/>
-						</Paper>
+						</div>
 					</div>
 				)}
 			</div>

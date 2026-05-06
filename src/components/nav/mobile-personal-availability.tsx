@@ -8,14 +8,14 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import type { Dispatch, SetStateAction } from "react";
-import type { Availability } from "@/components/availability/availability";
+import type { PaintMode } from "@/lib/availability/paint-selection";
 import { PERSONAL_AVAILABILITY_OPTIONS } from "./personal-availability-options";
 
 export interface MobilePersonalAvailabilitySidebarProps {
 	meetingId: string;
 	userTimezone: string;
-	availability: Availability;
-	setAvailability: Dispatch<SetStateAction<Availability>>;
+	availability: PaintMode;
+	setAvailability: Dispatch<SetStateAction<PaintMode>>;
 	importGridIsoSet: ReadonlySet<string>;
 	canImport: boolean;
 	onImportSlots: (slots: {
