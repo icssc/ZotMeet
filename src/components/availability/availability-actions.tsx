@@ -194,7 +194,7 @@ export function AvailabilityActions({
 	return (
 		<div className="flex w-full flex-col gap-2">
 			{availabilityView === "personal" || availabilityView === "schedule" ? (
-				<div className="flex-row flex-wrap justify-end gap-2">
+				<div className="flex flex-row flex-wrap justify-end gap-2">
 					<Button
 						variant="outlined"
 						color="inherit"

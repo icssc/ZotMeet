@@ -327,7 +327,7 @@ export function Availability({
 				<Paper
 					component="div"
 					variant="outlined"
-					className="mr-4 flex min-h-0 min-w-0 flex-1 items-start justify-between self-stretch overflow-x-auto lg:overflow-x-hidden lg:pr-14"
+					className="flex min-h-0 min-w-0 flex-1 items-start justify-between self-stretch overflow-x-auto lg:mr-4 lg:overflow-x-hidden lg:pr-14"
 				>
 					<div className="-mt-2 translate-x-3">
 						<AvailabilityNavButton
