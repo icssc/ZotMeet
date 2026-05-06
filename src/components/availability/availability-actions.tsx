@@ -194,7 +194,7 @@ export function AvailabilityActions({
 	return (
 		<div className="flex w-full flex-col gap-2">
 			{availabilityView === "personal" || availabilityView === "schedule" ? (
-				<div className="flex flex-row flex-wrap justify-end gap-2">
+				<div className="flex-row flex-wrap justify-end gap-2">
 					<Button
 						variant="outlined"
 						color="inherit"
@@ -264,29 +264,30 @@ export function AvailabilityActions({
 							Add to Calendar
 						</Button>
 					)}
-
-					<Button
-						variant="contained"
-						startIcon={<Create sx={{ color: "inherit" }} />}
-						className="w-full max-w-full normal-case"
-						sx={{ py: 0.75 }}
-						onClick={() => {
-							if (!user) {
-								setIsAuthModalOpen(true);
-								router.push("/auth/login/google");
-								return;
-							}
-							setChangeableTimezone(false);
-							setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-							setAvailabilityView("personal");
-						}}
-					>
-						<span className="hidden md:flex">
-							{hasAvailability ? "Edit Availability" : "Add Availability"}
-						</span>
-					</Button>
+					<div className="hidden sm:block">
+						<Button
+							variant="contained"
+							startIcon={<Create sx={{ color: "inherit" }} />}
+							className="w-full max-w-full normal-case"
+							sx={{ py: 0.75 }}
+							onClick={() => {
+								if (!user) {
+									setIsAuthModalOpen(true);
+									router.push("/auth/login/google");
+									return;
+								}
+								setChangeableTimezone(false);
+								setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+								setAvailabilityView("personal");
+							}}
+						>
+							<span className="hidden md:flex">
+								{hasAvailability ? "Edit Availability" : "Add Availability"}
+							</span>
+						</Button>
+					</div>
 					{isOwner && (
-						<>
+						<div className="hidden sm:block">
 							<Button
 								variant="outlined"
 								startIcon={<InsertInvitationRounded />}
@@ -305,7 +306,7 @@ export function AvailabilityActions({
 							>
 								<span className="hidden md:flex">Invite Members</span>
 							</Button>
-						</>
+						</div>
 					)}
 				</div>
 			)}
