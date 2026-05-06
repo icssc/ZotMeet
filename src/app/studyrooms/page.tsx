@@ -25,13 +25,22 @@ import type { StudyRooms } from "@/lib/types/studyrooms";
 const MAX_FALLBACK_DAYS = 7;
 
 const LOCATION_OPTIONS = [
-	"Plaza Verde",
+	"Anteater Learning Pavilion",
 	"Langson Library",
 	"Science Library",
 	"Multimedia Resources Center",
 	"Gateway Study Center",
-	"Ayala Science Library",
+	"Plaza Verde",
 ];
+
+const CAPACITY_PRESETS = [
+	{ label: "1-2", min: "1", max: "2" },
+	{ label: "3-4", min: "3", max: "4" },
+	{ label: "5-6", min: "5", max: "6" },
+	{ label: "7-8", min: "7", max: "8" },
+	{ label: "9-12", min: "9", max: "12" },
+	{ label: "13+", min: "13", max: "40" },
+] as const;
 
 export default function Page() {
 	const [{ defaultDate, defaultStart, defaultEnd }] = useState(() => {
@@ -299,13 +308,31 @@ export default function Page() {
 										label="Start Time"
 										value={startTime}
 										onAccept={setStartTime}
-										slotProps={{ textField: { fullWidth: true } }}
+										slotProps={{
+											textField: {
+												fullWidth: true,
+												sx: {
+													"& .MuiIconButton-edgeEnd": {
+														marginRight: 0,
+													},
+												},
+											},
+										}}
 									/>
 									<TimePicker
 										label="End Time"
 										value={endTime}
 										onAccept={setEndTime}
-										slotProps={{ textField: { fullWidth: true } }}
+										slotProps={{
+											textField: {
+												fullWidth: true,
+												sx: {
+													"& .MuiIconButton-edgeEnd": {
+														marginRight: 0,
+													},
+												},
+											},
+										}}
 									/>
 								</Stack>
 
@@ -322,25 +349,25 @@ export default function Page() {
 									)}
 								/>
 
-								<Stack direction="row" spacing={2}>
-									<TextField
-										label="Min Capacity"
-										type="number"
-										value={capacityMin}
-										onChange={(e) => setCapacityMin(e.target.value)}
-										fullWidth
-										slotProps={{ htmlInput: { min: 0 } }}
-									/>
-									<TextField
-										label="Max Capacity"
-										type="number"
-										value={capacityMax}
-										onChange={(e) => setCapacityMax(e.target.value)}
-										fullWidth
-										slotProps={{ htmlInput: { min: 0 } }}
-									/>
-								</Stack>
-
+								<div>
+									{CAPACITY_PRESETS.map(({ label, min, max }) => (
+										<Chip
+											key={label}
+											variant="outlined"
+											color={
+												capacityMin === min && capacityMax === max
+													? "primary"
+													: "default"
+											}
+											label={label}
+											clickable
+											onClick={() => {
+												setCapacityMin(min);
+												setCapacityMax(max);
+											}}
+										/>
+									))}
+								</div>
 								<FormControlLabel
 									control={
 										<Switch
