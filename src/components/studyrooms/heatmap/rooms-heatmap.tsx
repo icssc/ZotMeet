@@ -57,8 +57,11 @@ export const RoomsHeatmap = ({
 		const el = scrollRef.current;
 		if (!el) return;
 		const handler = (e: WheelEvent) => {
+			const useHorizontalDelta = Math.abs(e.deltaX) >= Math.abs(e.deltaY);
+			const delta = useHorizontalDelta ? e.deltaX : -e.deltaY;
+			if (delta === 0) return;
+			el.scrollLeft += delta;
 			e.preventDefault();
-			el.scrollBy({ left: e.deltaY, behavior: "smooth" });
 		};
 		el.addEventListener("wheel", handler, { passive: false });
 		return () => el.removeEventListener("wheel", handler);
@@ -127,11 +130,13 @@ export const RoomsHeatmap = ({
 					<TableHead>
 						<TableRow>
 							<TableCell
-								sx={{
+								sx={(theme) => ({
 									position: "sticky",
 									left: 0,
 									zIndex: 2,
-								}}
+									minWidth: 200,
+									backgroundColor: theme.palette.background.paper,
+								})}
 							>
 								Rooms
 							</TableCell>
@@ -158,25 +163,32 @@ export const RoomsHeatmap = ({
 								<TableRow key={room.id}>
 									<TableCell
 										className="whitespace-nowrap"
-										sx={{
+										sx={(theme) => ({
 											position: "sticky",
 											left: 0,
 											zIndex: 1,
-										}}
+											minWidth: 200,
+											backgroundColor: theme.palette.background.paper,
+										})}
 									>
-										<p>{room.location}</p>
+										<p className="">{room.location}</p>
 										<div className="flex items-center gap-2 text-xs">
-											<p className="text-xs">{room.name}</p>
+											<p className="text-xs">{room.name?.slice(0, 20)}</p>
 											<p>{room.capacity ? `•  Cap: ${room.capacity}` : null}</p>
 										</div>
-										<p className="text-xs">{room.description?.slice(0, 50)}</p>
+										<p className="hidden text-xs sm:block">
+											{room.description?.slice(0, 50)}
+										</p>
 									</TableCell>
 
 									{buckets.map((bucket) => (
 										<TableCell
 											key={bucket.intervalLabel}
 											className="border border-gray-300"
-											sx={{ padding: 0, height: "1px" }}
+											sx={{
+												padding: 0,
+												height: "1px",
+											}}
 										>
 											<div className="flex h-full">
 												{bucket.slots.map((s) => (

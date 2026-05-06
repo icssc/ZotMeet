@@ -249,18 +249,20 @@ export default function Page() {
 				</Typography>
 			)}
 
+			<Typography variant="h3" className="p-4">
+				Rooms
+			</Typography>
+
 			{rooms && committedDate && committedStart && committedEnd && (
-				<Stack direction="row">
+				<Stack direction={{ xs: "column", md: "row" }}>
 					<Paper
+						sx={{
+							flex: { xs: "unset", md: 3 },
+							width: { xs: "100%", md: "auto" },
+							minWidth: 0,
+						}}
 						className="m-4"
 						variant="outlined"
-						sx={{
-							flex: 3,
-							width: 0,
-							minWidth: 0,
-							boxSizing: "border-box",
-							p: 2,
-						}}
 					>
 						<RoomsHeatmap
 							rooms={rooms}
@@ -277,13 +279,13 @@ export default function Page() {
 							pr: 2,
 						}}
 					>
-						<Box sx={{ pb: 1 }}>
+						<Box className="hidden pb-1 sm:block">
 							<RoomsHeatmapLegend
 								availabilityColor="#86efac"
 								notAvailableColor="#fca5a5"
 							/>
 						</Box>
-						<Paper variant="outlined">
+						<Paper variant="outlined" className="hidden sm:block">
 							<Box
 								component="form"
 								onSubmit={handleSubmit}
