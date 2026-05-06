@@ -93,7 +93,7 @@ export const RoomsHeatmap = ({
 	}, [rooms, sortBy, windowStart]);
 
 	return (
-		<Box sx={{ backgroundColor: "white" }}>
+		<Box>
 			<Stack
 				direction="row"
 				alignItems="center"
@@ -131,7 +131,6 @@ export const RoomsHeatmap = ({
 									position: "sticky",
 									left: 0,
 									zIndex: 2,
-									backgroundColor: "white",
 								}}
 							>
 								Rooms
@@ -163,7 +162,6 @@ export const RoomsHeatmap = ({
 											position: "sticky",
 											left: 0,
 											zIndex: 1,
-											backgroundColor: "white",
 										}}
 									>
 										<p>{room.location}</p>

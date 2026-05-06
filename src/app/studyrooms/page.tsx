@@ -1,5 +1,6 @@
 "use client";
 
+import { Paper } from "@mui/material";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -15,7 +16,6 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { format } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
-
 import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
 import { RoomsHeatmapLegend } from "@/components/studyrooms/legend";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
@@ -242,7 +242,9 @@ export default function Page() {
 
 			{rooms && committedDate && committedStart && committedEnd && (
 				<Stack direction="row">
-					<Box
+					<Paper
+						className="m-4"
+						variant="outlined"
 						sx={{
 							flex: 3,
 							width: 0,
@@ -257,7 +259,7 @@ export default function Page() {
 							startTime={committedStart}
 							endTime={committedEnd}
 						/>
-					</Box>
+					</Paper>
 					<Stack
 						direction="column"
 						sx={{
@@ -272,107 +274,108 @@ export default function Page() {
 								notAvailableColor="#fca5a5"
 							/>
 						</Box>
-						<Box
-							component="form"
-							onSubmit={handleSubmit}
-							sx={{
-								display: "flex",
-								flex: 1,
-								flexDirection: "column",
-								gap: 2,
-								maxWidth: "sm",
-								p: 2,
-								backgroundColor: "white",
-							}}
-						>
-							<DatePicker
-								label="Date"
-								value={date}
-								onChange={setDate}
-								slotProps={{ textField: { fullWidth: true } }}
-							/>
-
-							<Stack direction="row" spacing={2}>
-								<TimePicker
-									label="Start Time"
-									value={startTime}
-									onAccept={setStartTime}
-									slotProps={{ textField: { fullWidth: true } }}
-								/>
-								<TimePicker
-									label="End Time"
-									value={endTime}
-									onAccept={setEndTime}
-									slotProps={{ textField: { fullWidth: true } }}
-								/>
-							</Stack>
-
-							<Autocomplete
-								freeSolo
-								options={LOCATION_OPTIONS}
-								value={location}
-								onChange={(_, val) => setLocation(val)}
-								onInputChange={(_, val, reason) => {
-									if (reason !== "reset") setLocation(val || null);
+						<Paper variant="outlined">
+							<Box
+								component="form"
+								onSubmit={handleSubmit}
+								sx={{
+									display: "flex",
+									flex: 1,
+									flexDirection: "column",
+									gap: 2,
+									maxWidth: "sm",
+									p: 2,
 								}}
-								renderInput={(params) => (
-									<TextField {...params} label="Location" fullWidth />
-								)}
-							/>
-
-							<Stack direction="row" spacing={2}>
-								<TextField
-									label="Min Capacity"
-									type="number"
-									value={capacityMin}
-									onChange={(e) => setCapacityMin(e.target.value)}
-									fullWidth
-									slotProps={{ htmlInput: { min: 0 } }}
+							>
+								<DatePicker
+									label="Date"
+									value={date}
+									onChange={setDate}
+									slotProps={{ textField: { fullWidth: true } }}
 								/>
-								<TextField
-									label="Max Capacity"
-									type="number"
-									value={capacityMax}
-									onChange={(e) => setCapacityMax(e.target.value)}
-									fullWidth
-									slotProps={{ htmlInput: { min: 0 } }}
-								/>
-							</Stack>
 
-							<FormControlLabel
-								control={
-									<Switch
-										checked={isTechEnhanced}
-										onChange={(e) => setIsTechEnhanced(e.target.checked)}
+								<Stack direction="row" spacing={2}>
+									<TimePicker
+										label="Start Time"
+										value={startTime}
+										onAccept={setStartTime}
+										slotProps={{ textField: { fullWidth: true } }}
 									/>
-								}
-								label="Tech Enhanced"
-							/>
-
-							{activeFilters.length > 0 && (
-								<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-									{activeFilters.map((f) => (
-										<Chip
-											key={f.key}
-											label={f.label}
-											onDelete={() => handleClearFilter(f.key)}
-											size="small"
-											variant="outlined"
-										/>
-									))}
+									<TimePicker
+										label="End Time"
+										value={endTime}
+										onAccept={setEndTime}
+										slotProps={{ textField: { fullWidth: true } }}
+									/>
 								</Stack>
-							)}
 
-							{error && (
-								<Typography color="error" variant="body2">
-									{error}
-								</Typography>
-							)}
+								<Autocomplete
+									freeSolo
+									options={LOCATION_OPTIONS}
+									value={location}
+									onChange={(_, val) => setLocation(val)}
+									onInputChange={(_, val, reason) => {
+										if (reason !== "reset") setLocation(val || null);
+									}}
+									renderInput={(params) => (
+										<TextField {...params} label="Location" fullWidth />
+									)}
+								/>
 
-							<Button type="submit" variant="contained" fullWidth>
-								Search Rooms
-							</Button>
-						</Box>
+								<Stack direction="row" spacing={2}>
+									<TextField
+										label="Min Capacity"
+										type="number"
+										value={capacityMin}
+										onChange={(e) => setCapacityMin(e.target.value)}
+										fullWidth
+										slotProps={{ htmlInput: { min: 0 } }}
+									/>
+									<TextField
+										label="Max Capacity"
+										type="number"
+										value={capacityMax}
+										onChange={(e) => setCapacityMax(e.target.value)}
+										fullWidth
+										slotProps={{ htmlInput: { min: 0 } }}
+									/>
+								</Stack>
+
+								<FormControlLabel
+									control={
+										<Switch
+											checked={isTechEnhanced}
+											onChange={(e) => setIsTechEnhanced(e.target.checked)}
+										/>
+									}
+									label="Tech Enhanced"
+								/>
+
+								{activeFilters.length > 0 && (
+									<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+										{activeFilters.map((f) => (
+											<Chip
+												key={f.key}
+												label={f.label}
+												onDelete={() => handleClearFilter(f.key)}
+												size="small"
+												variant="outlined"
+											/>
+										))}
+									</Stack>
+								)}
+
+								{error && (
+									<Typography color="error" variant="body2">
+										{error}
+									</Typography>
+								)}
+
+								<Button type="submit" variant="contained" fullWidth>
+									Search Rooms
+								</Button>
+							</Box>
+						</Paper>
 					</Stack>
 				</Stack>
 			)}
