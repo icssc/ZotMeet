@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
+import { FilterChip } from "@/components/ui/filter-chip";
 import {
 	Select,
 	SelectContent,
@@ -41,7 +42,6 @@ import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
 import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import { updateMemberRole } from "@/server/actions/group/update-member-role/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
-import { FilterChip } from "./groups-page";
 
 type Member = {
 	userId: string;
