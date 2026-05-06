@@ -248,10 +248,11 @@ export default function Page() {
 					{fallbackNotice}
 				</Typography>
 			)}
-
-			<Typography variant="h3" className="p-4">
-				Rooms
-			</Typography>
+			<div className="block sm:hidden">
+				<Typography variant="h3" className="p-4">
+					Rooms
+				</Typography>
+			</div>
 
 			{rooms && committedDate && committedStart && committedEnd && (
 				<Stack direction={{ xs: "column", md: "row" }}>
@@ -279,7 +280,7 @@ export default function Page() {
 							pr: 2,
 						}}
 					>
-						<Box className="hidden pb-1 sm:block">
+						<Box className="hidden pb-4 sm:block">
 							<RoomsHeatmapLegend
 								availabilityColor="#86efac"
 								notAvailableColor="#fca5a5"
