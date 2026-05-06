@@ -45,6 +45,8 @@ export function Availability({
 	inviteQueryInUrl?: boolean;
 }) {
 	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+	const [isMeetingDeletionPending, setIsMeetingDeletionPending] =
+		useState(false);
 
 	// View + paint mode live in the store (paint mode is reset atomically in
 	// `setAvailabilityView`, so it cannot drift across view switches).
@@ -260,6 +262,8 @@ export function Availability({
 				meetingData={meetingData}
 				user={user}
 				inviteQueryInUrl={inviteQueryInUrl}
+				isMeetingDeletionPending={isMeetingDeletionPending}
+				onMeetingDeletionPendingChange={setIsMeetingDeletionPending}
 			/>
 
 			<div className="flex min-h-0 w-full min-w-0 flex-1 flex-row items-stretch justify-start">

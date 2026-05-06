@@ -28,19 +28,22 @@ interface AvailabilityHeaderProps {
 	meetingData: SelectMeeting;
 	user: UserProfile | null;
 	inviteQueryInUrl?: boolean;
+	isMeetingDeletionPending: boolean;
+	onMeetingDeletionPendingChange: (pending: boolean) => void;
 }
 
 export function AvailabilityHeader({
 	meetingData,
 	user,
 	inviteQueryInUrl = false,
+	isMeetingDeletionPending,
+	onMeetingDeletionPendingChange,
 }: AvailabilityHeaderProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const { showSuccess, showError } = useSnackbar();
 	const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [isGeneratingLink, setIsGeneratingLink] = useState(false); // disable gcal button reclick while generating link
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
 	const { availabilityView, scheduledTimesCount, hasHydratedScheduledTimes } =
@@ -175,6 +178,8 @@ export function AvailabilityHeader({
 					meetingData={meetingData}
 					isOpen={isDeleteModalOpen}
 					handleOpenChange={setIsDeleteModalOpen}
+					isDeletionPending={isMeetingDeletionPending}
+					onDeletionPendingChange={onMeetingDeletionPendingChange}
 				/>
 			</div>
 		</Paper>

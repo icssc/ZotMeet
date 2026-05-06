@@ -35,6 +35,7 @@ export interface AvailabilityActionsProps {
 	setChangeableTimezone: (can: boolean) => void;
 	setTimezone: (timezone: string) => void;
 	onOpenInviteDialog: () => void;
+	isMeetingDeletionPending?: boolean;
 }
 
 export function AvailabilityActions({
@@ -47,6 +48,7 @@ export function AvailabilityActions({
 	setChangeableTimezone,
 	setTimezone,
 	onOpenInviteDialog,
+	isMeetingDeletionPending = false,
 }: AvailabilityActionsProps) {
 	const router = useRouter();
 	const { showSuccess, showError } = useSnackbar();
@@ -84,7 +86,7 @@ export function AvailabilityActions({
 	};
 
 	const handleSave = async () => {
-		if (!user) return;
+		if (!user || isMeetingDeletionPending) return;
 
 		setChangeableTimezone(true);
 		const availability = {
@@ -123,6 +125,7 @@ export function AvailabilityActions({
 	};
 
 	const handleScheduleSave = async () => {
+		if (isMeetingDeletionPending) return;
 		try {
 			const { pendingAdds, pendingRemovals } = useAvailabilityStore.getState();
 
@@ -208,6 +211,7 @@ export function AvailabilityActions({
 						variant="contained"
 						size="small"
 						type="submit"
+						disabled={isMeetingDeletionPending}
 						onClick={
 							availabilityView === "personal" ? handleSave : handleScheduleSave
 						}

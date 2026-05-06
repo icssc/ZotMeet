@@ -3,7 +3,6 @@ import Typography from "@mui/material/Typography";
 import { notFound, redirect } from "next/navigation";
 import { ProfileSettings } from "@/components/profile/profile-settings";
 import { getCurrentSession } from "@/lib/auth";
-import { ProfileContent } from "./profile-content";
 
 export default async function ProfilePage() {
 	const session = await getCurrentSession();
