@@ -68,7 +68,7 @@ export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 				onPointerCancel={onPointerCancel}
 				onKeyDown={onKeyDown}
 				className={cn(
-					"block h-full w-full cursor-pointer border-gray-medium border-r-[1px] [touch-action:none]",
+					"block h-full w-full cursor-pointer select-none border-gray-medium border-r-[1px] [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [touch-action:pan-x_pan-y]",
 					isTopOfHour && "border-t-[1px] border-t-gray-medium",
 					isHalfHour && "border-top-style:dotted border-t border-t-gray-base",
 					isLastRow && "border-b-[1px]",
