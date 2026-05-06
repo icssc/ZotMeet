@@ -205,7 +205,7 @@ export function AvailabilityActions({
 								: handleScheduleCancel
 						}
 					>
-						<span className="hidden md:flex">Cancel</span>
+						<span className="">Cancel</span>
 					</Button>
 					<Button
 						variant="contained"
@@ -216,7 +216,7 @@ export function AvailabilityActions({
 							availabilityView === "personal" ? handleSave : handleScheduleSave
 						}
 					>
-						<span className="hidden md:flex">Save</span>
+						<span className="">Save</span>
 					</Button>
 				</div>
 			) : (
