@@ -262,7 +262,7 @@ export default function Page() {
 							width: { xs: "100%", md: "auto" },
 							minWidth: 0,
 						}}
-						className="m-4"
+						className="lg:m-4"
 						variant="outlined"
 					>
 						<RoomsHeatmap
