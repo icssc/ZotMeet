@@ -8,7 +8,7 @@ import {
 	parseAsStringEnum,
 	useQueryStates,
 } from "nuqs";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Calendar } from "@/components/creation/calendar/calendar";
 //import { MeetingLocationField } from "@/components/creation/fields/meeting-location-field";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
@@ -53,13 +53,12 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		});
 	};
 
-	const meetingName = urlState.meetingName;
-	const setMeetingName = (nameOrUpdater: React.SetStateAction<string>) => {
-		const newName =
-			typeof nameOrUpdater === "function"
-				? nameOrUpdater(urlState.meetingName)
-				: nameOrUpdater;
-		void setUrlState({ meetingName: newName });
+	const meetingNameRef = useRef(urlState.meetingName);
+	const [hasMeetingName, setHasMeetingName] = useState(!!urlState.meetingName);
+	const flushMeetingName = (value: string) => {
+		meetingNameRef.current = value;
+		setHasMeetingName(!!value);
+		void setUrlState({ meetingName: value });
 	};
 
 	const meetingLocation = urlState.meetingLocation;
@@ -111,7 +110,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		if (!user) {
 			// Construct URL with all parameters.
 			const params = new URLSearchParams();
-			params.set("meetingName", meetingName);
+			params.set("meetingName", meetingNameRef.current);
 			params.set("startTime", startTime);
 			params.set("endTime", endTime);
 			params.set(
@@ -146,7 +145,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		const toTimeUTC = convertTimeToUTC(endTime, userTimezone, referenceDate);
 
 		const newMeeting = {
-			title: meetingName,
+			title: meetingNameRef.current,
 			fromTime: fromTimeUTC,
 			toTime: toTimeUTC,
 			hostId: user.memberId,
@@ -171,9 +170,9 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			startTime &&
 			endTime &&
 			startTime < endTime &&
-			meetingName
+			hasMeetingName
 		);
-	}, [selectedDays.length, startTime, endTime, meetingName]);
+	}, [selectedDays.length, startTime, endTime, hasMeetingName]);
 
 	return (
 		<div className="mx-auto my-6 flex w-full max-w-6xl flex-col gap-y-6 px-0 md:my-8 md:w-[calc(100%-2rem)] md:rounded-xl md:border md:border-gray-300 md:px-4">
@@ -192,8 +191,8 @@ export function Creation({ user }: { user: UserProfile | null }) {
 
 				<div className="flex w-full flex-col gap-6">
 					<MeetingNameField
-						meetingName={meetingName}
-						setMeetingName={setMeetingName}
+						initialValue={urlState.meetingName}
+						onBlur={flushMeetingName}
 					/>
 					<div className="flex flex-col md:grid md:grid-cols-2 md:gap-8">
 						<div className="mb-4 flex flex-col gap-y-12">

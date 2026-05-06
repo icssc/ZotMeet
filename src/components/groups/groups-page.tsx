@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { GroupCard } from "@/components/groups/group-card";
+import { FilterChip } from "@/components/ui/filter-chip";
 import type { GroupWithDetails } from "@/server/data/groups/queries";
 import { InviteDecision } from "./invite-decisions";
 
@@ -302,37 +303,5 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 
 			<InviteDecision open={showJoinGroup} onOpenChange={setShowJoinGroup} />
 		</Box>
-	);
-}
-
-export function FilterChip({
-	label,
-	count,
-	active,
-	onClick,
-}: {
-	label: string;
-	count: number;
-	active: boolean;
-	onClick: () => void;
-}) {
-	return (
-		<Button
-			onClick={onClick}
-			disableElevation
-			sx={{
-				bgcolor: active ? "secondary.main" : "action.hover",
-				color: active ? "secondary.contrastText" : "text.primary",
-				"&:hover": {
-					bgcolor: active ? "secondary.dark" : "action.selected",
-				},
-				boxShadow: "none",
-				borderRadius: 1,
-				fontWeight: 600,
-				fontSize: "1rem",
-			}}
-		>
-			{label} {count}
-		</Button>
 	);
 }

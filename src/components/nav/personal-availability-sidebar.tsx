@@ -18,11 +18,10 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import type React from "react";
-import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { PaintMode } from "@/lib/availability/paint-selection";
 import { filterTimestampsToMeetingGrid } from "@/lib/availability/utils";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
-import type { Availability } from "../availability/availability";
 
 type RespondedMeeting = { id: string; title: string; createdAt: Date };
 type ImportedMeetingAvailability = {
@@ -30,61 +29,58 @@ type ImportedMeetingAvailability = {
 	ifNeededAvailabilities: string[];
 };
 
-const options: { value: Availability; label: string; icon: React.ReactNode }[] =
-	[
-		{
-			value: "available",
-			label: "Available",
-			icon: (
-				<div
-					style={{
-						width: 20,
-						height: 20,
-						borderRadius: "50%",
-						background: "#D4537E",
-					}}
-				/>
-			),
-		},
-		{
-			value: "if-needed",
-			label: "If Needed",
-			icon: (
-				<div
-					style={{
-						width: 20,
-						height: 20,
-						borderRadius: "50%",
-						border: "2px solid #ED93B1",
-						background:
-							"repeating-linear-gradient(45deg, #ED93B1 0px, #ED93B1 1.5px, transparent 1.5px, transparent 4px)",
-						boxSizing: "border-box",
-					}}
-				/>
-			),
-		},
-		{
-			value: "unavailable",
-			label: "Unavailable",
-			icon: (
-				<div
-					style={{
-						width: 20,
-						height: 20,
-						borderRadius: "50%",
-						border: "2px solid #D3D1C7",
-						boxSizing: "border-box",
-					}}
-				/>
-			),
-		},
-	];
+const SWATCH_DIMENSION_STYLE = {
+	width: 20,
+	height: 20,
+	borderRadius: "50%",
+	boxSizing: "border-box" as const,
+};
+
+const options: { value: PaintMode; label: string; icon: React.ReactNode }[] = [
+	{
+		value: "available",
+		label: "Available",
+		icon: (
+			<div
+				style={{
+					...SWATCH_DIMENSION_STYLE,
+					background: "hsl(var(--primary))",
+				}}
+			/>
+		),
+	},
+	{
+		value: "if-needed",
+		label: "If Needed",
+		icon: (
+			<div
+				// Potentially revisit these to remove style props.
+				style={{
+					...SWATCH_DIMENSION_STYLE,
+					border: "2px solid hsl(var(--if-needed))",
+					background:
+						"repeating-linear-gradient(45deg, hsl(var(--if-needed)) 0px, hsl(var(--if-needed)) 1.5px, transparent 1.5px, transparent 4px)",
+				}}
+			/>
+		),
+	},
+	{
+		value: "unavailable",
+		label: "Unavailable",
+		icon: (
+			<div
+				style={{
+					...SWATCH_DIMENSION_STYLE,
+					border: "2px solid hsl(var(--border))",
+				}}
+			/>
+		),
+	},
+];
 
 interface PersonalAvailabilitySidebarProps {
 	meetingId: string;
 	userTimezone: string;
-	availability: Availability;
-	setAvailability: Dispatch<SetStateAction<Availability>>;
 	importGridIsoSet: ReadonlySet<string>;
 	canImport: boolean;
 	onImportSlots: (slots: ImportedMeetingAvailability) => void;
@@ -98,8 +94,6 @@ export function PersonalAvailabilitySidebar({
 	canImport,
 	onImportSlots,
 	onClearAvailability,
-	availability,
-	setAvailability,
 }: PersonalAvailabilitySidebarProps) {
 	const [importableMeetings, setImportableMeetings] = useState<
 		RespondedMeeting[]
@@ -108,6 +102,8 @@ export function PersonalAvailabilitySidebar({
 		new Map<string, ImportedMeetingAvailability>(),
 	);
 	const setImportPreview = useAvailabilityStore((s) => s.setImportPreview);
+	const paintMode = useAvailabilityStore((s) => s.paintMode);
+	const setPaintMode = useAvailabilityStore((s) => s.setPaintMode);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: reset cached rows when switching meetings
 	useEffect(() => {
@@ -214,8 +210,8 @@ export function PersonalAvailabilitySidebar({
 				<ToggleButtonGroup
 					exclusive
 					fullWidth
-					value={availability}
-					onChange={(_, val) => val && setAvailability(val)}
+					value={paintMode}
+					onChange={(_, val: PaintMode | null) => val && setPaintMode(val)}
 					aria-label="availability"
 				>
 					{options.map(({ value, label, icon }) => (

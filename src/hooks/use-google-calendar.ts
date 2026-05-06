@@ -17,7 +17,7 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 interface UseGoogleCalendarProps {
 	googleCalendarEvents: GoogleCalendarEvent[];
-	currentPageAvailability: ZotDate[];
+	currentPageAvailability: (ZotDate | null)[];
 	availabilityTimeBlocks: number[];
 	meetingDates: string[];
 }
@@ -73,7 +73,7 @@ export function useGoogleCalendar({
 
 function processEventsByDate(
 	events: GoogleCalendarEvent[],
-	currentPageAvailability: ZotDate[],
+	currentPageAvailability: (ZotDate | null)[],
 	isAnchorMeeting: boolean,
 ): Map<string, GoogleCalendarEventLayoutInfo[]> {
 	const eventsByDate = new Map<string, GoogleCalendarEventLayoutInfo[]>();
@@ -236,7 +236,7 @@ function calculateEventLayout(
 
 function createCellSegments(
 	eventsByDate: Map<string, GoogleCalendarEventLayoutInfo[]>,
-	currentPageAvailability: ZotDate[],
+	currentPageAvailability: (ZotDate | null)[],
 	availabilityTimeBlocks: number[],
 	currentPage: number,
 	itemsPerPage: number,

@@ -24,6 +24,10 @@ const config: Config = {
 					DEFAULT: "hsl(var(--primary))",
 					foreground: "hsl(var(--primary-foreground))",
 				},
+				"if-needed": {
+					DEFAULT: "hsl(var(--if-needed))",
+					foreground: "hsl(var(--if-needed-foreground))",
+				},
 				secondary: {
 					DEFAULT: "hsl(var(--secondary))",
 					foreground: "hsl(var(--secondary-foreground))",
