@@ -1,6 +1,7 @@
 "use client";
 
 import { Paper } from "@mui/material";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { AvailabilityActions } from "@/components/availability/availability-actions";
@@ -28,6 +29,7 @@ import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
+import { MobileGroupResponses } from "./mobile-group-responses";
 
 export function Availability({
 	meetingData,
@@ -85,6 +87,15 @@ export function Availability({
 			resetSelection: state.resetSelection,
 		})),
 	);
+
+	const { setAvailabilityView, setIsMobileDrawerOpen } = useAvailabilityStore(
+		useShallow((state) => ({
+			setAvailabilityView: state.setAvailabilityView,
+			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
+		})),
+	);
+
+	const router = useRouter();
 
 	const isMobile = useIsMobile();
 	useEffect(() => {
@@ -255,6 +266,51 @@ export function Availability({
 		onOpenInviteDialog: handleOpenInviteDialog,
 	} as const;
 
+	const isMeetingOwner = Boolean(user && meetingData.hostId === user.memberId);
+
+	const groupResponsesProps = useMemo(
+		() => ({
+			availabilityDates,
+			fromTime: fromTimeMinutes,
+			members,
+			pendingMembers,
+			timezone: userTimezone,
+			anchorNormalizedDate,
+			currentPageAvailability,
+			availabilityTimeBlocks,
+			doesntNeedDay,
+		}),
+		[
+			availabilityDates,
+			fromTimeMinutes,
+			members,
+			pendingMembers,
+			userTimezone,
+			anchorNormalizedDate,
+			currentPageAvailability,
+			availabilityTimeBlocks,
+			doesntNeedDay,
+		],
+	);
+
+	const handleMobileAddAvailability = useCallback(() => {
+		if (!user) {
+			router.push("/auth/login/google");
+			return;
+		}
+		setChangeableTimezone(false);
+		setUserTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+		setAvailabilityView("personal");
+	}, [router, setAvailabilityView, user]);
+
+	const handleMobileOpenAttendees = useCallback(() => {
+		setIsMobileDrawerOpen(true);
+	}, [setIsMobileDrawerOpen]);
+
+	const handleMobileSchedule = useCallback(() => {
+		setAvailabilityView("schedule");
+	}, [setAvailabilityView]);
+
 	return (
 		<div className="flex min-h-[80vh] flex-col gap-6">
 			<AvailabilityHeader
@@ -340,23 +396,34 @@ export function Availability({
 				</Paper>
 
 				{(availabilityView === "group" || availabilityView === "schedule") && (
-					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-						<AvailabilityActions {...actionsProps} />
-						<Paper
-							variant="outlined"
-							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
-						>
-							<GroupResponses
-								availabilityDates={availabilityDates}
-								ifNeededDates={ifNeededDates}
-								fromTime={fromTimeMinutes}
-								members={members}
-								pendingMembers={pendingMembers}
-								timezone={userTimezone}
-								currentPageAvailability={currentPageAvailability}
-								doesntNeedDay={doesntNeedDay}
+					<div>
+						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+							<AvailabilityActions {...actionsProps} />
+							<Paper
+								variant="outlined"
+								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+							>
+								<GroupResponses {...groupResponsesProps} />
+							</Paper>
+						</div>
+
+						<div className="lg:hidden">
+							<GroupResponses {...groupResponsesProps} />
+						</div>
+
+						<div className="lg:hidden">
+							<MobileGroupResponses
+								isOwner={isMeetingOwner}
+								respondedMembersCount={Math.max(
+									0,
+									members.length - pendingMembers.length,
+								)}
+								pendingMembersCount={pendingMembers.length}
+								onAddAvailability={handleMobileAddAvailability}
+								onOpenAttendees={handleMobileOpenAttendees}
+								onSchedule={handleMobileSchedule}
 							/>
-						</Paper>
+						</div>
 					</div>
 				)}
 				{availabilityView === "personal" && (
