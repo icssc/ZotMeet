@@ -1,12 +1,18 @@
+import { NotificationsOutlined } from "@mui/icons-material";
 import { Avatar, Button, Chip, Switch, Typography } from "@mui/material/";
 import { XIcon } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
+import { useSnackbar } from "@/components/ui/snackbar-provider";
 import { computeGroupMembersForRange } from "@/lib/availability/group-query";
 import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
 import type { Member, SelectionStateType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
+import {
+	getNudgeCooldown,
+	nudgePendingMembers,
+} from "@/server/actions/meeting/nudge/action";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 const EN_DASH = "\u2013";
@@ -48,6 +54,13 @@ function formatRangeLabel(range: SelectionStateType, dates: ZotDate[]): string {
 	return `${dayPart}, ${startTime} ${EN_DASH} ${endTime}`;
 }
 
+function formatCooldown(ms: number): string {
+	const totalSeconds = Math.ceil(ms / 1000);
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = totalSeconds % 60;
+	return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+}
+
 interface GroupResponsesProps {
 	availabilityDates: ZotDate[];
 	members: Member[];
@@ -61,6 +74,8 @@ interface GroupResponsesProps {
 	};
 	availabilityTimeBlocks: number[];
 	doesntNeedDay: boolean;
+	meetingId: string;
+	isOwner: boolean;
 }
 
 export function GroupResponses({
@@ -71,7 +86,60 @@ export function GroupResponses({
 	timezone,
 	currentPageAvailability,
 	doesntNeedDay,
+	meetingId,
+	isOwner,
 }: GroupResponsesProps) {
+	const { showSuccess, showError } = useSnackbar();
+	const [isNudging, setIsNudging] = useState(false);
+	const [cooldownUntil, setCooldownUntil] = useState<Date | null>(null);
+	const [cooldownRemaining, setCooldownRemaining] = useState<string | null>(
+		null,
+	);
+
+	useEffect(() => {
+		if (!isOwner || pendingMembers.length === 0) return;
+		getNudgeCooldown(meetingId).then(({ cooldownUntil: until }) => {
+			if (until) setCooldownUntil(new Date(until));
+		});
+	}, [meetingId, isOwner, pendingMembers.length]);
+
+	useEffect(() => {
+		if (!cooldownUntil) {
+			setCooldownRemaining(null);
+			return;
+		}
+		const tick = () => {
+			const remaining = cooldownUntil.getTime() - Date.now();
+			if (remaining <= 0) {
+				setCooldownUntil(null);
+				setCooldownRemaining(null);
+			} else {
+				setCooldownRemaining(formatCooldown(remaining));
+			}
+		};
+		tick();
+		const id = setInterval(tick, 1000);
+		return () => clearInterval(id);
+	}, [cooldownUntil]);
+
+	const handleNudge = async () => {
+		setIsNudging(true);
+		try {
+			const result = await nudgePendingMembers(meetingId);
+			if (result.success) {
+				showSuccess(result.message);
+				setCooldownUntil(new Date(Date.now() + 45 * 60 * 1000));
+			} else if (result.cooldownUntil) {
+				setCooldownUntil(new Date(result.cooldownUntil));
+				showError(result.message);
+			} else {
+				showError(result.message);
+			}
+		} finally {
+			setIsNudging(false);
+		}
+	};
+
 	const [_newBlocks, newAvailDates] = newZonedPageAvailAndDates(
 		currentPageAvailability.availabilities,
 		availabilityDates,
@@ -271,12 +339,31 @@ export function GroupResponses({
 				</div>
 
 				<div className="flex flex-col py-2">
-					<Typography variant="h6">Pending Responders</Typography>
+					<div className="flex items-center justify-between">
+						<Typography variant="h6">Pending Responders</Typography>
+						{isOwner && pendingMembers.length > 0 && (
+							<Button
+								variant="outlined"
+								size="small"
+								startIcon={<NotificationsOutlined />}
+								disabled={isNudging || cooldownRemaining !== null}
+								onClick={handleNudge}
+							>
+								Nudge
+							</Button>
+						)}
+					</div>
+
+					{isOwner && cooldownRemaining !== null && (
+						<Typography variant="caption" sx={{ color: "error.main", mt: 0.5 }}>
+							Nudge available in {cooldownRemaining}
+						</Typography>
+					)}
 
 					{pendingMembers.length > 0 ? (
 						<div>
 							<Typography variant="caption" color="textSecondary">
-								Waiting on responses for your group ({pendingMembers.length})
+								Waiting on responses from your group ({pendingMembers.length})
 							</Typography>
 							<ul className="mt-3 flex flex-wrap gap-2">
 								{pendingMembers.map((member) => (

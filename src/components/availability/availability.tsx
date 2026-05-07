@@ -357,6 +357,8 @@ export function Availability({
 								currentPageAvailability={currentPageAvailability}
 								availabilityTimeBlocks={availabilityTimeBlocks}
 								doesntNeedDay={doesntNeedDay}
+								meetingId={meetingData.id}
+								isOwner={!!user && meetingData.hostId === user.memberId}
 							/>
 						</Paper>
 					</div>
