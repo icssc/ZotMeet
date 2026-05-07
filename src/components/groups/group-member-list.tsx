@@ -43,6 +43,7 @@ import { copyTextToClipboard } from "@/lib/clipboard/utils";
 import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
 import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import { updateMemberRole } from "@/server/actions/group/update-member-role/action";
+import { nudgePendingMembers } from "@/server/actions/meeting/nudge/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
 import { GroupSettingsForm } from "./group-settings-form";
 
@@ -153,11 +154,13 @@ function MeetingRow({
 	status: "actionRequired" | "upcoming" | null;
 }) {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const [isNudging, setIsNudging] = useState(false);
+	const { showSuccess, showError } = useSnackbar();
 	const open = Boolean(anchorEl);
-	const createdByLabel =
-		meeting.hostId === currentMemberId
-			? "Created by You"
-			: `Created by ${meeting.hostName}`;
+	const isOwner = meeting.hostId === currentMemberId;
+	const createdByLabel = isOwner
+		? "Created by You"
+		: `Created by ${meeting.hostName}`;
 
 	return (
 		<div className="relative flex items-center justify-between rounded-xl border-gray-200 border-b px-4 py-4 transition-colors hover:bg-primary/5">
@@ -223,15 +226,29 @@ function MeetingRow({
 					transformOrigin={{ horizontal: "right", vertical: "top" }}
 					anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
 				>
-					<MenuItem
-						onClick={(e) => {
-							e.stopPropagation();
-							setAnchorEl(null);
-						}}
-					>
-						<People className="mr-2 size-4" />
-						Nudge Members
-					</MenuItem>
+					{isOwner && (
+						<MenuItem
+							disabled={isNudging}
+							onClick={async (e) => {
+								e.stopPropagation();
+								setAnchorEl(null);
+								setIsNudging(true);
+								try {
+									const result = await nudgePendingMembers(meeting.id);
+									if (result.success) {
+										showSuccess(result.message);
+									} else {
+										showError(result.message);
+									}
+								} finally {
+									setIsNudging(false);
+								}
+							}}
+						>
+							<People className="mr-2 size-4" />
+							Nudge Members
+						</MenuItem>
+					)}
 				</Menu>
 			</div>
 		</div>
