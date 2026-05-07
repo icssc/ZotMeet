@@ -118,7 +118,10 @@ export const RoomsHeatmap = ({
 					</Select>
 				</FormControl>
 			</Stack>
-			<Box sx={{ overflow: "scroll", position: "relative" }} ref={scrollRef}>
+			<Box
+				sx={{ overflowX: "auto", overflowY: "hidden", position: "relative" }}
+				ref={scrollRef}
+			>
 				<Table
 					size="small"
 					sx={{

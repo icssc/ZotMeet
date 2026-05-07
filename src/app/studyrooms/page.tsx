@@ -70,6 +70,7 @@ export default function Page() {
 	const [isTechEnhanced, setIsTechEnhanced] = useState(false);
 	const [rooms, setRooms] = useState<StudyRooms["data"] | null>(null);
 	const [error, setError] = useState<string | null>(null);
+	const [isLoading, setIsLoading] = useState(false);
 
 	const activeFilters = [
 		date && { label: `Date: ${format(date, "MMM d, yyyy")}`, key: "date" },
@@ -187,7 +188,6 @@ export default function Page() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setError(null);
-		setRooms(null);
 		setFallbackNotice(null);
 
 		if (!date || !startTime || !endTime) {
@@ -218,12 +218,17 @@ export default function Page() {
 
 		const baseDate = new Date(date);
 		baseDate.setHours(0, 0, 0, 0);
-		await searchWithFallback({
-			baseDate,
-			startTime,
-			endTime,
-			filters: { location, capacityMin, capacityMax, isTechEnhanced },
-		});
+		setIsLoading(true);
+		try {
+			await searchWithFallback({
+				baseDate,
+				startTime,
+				endTime,
+				filters: { location, capacityMin, capacityMax, isTechEnhanced },
+			});
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	useEffect(() => {
@@ -254,161 +259,173 @@ export default function Page() {
 				</Typography>
 			</div>
 
-			{rooms && committedDate && committedStart && committedEnd && (
-				<Stack direction={{ xs: "column", md: "row" }}>
-					<Paper
-						sx={{
-							flex: { xs: "unset", md: 3 },
-							width: { xs: "100%", md: "auto" },
-							minWidth: 0,
-						}}
-						className="md:m-4"
-						variant="outlined"
-					>
+			<Stack direction={{ xs: "column", md: "row" }}>
+				<Paper
+					sx={{
+						flex: { xs: "unset", md: 3 },
+						width: { xs: "100%", md: "auto" },
+						minWidth: 0,
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+					}}
+					className="md:m-4"
+					variant="outlined"
+				>
+					{rooms && committedDate && committedStart && committedEnd ? (
 						<RoomsHeatmap
 							rooms={rooms}
 							searchDate={committedDate}
 							startTime={committedStart}
 							endTime={committedEnd}
 						/>
-					</Paper>
-					<Stack
-						direction="column"
-						sx={{
-							width: 360,
-							pt: 2,
-							pr: 2,
-						}}
-					>
-						<Box className="hidden pb-4 sm:block">
-							<RoomsHeatmapLegend
-								availabilityColor="#86efac"
-								notAvailableColor="#fca5a5"
+					) : (
+						<Typography variant="body2" color="text.secondary" sx={{ p: 4 }}>
+							Loading available rooms...
+						</Typography>
+					)}
+				</Paper>
+				<Stack
+					direction="column"
+					sx={{
+						width: 360,
+						pt: 2,
+						pr: 2,
+					}}
+				>
+					<Box className="hidden pb-4 sm:block">
+						<RoomsHeatmapLegend
+							availabilityColor="#86efac"
+							notAvailableColor="#fca5a5"
+						/>
+					</Box>
+					<Paper variant="outlined" className="hidden sm:block">
+						<Box
+							component="form"
+							onSubmit={handleSubmit}
+							sx={{
+								display: "flex",
+								flex: 1,
+								flexDirection: "column",
+								gap: 2,
+								maxWidth: "sm",
+								p: 2,
+							}}
+						>
+							<DatePicker
+								label="Date"
+								value={date}
+								onChange={setDate}
+								slotProps={{ textField: { fullWidth: true } }}
 							/>
-						</Box>
-						<Paper variant="outlined" className="hidden sm:block">
-							<Box
-								component="form"
-								onSubmit={handleSubmit}
-								sx={{
-									display: "flex",
-									flex: 1,
-									flexDirection: "column",
-									gap: 2,
-									maxWidth: "sm",
-									p: 2,
-								}}
-							>
-								<DatePicker
-									label="Date"
-									value={date}
-									onChange={setDate}
-									slotProps={{ textField: { fullWidth: true } }}
-								/>
 
-								<Stack direction="row" spacing={2}>
-									<TimePicker
-										label="Start Time"
-										value={startTime}
-										onAccept={setStartTime}
-										slotProps={{
-											textField: {
-												fullWidth: true,
-												sx: {
-													"& .MuiIconButton-edgeEnd": {
-														marginRight: 0,
-													},
+							<Stack direction="row" spacing={2}>
+								<TimePicker
+									label="Start Time"
+									value={startTime}
+									onAccept={setStartTime}
+									slotProps={{
+										textField: {
+											fullWidth: true,
+											sx: {
+												"& .MuiIconButton-edgeEnd": {
+													marginRight: 0,
 												},
 											},
-										}}
-									/>
-									<TimePicker
-										label="End Time"
-										value={endTime}
-										onAccept={setEndTime}
-										slotProps={{
-											textField: {
-												fullWidth: true,
-												sx: {
-													"& .MuiIconButton-edgeEnd": {
-														marginRight: 0,
-													},
-												},
-											},
-										}}
-									/>
-								</Stack>
-
-								<Autocomplete
-									freeSolo
-									options={LOCATION_OPTIONS}
-									value={location}
-									onChange={(_, val) => setLocation(val)}
-									onInputChange={(_, val, reason) => {
-										if (reason !== "reset") setLocation(val || null);
+										},
 									}}
-									renderInput={(params) => (
-										<TextField {...params} label="Location" fullWidth />
-									)}
 								/>
+								<TimePicker
+									label="End Time"
+									value={endTime}
+									onAccept={setEndTime}
+									slotProps={{
+										textField: {
+											fullWidth: true,
+											sx: {
+												"& .MuiIconButton-edgeEnd": {
+													marginRight: 0,
+												},
+											},
+										},
+									}}
+								/>
+							</Stack>
 
-								<div>
-									{CAPACITY_PRESETS.map(({ label, min, max }) => (
+							<Autocomplete
+								freeSolo
+								options={LOCATION_OPTIONS}
+								value={location}
+								onChange={(_, val) => setLocation(val)}
+								onInputChange={(_, val, reason) => {
+									if (reason !== "reset") setLocation(val || null);
+								}}
+								renderInput={(params) => (
+									<TextField {...params} label="Location" fullWidth />
+								)}
+							/>
+
+							<div>
+								{CAPACITY_PRESETS.map(({ label, min, max }) => (
+									<Chip
+										key={label}
+										variant="outlined"
+										color={
+											capacityMin === min && capacityMax === max
+												? "primary"
+												: "default"
+										}
+										label={label}
+										clickable
+										onClick={() => {
+											setCapacityMin(min);
+											setCapacityMax(max);
+										}}
+									/>
+								))}
+							</div>
+							<FormControlLabel
+								control={
+									<Switch
+										checked={isTechEnhanced}
+										onChange={(e) => setIsTechEnhanced(e.target.checked)}
+									/>
+								}
+								label="Tech Enhanced"
+							/>
+
+							{activeFilters.length > 0 && (
+								<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+									{activeFilters.map((f) => (
 										<Chip
-											key={label}
+											key={f.key}
+											label={f.label}
+											onDelete={() => handleClearFilter(f.key)}
+											size="small"
 											variant="outlined"
-											color={
-												capacityMin === min && capacityMax === max
-													? "primary"
-													: "default"
-											}
-											label={label}
-											clickable
-											onClick={() => {
-												setCapacityMin(min);
-												setCapacityMax(max);
-											}}
 										/>
 									))}
-								</div>
-								<FormControlLabel
-									control={
-										<Switch
-											checked={isTechEnhanced}
-											onChange={(e) => setIsTechEnhanced(e.target.checked)}
-										/>
-									}
-									label="Tech Enhanced"
-								/>
+								</Stack>
+							)}
 
-								{activeFilters.length > 0 && (
-									<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-										{activeFilters.map((f) => (
-											<Chip
-												key={f.key}
-												label={f.label}
-												onDelete={() => handleClearFilter(f.key)}
-												size="small"
-												variant="outlined"
-											/>
-										))}
-									</Stack>
-								)}
+							{error && (
+								<Typography color="error" variant="body2">
+									{error}
+								</Typography>
+							)}
 
-								{error && (
-									<Typography color="error" variant="body2">
-										{error}
-									</Typography>
-								)}
-
-								<Button type="submit" variant="contained" fullWidth>
-									Search Rooms
-								</Button>
-							</Box>
-						</Paper>
-					</Stack>
+							<Button
+								type="submit"
+								variant="contained"
+								fullWidth
+								disabled={isLoading}
+							>
+								{isLoading ? "Searching..." : "Search Rooms"}
+							</Button>
+						</Box>
+					</Paper>
 				</Stack>
-			)}
+			</Stack>
 		</LocalizationProvider>
 	);
 }
