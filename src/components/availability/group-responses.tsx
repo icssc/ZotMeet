@@ -1,5 +1,4 @@
 import { Avatar, Button, Chip, Switch, Typography } from "@mui/material/";
-import type { SxProps, Theme } from "@mui/material/styles";
 import { XIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
@@ -20,10 +19,10 @@ import {
 
 const EN_DASH = "\u2013";
 
-const RESPONDER_CHIP_SX: Record<MemberRangeStatus, SxProps<Theme>> = {
-	available: { maxWidth: "100%" },
-	"if-needed": { maxWidth: "100%", fontStyle: "italic" },
-	unavailable: { maxWidth: "100%", textDecoration: "line-through" },
+const RESPONDER_CHIP_CLASS: Record<MemberRangeStatus, string> = {
+	available: "",
+	"if-needed": "italic",
+	unavailable: "line-through",
 };
 
 /**
@@ -273,7 +272,7 @@ export function GroupResponses({
 											: "default"
 									}
 									variant="outlined"
-									sx={RESPONDER_CHIP_SX[status]}
+									className={cn("max-w-full", RESPONDER_CHIP_CLASS[status])}
 									onMouseEnter={() => handleMemberHover(member.memberId)}
 									onMouseLeave={() => handleMemberHover(null)}
 									onClick={() => handleMemberSelect(member.memberId)}
