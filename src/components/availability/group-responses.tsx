@@ -176,9 +176,8 @@ export function GroupResponses({
 	}, [groups, respondedMembers]);
 
 	const availableCount = activeRange
-		? respondedMembers.filter(
-				(m) => memberStatus.get(m.memberId) === "available",
-			).length
+		? respondedMembers.filter((m) => memberStatus.get(m.memberId) !== "absent")
+				.length
 		: respondedMembers.length;
 
 	const blockInfoString = activeRange
