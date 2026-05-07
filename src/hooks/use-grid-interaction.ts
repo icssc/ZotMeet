@@ -50,6 +50,15 @@ function rangesEqual(
 	);
 }
 
+function isInsideInteractiveSurface(el: Element | null): boolean {
+	if (!el) return false;
+	return Boolean(
+		el.closest("[data-availability-grid]") ||
+			el.closest("[data-availability-sidebar]") ||
+			el.closest('[role="presentation"]'),
+	);
+}
+
 /**
  * Owns the interaction half of the availability feature:
  * - commit dispatcher (personal paint / schedule replace / group lock-unlock),
@@ -144,10 +153,7 @@ export function useGridInteraction({
 	useEffect(() => {
 		if (availabilityView !== "group") return;
 		const onDocPointerDown = (e: PointerEvent) => {
-			const target = e.target as HTMLElement | null;
-			const insideGrid = !!target?.closest?.("table");
-			const insideSidebar = !!target?.closest?.("[data-availability-sidebar]");
-			if (insideGrid || insideSidebar) return;
+			if (isInsideInteractiveSurface(e.target as Element | null)) return;
 			if (useAvailabilityStore.getState().committedRange === undefined) return;
 			resetSelection();
 			setIsMobileDrawerOpen(false);

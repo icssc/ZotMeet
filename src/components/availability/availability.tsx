@@ -283,7 +283,7 @@ export function Availability({
 						<div className="shrink-0 lg:hidden">
 							<AvailabilityActions {...actionsProps} />
 						</div>
-						<table className="w-full table-fixed">
+						<table data-availability-grid="" className="w-full table-fixed">
 							<AvailabilityTableHeader
 								currentPageAvailability={currentPageAvailability}
 								meetingType={meetingData.meetingType}
