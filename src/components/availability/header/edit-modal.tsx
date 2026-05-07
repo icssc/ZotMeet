@@ -5,7 +5,10 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	useMediaQuery,
+	useTheme,
 } from "@mui/material";
+import { DeleteIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
@@ -24,13 +27,19 @@ interface EditModalProps {
 	meetingData: SelectMeeting;
 	isOpen: boolean;
 	handleOpenChange: (open: boolean) => void;
+	onDeleteRequest: () => void;
 }
 
 export const EditModal = ({
 	meetingData,
 	isOpen,
 	handleOpenChange,
+	onDeleteRequest,
 }: EditModalProps) => {
+	const { showSuccess, showError } = useSnackbar();
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
 	const userTimezone = useMemo(
 		() => Intl.DateTimeFormat().resolvedOptions().timeZone,
 		[],
@@ -103,8 +112,6 @@ export const EditModal = ({
 		handleOpenChange(false);
 	};
 
-	const { showSuccess, showError } = useSnackbar();
-
 	const hasValidInputs = useMemo(() => {
 		return (
 			selectedDays.length > 0 &&
@@ -123,21 +130,18 @@ export const EditModal = ({
 			fullWidth
 		>
 			<DialogTitle>Edit Meeting</DialogTitle>
-
 			<DialogContent>
 				<div className="flex flex-col space-y-6 pt-2">
 					<MeetingNameField
 						initialValue={meetingData.title}
 						onBlur={setMeetingName}
 					/>
-
 					<MeetingTimeField
 						startTime={startTime}
 						setStartTime={setStartTime}
 						endTime={endTime}
 						setEndTime={setEndTime}
 					/>
-
 					<Calendar
 						selectedDays={selectedDays}
 						setSelectedDays={setSelectedDays}
@@ -147,21 +151,44 @@ export const EditModal = ({
 				</div>
 			</DialogContent>
 
-			<DialogActions>
-				<Button
-					variant="outlined"
-					color="inherit"
-					onClick={() => handleOpenChange(false)}
-				>
-					Cancel
-				</Button>
-				<Button
-					onClick={handleEditClick}
-					disabled={!hasValidInputs}
-					variant="contained"
-				>
-					Save
-				</Button>
+			<DialogActions className="flex justify-between px-3 pb-2">
+				{isMobile ? (
+					<Button
+						onClick={onDeleteRequest}
+						variant="outlined"
+						color="error"
+						aria-label="Delete Meeting"
+						className="min-w-0 px-3"
+					>
+						<DeleteIcon size={25} />
+					</Button>
+				) : (
+					<Button
+						onClick={onDeleteRequest}
+						variant="outlined"
+						color="error"
+						startIcon={<DeleteIcon />}
+					>
+						Delete Meeting
+					</Button>
+				)}
+
+				<div className="flex gap-2">
+					<Button
+						variant="outlined"
+						color="inherit"
+						onClick={() => handleOpenChange(false)}
+					>
+						Cancel
+					</Button>
+					<Button
+						onClick={handleEditClick}
+						disabled={!hasValidInputs}
+						variant="contained"
+					>
+						Save
+					</Button>
+				</div>
 			</DialogActions>
 		</Dialog>
 	);

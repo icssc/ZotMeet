@@ -3,11 +3,13 @@ import {
 	AccessTime,
 	CalendarMonth,
 	ChevronLeft,
+	ContentCopy,
+	ExitToApp,
 	LocationOn,
 	Settings,
 } from "@mui/icons-material";
 import { Button, IconButton, Paper, Typography } from "@mui/material";
-import { DeleteIcon, MoreVerticalIcon } from "lucide-react";
+import { MoreVerticalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
@@ -43,10 +45,15 @@ export function AvailabilityHeader({
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
+	const isMember = !!user && !isOwner;
 
-	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
-	// const [guestName, setGuestName] = useState("");
-
+	const { scheduledTimesCount, hasHydratedScheduledTimes } =
+		useAvailabilityStore(
+			useShallow((state) => ({
+				scheduledTimesCount: state.scheduledTimes.size,
+				hasHydratedScheduledTimes: state.hasHydratedScheduledTimes,
+			})),
+		);
 	useEffect(() => {
 		if (!inviteQueryInUrl) return;
 		router.replace(pathname, { scroll: false });
@@ -71,7 +78,6 @@ export function AvailabilityHeader({
 	const formattedStartTime = formatTimeWithHoursAndMins(
 		convertTimeFromUTC(meetingData.fromTime, displayTimezone, referenceDate),
 	);
-
 	const formattedEndTime = formatTimeWithHoursAndMins(
 		convertTimeFromUTC(meetingData.toTime, displayTimezone, referenceDate),
 	);
@@ -85,17 +91,35 @@ export function AvailabilityHeader({
 	);
 
 	return (
-		<div className="mt-2">
-			<div className="flex items-center sm:hidden">
-				<Button href="/summary" startIcon={<ChevronLeft />} color="inherit">
-					Meetings
-				</Button>
-				<div className="ml-auto flex items-center">
-					{copyTitleButton}
-					{isOwner && (
-						<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
-							<MoreVerticalIcon />
-						</IconButton>
+		<Paper variant="outlined" className="mt-10">
+			<div className="flex flex-col gap-4">
+				<div className="flex w-full items-center">
+					<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
+						{meetingData.title}
+					</h1>
+
+					<div className="ml-auto sm:ml-8 hidden sm:block">
+						{copyTitleButton}
+					</div>
+					
+					{(isOwner || isMember) && (
+						<div className="block sm:hidden ml-auto flex items-center">
+							{copyTitleButton}
+							<IconButton
+								size="small"
+								onClick={() =>
+									isOwner
+										? setIsEditModalOpen(true)
+										: setIsDeleteModalOpen(true)
+								}
+							>
+								<MoreVerticalIcon />
+							</IconButton>
+						</div>
+					)}
+				</div>
+			</div>
+		</Paper>
 					)}
 				</div>
 			</div>
@@ -117,11 +141,40 @@ export function AvailabilityHeader({
 								</Typography>
 							</div>
 
-							<div className="flex items-center gap-2">
-								<AccessTime />
-								<Typography color="textSecondary" className="whitespace-nowrap">
-									{formattedStartTime} - {formattedEndTime}
-								</Typography>
+<div className="flex items-center gap-2">
+	<AccessTime />
+	<Typography color="textSecondary" className="whitespace-nowrap">
+		{formattedStartTime} - {formattedEndTime}
+	</Typography>
+</div>
+
+{isOwner && (
+	<div className="-ml-2 hidden items-center sm:flex">
+		<Button
+			onClick={() => setIsEditModalOpen(true)}
+			variant="text"
+			size="medium"
+			color="primary"
+			startIcon={<Settings sx={{ color: "primary.main" }} />}
+		>
+			<Typography>Edit Meeting</Typography>
+		</Button>
+	</div>
+)}
+
+{isMember && (
+	<div className="-ml-2 hidden items-center sm:flex">
+		<Button
+			onClick={() => setIsDeleteModalOpen(true)}
+			variant="text"
+			size="medium"
+			color="warning"
+			startIcon={<ExitToApp />}
+		>
+			<Typography>Leave Meeting</Typography>
+		</Button>
+	</div>
+)}
 							</div>
 
 							{meetingData.location && (
@@ -175,7 +228,24 @@ export function AvailabilityHeader({
 						onDeletionPendingChange={onMeetingDeletionPendingChange}
 					/>
 				</div>
-			</Paper>
-		</div>
+
+				<EditModal
+					meetingData={meetingData}
+					isOpen={isEditModalOpen}
+					handleOpenChange={setIsEditModalOpen}
+					onDeleteRequest={() => {
+						setIsEditModalOpen(false);
+						setIsDeleteModalOpen(true);
+					}}
+				/>
+
+				<DeleteModal
+					meetingData={meetingData}
+					isOpen={isDeleteModalOpen}
+					handleOpenChange={setIsDeleteModalOpen}
+					isOwner={isOwner}
+				/>
+			</div>
+		</Paper>
 	);
 }
