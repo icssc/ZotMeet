@@ -210,48 +210,50 @@ function MeetingRow({
 				<p className="pointer-events-none whitespace-nowrap font-medium text-gray-400 text-xs uppercase tracking-wide">
 					{createdByLabel}
 				</p>
-				<IconButton
-					onClick={(e) => {
-						e.stopPropagation();
-						setAnchorEl(open ? null : e.currentTarget);
-					}}
-				>
-					<MoreVertical className="size-5 text-gray-500" />
-				</IconButton>
-
-				<Menu
-					anchorEl={anchorEl}
-					open={open}
-					onClose={() => setAnchorEl(null)}
-					transformOrigin={{ horizontal: "right", vertical: "top" }}
-					anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-				>
-					{isOwner && (
-						<MenuItem
-							disabled={isNudging}
-							onClick={async (e) => {
+				{isOwner && (
+					<>
+						<IconButton
+							onClick={(e) => {
 								e.stopPropagation();
-								setAnchorEl(null);
-								setIsNudging(true);
-								try {
-									const result = await nudgePendingMembers(meeting.id);
-									if (result.success) {
-										showSuccess(result.message);
-									} else {
-										showError(result.message);
-									}
-								} catch {
-									showError("Failed to send nudge. Please try again.");
-								} finally {
-									setIsNudging(false);
-								}
+								setAnchorEl(open ? null : e.currentTarget);
 							}}
 						>
-							<People className="mr-2 size-4" />
-							Nudge Members
-						</MenuItem>
-					)}
-				</Menu>
+							<MoreVertical className="size-5 text-gray-500" />
+						</IconButton>
+
+						<Menu
+							anchorEl={anchorEl}
+							open={open}
+							onClose={() => setAnchorEl(null)}
+							transformOrigin={{ horizontal: "right", vertical: "top" }}
+							anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+						>
+							<MenuItem
+								disabled={isNudging}
+								onClick={async (e) => {
+									e.stopPropagation();
+									setAnchorEl(null);
+									setIsNudging(true);
+									try {
+										const result = await nudgePendingMembers(meeting.id);
+										if (result.success) {
+											showSuccess(result.message);
+										} else {
+											showError(result.message);
+										}
+									} catch {
+										showError("Failed to send nudge. Please try again.");
+									} finally {
+										setIsNudging(false);
+									}
+								}}
+							>
+								<People className="mr-2 size-4" />
+								Nudge Members
+							</MenuItem>
+						</Menu>
+					</>
+				)}
 			</div>
 		</div>
 	);

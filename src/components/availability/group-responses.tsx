@@ -4,13 +4,13 @@ import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
-import { cloneDates } from "@/lib/availability/utils";
 import {
 	computeGroupMembersForRange,
 	type GroupMembersForRange,
 	type MemberRangeStatus,
 	statusForMember,
 } from "@/lib/availability/group-query";
+import { cloneDates } from "@/lib/availability/utils";
 import type { Member, SelectionStateType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -106,10 +106,15 @@ export function GroupResponses({
 	const { showSuccess, showError } = useSnackbar();
 	const [isNudging, setIsNudging] = useState(false);
 	const [cooldownUntil, setCooldownUntil] = useState<Date | null>(null);
-	const [cooldownRemaining, setCooldownRemaining] = useState<string | null>(null);
+	const [cooldownRemaining, setCooldownRemaining] = useState<string | null>(
+		null,
+	);
 
 	useEffect(() => {
-		if (!isOwner || pendingMembers.length === 0) return;
+		if (!isOwner || pendingMembers.length === 0) {
+			setCooldownUntil(null);
+			return;
+		}
 		getNudgeCooldown(meetingId).then(({ cooldownUntil: until }) => {
 			if (until) setCooldownUntil(new Date(until));
 		});
