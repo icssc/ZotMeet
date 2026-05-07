@@ -9,6 +9,13 @@ import { getExistingMeeting } from "@/server/data/meeting/queries";
 import { createNewNotification } from "@/server/data/user/queries";
 
 const NUDGE_COOLDOWN_MS = 45 * 60 * 1000;
+const buildMeetingAvailabilityPath = (meetingId: string) =>
+	`/availability/${meetingId}`;
+
+function nudgeRedirectFilter(meetingId: string) {
+	const meetingPath = buildMeetingAvailabilityPath(meetingId);
+	return sql`${notifications.redirect} LIKE ${`%${meetingPath}`}`;
+}
 
 export type NudgeState = {
 	success: boolean;
@@ -38,8 +45,7 @@ export async function nudgePendingMembers(
 		};
 	}
 
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-	const meetingLink = `${baseUrl}/availability/${meetingId}`;
+	const meetingPath = buildMeetingAvailabilityPath(meetingId);
 
 	const [lastNudge] = await db
 		.select({ createdAt: notifications.createdAt })
@@ -47,7 +53,7 @@ export async function nudgePendingMembers(
 		.where(
 			and(
 				eq(notifications.type, "Nudge"),
-				eq(notifications.redirect, meetingLink),
+				nudgeRedirectFilter(meetingId),
 				eq(notifications.createdBy, user.id),
 			),
 		)
@@ -101,14 +107,14 @@ export async function nudgePendingMembers(
 			meeting.title,
 			`Reminder: Please add your availability for "${meeting.title}".`,
 			"Nudge",
-			meetingLink,
+			meetingPath,
 			null,
 			user.id,
 			{
 				email: createInviteEmail({
 					title: `Reminder: Add your availability for "${meeting.title}"`,
 					message: `You haven't submitted your availability for "${meeting.title}" yet. Please add it so the group can find a time that works.`,
-					url: meetingLink,
+					url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}${meetingPath}`,
 				}),
 			},
 		);
@@ -126,16 +132,13 @@ export async function getNudgeCooldown(
 	const { user } = await getCurrentSession();
 	if (!user) return { cooldownUntil: null };
 
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-	const meetingLink = `${baseUrl}/availability/${meetingId}`;
-
 	const [lastNudge] = await db
 		.select({ createdAt: notifications.createdAt })
 		.from(notifications)
 		.where(
 			and(
 				eq(notifications.type, "Nudge"),
-				eq(notifications.redirect, meetingLink),
+				nudgeRedirectFilter(meetingId),
 				eq(notifications.createdBy, user.id),
 			),
 		)
