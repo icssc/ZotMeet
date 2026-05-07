@@ -355,6 +355,8 @@ export function Availability({
 								timezone={userTimezone}
 								currentPageAvailability={currentPageAvailability}
 								doesntNeedDay={doesntNeedDay}
+								meetingId={meetingData.id}
+								isOwner={!!user && meetingData.hostId === user.memberId}
 							/>
 						</Paper>
 					</div>
