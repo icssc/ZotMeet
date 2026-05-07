@@ -2,7 +2,7 @@ import { getTimestampFromBlockIndex } from "@/lib/availability/utils";
 import type { SelectionStateType } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
 
-export type MemberRangeStatus = "available" | "if-needed" | "absent";
+export type MemberRangeStatus = "available" | "if-needed" | "unavailable";
 
 export interface GroupMembersForRange {
 	readonly availableMemberIds: ReadonlySet<string>;
@@ -15,7 +15,7 @@ export function statusForMember(
 ): MemberRangeStatus {
 	if (groups.availableMemberIds.has(memberId)) return "available";
 	if (groups.coveredMemberIds.has(memberId)) return "if-needed";
-	return "absent";
+	return "unavailable";
 }
 
 function intersect(a: Set<string>, b: Set<string>): Set<string> {

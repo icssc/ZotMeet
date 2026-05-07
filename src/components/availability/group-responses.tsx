@@ -23,7 +23,7 @@ const EN_DASH = "\u2013";
 const RESPONDER_CHIP_SX: Record<MemberRangeStatus, SxProps<Theme>> = {
 	available: { maxWidth: "100%" },
 	"if-needed": { maxWidth: "100%", fontStyle: "italic" },
-	absent: { maxWidth: "100%", textDecoration: "line-through" },
+	unavailable: { maxWidth: "100%", textDecoration: "line-through" },
 };
 
 /**
@@ -176,8 +176,9 @@ export function GroupResponses({
 	}, [groups, respondedMembers]);
 
 	const availableCount = activeRange
-		? respondedMembers.filter((m) => memberStatus.get(m.memberId) !== "absent")
-				.length
+		? respondedMembers.filter(
+				(m) => memberStatus.get(m.memberId) !== "unavailable",
+			).length
 		: respondedMembers.length;
 
 	const blockInfoString = activeRange
