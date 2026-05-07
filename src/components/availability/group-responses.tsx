@@ -21,8 +21,8 @@ const EN_DASH = "\u2013";
 
 const RESPONDER_CHIP_CLASS: Record<MemberRangeStatus, string> = {
 	available: "",
-	"if-needed": "italic",
-	unavailable: "line-through",
+	"if-needed": "[&_.MuiChip-label]:italic",
+	unavailable: "[&_.MuiChip-label]:line-through",
 };
 
 /**
