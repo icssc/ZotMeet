@@ -137,7 +137,6 @@ export function Availability({
 		googleCalendarEvents,
 		members,
 		pendingMembers,
-		anchorNormalizedDate,
 		importGridIsoSet,
 		doesntNeedDay,
 		currentPageAvailability,
@@ -354,9 +353,7 @@ export function Availability({
 								members={members}
 								pendingMembers={pendingMembers}
 								timezone={userTimezone}
-								anchorNormalizedDate={anchorNormalizedDate}
 								currentPageAvailability={currentPageAvailability}
-								availabilityTimeBlocks={availabilityTimeBlocks}
 								doesntNeedDay={doesntNeedDay}
 							/>
 						</Paper>

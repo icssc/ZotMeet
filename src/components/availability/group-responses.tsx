@@ -70,12 +70,10 @@ interface GroupResponsesProps {
 	pendingMembers: Member[];
 	fromTime: number;
 	timezone: string;
-	anchorNormalizedDate: Date[];
 	currentPageAvailability: {
 		availabilities: (ZotDate | null)[];
 		ifNeeded: (ZotDate | null)[];
 	};
-	availabilityTimeBlocks: number[];
 	doesntNeedDay: boolean;
 }
 
