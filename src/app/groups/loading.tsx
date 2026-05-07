@@ -1,5 +1,3 @@
-"use client";
-
 import { Box, Divider } from "@mui/material";
 import {
 	FilterChipSkeletonRow,

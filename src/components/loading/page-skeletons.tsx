@@ -1,5 +1,3 @@
-"use client";
-
 import { Box, Skeleton, type SxProps, type Theme } from "@mui/material";
 import type React from "react";
 
