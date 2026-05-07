@@ -50,6 +50,15 @@ function rangesEqual(
 	);
 }
 
+function isInsideInteractiveSurface(el: Element | null): boolean {
+	if (!el) return false;
+	return Boolean(
+		el.closest("[data-availability-grid]") ||
+			el.closest("[data-availability-sidebar]") ||
+			el.closest('[role="presentation"]'),
+	);
+}
+
 /**
  * Owns the interaction half of the availability feature:
  * - commit dispatcher (personal paint / schedule replace / group lock-unlock),
@@ -140,6 +149,19 @@ export function useGridInteraction({
 		setCommittedRange(range);
 		setIsMobileDrawerOpen(true);
 	};
+
+	useEffect(() => {
+		if (availabilityView !== "group") return;
+		const onDocPointerDown = (e: PointerEvent) => {
+			if (isInsideInteractiveSurface(e.target as Element | null)) return;
+			if (useAvailabilityStore.getState().committedRange === undefined) return;
+			resetSelection();
+			setIsMobileDrawerOpen(false);
+		};
+		document.addEventListener("pointerdown", onDocPointerDown, true);
+		return () =>
+			document.removeEventListener("pointerdown", onDocPointerDown, true);
+	}, [availabilityView, resetSelection, setIsMobileDrawerOpen]);
 
 	const handlers = useGridDragSelection({
 		lockToStartRow: availabilityView === "schedule",

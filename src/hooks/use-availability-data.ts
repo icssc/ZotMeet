@@ -132,7 +132,6 @@ export interface UseAvailabilityDataResult {
 	googleCalendarEvents: GoogleCalendarEvent[];
 	members: Member[];
 	pendingMembers: Member[];
-	anchorNormalizedDate: Date[];
 	importGridIsoSet: ReadonlySet<string>;
 	doesntNeedDay: boolean;
 	currentPageAvailability: {
@@ -364,7 +363,6 @@ export function useAvailabilityData({
 		googleCalendarEvents,
 		members,
 		pendingMembers,
-		anchorNormalizedDate,
 		importGridIsoSet,
 		doesntNeedDay,
 		currentPageAvailability,

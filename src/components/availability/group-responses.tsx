@@ -4,8 +4,13 @@ import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
-import { computeGroupMembersForRange } from "@/lib/availability/group-query";
-import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
+import { cloneDates } from "@/lib/availability/utils";
+import {
+	computeGroupMembersForRange,
+	type GroupMembersForRange,
+	type MemberRangeStatus,
+	statusForMember,
+} from "@/lib/availability/group-query";
 import type { Member, SelectionStateType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -13,9 +18,18 @@ import {
 	getNudgeCooldown,
 	nudgePendingMembers,
 } from "@/server/actions/meeting/nudge/action";
-import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+import {
+	useActiveSelectionRange,
+	useAvailabilityStore,
+} from "@/store/useAvailabilityStore";
 
 const EN_DASH = "\u2013";
+
+const RESPONDER_CHIP_CLASS: Record<MemberRangeStatus, string> = {
+	available: "",
+	"if-needed": "[&_.MuiChip-label]:italic",
+	unavailable: "[&_.MuiChip-label]:line-through",
+};
 
 /**
  * Formats a selection range for display in the sidebar. The range is a
@@ -63,16 +77,15 @@ function formatCooldown(ms: number): string {
 
 interface GroupResponsesProps {
 	availabilityDates: ZotDate[];
+	ifNeededDates: ZotDate[];
 	members: Member[];
 	pendingMembers: Member[];
 	fromTime: number;
 	timezone: string;
-	anchorNormalizedDate: Date[];
 	currentPageAvailability: {
 		availabilities: (ZotDate | null)[];
 		ifNeeded: (ZotDate | null)[];
 	};
-	availabilityTimeBlocks: number[];
 	doesntNeedDay: boolean;
 	meetingId: string;
 	isOwner: boolean;
@@ -80,6 +93,7 @@ interface GroupResponsesProps {
 
 export function GroupResponses({
 	availabilityDates,
+	ifNeededDates,
 	fromTime,
 	members,
 	pendingMembers,
@@ -92,9 +106,7 @@ export function GroupResponses({
 	const { showSuccess, showError } = useSnackbar();
 	const [isNudging, setIsNudging] = useState(false);
 	const [cooldownUntil, setCooldownUntil] = useState<Date | null>(null);
-	const [cooldownRemaining, setCooldownRemaining] = useState<string | null>(
-		null,
-	);
+	const [cooldownRemaining, setCooldownRemaining] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (!isOwner || pendingMembers.length === 0) return;
@@ -142,20 +154,26 @@ export function GroupResponses({
 		}
 	};
 
-	const [_newBlocks, newAvailDates] = newZonedPageAvailAndDates(
-		currentPageAvailability.availabilities,
-		availabilityDates,
-		doesntNeedDay,
+	const newAvailDates = useMemo(
+		() =>
+			cloneDates(
+				currentPageAvailability.availabilities,
+				availabilityDates,
+				doesntNeedDay,
+			),
+		[currentPageAvailability.availabilities, availabilityDates, doesntNeedDay],
 	);
-	const [_newIfNeededBlocks, newIfNeededDates] = newZonedPageAvailAndDates(
-		currentPageAvailability.ifNeeded,
-		availabilityDates,
-		doesntNeedDay,
+	const newIfNeededDates = useMemo(
+		() =>
+			cloneDates(
+				currentPageAvailability.ifNeeded,
+				ifNeededDates,
+				doesntNeedDay,
+			),
+		[currentPageAvailability.ifNeeded, ifNeededDates, doesntNeedDay],
 	);
 
 	const {
-		draftRange,
-		committedRange,
 		isMobileDrawerOpen,
 		setIsMobileDrawerOpen,
 		setHoveredMember,
@@ -166,8 +184,6 @@ export function GroupResponses({
 		setEnabled: setShowBestTimes,
 	} = useAvailabilityStore(
 		useShallow((state) => ({
-			draftRange: state.draftRange,
-			committedRange: state.committedRange,
 			isMobileDrawerOpen: state.isMobileDrawerOpen,
 			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
 			setHoveredMember: state.setHoveredMember,
@@ -179,7 +195,7 @@ export function GroupResponses({
 		})),
 	);
 
-	const activeRange = draftRange ?? committedRange;
+	const activeRange = useActiveSelectionRange();
 
 	const handleClearSelected = useCallback(() => {
 		setSelectedMember([]);
@@ -199,42 +215,48 @@ export function GroupResponses({
 		[toggleSelectedMember],
 	);
 
-	const availableMembers = useMemo(() => {
-		if (!activeRange) return [] as Member[];
-		const { availableMemberIds } = computeGroupMembersForRange({
+	const respondedMembers = useMemo(() => {
+		const pendingMemberIds = new Set(pendingMembers.map((m) => m.memberId));
+		return members.filter((member) => !pendingMemberIds.has(member.memberId));
+	}, [members, pendingMembers]);
+
+	const groups = useMemo<GroupMembersForRange | null>(() => {
+		if (!activeRange) return null;
+		return computeGroupMembersForRange({
 			range: activeRange,
 			availabilityDates: newAvailDates,
 			ifNeededDates: newIfNeededDates,
 			fromTimeMinutes: fromTime,
 			timeZone: timezone,
 		});
-		const byId = new Map(members.map((m) => [m.memberId, m]));
-		return availableMemberIds
-			.map((id) => byId.get(id))
-			.filter((m): m is Member => Boolean(m));
-	}, [
-		activeRange,
-		newAvailDates,
-		newIfNeededDates,
-		fromTime,
-		timezone,
-		members,
-	]);
+	}, [activeRange, newAvailDates, newIfNeededDates, fromTime, timezone]);
 
-	const respondedMembers = useMemo(() => {
-		const pendingMemberIds = new Set(pendingMembers.map((m) => m.memberId));
-		return members.filter((member) => !pendingMemberIds.has(member.memberId));
-	}, [members, pendingMembers]);
+	const memberStatus = useMemo<ReadonlyMap<string, MemberRangeStatus>>(() => {
+		if (!groups) return new Map();
+		const map = new Map<string, MemberRangeStatus>();
+		for (const m of respondedMembers) {
+			map.set(m.memberId, statusForMember(m.memberId, groups));
+		}
+		return map;
+	}, [groups, respondedMembers]);
+
+	const availableCount = activeRange
+		? respondedMembers.filter(
+				(m) => memberStatus.get(m.memberId) !== "unavailable",
+			).length
+		: respondedMembers.length;
 
 	const blockInfoString = activeRange
 		? formatRangeLabel(activeRange, newAvailDates)
 		: "Select a cell to view";
 
 	return (
-		<div className="flex min-h-0 min-w-0 flex-1 flex-col lg:shrink-0">
+		<div
+			data-availability-sidebar=""
+			className="flex min-h-0 min-w-0 flex-1 flex-col lg:shrink-0"
+		>
 			<div
 				className={cn(
-					// Cap height so the flex row does not grow with responder count (see availability layout).
 					"fixed bottom-0 h-96 max-h-[85dvh] w-full min-w-0 translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:h-full lg:max-h-none lg:min-h-0 lg:w-full lg:flex-1 lg:shrink-0 lg:translate-y-0 lg:self-stretch lg:overflow-y-auto lg:overscroll-y-contain lg:rounded-l-xl lg:bg-opacity-50",
 					isMobileDrawerOpen && "translate-y-0",
 				)}
@@ -291,43 +313,39 @@ export function GroupResponses({
 					<div>
 						<h2 className="font-medium text-xl">Responders</h2>
 						<Typography variant="caption" color="textSecondary">
-							Available (
-							{activeRange ? availableMembers.length : respondedMembers.length})
+							Available ({availableCount})
 						</Typography>
 					</div>
 
 					<ul className="mt-3 flex flex-wrap gap-2">
-						{respondedMembers.map((member) => (
-							<Chip
-								key={member.memberId}
-								clickable
-								icon={
-									<Avatar
-										alt={member.displayName}
-										src={member.profilePicture ?? undefined}
-										slotProps={{ img: { referrerPolicy: "no-referrer" } }}
-										sx={{ width: 24, height: 24, fontSize: 12 }}
-									/>
-								}
-								label={member.displayName}
-								color={
-									selectedMembers.includes(member.memberId)
-										? "primary"
-										: "default"
-								}
-								variant="outlined"
-								sx={
-									activeRange
-										? availableMembers.includes(member)
-											? { maxWidth: "100%" }
-											: { textDecoration: "line-through", maxWidth: "100%" }
-										: { maxWidth: "100%" }
-								}
-								onMouseEnter={() => handleMemberHover(member.memberId)}
-								onMouseLeave={() => handleMemberHover(null)}
-								onClick={() => handleMemberSelect(member.memberId)}
-							/>
-						))}
+						{respondedMembers.map((member) => {
+							const status = memberStatus.get(member.memberId) ?? "available";
+							return (
+								<Chip
+									key={member.memberId}
+									clickable
+									icon={
+										<Avatar
+											alt={member.displayName}
+											src={member.profilePicture ?? undefined}
+											slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+											sx={{ width: 24, height: 24, fontSize: 12 }}
+										/>
+									}
+									label={member.displayName}
+									color={
+										selectedMembers.includes(member.memberId)
+											? "primary"
+											: "default"
+									}
+									variant="outlined"
+									className={cn("max-w-full", RESPONDER_CHIP_CLASS[status])}
+									onMouseEnter={() => handleMemberHover(member.memberId)}
+									onMouseLeave={() => handleMemberHover(null)}
+									onClick={() => handleMemberSelect(member.memberId)}
+								/>
+							);
+						})}
 					</ul>
 					<div className="mt-4 ml-auto">
 						<Button

@@ -137,7 +137,6 @@ export function Availability({
 		googleCalendarEvents,
 		members,
 		pendingMembers,
-		anchorNormalizedDate,
 		importGridIsoSet,
 		doesntNeedDay,
 		currentPageAvailability,
@@ -283,7 +282,7 @@ export function Availability({
 						<div className="shrink-0 lg:hidden">
 							<AvailabilityActions {...actionsProps} />
 						</div>
-						<table className="w-full table-fixed">
+						<table data-availability-grid="" className="w-full table-fixed">
 							<AvailabilityTableHeader
 								currentPageAvailability={currentPageAvailability}
 								meetingType={meetingData.meetingType}
@@ -349,13 +348,12 @@ export function Availability({
 						>
 							<GroupResponses
 								availabilityDates={availabilityDates}
+								ifNeededDates={ifNeededDates}
 								fromTime={fromTimeMinutes}
 								members={members}
 								pendingMembers={pendingMembers}
 								timezone={userTimezone}
-								anchorNormalizedDate={anchorNormalizedDate}
 								currentPageAvailability={currentPageAvailability}
-								availabilityTimeBlocks={availabilityTimeBlocks}
 								doesntNeedDay={doesntNeedDay}
 								meetingId={meetingData.id}
 								isOwner={!!user && meetingData.hostId === user.memberId}

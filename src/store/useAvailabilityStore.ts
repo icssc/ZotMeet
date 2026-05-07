@@ -242,3 +242,6 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 						},
 		}),
 }));
+
+export const useActiveSelectionRange = (): SelectionStateType | undefined =>
+	useAvailabilityStore((s) => s.draftRange ?? s.committedRange ?? s.hoverRange);
