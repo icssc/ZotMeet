@@ -1,6 +1,18 @@
 import "server-only";
 
-import { and, desc, eq, gte, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import {
+	and,
+	asc,
+	countDistinct,
+	desc,
+	eq,
+	gte,
+	inArray,
+	isNull,
+	ne,
+	or,
+	sql,
+} from "drizzle-orm";
 import { db } from "@/db";
 import {
 	availabilities,
