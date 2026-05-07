@@ -9,6 +9,7 @@ import {
 	gte,
 	inArray,
 	isNull,
+	lte,
 	ne,
 	or,
 	sql,
@@ -219,10 +220,13 @@ export async function getScheduledMeetingsNeedingReminder() {
 			and(
 				isNull(scheduledMeetings.reminderSentAt),
 				eq(meetings.archived, false),
-				// Only consider today and the near future to keep the scan small
 				gte(
 					scheduledMeetings.scheduledDate,
 					sql`CURRENT_DATE - INTERVAL '1 day'`,
+				),
+				lte(
+					scheduledMeetings.scheduledDate,
+					sql`CURRENT_DATE + INTERVAL '1 day'`,
 				),
 			),
 		);

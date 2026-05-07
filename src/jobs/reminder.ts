@@ -12,5 +12,9 @@ export const handler = async () => {
 	});
 
 	const body = await res.json();
-	console.log(`Reminder cron: status=${res.status}`, body);
+	if (!res.ok) {
+		console.error(`Reminder cron failed: status=${res.status}`, body);
+	} else {
+		console.log(`Reminder cron: status=${res.status}`, body);
+	}
 };
