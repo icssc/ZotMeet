@@ -9,7 +9,7 @@ import {
 	type MemberRangeStatus,
 	statusForMember,
 } from "@/lib/availability/group-query";
-import { newZonedPageAvailAndDates } from "@/lib/availability/utils";
+import { cloneDates } from "@/lib/availability/utils";
 import type { Member, SelectionStateType } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import { ZotDate } from "@/lib/zotdate";
@@ -89,20 +89,20 @@ export function GroupResponses({
 }: GroupResponsesProps) {
 	const newAvailDates = useMemo(
 		() =>
-			newZonedPageAvailAndDates(
+			cloneDates(
 				currentPageAvailability.availabilities,
 				availabilityDates,
 				doesntNeedDay,
-			)[1],
+			),
 		[currentPageAvailability.availabilities, availabilityDates, doesntNeedDay],
 	);
 	const newIfNeededDates = useMemo(
 		() =>
-			newZonedPageAvailAndDates(
+			cloneDates(
 				currentPageAvailability.ifNeeded,
 				ifNeededDates,
 				doesntNeedDay,
-			)[1],
+			),
 		[currentPageAvailability.ifNeeded, ifNeededDates, doesntNeedDay],
 	);
 

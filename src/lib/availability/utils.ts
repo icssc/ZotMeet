@@ -139,35 +139,27 @@ export const spacerBeforeDate = (
 	});
 };
 
-export const newZonedPageAvailAndDates = (
+function computeSpillover(
 	currentPageAvailability: (ZotDate | null)[],
-	availabilityDates: ZotDate[] | null,
 	doesntNeedDay: boolean,
-): [(ZotDate | null)[], ZotDate[]] => {
-	const newBlocks: (ZotDate | null)[] = currentPageAvailability.map(
-		(date, index) => {
-			if (date) {
-				return new ZotDate(date);
-			}
-			return currentPageAvailability[index];
-		},
-	);
+): { insertAtIndex: number; day: ZotDate } | null {
+	if (doesntNeedDay) return null;
 
 	let dayIndex = currentPageAvailability.length - 1;
 	while (dayIndex >= 0 && currentPageAvailability[dayIndex] == null) {
 		dayIndex -= 1;
 	}
-	let newAvailDates: ZotDate[] = [];
-	if (availabilityDates) {
-		newAvailDates = availabilityDates.map((date) => new ZotDate(date));
-	}
+	if (dayIndex < 0) return null;
 
-	if (!doesntNeedDay && dayIndex >= 0) {
-		const prevDay = currentPageAvailability[dayIndex];
-		if (!prevDay) return [newBlocks, newAvailDates];
-		const newDay = new Date(prevDay.day);
-		newDay.setDate(newDay.getDate() + 1);
-		newBlocks[dayIndex + 1] = new ZotDate(
+	const prevDay = currentPageAvailability[dayIndex];
+	if (!prevDay) return null;
+
+	const newDay = new Date(prevDay.day);
+	newDay.setDate(newDay.getDate() + 1);
+
+	return {
+		insertAtIndex: dayIndex + 1,
+		day: new ZotDate(
 			newDay,
 			prevDay.earliestTime,
 			prevDay.latestTime,
@@ -175,23 +167,32 @@ export const newZonedPageAvailAndDates = (
 			[],
 			{},
 			prevDay.ianaTimeZone,
-		);
-		if (availabilityDates) {
-			newAvailDates.push(
-				new ZotDate(
-					newDay,
-					prevDay.earliestTime,
-					prevDay.latestTime,
-					false,
-					[],
-					{},
-					prevDay.ianaTimeZone,
-				),
-			);
-		}
-	}
-	return [newBlocks, newAvailDates];
-};
+		),
+	};
+}
+
+export function cloneBlocks(
+	currentPageAvailability: (ZotDate | null)[],
+	doesntNeedDay: boolean,
+): (ZotDate | null)[] {
+	const newBlocks: (ZotDate | null)[] = currentPageAvailability.map((date) =>
+		date ? new ZotDate(date) : null,
+	);
+	const spillover = computeSpillover(currentPageAvailability, doesntNeedDay);
+	if (spillover) newBlocks[spillover.insertAtIndex] = spillover.day;
+	return newBlocks;
+}
+
+export function cloneDates(
+	currentPageAvailability: (ZotDate | null)[],
+	availabilityDates: ZotDate[],
+	doesntNeedDay: boolean,
+): ZotDate[] {
+	const newDates = availabilityDates.map((date) => new ZotDate(date));
+	const spillover = computeSpillover(currentPageAvailability, doesntNeedDay);
+	if (spillover) newDates.push(spillover.day);
+	return newDates;
+}
 
 export const formatTimeWithHoursAndMins = (time: string): string => {
 	const [hourStr] = time.split(":");
