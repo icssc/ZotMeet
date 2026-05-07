@@ -141,6 +141,22 @@ export function useGridInteraction({
 		setIsMobileDrawerOpen(true);
 	};
 
+	useEffect(() => {
+		if (availabilityView !== "group") return;
+		const onDocPointerDown = (e: PointerEvent) => {
+			const target = e.target as HTMLElement | null;
+			const insideGrid = !!target?.closest?.("table");
+			const insideSidebar = !!target?.closest?.("[data-availability-sidebar]");
+			if (insideGrid || insideSidebar) return;
+			if (useAvailabilityStore.getState().committedRange === undefined) return;
+			resetSelection();
+			setIsMobileDrawerOpen(false);
+		};
+		document.addEventListener("pointerdown", onDocPointerDown, true);
+		return () =>
+			document.removeEventListener("pointerdown", onDocPointerDown, true);
+	}, [availabilityView, resetSelection, setIsMobileDrawerOpen]);
+
 	const handlers = useGridDragSelection({
 		lockToStartRow: availabilityView === "schedule",
 		onDragStart: () => {

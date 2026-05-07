@@ -2,6 +2,22 @@ import { getTimestampFromBlockIndex } from "@/lib/availability/utils";
 import type { SelectionStateType } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
 
+export type MemberRangeStatus = "available" | "if-needed" | "absent";
+
+export interface GroupMembersForRange {
+	readonly availableMemberIds: ReadonlySet<string>;
+	readonly coveredMemberIds: ReadonlySet<string>;
+}
+
+export function statusForMember(
+	memberId: string,
+	groups: GroupMembersForRange,
+): MemberRangeStatus {
+	if (groups.availableMemberIds.has(memberId)) return "available";
+	if (groups.coveredMemberIds.has(memberId)) return "if-needed";
+	return "absent";
+}
+
 function intersect(a: Set<string>, b: Set<string>): Set<string> {
 	const out = new Set<string>();
 	for (const id of a) if (b.has(id)) out.add(id);
@@ -14,12 +30,12 @@ export function computeGroupMembersForRange(args: {
 	ifNeededDates: ZotDate[];
 	fromTimeMinutes: number;
 	timeZone: string;
-}): { availableMemberIds: string[]; ifNeededMemberIds: string[] } {
+}): GroupMembersForRange {
 	const { range, availabilityDates, ifNeededDates, fromTimeMinutes, timeZone } =
 		args;
 
 	let availableAcc: Set<string> | null = null;
-	let ifNeededAcc: Set<string> | null = null;
+	let coveredAcc: Set<string> | null = null;
 
 	for (
 		let dateIndex = range.earlierDateIndex;
@@ -30,7 +46,7 @@ export function computeGroupMembersForRange(args: {
 		const ifNeededDay = ifNeededDates[dateIndex];
 		if (!availableDay) {
 			availableAcc = new Set();
-			ifNeededAcc = new Set();
+			coveredAcc = new Set();
 			continue;
 		}
 
@@ -52,20 +68,24 @@ export function computeGroupMembersForRange(args: {
 			const ifNeededForCell = new Set<string>(
 				timestamp ? (ifNeededDay?.groupAvailability[timestamp] ?? []) : [],
 			);
+			const coveredForCell = new Set<string>([
+				...availableForCell,
+				...ifNeededForCell,
+			]);
 
 			availableAcc =
 				availableAcc === null
 					? availableForCell
 					: intersect(availableAcc, availableForCell);
-			ifNeededAcc =
-				ifNeededAcc === null
-					? ifNeededForCell
-					: intersect(ifNeededAcc, ifNeededForCell);
+			coveredAcc =
+				coveredAcc === null
+					? coveredForCell
+					: intersect(coveredAcc, coveredForCell);
 		}
 	}
 
 	return {
-		availableMemberIds: [...(availableAcc ?? new Set<string>())].sort(),
-		ifNeededMemberIds: [...(ifNeededAcc ?? new Set<string>())].sort(),
+		availableMemberIds: availableAcc ?? new Set<string>(),
+		coveredMemberIds: coveredAcc ?? new Set<string>(),
 	};
 }

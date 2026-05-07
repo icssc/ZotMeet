@@ -349,6 +349,7 @@ export function Availability({
 						>
 							<GroupResponses
 								availabilityDates={availabilityDates}
+								ifNeededDates={ifNeededDates}
 								fromTime={fromTimeMinutes}
 								members={members}
 								pendingMembers={pendingMembers}
