@@ -135,6 +135,8 @@ export function GroupResponses({
 			} else {
 				showError(result.message);
 			}
+		} catch {
+			showError("Failed to send nudge. Please try again.");
 		} finally {
 			setIsNudging(false);
 		}
