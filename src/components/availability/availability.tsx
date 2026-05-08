@@ -279,6 +279,8 @@ export function Availability({
 			timezone: userTimezone,
 			currentPageAvailability,
 			doesntNeedDay,
+			meetingId: meetingData.id,
+			isOwner: isMeetingOwner,
 		}),
 		[
 			availabilityDates,
@@ -289,6 +291,8 @@ export function Availability({
 			userTimezone,
 			currentPageAvailability,
 			doesntNeedDay,
+			meetingData.id,
+			isMeetingOwner,
 		],
 	);
 
@@ -409,7 +413,6 @@ export function Availability({
 						<div className="lg:hidden">
 							<GroupResponses {...groupResponsesProps} />
 						</div>
-
 						<div className="block sm:hidden">
 							<MobileGroupResponses
 								isOwner={isMeetingOwner}
@@ -425,6 +428,7 @@ export function Availability({
 						</div>
 					</div>
 				)}
+
 				{availabilityView === "personal" && (
 					<div>
 						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
@@ -443,13 +447,13 @@ export function Availability({
 								/>
 							</Paper>
 						</div>
-
 						<div className="block sm:hidden">
 							<MobilePersonalAvailabilitySidebar />
 						</div>
 					</div>
 				)}
 			</div>
+
 			<InviteMembersDialog
 				open={isInviteDialogOpen}
 				onOpenChange={setIsInviteDialogOpen}

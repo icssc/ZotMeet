@@ -43,6 +43,7 @@ import { copyTextToClipboard } from "@/lib/clipboard/utils";
 import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
 import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import { updateMemberRole } from "@/server/actions/group/update-member-role/action";
+import { nudgePendingMembers } from "@/server/actions/meeting/nudge/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
 import { GroupSettingsForm } from "./group-settings-form";
 
@@ -153,11 +154,13 @@ function MeetingRow({
 	status: "actionRequired" | "upcoming" | null;
 }) {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const [isNudging, setIsNudging] = useState(false);
+	const { showSuccess, showError } = useSnackbar();
 	const open = Boolean(anchorEl);
-	const createdByLabel =
-		meeting.hostId === currentMemberId
-			? "Created by You"
-			: `Created by ${meeting.hostName}`;
+	const isOwner = meeting.hostId === currentMemberId;
+	const createdByLabel = isOwner
+		? "Created by You"
+		: `Created by ${meeting.hostName}`;
 
 	return (
 		<div className="relative flex items-center justify-between rounded-xl border-gray-200 border-b px-4 py-4 transition-colors hover:bg-primary/5">
@@ -207,32 +210,50 @@ function MeetingRow({
 				<p className="pointer-events-none whitespace-nowrap font-medium text-gray-400 text-xs uppercase tracking-wide">
 					{createdByLabel}
 				</p>
-				<IconButton
-					onClick={(e) => {
-						e.stopPropagation();
-						setAnchorEl(open ? null : e.currentTarget);
-					}}
-				>
-					<MoreVertical className="size-5 text-gray-500" />
-				</IconButton>
+				{isOwner && (
+					<>
+						<IconButton
+							onClick={(e) => {
+								e.stopPropagation();
+								setAnchorEl(open ? null : e.currentTarget);
+							}}
+						>
+							<MoreVertical className="size-5 text-gray-500" />
+						</IconButton>
 
-				<Menu
-					anchorEl={anchorEl}
-					open={open}
-					onClose={() => setAnchorEl(null)}
-					transformOrigin={{ horizontal: "right", vertical: "top" }}
-					anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-				>
-					<MenuItem
-						onClick={(e) => {
-							e.stopPropagation();
-							setAnchorEl(null);
-						}}
-					>
-						<People className="mr-2 size-4" />
-						Nudge Members
-					</MenuItem>
-				</Menu>
+						<Menu
+							anchorEl={anchorEl}
+							open={open}
+							onClose={() => setAnchorEl(null)}
+							transformOrigin={{ horizontal: "right", vertical: "top" }}
+							anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+						>
+							<MenuItem
+								disabled={isNudging}
+								onClick={async (e) => {
+									e.stopPropagation();
+									setAnchorEl(null);
+									setIsNudging(true);
+									try {
+										const result = await nudgePendingMembers(meeting.id);
+										if (result.success) {
+											showSuccess(result.message);
+										} else {
+											showError(result.message);
+										}
+									} catch {
+										showError("Failed to send nudge. Please try again.");
+									} finally {
+										setIsNudging(false);
+									}
+								}}
+							>
+								<People className="mr-2 size-4" />
+								Nudge Members
+							</MenuItem>
+						</Menu>
+					</>
+				)}
 			</div>
 		</div>
 	);
