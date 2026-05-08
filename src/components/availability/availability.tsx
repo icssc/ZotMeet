@@ -272,24 +272,22 @@ export function Availability({
 	const groupResponsesProps = useMemo(
 		() => ({
 			availabilityDates,
+			ifNeededDates,
 			fromTime: fromTimeMinutes,
 			members,
 			pendingMembers,
 			timezone: userTimezone,
-			anchorNormalizedDate,
 			currentPageAvailability,
-			availabilityTimeBlocks,
 			doesntNeedDay,
 		}),
 		[
 			availabilityDates,
+			ifNeededDates,
 			fromTimeMinutes,
 			members,
 			pendingMembers,
 			userTimezone,
-			anchorNormalizedDate,
 			currentPageAvailability,
-			availabilityTimeBlocks,
 			doesntNeedDay,
 		],
 	);
