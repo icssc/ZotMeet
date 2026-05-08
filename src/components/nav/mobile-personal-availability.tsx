@@ -7,21 +7,8 @@ import {
 	Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import type { Dispatch, SetStateAction } from "react";
-import type { PaintMode } from "@/lib/availability/paint-selection";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { PERSONAL_AVAILABILITY_OPTIONS } from "./personal-availability-options";
-
-export interface MobilePersonalAvailabilitySidebarProps {
-	meetingId: string;
-	userTimezone: string;
-	importGridIsoSet: ReadonlySet<string>;
-	canImport: boolean;
-	onImportSlots: (slots: {
-		meetingAvailabilities: string[];
-		ifNeededAvailabilities: string[];
-	}) => void;
-}
 
 export function MobilePersonalAvailabilitySidebar() {
 	const paintMode = useAvailabilityStore((s) => s.paintMode);

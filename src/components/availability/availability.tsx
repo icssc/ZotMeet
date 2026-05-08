@@ -29,6 +29,7 @@ import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
+import { useAppShellUi } from "../nav/mui-app-shell";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
 
@@ -53,11 +54,10 @@ export function Availability({
 
 	// View + paint mode live in the store (paint mode is reset atomically in
 	// `setAvailabilityView`, so it cannot drift across view switches).
-	const { availabilityView, paintMode, setPaintMode } = useAvailabilityStore(
+	const { availabilityView, paintMode } = useAvailabilityStore(
 		useShallow((state) => ({
 			availabilityView: state.availabilityView,
 			paintMode: state.paintMode,
-			setPaintMode: state.setPaintMode,
 		})),
 	);
 
@@ -98,8 +98,16 @@ export function Availability({
 	);
 
 	const router = useRouter();
+	const { setShowBottomNav } = useAppShellUi();
 
 	const isMobile = useIsMobile();
+	useEffect(() => {
+		setShowBottomNav(false);
+		return () => {
+			setShowBottomNav(true);
+		};
+	}, [setShowBottomNav]);
+
 	useEffect(() => {
 		setItemsPerPage(isMobile ? 2 : 5);
 	}, [isMobile, setItemsPerPage]);
@@ -448,13 +456,7 @@ export function Availability({
 						</div>
 
 						<div className="block sm:hidden">
-							<MobilePersonalAvailabilitySidebar
-								meetingId={meetingData.id}
-								userTimezone={userTimezone}
-								importGridIsoSet={importGridIsoSet}
-								canImport={Boolean(user?.memberId)}
-								onImportSlots={handleImportSlotsFromMeeting}
-							/>
+							<MobilePersonalAvailabilitySidebar />
 						</div>
 					</div>
 				)}
