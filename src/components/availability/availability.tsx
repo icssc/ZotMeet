@@ -451,12 +451,6 @@ export function Availability({
 							<MobilePersonalAvailabilitySidebar
 								meetingId={meetingData.id}
 								userTimezone={userTimezone}
-								availability={paintMode}
-								setAvailability={(next) =>
-									setPaintMode(
-										typeof next === "function" ? next(paintMode) : next,
-									)
-								}
 								importGridIsoSet={importGridIsoSet}
 								canImport={Boolean(user?.memberId)}
 								onImportSlots={handleImportSlotsFromMeeting}

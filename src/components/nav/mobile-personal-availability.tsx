@@ -9,13 +9,12 @@ import {
 import { alpha } from "@mui/material/styles";
 import type { Dispatch, SetStateAction } from "react";
 import type { PaintMode } from "@/lib/availability/paint-selection";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { PERSONAL_AVAILABILITY_OPTIONS } from "./personal-availability-options";
 
 export interface MobilePersonalAvailabilitySidebarProps {
 	meetingId: string;
 	userTimezone: string;
-	availability: PaintMode;
-	setAvailability: Dispatch<SetStateAction<PaintMode>>;
 	importGridIsoSet: ReadonlySet<string>;
 	canImport: boolean;
 	onImportSlots: (slots: {
@@ -24,10 +23,10 @@ export interface MobilePersonalAvailabilitySidebarProps {
 	}) => void;
 }
 
-export function MobilePersonalAvailabilitySidebar({
-	availability,
-	setAvailability,
-}: MobilePersonalAvailabilitySidebarProps) {
+export function MobilePersonalAvailabilitySidebar() {
+	const paintMode = useAvailabilityStore((s) => s.paintMode);
+	const setPaintMode = useAvailabilityStore((s) => s.setPaintMode);
+
 	return (
 		<div className="pointer-events-none fixed inset-x-0 bottom-0 z-[1001] flex justify-center px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
 			<Paper
@@ -43,8 +42,8 @@ export function MobilePersonalAvailabilitySidebar({
 			>
 				<ToggleButtonGroup
 					exclusive
-					value={availability}
-					onChange={(_, val) => val && setAvailability(val)}
+					value={paintMode}
+					onChange={(_, val) => val && setPaintMode(val)}
 					aria-label="availability"
 				>
 					{PERSONAL_AVAILABILITY_OPTIONS.map(({ value, label, icon }) => (
