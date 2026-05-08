@@ -16,7 +16,7 @@ export function MobileIsland({ children }: MobileIslandProps) {
 					justifyContent: "center",
 					borderRadius: 3,
 					p: 0.5,
-					width: "min(90vw)",
+					width: "90vw",
 				}}
 			>
 				{children}

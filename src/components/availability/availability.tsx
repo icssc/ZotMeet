@@ -29,7 +29,6 @@ import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
-import { useAppShellUi } from "../nav/mui-app-shell";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
 
@@ -98,16 +97,8 @@ export function Availability({
 	);
 
 	const router = useRouter();
-	const { setShowBottomNav } = useAppShellUi();
 
 	const isMobile = useIsMobile();
-	useEffect(() => {
-		setShowBottomNav(false);
-		return () => {
-			setShowBottomNav(true);
-		};
-	}, [setShowBottomNav]);
-
 	useEffect(() => {
 		setItemsPerPage(isMobile ? 2 : 5);
 	}, [isMobile, setItemsPerPage]);
