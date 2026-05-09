@@ -23,6 +23,7 @@ import {
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
 	mergeImportedPersonalGridSlots,
+	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
@@ -101,7 +102,10 @@ export function Availability({
 		Intl.DateTimeFormat().resolvedOptions().timeZone,
 	);
 	const [changeableTimezone, setChangeableTimezone] = useState(true);
-	const referenceDate = meetingData.dates[0];
+	const referenceDate = useMemo(
+		() => sortMeetingIsoDatesAsc(meetingData.dates)[0] ?? meetingData.dates[0],
+		[meetingData.dates],
+	);
 
 	const fromTimeLocal = useMemo(
 		() => convertTimeFromUTC(meetingData.fromTime, userTimezone, referenceDate),

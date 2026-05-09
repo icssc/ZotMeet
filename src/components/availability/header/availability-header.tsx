@@ -9,7 +9,7 @@ import {
 import { Button, IconButton, Paper, Typography } from "@mui/material";
 import { DeleteIcon, MoreVerticalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
 import { EditModal } from "@/components/availability/header/edit-modal";
@@ -20,6 +20,7 @@ import {
 	convertTimeFromUTC,
 	formatDateToUSNumeric,
 	formatTimeWithHoursAndMins,
+	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
 import { copyTextToClipboard } from "@/lib/clipboard/utils";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
@@ -66,16 +67,22 @@ export function AvailabilityHeader({
 		router.replace(pathname, { scroll: false });
 	}, [inviteQueryInUrl, pathname, router]);
 
-	const formattedStartDate = formatDateToUSNumeric(
-		new Date(meetingData.dates[0]),
+	const sortedMeetingDates = useMemo(
+		() => sortMeetingIsoDatesAsc(meetingData.dates),
+		[meetingData.dates],
 	);
-	const formattedEndDate = formatDateToUSNumeric(
-		new Date(meetingData.dates[meetingData.dates.length - 1]),
-	);
+
+	const firstMeetingDate =
+		sortedMeetingDates.at(0) ?? meetingData.dates.at(0) ?? "";
+	const lastMeetingDate =
+		sortedMeetingDates.at(-1) ?? meetingData.dates.at(-1) ?? firstMeetingDate;
+
+	const formattedStartDate = formatDateToUSNumeric(new Date(firstMeetingDate));
+	const formattedEndDate = formatDateToUSNumeric(new Date(lastMeetingDate));
 
 	const displayTimezone =
 		meetingData.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-	const referenceDate = meetingData.dates[0];
+	const referenceDate = firstMeetingDate;
 	const formattedStartTime = formatTimeWithHoursAndMins(
 		convertTimeFromUTC(meetingData.fromTime, displayTimezone, referenceDate),
 	);
