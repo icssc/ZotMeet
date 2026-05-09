@@ -24,7 +24,7 @@ interface MeetingCardProps {
 	dateEnd: string;
 	timeStart: string;
 	timeEnd: string;
-	numResponders: number;
+	availabilityMemberCount: number;
 	location?: string | null;
 	scheduled?: boolean;
 	scheduledLabel?: string;
@@ -63,7 +63,7 @@ const MeetingCard = ({
 	dateEnd,
 	timeStart,
 	timeEnd,
-	numResponders,
+	availabilityMemberCount,
 	location,
 	scheduled = false,
 	scheduledLabel,
@@ -125,7 +125,7 @@ const MeetingCard = ({
 						<Box sx={metaGridSx}>
 							<MetaItem
 								icon={GroupIcon}
-								label={`${numResponders} Responders`}
+								label={`${availabilityMemberCount} on availability`}
 							/>
 							{location && <MetaItem icon={FmdGoodIcon} label={location} />}
 						</Box>
@@ -137,7 +137,10 @@ const MeetingCard = ({
 							icon={AccessTimeIcon}
 							label={`${timeStart} - ${timeEnd}`}
 						/>
-						<MetaItem icon={GroupIcon} label={`${numResponders} Responders`} />
+						<MetaItem
+							icon={GroupIcon}
+							label={`${availabilityMemberCount} on availability`}
+						/>
 						{location && <MetaItem icon={FmdGoodIcon} label={location} />}
 					</Box>
 				)}
