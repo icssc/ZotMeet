@@ -15,7 +15,10 @@ import { MeetingNameField } from "@/components/creation/fields/meeting-name-fiel
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
-import { convertTimeToUTC } from "@/lib/availability/utils";
+import {
+	convertTimeToUTC,
+	sortMeetingIsoDatesAsc,
+} from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -133,7 +136,9 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		setIsCreating(true);
 
 		const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-		const dates = selectedDays.map((zotDate) => zotDate.day.toISOString());
+		const dates = sortMeetingIsoDatesAsc(
+			selectedDays.map((zotDate) => zotDate.day.toISOString()),
+		);
 
 		// Convert times from user's local timezone to UTC
 		const referenceDate = dates[0];

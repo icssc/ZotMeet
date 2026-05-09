@@ -8,7 +8,10 @@ import { setSessionTokenCookie } from "@/lib/auth/cookies";
 import { oauth } from "@/lib/auth/oauth";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
 import { createGoogleUser, generateUsername } from "@/lib/auth/user";
-import { convertTimeToUTC } from "@/lib/availability/utils";
+import {
+	convertTimeToUTC,
+	sortMeetingIsoDatesAsc,
+} from "@/lib/availability/utils";
 import { availabilityPathWithOpenInvite } from "@/lib/meeting-open-invite";
 import { createMeetingFromData } from "@/server/actions/meeting/create/action";
 import { getUserById } from "@/server/data/user/queries";
@@ -190,7 +193,10 @@ export async function GET(request: Request): Promise<Response> {
 	const startTime = searchParams.get("startTime");
 	const endTime = searchParams.get("endTime");
 	const selectedDatesParam = searchParams.get("selectedDates");
-	const selectedDates = selectedDatesParam ? selectedDatesParam.split(",") : [];
+	const selectedDatesRaw = selectedDatesParam
+		? selectedDatesParam.split(",")
+		: [];
+	const selectedDates = sortMeetingIsoDatesAsc(selectedDatesRaw);
 	const meetingType = searchParams.get("meetingType");
 	const timezone = searchParams.get("timezone") || "America/Los_Angeles";
 

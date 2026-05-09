@@ -12,7 +12,11 @@ import { MeetingNameField } from "@/components/creation/fields/meeting-name-fiel
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
-import { convertTimeFromUTC, convertTimeToUTC } from "@/lib/availability/utils";
+import {
+	convertTimeFromUTC,
+	convertTimeToUTC,
+	sortMeetingIsoDatesAsc,
+} from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -31,7 +35,8 @@ export const EditModal = ({
 		() => Intl.DateTimeFormat().resolvedOptions().timeZone,
 		[],
 	);
-	const referenceDate = meetingData.dates[0];
+	const referenceDate =
+		sortMeetingIsoDatesAsc(meetingData.dates)[0] ?? meetingData.dates[0] ?? "";
 
 	const fromTimeLocal = useMemo(
 		() => convertTimeFromUTC(meetingData.fromTime, userTimezone, referenceDate),
@@ -59,7 +64,9 @@ export const EditModal = ({
 
 	const handleEditClick = async () => {
 		const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-		const dates = selectedDays.map((zotDate) => zotDate.day.toISOString());
+		const dates = sortMeetingIsoDatesAsc(
+			selectedDays.map((zotDate) => zotDate.day.toISOString()),
+		);
 
 		const referenceDate = dates[0];
 		const fromTimeUTC = convertTimeToUTC(

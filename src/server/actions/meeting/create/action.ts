@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { type InsertMeeting, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { sortMeetingIsoDatesAsc } from "@/lib/availability/utils";
 import { availabilityPathWithOpenInvite } from "@/lib/meeting-open-invite";
 import { isUserInGroup } from "@/server/data/groups/queries";
 
@@ -18,6 +19,8 @@ export async function createMeetingFromData(
 		return { error: "Invalid meeting dates or times." };
 	}
 
+	const normalizedDates = sortMeetingIsoDatesAsc(dates);
+
 	const meeting: InsertMeeting = {
 		title,
 		description,
@@ -25,7 +28,7 @@ export async function createMeetingFromData(
 		toTime,
 		timezone,
 		hostId,
-		dates: dates,
+		dates: normalizedDates,
 		meetingType: meetingType || "dates",
 	};
 
@@ -74,6 +77,8 @@ export async function createMeeting(meetingData: InsertMeeting) {
 		return { error: "Invalid meeting dates or times." };
 	}
 
+	const normalizedDates = sortMeetingIsoDatesAsc(dates);
+
 	const meeting: InsertMeeting = {
 		title,
 		description,
@@ -81,7 +86,7 @@ export async function createMeeting(meetingData: InsertMeeting) {
 		toTime,
 		timezone,
 		hostId,
-		dates: dates,
+		dates: normalizedDates,
 		meetingType: meetingType || "dates",
 		group_id: group_id ?? null,
 	};
