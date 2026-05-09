@@ -1,6 +1,7 @@
 "use client";
 
 import { Paper } from "@mui/material";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { AvailabilityActions } from "@/components/availability/availability-actions";
@@ -23,11 +24,14 @@ import {
 	generateTimeBlocks,
 	getTimeFromHourMinuteString,
 	mergeImportedPersonalGridSlots,
+	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
+import { MobileGroupResponses } from "./mobile-group-responses";
 
 export function Availability({
 	meetingData,
@@ -86,6 +90,15 @@ export function Availability({
 		})),
 	);
 
+	const { setAvailabilityView, setIsMobileDrawerOpen } = useAvailabilityStore(
+		useShallow((state) => ({
+			setAvailabilityView: state.setAvailabilityView,
+			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
+		})),
+	);
+
+	const router = useRouter();
+
 	const isMobile = useIsMobile();
 	useEffect(() => {
 		setItemsPerPage(isMobile ? 2 : 5);
@@ -101,7 +114,10 @@ export function Availability({
 		Intl.DateTimeFormat().resolvedOptions().timeZone,
 	);
 	const [changeableTimezone, setChangeableTimezone] = useState(true);
-	const referenceDate = meetingData.dates[0];
+	const referenceDate = useMemo(
+		() => sortMeetingIsoDatesAsc(meetingData.dates)[0] ?? meetingData.dates[0],
+		[meetingData.dates],
+	);
 
 	const fromTimeLocal = useMemo(
 		() => convertTimeFromUTC(meetingData.fromTime, userTimezone, referenceDate),
@@ -255,6 +271,53 @@ export function Availability({
 		onOpenInviteDialog: handleOpenInviteDialog,
 	} as const;
 
+	const isMeetingOwner = Boolean(user && meetingData.hostId === user.memberId);
+
+	const groupResponsesProps = useMemo(
+		() => ({
+			availabilityDates,
+			ifNeededDates,
+			fromTime: fromTimeMinutes,
+			members,
+			pendingMembers,
+			timezone: userTimezone,
+			currentPageAvailability,
+			doesntNeedDay,
+			meetingId: meetingData.id,
+			isOwner: isMeetingOwner,
+		}),
+		[
+			availabilityDates,
+			ifNeededDates,
+			fromTimeMinutes,
+			members,
+			pendingMembers,
+			userTimezone,
+			currentPageAvailability,
+			doesntNeedDay,
+			meetingData.id,
+			isMeetingOwner,
+		],
+	);
+
+	const handleMobileAddAvailability = useCallback(() => {
+		if (!user) {
+			router.push("/auth/login/google");
+			return;
+		}
+		setChangeableTimezone(false);
+		setUserTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+		setAvailabilityView("personal");
+	}, [router, setAvailabilityView, user]);
+
+	const handleMobileOpenAttendees = useCallback(() => {
+		setIsMobileDrawerOpen(true);
+	}, [setIsMobileDrawerOpen]);
+
+	const handleMobileSchedule = useCallback(() => {
+		setAvailabilityView("schedule");
+	}, [setAvailabilityView]);
+
 	return (
 		<div className="flex min-h-[80vh] flex-col gap-6">
 			<AvailabilityHeader
@@ -269,7 +332,7 @@ export function Availability({
 				<Paper
 					component="div"
 					variant="outlined"
-					className="mr-4 flex min-h-0 min-w-0 flex-1 items-start justify-between self-stretch overflow-x-auto lg:overflow-x-hidden lg:pr-14"
+					className="flex min-h-0 min-w-0 flex-1 items-start justify-between self-stretch overflow-x-auto lg:mr-4 lg:overflow-x-hidden lg:pr-14"
 				>
 					<div className="-mt-2 translate-x-3">
 						<AvailabilityNavButton
@@ -340,46 +403,61 @@ export function Availability({
 				</Paper>
 
 				{(availabilityView === "group" || availabilityView === "schedule") && (
-					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-						<AvailabilityActions {...actionsProps} />
-						<Paper
-							variant="outlined"
-							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
-						>
-							<GroupResponses
-								availabilityDates={availabilityDates}
-								ifNeededDates={ifNeededDates}
-								fromTime={fromTimeMinutes}
-								members={members}
-								pendingMembers={pendingMembers}
-								timezone={userTimezone}
-								currentPageAvailability={currentPageAvailability}
-								doesntNeedDay={doesntNeedDay}
-								meetingId={meetingData.id}
-								isOwner={!!user && meetingData.hostId === user.memberId}
+					<div>
+						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+							<AvailabilityActions {...actionsProps} />
+							<Paper
+								variant="outlined"
+								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+							>
+								<GroupResponses {...groupResponsesProps} />
+							</Paper>
+						</div>
+
+						<div className="lg:hidden">
+							<GroupResponses {...groupResponsesProps} />
+						</div>
+						<div className="block sm:hidden">
+							<MobileGroupResponses
+								isOwner={isMeetingOwner}
+								respondedMembersCount={Math.max(
+									0,
+									members.length - pendingMembers.length,
+								)}
+								pendingMembersCount={pendingMembers.length}
+								onAddAvailability={handleMobileAddAvailability}
+								onOpenAttendees={handleMobileOpenAttendees}
+								onSchedule={handleMobileSchedule}
 							/>
-						</Paper>
+						</div>
 					</div>
 				)}
+
 				{availabilityView === "personal" && (
-					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-						<AvailabilityActions {...actionsProps} />
-						<Paper
-							variant="outlined"
-							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
-						>
-							<PersonalAvailabilitySidebar
-								meetingId={meetingData.id}
-								userTimezone={userTimezone}
-								importGridIsoSet={importGridIsoSet}
-								canImport={Boolean(user?.memberId)}
-								onImportSlots={handleImportSlotsFromMeeting}
-								onClearAvailability={handleClearAvailability}
-							/>
-						</Paper>
+					<div>
+						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+							<AvailabilityActions {...actionsProps} />
+							<Paper
+								variant="outlined"
+								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+							>
+								<PersonalAvailabilitySidebar
+									meetingId={meetingData.id}
+									userTimezone={userTimezone}
+									importGridIsoSet={importGridIsoSet}
+									canImport={Boolean(user?.memberId)}
+									onImportSlots={handleImportSlotsFromMeeting}
+									onClearAvailability={handleClearAvailability}
+								/>
+							</Paper>
+						</div>
+						<div className="block sm:hidden">
+							<MobilePersonalAvailabilitySidebar />
+						</div>
 					</div>
 				)}
 			</div>
+
 			<InviteMembersDialog
 				open={isInviteDialogOpen}
 				onOpenChange={setIsInviteDialogOpen}

@@ -19,6 +19,7 @@ import {
 import { alpha } from "@mui/material/styles";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PERSONAL_AVAILABILITY_OPTIONS } from "@/components/nav/personal-availability-options";
 import type { PaintMode } from "@/lib/availability/paint-selection";
 import { filterTimestampsToMeetingGrid } from "@/lib/availability/utils";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
@@ -28,55 +29,6 @@ type ImportedMeetingAvailability = {
 	meetingAvailabilities: string[];
 	ifNeededAvailabilities: string[];
 };
-
-const SWATCH_DIMENSION_STYLE = {
-	width: 20,
-	height: 20,
-	borderRadius: "50%",
-	boxSizing: "border-box" as const,
-};
-
-const options: { value: PaintMode; label: string; icon: React.ReactNode }[] = [
-	{
-		value: "available",
-		label: "Available",
-		icon: (
-			<div
-				style={{
-					...SWATCH_DIMENSION_STYLE,
-					background: "hsl(var(--primary))",
-				}}
-			/>
-		),
-	},
-	{
-		value: "if-needed",
-		label: "If Needed",
-		icon: (
-			<div
-				// Potentially revisit these to remove style props.
-				style={{
-					...SWATCH_DIMENSION_STYLE,
-					border: "2px solid hsl(var(--if-needed))",
-					background:
-						"repeating-linear-gradient(45deg, hsl(var(--if-needed)) 0px, hsl(var(--if-needed)) 1.5px, transparent 1.5px, transparent 4px)",
-				}}
-			/>
-		),
-	},
-	{
-		value: "unavailable",
-		label: "Unavailable",
-		icon: (
-			<div
-				style={{
-					...SWATCH_DIMENSION_STYLE,
-					border: "2px solid hsl(var(--border))",
-				}}
-			/>
-		),
-	},
-];
 
 interface PersonalAvailabilitySidebarProps {
 	meetingId: string;
@@ -214,7 +166,7 @@ export function PersonalAvailabilitySidebar({
 					onChange={(_, val: PaintMode | null) => val && setPaintMode(val)}
 					aria-label="availability"
 				>
-					{options.map(({ value, label, icon }) => (
+					{PERSONAL_AVAILABILITY_OPTIONS.map(({ value, label, icon }) => (
 						<ToggleButton
 							key={value}
 							value={value}
