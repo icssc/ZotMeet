@@ -1,13 +1,17 @@
 "use client";
 
-import { Paper } from "@mui/material";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import SearchIcon from "@mui/icons-material/Search";
+import { Box, Button, Drawer, Paper, TextField } from "@mui/material";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { useState } from "react";
+import { MobileIsland } from "@/components/mobile/mobile-island";
 import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
 import { Sidebar } from "@/components/studyrooms/sidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { getDefaultWindow } from "@/lib/rooms/utils";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
@@ -24,6 +28,7 @@ export default function Page() {
 			),
 		};
 	});
+	const isMobile = useIsMobile();
 	const [committedStart, setCommittedStart] = useState<Date | null>(
 		defaultStart,
 	);
@@ -32,6 +37,7 @@ export default function Page() {
 	const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
 	const [rooms, setRooms] = useState<StudyRooms["data"] | null>(null);
 
+	const [drawerOpen, setOpen] = useState(false);
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns}>
 			{fallbackNotice && (
@@ -71,17 +77,72 @@ export default function Page() {
 						</Typography>
 					)}
 				</Paper>
-
-				<Sidebar
-					defaultDate={defaultDate}
-					defaultStart={defaultStart}
-					defaultEnd={defaultEnd}
-					setRooms={setRooms}
-					setCommittedDate={setCommittedDate}
-					setCommittedStart={setCommittedStart}
-					setCommittedEnd={setCommittedEnd}
-					setFallbackNotice={setFallbackNotice}
-				/>
+				{isMobile ? (
+					<MobileIsland>
+						<Box
+							sx={{
+								display: "flex",
+								alignItems: "center",
+								py: 1,
+								pl: 1,
+								width: "100%",
+							}}
+						>
+							<TextField
+								sx={{ flex: 7 }}
+								slotProps={{
+									input: {
+										startAdornment: (
+											<SearchIcon
+												sx={{ fontSize: 20, color: "text.disabled", mr: 0.5 }}
+											/>
+										),
+										placeholder: "Search Rooms",
+									},
+								}}
+							/>
+							<Button onClick={() => setOpen(true)} sx={{ flex: 1 }}>
+								{" "}
+								<FilterListIcon />{" "}
+							</Button>
+							<Drawer
+								anchor="bottom"
+								open={drawerOpen}
+								onClose={() => setOpen(false)}
+								sx={{
+									"& .MuiDrawer-paper": {
+										display: "flex",
+										alignItems: "center",
+									},
+								}}
+							>
+								<Sidebar
+									defaultDate={defaultDate}
+									defaultStart={defaultStart}
+									defaultEnd={defaultEnd}
+									setRooms={setRooms}
+									setCommittedDate={setCommittedDate}
+									setCommittedStart={setCommittedStart}
+									setCommittedEnd={setCommittedEnd}
+									setFallbackNotice={setFallbackNotice}
+									setDrawerClose={setOpen}
+								/>
+							</Drawer>
+						</Box>
+					</MobileIsland>
+				) : (
+					<Sidebar
+						defaultDate={defaultDate}
+						defaultStart={defaultStart}
+						defaultEnd={defaultEnd}
+						setRooms={setRooms}
+						setCommittedDate={setCommittedDate}
+						setCommittedStart={setCommittedStart}
+						setCommittedEnd={setCommittedEnd}
+						setFallbackNotice={setFallbackNotice}
+						setDrawerClose={setOpen}
+					/>
+				)}
 			</Stack>
 		</LocalizationProvider>
 	);

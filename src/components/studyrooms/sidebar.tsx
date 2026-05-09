@@ -45,6 +45,7 @@ interface SidebarProps {
 	setCommittedStart: React.Dispatch<React.SetStateAction<Date | null>>;
 	setCommittedEnd: React.Dispatch<React.SetStateAction<Date | null>>;
 	setFallbackNotice: React.Dispatch<React.SetStateAction<string | null>>;
+	setDrawerClose: React.Dispatch<React.SetStateAction<boolean>>;
 }
 export function Sidebar({
 	defaultDate,
@@ -55,6 +56,7 @@ export function Sidebar({
 	setCommittedStart,
 	setCommittedEnd,
 	setFallbackNotice,
+	setDrawerClose,
 }: SidebarProps) {
 	const [date, setDate] = useState<Date | null>(defaultDate);
 	const [startTime, setStartTime] = useState<Date | null>(defaultStart);
@@ -229,6 +231,7 @@ export function Sidebar({
 			});
 		} finally {
 			setIsLoading(false);
+			setDrawerClose(false);
 		}
 	};
 	useEffect(() => {
@@ -251,17 +254,17 @@ export function Sidebar({
 			sx={{
 				width: 360,
 				pt: 2,
-				pr: 2,
+				pr: { xs: 0, md: 2 },
+				pb: { xs: 2, md: 0 },
 			}}
-			className="md:hidden"
 		>
-			<Box className="hidden pb-4 sm:block">
+			<Box className="pb-4">
 				<RoomsHeatmapLegend
 					availabilityColor="#86efac"
 					notAvailableColor="#fca5a5"
 				/>
 			</Box>
-			<Paper variant="outlined" className="hidden sm:block">
+			<Paper variant="outlined">
 				<Box
 					component="form"
 					onSubmit={handleSubmit}
