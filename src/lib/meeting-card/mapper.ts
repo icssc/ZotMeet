@@ -9,7 +9,7 @@ export interface MeetingCardViewModel {
 	dateEnd: string;
 	timeStart: string;
 	timeEnd: string;
-	availabilityMemberCount: number;
+	numResponders: number;
 	location: string | null;
 	scheduled: boolean;
 	scheduledLabel?: string;
@@ -21,7 +21,7 @@ type MeetingForCard = SelectMeeting & {
 };
 
 interface ToMeetingCardOptions {
-	availabilityMemberCount?: number;
+	responderCount?: number;
 	timezone?: string;
 	scheduledLabel?: string;
 }
@@ -103,7 +103,7 @@ export function toMeetingCardProps(
 		dateEnd: formatDateForMeetingType(lastDate, meeting.meetingType),
 		timeStart: formatTime(localFromTime),
 		timeEnd: formatTime(localToTime),
-		availabilityMemberCount: options.availabilityMemberCount ?? 0,
+		numResponders: options.responderCount ?? 0,
 		location: meeting.location ?? null,
 		scheduled: Boolean(meeting.scheduled),
 		scheduledLabel: options.scheduledLabel,

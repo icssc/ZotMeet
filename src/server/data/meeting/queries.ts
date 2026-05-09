@@ -137,11 +137,7 @@ export async function getMeetings(memberId: string) {
 	return userMeetings;
 }
 
-/**
- * Distinct members with an `availabilities` row per meeting (includes invited
- * users with empty availability — same semantics as `MeetingWithStats.groupMemberCount`).
- */
-export async function getAvailabilityMemberCountsByMeetingIds(
+export async function getResponderCountsByMeetingIds(
 	meetingIds: string[],
 ): Promise<Record<string, number>> {
 	if (meetingIds.length === 0) {
@@ -151,14 +147,14 @@ export async function getAvailabilityMemberCountsByMeetingIds(
 	const rows = await db
 		.select({
 			meetingId: availabilities.meetingId,
-			groupMemberCount: countDistinct(availabilities.memberId),
+			respondedCount: countDistinct(availabilities.memberId),
 		})
 		.from(availabilities)
 		.where(inArray(availabilities.meetingId, meetingIds))
 		.groupBy(availabilities.meetingId);
 
 	return Object.fromEntries(
-		rows.map((row) => [row.meetingId, Number(row.groupMemberCount)]),
+		rows.map((row) => [row.meetingId, Number(row.respondedCount)]),
 	);
 }
 

@@ -247,19 +247,14 @@ export async function getGroupsWithDetails(
 export type MeetingWithStats = SelectMeeting & {
 	hostName: string;
 	scheduledDate: Date | null;
-	/**
-	 * Distinct members with an `availabilities` row for this meeting (includes
-	 * invited users who have not picked slots yet — empty rows still count).
-	 */
-	groupMemberCount: number;
-	/** Users returned from `getUsersInGroup` for this group (`members.length` on the group page). */
-	availabilityMemberCount: number;
+	totalMembers: number;
+	respondedCount: number;
 	userHasResponded: boolean;
 };
 
 export async function getGroupMeetingsWithStats(
 	groupId: string,
-	usersInGroupCount: number,
+	totalMembers: number,
 	currentMemberId: string,
 ): Promise<MeetingWithStats[]> {
 	const groupMeetings = await getMeetingsByGroupId(groupId);
@@ -278,7 +273,7 @@ export async function getGroupMeetingsWithStats(
 			db
 				.select({
 					meetingId: availabilities.meetingId,
-					groupMemberCount: countDistinct(availabilities.memberId),
+					respondedCount: countDistinct(availabilities.memberId),
 				})
 				.from(availabilities)
 				.where(inArray(availabilities.meetingId, meetingIds))
@@ -307,7 +302,7 @@ export async function getGroupMeetingsWithStats(
 		]);
 
 	const responseMap = new Map(
-		responseCounts.map((r) => [r.meetingId, r.groupMemberCount]),
+		responseCounts.map((r) => [r.meetingId, r.respondedCount]),
 	);
 	const userRespondedSet = new Set(userResponses.map((r) => r.meetingId));
 	const scheduledMap = new Map(
@@ -319,8 +314,8 @@ export async function getGroupMeetingsWithStats(
 		...meeting,
 		hostName: hostMap.get(meeting.hostId) ?? "Unknown",
 		scheduledDate: scheduledMap.get(meeting.id) ?? null,
-		groupMemberCount: responseMap.get(meeting.id) ?? 0,
-		availabilityMemberCount: usersInGroupCount,
+		totalMembers,
+		respondedCount: responseMap.get(meeting.id) ?? 0,
 		userHasResponded: userRespondedSet.has(meeting.id),
 	}));
 }

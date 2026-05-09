@@ -3,8 +3,8 @@ import { Meetings } from "@/components/summary/meetings";
 import { getCurrentSession } from "@/lib/auth";
 import { buildScheduledLabel } from "@/lib/meetings/utils";
 import {
-	getAvailabilityMemberCountsByMeetingIds,
 	getMeetings,
+	getResponderCountsByMeetingIds,
 	getScheduledMeetingsByMeetingIds,
 } from "@/server/data/meeting/queries";
 
@@ -22,7 +22,7 @@ export default async function Page() {
 	const meetings = await getMeetings(memberId);
 	const meetingIds = meetings.map((m) => m.id);
 	const [meetingCounts, scheduledMeetingMap] = await Promise.all([
-		getAvailabilityMemberCountsByMeetingIds(meetingIds),
+		getResponderCountsByMeetingIds(meetingIds),
 		getScheduledMeetingsByMeetingIds(
 			meetings.filter((m) => m.scheduled).map((m) => m.id),
 		),

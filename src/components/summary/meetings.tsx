@@ -44,7 +44,7 @@ const toCard = (
 	scheduledLabels?: Record<string, string>,
 ) => {
 	const cardProps = toMeetingCardProps(meeting, {
-		availabilityMemberCount: meetingCounts[meeting.id] ?? 0,
+		responderCount: meetingCounts[meeting.id] ?? 0,
 		scheduledLabel: scheduledLabels?.[meeting.id],
 	});
 	return <MeetingCard key={meeting.id} {...cardProps} />;

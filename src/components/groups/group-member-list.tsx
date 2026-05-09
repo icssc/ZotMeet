@@ -194,14 +194,13 @@ function MeetingRow({
 
 					<div className="flex items-center gap-1">
 						<Users className="size-4" />
-						<span>{meeting.groupMemberCount} members</span>
+						<span>{meeting.totalMembers} members</span>
 					</div>
 
 					<div className="flex items-center gap-1">
 						<Clock className="size-4" />
 						<span>
-							{meeting.availabilityMemberCount}/{meeting.groupMemberCount}{" "}
-							responded
+							{meeting.respondedCount}/{meeting.totalMembers} responded
 						</span>
 					</div>
 				</div>
