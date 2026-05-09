@@ -1,6 +1,7 @@
 "use client";
 
 import { Box, useMediaQuery, useTheme } from "@mui/material";
+import { usePathname } from "next/navigation";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
 import { MuiBottomNav } from "./mui-bottom-nav";
 import { MuiTopNav } from "./mui-top-nav";
@@ -11,6 +12,11 @@ type MuiAppShellProps = {
 	children: React.ReactNode;
 };
 
+/** Routes that render a custom bottom bar (e.g. mobile island) instead of MUI bottom nav. */
+function routeHidesBottomNav(pathname: string) {
+	return pathname.startsWith("/availability");
+}
+
 export function MuiAppShell({
 	user,
 	notifications,
@@ -18,6 +24,9 @@ export function MuiAppShell({
 }: MuiAppShellProps) {
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+	const pathname = usePathname();
+	const showBottomNav = !routeHidesBottomNav(pathname);
+
 	return (
 		<Box
 			sx={{
@@ -29,10 +38,16 @@ export function MuiAppShell({
 			}}
 		>
 			{!isMobile && <MuiTopNav user={user} notifications={notifications} />}
-			<Box sx={{ flex: 1, overflow: "auto", paddingBottom: isMobile ? 7 : 0 }}>
+			<Box
+				sx={{
+					flex: 1,
+					overflow: "auto",
+					paddingBottom: isMobile && showBottomNav ? 7 : 0,
+				}}
+			>
 				{children}
 			</Box>
-			{isMobile && <MuiBottomNav user={user} />}
+			{isMobile && showBottomNav && <MuiBottomNav user={user} />}
 		</Box>
 	);
 }

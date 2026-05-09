@@ -1,0 +1,78 @@
+"use client";
+
+import {
+	CalendarMonthOutlined,
+	EditCalendarOutlined,
+	PeopleAltOutlined,
+} from "@mui/icons-material";
+import { Button, Divider, Paper, Stack, Typography } from "@mui/material";
+import { MobileIsland } from "../mobile/mobile-island";
+
+const actionButtonSx = {
+	flex: 1,
+	minWidth: 0,
+	px: 2,
+	py: 1.25,
+	borderRadius: 2,
+};
+
+export interface MobileGroupResponsesProps {
+	isOwner: boolean;
+	respondedMembersCount: number;
+	pendingMembersCount: number;
+	onAddAvailability: () => void;
+	onOpenAttendees: () => void;
+	onSchedule: () => void;
+}
+
+export function MobileGroupResponses({
+	isOwner,
+	respondedMembersCount,
+	pendingMembersCount,
+	onAddAvailability,
+	onOpenAttendees,
+	onSchedule,
+}: MobileGroupResponsesProps) {
+	return (
+		<div>
+			<MobileIsland>
+				<div className="flex">
+					<Button color="inherit" sx={actionButtonSx} onClick={onOpenAttendees}>
+						<Stack spacing={0.5} alignItems="center">
+							<PeopleAltOutlined fontSize="small" />
+							<Typography variant="caption">
+								{respondedMembersCount} /{" "}
+								{pendingMembersCount + respondedMembersCount} Responders
+							</Typography>
+						</Stack>
+					</Button>
+
+					<Divider orientation="vertical" flexItem />
+
+					<Button
+						onClick={onAddAvailability}
+						color="inherit"
+						sx={actionButtonSx}
+					>
+						<Stack spacing={0.5} alignItems="center">
+							<EditCalendarOutlined fontSize="small" />
+							<Typography variant="caption">Add Availability</Typography>
+						</Stack>
+					</Button>
+
+					{isOwner && (
+						<>
+							<Divider orientation="vertical" flexItem />
+							<Button color="inherit" sx={actionButtonSx} onClick={onSchedule}>
+								<Stack spacing={0.5} alignItems="center">
+									<CalendarMonthOutlined fontSize="small" />
+									<Typography variant="caption">Schedule Meeting</Typography>
+								</Stack>
+							</Button>
+						</>
+					)}
+				</div>
+			</MobileIsland>
+		</div>
+	);
+}

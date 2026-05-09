@@ -205,7 +205,7 @@ export function AvailabilityActions({
 								: handleScheduleCancel
 						}
 					>
-						<span className="hidden md:flex">Cancel</span>
+						Cancel
 					</Button>
 					<Button
 						variant="contained"
@@ -216,77 +216,80 @@ export function AvailabilityActions({
 							availabilityView === "personal" ? handleSave : handleScheduleSave
 						}
 					>
-						<span className="hidden md:flex">Save</span>
+						Save
 					</Button>
 				</div>
 			) : (
 				<div className="flex flex-col gap-2">
 					{isScheduled && (
-						<Button
-							variant="outlined"
-							size="medium"
-							startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
-							onClick={async () => {
-								if (isGeneratingLink) return;
-								setIsGeneratingLink(true);
-								try {
-									const { success, link } =
-										await getGoogleCalendarPrefilledLink({
-											meetingId: meetingData.id,
-											meetingTitle: meetingData.title,
-											meetingDescription: meetingData.description,
-											meetingLocation: meetingData.location,
-											timezone: meetingData.timezone,
-										});
+						<div className="hidden flex-col sm:flex">
+							<Button
+								variant="outlined"
+								size="medium"
+								startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
+								onClick={async () => {
+									if (isGeneratingLink) return;
+									setIsGeneratingLink(true);
+									try {
+										const { success, link } =
+											await getGoogleCalendarPrefilledLink({
+												meetingId: meetingData.id,
+												meetingTitle: meetingData.title,
+												meetingDescription: meetingData.description,
+												meetingLocation: meetingData.location,
+												timezone: meetingData.timezone,
+											});
 
-									if (!success || !link) {
-										showError("Failed to generate Google Calendar link.");
-										return;
+										if (!success || !link) {
+											showError("Failed to generate Google Calendar link.");
+											return;
+										}
+
+										window.open(link, "_blank", "noopener,noreferrer");
+										showSuccess(
+											"Google Calendar link opened! Confirm the event in your calendar.",
+										);
+									} catch (error) {
+										console.error(
+											"Error generating Google Calendar link:",
+											error,
+										);
+										showError(
+											"An error occurred while generating the Google Calendar link.",
+										);
+									} finally {
+										setIsGeneratingLink(false);
 									}
-
-									window.open(link, "_blank", "noopener,noreferrer");
-									showSuccess(
-										"Google Calendar link opened! Confirm the event in your calendar.",
-									);
-								} catch (error) {
-									console.error(
-										"Error generating Google Calendar link:",
-										error,
-									);
-									showError(
-										"An error occurred while generating the Google Calendar link.",
-									);
-								} finally {
-									setIsGeneratingLink(false);
+								}}
+							>
+								Add to Calendar
+							</Button>
+						</div>
+					)}
+					<div className="hidden sm:block">
+						<Button
+							variant="contained"
+							startIcon={<Create sx={{ color: "inherit" }} />}
+							className="w-full max-w-full normal-case"
+							sx={{ py: 0.75 }}
+							onClick={() => {
+								if (!user) {
+									setIsAuthModalOpen(true);
+									router.push("/auth/login/google");
+									return;
 								}
+								setChangeableTimezone(false);
+								setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+								setAvailabilityView("personal");
 							}}
 						>
-							Add to Calendar
+							<span className="hidden md:flex">
+								{hasAvailability ? "Edit Availability" : "Add Availability"}
+							</span>
 						</Button>
-					)}
-
-					<Button
-						variant="contained"
-						startIcon={<Create sx={{ color: "inherit" }} />}
-						className="w-full max-w-full normal-case"
-						sx={{ py: 0.75 }}
-						onClick={() => {
-							if (!user) {
-								setIsAuthModalOpen(true);
-								router.push("/auth/login/google");
-								return;
-							}
-							setChangeableTimezone(false);
-							setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
-							setAvailabilityView("personal");
-						}}
-					>
-						<span className="hidden md:flex">
-							{hasAvailability ? "Edit Availability" : "Add Availability"}
-						</span>
-					</Button>
+					</div>
 					{isOwner && (
-						<>
+						<div className="hidden sm:block">
 							<Button
 								variant="outlined"
 								startIcon={<InsertInvitationRounded />}
@@ -305,7 +308,7 @@ export function AvailabilityActions({
 							>
 								<span className="hidden md:flex">Invite Members</span>
 							</Button>
-						</>
+						</div>
 					)}
 				</div>
 			)}
