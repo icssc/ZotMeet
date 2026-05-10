@@ -2,8 +2,8 @@
 
 import { ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import { MobileAvailabilityHeader } from "@/components/availability/header/mobile-availability-header";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
-import { MobileAvailabilityHeader } from "../availability/header/mobile-availability-header";
 import { MobileIsland } from "../mobile/mobile-island";
 import { PERSONAL_AVAILABILITY_OPTIONS } from "./personal-availability-options";
 

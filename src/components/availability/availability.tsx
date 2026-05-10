@@ -280,6 +280,11 @@ export function Availability({
 		isMeetingDeletionPending,
 	});
 
+	const runScheduleSaveForMobile = useCallback(
+		() => handleScheduleSave({ skipExitToGroup: true }),
+		[handleScheduleSave],
+	);
+
 	const actionsProps = {
 		meetingData,
 		user,
@@ -484,9 +489,7 @@ export function Availability({
 							runPersonalSave={runPersonalSave}
 							isPersonalSaveDisabled={!user || isMeetingDeletionPending}
 							handleScheduleCancel={handleScheduleCancel}
-							runScheduleSave={() =>
-								handleScheduleSave({ skipExitToGroup: true })
-							}
+							runScheduleSave={runScheduleSaveForMobile}
 							isScheduleSaveDisabled={isMeetingDeletionPending}
 						/>
 					</div>

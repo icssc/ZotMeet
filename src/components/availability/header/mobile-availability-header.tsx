@@ -151,10 +151,9 @@ export function MobileAvailabilityHeader({
 					<div className="mr-auto flex items-center gap-5">
 						<Button
 							variant="outlined"
-							size="medium"
+							size="square"
 							onClick={handleCancelClick}
 							aria-label="Cancel"
-							sx={{ minWidth: 48, minHeight: 48, p: 1 }}
 						>
 							<Close />
 						</Button>
@@ -163,7 +162,7 @@ export function MobileAvailabilityHeader({
 							<Typography>
 								{isSchedule ? "Schedule meeting" : "Add availability"}
 							</Typography>
-							<Typography variant="caption" color="text.secondary">
+							<Typography variant="caption" color="textSecondary">
 								{isSchedule ? "Drag to Schedule" : "Drag to add availability"}
 							</Typography>
 						</div>
@@ -172,11 +171,10 @@ export function MobileAvailabilityHeader({
 					<div className="ml-auto">
 						<Button
 							variant="contained"
-							size="medium"
+							size="square"
 							disabled={saveDisabled}
 							onClick={() => void handleSaveClick()}
 							aria-label="Save"
-							sx={{ minWidth: 48, minHeight: 48, p: 1 }}
 						>
 							<Check />
 						</Button>
