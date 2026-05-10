@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { SelectionStateType } from "@/lib/types/availability";
 
 export interface GridCell {
@@ -11,6 +11,11 @@ export interface GridCell {
 
 export interface UseGridDragSelectionOptions {
 	lockToStartRow?: boolean;
+	/**
+	 * Touch handling: `'longPress'` waits ~220ms then paints (allows scroll gestures first).
+	 * `'immediate'` behaves like mouse: pointer capture + drag on finger move — use for painting grids.
+	 */
+	touchDragMode?: "longPress" | "immediate";
 	tapThreshold?: number;
 	onDragStart?: (cell: GridCell) => void;
 	onDragUpdate?: (
@@ -31,6 +36,15 @@ export interface UseGridDragSelectionHandlers {
 	onPointerCancel: React.PointerEventHandler<HTMLElement>;
 	onKeyDown: React.KeyboardEventHandler<HTMLElement>;
 }
+
+const LONG_PRESS_MS = 220;
+const LONG_PRESS_CANCEL_PX = 8;
+
+/** Minimal shape for end/cancel handling (DOM + React pointer events). */
+type PointerEndLike = {
+	pointerId: number;
+	preventDefault(): void;
+};
 
 function readCellFromElement(el: Element | null): GridCell | null {
 	if (!el) return null;
@@ -80,6 +94,9 @@ function buildRange(
  *   `onClick` to this hook.
  * - Keyboard activation is exposed separately via `onKeyDown` (Enter / Space). The pointer
  *   and keyboard paths never overlap.
+ * - **Touch (`touchDragMode: 'longPress'`):** scroll/pan first; paint drag after ~220ms hold.
+ * - **Touch (`touchDragMode: 'immediate'`):** same path as mouse (capture + drag), optional
+ *   for personal paint grids. Document delegation is not used so `pointermove` resolves from the captured cell.
  *
  * Handlers returned here must be spread on every cell element that carries
  * `data-date-index` / `data-block-index`.
@@ -97,47 +114,71 @@ export function useGridDragSelection(
 	const movedPastThresholdRef = useRef(false);
 	const captureTargetRef = useRef<HTMLElement | null>(null);
 
+	const isEngagedRef = useRef(false);
+	const isTouchPointerRef = useRef(false);
+	const longPressTimerRef = useRef<number | null>(null);
+	const longPressAbortedRef = useRef(false);
+	const preventTouchScrollRef = useRef<((e: TouchEvent) => void) | null>(null);
+	const detachDocumentPointerListenersRef = useRef<(() => void) | null>(null);
+	/** When true, `pointerup/move/cancel` on the cell are ignored; document listeners finalize. */
+	const touchUsesDocumentDelegationRef = useRef(false);
+
+	const clearLongPressTimer = useCallback(() => {
+		if (longPressTimerRef.current !== null) {
+			clearTimeout(longPressTimerRef.current);
+			longPressTimerRef.current = null;
+		}
+	}, []);
+
+	const removeTouchScrollLock = useCallback(() => {
+		if (preventTouchScrollRef.current) {
+			document.removeEventListener("touchmove", preventTouchScrollRef.current, {
+				capture: true,
+			});
+			preventTouchScrollRef.current = null;
+		}
+	}, []);
+
+	const detachDocumentPointerListeners = useCallback(() => {
+		if (detachDocumentPointerListenersRef.current) {
+			detachDocumentPointerListenersRef.current();
+			detachDocumentPointerListenersRef.current = null;
+		}
+	}, []);
+
 	const resetState = useCallback(() => {
+		clearLongPressTimer();
+		removeTouchScrollLock();
+		detachDocumentPointerListeners();
 		activePointerIdRef.current = null;
 		startCellRef.current = null;
 		endCellRef.current = null;
 		startXYRef.current = null;
 		movedPastThresholdRef.current = false;
 		captureTargetRef.current = null;
+		isEngagedRef.current = false;
+		isTouchPointerRef.current = false;
+		longPressAbortedRef.current = false;
+		touchUsesDocumentDelegationRef.current = false;
+	}, [
+		clearLongPressTimer,
+		removeTouchScrollLock,
+		detachDocumentPointerListeners,
+	]);
+
+	const attachPassiveTouchMoveScrollLock = useCallback(() => {
+		const preventScroll = (e: TouchEvent) => {
+			e.preventDefault();
+		};
+		preventTouchScrollRef.current = preventScroll;
+		document.addEventListener("touchmove", preventScroll, {
+			capture: true,
+			passive: false,
+		});
 	}, []);
 
-	const onPointerDown = useCallback<React.PointerEventHandler<HTMLElement>>(
-		(event) => {
-			if (event.button !== undefined && event.button !== 0) return;
-			const target = event.currentTarget;
-			const cell = readCellFromElement(target);
-			if (!cell) return;
-
-			event.preventDefault();
-
-			try {
-				target.setPointerCapture(event.pointerId);
-			} catch (error) {
-				console.error(error);
-			}
-
-			activePointerIdRef.current = event.pointerId;
-			startCellRef.current = cell;
-			endCellRef.current = cell;
-			startXYRef.current = { x: event.clientX, y: event.clientY };
-			movedPastThresholdRef.current = false;
-			captureTargetRef.current = target;
-
-			optsRef.current.onDragStart?.(cell);
-			const lock = optsRef.current.lockToStartRow ?? false;
-			const range = buildRange(cell, cell, lock);
-			optsRef.current.onDragUpdate?.(range, { start: cell, end: cell });
-		},
-		[],
-	);
-
-	const onPointerMove = useCallback<React.PointerEventHandler<HTMLElement>>(
-		(event) => {
+	const updatePointerMove = useCallback(
+		(event: Pick<PointerEvent, "clientX" | "clientY" | "pointerId">) => {
 			if (activePointerIdRef.current !== event.pointerId) return;
 			const start = startCellRef.current;
 			if (!start) return;
@@ -176,38 +217,249 @@ export function useGridDragSelection(
 		[],
 	);
 
-	const onPointerUp = useCallback<React.PointerEventHandler<HTMLElement>>(
-		(event) => {
+	const updatePendingTouchMove = useCallback(
+		(event: Pick<PointerEvent, "clientX" | "clientY">) => {
+			if (!startXYRef.current) return;
+			const dx = event.clientX - startXYRef.current.x;
+			const dy = event.clientY - startXYRef.current.y;
+			const dist = Math.hypot(dx, dy);
+			const tapThreshold = optsRef.current.tapThreshold ?? 3;
+			if (dist > tapThreshold) {
+				movedPastThresholdRef.current = true;
+			}
+			if (dist > LONG_PRESS_CANCEL_PX) {
+				longPressAbortedRef.current = true;
+				clearLongPressTimer();
+			}
+		},
+		[clearLongPressTimer],
+	);
+
+	const finalizePointerEnd = useCallback(
+		(event: PointerEndLike) => {
 			if (activePointerIdRef.current !== event.pointerId) return;
-			const target = captureTargetRef.current ?? event.currentTarget;
+
+			const start = startCellRef.current;
+			const end = endCellRef.current ?? start;
+			const wasTouch = isTouchPointerRef.current;
+			const wasEngaged = isEngagedRef.current;
+			const aborted = longPressAbortedRef.current;
+			const movedPastTap = movedPastThresholdRef.current;
+
+			if (wasTouch) {
+				event.preventDefault();
+			}
+
+			const target = captureTargetRef.current;
 			if (target?.hasPointerCapture?.(event.pointerId)) {
 				target.releasePointerCapture(event.pointerId);
 			}
 
-			const start = startCellRef.current;
-			const end = endCellRef.current ?? start;
-			const isTap = !movedPastThresholdRef.current;
 			resetState();
 
 			if (!start || !end) return;
+
 			const lock = optsRef.current.lockToStartRow ?? false;
+
+			if (wasTouch && !wasEngaged) {
+				if (aborted || movedPastTap) return;
+				const range = buildRange(start, start, lock);
+				optsRef.current.onCommit(range, {
+					isTap: true,
+					start,
+					end: start,
+				});
+				return;
+			}
+
+			const isTap = !movedPastTap;
 			const range = buildRange(start, end, lock);
 			optsRef.current.onCommit(range, { isTap, start, end });
 		},
 		[resetState],
 	);
 
-	const onPointerCancel = useCallback<React.PointerEventHandler<HTMLElement>>(
-		(event) => {
+	const cancelPointer = useCallback(
+		(event: PointerEndLike) => {
 			if (activePointerIdRef.current !== event.pointerId) return;
-			const target = captureTargetRef.current ?? event.currentTarget;
+
+			if (isTouchPointerRef.current) {
+				event.preventDefault();
+			}
+
+			const target = captureTargetRef.current;
 			if (target?.hasPointerCapture?.(event.pointerId)) {
 				target.releasePointerCapture(event.pointerId);
 			}
+
 			resetState();
 			optsRef.current.onCancel?.();
 		},
 		[resetState],
+	);
+
+	const onPointerDown = useCallback<React.PointerEventHandler<HTMLElement>>(
+		(event) => {
+			if (event.button !== undefined && event.button !== 0) return;
+			const target = event.currentTarget;
+			const cell = readCellFromElement(target);
+			if (!cell) return;
+
+			const isTouch = event.pointerType === "touch";
+			const downPointerId = event.pointerId;
+
+			activePointerIdRef.current = downPointerId;
+			startCellRef.current = cell;
+			endCellRef.current = cell;
+			startXYRef.current = { x: event.clientX, y: event.clientY };
+			movedPastThresholdRef.current = false;
+			captureTargetRef.current = target;
+			longPressAbortedRef.current = false;
+
+			const prefersLongPressTouch =
+				(optsRef.current.touchDragMode ?? "longPress") === "longPress";
+
+			if (isTouch && prefersLongPressTouch) {
+				touchUsesDocumentDelegationRef.current = true;
+				isTouchPointerRef.current = true;
+				isEngagedRef.current = false;
+
+				const onDocPointerMove = (e: PointerEvent) => {
+					if (e.pointerId !== downPointerId) return;
+					if (!isTouchPointerRef.current) return;
+					if (!isEngagedRef.current) {
+						updatePendingTouchMove(e);
+						return;
+					}
+					updatePointerMove(e);
+				};
+
+				const onDocPointerUp = (e: PointerEvent) => {
+					if (e.pointerId !== downPointerId) return;
+					finalizePointerEnd(e);
+				};
+
+				const onDocPointerCancel = (e: PointerEvent) => {
+					if (e.pointerId !== downPointerId) return;
+					cancelPointer(e);
+				};
+
+				document.addEventListener("pointermove", onDocPointerMove, {
+					capture: true,
+				});
+				document.addEventListener("pointerup", onDocPointerUp, {
+					capture: true,
+				});
+				document.addEventListener("pointercancel", onDocPointerCancel, {
+					capture: true,
+				});
+
+				detachDocumentPointerListenersRef.current = () => {
+					document.removeEventListener("pointermove", onDocPointerMove, {
+						capture: true,
+					});
+					document.removeEventListener("pointerup", onDocPointerUp, {
+						capture: true,
+					});
+					document.removeEventListener("pointercancel", onDocPointerCancel, {
+						capture: true,
+					});
+				};
+
+				longPressTimerRef.current = window.setTimeout(() => {
+					longPressTimerRef.current = null;
+					if (activePointerIdRef.current !== downPointerId) return;
+					if (longPressAbortedRef.current) return;
+					if (movedPastThresholdRef.current) return;
+					const engageTarget = captureTargetRef.current;
+					const startCell = startCellRef.current;
+					if (!engageTarget || !startCell) return;
+
+					isEngagedRef.current = true;
+					try {
+						engageTarget.setPointerCapture(downPointerId);
+					} catch (error) {
+						console.error(error);
+					}
+
+					attachPassiveTouchMoveScrollLock();
+
+					if (typeof navigator !== "undefined" && navigator.vibrate) {
+						navigator.vibrate(15);
+					}
+
+					optsRef.current.onDragStart?.(startCell);
+					const lock = optsRef.current.lockToStartRow ?? false;
+					const range = buildRange(startCell, startCell, lock);
+					optsRef.current.onDragUpdate?.(range, {
+						start: startCell,
+						end: startCell,
+					});
+				}, LONG_PRESS_MS);
+
+				return;
+			}
+
+			touchUsesDocumentDelegationRef.current = false;
+			isTouchPointerRef.current = isTouch;
+			isEngagedRef.current = true;
+
+			event.preventDefault();
+
+			try {
+				target.setPointerCapture(event.pointerId);
+			} catch (error) {
+				console.error(error);
+			}
+
+			if (isTouch) {
+				attachPassiveTouchMoveScrollLock();
+			}
+
+			optsRef.current.onDragStart?.(cell);
+			const lock = optsRef.current.lockToStartRow ?? false;
+			const range = buildRange(cell, cell, lock);
+			optsRef.current.onDragUpdate?.(range, { start: cell, end: cell });
+		},
+		[
+			attachPassiveTouchMoveScrollLock,
+			cancelPointer,
+			finalizePointerEnd,
+			updatePendingTouchMove,
+			updatePointerMove,
+		],
+	);
+
+	const onPointerMove = useCallback<React.PointerEventHandler<HTMLElement>>(
+		(event) => {
+			if (
+				isTouchPointerRef.current &&
+				touchUsesDocumentDelegationRef.current &&
+				activePointerIdRef.current === event.pointerId
+			) {
+				return;
+			}
+			updatePointerMove(event);
+		},
+		[updatePointerMove],
+	);
+
+	const onPointerUp = useCallback<React.PointerEventHandler<HTMLElement>>(
+		(event) => {
+			if (activePointerIdRef.current !== event.pointerId) return;
+			if (touchUsesDocumentDelegationRef.current) return;
+			finalizePointerEnd(event);
+		},
+		[finalizePointerEnd],
+	);
+
+	const onPointerCancel = useCallback<React.PointerEventHandler<HTMLElement>>(
+		(event) => {
+			if (activePointerIdRef.current !== event.pointerId) return;
+			if (touchUsesDocumentDelegationRef.current) return;
+			cancelPointer(event);
+		},
+		[cancelPointer],
 	);
 
 	const onKeyDown = useCallback<React.KeyboardEventHandler<HTMLElement>>(
@@ -224,6 +476,26 @@ export function useGridDragSelection(
 		},
 		[],
 	);
+
+	useEffect(() => {
+		return () => {
+			const target = captureTargetRef.current;
+			const pid = activePointerIdRef.current;
+			if (
+				target &&
+				pid !== null &&
+				typeof target.hasPointerCapture === "function" &&
+				target.hasPointerCapture(pid)
+			) {
+				try {
+					target.releasePointerCapture(pid);
+				} catch {
+					// ignore
+				}
+			}
+			resetState();
+		};
+	}, [resetState]);
 
 	return useMemo(
 		() => ({
