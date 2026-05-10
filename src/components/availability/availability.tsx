@@ -236,6 +236,7 @@ export function Availability({
 	);
 
 	const [studyRooms, setStudyRooms] = useState<StudyRoomApiEntry[]>([]);
+	const [error, setError] = useState<string | null>(null);
 
 	const importGridIsoSet = useMemo(
 		() =>
@@ -400,6 +401,8 @@ export function Availability({
 				roomFilters.capacities,
 			);
 
+			setError(null);
+
 			const promises = bestTimeRanges.map(({ date, time }) =>
 				fetchStudyRooms({
 					date,
@@ -426,6 +429,9 @@ export function Availability({
 			setStudyRooms(combined);
 		} catch (err) {
 			console.error("Failed to fetch study rooms:", err);
+
+			setError("Failed to load study rooms. Please try again later.");
+			setStudyRooms([]);
 		}
 	}, [roomFilters.capacities, bestTimeRanges]);
 
