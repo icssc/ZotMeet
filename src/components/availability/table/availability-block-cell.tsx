@@ -68,8 +68,8 @@ export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 				onPointerCancel={onPointerCancel}
 				onKeyDown={onKeyDown}
 				className={cn(
-					// `pan-y` only: horizontal drags paint across days instead of scrolling the
-					"block h-full w-full cursor-pointer select-none border-gray-medium border-r-[1px] [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [touch-action:pan-y]",
+					// Personal paint: route all touch to pointer events (see `touchDragMode: immediate`).
+					"block h-full w-full cursor-pointer select-none border-gray-medium border-r-[1px] [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [touch-action:none]",
 					isTopOfHour && "border-t-[1px] border-t-gray-medium",
 					isHalfHour && "border-top-style:dotted border-t border-t-gray-base",
 					isLastRow && "border-b-[1px]",

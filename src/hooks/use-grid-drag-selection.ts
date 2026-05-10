@@ -11,6 +11,11 @@ export interface GridCell {
 
 export interface UseGridDragSelectionOptions {
 	lockToStartRow?: boolean;
+	/**
+	 * Touch handling: `'longPress'` waits ~220ms then paints (allows scroll gestures first).
+	 * `'immediate'` behaves like mouse: pointer capture + drag on finger move — use for painting grids.
+	 */
+	touchDragMode?: "longPress" | "immediate";
 	tapThreshold?: number;
 	onDragStart?: (cell: GridCell) => void;
 	onDragUpdate?: (
@@ -89,8 +94,9 @@ function buildRange(
  *   `onClick` to this hook.
  * - Keyboard activation is exposed separately via `onKeyDown` (Enter / Space). The pointer
  *   and keyboard paths never overlap.
- * - **Touch:** scroll/pan by default; multi-cell drag starts after a ~220ms hold (see
- *   `LONG_PRESS_MS`). Document-level pointer listeners track the finger until release.
+ * - **Touch (`touchDragMode: 'longPress'`):** scroll/pan first; paint drag after ~220ms hold.
+ * - **Touch (`touchDragMode: 'immediate'`):** same path as mouse (capture + drag), optional
+ *   for personal paint grids. Document delegation is not used so `pointermove` resolves from the captured cell.
  *
  * Handlers returned here must be spread on every cell element that carries
  * `data-date-index` / `data-block-index`.
@@ -114,6 +120,8 @@ export function useGridDragSelection(
 	const longPressAbortedRef = useRef(false);
 	const preventTouchScrollRef = useRef<((e: TouchEvent) => void) | null>(null);
 	const detachDocumentPointerListenersRef = useRef<(() => void) | null>(null);
+	/** When true, `pointerup/move/cancel` on the cell are ignored; document listeners finalize. */
+	const touchUsesDocumentDelegationRef = useRef(false);
 
 	const clearLongPressTimer = useCallback(() => {
 		if (longPressTimerRef.current !== null) {
@@ -151,11 +159,23 @@ export function useGridDragSelection(
 		isEngagedRef.current = false;
 		isTouchPointerRef.current = false;
 		longPressAbortedRef.current = false;
+		touchUsesDocumentDelegationRef.current = false;
 	}, [
 		clearLongPressTimer,
 		removeTouchScrollLock,
 		detachDocumentPointerListeners,
 	]);
+
+	const attachPassiveTouchMoveScrollLock = useCallback(() => {
+		const preventScroll = (e: TouchEvent) => {
+			e.preventDefault();
+		};
+		preventTouchScrollRef.current = preventScroll;
+		document.addEventListener("touchmove", preventScroll, {
+			capture: true,
+			passive: false,
+		});
+	}, []);
 
 	const updatePointerMove = useCallback(
 		(event: Pick<PointerEvent, "clientX" | "clientY" | "pointerId">) => {
@@ -296,7 +316,11 @@ export function useGridDragSelection(
 			captureTargetRef.current = target;
 			longPressAbortedRef.current = false;
 
-			if (isTouch) {
+			const prefersLongPressTouch =
+				(optsRef.current.touchDragMode ?? "longPress") === "longPress";
+
+			if (isTouch && prefersLongPressTouch) {
+				touchUsesDocumentDelegationRef.current = true;
 				isTouchPointerRef.current = true;
 				isEngagedRef.current = false;
 
@@ -358,14 +382,7 @@ export function useGridDragSelection(
 						console.error(error);
 					}
 
-					const preventScroll = (e: TouchEvent) => {
-						e.preventDefault();
-					};
-					preventTouchScrollRef.current = preventScroll;
-					document.addEventListener("touchmove", preventScroll, {
-						capture: true,
-						passive: false,
-					});
+					attachPassiveTouchMoveScrollLock();
 
 					if (typeof navigator !== "undefined" && navigator.vibrate) {
 						navigator.vibrate(15);
@@ -383,7 +400,8 @@ export function useGridDragSelection(
 				return;
 			}
 
-			isTouchPointerRef.current = false;
+			touchUsesDocumentDelegationRef.current = false;
+			isTouchPointerRef.current = isTouch;
 			isEngagedRef.current = true;
 
 			event.preventDefault();
@@ -394,12 +412,17 @@ export function useGridDragSelection(
 				console.error(error);
 			}
 
+			if (isTouch) {
+				attachPassiveTouchMoveScrollLock();
+			}
+
 			optsRef.current.onDragStart?.(cell);
 			const lock = optsRef.current.lockToStartRow ?? false;
 			const range = buildRange(cell, cell, lock);
 			optsRef.current.onDragUpdate?.(range, { start: cell, end: cell });
 		},
 		[
+			attachPassiveTouchMoveScrollLock,
 			cancelPointer,
 			finalizePointerEnd,
 			updatePendingTouchMove,
@@ -411,6 +434,7 @@ export function useGridDragSelection(
 		(event) => {
 			if (
 				isTouchPointerRef.current &&
+				touchUsesDocumentDelegationRef.current &&
 				activePointerIdRef.current === event.pointerId
 			) {
 				return;
@@ -423,7 +447,7 @@ export function useGridDragSelection(
 	const onPointerUp = useCallback<React.PointerEventHandler<HTMLElement>>(
 		(event) => {
 			if (activePointerIdRef.current !== event.pointerId) return;
-			if (isTouchPointerRef.current) return;
+			if (touchUsesDocumentDelegationRef.current) return;
 			finalizePointerEnd(event);
 		},
 		[finalizePointerEnd],
@@ -432,7 +456,7 @@ export function useGridDragSelection(
 	const onPointerCancel = useCallback<React.PointerEventHandler<HTMLElement>>(
 		(event) => {
 			if (activePointerIdRef.current !== event.pointerId) return;
-			if (isTouchPointerRef.current) return;
+			if (touchUsesDocumentDelegationRef.current) return;
 			cancelPointer(event);
 		},
 		[cancelPointer],

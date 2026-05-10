@@ -165,6 +165,7 @@ export function useGridInteraction({
 
 	const handlers = useGridDragSelection({
 		lockToStartRow: availabilityView === "schedule",
+		touchDragMode: availabilityView === "personal" ? "immediate" : "longPress",
 		onDragStart: () => {
 			setHoverRange(undefined);
 		},
