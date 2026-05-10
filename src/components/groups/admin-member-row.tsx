@@ -13,15 +13,16 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useState, useTransition } from "react";
-import { GroupRole } from "@/db/schema";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "../ui/select";
-import { useSnackbar } from "../ui/snackbar-provider";
+} from "@/components/ui/select";
+import { useSnackbar } from "@/components/ui/snackbar-provider";
+import { GroupRole } from "@/db/schema";
+import { ChangeRoleDialog } from "./change-role-dialog";
 import { MemberAvatar } from "./member-avatar";
 import { RemoveMemberDialog } from "./remove-member-dialog";
 
@@ -44,22 +45,37 @@ export function AdminMemberRow({
 	const [isPending, startTransition] = useTransition();
 	const [showRemoveDialog, setShowRemoveDialog] = useState(false);
 	const [showPermissionsSheet, setShowPermissionsSheet] = useState(false);
+	const [showRoleDialog, setShowRoleDialog] = useState(false);
+	const [pendingRole, setPendingRole] = useState<GroupRole | null>(null);
 
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
 	const { showSuccess, showError } = useSnackbar();
 
-	function handleRoleChange(value: string) {
+	function handleRoleSelection(value: string) {
+		const nextRole = value as GroupRole;
+
+		if (nextRole === member.role) return;
+
+		setPendingRole(nextRole);
+		setShowRoleDialog(true);
+	}
+
+	function confirmRoleChange() {
+		if (!pendingRole) return;
+
 		startTransition(async () => {
 			const result = await updateMemberRole({
 				groupId,
 				targetUserId: member.userId,
-				role: value as GroupRole,
+				role: pendingRole,
 			});
 
 			if (result?.success) {
 				showSuccess(result.message);
+				setShowRoleDialog(false);
+				setPendingRole(null);
 			} else if (result?.message) {
 				showError(result.message);
 			}
@@ -69,11 +85,11 @@ export function AdminMemberRow({
 	async function handleRemoveMember() {
 		const result = await removeGroupMember(groupId, member.userId);
 
-		if (result.success) {
+		if (result?.success) {
 			showSuccess(result.message);
 			setShowRemoveDialog(false);
 		} else {
-			showError(result.message);
+			showError(result?.message);
 		}
 	}
 
@@ -140,7 +156,7 @@ export function AdminMemberRow({
 					<div className="flex items-center gap-2">
 						<Select
 							value={member.role ?? GroupRole.MEMBER}
-							onValueChange={handleRoleChange}
+							onValueChange={handleRoleSelection}
 							disabled={isSelf || isPending}
 						>
 							<SelectTrigger
@@ -231,7 +247,7 @@ export function AdminMemberRow({
 								<ButtonBase
 									key={role.value}
 									onClick={() => {
-										handleRoleChange(role.value);
+										handleRoleSelection(role.value);
 										setShowPermissionsSheet(false);
 									}}
 									disableRipple
@@ -309,6 +325,19 @@ export function AdminMemberRow({
 					)}
 				</div>
 			</Drawer>
+
+			{/* role change confrimation */}
+			<ChangeRoleDialog
+				open={showRoleDialog}
+				email={member.email}
+				currentRole={member.role}
+				nextRole={pendingRole ?? member.role}
+				onClose={() => {
+					setShowRoleDialog(false);
+					setPendingRole(null);
+				}}
+				onConfirm={confirmRoleChange}
+			/>
 
 			{/* Remove confirmation */}
 			<RemoveMemberDialog
