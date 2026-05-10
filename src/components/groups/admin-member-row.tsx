@@ -1,6 +1,6 @@
 import { removeGroupMember } from "@actions/group/remove-member/action";
 import { updateMemberRole } from "@actions/group/update-member-role/action";
-import { Check, Close } from "@mui/icons-material";
+import { Check, Close, Logout } from "@mui/icons-material";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import PersonRemoveIcon from "@mui/icons-material/PersonRemove";
 import {
@@ -12,6 +12,7 @@ import {
 	useMediaQuery,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
 	Select,
@@ -23,6 +24,7 @@ import {
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import { GroupRole } from "@/db/schema";
 import { ChangeRoleDialog } from "./change-role-dialog";
+import { LeaveGroupDialog } from "./leave-group-dialog";
 import { MemberAvatar } from "./member-avatar";
 import { RemoveMemberDialog } from "./remove-member-dialog";
 
@@ -47,11 +49,14 @@ export function AdminMemberRow({
 	const [showPermissionsSheet, setShowPermissionsSheet] = useState(false);
 	const [showRoleDialog, setShowRoleDialog] = useState(false);
 	const [pendingRole, setPendingRole] = useState<GroupRole | null>(null);
+	const [showLeaveDialog, setShowLeaveDialog] = useState(false);
 
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
 	const { showSuccess, showError } = useSnackbar();
+
+	const router = useRouter();
 
 	function handleRoleSelection(value: string) {
 		const nextRole = value as GroupRole;
@@ -88,6 +93,11 @@ export function AdminMemberRow({
 		if (result?.success) {
 			showSuccess(result.message);
 			setShowRemoveDialog(false);
+
+			if (isSelf) {
+				router.push("/groups");
+				return;
+			}
 		} else {
 			showError(result?.message);
 		}
@@ -125,39 +135,80 @@ export function AdminMemberRow({
 				</div>
 
 				{isMobile ? (
-					<Button
-						disabled={isPending}
-						onClick={() => setShowPermissionsSheet(true)}
-						disableRipple
-						sx={{
-							textTransform: "none",
-							minWidth: "auto",
-							padding: 0,
-							color: "text.primary",
-							fontSize: "0.875rem",
-							fontWeight: 500,
-							gap: 0.5,
-							"&.Mui-disabled": {
-								opacity: 0.5,
-							},
-						}}
-						endIcon={
-							<KeyboardArrowDownIcon
+					<div className="flex items-center gap-3">
+						{isSelf && (
+							<IconButton
+								onClick={() => setShowLeaveDialog(true)}
 								sx={{
-									fontSize: 16,
-									color: "text.secondary",
+									color: "error.main",
+									padding: 0,
 								}}
-							/>
-						}
-					>
-						{member.role === GroupRole.ADMIN ? "Admin" : "Member"}
-					</Button>
+							>
+								<Logout
+									sx={{
+										color: "error.main",
+									}}
+								/>
+							</IconButton>
+						)}
+
+						<Button
+							disabled={isPending || isSelf}
+							onClick={() => setShowPermissionsSheet(true)}
+							disableRipple
+							sx={{
+								textTransform: "none",
+								minWidth: "auto",
+								padding: 0,
+								color: "text.primary",
+								fontSize: "0.875rem",
+								fontWeight: 500,
+								gap: 0.5,
+								"&.Mui-disabled": {
+									opacity: 1,
+								},
+							}}
+							endIcon={
+								!isSelf ? (
+									<KeyboardArrowDownIcon
+										sx={{
+											fontSize: 16,
+											color: "text.secondary",
+										}}
+									/>
+								) : undefined
+							}
+						>
+							{member.role === GroupRole.ADMIN ? "Admin" : "Member"}
+						</Button>
+					</div>
 				) : (
-					<div className="flex items-center gap-2">
+					<div className="flex items-center gap-3">
+						{isSelf && (
+							<ButtonBase
+								onClick={() => setShowLeaveDialog(true)}
+								sx={{
+									display: "flex",
+									alignItems: "center",
+									gap: 0.75,
+									color: "error.main",
+									fontWeight: 600,
+									borderRadius: 2,
+									px: 1,
+									py: 0.75,
+								}}
+							>
+								<Logout fontSize="small" sx={{ color: "error.main" }} />
+
+								<Typography fontSize="0.875rem" fontWeight={600} color="error">
+									Leave
+								</Typography>
+							</ButtonBase>
+						)}
 						<Select
 							value={member.role ?? GroupRole.MEMBER}
 							onValueChange={handleRoleSelection}
-							disabled={isSelf || isPending}
+							disabled={isPending || isSelf}
 						>
 							<SelectTrigger
 								style={{
@@ -345,6 +396,16 @@ export function AdminMemberRow({
 				email={member.email}
 				onClose={() => setShowRemoveDialog(false)}
 				onConfirm={handleRemoveMember}
+			/>
+
+			{/* leave group confirmation */}
+			<LeaveGroupDialog
+				open={showLeaveDialog}
+				email={member.email}
+				onClose={() => setShowLeaveDialog(false)}
+				onConfirm={async () => {
+					await handleRemoveMember();
+				}}
 			/>
 		</>
 	);
