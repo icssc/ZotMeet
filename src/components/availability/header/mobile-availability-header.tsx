@@ -2,8 +2,7 @@
 
 import { Check, Close } from "@mui/icons-material";
 import { Button, Drawer, Typography } from "@mui/material";
-import { useCallback, useRef, useState } from "react";
-import { useShallow } from "zustand/shallow";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 export interface MobileAvailabilityHeaderProps {
@@ -11,6 +10,9 @@ export interface MobileAvailabilityHeaderProps {
 	exitPersonalView: () => void;
 	runPersonalSave: () => Promise<boolean>;
 	isPersonalSaveDisabled: boolean;
+	handleScheduleCancel: () => void;
+	runScheduleSave: () => Promise<boolean>;
+	isScheduleSaveDisabled: boolean;
 }
 
 type ExitKind = "cancel" | "save";
@@ -20,12 +22,27 @@ export function MobileAvailabilityHeader({
 	exitPersonalView,
 	runPersonalSave,
 	isPersonalSaveDisabled,
+	handleScheduleCancel,
+	runScheduleSave,
+	isScheduleSaveDisabled,
 }: MobileAvailabilityHeaderProps) {
-	const isPersonal = useAvailabilityStore(
-		useShallow((s) => s.availabilityView === "personal"),
-	);
+	const availabilityView = useAvailabilityStore((s) => s.availabilityView);
+	const isPersonal = availabilityView === "personal";
+	const isSchedule = availabilityView === "schedule";
 
-	const [drawerOpen, setDrawerOpen] = useState(true);
+	const [drawerOpen, setDrawerOpen] = useState(false);
+	useEffect(() => {
+		let raf1 = 0;
+		let raf2 = 0;
+		raf1 = requestAnimationFrame(() => {
+			raf2 = requestAnimationFrame(() => setDrawerOpen(true));
+		});
+		return () => {
+			cancelAnimationFrame(raf1);
+			cancelAnimationFrame(raf2);
+		};
+	}, []);
+
 	const exitKindRef = useRef<ExitKind | null>(null);
 	const suppressOnCloseRef = useRef(false);
 
@@ -33,13 +50,23 @@ export function MobileAvailabilityHeader({
 		suppressOnCloseRef.current = false;
 		const kind = exitKindRef.current;
 		exitKindRef.current = null;
+		const exitingView = useAvailabilityStore.getState().availabilityView;
+
 		if (kind === "cancel") {
-			revertPersonalDraft();
-			exitPersonalView();
+			if (exitingView === "personal") {
+				revertPersonalDraft();
+				exitPersonalView();
+			} else if (exitingView === "schedule") {
+				handleScheduleCancel();
+			}
 		} else if (kind === "save") {
-			exitPersonalView();
+			if (exitingView === "personal") {
+				exitPersonalView();
+			} else if (exitingView === "schedule") {
+				useAvailabilityStore.getState().setAvailabilityView("group");
+			}
 		}
-	}, [revertPersonalDraft, exitPersonalView]);
+	}, [revertPersonalDraft, exitPersonalView, handleScheduleCancel]);
 
 	const startClose = useCallback((kind: ExitKind) => {
 		exitKindRef.current = kind;
@@ -60,18 +87,38 @@ export function MobileAvailabilityHeader({
 	}, [startClose]);
 
 	const handleSaveClick = useCallback(async () => {
-		if (isPersonalSaveDisabled) return;
-		const ok = await runPersonalSave();
-		if (ok) {
-			startClose("save");
+		if (isPersonal) {
+			if (isPersonalSaveDisabled) return;
+			const ok = await runPersonalSave();
+			if (ok) startClose("save");
+			return;
 		}
-	}, [runPersonalSave, isPersonalSaveDisabled, startClose]);
+		if (isSchedule) {
+			if (isScheduleSaveDisabled) return;
+			const ok = await runScheduleSave();
+			if (ok) startClose("save");
+		}
+	}, [
+		isPersonal,
+		isSchedule,
+		runPersonalSave,
+		runScheduleSave,
+		isPersonalSaveDisabled,
+		isScheduleSaveDisabled,
+		startClose,
+	]);
+
+	const saveDisabled = isPersonal
+		? isPersonalSaveDisabled
+		: isSchedule
+			? isScheduleSaveDisabled
+			: true;
 
 	return (
 		<div className="">
 			<Drawer
 				anchor="top"
-				open={isPersonal && drawerOpen}
+				open={drawerOpen}
 				onClose={handleDrawerClose}
 				hideBackdrop
 				ModalProps={{
@@ -113,9 +160,11 @@ export function MobileAvailabilityHeader({
 						</Button>
 
 						<div>
-							<Typography>Add Availability</Typography>
+							<Typography>
+								{isSchedule ? "Schedule meeting" : "Add availability"}
+							</Typography>
 							<Typography variant="caption" color="text.secondary">
-								Drag to add availability
+								{isSchedule ? "Drag to Schedule" : "Drag to add availability"}
 							</Typography>
 						</div>
 					</div>
@@ -124,7 +173,7 @@ export function MobileAvailabilityHeader({
 						<Button
 							variant="contained"
 							size="medium"
-							disabled={isPersonalSaveDisabled}
+							disabled={saveDisabled}
 							onClick={() => void handleSaveClick()}
 							aria-label="Save"
 							sx={{ minWidth: 48, minHeight: 48, p: 1 }}

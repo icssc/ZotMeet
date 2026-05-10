@@ -128,78 +128,86 @@ export function useAvailabilityActionHandlers({
 		setAvailabilityView("group");
 	}, [clearPendingTimes, setAvailabilityView]);
 
-	const handleScheduleSave = useCallback(async () => {
-		if (isMeetingDeletionPending) return;
-		try {
-			const { pendingAdds, pendingRemovals } = useAvailabilityStore.getState();
+	const handleScheduleSave = useCallback(
+		async (opts?: { skipExitToGroup?: boolean }): Promise<boolean> => {
+			if (isMeetingDeletionPending) return false;
+			try {
+				const { pendingAdds, pendingRemovals } =
+					useAvailabilityStore.getState();
 
-			for (const timestamp of pendingRemovals) {
-				const date = new Date(timestamp);
-				const scheduledDate = new Date(
-					date.getFullYear(),
-					date.getMonth(),
-					date.getDate(),
-				);
-				const scheduledFromTime = date.toTimeString().slice(0, 8);
-				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-					.toTimeString()
-					.slice(0, 8);
-
-				const removalResult = await deleteScheduledTimeBlock({
-					meetingId: meetingData.id,
-					scheduledDate,
-					scheduledFromTime,
-					scheduledToTime,
-				});
-				if ("error" in removalResult) {
-					showError(
-						removalResult.error ?? "Failed to delete scheduled meeting.",
+				for (const timestamp of pendingRemovals) {
+					const date = new Date(timestamp);
+					const scheduledDate = new Date(
+						date.getFullYear(),
+						date.getMonth(),
+						date.getDate(),
 					);
-					return;
+					const scheduledFromTime = date.toTimeString().slice(0, 8);
+					const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
+						.toTimeString()
+						.slice(0, 8);
+
+					const removalResult = await deleteScheduledTimeBlock({
+						meetingId: meetingData.id,
+						scheduledDate,
+						scheduledFromTime,
+						scheduledToTime,
+					});
+					if ("error" in removalResult) {
+						showError(
+							removalResult.error ?? "Failed to delete scheduled meeting.",
+						);
+						return false;
+					}
 				}
-			}
 
-			for (const timestamp of pendingAdds) {
-				const date = new Date(timestamp);
-				const scheduledDate = new Date(
-					date.getFullYear(),
-					date.getMonth(),
-					date.getDate(),
-				);
-				const scheduledFromTime = date.toTimeString().slice(0, 8);
-				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-					.toTimeString()
-					.slice(0, 8);
+				for (const timestamp of pendingAdds) {
+					const date = new Date(timestamp);
+					const scheduledDate = new Date(
+						date.getFullYear(),
+						date.getMonth(),
+						date.getDate(),
+					);
+					const scheduledFromTime = date.toTimeString().slice(0, 8);
+					const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
+						.toTimeString()
+						.slice(0, 8);
 
-				const saveResult = await saveScheduledTimeBlock({
-					meetingId: meetingData.id,
-					scheduledDate,
-					scheduledFromTime,
-					scheduledToTime,
-				});
-				if ("error" in saveResult) {
-					showError(saveResult.error ?? "Failed to save scheduled meeting.");
-					return;
+					const saveResult = await saveScheduledTimeBlock({
+						meetingId: meetingData.id,
+						scheduledDate,
+						scheduledFromTime,
+						scheduledToTime,
+					});
+					if ("error" in saveResult) {
+						showError(saveResult.error ?? "Failed to save scheduled meeting.");
+						return false;
+					}
 				}
-			}
 
-			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
-				commitPendingTimes();
-				const { scheduledTimes } = useAvailabilityStore.getState();
-				setIsScheduled(scheduledTimes.size > 0);
+				if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
+					commitPendingTimes();
+					const { scheduledTimes } = useAvailabilityStore.getState();
+					setIsScheduled(scheduledTimes.size > 0);
+				}
+				if (!opts?.skipExitToGroup) {
+					setAvailabilityView("group");
+				}
+				return true;
+			} catch (error) {
+				console.error("Failed to save meeting blocks", error);
+				showError("Failed to save meeting schedule. Please try again.");
+				return false;
 			}
-			setAvailabilityView("group");
-		} catch (error) {
-			console.error("Failed to save meeting blocks", error);
-			showError("Failed to save meeting schedule. Please try again.");
-		}
-	}, [
-		isMeetingDeletionPending,
-		meetingData.id,
-		showError,
-		commitPendingTimes,
-		setAvailabilityView,
-	]);
+		},
+		[
+			isMeetingDeletionPending,
+			meetingData.id,
+			showError,
+			commitPendingTimes,
+			setAvailabilityView,
+		],
+	);
 
 	return {
 		handlePersonalCancel,

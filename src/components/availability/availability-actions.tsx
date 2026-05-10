@@ -22,7 +22,7 @@ export interface AvailabilityActionsProps {
 	handlePersonalCancel: () => void;
 	handlePersonalSave: () => Promise<void>;
 	handleScheduleCancel: () => void;
-	handleScheduleSave: () => Promise<void>;
+	handleScheduleSave: () => Promise<boolean>;
 	isScheduled: boolean;
 	setChangeableTimezone: (can: boolean) => void;
 	setTimezone: (timezone: string) => void;
@@ -66,7 +66,7 @@ export function AvailabilityActions({
 					className={
 						availabilityView === "personal"
 							? "hidden flex-row flex-wrap justify-end gap-2 sm:flex"
-							: "flex flex-row flex-wrap justify-end gap-2"
+							: "hidden flex-row flex-wrap justify-end gap-2 sm:flex"
 					}
 				>
 					<Button
