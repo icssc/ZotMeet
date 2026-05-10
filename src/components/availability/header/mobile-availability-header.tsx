@@ -74,18 +74,29 @@ export function MobileAvailabilityHeader({
 				open={isPersonal && drawerOpen}
 				onClose={handleDrawerClose}
 				hideBackdrop
+				ModalProps={{
+					disableEnforceFocus: true,
+					disableAutoFocus: true,
+					disableRestoreFocus: true,
+				}}
 				slotProps={{
 					transition: {
 						onExited: handleTransitionExited,
 					},
 					paper: {
 						sx: {
-							minHeight: "17vh",
+							minHeight: "18vh",
 							borderBottomLeftRadius: 12,
 							borderBottomRightRadius: 12,
 							padding: 2,
 							paddingTop: 4,
 						},
+					},
+				}}
+				sx={{
+					pointerEvents: "none", // lets clicks pass through the modal root
+					"& .MuiDrawer-paper": {
+						pointerEvents: "auto", // drawer itself still clickable
 					},
 				}}
 			>
