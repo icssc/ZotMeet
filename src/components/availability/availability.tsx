@@ -14,6 +14,7 @@ import { AvailabilityNavButton } from "@/components/availability/table/availabil
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
+import { useAvailabilityActionHandlers } from "@/hooks/use-availability-action-handlers";
 import { useAvailabilityData } from "@/hooks/use-availability-data";
 import { useGridInteraction } from "@/hooks/use-grid-interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -259,7 +260,16 @@ export function Availability({
 		[],
 	);
 
-	const actionsProps = {
+	const {
+		handlePersonalCancel,
+		handlePersonalSave,
+		revertPersonalDraft,
+		exitPersonalView,
+		runPersonalSave,
+		handleScheduleCancel,
+		handleScheduleSave,
+		isScheduled,
+	} = useAvailabilityActionHandlers({
 		meetingData,
 		user,
 		availabilityDates,
@@ -267,8 +277,21 @@ export function Availability({
 		onCancel: handleCancelEditing,
 		onSave: confirmSave,
 		setChangeableTimezone,
+		isMeetingDeletionPending,
+	});
+
+	const actionsProps = {
+		meetingData,
+		user,
+		handlePersonalCancel,
+		handlePersonalSave,
+		handleScheduleCancel,
+		handleScheduleSave,
+		isScheduled,
+		setChangeableTimezone,
 		setTimezone: setUserTimezone,
 		onOpenInviteDialog: handleOpenInviteDialog,
+		isMeetingDeletionPending,
 	} as const;
 
 	const isMeetingOwner = Boolean(user && meetingData.hostId === user.memberId);
@@ -452,7 +475,12 @@ export function Availability({
 							</Paper>
 						</div>
 						<div className="block sm:hidden">
-							<MobilePersonalAvailabilitySidebar />
+							<MobilePersonalAvailabilitySidebar
+								revertPersonalDraft={revertPersonalDraft}
+								exitPersonalView={exitPersonalView}
+								runPersonalSave={runPersonalSave}
+								isPersonalSaveDisabled={!user || isMeetingDeletionPending}
+							/>
 						</div>
 					</div>
 				)}
