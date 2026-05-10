@@ -8,6 +8,7 @@ import {
 	ButtonBase,
 	Drawer,
 	IconButton,
+	Tooltip,
 	Typography,
 	useMediaQuery,
 } from "@mui/material";
@@ -39,10 +40,12 @@ export function AdminMemberRow({
 	member,
 	groupId,
 	isSelf,
+	isLastAdmin,
 }: {
 	member: Member;
 	groupId: string;
 	isSelf: boolean;
+	isLastAdmin: boolean;
 }) {
 	const [isPending, startTransition] = useTransition();
 	const [showRemoveDialog, setShowRemoveDialog] = useState(false);
@@ -53,6 +56,7 @@ export function AdminMemberRow({
 
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+	const cannotLeave = isSelf && isLastAdmin;
 
 	const { showSuccess, showError } = useSnackbar();
 
@@ -88,6 +92,11 @@ export function AdminMemberRow({
 	}
 
 	async function handleRemoveMember() {
+		if (cannotLeave) {
+			showError("You must assign another admin before leaving this group.");
+			return;
+		}
+
 		const result = await removeGroupMember(groupId, member.userId);
 
 		if (result?.success) {
@@ -138,10 +147,20 @@ export function AdminMemberRow({
 					<div className="flex items-center gap-3">
 						{isSelf && (
 							<IconButton
-								onClick={() => setShowLeaveDialog(true)}
+								onClick={() => {
+									if (cannotLeave) {
+										showError(
+											"You must assign another admin before leaving this group.",
+										);
+										return;
+									}
+
+									setShowLeaveDialog(true);
+								}}
 								sx={{
 									color: "error.main",
 									padding: 0,
+									opacity: cannotLeave ? 0.4 : 1,
 								}}
 							>
 								<Logout
@@ -185,25 +204,47 @@ export function AdminMemberRow({
 				) : (
 					<div className="flex items-center gap-3">
 						{isSelf && (
-							<ButtonBase
-								onClick={() => setShowLeaveDialog(true)}
-								sx={{
-									display: "flex",
-									alignItems: "center",
-									gap: 0.75,
-									color: "error.main",
-									fontWeight: 600,
-									borderRadius: 2,
-									px: 1,
-									py: 0.75,
-								}}
+							<Tooltip
+								title={
+									cannotLeave
+										? "You must assign another admin before leaving this group."
+										: ""
+								}
+								arrow
 							>
-								<Logout fontSize="small" sx={{ color: "error.main" }} />
+								<span>
+									<ButtonBase
+										disabled={cannotLeave}
+										onClick={() => setShowLeaveDialog(true)}
+										sx={{
+											display: "flex",
+											alignItems: "center",
+											gap: 0.75,
+											color: "error.main",
+											fontWeight: 600,
+											borderRadius: 2,
+											px: 1,
+											py: 0.75,
+											opacity: cannotLeave ? 0.4 : 1,
+										}}
+									>
+										<Logout
+											fontSize="small"
+											sx={{
+												color: "error.main",
+											}}
+										/>
 
-								<Typography fontSize="0.875rem" fontWeight={600} color="error">
-									Leave
-								</Typography>
-							</ButtonBase>
+										<Typography
+											fontSize="0.875rem"
+											fontWeight={600}
+											color="error"
+										>
+											Leave
+										</Typography>
+									</ButtonBase>
+								</span>
+							</Tooltip>
 						)}
 						<Select
 							value={member.role ?? GroupRole.MEMBER}
@@ -395,7 +436,9 @@ export function AdminMemberRow({
 				open={showRemoveDialog}
 				email={member.email}
 				onClose={() => setShowRemoveDialog(false)}
-				onConfirm={handleRemoveMember}
+				onConfirm={async () => {
+					await handleRemoveMember();
+				}}
 			/>
 
 			{/* leave group confirmation */}

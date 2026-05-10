@@ -22,6 +22,10 @@ export function MembersList({
 	currentUserId: string;
 }) {
 	const theme = useTheme();
+	const adminCount = members.filter(
+		(member) => member.role === GroupRole.ADMIN,
+	).length;
+
 	return (
 		<div className="mt-4">
 			<p className="mb-2 px-4 font-bold text-[#969696] text-xs uppercase tracking-wide">
@@ -36,6 +40,7 @@ export function MembersList({
 							member={member}
 							groupId={groupId}
 							isSelf={member.userId === currentUserId}
+							isLastAdmin={member.role === GroupRole.ADMIN && adminCount === 1}
 						/>
 					) : (
 						<div
