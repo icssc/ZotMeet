@@ -115,7 +115,7 @@ export function MobileAvailabilityHeader({
 			: true;
 
 	return (
-		<div className="">
+		<div className="sm:hidden">
 			<Drawer
 				anchor="top"
 				open={drawerOpen}

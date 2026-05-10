@@ -46,9 +46,11 @@ export function MobilePersonalAvailabilitySidebar({
 				<MobileIsland>
 					<ToggleButtonGroup
 						exclusive
+						fullWidth
 						value={paintMode}
 						onChange={(_, val) => val && setPaintMode(val)}
 						aria-label="availability"
+						sx={{ display: "flex", width: "100%" }}
 					>
 						{PERSONAL_AVAILABILITY_OPTIONS.map(({ value, label, icon }) => (
 							<ToggleButton
@@ -56,11 +58,17 @@ export function MobilePersonalAvailabilitySidebar({
 								value={value}
 								aria-label={label}
 								sx={(theme) => ({
+									flex: 1,
+									minWidth: 0,
+									minHeight: 0,
+									textTransform: "none",
 									display: "flex",
 									flexDirection: "column",
-									gap: 1,
-									px: 1.5,
-									py: 1.25,
+									alignItems: "center",
+									justifyContent: "center",
+									gap: theme.spacing(0.5),
+									paddingBlock: theme.spacing(1.25),
+									paddingInline: theme.spacing(2),
 									"&.Mui-selected": {
 										backgroundColor: alpha(
 											theme.palette.primary.main,
@@ -71,7 +79,12 @@ export function MobilePersonalAvailabilitySidebar({
 								})}
 							>
 								{icon}
-								<Typography variant="caption">{label}</Typography>
+								<Typography
+									variant="caption"
+									sx={{ display: "block", textAlign: "center" }}
+								>
+									{label}
+								</Typography>
 							</ToggleButton>
 						))}
 					</ToggleButtonGroup>

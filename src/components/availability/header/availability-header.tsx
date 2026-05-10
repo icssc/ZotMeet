@@ -109,7 +109,7 @@ export function AvailabilityHeader({
 						<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
 							{meetingData.title}
 						</h1>
-						<div className="ml-6">
+						<div className="ml-6 hidden sm:block">
 							<CopyToClipboardButton
 								content={meetingData.title}
 								successMessage={copySuccess}
