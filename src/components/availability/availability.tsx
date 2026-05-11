@@ -264,7 +264,7 @@ export function Availability({
 		handlePersonalCancel,
 		handlePersonalSave,
 		revertPersonalDraft,
-		exitPersonalView,
+		exitToGroupView,
 		runPersonalSave,
 		handleScheduleCancel,
 		handleScheduleSave,
@@ -297,7 +297,7 @@ export function Availability({
 		setTimezone: setUserTimezone,
 		onOpenInviteDialog: handleOpenInviteDialog,
 		isMeetingDeletionPending,
-	} as const;
+	};
 
 	const isMeetingOwner = Boolean(user && meetingData.hostId === user.memberId);
 
@@ -485,7 +485,7 @@ export function Availability({
 					<div className="block sm:hidden">
 						<MobilePersonalAvailabilitySidebar
 							revertPersonalDraft={revertPersonalDraft}
-							exitPersonalView={exitPersonalView}
+							exitToGroupView={exitToGroupView}
 							runPersonalSave={runPersonalSave}
 							isPersonalSaveDisabled={!user || isMeetingDeletionPending}
 							handleScheduleCancel={handleScheduleCancel}

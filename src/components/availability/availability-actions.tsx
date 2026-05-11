@@ -45,7 +45,6 @@ export function AvailabilityActions({
 }: AvailabilityActionsProps) {
 	const router = useRouter();
 	const { showSuccess, showError } = useSnackbar();
-	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false);
 
 	const { hasAvailability, availabilityView, setAvailabilityView } =
@@ -58,6 +57,14 @@ export function AvailabilityActions({
 		);
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
+
+	const handleSaveClick = () => {
+		const action =
+			availabilityView === "personal" ? handlePersonalSave : handleScheduleSave;
+		action().catch((error) => {
+			console.error("Save failed", error);
+		});
+	};
 
 	return (
 		<div className="flex w-full flex-col gap-2">
@@ -80,11 +87,7 @@ export function AvailabilityActions({
 						size="small"
 						type="submit"
 						disabled={isMeetingDeletionPending}
-						onClick={
-							availabilityView === "personal"
-								? () => void handlePersonalSave()
-								: () => void handleScheduleSave()
-						}
+						onClick={handleSaveClick}
 					>
 						Save
 					</Button>
@@ -144,7 +147,6 @@ export function AvailabilityActions({
 							sx={{ py: 0.75 }}
 							onClick={() => {
 								if (!user) {
-									setIsAuthModalOpen(true);
 									router.push("/auth/login/google");
 									return;
 								}

@@ -8,8 +8,8 @@ import { useSnackbar } from "../ui/snackbar-provider";
 
 export interface CopyToClipboardButtonProps {
 	content: string;
-	successMessage: string;
-	errorMessage: string;
+	successMessage?: string;
+	errorMessage?: string;
 }
 
 /**
@@ -17,8 +17,8 @@ export interface CopyToClipboardButtonProps {
  */
 export function CopyToClipboardButton({
 	content,
-	successMessage,
-	errorMessage,
+	successMessage = "Copied to clipboard",
+	errorMessage = "Failed to copy",
 }: CopyToClipboardButtonProps) {
 	const { showSuccess, showError } = useSnackbar();
 

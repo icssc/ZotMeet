@@ -5,7 +5,7 @@ import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
@@ -35,41 +35,44 @@ export function useAvailabilityActionHandlers({
 	isMeetingDeletionPending = false,
 }: UseAvailabilityActionHandlersParams) {
 	const { showError } = useSnackbar();
-	const [isScheduled, setIsScheduled] = useState(() =>
-		Boolean(meetingData.scheduled),
-	);
 
-	useEffect(() => {
-		setIsScheduled(Boolean(meetingData.scheduled));
-	}, [meetingData.scheduled]);
-
-	const { setHasAvailability, setAvailabilityView } = useAvailabilityStore(
+	const {
+		setHasAvailability,
+		setAvailabilityView,
+		commitPendingTimes,
+		clearPendingTimes,
+		scheduledTimesCount,
+		hasHydratedScheduledTimes,
+	} = useAvailabilityStore(
 		useShallow((state) => ({
 			setHasAvailability: state.setHasAvailability,
 			setAvailabilityView: state.setAvailabilityView,
+			commitPendingTimes: state.commitPendingTimes,
+			clearPendingTimes: state.clearPendingTimes,
+			scheduledTimesCount: state.scheduledTimes.size,
+			hasHydratedScheduledTimes: state.hasHydratedScheduledTimes,
 		})),
 	);
 
-	const { commitPendingTimes, clearPendingTimes } = useAvailabilityStore(
-		useShallow((state) => ({
-			commitPendingTimes: state.commitPendingTimes,
-			clearPendingTimes: state.clearPendingTimes,
-		})),
-	);
+	// Prefer hydrated client state once available so optimistic edits are
+	// reflected immediately; fall back to the server flag pre-hydration.
+	const isScheduled = hasHydratedScheduledTimes
+		? scheduledTimesCount > 0
+		: Boolean(meetingData.scheduled);
 
 	const revertPersonalDraft = useCallback(() => {
 		onCancel();
 		setChangeableTimezone(true);
 	}, [onCancel, setChangeableTimezone]);
 
-	const exitPersonalView = useCallback(() => {
+	const exitToGroupView = useCallback(() => {
 		setAvailabilityView("group");
 	}, [setAvailabilityView]);
 
 	const handlePersonalCancel = useCallback(() => {
 		revertPersonalDraft();
-		exitPersonalView();
-	}, [revertPersonalDraft, exitPersonalView]);
+		exitToGroupView();
+	}, [revertPersonalDraft, exitToGroupView]);
 
 	const runPersonalSave = useCallback(async (): Promise<boolean> => {
 		if (!user || isMeetingDeletionPending) return false;
@@ -83,7 +86,6 @@ export function useAvailabilityActionHandlers({
 			ifNeededAvailabilityTimes: ifNeededDates.flatMap(
 				(date) => date.availability,
 			),
-			displayName: user.displayName,
 		});
 		if (response.status === 200) {
 			setHasAvailability(true);
@@ -105,9 +107,9 @@ export function useAvailabilityActionHandlers({
 
 	const handlePersonalSave = useCallback(async () => {
 		if (await runPersonalSave()) {
-			exitPersonalView();
+			exitToGroupView();
 		}
-	}, [runPersonalSave, exitPersonalView]);
+	}, [runPersonalSave, exitToGroupView]);
 
 	const handleScheduleCancel = useCallback(() => {
 		clearPendingTimes();
@@ -173,8 +175,6 @@ export function useAvailabilityActionHandlers({
 
 				if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
 					commitPendingTimes();
-					const { scheduledTimes } = useAvailabilityStore.getState();
-					setIsScheduled(scheduledTimes.size > 0);
 				}
 				if (!opts?.skipExitToGroup) {
 					setAvailabilityView("group");
@@ -199,7 +199,7 @@ export function useAvailabilityActionHandlers({
 		handlePersonalCancel,
 		handlePersonalSave,
 		revertPersonalDraft,
-		exitPersonalView,
+		exitToGroupView,
 		runPersonalSave,
 		handleScheduleCancel,
 		handleScheduleSave,

@@ -9,7 +9,7 @@ import { PERSONAL_AVAILABILITY_OPTIONS } from "./personal-availability-options";
 
 export interface MobilePersonalAvailabilitySidebarProps {
 	revertPersonalDraft: () => void;
-	exitPersonalView: () => void;
+	exitToGroupView: () => void;
 	runPersonalSave: () => Promise<boolean>;
 	isPersonalSaveDisabled: boolean;
 	handleScheduleCancel: () => void;
@@ -19,7 +19,7 @@ export interface MobilePersonalAvailabilitySidebarProps {
 
 export function MobilePersonalAvailabilitySidebar({
 	revertPersonalDraft,
-	exitPersonalView,
+	exitToGroupView,
 	runPersonalSave,
 	isPersonalSaveDisabled,
 	handleScheduleCancel,
@@ -34,7 +34,7 @@ export function MobilePersonalAvailabilitySidebar({
 		<div>
 			<MobileAvailabilityHeader
 				revertPersonalDraft={revertPersonalDraft}
-				exitPersonalView={exitPersonalView}
+				exitToGroupView={exitToGroupView}
 				runPersonalSave={runPersonalSave}
 				isPersonalSaveDisabled={isPersonalSaveDisabled}
 				handleScheduleCancel={handleScheduleCancel}
@@ -50,7 +50,6 @@ export function MobilePersonalAvailabilitySidebar({
 						value={paintMode}
 						onChange={(_, val) => val && setPaintMode(val)}
 						aria-label="availability"
-						sx={{ display: "flex", width: "100%" }}
 					>
 						{PERSONAL_AVAILABILITY_OPTIONS.map(({ value, label, icon }) => (
 							<ToggleButton

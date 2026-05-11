@@ -76,8 +76,13 @@ export function AvailabilityHeader({
 		convertTimeFromUTC(meetingData.toTime, displayTimezone, referenceDate),
 	);
 
-	const copySuccess = "Meeting Name Copied to Clipboard ";
-	const copyFail = "Meeting Name Failed to Copy";
+	const copyTitleButton = (
+		<CopyToClipboardButton
+			content={meetingData.title}
+			successMessage="Meeting name copied to clipboard"
+			errorMessage="Failed to copy meeting name"
+		/>
+	);
 
 	return (
 		<div className="mt-2">
@@ -86,19 +91,11 @@ export function AvailabilityHeader({
 					Meetings
 				</Button>
 				<div className="ml-auto flex items-center">
-					<div className="ml-auto sm:ml-8 sm:hidden">
-						<CopyToClipboardButton
-							content={meetingData.title}
-							successMessage={copySuccess}
-							errorMessage={copyFail}
-						/>
-					</div>
+					{copyTitleButton}
 					{isOwner && (
-						<div className="block sm:hidden">
-							<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
-								<MoreVerticalIcon />
-							</IconButton>
-						</div>
+						<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
+							<MoreVerticalIcon />
+						</IconButton>
 					)}
 				</div>
 			</div>
@@ -109,13 +106,7 @@ export function AvailabilityHeader({
 						<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
 							{meetingData.title}
 						</h1>
-						<div className="ml-6 hidden sm:block">
-							<CopyToClipboardButton
-								content={meetingData.title}
-								successMessage={copySuccess}
-								errorMessage={copyFail}
-							/>
-						</div>
+						<div className="ml-6 hidden sm:block">{copyTitleButton}</div>
 					</div>
 					<div className="flex flex-wrap items-start gap-4">
 						<div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-2">

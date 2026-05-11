@@ -7,7 +7,7 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 export interface MobileAvailabilityHeaderProps {
 	revertPersonalDraft: () => void;
-	exitPersonalView: () => void;
+	exitToGroupView: () => void;
 	runPersonalSave: () => Promise<boolean>;
 	isPersonalSaveDisabled: boolean;
 	handleScheduleCancel: () => void;
@@ -19,7 +19,7 @@ type ExitKind = "cancel" | "save";
 
 export function MobileAvailabilityHeader({
 	revertPersonalDraft,
-	exitPersonalView,
+	exitToGroupView,
 	runPersonalSave,
 	isPersonalSaveDisabled,
 	handleScheduleCancel,
@@ -30,17 +30,12 @@ export function MobileAvailabilityHeader({
 	const isPersonal = availabilityView === "personal";
 	const isSchedule = availabilityView === "schedule";
 
+	// Mount with open={false} then flip to true so MUI plays the slide-in
+	// transition instead of snapping into place.
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	useEffect(() => {
-		let raf1 = 0;
-		let raf2 = 0;
-		raf1 = requestAnimationFrame(() => {
-			raf2 = requestAnimationFrame(() => setDrawerOpen(true));
-		});
-		return () => {
-			cancelAnimationFrame(raf1);
-			cancelAnimationFrame(raf2);
-		};
+		const id = requestAnimationFrame(() => setDrawerOpen(true));
+		return () => cancelAnimationFrame(id);
 	}, []);
 
 	const exitKindRef = useRef<ExitKind | null>(null);
@@ -55,18 +50,14 @@ export function MobileAvailabilityHeader({
 		if (kind === "cancel") {
 			if (exitingView === "personal") {
 				revertPersonalDraft();
-				exitPersonalView();
+				exitToGroupView();
 			} else if (exitingView === "schedule") {
 				handleScheduleCancel();
 			}
 		} else if (kind === "save") {
-			if (exitingView === "personal") {
-				exitPersonalView();
-			} else if (exitingView === "schedule") {
-				useAvailabilityStore.getState().setAvailabilityView("group");
-			}
+			exitToGroupView();
 		}
-	}, [revertPersonalDraft, exitPersonalView, handleScheduleCancel]);
+	}, [revertPersonalDraft, exitToGroupView, handleScheduleCancel]);
 
 	const startClose = useCallback((kind: ExitKind) => {
 		exitKindRef.current = kind;
