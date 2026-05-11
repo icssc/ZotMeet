@@ -111,7 +111,7 @@ export function AvailabilityBlocks({
 									? "if-needed"
 									: importPreview.availableIsoSet.has(slotIso)
 										? "available"
-										: "unavailable";
+										: null;
 
 						const isInDraftRange = rangeCoversCell(
 							draftRange,

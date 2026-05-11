@@ -366,7 +366,7 @@ function mergeImportedGridSlots(
 	return updated;
 }
 
-export function replaceImportedPersonalGridSlots({
+export function mergeImportedPersonalGridSlots({
 	availabilityDates,
 	ifNeededDates,
 	meetingAvailabilities,
@@ -379,22 +379,63 @@ export function replaceImportedPersonalGridSlots({
 	ifNeededAvailabilities: readonly string[];
 	memberId: string;
 }): { availabilityDates: ZotDate[]; ifNeededDates: ZotDate[] } {
-	const cleared = clearPersonalGridSlots(
+	const mergedAvailabilityDates = mergeImportedGridSlots(
 		availabilityDates,
-		ifNeededDates,
+		meetingAvailabilities,
 		memberId,
 	);
+	const mergedIfNeededDates = mergeImportedGridSlots(
+		ifNeededDates,
+		ifNeededAvailabilities,
+		memberId,
+	);
+
+	const availableSet = new Set(meetingAvailabilities);
+	const ifNeededSet = new Set(ifNeededAvailabilities);
+
+	for (
+		let dateIndex = 0;
+		dateIndex < mergedAvailabilityDates.length;
+		dateIndex++
+	) {
+		const availableDate = mergedAvailabilityDates[dateIndex];
+		const ifNeededDate = mergedIfNeededDates[dateIndex];
+		if (!availableDate || !ifNeededDate) continue;
+
+		for (const timestamp of availableSet) {
+			if (ifNeededSet.has(timestamp)) continue;
+			if (ifNeededDate.availability.includes(timestamp)) {
+				ifNeededDate.availability = ifNeededDate.availability.filter(
+					(ts) => ts !== timestamp,
+				);
+			}
+			if (ifNeededDate.groupAvailability[timestamp]) {
+				ifNeededDate.groupAvailability[timestamp] =
+					ifNeededDate.groupAvailability[timestamp].filter(
+						(id) => id !== memberId,
+					);
+			}
+		}
+
+		for (const timestamp of ifNeededSet) {
+			if (availableSet.has(timestamp)) continue;
+			if (availableDate.availability.includes(timestamp)) {
+				availableDate.availability = availableDate.availability.filter(
+					(ts) => ts !== timestamp,
+				);
+			}
+			if (availableDate.groupAvailability[timestamp]) {
+				availableDate.groupAvailability[timestamp] =
+					availableDate.groupAvailability[timestamp].filter(
+						(id) => id !== memberId,
+					);
+			}
+		}
+	}
+
 	return {
-		availabilityDates: mergeImportedGridSlots(
-			cleared.availabilityDates,
-			meetingAvailabilities,
-			memberId,
-		),
-		ifNeededDates: mergeImportedGridSlots(
-			cleared.ifNeededDates,
-			ifNeededAvailabilities,
-			memberId,
-		),
+		availabilityDates: mergedAvailabilityDates,
+		ifNeededDates: mergedIfNeededDates,
 	};
 }
 

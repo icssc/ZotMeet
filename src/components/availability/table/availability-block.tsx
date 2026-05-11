@@ -1,7 +1,6 @@
 import {
 	type CellPaintTarget,
 	type ImportPreviewTarget,
-	importErasesCommitted,
 	type PaintMode,
 	paintWillChange,
 } from "@/lib/availability/paint-selection";
@@ -33,15 +32,11 @@ export function AvailabilityBlock({
 			? importPreviewType
 			: null;
 
-	const importErases = importErasesCommitted(state, importPreviewType);
-	const previewTarget: CellPaintTarget | null = importErases
-		? null
-		: (draftTarget ?? importTarget);
+	const previewTarget: CellPaintTarget | null = draftTarget ?? importTarget;
 
 	const previewWillBeNonIfNeeded =
 		previewTarget !== null && previewTarget !== "if-needed";
-	const renderPaperBase =
-		!isIfNeeded || importErases || previewWillBeNonIfNeeded;
+	const renderPaperBase = !isIfNeeded || previewWillBeNonIfNeeded;
 
 	return (
 		<div className="pointer-events-none relative block h-full w-full py-2">
@@ -54,7 +49,7 @@ export function AvailabilityBlock({
 				/>
 			)}
 
-			{isAvailable && !importErases && (
+			{isAvailable && (
 				<div
 					className={cn(
 						"absolute inset-0 bg-primary",

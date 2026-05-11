@@ -5,7 +5,6 @@ import { GoogleCalendarEventBlock } from "@/components/availability/table/google
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import {
 	type CellPaintTarget,
-	cellRendersOverPrimary,
 	effectiveCellTarget,
 	type ImportPreviewTarget,
 	type PaintMode,
@@ -67,13 +66,11 @@ export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 	onPointerCancel,
 	onKeyDown,
 }: AvailabilityBlockCellProps) {
-	const state = { isAvailable, isIfNeeded };
 	const target = effectiveCellTarget(
-		state,
+		{ isAvailable, isIfNeeded },
 		{ isInDraftRange, paintMode },
 		importPreviewType,
 	);
-	const overlayOverPrimary = cellRendersOverPrimary(state, importPreviewType);
 
 	return (
 		<td className="relative px-0 py-0">
@@ -107,7 +104,7 @@ export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 
 			<GoogleCalendarEventBlock
 				eventSegments={eventSegments}
-				rendersOverPrimary={overlayOverPrimary}
+				rendersOverPrimary={isAvailable}
 			/>
 		</td>
 	);

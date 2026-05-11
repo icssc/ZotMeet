@@ -43,12 +43,7 @@ export const PERSONAL_AVAILABILITY_OPTIONS: {
 		value: "unavailable",
 		label: "Unavailable",
 		icon: (
-			<div
-				style={{
-					...SWATCH_DIMENSION_STYLE,
-					border: "2px solid hsl(var(--border))",
-				}}
-			/>
+			<div style={SWATCH_DIMENSION_STYLE} className="border-2 border-gray-medium" />
 		),
 	},
 ];

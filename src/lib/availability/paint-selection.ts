@@ -20,24 +20,7 @@ export function paintWillChange(
 
 export type CellPaintTarget = PaintMode;
 
-export type ImportPreviewTarget = CellPaintTarget | null;
-
-export function importErasesCommitted(
-	state: { isAvailable: boolean; isIfNeeded: boolean },
-	importPreview: ImportPreviewTarget,
-): boolean {
-	return (
-		importPreview === "unavailable" && paintWillChange("unavailable", state)
-	);
-}
-
-export function cellRendersOverPrimary(
-	state: { isAvailable: boolean; isIfNeeded: boolean },
-	importPreview: ImportPreviewTarget,
-): boolean {
-	if (importErasesCommitted(state, importPreview)) return false;
-	return state.isAvailable;
-}
+export type ImportPreviewTarget = "available" | "if-needed" | null;
 
 export function effectiveCellTarget(
 	state: { isAvailable: boolean; isIfNeeded: boolean },
