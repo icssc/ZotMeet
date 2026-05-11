@@ -7,7 +7,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { MobileIsland } from "@/components/mobile/mobile-island";
 import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
 import { Sidebar } from "@/components/studyrooms/sidebar";
@@ -36,8 +36,31 @@ export default function Page() {
 	const [committedDate, setCommittedDate] = useState<Date | null>(defaultDate);
 	const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
 	const [rooms, setRooms] = useState<StudyRooms["data"] | null>(null);
-
 	const [drawerOpen, setOpen] = useState(false);
+	const [filteredRooms, setFilteredRooms] = useState<StudyRooms["data"] | null>(
+		null,
+	);
+	const [, startTransition] = useTransition();
+	const searchRef = useRef("");
+	const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+	useEffect(() => {
+		setFilteredRooms(rooms);
+	}, [rooms]);
+	const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+		searchRef.current = event.target.value;
+		clearTimeout(timerRef.current);
+		timerRef.current = setTimeout(() => {
+			startTransition(() => {
+				const query = searchRef.current.toLowerCase();
+				setFilteredRooms(
+					query
+						? rooms!.filter((r) => r.location.toLowerCase().includes(query))
+						: rooms,
+				);
+			});
+		}, 300);
+	};
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns}>
 			{fallbackNotice && (
@@ -64,9 +87,9 @@ export default function Page() {
 					className="md:m-4"
 					variant="outlined"
 				>
-					{rooms && committedDate && committedStart && committedEnd ? (
+					{filteredRooms && committedDate && committedStart && committedEnd ? (
 						<RoomsHeatmap
-							rooms={rooms}
+							rooms={filteredRooms}
 							searchDate={committedDate}
 							startTime={committedStart}
 							endTime={committedEnd}
@@ -100,6 +123,7 @@ export default function Page() {
 										placeholder: "Search Rooms",
 									},
 								}}
+								onChange={handleSearch}
 							/>
 							<Button onClick={() => setOpen(true)} sx={{ flex: 1 }}>
 								{" "}
