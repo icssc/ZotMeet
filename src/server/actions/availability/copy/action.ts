@@ -87,8 +87,10 @@ export async function getImportableMeetings(
 
 		const overlappingIds = new Set(
 			availabilityRows
-				.filter((row) =>
-					hasTimestampOnMeetingGrid(row.meetingAvailabilities, gridIsoSet),
+				.filter(
+					(row) =>
+						hasTimestampOnMeetingGrid(row.meetingAvailabilities, gridIsoSet) ||
+						hasTimestampOnMeetingGrid(row.ifNeededAvailabilities, gridIsoSet),
 				)
 				.map((r) => r.meetingId),
 		);
@@ -130,6 +132,7 @@ export async function getUserAvailabilityForMeeting(meetingId: string) {
 		return {
 			success: true as const,
 			meetingAvailabilities: availabilityData.meetingAvailabilities,
+			ifNeededAvailabilities: availabilityData.ifNeededAvailabilities,
 		};
 	} catch (error) {
 		console.error("Error fetching availability:", error);

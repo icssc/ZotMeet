@@ -2,16 +2,16 @@ import { Typography } from "@mui/material";
 import React from "react";
 import type { SelectMeeting } from "@/db/schema";
 import {
+	cloneBlocks,
 	formatDateToUSNumeric,
-	newZonedPageAvailAndDates,
 	spacerBeforeDate,
 } from "@/lib/availability/utils";
 import type { ZotDate } from "@/lib/zotdate";
 
 interface AvailabilityTableHeaderProps {
 	currentPageAvailability: {
-		availabilities: ZotDate[];
-		ifNeeded: ZotDate[];
+		availabilities: (ZotDate | null)[];
+		ifNeeded: (ZotDate | null)[];
 	};
 	meetingType: SelectMeeting["meetingType"];
 	doesntNeedDay: boolean;
@@ -22,11 +22,8 @@ export function AvailabilityTableHeader({
 	meetingType,
 	doesntNeedDay,
 }: AvailabilityTableHeaderProps) {
-	//extra day calculation for day spillover
-	//put in here to prevent infinite adding, recalculates everytime something changes
-	const [newBlocks, _newAvailDates] = newZonedPageAvailAndDates(
-		currentPageAvailability["availabilities"],
-		null,
+	const newBlocks = cloneBlocks(
+		currentPageAvailability.availabilities,
 		doesntNeedDay,
 	);
 

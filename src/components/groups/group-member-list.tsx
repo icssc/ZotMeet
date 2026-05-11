@@ -7,6 +7,9 @@ import {
 	Avatar,
 	Box,
 	Button,
+	Dialog,
+	DialogContent,
+	DialogTitle,
 	IconButton,
 	Menu,
 	MenuItem,
@@ -19,13 +22,13 @@ import {
 	Calendar,
 	Clock,
 	MoreVertical,
-	Pencil,
 	Plus,
 	Share2,
 	Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
+import { FilterChip } from "@/components/ui/filter-chip";
 import {
 	Select,
 	SelectContent,
@@ -40,8 +43,9 @@ import { copyTextToClipboard } from "@/lib/clipboard/utils";
 import { isAnchorDateString, WEEKDAYS } from "@/lib/types/chrono";
 import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import { updateMemberRole } from "@/server/actions/group/update-member-role/action";
+import { nudgePendingMembers } from "@/server/actions/meeting/nudge/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
-import { FilterChip } from "./groups-page";
+import { GroupSettingsForm } from "./group-settings-form";
 
 type Member = {
 	userId: string;
@@ -150,18 +154,22 @@ function MeetingRow({
 	status: "actionRequired" | "upcoming" | null;
 }) {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const [isNudging, setIsNudging] = useState(false);
+	const { showSuccess, showError } = useSnackbar();
 	const open = Boolean(anchorEl);
-	const createdByLabel =
-		meeting.hostId === currentMemberId
-			? "Created by You"
-			: `Created by ${meeting.hostName}`;
+	const isOwner = meeting.hostId === currentMemberId;
+	const createdByLabel = isOwner
+		? "Created by You"
+		: `Created by ${meeting.hostName}`;
 
 	return (
-		<div className="flex items-center justify-between rounded-xl border-gray-200 border-b px-4 py-4 transition-colors hover:bg-primary/5">
+		<div className="relative flex items-center justify-between rounded-xl border-gray-200 border-b px-4 py-4 transition-colors hover:bg-primary/5">
 			<Link
 				href={`/availability/${meeting.id}`}
-				className="flex flex-1 flex-col gap-1"
-			>
+				className="absolute inset-0 rounded-xl"
+				aria-label={`Open ${meeting.title}`}
+			/>
+			<div className="pointer-events-none relative z-10 flex flex-1 flex-col gap-1">
 				<div className="flex flex-wrap items-center gap-2">
 					<h3 className="font-medium text-base">{meeting.title}</h3>
 					{status && <StatusBadge status={status} />}
@@ -196,38 +204,56 @@ function MeetingRow({
 						</span>
 					</div>
 				</div>
-			</Link>
+			</div>
 
-			<div className="ml-4 flex items-center gap-3">
-				<p className="whitespace-nowrap font-medium text-gray-400 text-xs uppercase tracking-wide">
+			<div className="relative z-20 ml-4 flex items-center gap-3">
+				<p className="pointer-events-none whitespace-nowrap font-medium text-gray-400 text-xs uppercase tracking-wide">
 					{createdByLabel}
 				</p>
-				<IconButton
-					onClick={(e) => {
-						e.stopPropagation();
-						setAnchorEl(open ? null : e.currentTarget);
-					}}
-				>
-					<MoreVertical className="size-5 text-gray-500" />
-				</IconButton>
+				{isOwner && (
+					<>
+						<IconButton
+							onClick={(e) => {
+								e.stopPropagation();
+								setAnchorEl(open ? null : e.currentTarget);
+							}}
+						>
+							<MoreVertical className="size-5 text-gray-500" />
+						</IconButton>
 
-				<Menu
-					anchorEl={anchorEl}
-					open={open}
-					onClose={() => setAnchorEl(null)}
-					transformOrigin={{ horizontal: "right", vertical: "top" }}
-					anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-				>
-					<MenuItem
-						onClick={(e) => {
-							e.stopPropagation();
-							setAnchorEl(null);
-						}}
-					>
-						<People className="mr-2 size-4" />
-						Nudge Members
-					</MenuItem>
-				</Menu>
+						<Menu
+							anchorEl={anchorEl}
+							open={open}
+							onClose={() => setAnchorEl(null)}
+							transformOrigin={{ horizontal: "right", vertical: "top" }}
+							anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+						>
+							<MenuItem
+								disabled={isNudging}
+								onClick={async (e) => {
+									e.stopPropagation();
+									setAnchorEl(null);
+									setIsNudging(true);
+									try {
+										const result = await nudgePendingMembers(meeting.id);
+										if (result.success) {
+											showSuccess(result.message);
+										} else {
+											showError(result.message);
+										}
+									} catch {
+										showError("Failed to send nudge. Please try again.");
+									} finally {
+										setIsNudging(false);
+									}
+								}}
+							>
+								<People className="mr-2 size-4" />
+								Nudge Members
+							</MenuItem>
+						</Menu>
+					</>
+				)}
 			</div>
 		</div>
 	);
@@ -489,21 +515,16 @@ export function GroupMemberList({
 							<h1 className="font-bold font-figtree text-3xl md:text-5xl">
 								{group.name}
 							</h1>
-
-							<IconButton size="small">
-								<Pencil className="size-4" />
-							</IconButton>
 						</div>
 					</div>
 				</div>
 
 				{/* Top left back button on mobile */}
 				<div className="absolute top-5 left-5 md:hidden">
-					{(tab === 1 || showSettings) && (
+					{tab === 1 && (
 						<IconButton
 							onClick={() => {
 								setTab(0);
-								setShowSettings(false);
 							}}
 						>
 							<ArrowBack className="size-6" />
@@ -517,16 +538,28 @@ export function GroupMemberList({
 						sx={{ display: { xs: "inline-flex", md: "none" } }}
 						onClick={() => {
 							setTab(1);
-							setShowSettings(false);
 						}}
 					>
 						<People />
 					</IconButton>
 
-					{/* Settings */}
-					<IconButton onClick={() => setShowSettings(true)}>
-						<Settings className="size-6" />
-					</IconButton>
+					{isAdmin && (
+						<>
+							{/* Settings page (mobile only) */}
+							<Link href={`/groups/${group.id}/settings`} className="md:hidden">
+								<IconButton>
+									<Settings className="size-6" />
+								</IconButton>
+							</Link>
+
+							<IconButton
+								sx={{ display: { xs: "none", md: "inline-flex" } }}
+								onClick={() => setShowSettings(true)}
+							>
+								<Settings className="size-6" />
+							</IconButton>
+						</>
+					)}
 				</div>
 			</div>
 
@@ -553,7 +586,6 @@ export function GroupMemberList({
 					value={tab}
 					onChange={(_, v) => {
 						setTab(v);
-						setShowSettings(false);
 					}}
 					sx={{
 						mt: 4,
@@ -689,7 +721,7 @@ export function GroupMemberList({
 			</div>
 
 			{/* Existing tab content below here */}
-			{tab === 0 && !showSettings && (
+			{tab === 0 && (
 				<div className="mt-6">
 					<div className="mt-4">
 						{meetings.length > 0 ? (
@@ -747,7 +779,7 @@ export function GroupMemberList({
 					</div>
 				</div>
 			)}
-			{tab === 1 && !showSettings && (
+			{tab === 1 && (
 				<div className="mt-6">
 					<MembersList
 						members={members}
@@ -757,11 +789,21 @@ export function GroupMemberList({
 					/>
 				</div>
 			)}
-			{showSettings && (
-				<div className="mt-6 flex items-center justify-center py-32">
-					<p className="text-gray-500 text-lg">Settings coming soon</p>
-				</div>
-			)}
+			{/* Settings Dialog (desktop only) */}
+			<Dialog
+				open={showSettings}
+				onClose={() => setShowSettings(false)}
+				maxWidth="sm"
+				fullWidth
+			>
+				<DialogTitle>Group Settings</DialogTitle>
+				<DialogContent>
+					<GroupSettingsForm
+						group={group}
+						onCancel={() => setShowSettings(false)}
+					/>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

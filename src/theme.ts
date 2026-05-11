@@ -4,6 +4,15 @@ import { blue, green, orange, red } from "@mui/material/colors";
 import { createTheme } from "@mui/material/styles";
 import { figtree } from "@/fonts";
 
+declare module "@mui/material/styles" {
+	interface Palette {
+		ifNeeded: Palette["primary"];
+	}
+	interface PaletteOptions {
+		ifNeeded?: PaletteOptions["primary"];
+	}
+}
+
 export const getTheme = (mode: "light" | "dark") =>
 	createTheme({
 		typography: {
@@ -105,6 +114,10 @@ export const getTheme = (mode: "light" | "dark") =>
 				contrastText: "#ffffff",
 				light: "#fed3df",
 			},
+			ifNeeded: {
+				main: "#006489",
+				contrastText: "#ffffff",
+			},
 			secondary: {
 				main: "#1F2A44",
 				contrastText: "#ffffff",
@@ -192,19 +205,34 @@ export const getTheme = (mode: "light" | "dark") =>
 					elevation: 1,
 				},
 				styleOverrides: {
-					root: ({ theme }) => ({
+					root: ({ theme, ownerState }) => ({
 						borderRadius: 8,
 						backgroundColor: theme.palette.background.paper,
+						...(ownerState.variant === "outlined" && {
+							boxShadow: "0px 4px 0px rgba(0,0,0,0.25)",
+						}),
 					}),
 				},
 			},
 			MuiButton: {
+				variants: [
+					{
+						props: { size: "square" },
+						style: ({ theme }) => ({
+							minWidth: 0,
+							width: theme.spacing(5),
+							height: theme.spacing(5),
+							padding: 0,
+						}),
+					},
+				],
 				styleOverrides: {
 					root: {
 						textTransform: "none",
 					},
 					contained: ({ theme }) => ({
 						boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 ${theme.palette.primary.main}`,
+						"& .MuiSvgIcon-root": { color: "inherit" },
 						"&:hover": {
 							boxShadow: `0 2px 0 0 rgba(0,0,0,0.15), 0 2px 0 0 ${theme.palette.primary.main}`,
 							transform: "translateY(2px)",

@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { type InsertMeeting, meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { sortMeetingIsoDatesAsc } from "@/lib/availability/utils";
 
 export async function editMeeting(updatedMeeting: InsertMeeting) {
 	const { user } = await getCurrentSession();
@@ -17,6 +18,8 @@ export async function editMeeting(updatedMeeting: InsertMeeting) {
 	if (new Set(dates).size !== dates?.length) {
 		return { error: "Invalid meeting dates or times." };
 	}
+
+	const normalizedDates = sortMeetingIsoDatesAsc(dates);
 
 	if (!updatedMeeting.id) {
 		return { error: "Meeting ID is required." };
@@ -32,7 +35,7 @@ export async function editMeeting(updatedMeeting: InsertMeeting) {
 		.update(meetings)
 		.set({
 			title,
-			dates,
+			dates: normalizedDates,
 			fromTime,
 			toTime,
 			meetingType,

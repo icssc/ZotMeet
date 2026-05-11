@@ -81,6 +81,7 @@ export async function createGroup(
 				"Group Invite",
 				inviteToken,
 				result.id,
+				user.id,
 			);
 		} catch (notificationError) {
 			console.error(notificationError);

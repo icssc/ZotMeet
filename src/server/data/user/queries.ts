@@ -2,7 +2,8 @@ import "server-only";
 
 import { and, desc, eq, ilike, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { groups, notifications, users } from "@/db/schema";
+import { groups, members, notifications, users } from "@/db/schema";
+import { sendEmail } from "@/lib/email/send-email";
 
 export async function getUserIdExists(id: string) {
 	const user = await db.query.users.findFirst({
@@ -44,8 +45,10 @@ export async function searchUsersByEmail(
 		.select({
 			id: users.id,
 			email: users.email,
+			profilePicture: members.profilePicture,
 		})
 		.from(users)
+		.innerJoin(members, eq(users.memberId, members.id))
 		.where(and(ilike(users.email, `%${query}%`), ne(users.id, excludeUserId)))
 		.limit(limit);
 }
@@ -56,21 +59,34 @@ export async function getNotificationsByMemberId(memberId: string) {
 			id: notifications.id,
 			createdAt: notifications.createdAt,
 			memberId: notifications.memberId,
-			createdBy: notifications.createdBy,
+			createdBy: members.displayName,
 			title: notifications.title,
 			type: notifications.type,
 			readAt: notifications.readAt,
 			message: notifications.message,
 			redirect: notifications.redirect,
 			groupIcon: groups.icon,
+			createdByAvatar: members.profilePicture,
 		})
 		.from(notifications)
 		.leftJoin(groups, eq(notifications.groupId, groups.id))
+		.leftJoin(users, eq(notifications.createdBy, users.id))
+		.leftJoin(members, eq(users.memberId, members.id))
 		.where(eq(notifications.memberId, memberId))
 		.orderBy(desc(notifications.createdAt));
 
 	return notification;
 }
+
+type NotificationEmail = {
+	subject: string;
+	text: string;
+	html: string;
+};
+
+type CreateNotificationOptions = {
+	email?: NotificationEmail;
+};
 
 export async function createNewNotification(
 	userIds: string[],
@@ -79,27 +95,53 @@ export async function createNewNotification(
 	type: string = "info",
 	link: string,
 	groupId?: string | null,
+	createdBy?: string | null,
+	options?: CreateNotificationOptions,
 ) {
 	if (userIds.length === 0) return;
 
-	const memberRows = await db
-		.select({ memberId: users.memberId })
+	const recipientRows = await db
+		.select({
+			memberId: users.memberId,
+			email: users.email,
+		})
 		.from(users)
 		.where(inArray(users.id, userIds));
 
-	return db
+	const notificationsCreated = await db
 		.insert(notifications)
 		.values(
-			memberRows.map(({ memberId }) => ({
+			recipientRows.map(({ memberId }) => ({
 				memberId,
 				title,
 				message,
 				type,
 				redirect: link,
 				groupId: groupId ?? null,
+				createdBy: createdBy ?? null,
 			})),
 		)
 		.returning();
+
+	if (options?.email) {
+		const payload = options.email;
+		const results = await Promise.allSettled(
+			recipientRows.map((recipient) =>
+				sendEmail({
+					to: recipient.email,
+					...payload,
+				}),
+			),
+		);
+
+		for (const result of results) {
+			if (result.status === "rejected") {
+				console.error("Failed to send notification email: ", result.reason);
+			}
+		}
+	}
+
+	return notificationsCreated;
 }
 
 export async function markNotificationAsRead(notificationId: string) {

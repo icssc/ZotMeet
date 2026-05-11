@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { availabilities, meetingInvites, users } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { createInviteEmail } from "@/lib/email/templates";
 import { getExistingMeetingInvite } from "@/server/data/meeting/invite-queries";
 import { getExistingMeeting } from "@/server/data/meeting/queries";
 import { createNewNotification } from "@/server/data/user/queries";
@@ -66,6 +67,15 @@ export async function inviteMeetingMembers(
 			`You've been invited to join "${meeting.title}". Click to view the meeting.`,
 			"Meeting Invite",
 			meetingLink,
+			null,
+			user.id,
+			{
+				email: createInviteEmail({
+					title: `You're invited to "${meeting.title}" on Zotmeet`,
+					message: `Availability is requested for "${meeting.title}".`,
+					url: meetingLink,
+				}),
+			},
 		);
 
 		const invitedUsers = await db

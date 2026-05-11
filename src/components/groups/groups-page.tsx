@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { GroupCard } from "@/components/groups/group-card";
+import { FilterChip } from "@/components/ui/filter-chip";
 import type { GroupWithDetails } from "@/server/data/groups/queries";
 import { InviteDecision } from "./invite-decisions";
 
@@ -23,11 +24,13 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 	const [showAllActionRequired, setShowAllActionRequired] = useState(false);
 
+	const searchTrimmed = search.trim();
+
 	const filteredGroups = useMemo(() => {
 		let result = groups;
 
-		if (search) {
-			const query = search.toLowerCase();
+		if (searchTrimmed) {
+			const query = searchTrimmed.toLowerCase();
 			result = result.filter((g) => g.name.toLowerCase().includes(query));
 		}
 
@@ -41,16 +44,21 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 		}
 
 		return result;
-	}, [groups, search, activeFilter]);
+	}, [groups, searchTrimmed, activeFilter]);
 
-	const counts = useMemo(
-		() => ({
-			all: groups.length,
-			created: groups.filter((g) => g.isCreator).length,
-			availability: groups.filter((g) => g.upcomingMeetingName).length,
-		}),
-		[groups],
-	);
+	const counts = useMemo(() => {
+		const baseGroups = searchTrimmed
+			? groups.filter((g) =>
+					g.name.toLowerCase().includes(searchTrimmed.toLowerCase()),
+				)
+			: groups;
+
+		return {
+			all: baseGroups.length,
+			created: baseGroups.filter((g) => g.isCreator).length,
+			availability: baseGroups.filter((g) => g.upcomingMeetingName).length,
+		};
+	}, [groups, searchTrimmed]);
 
 	const actionRequiredGroups = useMemo(
 		() =>
@@ -63,6 +71,10 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 	const visibleActionGroups = showAllActionRequired
 		? actionRequiredGroups
 		: actionRequiredGroups.slice(0, INITIAL_ACTION_REQUIRED_COUNT);
+
+	const showNoGroupsFound =
+		filteredGroups.length === 0 &&
+		(searchTrimmed.length > 0 || activeFilter !== "all");
 
 	const [showJoinGroup, setShowJoinGroup] = useState(false);
 
@@ -227,7 +239,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 
 			<Box sx={{ mt: 4 }}>
 				<Typography color="text.disabled" sx={{ p: 0.5 }}>
-					All ({counts.all})
+					All ({searchTrimmed.length > 0 ? filteredGroups.length : counts.all})
 				</Typography>
 				{filteredGroups.length > 0 ? (
 					<Box
@@ -261,17 +273,25 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					</Box>
 				) : (
 					<div className="flex min-h-[500px] flex-col items-center justify-center py-20 text-gray-400">
-						<div className="mb-6">
-							<People sx={{ fontSize: "3.75rem", color: "divider" }} />
-						</div>
+						{showNoGroupsFound ? (
+							<Typography variant="h6" className="text-center text-gray-500">
+								No groups found!
+							</Typography>
+						) : (
+							<>
+								<div className="mb-6">
+									<People sx={{ fontSize: "3.75rem", color: "divider" }} />
+								</div>
 
-						<Typography
-							variant="h6"
-							className="text-center italic leading-relaxed"
-						>
-							Create your first group to start <br />
-							scheduling meetings.
-						</Typography>
+								<Typography
+									variant="h6"
+									className="text-center italic leading-relaxed"
+								>
+									Create your first group to start <br />
+									scheduling meetings.
+								</Typography>
+							</>
+						)}
 					</div>
 				)}
 			</Box>
@@ -283,37 +303,5 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 
 			<InviteDecision open={showJoinGroup} onOpenChange={setShowJoinGroup} />
 		</Box>
-	);
-}
-
-export function FilterChip({
-	label,
-	count,
-	active,
-	onClick,
-}: {
-	label: string;
-	count: number;
-	active: boolean;
-	onClick: () => void;
-}) {
-	return (
-		<Button
-			onClick={onClick}
-			disableElevation
-			sx={{
-				bgcolor: active ? "secondary.main" : "action.hover",
-				color: active ? "secondary.contrastText" : "text.primary",
-				"&:hover": {
-					bgcolor: active ? "secondary.dark" : "action.selected",
-				},
-				boxShadow: "none",
-				borderRadius: 1,
-				fontWeight: 600,
-				fontSize: "1rem",
-			}}
-		>
-			{label} {count}
-		</Button>
 	);
 }

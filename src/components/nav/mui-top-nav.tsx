@@ -242,7 +242,12 @@ function Notifications({
 									>
 										<Avatar
 											alt={notif.title || "Group icon"}
-											src={notif.groupIcon || "/icssc-logo.svg"}
+											src={
+												notif.createdByAvatar ||
+												notif.groupIcon ||
+												"/icssc-logo.svg"
+											}
+											slotProps={{ img: { referrerPolicy: "no-referrer" } }}
 										/>
 										<Box sx={{ p: 1 }}>
 											<Typography variant="body1">{notif.title}</Typography>
@@ -260,8 +265,12 @@ function Notifications({
 											color="inherit"
 											size="small"
 											sx={{ ml: "auto", my: 2 }}
-											onClick={() => {
-												if (notif.type === "Meeting Invite") {
+											onClick={async () => {
+												await deleteNotification(notif.id);
+												if (
+													notif.type === "Meeting Invite" ||
+													notif.type === "Nudge"
+												) {
 													setAnchorEl(null);
 													router.push(notif.redirect ?? "");
 												} else {
@@ -329,7 +338,11 @@ function NavUser({ user }: { user: UserProfile | null }) {
 					gap: 1,
 				}}
 			>
-				<Avatar sx={{ width: 32, height: 32 }}>
+				<Avatar
+					src={user.profilePicture ?? undefined}
+					slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+					sx={{ width: 32, height: 32 }}
+				>
 					<Person fontSize="small" />
 				</Avatar>
 				<Typography

@@ -8,12 +8,28 @@ export type AvailabilityBlockType = {
 	blockIndex: number;
 };
 
+export type AvailabilityView = "group" | "personal" | "schedule";
+
 export type SelectionStateType = {
 	earlierDateIndex: number;
 	laterDateIndex: number;
 	earlierBlockIndex: number;
 	laterBlockIndex: number;
 };
+
+export function rangeCoversCell(
+	range: SelectionStateType | undefined,
+	zotDateIndex: number,
+	blockIndex: number,
+): boolean {
+	if (!range) return false;
+	return (
+		range.earlierDateIndex <= zotDateIndex &&
+		zotDateIndex <= range.laterDateIndex &&
+		range.earlierBlockIndex <= blockIndex &&
+		blockIndex <= range.laterBlockIndex
+	);
+}
 
 //TODO: Guest
 // export interface GuestSession {
@@ -25,11 +41,11 @@ export type MemberMeetingAvailability = Pick<
 	SelectAvailability,
 	"memberId" | "meetingAvailabilities" | "ifNeededAvailabilities"
 > &
-	Pick<SelectMember, "displayName">;
+	Pick<SelectMember, "displayName" | "profilePicture">;
 
 export type Member = Pick<
 	MemberMeetingAvailability,
-	"memberId" | "displayName"
+	"memberId" | "displayName" | "profilePicture"
 >;
 
 export interface GoogleCalendarEvent {

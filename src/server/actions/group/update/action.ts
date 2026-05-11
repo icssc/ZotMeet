@@ -39,9 +39,9 @@ export async function updateGroup(
 		};
 	}
 
-	const { groupId, name, description } = parsed.data;
+	const { groupId, name, description, icon } = parsed.data;
 
-	if (!name && description === undefined) {
+	if (!name && description === undefined && icon === undefined) {
 		return {
 			success: false,
 			message: "At least one field must be provided to update.",
@@ -70,9 +70,14 @@ export async function updateGroup(
 			};
 		}
 
-		const updateData: { name?: string; description?: string | null } = {};
+		const updateData: {
+			name?: string;
+			description?: string | null;
+			icon?: string | null;
+		} = {};
 		if (name) updateData.name = name;
 		if (description !== undefined) updateData.description = description || null;
+		if (icon !== undefined) updateData.icon = icon || null;
 
 		await db.update(groups).set(updateData).where(eq(groups.id, groupId));
 

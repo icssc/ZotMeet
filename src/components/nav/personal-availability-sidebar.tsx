@@ -18,72 +18,25 @@ import {
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import type React from "react";
-import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PERSONAL_AVAILABILITY_OPTIONS } from "@/components/nav/personal-availability-options";
+import type { PaintMode } from "@/lib/availability/paint-selection";
 import { filterTimestampsToMeetingGrid } from "@/lib/availability/utils";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
-import type { Availability } from "../availability/availability";
 
 type RespondedMeeting = { id: string; title: string; createdAt: Date };
-
-const options: { value: Availability; label: string; icon: React.ReactNode }[] =
-	[
-		{
-			value: "available",
-			label: "Available",
-			icon: (
-				<div
-					style={{
-						width: 20,
-						height: 20,
-						borderRadius: "50%",
-						background: "#D4537E",
-					}}
-				/>
-			),
-		},
-		{
-			value: "if-needed",
-			label: "If Needed",
-			icon: (
-				<div
-					style={{
-						width: 20,
-						height: 20,
-						borderRadius: "50%",
-						border: "2px solid #ED93B1",
-						background:
-							"repeating-linear-gradient(45deg, #ED93B1 0px, #ED93B1 1.5px, transparent 1.5px, transparent 4px)",
-						boxSizing: "border-box",
-					}}
-				/>
-			),
-		},
-		{
-			value: "unavailable",
-			label: "Unavailable",
-			icon: (
-				<div
-					style={{
-						width: 20,
-						height: 20,
-						borderRadius: "50%",
-						border: "2px solid #D3D1C7",
-						boxSizing: "border-box",
-					}}
-				/>
-			),
-		},
-	];
+type ImportedMeetingAvailability = {
+	meetingAvailabilities: string[];
+	ifNeededAvailabilities: string[];
+};
 
 interface PersonalAvailabilitySidebarProps {
 	meetingId: string;
 	userTimezone: string;
-	availability: Availability;
-	setAvailability: Dispatch<SetStateAction<Availability>>;
 	importGridIsoSet: ReadonlySet<string>;
 	canImport: boolean;
-	onImportSlots: (slotIsoStrings: string[]) => void;
+	onImportSlots: (slots: ImportedMeetingAvailability) => void;
+	onClearAvailability: () => void;
 }
 
 export function PersonalAvailabilitySidebar({
@@ -92,14 +45,17 @@ export function PersonalAvailabilitySidebar({
 	importGridIsoSet,
 	canImport,
 	onImportSlots,
-	availability,
-	setAvailability,
+	onClearAvailability,
 }: PersonalAvailabilitySidebarProps) {
 	const [importableMeetings, setImportableMeetings] = useState<
 		RespondedMeeting[]
 	>([]);
-	const availabilityCache = useRef(new Map<string, string[]>());
+	const availabilityCache = useRef(
+		new Map<string, ImportedMeetingAvailability>(),
+	);
 	const setImportPreview = useAvailabilityStore((s) => s.setImportPreview);
+	const paintMode = useAvailabilityStore((s) => s.paintMode);
+	const setPaintMode = useAvailabilityStore((s) => s.setPaintMode);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: reset cached rows when switching meetings
 	useEffect(() => {
@@ -119,15 +75,34 @@ export function PersonalAvailabilitySidebar({
 			let raw = availabilityCache.current.get(sourceMeetingId);
 			if (raw === undefined) {
 				const result = await getUserAvailabilityForMeeting(sourceMeetingId);
-				if (!result.success || !result.meetingAvailabilities?.length) {
+				if (!result.success) {
 					setImportPreview(null);
 					return;
 				}
-				raw = result.meetingAvailabilities;
+				raw = {
+					meetingAvailabilities: result.meetingAvailabilities ?? [],
+					ifNeededAvailabilities: result.ifNeededAvailabilities ?? [],
+				};
 				availabilityCache.current.set(sourceMeetingId, raw);
 			}
-			const filtered = filterTimestampsToMeetingGrid(raw, importGridIsoSet);
-			setImportPreview(filtered.length ? filtered : null);
+			const filtered = filterTimestampsToMeetingGrid(
+				[...raw.meetingAvailabilities, ...raw.ifNeededAvailabilities],
+				importGridIsoSet,
+			);
+			if (filtered.length === 0) {
+				setImportPreview(null);
+				return;
+			}
+			setImportPreview({
+				availableIsoStrings: filterTimestampsToMeetingGrid(
+					raw.meetingAvailabilities,
+					importGridIsoSet,
+				),
+				ifNeededIsoStrings: filterTimestampsToMeetingGrid(
+					raw.ifNeededAvailabilities,
+					importGridIsoSet,
+				),
+			});
 		},
 		[importGridIsoSet, setImportPreview],
 	);
@@ -138,13 +113,31 @@ export function PersonalAvailabilitySidebar({
 			let raw = availabilityCache.current.get(sourceMeetingId);
 			if (raw === undefined) {
 				const result = await getUserAvailabilityForMeeting(sourceMeetingId);
-				if (!result.success || !result.meetingAvailabilities?.length) return;
-				raw = result.meetingAvailabilities;
+				if (!result.success) return;
+				raw = {
+					meetingAvailabilities: result.meetingAvailabilities ?? [],
+					ifNeededAvailabilities: result.ifNeededAvailabilities ?? [],
+				};
 				availabilityCache.current.set(sourceMeetingId, raw);
 			}
-			const filtered = filterTimestampsToMeetingGrid(raw, importGridIsoSet);
-			if (filtered.length === 0) return;
-			onImportSlots(filtered);
+			const filteredMeetingAvailabilities = filterTimestampsToMeetingGrid(
+				raw.meetingAvailabilities,
+				importGridIsoSet,
+			);
+			const filteredIfNeededAvailabilities = filterTimestampsToMeetingGrid(
+				raw.ifNeededAvailabilities,
+				importGridIsoSet,
+			);
+			if (
+				filteredMeetingAvailabilities.length === 0 &&
+				filteredIfNeededAvailabilities.length === 0
+			) {
+				return;
+			}
+			onImportSlots({
+				meetingAvailabilities: filteredMeetingAvailabilities,
+				ifNeededAvailabilities: filteredIfNeededAvailabilities,
+			});
 		},
 		[canImport, importGridIsoSet, onImportSlots],
 	);
@@ -169,11 +162,11 @@ export function PersonalAvailabilitySidebar({
 				<ToggleButtonGroup
 					exclusive
 					fullWidth
-					value={availability}
-					onChange={(_, val) => val && setAvailability(val)}
+					value={paintMode}
+					onChange={(_, val: PaintMode | null) => val && setPaintMode(val)}
 					aria-label="availability"
 				>
-					{options.map(({ value, label, icon }) => (
+					{PERSONAL_AVAILABILITY_OPTIONS.map(({ value, label, icon }) => (
 						<ToggleButton
 							key={value}
 							value={value}
@@ -199,7 +192,13 @@ export function PersonalAvailabilitySidebar({
 					))}
 				</ToggleButtonGroup>
 
-				<Button variant="outlined" color="inherit" fullWidth>
+				<Button
+					variant="outlined"
+					color="inherit"
+					fullWidth
+					disabled={!canImport}
+					onClick={onClearAvailability}
+				>
 					Clear availability
 				</Button>
 

@@ -1,59 +1,49 @@
 import { useMemo } from "react";
-import type { SelectionStateType } from "@/lib/types/availability";
+import {
+	type PaintMode,
+	paintWillChange,
+} from "@/lib/availability/paint-selection";
 import { cn } from "@/lib/utils";
 
 interface AvailabilityBlockProps {
 	isAvailable: boolean;
 	isIfNeeded: boolean;
-	zotDateIndex: number;
-	blockIndex: number;
-	selectionState: SelectionStateType | undefined;
-	showImportPreview?: boolean;
+	isInDraftRange: boolean;
+	paintMode: PaintMode;
+	importPreviewType?: "available" | "if-needed" | null;
 }
 
 export function AvailabilityBlock({
 	isAvailable,
 	isIfNeeded,
-	zotDateIndex,
-	blockIndex,
-	selectionState,
-	showImportPreview = false,
+	isInDraftRange,
+	paintMode,
+	importPreviewType = null,
 }: AvailabilityBlockProps) {
-	/**
-	 * Computes the background color of a single time block cell
-	 */
 	const backgroundColor = useMemo(() => {
-		// Render different background color if user is in middle of making a selection and is in range
-		if (selectionState) {
-			const {
-				earlierDateIndex,
-				laterDateIndex,
-				earlierBlockIndex,
-				laterBlockIndex,
-			} = selectionState;
-			const dateInRange =
-				earlierDateIndex <= zotDateIndex && zotDateIndex <= laterDateIndex;
-			const timeInRange =
-				earlierBlockIndex <= blockIndex && blockIndex <= laterBlockIndex;
+		const showDraftOverlay =
+			isInDraftRange && paintWillChange(paintMode, { isAvailable, isIfNeeded });
 
-			if (dateInRange && timeInRange) {
-				return "bg-primary/40";
-			}
-		}
+		if (showDraftOverlay) return "bg-primary/40";
 		return isAvailable
-			? "bg-[#F26489]"
+			? "bg-primary"
 			: isIfNeeded
-				? "bg-[#006489]"
+				? "bg-if-needed"
 				: "transparent";
-	}, [selectionState, isAvailable, isIfNeeded, zotDateIndex, blockIndex]);
+	}, [isInDraftRange, paintMode, isAvailable, isIfNeeded]);
 
 	return (
 		<div className="pointer-events-none relative block h-full w-full py-2">
 			<div className={cn("absolute inset-0", backgroundColor)} />
-			{showImportPreview && (
+			{importPreviewType && (
 				<div
-					className="absolute inset-0 border-2 border-primary/70 bg-primary/20"
 					aria-hidden
+					className={cn(
+						"absolute inset-0 border-2",
+						importPreviewType === "if-needed"
+							? "border-if-needed/70 bg-if-needed/20"
+							: "border-primary/70 bg-primary/20",
+					)}
 				/>
 			)}
 		</div>

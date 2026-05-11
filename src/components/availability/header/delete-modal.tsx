@@ -15,31 +15,44 @@ interface DeleteModalProps {
 	meetingData: SelectMeeting;
 	isOpen: boolean;
 	handleOpenChange: (open: boolean) => void;
+	isDeletionPending: boolean;
+	onDeletionPendingChange: (pending: boolean) => void;
 }
 
 const DeleteModal = ({
 	meetingData,
 	isOpen,
 	handleOpenChange,
+	isDeletionPending,
+	onDeletionPendingChange,
 }: DeleteModalProps) => {
 	const router = useRouter();
 	const { showSuccess, showError } = useSnackbar();
 
 	const handleDeleteClick = async () => {
-		const { success, error } = await archiveMeeting(meetingData);
+		onDeletionPendingChange(true);
+		try {
+			const { success, error } = await archiveMeeting(meetingData);
 
-		if (success) {
-			showSuccess("Meeting deleted successfully!");
-			router.push("/summary");
-		} else {
-			showError(error ?? "Something went wrong.");
+			if (success) {
+				showSuccess("Meeting deleted successfully!");
+				router.push("/summary");
+			} else {
+				showError(error ?? "Something went wrong.");
+			}
+		} finally {
+			onDeletionPendingChange(false);
+			handleOpenChange(false);
 		}
-
-		handleOpenChange(false);
 	};
 
 	return (
-		<Dialog open={isOpen} onClose={() => handleOpenChange(false)}>
+		<Dialog
+			open={isOpen}
+			onClose={() => {
+				if (!isDeletionPending) handleOpenChange(false);
+			}}
+		>
 			<DialogTitle>Delete Meeting</DialogTitle>
 
 			<DialogContent>
@@ -50,8 +63,17 @@ const DeleteModal = ({
 			</DialogContent>
 
 			<DialogActions>
-				<Button onClick={() => handleOpenChange(false)}>Cancel</Button>
-				<Button onClick={handleDeleteClick} color="error">
+				<Button
+					onClick={() => handleOpenChange(false)}
+					disabled={isDeletionPending}
+				>
+					Cancel
+				</Button>
+				<Button
+					onClick={handleDeleteClick}
+					color="error"
+					disabled={isDeletionPending}
+				>
 					Delete
 				</Button>
 			</DialogActions>
