@@ -19,7 +19,7 @@ export function GoogleCalendarEventBlock({
 
 	return (
 		<div
-			className="pointer-events-none absolute inset-0 z-10 [&_*]:pointer-events-none"
+			className="pointer-events-none absolute inset-0 z-10"
 			style={{
 				display: "grid",
 				gridTemplateColumns: `repeat(${cellGridColumnCountInThisBlock}, minmax(0, 1fr))`,

@@ -2,14 +2,6 @@
 
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
 import {
-	saveAvailability,
-	saveIfNeeded,
-} from "@actions/availability/save/action";
-import {
-	deleteScheduledTimeBlock,
-	saveScheduledTimeBlock,
-} from "@actions/meeting/schedule/action";
-import {
 	Create,
 	GroupAddOutlined,
 	InsertInvitationRounded,
@@ -22,16 +14,16 @@ import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
-import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 export interface AvailabilityActionsProps {
 	meetingData: SelectMeeting;
 	user: UserProfile | null;
-	availabilityDates: ZotDate[];
-	ifNeededDates: ZotDate[];
-	onCancel: () => void;
-	onSave: () => void;
+	handlePersonalCancel: () => void;
+	handlePersonalSave: () => Promise<void>;
+	handleScheduleCancel: () => void;
+	handleScheduleSave: () => Promise<boolean>;
+	isScheduled: boolean;
 	setChangeableTimezone: (can: boolean) => void;
 	setTimezone: (timezone: string) => void;
 	onOpenInviteDialog: () => void;
@@ -41,10 +33,11 @@ export interface AvailabilityActionsProps {
 export function AvailabilityActions({
 	meetingData,
 	user,
-	availabilityDates,
-	ifNeededDates,
-	onCancel,
-	onSave,
+	handlePersonalCancel,
+	handlePersonalSave,
+	handleScheduleCancel,
+	handleScheduleSave,
+	isScheduled,
 	setChangeableTimezone,
 	setTimezone,
 	onOpenInviteDialog,
@@ -52,156 +45,38 @@ export function AvailabilityActions({
 }: AvailabilityActionsProps) {
 	const router = useRouter();
 	const { showSuccess, showError } = useSnackbar();
-	const [_isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-	const [isScheduled, setIsScheduled] = useState(meetingData.scheduled);
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false);
 
-	const {
-		hasAvailability,
-		availabilityView,
-		setHasAvailability,
-		setAvailabilityView,
-	} = useAvailabilityStore(
-		useShallow((state) => ({
-			hasAvailability: state.hasAvailability,
-			availabilityView: state.availabilityView,
-			setHasAvailability: state.setHasAvailability,
-			setAvailabilityView: state.setAvailabilityView,
-		})),
-	);
-
-	const { commitPendingTimes, clearPendingTimes } = useAvailabilityStore(
-		useShallow((state) => ({
-			commitPendingTimes: state.commitPendingTimes,
-			clearPendingTimes: state.clearPendingTimes,
-		})),
-	);
+	const { hasAvailability, availabilityView, setAvailabilityView } =
+		useAvailabilityStore(
+			useShallow((state) => ({
+				hasAvailability: state.hasAvailability,
+				availabilityView: state.availabilityView,
+				setAvailabilityView: state.setAvailabilityView,
+			})),
+		);
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
 
-	const handleCancel = () => {
-		onCancel();
-		setChangeableTimezone(true);
-		setAvailabilityView("group");
-	};
-
-	const handleSave = async () => {
-		if (!user || isMeetingDeletionPending) return;
-
-		setChangeableTimezone(true);
-		const availability = {
-			meetingId: meetingData.id,
-			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-		const ifNeeded = {
-			meetingId: meetingData.id,
-			availabilityTimes: ifNeededDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-
-		const response = await saveAvailability(availability);
-		if (response.status !== 200) {
-			console.error("Error saving availability:", response.body.error);
-			return;
-		}
-
-		const ifNeededResponse = await saveIfNeeded(ifNeeded);
-		if (ifNeededResponse.status === 200) {
-			setHasAvailability(true);
-			setAvailabilityView("group");
-			onSave();
-		} else {
-			console.error(
-				"Error saving if-needed availability:",
-				ifNeededResponse.body.error,
-			);
-		}
-	};
-
-	const handleScheduleCancel = () => {
-		clearPendingTimes();
-		setAvailabilityView("group");
-	};
-
-	const handleScheduleSave = async () => {
-		if (isMeetingDeletionPending) return;
-		try {
-			const { pendingAdds, pendingRemovals } = useAvailabilityStore.getState();
-
-			for (const timestamp of pendingRemovals) {
-				const date = new Date(timestamp);
-				const scheduledDate = new Date(
-					date.getFullYear(),
-					date.getMonth(),
-					date.getDate(),
-				);
-				const scheduledFromTime = date.toTimeString().slice(0, 8);
-				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-					.toTimeString()
-					.slice(0, 8);
-
-				const removalResult = await deleteScheduledTimeBlock({
-					meetingId: meetingData.id,
-					scheduledDate,
-					scheduledFromTime,
-					scheduledToTime,
-				});
-				if ("error" in removalResult) {
-					showError(
-						removalResult.error ?? "Failed to delete scheduled meeting.",
-					);
-					return;
-				}
-			}
-
-			for (const timestamp of pendingAdds) {
-				const date = new Date(timestamp);
-				const scheduledDate = new Date(
-					date.getFullYear(),
-					date.getMonth(),
-					date.getDate(),
-				);
-				const scheduledFromTime = date.toTimeString().slice(0, 8);
-				const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-					.toTimeString()
-					.slice(0, 8);
-
-				const saveResult = await saveScheduledTimeBlock({
-					meetingId: meetingData.id,
-					scheduledDate,
-					scheduledFromTime,
-					scheduledToTime,
-				});
-				if ("error" in saveResult) {
-					showError(saveResult.error ?? "Failed to save scheduled meeting.");
-					return;
-				}
-			}
-
-			if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
-				commitPendingTimes();
-				const { scheduledTimes } = useAvailabilityStore.getState();
-				setIsScheduled(scheduledTimes.size > 0);
-			}
-			setAvailabilityView("group");
-		} catch (error) {
-			console.error("Failed to save meeting blocks", error);
-			showError("Failed to save meeting schedule. Please try again.");
-		}
+	const handleSaveClick = () => {
+		const action =
+			availabilityView === "personal" ? handlePersonalSave : handleScheduleSave;
+		action().catch((error) => {
+			console.error("Save failed", error);
+		});
 	};
 
 	return (
 		<div className="flex w-full flex-col gap-2">
 			{availabilityView === "personal" || availabilityView === "schedule" ? (
-				<div className="flex flex-row flex-wrap justify-end gap-2">
+				<div className="hidden flex-row flex-wrap justify-end gap-2 sm:flex">
 					<Button
 						variant="outlined"
 						color="inherit"
 						size="small"
 						onClick={
 							availabilityView === "personal"
-								? handleCancel
+								? handlePersonalCancel
 								: handleScheduleCancel
 						}
 					>
@@ -212,9 +87,7 @@ export function AvailabilityActions({
 						size="small"
 						type="submit"
 						disabled={isMeetingDeletionPending}
-						onClick={
-							availabilityView === "personal" ? handleSave : handleScheduleSave
-						}
+						onClick={handleSaveClick}
 					>
 						Save
 					</Button>
@@ -274,7 +147,6 @@ export function AvailabilityActions({
 							sx={{ py: 0.75 }}
 							onClick={() => {
 								if (!user) {
-									setIsAuthModalOpen(true);
 									router.push("/auth/login/google");
 									return;
 								}

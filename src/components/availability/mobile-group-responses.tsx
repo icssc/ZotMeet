@@ -5,7 +5,7 @@ import {
 	EditCalendarOutlined,
 	PeopleAltOutlined,
 } from "@mui/icons-material";
-import { Button, Divider, Paper, Stack, Typography } from "@mui/material";
+import { Button, Divider, Stack, Typography } from "@mui/material";
 import { MobileIsland } from "../mobile/mobile-island";
 
 const actionButtonSx = {
@@ -36,7 +36,7 @@ export function MobileGroupResponses({
 	return (
 		<div>
 			<MobileIsland>
-				<div className="flex">
+				<div className="flex w-full min-w-0">
 					<Button color="inherit" sx={actionButtonSx} onClick={onOpenAttendees}>
 						<Stack spacing={0.5} alignItems="center">
 							<PeopleAltOutlined fontSize="small" />

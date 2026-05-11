@@ -10,10 +10,10 @@ import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
-import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
+import { useAvailabilityActionHandlers } from "@/hooks/use-availability-action-handlers";
 import { useAvailabilityData } from "@/hooks/use-availability-data";
 import { useGridInteraction } from "@/hooks/use-grid-interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -259,7 +259,16 @@ export function Availability({
 		[],
 	);
 
-	const actionsProps = {
+	const {
+		handlePersonalCancel,
+		handlePersonalSave,
+		revertPersonalDraft,
+		exitToGroupView,
+		runPersonalSave,
+		handleScheduleCancel,
+		handleScheduleSave,
+		isScheduled,
+	} = useAvailabilityActionHandlers({
 		meetingData,
 		user,
 		availabilityDates,
@@ -267,9 +276,27 @@ export function Availability({
 		onCancel: handleCancelEditing,
 		onSave: confirmSave,
 		setChangeableTimezone,
+		isMeetingDeletionPending,
+	});
+
+	const runScheduleSaveForMobile = useCallback(
+		() => handleScheduleSave({ skipExitToGroup: true }),
+		[handleScheduleSave],
+	);
+
+	const actionsProps = {
+		meetingData,
+		user,
+		handlePersonalCancel,
+		handlePersonalSave,
+		handleScheduleCancel,
+		handleScheduleSave,
+		isScheduled,
+		setChangeableTimezone,
 		setTimezone: setUserTimezone,
 		onOpenInviteDialog: handleOpenInviteDialog,
-	} as const;
+		isMeetingDeletionPending,
+	};
 
 	const isMeetingOwner = Boolean(user && meetingData.hostId === user.memberId);
 
@@ -332,16 +359,9 @@ export function Availability({
 				<Paper
 					component="div"
 					variant="outlined"
-					className="flex min-h-0 min-w-0 flex-1 items-start justify-between self-stretch overflow-x-auto lg:mr-4 lg:overflow-x-hidden lg:pr-14"
+					className="flex min-h-0 min-w-0 flex-1 flex-col self-stretch overflow-y-auto [touch-action:pan-y] lg:mr-4 lg:overflow-y-auto lg:overflow-x-hidden lg:pr-14 lg:[touch-action:auto]"
 				>
-					<div className="-mt-2 translate-x-3">
-						<AvailabilityNavButton
-							direction="left"
-							handleClick={prevPage}
-							disabled={isFirstPage}
-						/>
-					</div>
-					<div className="flex flex-col gap-4">
+					<div className="flex flex-1 flex-col gap-4">
 						<div className="shrink-0 lg:hidden">
 							<AvailabilityActions {...actionsProps} />
 						</div>
@@ -350,6 +370,12 @@ export function Availability({
 								currentPageAvailability={currentPageAvailability}
 								meetingType={meetingData.meetingType}
 								doesntNeedDay={doesntNeedDay}
+								datePageNav={{
+									onPrev: prevPage,
+									onNext: () => nextPage(availabilityDates.length),
+									isFirstPage,
+									isLastPage,
+								}}
 							/>
 
 							<tbody onMouseLeave={handleMouseLeave}>
@@ -392,14 +418,6 @@ export function Availability({
 							/>
 						</div>
 					</div>
-
-					<div className="-mt-2 -translate-x-9">
-						<AvailabilityNavButton
-							direction="right"
-							handleClick={() => nextPage(availabilityDates.length)}
-							disabled={isLastPage}
-						/>
-					</div>
 				</Paper>
 
 				{(availabilityView === "group" || availabilityView === "schedule") && (
@@ -414,9 +432,6 @@ export function Availability({
 							</Paper>
 						</div>
 
-						<div className="lg:hidden">
-							<GroupResponses {...groupResponsesProps} />
-						</div>
 						<div className="block sm:hidden">
 							<MobileGroupResponses
 								isOwner={isMeetingOwner}
@@ -434,26 +449,36 @@ export function Availability({
 				)}
 
 				{availabilityView === "personal" && (
-					<div>
-						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-							<AvailabilityActions {...actionsProps} />
-							<Paper
-								variant="outlined"
-								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
-							>
-								<PersonalAvailabilitySidebar
-									meetingId={meetingData.id}
-									userTimezone={userTimezone}
-									importGridIsoSet={importGridIsoSet}
-									canImport={Boolean(user?.memberId)}
-									onImportSlots={handleImportSlotsFromMeeting}
-									onClearAvailability={handleClearAvailability}
-								/>
-							</Paper>
-						</div>
-						<div className="block sm:hidden">
-							<MobilePersonalAvailabilitySidebar />
-						</div>
+					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+						<AvailabilityActions {...actionsProps} />
+						<Paper
+							variant="outlined"
+							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+						>
+							<PersonalAvailabilitySidebar
+								meetingId={meetingData.id}
+								userTimezone={userTimezone}
+								importGridIsoSet={importGridIsoSet}
+								canImport={Boolean(user?.memberId)}
+								onImportSlots={handleImportSlotsFromMeeting}
+								onClearAvailability={handleClearAvailability}
+							/>
+						</Paper>
+					</div>
+				)}
+
+				{(availabilityView === "personal" ||
+					availabilityView === "schedule") && (
+					<div className="block sm:hidden">
+						<MobilePersonalAvailabilitySidebar
+							revertPersonalDraft={revertPersonalDraft}
+							exitToGroupView={exitToGroupView}
+							runPersonalSave={runPersonalSave}
+							isPersonalSaveDisabled={!user || isMeetingDeletionPending}
+							handleScheduleCancel={handleScheduleCancel}
+							runScheduleSave={runScheduleSaveForMobile}
+							isScheduleSaveDisabled={isMeetingDeletionPending}
+						/>
 					</div>
 				)}
 			</div>
