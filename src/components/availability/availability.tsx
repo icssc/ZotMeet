@@ -360,7 +360,7 @@ export function Availability({
 				<Paper
 					component="div"
 					variant="outlined"
-					className="flex min-h-0 min-w-0 flex-1 items-start justify-between self-stretch overflow-x-auto lg:mr-4 lg:overflow-x-hidden lg:pr-14"
+					className="flex min-h-0 min-w-0 flex-1 flex-col items-start justify-between self-stretch overflow-y-auto [touch-action:pan-y] lg:mr-4 lg:overflow-y-auto lg:overflow-x-hidden lg:pr-14 lg:[touch-action:auto]"
 				>
 					<div className="-mt-2 translate-x-3">
 						<AvailabilityNavButton
@@ -369,7 +369,7 @@ export function Availability({
 							disabled={isFirstPage}
 						/>
 					</div>
-					<div className="flex flex-col gap-4">
+					<div className="flex flex-1 flex-col gap-4">
 						<div className="shrink-0 lg:hidden">
 							<AvailabilityActions {...actionsProps} />
 						</div>

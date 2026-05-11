@@ -67,7 +67,7 @@ export function MobilePersonalAvailabilitySidebar({
 									alignItems: "center",
 									justifyContent: "center",
 									gap: theme.spacing(0.5),
-									paddingBlock: theme.spacing(1.25),
+									paddingBlock: theme.spacing(2),
 									paddingInline: theme.spacing(2),
 									"&.Mui-selected": {
 										backgroundColor: alpha(

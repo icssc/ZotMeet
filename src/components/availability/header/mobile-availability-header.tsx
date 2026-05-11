@@ -125,6 +125,7 @@ export function MobileAvailabilityHeader({
 					disableEnforceFocus: true,
 					disableAutoFocus: true,
 					disableRestoreFocus: true,
+					disableScrollLock: true,
 				}}
 				slotProps={{
 					transition: {
@@ -132,7 +133,7 @@ export function MobileAvailabilityHeader({
 					},
 					paper: {
 						sx: {
-							minHeight: "18vh",
+							minHeight: "19vh",
 							borderBottomLeftRadius: 12,
 							borderBottomRightRadius: 12,
 							padding: 2,
