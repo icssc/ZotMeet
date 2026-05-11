@@ -1,31 +1,40 @@
 "use client";
 
-import { Button, Chip, Collapse, Divider, Typography } from "@mui/material";
+import {
+	Button,
+	Chip,
+	CircularProgress,
+	Collapse,
+	Divider,
+	Typography,
+} from "@mui/material";
 import { ChevronDownIcon, ChevronUpIcon, SparklesIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import type { paths } from "@/lib/types/anteater-api-types";
-import type { Building, Capacity, MeetingLength } from "@/lib/types/studyrooms";
 import {
 	BUILDINGS,
+	type Building,
 	CAPACITIES,
+	type Capacity,
 	MEETING_LENGTHS,
+	type MeetingLength,
 	MeetingLengthSchema,
+	type RoomFilters,
 } from "@/lib/types/studyrooms";
-import { cn } from "@/lib/utils";
 
 export type StudyRoomApiEntry = NonNullable<
 	paths["/v2/rest/studyRooms"]["get"]["responses"]["200"]["content"]["application/json"]
 >["data"][number];
+
 interface RoomResult {
 	id: string;
 	label: string;
 	location: string;
 	capacity: number | null;
 	description: string | null;
-	//techEnhanced is currently not a filter on the front end.
-	//I added it if we implement anything with that in the future
+	// Not currently surfaced as a filter; kept on the result so a future
+	// "tech-enhanced" filter has the data without another deduplication pass.
 	techEnhanced: boolean | null;
-	bookingUrl: string;
 	durations: MeetingLength[];
 }
 
@@ -33,54 +42,61 @@ function toggle<T>(arr: T[], val: T): T[] {
 	return arr.includes(val) ? arr.filter((v) => v !== val) : [...arr, val];
 }
 
+function dedupeKey(name: string, location: string): string {
+	const baseName = name.replace(/\s*\(\d+\s*hours?\)/i, "").trim();
+	return `${baseName}|${location}`;
+}
+
 // Collapse multiple duration variants of the same physical room into one entry.
+// The variant with the most available slots wins so the displayed metadata
+// reflects the most useful option; remaining variants only contribute durations.
 export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
-	const seen = new Map<string, RoomResult & { availableCount: number }>();
+	type Entry = RoomResult & { availableCount: number };
+	const seen = new Map<string, Entry>();
 
 	for (const room of rooms) {
+		const key = dedupeKey(room.name, room.location);
 		const baseName = room.name.replace(/\s*\(\d+\s*hours?\)/i, "").trim();
-
-		const key = `${baseName}|${room.location}`;
-
 		const availableCount = room.slots.filter((s) => s.isAvailable).length;
-		const firstAvailableSlot = room.slots.find((s) => s.isAvailable);
-		const bookingUrl = firstAvailableSlot?.url ?? room.url;
 		const durationMatch = room.name.match(/\((\d+)\s*hours?\)/i);
 		const rawDuration = durationMatch ? Number(durationMatch[1]) * 60 : null;
 		const parsed = MeetingLengthSchema.safeParse(rawDuration);
 		const duration = parsed.success ? parsed.data : null;
+
 		const existing = seen.get(key);
+
 		if (!existing) {
 			seen.set(key, {
-				id: room.id,
+				id: key,
 				label: baseName || room.name,
 				location: room.location,
 				capacity: room.capacity,
 				description: room.description ?? null,
 				techEnhanced: room.techEnhanced,
-				bookingUrl,
 				durations: duration ? [duration] : [],
 				availableCount,
 			});
-		} else {
-			const updatedDurations = new Set(existing.durations);
-			if (duration) updatedDurations.add(duration);
+			continue;
+		}
 
-			// Replace if this variant is better
-			if (availableCount > existing.availableCount && firstAvailableSlot) {
-				seen.set(key, {
-					...existing,
-					bookingUrl,
-					durations: Array.from(updatedDurations),
-					availableCount,
-				});
-			} else {
-				// Still merge durations
-				seen.set(key, {
-					...existing,
-					durations: Array.from(updatedDurations),
-				});
-			}
+		const mergedDurations = new Set(existing.durations);
+		if (duration) mergedDurations.add(duration);
+
+		if (availableCount > existing.availableCount) {
+			seen.set(key, {
+				...existing,
+				label: baseName || room.name,
+				capacity: room.capacity,
+				description: room.description ?? existing.description,
+				techEnhanced: room.techEnhanced,
+				durations: Array.from(mergedDurations),
+				availableCount,
+			});
+		} else {
+			seen.set(key, {
+				...existing,
+				durations: Array.from(mergedDurations),
+			});
 		}
 	}
 
@@ -89,18 +105,14 @@ export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 
 interface RoomRecommendationSettingsProps {
 	onShowBestRooms?: () => void;
-	onRoomSelect?: (room: RoomResult, selected: boolean) => void;
 	rawRooms?: StudyRoomApiEntry[];
-	filters: {
-		capacities: Capacity[];
-		buildings: Building[];
-		lengths: MeetingLength[];
-	};
-	onFiltersChange: (filters: {
-		capacities: Capacity[];
-		buildings: Building[];
-		lengths: MeetingLength[];
-	}) => void;
+	filters: RoomFilters;
+	onFiltersChange: (filters: RoomFilters) => void;
+	isLoading?: boolean;
+	errorMessage?: string | null;
+	selectedRoomIds?: string[];
+	onSelectedRoomIdsChange?: (ids: string[]) => void;
+	onRoomSelect?: (room: RoomResult, selected: boolean) => void;
 }
 
 function FilterChipGroup<T extends string | number>({
@@ -149,10 +161,14 @@ function FilterChipGroup<T extends string | number>({
 
 export function RoomRecommendationSettings({
 	onShowBestRooms,
-	onRoomSelect,
 	onFiltersChange,
 	filters,
 	rawRooms = [],
+	isLoading = false,
+	errorMessage = null,
+	selectedRoomIds,
+	onSelectedRoomIdsChange,
+	onRoomSelect,
 }: RoomRecommendationSettingsProps) {
 	const [isOpen, setIsOpen] = useState(false);
 
@@ -163,22 +179,31 @@ export function RoomRecommendationSettings({
 		buildings: selectedBuildings,
 	} = filters;
 
-	const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
+	const [internalSelectedRoomIds, setInternalSelectedRoomIds] = useState<
+		string[]
+	>([]);
+	const isSelectionControlled = selectedRoomIds !== undefined;
+	const effectiveSelectedRoomIds = isSelectionControlled
+		? selectedRoomIds
+		: internalSelectedRoomIds;
 
 	const filteredRooms = useMemo(() => {
 		return roomResults.filter((room) => {
-			if (selectedCapacities.length > 0 && room.capacity != null) {
-				const capacity = room.capacity;
-
-				if (selectedCapacities.length > 0 && capacity != null) {
-					const matchesCapacity = selectedCapacities.some((range) => {
-						if (range === "13+") return capacity >= 13;
-
-						const [min, max] = range.split("-").map(Number);
-						return capacity >= min && capacity <= max;
-					});
-					if (!matchesCapacity) return false;
-				}
+			// Capacity: rooms with unknown capacity are excluded when the user has
+			// committed to a capacity filter — otherwise they'd silently leak past.
+			if (selectedCapacities.length > 0) {
+				if (room.capacity == null) return false;
+				const matchesCapacity = selectedCapacities.some((range) => {
+					if (range === "13+")
+						return room.capacity != null && room.capacity >= 13;
+					const [min, max] = range.split("-").map(Number);
+					return (
+						room.capacity != null &&
+						room.capacity >= min &&
+						room.capacity <= max
+					);
+				});
+				if (!matchesCapacity) return false;
 			}
 
 			if (selectedBuildings.length > 0) {
@@ -200,26 +225,14 @@ export function RoomRecommendationSettings({
 	}, [roomResults, selectedCapacities, selectedBuildings, selectedLengths]);
 
 	const roomState = useMemo(() => {
-		if (!rawRooms.length) {
-			return { status: "initial" as const };
-		}
-
-		if (!filteredRooms.length) {
-			return { status: "empty" as const };
-		}
-
-		return {
-			status: "results" as const,
-			rooms: filteredRooms,
-		};
-	}, [rawRooms.length, roomResults.length, filteredRooms]);
+		if (!rawRooms.length) return { status: "initial" as const };
+		if (!filteredRooms.length) return { status: "empty" as const };
+		return { status: "results" as const, rooms: filteredRooms };
+	}, [rawRooms, filteredRooms]);
 
 	const handleToggleLength = useCallback(
 		(v: MeetingLength) => {
-			onFiltersChange({
-				...filters,
-				lengths: toggle(selectedLengths, v),
-			});
+			onFiltersChange({ ...filters, lengths: toggle(selectedLengths, v) });
 		},
 		[filters, selectedLengths, onFiltersChange],
 	);
@@ -246,22 +259,25 @@ export function RoomRecommendationSettings({
 
 	const handleToggleRoom = useCallback(
 		(room: RoomResult) => {
-			setSelectedRooms((prev) => {
-				const next = toggle(prev, room.id);
-				onRoomSelect?.(room, next.includes(room.id));
-				return next;
-			});
+			const next = toggle(effectiveSelectedRoomIds, room.id);
+			if (isSelectionControlled) {
+				onSelectedRoomIdsChange?.(next);
+			} else {
+				setInternalSelectedRoomIds(next);
+			}
+			onRoomSelect?.(room, next.includes(room.id));
 		},
-		[onRoomSelect],
+		[
+			effectiveSelectedRoomIds,
+			isSelectionControlled,
+			onSelectedRoomIdsChange,
+			onRoomSelect,
+		],
 	);
 
 	return (
 		<div className="min-w-0 lg:shrink-0">
-			<div
-				className={cn(
-					"w-full rounded-xl border border-divider bg-paper transition-all duration-300 lg:w-96",
-				)}
-			>
+			<div className="w-full rounded-xl border border-divider bg-paper lg:w-96">
 				<button
 					type="button"
 					className="flex w-full items-center justify-between px-4 py-3 text-left"
@@ -289,12 +305,25 @@ export function RoomRecommendationSettings({
 							variant="contained"
 							color="primary"
 							fullWidth
-							startIcon={<SparklesIcon size={16} />}
+							disabled={isLoading}
+							startIcon={
+								isLoading ? (
+									<CircularProgress size={16} color="inherit" />
+								) : (
+									<SparklesIcon size={16} />
+								)
+							}
 							onClick={onShowBestRooms}
 							sx={{ borderRadius: "8px", py: 1.25 }}
 						>
-							Show Best Rooms
+							{isLoading ? "Loading…" : "Show Best Rooms"}
 						</Button>
+
+						{errorMessage && (
+							<Typography variant="body2" color="error">
+								{errorMessage}
+							</Typography>
+						)}
 
 						<Divider />
 
@@ -309,12 +338,7 @@ export function RoomRecommendationSettings({
 									options={MEETING_LENGTHS}
 									selected={selectedLengths}
 									onToggle={handleToggleLength}
-									onClear={() =>
-										onFiltersChange({
-											...filters,
-											lengths: [],
-										})
-									}
+									onClear={() => onFiltersChange({ ...filters, lengths: [] })}
 								/>
 							</div>
 
@@ -327,10 +351,7 @@ export function RoomRecommendationSettings({
 									selected={selectedCapacities}
 									onToggle={handleToggleCapacity}
 									onClear={() =>
-										onFiltersChange({
-											...filters,
-											capacities: [],
-										})
+										onFiltersChange({ ...filters, capacities: [] })
 									}
 								/>
 							</div>
@@ -343,12 +364,7 @@ export function RoomRecommendationSettings({
 									options={BUILDINGS}
 									selected={selectedBuildings}
 									onToggle={handleToggleBuilding}
-									onClear={() =>
-										onFiltersChange({
-											...filters,
-											buildings: [],
-										})
-									}
+									onClear={() => onFiltersChange({ ...filters, buildings: [] })}
 								/>
 							</div>
 						</div>
@@ -359,8 +375,7 @@ export function RoomRecommendationSettings({
 							<div>
 								<Typography variant="h6">Room Results</Typography>
 								<Typography variant="caption" color="textSecondary">
-									Select a specific room to see its availability overlaid on the
-									calendar. Click the chip label to open the booking page.
+									Click a chip to highlight a room on the calendar.
 								</Typography>
 							</div>
 
@@ -387,7 +402,9 @@ export function RoomRecommendationSettings({
 							{roomState.status === "results" && (
 								<div className="flex flex-wrap gap-2">
 									{roomState.rooms.map((room) => {
-										const isSelected = selectedRooms.includes(room.id);
+										const isSelected = effectiveSelectedRoomIds.includes(
+											room.id,
+										);
 										const label = [
 											room.label,
 											room.capacity != null
@@ -406,14 +423,6 @@ export function RoomRecommendationSettings({
 												variant="outlined"
 												color={isSelected ? "primary" : "default"}
 												onClick={() => handleToggleRoom(room)}
-												onDoubleClick={() =>
-													window.open(
-														room.bookingUrl,
-														"_blank",
-														"noopener,noreferrer",
-													)
-												}
-												title={`${room.location}${room.description ? ` — ${room.description}` : ""}\nDouble-click to book`}
 												sx={{ maxWidth: "100%" }}
 											/>
 										);

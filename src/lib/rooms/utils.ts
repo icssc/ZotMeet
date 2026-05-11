@@ -1,4 +1,5 @@
 import { formatLocalDateKey } from "@/lib/meetings/utils";
+import { CAPACITY_RANGES, type Capacity } from "@/lib/types/studyrooms";
 import type { ZotDate } from "@/lib/zotdate";
 
 export const formatISOToLocalTime = (isoString: string): string => {
@@ -184,45 +185,39 @@ export function getDefaultWindow() {
 	return { start, end };
 }
 
-// to fit api format, am/pm is needed
-function formatRange(start: Date, end: Date) {
-	const format = (d: Date) => {
-		let hours = d.getHours();
-		const minutes = d.getMinutes().toString().padStart(2, "0");
+const SLOT_INCREMENT_MINUTES = 15;
 
-		const ampm = hours >= 12 ? "pm" : "am";
-		hours = hours % 12;
-		if (hours === 0) hours = 12;
-
-		return `${hours}:${minutes}${ampm}`;
-	};
-	const rangeEnd = new Date(end.getTime() + 15 * 60 * 1000);
-	return `${format(start)}-${format(rangeEnd)}`;
+function slotStartsToApiRange(firstSlot: Date, lastSlot: Date): string {
+	const rangeEnd = new Date(
+		lastSlot.getTime() + SLOT_INCREMENT_MINUTES * 60 * 1000,
+	);
+	return `${toLocalStr(firstSlot)}-${toLocalStr(rangeEnd)}`;
 }
 
-export function getBestTimeRanges(availabilityDates: ZotDate[]) {
-	let max = 0;
+const NEAR_BEST_TOLERANCE = 1;
 
-	availabilityDates.forEach((date) => {
-		Object.values(date.groupAvailability).forEach((memberIds) => {
-			max = Math.max(max, (memberIds as string[]).length);
-		});
-	});
+export function getBestTimeRanges(
+	availabilityDates: ZotDate[],
+): { date: string; time: string }[] {
+	let peak = 0;
+	for (const date of availabilityDates) {
+		for (const memberIds of Object.values(date.groupAvailability)) {
+			if (memberIds.length > peak) peak = memberIds.length;
+		}
+	}
 
+	const threshold = Math.max(1, peak - NEAR_BEST_TOLERANCE);
 	const timestamps: string[] = [];
-
-	availabilityDates.forEach((date) => {
-		Object.entries(date.groupAvailability).forEach(
-			([timestamp, memberIds]: [string, unknown]) => {
-				const threshold = Math.max(1, max - 1); // allows near-best and single user availability
-				if ((memberIds as string[]).length >= threshold) {
-					timestamps.push(timestamp);
-				}
-			},
-		);
-	});
+	for (const date of availabilityDates) {
+		for (const [timestamp, memberIds] of Object.entries(
+			date.groupAvailability,
+		)) {
+			if (memberIds.length >= threshold) timestamps.push(timestamp);
+		}
+	}
 
 	if (!timestamps.length) return [];
+
 	const sorted = [...timestamps].sort();
 	const results: { date: string; time: string }[] = [];
 
@@ -231,15 +226,13 @@ export function getBestTimeRanges(availabilityDates: ZotDate[]) {
 
 	for (let i = 1; i < sorted.length; i++) {
 		const curr = new Date(sorted[i]);
-
 		const diffMinutes = (curr.getTime() - prev.getTime()) / 60000;
-
 		const sameDay = formatLocalDateKey(curr) === formatLocalDateKey(prev);
 
-		if (diffMinutes !== 15 || !sameDay) {
+		if (diffMinutes !== SLOT_INCREMENT_MINUTES || !sameDay) {
 			results.push({
 				date: formatLocalDateKey(start),
-				time: formatRange(start, prev),
+				time: slotStartsToApiRange(start, prev),
 			});
 			start = curr;
 		}
@@ -248,29 +241,32 @@ export function getBestTimeRanges(availabilityDates: ZotDate[]) {
 
 	results.push({
 		date: formatLocalDateKey(start),
-		time: formatRange(start, prev),
+		time: slotStartsToApiRange(start, prev),
 	});
 
 	return results;
 }
 
-export function getCapacityRange(capacities: string[]) {
+export function getCapacityRange(capacities: Capacity[]): {
+	capacityMin?: number;
+	capacityMax?: number;
+} {
 	if (capacities.length === 0) return {};
 
 	let min = Infinity;
 	let max = -Infinity;
 	let hasOpenEnded = false;
 
-	for (const cap of capacities) {
-		if (cap === "13+") {
-			min = Math.min(min, 13);
-			hasOpenEnded = true;
-			continue;
-		}
+	for (const label of capacities) {
+		const range = CAPACITY_RANGES.find((r) => r.label === label);
+		if (!range) continue;
 
-		const [low, high] = cap.split("-").map(Number);
-		min = Math.min(min, low);
-		max = Math.max(max, high);
+		if (range.min < min) min = range.min;
+		if ("max" in range) {
+			if (range.max > max) max = range.max;
+		} else {
+			hasOpenEnded = true;
+		}
 	}
 
 	return {

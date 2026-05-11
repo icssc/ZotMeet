@@ -1,6 +1,6 @@
 "use client";
 
-import { Paper, Typography } from "@mui/material";
+import { Paper } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -10,10 +10,7 @@ import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
-import {
-	RoomRecommendationSettings,
-	type StudyRoomApiEntry,
-} from "@/components/availability/room-recommendations";
+import { RoomRecommendationSettings } from "@/components/availability/room-recommendations";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
@@ -22,6 +19,7 @@ import { useAvailabilityActionHandlers } from "@/hooks/use-availability-action-h
 import { useAvailabilityData } from "@/hooks/use-availability-data";
 import { useGridInteraction } from "@/hooks/use-grid-interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useRoomRecommendations } from "@/hooks/use-room-recommendations";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	clearPersonalGridSlots,
@@ -31,11 +29,8 @@ import {
 	mergeImportedPersonalGridSlots,
 	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
-import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
-import { getBestTimeRanges, getCapacityRange } from "@/lib/rooms/utils";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
-import type { Building, Capacity, MeetingLength } from "@/lib/types/studyrooms";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
@@ -196,60 +191,14 @@ export function Availability({
 
 	// Room recommendations — surfaced in the group/schedule sidebar so the host
 	// can pull room suggestions for the times the group is most available.
-	const [studyRooms, setStudyRooms] = useState<StudyRoomApiEntry[]>([]);
-	const [studyRoomsError, setStudyRoomsError] = useState<string | null>(null);
-	const [roomFilters, setRoomFilters] = useState<{
-		capacities: Capacity[];
-		buildings: Building[];
-		lengths: MeetingLength[];
-	}>({
-		capacities: ["3-4"],
-		buildings: [],
-		lengths: [60],
-	});
-
-	const bestTimeRanges = useMemo(
-		() => getBestTimeRanges(availabilityDates),
-		[availabilityDates],
-	);
-
-	const handleShowBestRooms = useCallback(async () => {
-		try {
-			setStudyRoomsError(null);
-
-			const { capacityMin, capacityMax } = getCapacityRange(
-				roomFilters.capacities,
-			);
-
-			const results = await Promise.all(
-				bestTimeRanges.map(({ date, time }) =>
-					fetchStudyRooms({
-						date,
-						timeRange: time,
-						capacityMin,
-						capacityMax,
-					}),
-				),
-			);
-
-			const combined = results.flatMap((res, i) => {
-				const { date, time } = bestTimeRanges[i];
-				return (res.data ?? []).map((room) => ({
-					...room,
-					description: room.description ?? "",
-					directions: room.directions ?? "",
-					availableDate: date,
-					availableTimeRange: time,
-				}));
-			});
-
-			setStudyRooms(combined);
-		} catch (err) {
-			console.error("Failed to fetch study rooms:", err);
-			setStudyRoomsError("Failed to load study rooms. Please try again later.");
-			setStudyRooms([]);
-		}
-	}, [roomFilters.capacities, bestTimeRanges]);
+	const {
+		filters: roomFilters,
+		setFilters: setRoomFilters,
+		rooms: studyRooms,
+		error: studyRoomsError,
+		isLoading: isRoomsLoading,
+		showBestRooms: handleShowBestRooms,
+	} = useRoomRecommendations(availabilityDates);
 
 	const handleImportSlotsFromMeeting = useCallback(
 		({
@@ -504,16 +453,13 @@ export function Availability({
 							>
 								<GroupResponses {...groupResponsesProps} />
 							</Paper>
-							{studyRoomsError && (
-								<Typography variant="body2" color="error">
-									{studyRoomsError}
-								</Typography>
-							)}
 							<RoomRecommendationSettings
 								rawRooms={studyRooms}
 								filters={roomFilters}
 								onFiltersChange={setRoomFilters}
 								onShowBestRooms={handleShowBestRooms}
+								isLoading={isRoomsLoading}
+								errorMessage={studyRoomsError}
 							/>
 						</div>
 
