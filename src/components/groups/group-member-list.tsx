@@ -1,5 +1,7 @@
 "use client";
 
+import { addGroupMember } from "@actions/group/add-member/action";
+import { searchUsers } from "@actions/user/action";
 import { Add, ArrowBack, People, Settings, Share } from "@mui/icons-material";
 import {
 	Avatar,
@@ -13,13 +15,15 @@ import {
 	Typography,
 } from "@mui/material";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import type { SearchUser } from "@/components/groups/add-member-dialog";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { GroupRole, SelectGroup } from "@/db/schema";
 import { copyTextToClipboard } from "@/lib/clipboard/utils";
 import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
+import { AddMemberDialog } from "./add-member-dialog";
 import { GroupSettingsForm } from "./group-settings-form";
 import { MeetingRow } from "./meeting-row";
 import { MembersList } from "./members-list";
@@ -56,6 +60,10 @@ export function GroupMemberList({
 	const [activeFilter, setActiveFilter] = useState<
 		"all" | "created" | "upcoming"
 	>("all");
+	const [showAddMembers, setShowAddMembers] = useState(false);
+	const [memberQuery, setMemberQuery] = useState("");
+	const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+	const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	async function handleCreateInviteLink() {
 		if (!canShareInvites) {
@@ -127,6 +135,41 @@ export function GroupMemberList({
 	const meetingsPendingAvailabilityMap = useMemo(
 		() => new Set(meetingsPendingAvailability.map((m) => m.id)),
 		[meetingsPendingAvailability],
+	);
+
+	const handleMemberSearch = useCallback(
+		(query: string) => {
+			setMemberQuery(query);
+
+			if (searchTimeoutRef.current) {
+				clearTimeout(searchTimeoutRef.current);
+			}
+
+			if (query.length < 2) {
+				setSearchResults([]);
+				return;
+			}
+
+			searchTimeoutRef.current = setTimeout(async () => {
+				const results = await searchUsers(query);
+
+				const filtered = results.filter(
+					(user) => !members.some((member) => member.userId === user.id),
+				);
+
+				setSearchResults(filtered);
+			}, 150);
+		},
+		[members],
+	);
+
+	const addMember = useCallback(
+		async (user: SearchUser) => {
+			await addGroupMember(group.id, user.id);
+
+			setSearchResults([]);
+		},
+		[group.id],
 	);
 
 	return (
@@ -295,34 +338,58 @@ export function GroupMemberList({
 						className="h-11 w-full rounded-lg border border-gray-300 px-4 text-sm outline-none focus:border-gray-500 md:max-w-sm"
 					/>
 					<div className="flex items-center gap-3">
-						{/* Desktop Create */}
-						<Link
-							href={`/?groupId=${group.id}`}
-							className="xs:none hidden md:block"
-						>
-							<Button
-								variant="contained"
-								startIcon={<Add className="size-4" />}
-							>
-								Create New Meeting
-							</Button>
-						</Link>
+						{tab === 0 ? (
+							<>
+								{/* Desktop Create */}
+								<Link
+									href={`/?groupId=${group.id}`}
+									className="xs:none hidden md:block"
+								>
+									<Button
+										variant="contained"
+										startIcon={<Add className="size-4" />}
+									>
+										Create New Meeting
+									</Button>
+								</Link>
 
-						{/* Desktop Share */}
-						<Button
-							variant="outlined"
-							startIcon={<Share className="size-4" />}
-							onClick={handleCreateInviteLink}
-							disabled={!canShareInvites || isCreatingInvite}
-							sx={{
-								display: {
-									xs: "none",
-									md: "inline-flex",
-								},
-							}}
-						>
-							{isCreatingInvite ? "Generating..." : "Share"}
-						</Button>
+								{/* Desktop Share */}
+								<Button
+									variant="outlined"
+									startIcon={
+										<Share
+											className="size-4"
+											sx={{
+												color:
+													!canShareInvites || isCreatingInvite
+														? "text.disabled"
+														: "primary.main",
+											}}
+										/>
+									}
+									onClick={handleCreateInviteLink}
+									disabled={!canShareInvites || isCreatingInvite}
+									sx={{
+										display: {
+											xs: "none",
+											md: "inline-flex",
+										},
+									}}
+								>
+									{isCreatingInvite ? "Generating..." : "Share"}
+								</Button>
+							</>
+						) : (
+							isAdmin && (
+								<Button
+									variant="contained"
+									startIcon={<Add className="size-4" />}
+									onClick={() => setShowAddMembers(true)}
+								>
+									Add Member
+								</Button>
+							)
+						)}
 					</div>
 				</div>
 
@@ -353,7 +420,6 @@ export function GroupMemberList({
 				)}
 			</div>
 
-			{/* Existing tab content below here */}
 			{tab === 0 && (
 				<div className="mt-6">
 					<div className="mt-4">
@@ -437,6 +503,14 @@ export function GroupMemberList({
 					/>
 				</DialogContent>
 			</Dialog>
+			{/* Add Members Dialog */}
+			<AddMemberDialog
+				open={showAddMembers}
+				onClose={() => setShowAddMembers(false)}
+				onSearch={handleMemberSearch}
+				onAddMember={addMember}
+				searchResults={searchResults}
+			/>
 		</div>
 	);
 }
