@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { availabilities, meetingInvites, users } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { createInviteEmail } from "@/lib/email/templates";
+import { createBrandedTransactionalEmail } from "@/lib/email/templates";
 import { getExistingMeetingInvite } from "@/server/data/meeting/invite-queries";
 import { getExistingMeeting } from "@/server/data/meeting/queries";
 import { createNewNotification } from "@/server/data/user/queries";
@@ -59,7 +59,9 @@ export async function inviteMeetingMembers(
 		}
 
 		const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-		const meetingLink = `${baseUrl}/availability/${meetingId}`;
+		const origin = baseUrl.replace(/\/$/, "");
+		const meetingLink = `${origin}/availability/${meetingId}`;
+		const inviterName = user.displayName?.trim() || "Someone";
 
 		await createNewNotification(
 			memberIds,
@@ -70,10 +72,17 @@ export async function inviteMeetingMembers(
 			null,
 			user.id,
 			{
-				email: createInviteEmail({
-					title: `You're invited to "${meeting.title}" on Zotmeet`,
-					message: `Availability is requested for "${meeting.title}".`,
-					url: meetingLink,
+				email: createBrandedTransactionalEmail({
+					subject: `You're invited to "${meeting.title}" on ZotMeet`,
+					headline: `${inviterName} invited you to a meeting.`,
+					bodyLines: [
+						`${inviterName} has invited you to respond with your availability to the ZotMeet meeting "${meeting.title}".`,
+						`Accept the invite to join the meeting. Share your availability so ${inviterName} can schedule the meeting. You can leave the meeting whenever you want.`,
+					],
+					ctaLabel: "Join Meeting",
+					ctaUrl: meetingLink,
+					footerLearnMoreUrl: `${origin}/`,
+					footerTopic: "meetings",
 				}),
 			},
 		);
