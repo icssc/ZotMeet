@@ -73,7 +73,7 @@ export const GroupAvailabilityBlock = memo(
 				type="button"
 				tabIndex={0}
 				className={cn(
-					"relative h-full w-full border-gray-medium border-r-[1px] transition-opacity duration-200 [touch-action:none]",
+					"relative h-full w-full select-none border-gray-medium border-r-[1px] [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [touch-action:pan-x_pan-y]",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
 					isScheduledTopEdge && "z-[1]",
 					tableCellStyles,
