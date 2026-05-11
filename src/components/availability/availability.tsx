@@ -10,7 +10,6 @@ import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
-import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
@@ -360,15 +359,8 @@ export function Availability({
 				<Paper
 					component="div"
 					variant="outlined"
-					className="flex min-h-0 min-w-0 flex-1 flex-col items-start justify-between self-stretch overflow-y-auto [touch-action:pan-y] lg:mr-4 lg:overflow-y-auto lg:overflow-x-hidden lg:pr-14 lg:[touch-action:auto]"
+					className="flex min-h-0 min-w-0 flex-1 flex-col self-stretch overflow-y-auto [touch-action:pan-y] lg:mr-4 lg:overflow-y-auto lg:overflow-x-hidden lg:pr-14 lg:[touch-action:auto]"
 				>
-					<div className="-mt-2 translate-x-3">
-						<AvailabilityNavButton
-							direction="left"
-							handleClick={prevPage}
-							disabled={isFirstPage}
-						/>
-					</div>
 					<div className="flex flex-1 flex-col gap-4">
 						<div className="shrink-0 lg:hidden">
 							<AvailabilityActions {...actionsProps} />
@@ -378,6 +370,12 @@ export function Availability({
 								currentPageAvailability={currentPageAvailability}
 								meetingType={meetingData.meetingType}
 								doesntNeedDay={doesntNeedDay}
+								datePageNav={{
+									onPrev: prevPage,
+									onNext: () => nextPage(availabilityDates.length),
+									isFirstPage,
+									isLastPage,
+								}}
 							/>
 
 							<tbody onMouseLeave={handleMouseLeave}>
@@ -419,14 +417,6 @@ export function Availability({
 								changeableTimezone={changeableTimezone}
 							/>
 						</div>
-					</div>
-
-					<div className="-mt-2 -translate-x-9">
-						<AvailabilityNavButton
-							direction="right"
-							handleClick={() => nextPage(availabilityDates.length)}
-							disabled={isLastPage}
-						/>
 					</div>
 				</Paper>
 
