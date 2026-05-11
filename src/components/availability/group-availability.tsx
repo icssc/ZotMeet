@@ -340,7 +340,7 @@ export function GroupAvailability({
 												className={cn(
 													"group-availability-block block",
 													isScheduling &&
-														"cursor-row-resize [touch-action:pinch-zoom]",
+														"cursor-row-resize [touch-action:none]",
 												)}
 												onPointerDown={handlers.onPointerDown}
 												onPointerMove={handlers.onPointerMove}
