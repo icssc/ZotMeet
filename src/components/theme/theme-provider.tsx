@@ -58,7 +58,21 @@ export default function AppThemeProvider({
 	}, [mode]);
 
 	// TODO: Standardize CSS classes for light and dark mode
-	const resolvedMode: "light" | "dark" = mode === "system" ? "light" : mode;
+	const [systemPrefersDark, setSystemPrefersDark] = useState(false);
+
+	useEffect(() => {
+		const mq = window.matchMedia("(prefers-color-scheme: dark)");
+		const update = () => setSystemPrefersDark(mq.matches);
+		update();
+		mq.addEventListener("change", update);
+		return () => mq.removeEventListener("change", update);
+	}, []);
+
+	const resolvedMode: "light" | "dark" =
+		mode === "system" ? (systemPrefersDark ? "dark" : "light") : mode;
+
+	// TODO: Remove above
+
 	const theme = useMemo(() => getTheme(resolvedMode), [resolvedMode]);
 
 	useEffect(() => {
