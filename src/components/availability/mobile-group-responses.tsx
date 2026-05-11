@@ -39,11 +39,13 @@ export function MobileGroupResponses({
 				<div className="flex w-full min-w-0">
 					<Button color="inherit" sx={actionButtonSx} onClick={onOpenAttendees}>
 						<Stack spacing={0.5} alignItems="center">
-							<PeopleAltOutlined fontSize="small" />
-							<Typography variant="caption">
-								{respondedMembersCount} /{" "}
-								{pendingMembersCount + respondedMembersCount} Responders
-							</Typography>
+							<Stack spacing={0.5} alignItems="center">
+								<PeopleAltOutlined fontSize="small" />
+								<Typography variant="caption">
+									{respondedMembersCount} /{" "}
+									{pendingMembersCount + respondedMembersCount} Responders
+								</Typography>
+							</Stack>
 						</Stack>
 					</Button>
 

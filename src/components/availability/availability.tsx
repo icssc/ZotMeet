@@ -442,9 +442,6 @@ export function Availability({
 							</Paper>
 						</div>
 
-						<div className="lg:hidden">
-							<GroupResponses {...groupResponsesProps} />
-						</div>
 						<div className="block sm:hidden">
 							<MobileGroupResponses
 								isOwner={isMeetingOwner}
