@@ -26,6 +26,7 @@ import {
 } from "@/store/useAvailabilityStore";
 
 const EN_DASH = "\u2013";
+/** Tailwind `lg` breakpoint — keep aligned with `lg:` utilities. */
 const LG_UP_MEDIA = "(min-width: 1024px)";
 const RESPONDER_CHIP_CLASS: Record<MemberRangeStatus, string> = {
 	available: "",
@@ -100,7 +101,7 @@ type GroupResponsesPanelProps = {
 	onShowBestTimesChange: (checked: boolean) => void;
 	respondedMembers: Member[];
 	memberStatus: ReadonlyMap<string, MemberRangeStatus>;
-	selectedMembers: string[];
+	selectedMemberIds: ReadonlySet<string>;
 	onMemberHover: (memberId: string | null) => void;
 	onMemberSelect: (memberId: string) => void;
 	onClearSelected: () => void;
@@ -120,7 +121,7 @@ function GroupResponsesPanel({
 	onShowBestTimesChange,
 	respondedMembers,
 	memberStatus,
-	selectedMembers,
+	selectedMemberIds,
 	onMemberHover,
 	onMemberSelect,
 	onClearSelected,
@@ -155,8 +156,9 @@ function GroupResponsesPanel({
 						type="button"
 						className="rounded-lg border-[1px] border-slate-400 p-0.5"
 						onClick={onRequestClose}
+						aria-label="Close responders"
 					>
-						<XIcon className="text-lg text-slate-400" />
+						<XIcon className="text-lg text-slate-400" aria-hidden />
 					</button>
 				</div>
 			)}
@@ -211,9 +213,7 @@ function GroupResponsesPanel({
 								}
 								label={member.displayName}
 								color={
-									selectedMembers.includes(member.memberId)
-										? "primary"
-										: "default"
+									selectedMemberIds.has(member.memberId) ? "primary" : "default"
 								}
 								variant="outlined"
 								className={cn("max-w-full", RESPONDER_CHIP_CLASS[status])}
@@ -303,6 +303,7 @@ export function GroupResponses({
 	useEffect(() => {
 		setLayoutReady(true);
 	}, []);
+	// Default to desktop branch until mounted so SSR + first client paint match.
 	const isLg = layoutReady ? isLgQuery : true;
 
 	const { showSuccess, showError } = useSnackbar();
@@ -341,7 +342,7 @@ export function GroupResponses({
 		return () => clearInterval(id);
 	}, [cooldownUntil]);
 
-	const handleNudge = async () => {
+	const handleNudge = useCallback(async () => {
 		setIsNudging(true);
 		try {
 			const result = await nudgePendingMembers(meetingId);
@@ -359,7 +360,7 @@ export function GroupResponses({
 		} finally {
 			setIsNudging(false);
 		}
-	};
+	}, [meetingId, showError, showSuccess]);
 
 	const newAvailDates = useMemo(
 		() =>
@@ -461,33 +462,62 @@ export function GroupResponses({
 		setIsMobileDrawerOpen(false);
 	}, [setIsMobileDrawerOpen]);
 
-	const panelProps: Omit<GroupResponsesPanelProps, "variant"> = {
-		blockInfoString,
-		showBestTimes,
-		onShowBestTimesChange: setShowBestTimes,
-		respondedMembers,
-		memberStatus,
-		selectedMembers,
-		onMemberHover: handleMemberHover,
-		onMemberSelect: handleMemberSelect,
-		onClearSelected: handleClearSelected,
-		availableCount,
-		isOwner,
-		pendingMembers,
-		isNudging,
-		cooldownRemaining,
-		onNudge: () => {
-			void handleNudge();
-		},
-		onRequestClose: handleCloseMobile,
-	};
+	const onNudge = useCallback(() => {
+		void handleNudge();
+	}, [handleNudge]);
+
+	const selectedMemberIds = useMemo(
+		() => new Set(selectedMembers),
+		[selectedMembers],
+	);
+
+	const mobileSheetPaperSx = useMemo(() => ({ px: 2, py: 1 }) as const, []);
+
+	const panelProps: Omit<GroupResponsesPanelProps, "variant"> = useMemo(
+		() => ({
+			blockInfoString,
+			showBestTimes,
+			onShowBestTimesChange: setShowBestTimes,
+			respondedMembers,
+			memberStatus,
+			selectedMemberIds,
+			onMemberHover: handleMemberHover,
+			onMemberSelect: handleMemberSelect,
+			onClearSelected: handleClearSelected,
+			availableCount,
+			isOwner,
+			pendingMembers,
+			isNudging,
+			cooldownRemaining,
+			onNudge,
+			onRequestClose: handleCloseMobile,
+		}),
+		[
+			availableCount,
+			blockInfoString,
+			cooldownRemaining,
+			handleClearSelected,
+			handleCloseMobile,
+			handleMemberHover,
+			handleMemberSelect,
+			isNudging,
+			isOwner,
+			memberStatus,
+			onNudge,
+			pendingMembers,
+			respondedMembers,
+			selectedMemberIds,
+			setShowBestTimes,
+			showBestTimes,
+		],
+	);
 
 	if (!isLg) {
 		return (
 			<MuiBottomSheet
 				open={isMobileDrawerOpen}
 				onClose={handleCloseMobile}
-				paperSx={{ px: 2, py: 1 }}
+				paperSx={mobileSheetPaperSx}
 			>
 				<div data-availability-sidebar="">
 					<GroupResponsesPanel {...panelProps} variant="mobile" />

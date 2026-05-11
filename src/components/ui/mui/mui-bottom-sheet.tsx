@@ -1,6 +1,6 @@
 "use client";
 
-import type { DrawerProps } from "@mui/material/Drawer";
+import type { DrawerOwnerState, DrawerProps } from "@mui/material/Drawer";
 import Drawer from "@mui/material/Drawer";
 import type { SxProps, Theme } from "@mui/material/styles";
 import type { ReactNode } from "react";
@@ -41,10 +41,21 @@ function paperSlotSx(paper: unknown): SxProps<Theme> | undefined {
 	return "sx" in paper ? (paper as { sx?: SxProps<Theme> }).sx : undefined;
 }
 
-/**
- * Opinionated MUI bottom {@link Drawer} for modal sheets (rounded top,
- * max height, scroll). Pass `paperSx` to override padding or corner radius.
- */
+function mergePaperSlotProps(
+	resolved: unknown,
+	extraPaperSx: SxProps<Theme> | undefined,
+): Record<string, unknown> & { sx: SxProps<Theme> } {
+	const paperRest = stripSxFromPaperSlot(resolved);
+	const resolvedSx = paperSlotSx(resolved);
+	const sxLayers: SxProps<Theme>[] = [basePaperSx];
+	if (resolvedSx != null) sxLayers.push(resolvedSx);
+	if (extraPaperSx != null) sxLayers.push(extraPaperSx);
+	return {
+		...paperRest,
+		sx: (sxLayers.length === 1 ? sxLayers[0] : sxLayers) as SxProps<Theme>,
+	};
+}
+
 export function MuiBottomSheet({
 	open,
 	onClose,
@@ -54,8 +65,12 @@ export function MuiBottomSheet({
 	...rest
 }: MuiBottomSheetProps) {
 	const incomingPaper = slotProps?.paper;
-	const paperRest = stripSxFromPaperSlot(incomingPaper);
-	const incomingSx = paperSlotSx(incomingPaper);
+
+	const paperSlot =
+		typeof incomingPaper === "function"
+			? (ownerState: DrawerOwnerState) =>
+					mergePaperSlotProps(incomingPaper(ownerState), paperSx)
+			: mergePaperSlotProps(incomingPaper, paperSx);
 
 	return (
 		<Drawer
@@ -64,12 +79,7 @@ export function MuiBottomSheet({
 			onClose={onClose}
 			slotProps={{
 				...slotProps,
-				paper: {
-					...paperRest,
-					sx: [basePaperSx, incomingSx, paperSx].filter(
-						Boolean,
-					) as SxProps<Theme>,
-				},
+				paper: paperSlot,
 			}}
 			{...rest}
 		>
