@@ -1,9 +1,6 @@
 "use client";
 
-import {
-	saveAvailability,
-	saveIfNeeded,
-} from "@actions/availability/save/action";
+import { savePersonalAvailability } from "@actions/availability/save/action";
 import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
@@ -78,33 +75,22 @@ export function useAvailabilityActionHandlers({
 		if (!user || isMeetingDeletionPending) return false;
 
 		setChangeableTimezone(true);
-		const availability = {
+		const response = await savePersonalAvailability({
 			meetingId: meetingData.id,
-			availabilityTimes: availabilityDates.flatMap((date) => date.availability),
+			meetingAvailabilityTimes: availabilityDates.flatMap(
+				(date) => date.availability,
+			),
+			ifNeededAvailabilityTimes: ifNeededDates.flatMap(
+				(date) => date.availability,
+			),
 			displayName: user.displayName,
-		};
-		const ifNeeded = {
-			meetingId: meetingData.id,
-			availabilityTimes: ifNeededDates.flatMap((date) => date.availability),
-			displayName: user.displayName,
-		};
-
-		const response = await saveAvailability(availability);
-		if (response.status !== 200) {
-			console.error("Error saving availability:", response.body.error);
-			return false;
-		}
-
-		const ifNeededResponse = await saveIfNeeded(ifNeeded);
-		if (ifNeededResponse.status === 200) {
+		});
+		if (response.status === 200) {
 			setHasAvailability(true);
 			onSave();
 			return true;
 		}
-		console.error(
-			"Error saving if-needed availability:",
-			ifNeededResponse.body.error,
-		);
+		console.error("Error saving availability:", response.body.error);
 		return false;
 	}, [
 		user,

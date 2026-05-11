@@ -90,6 +90,74 @@ export async function saveAvailability({
 		};
 	}
 }
+
+export async function savePersonalAvailability({
+	meetingId,
+	meetingAvailabilityTimes,
+	ifNeededAvailabilityTimes,
+	displayName: _displayName,
+}: {
+	meetingId: string;
+	meetingAvailabilityTimes: string[];
+	ifNeededAvailabilityTimes: string[];
+	displayName?: string;
+}) {
+	try {
+		const { user } = await getCurrentSession();
+
+		if (!user) {
+			throw new Error("User not found");
+		}
+
+		const memberId = user.memberId;
+
+		const meeting = await getExistingMeeting(meetingId);
+		if (!meeting) {
+			throw new Error("Meeting not found");
+		}
+
+		const meetingAvailabilities = meetingAvailabilityTimes.filter(
+			(t) => !ifNeededAvailabilityTimes.includes(t),
+		);
+
+		await db
+			.insert(availabilities)
+			.values({
+				memberId,
+				meetingId,
+				meetingAvailabilities,
+				ifNeededAvailabilities: ifNeededAvailabilityTimes,
+			})
+			.onConflictDoUpdate({
+				target: [availabilities.memberId, availabilities.meetingId],
+				set: {
+					meetingAvailabilities,
+					ifNeededAvailabilities: ifNeededAvailabilityTimes,
+				},
+			});
+
+		const groupId = meeting.group_id;
+		if (groupId) {
+			revalidatePath(`/groups/${groupId}`);
+		}
+
+		return {
+			status: 200,
+			body: {
+				message: "Saved successfully",
+			},
+		};
+	} catch (error) {
+		console.error("Error saving personal availability:", error);
+		return {
+			status: 500,
+			body: {
+				error: "Failed to save",
+			},
+		};
+	}
+}
+
 export async function saveIfNeeded({
 	meetingId,
 	availabilityTimes,
