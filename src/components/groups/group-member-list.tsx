@@ -46,6 +46,7 @@ import { updateMemberRole } from "@/server/actions/group/update-member-role/acti
 import { nudgePendingMembers } from "@/server/actions/meeting/nudge/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
 import { GroupSettingsForm } from "./group-settings-form";
+import { InviteGroupMembersDialog } from "./invite-group-members-dialog";
 
 type Member = {
 	userId: string;
@@ -348,18 +349,27 @@ function MembersList({
 	isAdmin,
 	groupId,
 	currentUserId,
+	onInviteMembers,
 }: {
 	members: Member[];
 	isAdmin: boolean;
 	groupId: string;
 	currentUserId: string;
+	onInviteMembers?: () => void;
 }) {
 	const theme = useTheme();
 	return (
 		<div className="mt-4">
-			<p className="mb-2 px-4 font-bold text-[#969696] text-xs uppercase tracking-wide">
-				All Members ({members.length})
-			</p>
+			<div className="mb-3 flex flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between">
+				<p className="font-bold text-[#969696] text-xs uppercase tracking-wide">
+					All Members ({members.length})
+				</p>
+				{isAdmin && onInviteMembers ? (
+					<Button variant="contained" size="small" onClick={onInviteMembers}>
+						Invite members
+					</Button>
+				) : null}
+			</div>
 
 			<div className="flex flex-col">
 				{members.map((member) =>
@@ -416,6 +426,7 @@ export function GroupMemberList({
 	currentMemberId,
 }: GroupMemberListProps) {
 	const [isCreatingInvite, setIsCreatingInvite] = useState(false);
+	const [inviteMembersOpen, setInviteMembersOpen] = useState(false);
 	const [tab, setTab] = useState(0);
 	const [showSettings, setShowSettings] = useState(false);
 	const canShareInvites = group.createdBy === currentUserId;
@@ -786,6 +797,17 @@ export function GroupMemberList({
 						isAdmin={isAdmin}
 						groupId={group.id}
 						currentUserId={currentUserId}
+						onInviteMembers={
+							isAdmin ? () => setInviteMembersOpen(true) : undefined
+						}
+					/>
+					<InviteGroupMembersDialog
+						open={inviteMembersOpen}
+						onOpenChange={setInviteMembersOpen}
+						groupId={group.id}
+						groupName={group.name}
+						currentUserId={currentUserId}
+						existingMemberUserIds={members.map((m) => m.userId)}
 					/>
 				</div>
 			)}

@@ -7,6 +7,7 @@ import type { z } from "zod";
 import { db } from "@/db";
 import { GroupRole, groupInvites, groups, usersInGroup } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { createBrandedTransactionalEmail } from "@/lib/email/templates";
 
 export type CreateGroupState = {
 	success: boolean;
@@ -73,18 +74,42 @@ export async function createGroup(
 			return { result: newGroup, inviteToken: token };
 		});
 
-		try {
-			await createNewNotification(
-				(memberIds ?? []).filter((id) => id !== user.id),
-				name.trim(),
-				`You've been invited to join ${name.trim()}!`,
-				"Group Invite",
-				inviteToken,
-				result.id,
-				user.id,
-			);
-		} catch (notificationError) {
-			console.error(notificationError);
+		const toNotify = (memberIds ?? []).filter((id) => id !== user.id);
+		if (toNotify.length > 0) {
+			try {
+				const baseUrl =
+					process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+				const origin = baseUrl.replace(/\/$/, "");
+				const inviteUrl = `${origin}/invite/${inviteToken}`;
+				const inviterName = user.displayName?.trim() || "Someone";
+				const groupName = name.trim();
+
+				await createNewNotification(
+					toNotify,
+					groupName,
+					`You've been invited to join "${groupName}". Open ZotMeet to respond.`,
+					"Group Invite",
+					inviteToken,
+					result.id,
+					user.id,
+					{
+						email: createBrandedTransactionalEmail({
+							subject: `You're invited to join "${groupName}" on ZotMeet`,
+							headline: `${inviterName} invited you to a group.`,
+							bodyLines: [
+								`${inviterName} added you to the new ZotMeet group "${groupName}".`,
+								`Accept the invite to collaborate on meetings with the group. You can leave the group whenever you want.`,
+							],
+							ctaLabel: "Join Group",
+							ctaUrl: inviteUrl,
+							footerLearnMoreUrl: `${origin}/`,
+							footerTopic: "groups",
+						}),
+					},
+				);
+			} catch (notificationError) {
+				console.error(notificationError);
+			}
 		}
 
 		revalidatePath("/summary");
