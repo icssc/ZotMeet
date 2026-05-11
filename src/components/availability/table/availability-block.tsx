@@ -38,9 +38,14 @@ export function AvailabilityBlock({
 		? null
 		: (draftTarget ?? importTarget);
 
+	const previewWillBeNonIfNeeded =
+		previewTarget !== null && previewTarget !== "if-needed";
+	const renderPaperBase =
+		!isIfNeeded || importErases || previewWillBeNonIfNeeded;
+
 	return (
 		<div className="pointer-events-none relative block h-full w-full py-2">
-			{(!isIfNeeded || importErases) && (
+			{renderPaperBase && (
 				<div
 					className={cn(
 						"absolute inset-0 bg-paper",

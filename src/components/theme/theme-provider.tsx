@@ -57,11 +57,14 @@ export default function AppThemeProvider({
 		persistMode();
 	}, [mode]);
 
-	// TODO: handle dynamically determining light/dark based on system preference if mode === "system"
-	const theme = useMemo(
-		() => getTheme(mode === "system" ? "light" : mode),
-		[mode],
-	);
+	// TODO: Standardize CSS classes for light and dark mode
+	const resolvedMode: "light" | "dark" = mode === "system" ? "light" : mode;
+	const theme = useMemo(() => getTheme(resolvedMode), [resolvedMode]);
+
+	useEffect(() => {
+		const root = document.documentElement;
+		root.classList.toggle("dark", resolvedMode === "dark");
+	}, [resolvedMode]);
 
 	return (
 		<ThemeModeContext.Provider value={{ mode, setMode }}>
