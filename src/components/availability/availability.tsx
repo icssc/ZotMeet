@@ -403,6 +403,7 @@ export function Availability({
 										availabilityTimeBlocks={availabilityTimeBlocks}
 										fromTime={fromTimeMinutes}
 										availabilityDates={availabilityDates}
+										ifNeededDates={ifNeededDates}
 										currentPageAvailability={currentPageAvailability}
 										members={members}
 										onMouseLeave={handleMouseLeave}

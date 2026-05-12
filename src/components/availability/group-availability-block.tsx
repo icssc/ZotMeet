@@ -6,10 +6,12 @@ import type { SelectionEdges } from "@/components/availability/group-availabilit
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import { cn } from "@/lib/utils";
 
-export type BlockFill =
-	| { kind: "none" }
-	| { kind: "solid"; color: string }
-	| { kind: "stripes"; opacity: number };
+export type BlockFill = {
+	solid: { color: string } | null;
+	stripes: { opacity: number } | null;
+};
+
+export const EMPTY_FILL: BlockFill = { solid: null, stripes: null };
 
 interface GroupAvailabilityBlockProps {
 	className?: string;
@@ -98,19 +100,17 @@ export const GroupAvailabilityBlock = memo(
 					data-date-index={dateIndex}
 					data-block-index={blockIndex}
 				>
-					{fill.kind !== "stripes" && (
-						<div className="absolute inset-0 bg-paper" />
-					)}
-					{fill.kind === "solid" && (
-						<div
-							className="absolute inset-0"
-							style={{ background: fill.color }}
-						/>
-					)}
-					{fill.kind === "stripes" && fill.opacity < 1 && (
+					{!fill.stripes && <div className="absolute inset-0 bg-paper" />}
+					{fill.stripes && fill.stripes.opacity < 1 && (
 						<div
 							className="absolute inset-0 bg-paper"
-							style={{ opacity: 1 - fill.opacity }}
+							style={{ opacity: 1 - fill.stripes.opacity }}
+						/>
+					)}
+					{fill.solid && (
+						<div
+							className="absolute inset-0"
+							style={{ background: fill.solid.color }}
 						/>
 					)}
 				</div>

@@ -5,6 +5,7 @@ import { Fragment, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import {
 	type BlockFill,
+	EMPTY_FILL,
 	GroupAvailabilityBlock,
 } from "@/components/availability/group-availability-block";
 import type { GridCellHandlers } from "@/components/availability/table/availability-block-cell";
@@ -25,7 +26,21 @@ import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
-const NONE_FILL: BlockFill = { kind: "none" };
+function proportionalFill(
+	available: number,
+	ifNeeded: number,
+	denominator: number,
+	primaryColor: string,
+): BlockFill {
+	if (denominator === 0) return EMPTY_FILL;
+	return {
+		solid:
+			available > 0
+				? { color: alpha(primaryColor, available / denominator) }
+				: null,
+		stripes: ifNeeded > 0 ? { opacity: ifNeeded / denominator } : null,
+	};
+}
 
 function calculateBlockFill({
 	block,
@@ -47,51 +62,52 @@ function calculateBlockFill({
 	ifNeededBlock: string[];
 }): BlockFill {
 	if (selectedMembers.length) {
-		const selectedInBlock = selectedMembers.filter((memberId) =>
+		const selectedAvailable = selectedMembers.filter((memberId) =>
 			block.includes(memberId),
-		);
-		if (selectedInBlock.length) {
-			const proportion = selectedInBlock.length / selectedMembers.length;
-			return { kind: "solid", color: alpha(primaryColor, proportion) };
-		}
-		const ifNeededInBlock = selectedMembers.filter((memberId) =>
+		).length;
+		const selectedIfNeeded = selectedMembers.filter((memberId) =>
 			ifNeededBlock.includes(memberId),
+		).length;
+		return proportionalFill(
+			selectedAvailable,
+			selectedIfNeeded,
+			selectedMembers.length,
+			primaryColor,
 		);
-		if (ifNeededInBlock.length) {
-			const proportion = ifNeededInBlock.length / selectedMembers.length;
-			return { kind: "stripes", opacity: proportion };
-		}
-		return NONE_FILL;
 	}
 
 	if (hoveredMember) {
-		if (block.includes(hoveredMember)) {
-			return { kind: "solid", color: primaryColor };
-		}
-		if (ifNeededBlock.includes(hoveredMember)) {
-			return { kind: "stripes", opacity: 1 };
-		}
-		return NONE_FILL;
+		return proportionalFill(
+			block.includes(hoveredMember) ? 1 : 0,
+			ifNeededBlock.includes(hoveredMember) ? 1 : 0,
+			1,
+			primaryColor,
+		);
 	}
 
 	if (showBestTimes) {
-		if (block.length === maxAvailability && maxAvailability > 0) {
-			return { kind: "solid", color: primaryColor };
+		const combined = block.length + ifNeededBlock.length;
+		if (combined === maxAvailability && maxAvailability > 0) {
+			return proportionalFill(
+				block.length,
+				ifNeededBlock.length,
+				numMembers,
+				primaryColor,
+			);
 		}
-		return NONE_FILL;
+		return EMPTY_FILL;
 	}
 
 	if (numMembers) {
-		if (block.length > 0) {
-			const opacity = block.length / numMembers;
-			return { kind: "solid", color: alpha(primaryColor, opacity) };
-		}
-		if (ifNeededBlock.length > 0) {
-			return { kind: "stripes", opacity: ifNeededBlock.length / numMembers };
-		}
+		return proportionalFill(
+			block.length,
+			ifNeededBlock.length,
+			numMembers,
+			primaryColor,
+		);
 	}
 
-	return NONE_FILL;
+	return EMPTY_FILL;
 }
 
 export interface SelectionEdges {
@@ -122,6 +138,7 @@ interface GroupAvailabilityProps {
 	availabilityTimeBlocks: number[];
 	fromTime: number;
 	availabilityDates: ZotDate[];
+	ifNeededDates: ZotDate[];
 	currentPageAvailability: {
 		availabilities: (ZotDate | null)[];
 		ifNeeded: (ZotDate | null)[];
@@ -138,6 +155,7 @@ export function GroupAvailability({
 	availabilityTimeBlocks,
 	fromTime,
 	availabilityDates,
+	ifNeededDates,
 	currentPageAvailability,
 	members,
 	onMouseLeave,
@@ -194,13 +212,21 @@ export function GroupAvailability({
 	const maxAvailability = useMemo(() => {
 		if (!showBestTimes || numMembers === 0) return 0;
 		let max = 0;
-		availabilityDates.forEach((date) => {
-			Object.values(date.groupAvailability).forEach((memberIds) => {
-				max = Math.max(max, memberIds.length);
-			});
-		});
+		for (let i = 0; i < availabilityDates.length; i++) {
+			const availDay = availabilityDates[i];
+			const ifNeededDay = ifNeededDates[i];
+			const timestamps = new Set<string>([
+				...Object.keys(availDay?.groupAvailability ?? {}),
+				...Object.keys(ifNeededDay?.groupAvailability ?? {}),
+			]);
+			for (const ts of timestamps) {
+				const a = availDay?.groupAvailability[ts]?.length ?? 0;
+				const n = ifNeededDay?.groupAvailability[ts]?.length ?? 0;
+				max = Math.max(max, a + n);
+			}
+		}
 		return max;
-	}, [showBestTimes, numMembers, availabilityDates]);
+	}, [showBestTimes, numMembers, availabilityDates, ifNeededDates]);
 
 	const timestampsByCell = useMemo(() => {
 		const map = new Map<string, string>();
@@ -325,7 +351,7 @@ export function GroupAvailability({
 										? "border-t border-t-gray-base [border-top-style:dotted]"
 										: "",
 									isLastRow ? "border-b-[1px]" : "",
-									isHalfHour && fill.kind !== "stripes" && "bg-paper",
+									isHalfHour && !fill.stripes && "bg-paper",
 								);
 
 								return (
