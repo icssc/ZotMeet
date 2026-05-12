@@ -392,7 +392,10 @@ export function Availability({
 								}}
 							/>
 
-							<tbody onMouseLeave={handleMouseLeave}>
+							<tbody
+								className="bg-stripes-primary"
+								onMouseLeave={handleMouseLeave}
+							>
 								{availabilityView === "group" ||
 								availabilityView === "schedule" ? (
 									<GroupAvailability
@@ -400,6 +403,7 @@ export function Availability({
 										availabilityTimeBlocks={availabilityTimeBlocks}
 										fromTime={fromTimeMinutes}
 										availabilityDates={availabilityDates}
+										ifNeededDates={ifNeededDates}
 										currentPageAvailability={currentPageAvailability}
 										members={members}
 										onMouseLeave={handleMouseLeave}

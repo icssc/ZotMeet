@@ -4,15 +4,6 @@ import { blue, green, orange, red } from "@mui/material/colors";
 import { createTheme } from "@mui/material/styles";
 import { figtree } from "@/fonts";
 
-declare module "@mui/material/styles" {
-	interface Palette {
-		ifNeeded: Palette["primary"];
-	}
-	interface PaletteOptions {
-		ifNeeded?: PaletteOptions["primary"];
-	}
-}
-
 export const getTheme = (mode: "light" | "dark") =>
 	createTheme({
 		typography: {
@@ -113,10 +104,6 @@ export const getTheme = (mode: "light" | "dark") =>
 				main: "#F26489",
 				contrastText: "#ffffff",
 				light: "#fed3df",
-			},
-			ifNeeded: {
-				main: "#006489",
-				contrastText: "#ffffff",
 			},
 			secondary: {
 				main: "#1F2A44",
