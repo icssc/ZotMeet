@@ -1,20 +1,23 @@
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
-export async function fetchStudyRooms({
-	date,
-	timeRange,
-	location,
-	capacityMin,
-	capacityMax,
-	isTechEnhanced,
-}: {
-	date: string;
-	timeRange: string;
-	location?: string;
-	capacityMin?: number;
-	capacityMax?: number;
-	isTechEnhanced?: boolean;
-}) {
+export async function fetchStudyRooms(
+	{
+		date,
+		timeRange,
+		location,
+		capacityMin,
+		capacityMax,
+		isTechEnhanced,
+	}: {
+		date: string;
+		timeRange: string;
+		location?: string;
+		capacityMin?: number;
+		capacityMax?: number;
+		isTechEnhanced?: boolean;
+	},
+	{ signal }: { signal?: AbortSignal } = {},
+) {
 	const query: Record<string, string> = {
 		dates: date,
 		times: timeRange,
@@ -28,10 +31,7 @@ export async function fetchStudyRooms({
 	const params = new URLSearchParams(query).toString();
 	const apiUrl = `https://anteaterapi.com/v2/rest/studyRooms?${params}`;
 
-	// temporary logging for debugging, reproducing api results
-	console.log(`Fetching study rooms with URL: ${apiUrl}`);
-
-	const res = await fetch(apiUrl);
+	const res = await fetch(apiUrl, { signal });
 	if (!res.ok) {
 		throw new Error(`API error: ${res.status} ${res.statusText}`);
 	}
