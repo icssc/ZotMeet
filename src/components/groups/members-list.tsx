@@ -54,12 +54,15 @@ export function MembersList({
 							className="flex h-[83px] items-center justify-between px-4 transition-colors hover:bg-gray-50/50"
 						>
 							<div className="flex items-center gap-4">
-								<MemberAvatar email={member.email} />
+								<MemberAvatar
+									email={member.email}
+									profilePicture={member.profilePicture}
+								/>
 								<span
 									style={{ color: theme.palette.text.primary }}
 									className="font-medium text-base"
 								>
-									{member.email.split("@")[0]}
+									{member.displayName}
 									{member.userId === currentUserId && (
 										<span
 											style={{ color: theme.palette.text.secondary }}
@@ -119,6 +122,7 @@ export function MembersList({
 								<LeaveGroupDialog
 									open={showLeaveDialog}
 									email={member.email}
+									profilePicture={member.profilePicture}
 									onClose={() => setShowLeaveDialog(false)}
 									onConfirm={async () => {
 										const result = await removeGroupMember(

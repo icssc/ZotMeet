@@ -117,14 +117,17 @@ export function AdminMemberRow({
 				className="flex h-[83px] items-center justify-between px-4 transition-colors hover:bg-gray-50/50"
 			>
 				<div className="flex items-center gap-4">
-					<MemberAvatar email={member.email} />
+					<MemberAvatar
+						email={member.email}
+						profilePicture={member.profilePicture}
+					/>
 					<span
 						style={{
 							color: theme.palette.text.primary,
 						}}
 						className="font-medium text-base"
 					>
-						{member.email.split("@")[0]}
+						{member.displayName}
 
 						{isSelf && (
 							<span
@@ -323,12 +326,13 @@ export function AdminMemberRow({
 					</div>
 
 					<div className="flex items-center gap-4">
-						<MemberAvatar email={member.email} />
+						<MemberAvatar
+							email={member.email}
+							profilePicture={member.profilePicture}
+						/>
 
 						<div className="flex flex-col">
-							<Typography fontWeight={600}>
-								{member.email.split("@")[0]}
-							</Typography>
+							<Typography fontWeight={600}>{member.displayName}</Typography>
 
 							<Typography variant="body2" color="text.secondary">
 								{member.email}
@@ -431,6 +435,7 @@ export function AdminMemberRow({
 			<ChangeRoleDialog
 				open={showRoleDialog}
 				email={member.email}
+				profilePicture={member.profilePicture}
 				currentRole={member.role}
 				nextRole={pendingRole ?? member.role}
 				onClose={() => {
@@ -444,6 +449,7 @@ export function AdminMemberRow({
 			<RemoveMemberDialog
 				open={showRemoveDialog}
 				email={member.email}
+				profilePicture={member.profilePicture}
 				onClose={() => setShowRemoveDialog(false)}
 				onConfirm={async () => {
 					await handleRemoveMember();
@@ -454,6 +460,7 @@ export function AdminMemberRow({
 			<LeaveGroupDialog
 				open={showLeaveDialog}
 				email={member.email}
+				profilePicture={member.profilePicture}
 				onClose={() => setShowLeaveDialog(false)}
 				onConfirm={async () => {
 					await handleRemoveMember();

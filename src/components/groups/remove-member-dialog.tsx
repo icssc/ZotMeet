@@ -13,6 +13,7 @@ import { MemberAvatar } from "./member-avatar";
 interface RemoveMemberDialogProps {
 	open: boolean;
 	email: string;
+	profilePicture?: string | null;
 	onClose: () => void;
 	onConfirm: () => void;
 }
@@ -20,6 +21,7 @@ interface RemoveMemberDialogProps {
 export function RemoveMemberDialog({
 	open,
 	email,
+	profilePicture,
 	onClose,
 	onConfirm,
 }: RemoveMemberDialogProps) {
@@ -40,7 +42,7 @@ export function RemoveMemberDialog({
 					</Typography>
 
 					<div className="flex items-center gap-4">
-						<MemberAvatar email={email} />
+						<MemberAvatar email={email} profilePicture={profilePicture} />
 
 						<div>
 							<Typography fontWeight={600}>{email.split("@")[0]}</Typography>

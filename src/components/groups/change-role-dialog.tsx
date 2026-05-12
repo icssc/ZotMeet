@@ -13,6 +13,7 @@ import { MemberAvatar } from "./member-avatar";
 type ChangeRoleDialogProps = {
 	open: boolean;
 	email: string;
+	profilePicture?: string | null;
 	currentRole: GroupRole;
 	nextRole: GroupRole;
 	onClose: () => void;
@@ -22,6 +23,7 @@ type ChangeRoleDialogProps = {
 export function ChangeRoleDialog({
 	open,
 	email,
+	profilePicture,
 	currentRole,
 	nextRole,
 	onClose,
@@ -48,7 +50,7 @@ export function ChangeRoleDialog({
 					<Typography color="text.secondary">{message}</Typography>
 
 					<div className="flex items-center gap-4">
-						<MemberAvatar email={email} />
+						<MemberAvatar email={email} profilePicture={profilePicture} />
 
 						<div>
 							<Typography fontWeight={600}>{email.split("@")[0]}</Typography>
