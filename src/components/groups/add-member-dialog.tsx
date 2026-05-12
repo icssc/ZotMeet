@@ -53,8 +53,14 @@ export function AddMemberDialog({
 		setSelectedMembers((prev) => prev.filter((m) => m.id !== userId));
 	}
 
+	function handleClose() {
+		setSelectedMembers([]);
+		setMemberQuery("");
+		onClose();
+	}
+
 	return (
-		<Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+		<Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
 			<DialogTitle>Add Members</DialogTitle>
 
 			<DialogContent>
@@ -138,13 +144,9 @@ export function AddMemberDialog({
 						fullWidth
 						variant="contained"
 						disabled={selectedMembers.length === 0}
-						onClick={() => {
-							onAddMember(selectedMembers);
-
-							setSelectedMembers([]);
-							setMemberQuery("");
-
-							onClose();
+						onClick={async () => {
+							await onAddMember(selectedMembers);
+							handleClose();
 						}}
 					>
 						Add Members

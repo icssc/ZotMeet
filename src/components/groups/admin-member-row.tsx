@@ -97,7 +97,7 @@ export function AdminMemberRow({
 			return;
 		}
 
-		const result = await removeGroupMember(groupId, member.userId, false);
+		const result = await removeGroupMember(groupId, member.userId, isSelf);
 
 		if (result?.success) {
 			showSuccess(result.message);
@@ -246,6 +246,25 @@ export function AdminMemberRow({
 								</span>
 							</Tooltip>
 						)}
+						{!isSelf && (
+							<ButtonBase
+								onClick={() => setShowRemoveDialog(true)}
+								sx={{
+									display: "flex",
+									alignItems: "center",
+									gap: 0.75,
+									fontWeight: 600,
+									borderRadius: 2,
+									px: 1,
+									py: 0.75,
+								}}
+							>
+								<PersonRemoveIcon />
+								<Typography fontSize="0.875rem" fontWeight={600}>
+									Remove Member
+								</Typography>
+							</ButtonBase>
+						)}
 						<Select
 							value={member.role ?? GroupRole.MEMBER}
 							onValueChange={handleRoleSelection}
@@ -267,15 +286,6 @@ export function AdminMemberRow({
 								<SelectItem value={GroupRole.MEMBER}>Member</SelectItem>
 							</SelectContent>
 						</Select>
-
-						{!isSelf && (
-							<IconButton
-								color="error"
-								onClick={() => setShowRemoveDialog(true)}
-							>
-								<PersonRemoveIcon />
-							</IconButton>
-						)}
 					</div>
 				)}
 			</div>

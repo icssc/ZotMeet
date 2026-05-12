@@ -90,6 +90,10 @@ export async function inviteGroupMember(
 			);
 		} catch (notificationError) {
 			console.error(notificationError);
+			return {
+				success: false,
+				message: "Failed to send invite notification. Please try again.",
+			};
 		}
 
 		revalidatePath(`/groups/${groupId}`);

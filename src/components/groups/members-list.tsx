@@ -2,7 +2,7 @@ import { removeGroupMember } from "@actions/group/remove-member/action";
 import { Logout } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { useRouter } from "next/dist/client/components/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { GroupRole } from "@/db/schema";
 import { useSnackbar } from "../ui/snackbar-provider";
@@ -105,27 +105,29 @@ export function MembersList({
 								</span>
 							</div>
 
-							<LeaveGroupDialog
-								open={showLeaveDialog}
-								email={member.email}
-								onClose={() => setShowLeaveDialog(false)}
-								onConfirm={async () => {
-									const result = await removeGroupMember(
-										groupId,
-										member.userId,
-										true,
-									);
+							{member.userId === currentUserId && (
+								<LeaveGroupDialog
+									open={showLeaveDialog}
+									email={member.email}
+									onClose={() => setShowLeaveDialog(false)}
+									onConfirm={async () => {
+										const result = await removeGroupMember(
+											groupId,
+											member.userId,
+											true,
+										);
 
-									if (result?.success) {
-										showSuccess(result.message);
-										router.push("/groups");
-									} else {
-										showError(result?.message);
-									}
+										if (result?.success) {
+											showSuccess(result.message);
+											router.push("/groups");
+										} else {
+											showError(result?.message);
+										}
 
-									setShowLeaveDialog(false);
-								}}
-							/>
+										setShowLeaveDialog(false);
+									}}
+								/>
+							)}
 						</div>
 					),
 				)}
