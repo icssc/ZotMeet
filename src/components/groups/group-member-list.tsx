@@ -265,7 +265,8 @@ export function GroupMemberList({
 						</Link>
 						<Button
 							variant="outlined"
-							onClick={handleCreateInviteLink}
+							//onClick={handleCreateInviteLink}
+							onClick={() => setShowAddMembers(true)}
 							disabled={!canShareInvites || isCreatingInvite}
 							sx={{
 								minWidth: 44,
@@ -297,58 +298,44 @@ export function GroupMemberList({
 						className="h-11 w-full rounded-lg border border-gray-300 px-4 text-sm outline-none focus:border-gray-500 md:max-w-sm"
 					/>
 					<div className="flex items-center gap-3">
-						{tab === 0 ? (
-							<>
-								{/* Desktop Create */}
-								<Link
-									href={`/?groupId=${group.id}`}
-									className="xs:none hidden md:block"
-								>
-									<Button
-										variant="contained"
-										startIcon={<Add className="size-4" />}
-									>
-										Create New Meeting
-									</Button>
-								</Link>
+						{/* Desktop Create */}
+						<Link
+							href={`/?groupId=${group.id}`}
+							className="xs:none hidden md:block"
+						>
+							<Button
+								variant="contained"
+								startIcon={<Add className="size-4" />}
+							>
+								Create New Meeting
+							</Button>
+						</Link>
 
-								{/* Desktop Share */}
-								<Button
-									variant="outlined"
-									startIcon={
-										<Share
-											className="size-4"
-											sx={{
-												color:
-													!canShareInvites || isCreatingInvite
-														? "text.disabled"
-														: "primary.main",
-											}}
-										/>
-									}
-									onClick={handleCreateInviteLink}
-									disabled={!canShareInvites || isCreatingInvite}
+						{/* Desktop Share */}
+						<Button
+							variant="outlined"
+							startIcon={
+								<Share
+									className="size-4"
 									sx={{
-										display: {
-											xs: "none",
-											md: "inline-flex",
-										},
+										color:
+											!canShareInvites || isCreatingInvite
+												? "text.disabled"
+												: "primary.main",
 									}}
-								>
-									{isCreatingInvite ? "Generating..." : "Share"}
-								</Button>
-							</>
-						) : (
-							isAdmin && (
-								<Button
-									variant="contained"
-									startIcon={<Add className="size-4" />}
-									onClick={() => setShowAddMembers(true)}
-								>
-									Add Member
-								</Button>
-							)
-						)}
+								/>
+							}
+							onClick={() => setShowAddMembers(true)}
+							disabled={!canShareInvites || isCreatingInvite}
+							sx={{
+								display: {
+									xs: "none",
+									md: "inline-flex",
+								},
+							}}
+						>
+							{isCreatingInvite ? "Generating..." : "Share"}
+						</Button>
 					</div>
 				</div>
 
@@ -468,6 +455,7 @@ export function GroupMemberList({
 				onClose={() => setShowAddMembers(false)}
 				groupId={group.id}
 				excludeUserIds={members.map((m) => m.userId)}
+				canLoadInviteLink={canShareInvites}
 			/>
 		</div>
 	);

@@ -1,6 +1,7 @@
 "use client";
 
 import { inviteGroupMember } from "@actions/group/add-member/action";
+import { createGroupInvite } from "@actions/group/invite/create/action";
 import { inviteMeetingMembers } from "@actions/meeting/invite/action";
 import { searchUsers } from "@actions/user/action";
 import {
@@ -236,29 +237,65 @@ export function MemberInviteFields({
 	);
 }
 
-type InviteMembersDialogProps = {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	meetingId: string;
-};
+export type MemberInviteDialogProps =
+	| {
+			purpose: "meeting";
+			open: boolean;
+			onOpenChange: (open: boolean) => void;
+			meetingId: string;
+	  }
+	| {
+			purpose: "group";
+			open: boolean;
+			onOpenChange: (open: boolean) => void;
+			groupId: string;
+			excludeUserIds: string[];
+			/** When true, loads a group invite URL when the dialog opens (group creator). */
+			canLoadInviteLink: boolean;
+	  };
 
-export function InviteMembersDialog({
-	open,
-	onOpenChange,
-	meetingId,
-}: InviteMembersDialogProps) {
+export function MemberInviteDialog(props: MemberInviteDialogProps) {
+	const { open, onOpenChange, purpose } = props;
+	const meetingId = purpose === "meeting" ? props.meetingId : undefined;
+	const groupId = purpose === "group" ? props.groupId : undefined;
+	const excludeUserIds = purpose === "group" ? props.excludeUserIds : [];
+	const canLoadInviteLink =
+		purpose === "group" ? props.canLoadInviteLink : false;
+
 	const [members, setMembers] = useState<SearchUser[]>([]);
 	const [meetingLink, setMeetingLink] = useState("");
+	const [groupInviteLink, setGroupInviteLink] = useState("");
 	const [isPending, startTransition] = useTransition();
 	const [error, setError] = useState("");
 	const [fieldsKey, setFieldsKey] = useState(0);
 	const { showSuccess, showError } = useSnackbar();
 
 	useEffect(() => {
-		if (open) {
-			setMeetingLink(`${window.location.origin}/availability/${meetingId}`);
+		if (!open || purpose !== "meeting" || !meetingId) return;
+		setMeetingLink(`${window.location.origin}/availability/${meetingId}`);
+	}, [open, purpose, meetingId]);
+
+	useEffect(() => {
+		if (!open || purpose !== "group" || !groupId || !canLoadInviteLink) {
+			if (!open) setGroupInviteLink("");
+			return;
 		}
-	}, [open, meetingId]);
+
+		let cancelled = false;
+		(async () => {
+			const res = await createGroupInvite(groupId);
+			if (cancelled) return;
+			if (res.success && res.inviteUrl) {
+				setGroupInviteLink(res.inviteUrl);
+			} else {
+				setGroupInviteLink("");
+			}
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [open, purpose, groupId, canLoadInviteLink]);
 
 	const resetForm = useCallback(() => {
 		setMembers([]);
@@ -271,6 +308,21 @@ export function InviteMembersDialog({
 		onOpenChange(nextOpen);
 	};
 
+	const shareLink: MemberInviteShareLink | null =
+		purpose === "meeting"
+			? {
+					url: meetingLink,
+					placeholder: "Loading link…",
+					caption: "Anyone with this link can view the meeting",
+				}
+			: canLoadInviteLink
+				? {
+						url: groupInviteLink,
+						placeholder: "Loading link…",
+						caption: "Anyone with this link can join the group",
+					}
+				: null;
+
 	const handleDone = useCallback(() => {
 		if (members.length === 0) {
 			resetForm();
@@ -279,22 +331,61 @@ export function InviteMembersDialog({
 		}
 
 		setError("");
-		startTransition(async () => {
-			const result = await inviteMeetingMembers(
-				meetingId,
-				members.map((m) => m.id),
-			);
 
-			if (result.success) {
-				showSuccess(result.message);
-				resetForm();
-				onOpenChange(false);
-			} else {
-				setError(result.message);
-				showError(result.message);
-			}
-		});
-	}, [meetingId, members, onOpenChange, resetForm, showError, showSuccess]);
+		if (purpose === "meeting" && meetingId) {
+			startTransition(async () => {
+				const result = await inviteMeetingMembers(
+					meetingId,
+					members.map((m) => m.id),
+				);
+
+				if (result.success) {
+					showSuccess(result.message);
+					resetForm();
+					onOpenChange(false);
+				} else {
+					setError(result.message);
+					showError(result.message);
+				}
+			});
+			return;
+		}
+
+		if (purpose === "group" && groupId) {
+			startTransition(async () => {
+				let hadError = false;
+				let firstMessage = "";
+
+				for (const user of members) {
+					const res = await inviteGroupMember(groupId, user.id);
+					if (!res.success) {
+						hadError = true;
+						const msg = `Failed to invite ${user.email}: ${res.message}`;
+						if (!firstMessage) firstMessage = msg;
+						showError(msg);
+					} else {
+						showSuccess(`Invite sent to ${user.email}`);
+					}
+				}
+
+				if (!hadError) {
+					resetForm();
+					onOpenChange(false);
+				} else {
+					setError(firstMessage);
+				}
+			});
+		}
+	}, [
+		purpose,
+		meetingId,
+		groupId,
+		members,
+		onOpenChange,
+		resetForm,
+		showError,
+		showSuccess,
+	]);
 
 	return (
 		<Dialog
@@ -310,13 +401,9 @@ export function InviteMembersDialog({
 					key={fieldsKey}
 					selectedMembers={members}
 					onSelectedMembersChange={setMembers}
-					excludeUserIds={[]}
+					excludeUserIds={excludeUserIds}
 					searchFieldLabel="Add Members"
-					shareLink={{
-						url: meetingLink,
-						placeholder: "Loading link…",
-						caption: "Anyone with this link can view the meeting",
-					}}
+					shareLink={shareLink}
 				/>
 
 				{error && (
@@ -338,11 +425,33 @@ export function InviteMembersDialog({
 	);
 }
 
+type InviteMembersDialogProps = {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+	meetingId: string;
+};
+
+export function InviteMembersDialog({
+	open,
+	onOpenChange,
+	meetingId,
+}: InviteMembersDialogProps) {
+	return (
+		<MemberInviteDialog
+			purpose="meeting"
+			open={open}
+			onOpenChange={onOpenChange}
+			meetingId={meetingId}
+		/>
+	);
+}
+
 type AddMemberDialogProps = {
 	open: boolean;
 	onClose: () => void;
 	groupId: string;
 	excludeUserIds: string[];
+	canLoadInviteLink: boolean;
 };
 
 export function AddMemberDialog({
@@ -350,57 +459,18 @@ export function AddMemberDialog({
 	onClose,
 	groupId,
 	excludeUserIds,
+	canLoadInviteLink,
 }: AddMemberDialogProps) {
-	const [members, setMembers] = useState<SearchUser[]>([]);
-	const [fieldsKey, setFieldsKey] = useState(0);
-	const { showSuccess, showError } = useSnackbar();
-
-	const handleClose = () => {
-		setMembers([]);
-		setFieldsKey((k) => k + 1);
-		onClose();
-	};
-
-	async function handleAddMembers() {
-		for (const user of members) {
-			const res = await inviteGroupMember(groupId, user.id);
-
-			if (!res.success) {
-				showError(`Failed to invite ${user.email}: ${res.message}`);
-			} else {
-				showSuccess(`Invite sent to ${user.email}`);
-			}
-		}
-
-		handleClose();
-	}
-
 	return (
-		<Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-			<DialogTitle>Add Members</DialogTitle>
-
-			<DialogContent>
-				<div className="flex flex-col gap-5 pt-1">
-					<MemberInviteFields
-						key={fieldsKey}
-						selectedMembers={members}
-						onSelectedMembersChange={setMembers}
-						excludeUserIds={excludeUserIds}
-						searchDebounceMs={50}
-						searchFieldLabel="Search users"
-						shareLink={null}
-					/>
-
-					<Button
-						fullWidth
-						variant="contained"
-						disabled={members.length === 0}
-						onClick={handleAddMembers}
-					>
-						Add Members
-					</Button>
-				</div>
-			</DialogContent>
-		</Dialog>
+		<MemberInviteDialog
+			purpose="group"
+			open={open}
+			onOpenChange={(next) => {
+				if (!next) onClose();
+			}}
+			groupId={groupId}
+			excludeUserIds={excludeUserIds}
+			canLoadInviteLink={canLoadInviteLink}
+		/>
 	);
 }
