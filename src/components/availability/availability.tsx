@@ -10,6 +10,8 @@ import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
+import { RoomRecommendationSettings } from "@/components/availability/room-recommendations";
+import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
@@ -17,6 +19,7 @@ import { useAvailabilityActionHandlers } from "@/hooks/use-availability-action-h
 import { useAvailabilityData } from "@/hooks/use-availability-data";
 import { useGridInteraction } from "@/hooks/use-grid-interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useRoomRecommendations } from "@/hooks/use-room-recommendations";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	clearPersonalGridSlots,
@@ -185,6 +188,17 @@ export function Availability({
 		fromTimeMinutes,
 		userTimezone,
 	});
+
+	// Room recommendations — surfaced in the group/schedule sidebar so the host
+	// can pull room suggestions for the times the group is most available.
+	const {
+		filters: roomFilters,
+		setFilters: setRoomFilters,
+		rooms: studyRooms,
+		error: studyRoomsError,
+		isLoading: isRoomsLoading,
+		showBestRooms: handleShowBestRooms,
+	} = useRoomRecommendations(availabilityDates);
 
 	const handleImportSlotsFromMeeting = useCallback(
 		({
@@ -430,6 +444,14 @@ export function Availability({
 							>
 								<GroupResponses {...groupResponsesProps} />
 							</Paper>
+							<RoomRecommendationSettings
+								rawRooms={studyRooms}
+								filters={roomFilters}
+								onFiltersChange={setRoomFilters}
+								onShowBestRooms={handleShowBestRooms}
+								isLoading={isRoomsLoading}
+								errorMessage={studyRoomsError}
+							/>
 						</div>
 
 						<div className="block sm:hidden">
