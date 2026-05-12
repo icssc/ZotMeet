@@ -122,6 +122,9 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			);
 			params.set("meetingType", meetingType);
 			params.set("timezone", urlState.timezone);
+			if (urlState.groupId) {
+				params.set("groupId", urlState.groupId);
+			}
 
 			// Update URL with all parameters, then redirect.
 			const currentUrl = new URL(window.location.href);
