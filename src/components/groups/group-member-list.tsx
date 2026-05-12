@@ -17,7 +17,6 @@ import { useMemo, useState } from "react";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { GroupRole, SelectGroup } from "@/db/schema";
-import { copyTextToClipboard } from "@/lib/clipboard/utils";
 import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
 import { AddMemberDialog } from "./add-member-dialog";
@@ -52,18 +51,14 @@ export function GroupMemberList({
 	const [isCreatingInvite, setIsCreatingInvite] = useState(false);
 	const [tab, setTab] = useState(0);
 	const [showSettings, setShowSettings] = useState(false);
+	const [showAddMembers, setShowAddMembers] = useState(false);
 	const canShareInvites = group.createdBy === currentUserId;
 	const { showSuccess, showError } = useSnackbar();
 	const [activeFilter, setActiveFilter] = useState<
 		"all" | "created" | "upcoming"
 	>("all");
-	const [showAddMembers, setShowAddMembers] = useState(false);
 
 	async function handleCreateInviteLink() {
-		if (!canShareInvites) {
-			showError("Only the group creator can generate invite links.");
-			return;
-		}
 		setIsCreatingInvite(true);
 		try {
 			const res = await createGroupInvite(group.id);
@@ -71,15 +66,7 @@ export function GroupMemberList({
 				showError(res.message || "Failed to generate invite link.");
 				return;
 			}
-			try {
-				const copied = await copyTextToClipboard(res.inviteUrl);
-				if (!copied) {
-					throw new Error("Clipboard write failed");
-				}
-				showSuccess("Invite link copied to clipboard.");
-			} catch (_clipboardError) {
-				showError("Invite link generated, but failed to copy to clipboard.");
-			}
+			// copyTextToClipboard removed — invite is now handled via AddMemberDialog
 		} catch (_error) {
 			showError("Failed to generate invite link.");
 		} finally {
@@ -87,22 +74,34 @@ export function GroupMemberList({
 		}
 	}
 
-	const { meetingsPendingAvailability, allMeetings } = useMemo(() => {
+	const {
+		meetingsPendingAvailability,
+		meetingsPendingAvailabilityMap,
+		allMeetings,
+	} = useMemo(() => {
 		const getSortDate = (meeting: MeetingWithStats) =>
 			meeting.scheduledDate
 				? new Date(meeting.scheduledDate)
-				: new Date(meeting.dates[0]); // meeting window start
-		// Pending Availability section
+				: new Date(meeting.dates[0]);
+
 		const meetingsPendingAvailability = meetings
-			.filter((meeting) => {
-				return !meeting.userHasResponded;
-			})
+			.filter((meeting) => !meeting.userHasResponded)
 			.sort((a, b) => getSortDate(a).getTime() - getSortDate(b).getTime());
-		// All meeting section
+
+		// Fold Set creation into the same memo — no separate useMemo needed
+		const meetingsPendingAvailabilityMap = new Set(
+			meetingsPendingAvailability.map((m) => m.id),
+		);
+
 		const allMeetings = [...meetings].sort(
 			(a, b) => getSortDate(a).getTime() - getSortDate(b).getTime(),
 		);
-		return { meetingsPendingAvailability, allMeetings };
+
+		return {
+			meetingsPendingAvailability,
+			meetingsPendingAvailabilityMap,
+			allMeetings,
+		};
 	}, [meetings]);
 
 	const counts = {
@@ -112,11 +111,9 @@ export function GroupMemberList({
 			(m) => m.scheduledDate && new Date(m.scheduledDate) > new Date(),
 		).length,
 	};
-	const displayedMeetings = allMeetings.filter((meeting) => {
-		if (activeFilter === "created") {
-			return meeting.hostId === currentMemberId;
-		}
 
+	const displayedMeetings = allMeetings.filter((meeting) => {
+		if (activeFilter === "created") return meeting.hostId === currentMemberId;
 		if (activeFilter === "upcoming") {
 			return (
 				meeting.scheduledDate && new Date(meeting.scheduledDate) > new Date()
@@ -125,10 +122,72 @@ export function GroupMemberList({
 		return true;
 	});
 
-	// map is good for passing in the StatusBadge for each meeting with O(1) lookup
-	const meetingsPendingAvailabilityMap = useMemo(
-		() => new Set(meetingsPendingAvailability.map((m) => m.id)),
-		[meetingsPendingAvailability],
+	// Unified share button — icon-only on mobile, labeled on desktop
+	const shareButton = (
+		<Button
+			variant="outlined"
+			onClick={() => setShowAddMembers(true)}
+			disabled={!canShareInvites || isCreatingInvite}
+			startIcon={
+				<Share
+					className="size-4"
+					sx={{
+						color:
+							!canShareInvites || isCreatingInvite
+								? "text.disabled"
+								: "primary.main",
+					}}
+				/>
+			}
+			sx={{
+				// Mobile: icon-only square button
+				minWidth: { xs: 44, md: "auto" },
+				width: { xs: 44, md: "auto" },
+				height: { xs: 44, md: "auto" },
+				p: { xs: 0, md: undefined },
+				borderRadius: { xs: 2, md: 1 },
+				borderColor: "divider",
+				color: "text.primary",
+				"&:hover": {
+					borderColor: "divider",
+					backgroundColor: "action.hover",
+				},
+				// Hide label text on mobile
+				"& .MuiButton-startIcon": {
+					margin: { xs: 0, md: undefined },
+				},
+			}}
+		>
+			<Typography sx={{ display: { xs: "none", md: "inline" } }}>
+				{isCreatingInvite ? "Generating..." : "Share"}
+			</Typography>
+		</Button>
+	);
+
+	// Unified create button — icon-only on mobile, labeled on desktop
+	const createButton = (
+		<Link href={`/?groupId=${group.id}`}>
+			<Button
+				variant="contained"
+				startIcon={<Add className="size-4" />}
+				sx={{
+					minWidth: { xs: 44, md: "auto" },
+					width: { xs: 44, md: "auto" },
+					height: { xs: 44, md: "auto" },
+					p: { xs: 0, md: undefined },
+					borderRadius: { xs: 2, md: 1 },
+					bgcolor: "primary.main",
+					"&:hover": { bgcolor: "primary.main" },
+					"& .MuiButton-startIcon": {
+						margin: { xs: 0, md: undefined },
+					},
+				}}
+			>
+				<Typography sx={{ display: { xs: "none", md: "inline" } }}>
+					Create New Meeting
+				</Typography>
+			</Button>
+		</Link>
 	);
 
 	return (
@@ -144,7 +203,6 @@ export function GroupMemberList({
 							height: { xs: 100, md: 80 },
 						}}
 					/>
-
 					<div className="flex flex-col items-center md:items-start">
 						<div className="flex items-center gap-2">
 							<h1 className="font-bold font-figtree text-3xl md:text-5xl">
@@ -154,39 +212,32 @@ export function GroupMemberList({
 					</div>
 				</div>
 
-				{/* Top left back button on mobile */}
+				{/* Mobile back button (members tab only) */}
 				<div className="absolute top-5 left-5 md:hidden">
 					{tab === 1 && (
-						<IconButton
-							onClick={() => {
-								setTab(0);
-							}}
-						>
+						<IconButton onClick={() => setTab(0)}>
 							<ArrowBack className="size-6" />
 						</IconButton>
 					)}
 				</div>
 
 				<div className="absolute top-5 right-5 flex items-center gap-1 md:static md:gap-2">
-					{/* People (mobile only) */}
+					{/* Members tab toggle (mobile only) */}
 					<IconButton
 						sx={{ display: { xs: "inline-flex", md: "none" } }}
-						onClick={() => {
-							setTab(1);
-						}}
+						onClick={() => setTab(1)}
 					>
 						<People />
 					</IconButton>
 
+					{/* Settings — navigates on mobile, opens dialog on desktop */}
 					{isAdmin && (
 						<>
-							{/* Settings page (mobile only) */}
 							<Link href={`/groups/${group.id}/settings`} className="md:hidden">
 								<IconButton>
 									<Settings className="size-6" />
 								</IconButton>
 							</Link>
-
 							<IconButton
 								sx={{ display: { xs: "none", md: "inline-flex" } }}
 								onClick={() => setShowSettings(true)}
@@ -202,31 +253,18 @@ export function GroupMemberList({
 				<Typography
 					className="mt-4 text-center md:text-left"
 					variant="body2"
-					sx={{
-						color: {
-							xs: "text.secondary",
-							md: "text.primary",
-						},
-					}}
+					sx={{ color: { xs: "text.secondary", md: "text.primary" } }}
 				>
 					{group.description}
 				</Typography>
 			)}
 
-			{/* Tabs */}
+			{/* Desktop tabs */}
 			<div className="hidden md:block">
-				{" "}
-				{/* tabs only on desktop */}
 				<Tabs
 					value={tab}
-					onChange={(_, v) => {
-						setTab(v);
-					}}
-					sx={{
-						mt: 4,
-						borderBottom: "none",
-						borderColor: "divider",
-					}}
+					onChange={(_, v) => setTab(v)}
+					sx={{ mt: 4, borderBottom: "none", borderColor: "divider" }}
 				>
 					<Tab
 						label={`Meetings (${meetings.length})`}
@@ -239,107 +277,27 @@ export function GroupMemberList({
 				</Tabs>
 			</div>
 
-			{/* Meetings header (mobile only) */}
-			{tab === 0 && (
-				<div className="mt-4 flex items-center justify-between md:hidden">
-					<h2 className="font-semibold text-2xl">Meetings</h2>
-
-					<div className="flex items-center gap-2">
-						<Link href={`/?groupId=${group.id}`}>
-							<Button
-								variant="contained"
-								sx={{
-									minWidth: 44,
-									width: 44,
-									height: 44,
-									p: 0,
-									borderRadius: 2,
-									bgcolor: "primary.main",
-									"&:hover": {
-										bgcolor: "primary.main",
-									},
-								}}
-							>
-								<Add className="size-5" />
-							</Button>
-						</Link>
-						<Button
-							variant="outlined"
-							//onClick={handleCreateInviteLink}
-							onClick={() => setShowAddMembers(true)}
-							disabled={!canShareInvites || isCreatingInvite}
-							sx={{
-								minWidth: 44,
-								width: 44,
-								height: 44,
-								p: 0,
-								borderRadius: 2,
-								borderColor: "divider",
-								color: "text.primary",
-								"&:hover": {
-									borderColor: "divider",
-									backgroundColor: "action.hover",
-								},
-							}}
-						>
-							<Share className="size-5" />
-						</Button>
-					</div>
-				</div>
-			)}
-
-			{/* Toolbar */}
+			{/* Toolbar — shared header for both mobile and desktop */}
 			<div className="mt-4 flex flex-col gap-4">
-				{/* Top Row */}
 				<div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-					<input
-						type="text"
-						placeholder="Search..."
-						className="h-11 w-full rounded-lg border border-gray-300 px-4 text-sm outline-none focus:border-gray-500 md:max-w-sm"
-					/>
-					<div className="flex items-center gap-3">
-						{/* Desktop Create */}
-						<Link
-							href={`/?groupId=${group.id}`}
-							className="xs:none hidden md:block"
-						>
-							<Button
-								variant="contained"
-								startIcon={<Add className="size-4" />}
-							>
-								Create New Meeting
-							</Button>
-						</Link>
-
-						{/* Desktop Share */}
-						<Button
-							variant="outlined"
-							startIcon={
-								<Share
-									className="size-4"
-									sx={{
-										color:
-											!canShareInvites || isCreatingInvite
-												? "text.disabled"
-												: "primary.main",
-									}}
-								/>
-							}
-							onClick={() => setShowAddMembers(true)}
-							disabled={!canShareInvites || isCreatingInvite}
-							sx={{
-								display: {
-									xs: "none",
-									md: "inline-flex",
-								},
-							}}
-						>
-							{isCreatingInvite ? "Generating..." : "Share"}
-						</Button>
+					{/* Mobile: section title + action buttons; Desktop: search input */}
+					<div className="flex items-center justify-between md:contents">
+						{tab === 0 && (
+							<h2 className="font-semibold text-2xl md:hidden">Meetings</h2>
+						)}
+						<input
+							type="text"
+							placeholder="Search..."
+							className="hidden h-11 w-full rounded-lg border border-gray-300 px-4 text-sm outline-none focus:border-gray-500 md:block md:max-w-sm"
+						/>
+						<div className="flex items-center gap-2">
+							{createButton}
+							{shareButton}
+						</div>
 					</div>
 				</div>
 
-				{/* Filter Chips Row */}
+				{/* Filter chips (meetings tab only) */}
 				{tab === 0 && (
 					<div className="flex flex-wrap gap-2">
 						<FilterChip
@@ -348,14 +306,12 @@ export function GroupMemberList({
 							active={activeFilter === "all"}
 							onClick={() => setActiveFilter("all")}
 						/>
-
 						<FilterChip
 							label="By You"
 							count={counts.created}
 							active={activeFilter === "created"}
 							onClick={() => setActiveFilter("created")}
 						/>
-
 						<FilterChip
 							label="Upcoming"
 							count={counts.upcoming}
@@ -366,64 +322,62 @@ export function GroupMemberList({
 				)}
 			</div>
 
+			{/* Meetings tab */}
 			{tab === 0 && (
 				<div className="mt-6">
-					<div className="mt-4">
-						{meetings.length > 0 ? (
-							<div>
-								<div className="mt-8">
-									<p className="mb-2 font-bold text-[#969696] text-xs uppercase tracking-wide">
-										Action Required ({meetingsPendingAvailability.length})
-									</p>
-									{meetingsPendingAvailability.map((meeting) => (
-										<div
-											key={meeting.id}
-											className="mb-3 rounded-xl border border-gray-300"
-										>
-											<MeetingRow
-												key={meeting.id}
-												meeting={meeting}
-												currentMemberId={currentMemberId}
-												status="actionRequired"
-											/>
-										</div>
-									))}
-								</div>
-								<div className="mt-8">
-									<p className="mb-5 font-bold text-[#969696] text-xs uppercase tracking-wide">
-										All ({displayedMeetings.length})
-									</p>
-
-									{displayedMeetings.map((meeting) => (
-										<div
-											key={meeting.id}
-											className="mb-3 rounded-xl border border-gray-300"
-										>
-											<MeetingRow
-												key={meeting.id}
-												meeting={meeting}
-												currentMemberId={currentMemberId}
-												status={
-													meetingsPendingAvailabilityMap.has(meeting.id)
-														? "actionRequired"
-														: meeting.scheduledDate &&
-																new Date(meeting.scheduledDate) > new Date()
-															? "upcoming"
-															: null
-												}
-											/>
-										</div>
-									))}
-								</div>
+					{meetings.length > 0 ? (
+						<div>
+							<div className="mt-8">
+								<p className="mb-2 font-bold text-[#969696] text-xs uppercase tracking-wide">
+									Action Required ({meetingsPendingAvailability.length})
+								</p>
+								{meetingsPendingAvailability.map((meeting) => (
+									<div
+										key={meeting.id}
+										className="mb-3 rounded-xl border border-gray-300"
+									>
+										<MeetingRow
+											meeting={meeting}
+											currentMemberId={currentMemberId}
+											status="actionRequired"
+										/>
+									</div>
+								))}
 							</div>
-						) : (
-							<div className="flex items-center justify-center py-32">
-								<p className="text-gray-500 text-lg italic">No meetings yet!</p>
+							<div className="mt-8">
+								<p className="mb-5 font-bold text-[#969696] text-xs uppercase tracking-wide">
+									All ({displayedMeetings.length})
+								</p>
+								{displayedMeetings.map((meeting) => (
+									<div
+										key={meeting.id}
+										className="mb-3 rounded-xl border border-gray-300"
+									>
+										<MeetingRow
+											meeting={meeting}
+											currentMemberId={currentMemberId}
+											status={
+												meetingsPendingAvailabilityMap.has(meeting.id)
+													? "actionRequired"
+													: meeting.scheduledDate &&
+															new Date(meeting.scheduledDate) > new Date()
+														? "upcoming"
+														: null
+											}
+										/>
+									</div>
+								))}
 							</div>
-						)}
-					</div>
+						</div>
+					) : (
+						<div className="flex items-center justify-center py-32">
+							<p className="text-gray-500 text-lg italic">No meetings yet!</p>
+						</div>
+					)}
 				</div>
 			)}
+
+			{/* Members tab */}
 			{tab === 1 && (
 				<div className="mt-6">
 					<MembersList
@@ -434,7 +388,8 @@ export function GroupMemberList({
 					/>
 				</div>
 			)}
-			{/* Settings Dialog (desktop only) */}
+
+			{/* Settings dialog (desktop only) */}
 			<Dialog
 				open={showSettings}
 				onClose={() => setShowSettings(false)}
@@ -449,7 +404,8 @@ export function GroupMemberList({
 					/>
 				</DialogContent>
 			</Dialog>
-			{/* Add Members Dialog */}
+
+			{/* Add Members dialog */}
 			<AddMemberDialog
 				open={showAddMembers}
 				onClose={() => setShowAddMembers(false)}
