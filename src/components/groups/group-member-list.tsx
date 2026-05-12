@@ -64,6 +64,7 @@ export function GroupMemberList({
 	const [memberQuery, setMemberQuery] = useState("");
 	const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
 	const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const latestQueryRef = useRef("");
 
 	async function handleCreateInviteLink() {
 		if (!canShareInvites) {
@@ -151,12 +152,15 @@ export function GroupMemberList({
 			}
 
 			searchTimeoutRef.current = setTimeout(async () => {
+				latestQueryRef.current = query;
 				const results = await searchUsers(query);
+
+				// Ignore stale responses from earlier queries
+				if (latestQueryRef.current !== query) return;
 
 				const filtered = results.filter(
 					(user) => !members.some((member) => member.userId === user.id),
 				);
-
 				setSearchResults(filtered);
 			}, 150);
 		},
@@ -169,14 +173,10 @@ export function GroupMemberList({
 
 			if (!res.success) {
 				showError(`Failed to invite ${user.email}: ${res.message}`);
+			} else {
+				showSuccess(`Invite sent to ${user.email}`);
 			}
 		}
-
-		showSuccess(
-			users.length > 1
-				? "Members invited successfully."
-				: "Member invited successfully.",
-		);
 
 		setSearchResults([]);
 	}

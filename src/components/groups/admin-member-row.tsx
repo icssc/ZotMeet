@@ -259,9 +259,9 @@ export function AdminMemberRow({
 									py: 0.75,
 								}}
 							>
-								<PersonRemoveIcon />
+								<PersonRemoveIcon fontSize="small" />
 								<Typography fontSize="0.875rem" fontWeight={600}>
-									Remove Member
+									Remove
 								</Typography>
 							</ButtonBase>
 						)}
@@ -410,20 +410,7 @@ export function AdminMemberRow({
 								p: 1.5,
 								gap: 0.5,
 							}}
-						>
-							<Typography color="error" fontWeight={600}>
-								Remove Account
-							</Typography>
-
-							<Typography
-								variant="body2"
-								color="text.secondary"
-								sx={{ maxWidth: "100%" }}
-							>
-								This account will be permanently removed from the group & no
-								longer have access to meetings.
-							</Typography>
-						</ButtonBase>
+						></ButtonBase>
 					)}
 				</div>
 			</Drawer>

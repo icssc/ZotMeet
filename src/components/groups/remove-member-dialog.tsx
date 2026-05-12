@@ -26,7 +26,7 @@ export function RemoveMemberDialog({
 	return (
 		<Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
 			<DialogTitle className="flex items-center justify-between">
-				Remove Account
+				Remove Member
 				<IconButton onClick={onClose}>
 					<Close />
 				</IconButton>
@@ -35,7 +35,8 @@ export function RemoveMemberDialog({
 			<DialogContent>
 				<div className="flex flex-col gap-6 pt-2">
 					<Typography color="text.secondary">
-						This account will be permanently removed.
+						This member will be removed from the group and will no longer have
+						access to meetings.
 					</Typography>
 
 					<div className="flex items-center gap-4">
@@ -54,7 +55,7 @@ export function RemoveMemberDialog({
 						variant="contained"
 						onClick={onConfirm}
 					>
-						Remove Account
+						Remove Member
 					</Button>
 				</div>
 			</DialogContent>
