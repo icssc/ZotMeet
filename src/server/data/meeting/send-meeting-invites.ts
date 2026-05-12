@@ -29,7 +29,20 @@ export async function sendMeetingInvitesToUsers(params: {
 		return { success: false, message: "No members selected." };
 	}
 
+	const uniqueInviteeIds = [...new Set(inviteeUserIds)];
+
 	try {
+		const invitedUsers = await db
+			.select({ memberId: users.memberId, userId: users.id })
+			.from(users)
+			.where(inArray(users.id, uniqueInviteeIds));
+
+		if (invitedUsers.length === 0) {
+			return { success: false, message: "No valid members selected." };
+		}
+
+		const resolvedUserIds = invitedUsers.map((u) => u.userId);
+
 		const existingInvite = await getExistingMeetingInvite(meetingId);
 
 		if (!existingInvite) {
@@ -47,7 +60,7 @@ export async function sendMeetingInvitesToUsers(params: {
 		const inviterName = inviter.displayName?.trim() || "Someone";
 
 		await createNewNotification(
-			inviteeUserIds,
+			resolvedUserIds,
 			meetingTitle,
 			`You've been invited to join "${meetingTitle}". Click to view the meeting.`,
 			"Meeting Invite",
@@ -69,15 +82,6 @@ export async function sendMeetingInvitesToUsers(params: {
 				}),
 			},
 		);
-
-		const invitedUsers = await db
-			.select({ memberId: users.memberId, userId: users.id })
-			.from(users)
-			.where(inArray(users.id, inviteeUserIds));
-
-		if (invitedUsers.length === 0) {
-			return { success: false, message: "No valid members selected." };
-		}
 
 		await db
 			.insert(availabilities)
