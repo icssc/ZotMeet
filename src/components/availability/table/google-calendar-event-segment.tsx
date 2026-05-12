@@ -4,12 +4,12 @@ import { cn } from "@/lib/utils";
 
 interface GoogleCalendarEventSegmentProps {
 	segment: EventSegment;
-	isAvailable: boolean;
+	rendersOverPrimary: boolean;
 }
 
 export function GoogleCalendarEventSegment({
 	segment,
-	isAvailable,
+	rendersOverPrimary,
 }: GoogleCalendarEventSegmentProps) {
 	// Adjusts colors to be more legible
 	const segmentBaseColor = tinycolor(segment.calendarColor);
@@ -33,8 +33,8 @@ export function GoogleCalendarEventSegment({
 			)}
 			style={{
 				gridColumn,
-				backgroundColor: isAvailable ? "transparent" : segmentBgColor,
-				borderColor: isAvailable ? "#FFFFFF" : segmentBorderColor,
+				backgroundColor: rendersOverPrimary ? "transparent" : segmentBgColor,
+				borderColor: rendersOverPrimary ? "#FFFFFF" : segmentBorderColor,
 			}}
 			title={segment.summary}
 		>
@@ -42,7 +42,7 @@ export function GoogleCalendarEventSegment({
 				<div
 					className="select-none truncate p-0.5 text-xs leading-tight"
 					style={{
-						color: isAvailable ? "#FFFFFF" : segmentTextColor,
+						color: rendersOverPrimary ? "#FFFFFF" : segmentTextColor,
 					}}
 				>
 					{segment.summary}

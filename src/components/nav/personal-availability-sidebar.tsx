@@ -17,7 +17,6 @@ import {
 	Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PERSONAL_AVAILABILITY_OPTIONS } from "@/components/nav/personal-availability-options";
 import type { PaintMode } from "@/lib/availability/paint-selection";

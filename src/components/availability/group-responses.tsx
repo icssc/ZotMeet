@@ -30,7 +30,7 @@ const EN_DASH = "\u2013";
 const LG_UP_MEDIA = "(min-width: 1024px)";
 const RESPONDER_CHIP_CLASS: Record<MemberRangeStatus, string> = {
 	available: "",
-	"if-needed": "[&_.MuiChip-label]:italic",
+	"if-needed": "!border-dashed [&_.MuiChip-label]:italic",
 	unavailable: "[&_.MuiChip-label]:line-through",
 };
 
