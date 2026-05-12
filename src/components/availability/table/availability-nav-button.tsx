@@ -16,6 +16,7 @@ export const AvailabilityNavButton = memo(
 				onClick={handleClick}
 				disabled={disabled}
 				size="small"
+				aria-label={direction === "left" ? "Previous dates" : "Next dates"}
 				sx={{ opacity: disabled ? 0 : 1 }}
 			>
 				{direction === "left" ? (

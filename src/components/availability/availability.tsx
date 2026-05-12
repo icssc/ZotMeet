@@ -373,15 +373,8 @@ export function Availability({
 				<Paper
 					component="div"
 					variant="outlined"
-					className="flex min-h-0 min-w-0 flex-1 flex-col items-start justify-between self-stretch overflow-y-auto [touch-action:pan-y] lg:mr-4 lg:overflow-y-auto lg:overflow-x-hidden lg:pr-14 lg:[touch-action:auto]"
+					className="flex min-h-0 min-w-0 flex-1 flex-col self-stretch overflow-y-auto [touch-action:pan-y] lg:mr-4 lg:overflow-y-auto lg:overflow-x-hidden lg:pr-14 lg:[touch-action:auto]"
 				>
-					<div className="-mt-2 translate-x-3">
-						<AvailabilityNavButton
-							direction="left"
-							handleClick={prevPage}
-							disabled={isFirstPage}
-						/>
-					</div>
 					<div className="flex flex-1 flex-col gap-4">
 						<div className="shrink-0 lg:hidden">
 							<AvailabilityActions {...actionsProps} />
@@ -391,6 +384,12 @@ export function Availability({
 								currentPageAvailability={currentPageAvailability}
 								meetingType={meetingData.meetingType}
 								doesntNeedDay={doesntNeedDay}
+								datePageNav={{
+									onPrev: prevPage,
+									onNext: () => nextPage(availabilityDates.length),
+									isFirstPage,
+									isLastPage,
+								}}
 							/>
 
 							<tbody onMouseLeave={handleMouseLeave}>
@@ -433,14 +432,6 @@ export function Availability({
 							/>
 						</div>
 					</div>
-
-					<div className="-mt-2 -translate-x-9">
-						<AvailabilityNavButton
-							direction="right"
-							handleClick={() => nextPage(availabilityDates.length)}
-							disabled={isLastPage}
-						/>
-					</div>
 				</Paper>
 
 				{(availabilityView === "group" || availabilityView === "schedule") && (
@@ -463,9 +454,6 @@ export function Availability({
 							/>
 						</div>
 
-						<div className="lg:hidden">
-							<GroupResponses {...groupResponsesProps} />
-						</div>
 						<div className="block sm:hidden">
 							<MobileGroupResponses
 								isOwner={isMeetingOwner}
