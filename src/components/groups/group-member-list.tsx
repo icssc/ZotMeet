@@ -17,6 +17,7 @@ import { useMemo, useState } from "react";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { GroupRole, SelectGroup } from "@/db/schema";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
 import { AddMemberDialog } from "./add-member-dialog";
@@ -54,6 +55,7 @@ export function GroupMemberList({
 	const [showAddMembers, setShowAddMembers] = useState(false);
 	const canShareInvites = group.createdBy === currentUserId;
 	const { showSuccess, showError } = useSnackbar();
+	const isMobile = useIsMobile();
 	const [activeFilter, setActiveFilter] = useState<
 		"all" | "created" | "upcoming"
 	>("all");
@@ -66,7 +68,6 @@ export function GroupMemberList({
 				showError(res.message || "Failed to generate invite link.");
 				return;
 			}
-			// copyTextToClipboard removed — invite is now handled via AddMemberDialog
 		} catch (_error) {
 			showError("Failed to generate invite link.");
 		} finally {
@@ -88,7 +89,6 @@ export function GroupMemberList({
 			.filter((meeting) => !meeting.userHasResponded)
 			.sort((a, b) => getSortDate(a).getTime() - getSortDate(b).getTime());
 
-		// Fold Set creation into the same memo — no separate useMemo needed
 		const meetingsPendingAvailabilityMap = new Set(
 			meetingsPendingAvailability.map((m) => m.id),
 		);
@@ -122,69 +122,32 @@ export function GroupMemberList({
 		return true;
 	});
 
-	// Unified share button — icon-only on mobile, labeled on desktop
 	const shareButton = (
 		<Button
 			variant="outlined"
+			size={isMobile ? "square" : undefined}
 			onClick={() => setShowAddMembers(true)}
 			disabled={!canShareInvites || isCreatingInvite}
-			startIcon={
-				<Share
-					className="size-4"
-					sx={{
-						color:
-							!canShareInvites || isCreatingInvite
-								? "text.disabled"
-								: "primary.main",
-					}}
-				/>
-			}
-			sx={{
-				// Mobile: icon-only square button
-				minWidth: { xs: 44, md: "auto" },
-				width: { xs: 44, md: "auto" },
-				height: { xs: 44, md: "auto" },
-				p: { xs: 0, md: undefined },
-				borderRadius: { xs: 2, md: 1 },
-				borderColor: "divider",
-				color: "text.primary",
-				"&:hover": {
-					borderColor: "divider",
-					backgroundColor: "action.hover",
-				},
-				// Hide label text on mobile
-				"& .MuiButton-startIcon": {
-					margin: { xs: 0, md: undefined },
-				},
-			}}
 		>
-			<Typography sx={{ display: { xs: "none", md: "inline" } }}>
-				{isCreatingInvite ? "Generating..." : "Share"}
-			</Typography>
+			<Share
+				sx={{
+					color:
+						!canShareInvites || isCreatingInvite
+							? "text.disabled"
+							: "primary.main",
+				}}
+			/>
+			<Typography className="hidden md:block">Share</Typography>
 		</Button>
 	);
 
-	// Unified create button — icon-only on mobile, labeled on desktop
 	const createButton = (
 		<Link href={`/?groupId=${group.id}`}>
-			<Button
-				variant="contained"
-				startIcon={<Add className="size-4" />}
-				sx={{
-					minWidth: { xs: 44, md: "auto" },
-					width: { xs: 44, md: "auto" },
-					height: { xs: 44, md: "auto" },
-					p: { xs: 0, md: undefined },
-					borderRadius: { xs: 2, md: 1 },
-					bgcolor: "primary.main",
-					"&:hover": { bgcolor: "primary.main" },
-					"& .MuiButton-startIcon": {
-						margin: { xs: 0, md: undefined },
-					},
-				}}
-			>
-				<Typography sx={{ display: { xs: "none", md: "inline" } }}>
-					Create New Meeting
+			<Button variant="contained" size={isMobile ? "square" : undefined}>
+				<Add />
+				<Typography className="hidden md:block">
+					{" "}
+					Create New Meeting{" "}
 				</Typography>
 			</Button>
 		</Link>
@@ -192,7 +155,6 @@ export function GroupMemberList({
 
 	return (
 		<div>
-			{/* Header */}
 			<div className="mb-4 flex flex-col items-center gap-4 text-center md:flex-row md:items-start md:justify-between md:text-left">
 				<div className="flex flex-col items-center gap-4 md:flex-row md:items-center md:gap-4">
 					<Avatar
@@ -277,7 +239,6 @@ export function GroupMemberList({
 				</Tabs>
 			</div>
 
-			{/* Toolbar — shared header for both mobile and desktop */}
 			<div className="mt-4 flex flex-col gap-4">
 				<div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
 					{/* Mobile: section title + action buttons; Desktop: search input */}
