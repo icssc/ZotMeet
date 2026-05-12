@@ -84,6 +84,29 @@ export async function createGroup(
 				const inviterName = user.displayName?.trim() || "Someone";
 				const groupName = name.trim();
 
+				let notificationEmail:
+					| ReturnType<typeof createBrandedTransactionalEmail>
+					| undefined;
+				try {
+					notificationEmail = createBrandedTransactionalEmail({
+						subject: `Action Required: Join "${groupName}" on ZotMeet`,
+						headline: `${inviterName} invited you to a group.`,
+						bodyLines: [
+							`${inviterName} invited you to join "${groupName}".`,
+							`Be up-to-date with all meetings associated with the group "${groupName}." You can leave the group whenever you want.`,
+						],
+						ctaLabel: "Join Group",
+						ctaUrl: inviteUrl,
+						footerLearnMoreUrl: `${origin}/`,
+						footerTopic: "groups",
+					});
+				} catch (emailTemplateError) {
+					console.error(
+						"Failed to build group invite email template:",
+						emailTemplateError,
+					);
+				}
+
 				await createNewNotification(
 					toNotify,
 					groupName,
@@ -92,20 +115,7 @@ export async function createGroup(
 					inviteToken,
 					result.id,
 					user.id,
-					{
-						email: createBrandedTransactionalEmail({
-							subject: `Action Required: Join "${groupName}" on ZotMeet`,
-							headline: `${inviterName} invited you to a group.`,
-							bodyLines: [
-								`${inviterName} invited you to join "${groupName}".`,
-								`Be up-to-date with all meetings associated with the group "${groupName}." You can leave the group whenever you want.`,
-							],
-							ctaLabel: "Join Group",
-							ctaUrl: inviteUrl,
-							footerLearnMoreUrl: `${origin}/`,
-							footerTopic: "groups",
-						}),
-					},
+					notificationEmail ? { email: notificationEmail } : undefined,
 				);
 			} catch (notificationError) {
 				console.error(notificationError);
