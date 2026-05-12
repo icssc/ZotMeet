@@ -1,18 +1,18 @@
 "use server";
 
-import { and, eq, gt, isNull, or } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import {
 	groupInviteResponses,
-	groupInvites,
-	type SelectGroup,
 	type SelectGroupInvite,
-	type SelectGroupInviteResponse,
 	usersInGroup,
 } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { getExistingInvite } from "@/server/data/groups/invite-queries";
+import {
+	getExistingInvite,
+	getOrCreateActiveGroupInviteToken,
+} from "@/server/data/groups/invite-queries";
 import { getExistingGroup, isGroupCreator } from "@/server/data/groups/queries";
 //type def
 export type CreateInviteState = {
@@ -37,10 +37,8 @@ export async function createGroupInvite(
 		};
 	}
 
-	//check if group exists
-	let group: SelectGroup;
 	try {
-		group = await getExistingGroup(groupId);
+		await getExistingGroup(groupId);
 	} catch (_error) {
 		return {
 			success: false,
@@ -65,58 +63,23 @@ export async function createGroupInvite(
 		? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000)
 		: null;
 
-	// Reuse an existing non-expired invite for this group if one already exists
 	try {
-		const [existingInvite] = await db
-			.select({ inviteToken: groupInvites.inviteToken })
-			.from(groupInvites)
-			.where(
-				and(
-					eq(groupInvites.groupId, groupId),
-					or(
-						isNull(groupInvites.expiresAt),
-						gt(groupInvites.expiresAt, new Date()),
-					),
-				),
-			)
-			.limit(1);
-
-		if (existingInvite) {
-			const baseUrl =
-				process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-			return {
-				success: true,
-				message: "Invite link retrieved successfully",
-				inviteToken: existingInvite.inviteToken,
-				inviteUrl: `${baseUrl}/invite/${existingInvite.inviteToken}`,
-			};
-		}
-
-		// No existing invite — generate a new one
-		const inviteToken = crypto.randomUUID();
-		const [newInvite] = await db
-			.insert(groupInvites)
-			.values({
-				groupId,
-				inviteToken,
-				inviterId: user.id,
-				inviteeEmail: "",
-				expiresAt,
-				sentAt: new Date(),
-			})
-			.returning({ inviteToken: groupInvites.inviteToken });
+		const inviteToken = await getOrCreateActiveGroupInviteToken(
+			groupId,
+			user.id,
+			expiresAt,
+		);
 
 		revalidatePath("/groups");
 		revalidatePath(`/groups/${groupId}`);
 
 		const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-		const inviteUrl = `${baseUrl}/invite/${newInvite.inviteToken}`;
+		const inviteUrl = `${baseUrl}/invite/${inviteToken}`;
 
-		console.log("successfully created invite");
 		return {
 			success: true,
 			message: "Invite created successfully",
-			inviteToken: newInvite.inviteToken,
+			inviteToken,
 			inviteUrl,
 		};
 	} catch (error) {
