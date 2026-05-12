@@ -17,6 +17,7 @@ import { TimeZoneDropdown } from "@/components/availability/table/availability-t
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useAvailabilityActionHandlers } from "@/hooks/use-availability-action-handlers";
 import { useAvailabilityData } from "@/hooks/use-availability-data";
+import { useCalendarOverlays } from "@/hooks/use-calendar-overlays";
 import { useGridInteraction } from "@/hooks/use-grid-interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRoomRecommendations } from "@/hooks/use-room-recommendations";
@@ -29,10 +30,7 @@ import {
 	mergeImportedPersonalGridSlots,
 	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
-import type {
-	GoogleCalendarInfo,
-	MemberMeetingAvailability,
-} from "@/lib/types/availability";
+import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
@@ -177,31 +175,8 @@ export function Availability({
 		itemsPerPage,
 	});
 
-	const hiddenCalendarIds = useAvailabilityStore((s) => s.hiddenCalendarIds);
-
-	const googleCalendars = useMemo<GoogleCalendarInfo[]>(() => {
-		const seen = new Map<string, GoogleCalendarInfo>();
-		for (const event of googleCalendarEvents) {
-			if (event.calendarId && !seen.has(event.calendarId)) {
-				seen.set(event.calendarId, {
-					id: event.calendarId,
-					name: event.calendarName ?? event.calendarId,
-					color: event.calendarColor,
-				});
-			}
-		}
-		return Array.from(seen.values());
-	}, [googleCalendarEvents]);
-
-	const visibleCalendarEvents = useMemo(
-		() =>
-			hiddenCalendarIds.size === 0
-				? googleCalendarEvents
-				: googleCalendarEvents.filter(
-						(e) => !e.calendarId || !hiddenCalendarIds.has(e.calendarId),
-					),
-		[googleCalendarEvents, hiddenCalendarIds],
-	);
+	const { calendars: googleCalendars, visibleEvents: visibleCalendarEvents } =
+		useCalendarOverlays(googleCalendarEvents);
 
 	const isLastPage =
 		currentPage === Math.floor((meetingData.dates.length - 1) / itemsPerPage);

@@ -9,6 +9,7 @@ import {
 	Accordion,
 	AccordionDetails,
 	AccordionSummary,
+	Box,
 	Button,
 	Checkbox,
 	FormControlLabel,
@@ -19,7 +20,7 @@ import {
 	Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { PERSONAL_AVAILABILITY_OPTIONS } from "@/components/nav/personal-availability-options";
 import type { PaintMode } from "@/lib/availability/paint-selection";
 import { filterTimestampsToMeetingGrid } from "@/lib/availability/utils";
@@ -31,6 +32,43 @@ type ImportedMeetingAvailability = {
 	meetingAvailabilities: string[];
 	ifNeededAvailabilities: string[];
 };
+
+interface CalendarOverlayRowProps {
+	calendar: GoogleCalendarInfo;
+	hidden: boolean;
+	onToggle: (calendarId: string) => void;
+}
+
+const CalendarOverlayRow = memo(function CalendarOverlayRow({
+	calendar,
+	hidden,
+	onToggle,
+}: CalendarOverlayRowProps) {
+	const handleChange = useCallback(
+		() => onToggle(calendar.id),
+		[onToggle, calendar.id],
+	);
+
+	return (
+		<FormControlLabel
+			label={
+				<Stack direction="row" alignItems="center" spacing={1}>
+					<Box
+						sx={{
+							width: 10,
+							height: 10,
+							borderRadius: "50%",
+							bgcolor: calendar.color,
+							flexShrink: 0,
+						}}
+					/>
+					<Typography variant="body2">{calendar.name}</Typography>
+				</Stack>
+			}
+			control={<Checkbox checked={!hidden} onChange={handleChange} />}
+		/>
+	);
+});
 
 interface PersonalAvailabilitySidebarProps {
 	meetingId: string;
@@ -305,31 +343,13 @@ export function PersonalAvailabilitySidebar({
 								No Google Calendars connected.
 							</Typography>
 						) : (
-							<Stack>
+							<Stack spacing={0.25}>
 								{googleCalendars.map((cal) => (
-									<FormControlLabel
+									<CalendarOverlayRow
 										key={cal.id}
-										label={
-											<Stack direction="row" alignItems="center" spacing={1}>
-												<span
-													style={{
-														display: "inline-block",
-														width: 10,
-														height: 10,
-														borderRadius: "50%",
-														backgroundColor: cal.color,
-														flexShrink: 0,
-													}}
-												/>
-												<span>{cal.name}</span>
-											</Stack>
-										}
-										control={
-											<Checkbox
-												checked={!hiddenCalendarIds.has(cal.id)}
-												onChange={() => toggleCalendarVisibility(cal.id)}
-											/>
-										}
+										calendar={cal}
+										hidden={hiddenCalendarIds.has(cal.id)}
+										onToggle={toggleCalendarVisibility}
 									/>
 								))}
 							</Stack>

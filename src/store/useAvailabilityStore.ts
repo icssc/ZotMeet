@@ -116,7 +116,6 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 				isMobileDrawerOpen: false,
 				paintMode: "available",
 				importPreview: null,
-				hiddenCalendarIds: new Set<string>(),
 			};
 		}),
 	setHasAvailability: (hasAvailability) => set({ hasAvailability }),
