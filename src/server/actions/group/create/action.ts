@@ -94,11 +94,11 @@ export async function createGroup(
 					user.id,
 					{
 						email: createBrandedTransactionalEmail({
-							subject: `You're invited to join "${groupName}" on ZotMeet`,
+							subject: `Action Required: Join "${groupName}" on ZotMeet`,
 							headline: `${inviterName} invited you to a group.`,
 							bodyLines: [
-								`${inviterName} added you to the new ZotMeet group "${groupName}".`,
-								`Accept the invite to collaborate on meetings with the group. You can leave the group whenever you want.`,
+								`${inviterName} invited you to join "${groupName}".`,
+								`Be up-to-date with all meetings associated with the group "${groupName}." You can leave the group whenever you want.`,
 							],
 							ctaLabel: "Join Group",
 							ctaUrl: inviteUrl,
