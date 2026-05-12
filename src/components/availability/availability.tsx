@@ -463,27 +463,28 @@ export function Availability({
 				)}
 
 				{availabilityView === "personal" && (
-					<div>
-						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-							<AvailabilityActions {...actionsProps} />
-							<Paper
-								variant="outlined"
-								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
-							>
-								<PersonalAvailabilitySidebar
-									meetingId={meetingData.id}
-									userTimezone={userTimezone}
-									importGridIsoSet={importGridIsoSet}
-									canImport={Boolean(user?.memberId)}
-									onImportSlots={handleImportSlotsFromMeeting}
-									onClearAvailability={handleClearAvailability}
-									googleCalendars={googleCalendars}
-								/>
-							</Paper>
-						</div>
-						<div className="block sm:hidden">
-							<MobilePersonalAvailabilitySidebar />
-						</div>
+					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+						<AvailabilityActions {...actionsProps} />
+						<Paper
+							variant="outlined"
+							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+						>
+							<PersonalAvailabilitySidebar
+								meetingId={meetingData.id}
+								userTimezone={userTimezone}
+								importGridIsoSet={importGridIsoSet}
+								canImport={Boolean(user?.memberId)}
+								onImportSlots={handleImportSlotsFromMeeting}
+								onClearAvailability={handleClearAvailability}
+								googleCalendars={googleCalendars}
+							/>
+						</Paper>
+					</div>
+				)}
+
+				{availabilityView === "personal" && (
+					<div className="block sm:hidden">
+						<MobilePersonalAvailabilitySidebar />
 					</div>
 				)}
 			</div>
