@@ -62,6 +62,7 @@ export function MemberInviteFields({
 	searchFieldLabel = "Search users",
 	shareLink,
 }: MemberInviteFieldsProps) {
+	const { showError } = useSnackbar();
 	const [memberQuery, setMemberQuery] = useState("");
 	const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
 	const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -96,14 +97,10 @@ export function MemberInviteFields({
 				const results = await searchUsers(query);
 				if (latestQueryRef.current !== query) return;
 
-				const selectedIds = new Set(selectedMembers.map((m) => m.id));
-				const filtered = results.filter(
-					(r) => !excludeSet.has(r.id) && !selectedIds.has(r.id),
-				);
-				setSearchResults(filtered);
+				setSearchResults(results.filter((r) => !excludeSet.has(r.id)));
 			}, searchDebounceMs);
 		},
-		[excludeSet, selectedMembers, searchDebounceMs],
+		[excludeSet, searchDebounceMs],
 	);
 
 	const addMember = useCallback(
@@ -132,12 +129,18 @@ export function MemberInviteFields({
 
 	const handleCopyLink = useCallback(async () => {
 		if (!shareLink?.url) return;
-		await navigator.clipboard.writeText(shareLink.url);
-		setCopied(true);
-		if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
-		copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
-	}, [shareLink?.url]);
+		try {
+			await navigator.clipboard.writeText(shareLink.url);
+			setCopied(true);
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+			copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
+		} catch {
+			showError("Failed to copy link to clipboard.");
+		}
+	}, [shareLink?.url, showError]);
 
+	// Filter again at render time so members selected while a debounced search
+	// is in-flight are immediately hidden from the dropdown.
 	const options = searchResults.filter(
 		(user) => !selectedMembers.some((m) => m.id === user.id),
 	);
@@ -289,13 +292,14 @@ export function MemberInviteDialog(props: MemberInviteDialogProps) {
 				setGroupInviteLink(res.inviteUrl);
 			} else {
 				setGroupInviteLink("");
+				showError(res.message || "Failed to generate invite link.");
 			}
 		})();
 
 		return () => {
 			cancelled = true;
 		};
-	}, [open, purpose, groupId, canLoadInviteLink]);
+	}, [open, purpose, groupId, canLoadInviteLink, showError]);
 
 	const resetForm = useCallback(() => {
 		setMembers([]);

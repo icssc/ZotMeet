@@ -28,13 +28,11 @@ import { ChangeRoleDialog } from "./change-role-dialog";
 import { LeaveGroupDialog } from "./leave-group-dialog";
 import { MemberAvatar } from "./member-avatar";
 import { RemoveMemberDialog } from "./remove-member-dialog";
+import type { GroupMember } from "./types";
 
-type Member = {
-	userId: string;
-	memberId: string;
-	email: string;
-	role: GroupRole;
-};
+function isGroupRole(value: string): value is GroupRole {
+	return value === GroupRole.ADMIN || value === GroupRole.MEMBER;
+}
 
 export function AdminMemberRow({
 	member,
@@ -42,7 +40,7 @@ export function AdminMemberRow({
 	isSelf,
 	isLastAdmin,
 }: {
-	member: Member;
+	member: GroupMember;
 	groupId: string;
 	isSelf: boolean;
 	isLastAdmin: boolean;
@@ -63,11 +61,9 @@ export function AdminMemberRow({
 	const router = useRouter();
 
 	function handleRoleSelection(value: string) {
-		const nextRole = value as GroupRole;
+		if (!isGroupRole(value) || value === member.role) return;
 
-		if (nextRole === member.role) return;
-
-		setPendingRole(nextRole);
+		setPendingRole(value);
 		setShowRoleDialog(true);
 	}
 
@@ -409,18 +405,24 @@ export function AdminMemberRow({
 								setShowPermissionsSheet(false);
 								setShowRemoveDialog(true);
 							}}
+							disableRipple
 							sx={{
 								display: "flex",
-								flexDirection: "column",
-								alignItems: "flex-start",
+								alignItems: "center",
 								justifyContent: "flex-start",
-								textAlign: "left",
+								gap: 1,
 								width: "100%",
 								borderRadius: 2,
 								p: 1.5,
-								gap: 0.5,
+								color: "error.main",
+								"&:hover": { backgroundColor: "transparent" },
 							}}
-						></ButtonBase>
+						>
+							<PersonRemoveIcon fontSize="small" sx={{ color: "error.main" }} />
+							<Typography fontWeight={600} color="error">
+								Remove from Group
+							</Typography>
+						</ButtonBase>
 					)}
 				</div>
 			</Drawer>

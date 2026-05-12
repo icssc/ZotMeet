@@ -4,18 +4,12 @@ import { Button, IconButton, useMediaQuery } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useSnackbar } from "@/components/ui/snackbar-provider";
 import { GroupRole } from "@/db/schema";
-import { useSnackbar } from "../ui/snackbar-provider";
 import { AdminMemberRow } from "./admin-member-row";
 import { LeaveGroupDialog } from "./leave-group-dialog";
 import { MemberAvatar } from "./member-avatar";
-
-type Member = {
-	userId: string;
-	memberId: string;
-	email: string;
-	role: GroupRole;
-};
+import type { GroupMember } from "./types";
 
 export function MembersList({
 	members,
@@ -23,7 +17,7 @@ export function MembersList({
 	groupId,
 	currentUserId,
 }: {
-	members: Member[];
+	members: GroupMember[];
 	isAdmin: boolean;
 	groupId: string;
 	currentUserId: string;

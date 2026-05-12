@@ -4,8 +4,8 @@ import { IconButton, Menu, MenuItem } from "@mui/material";
 import { Calendar, Clock, MoreVertical, Users } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
-import { useSnackbar } from "../ui/snackbar-provider";
 import { DateRange } from "./date-range";
 import { StatusBadge } from "./status-badge";
 

@@ -11,36 +11,19 @@ export function DateRange({
 	if (!dates.length) return <>No dates specified</>;
 
 	if (meetingType === "days") {
-		const weekdayData = dates
-			.map((dateStr) => {
-				const dateString = dateStr.split("T")[0];
+		const weekdayData = dates.flatMap((dateStr) => {
+			const dateString = dateStr.split("T")[0];
+			if (!isAnchorDateString(dateString)) return [];
 
-				if (!isAnchorDateString(dateString)) {
-					return null;
-				}
-
-				const date = new Date(dateStr);
-				const dayIndex = date.getUTCDay();
-
-				return {
-					dayIndex,
-					name: WEEKDAYS[dayIndex],
-				};
-			})
-			.filter(Boolean) as {
-			dayIndex: number;
-			name: string;
-		}[];
+			const dayIndex = new Date(dateStr).getUTCDay();
+			return [{ dayIndex, name: WEEKDAYS[dayIndex] }];
+		});
 
 		if (weekdayData.length > 0) {
-			return (
-				<>
-					{weekdayData
-						.sort((a, b) => a.dayIndex - b.dayIndex)
-						.map((d) => d.name)
-						.join(", ")}
-				</>
-			);
+			const sortedNames = [...weekdayData]
+				.sort((a, b) => a.dayIndex - b.dayIndex)
+				.map((d) => d.name);
+			return <>{sortedNames.join(", ")}</>;
 		}
 	}
 

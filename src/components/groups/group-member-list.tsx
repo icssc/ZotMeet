@@ -15,26 +15,18 @@ import {
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FilterChip } from "@/components/ui/filter-chip";
-import { useSnackbar } from "@/components/ui/snackbar-provider";
-import type { GroupRole, SelectGroup } from "@/db/schema";
+import type { SelectGroup } from "@/db/schema";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { createGroupInvite } from "@/server/actions/group/invite/create/action";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
 import { AddMemberDialog } from "./add-member-dialog";
 import { GroupSettingsForm } from "./group-settings-form";
 import { MeetingRow } from "./meeting-row";
 import { MembersList } from "./members-list";
-
-type Member = {
-	userId: string;
-	memberId: string;
-	email: string;
-	role: GroupRole;
-};
+import type { GroupMember } from "./types";
 
 interface GroupMemberListProps {
 	group: SelectGroup;
-	members: Member[];
+	members: GroupMember[];
 	meetings: MeetingWithStats[];
 	isAdmin: boolean;
 	currentUserId: string;
@@ -49,31 +41,14 @@ export function GroupMemberList({
 	currentUserId,
 	currentMemberId,
 }: GroupMemberListProps) {
-	const [isCreatingInvite, setIsCreatingInvite] = useState(false);
 	const [tab, setTab] = useState(0);
 	const [showSettings, setShowSettings] = useState(false);
 	const [showAddMembers, setShowAddMembers] = useState(false);
 	const canShareInvites = group.createdBy === currentUserId;
-	const { showSuccess, showError } = useSnackbar();
 	const isMobile = useIsMobile();
 	const [activeFilter, setActiveFilter] = useState<
 		"all" | "created" | "upcoming"
 	>("all");
-
-	async function handleCreateInviteLink() {
-		setIsCreatingInvite(true);
-		try {
-			const res = await createGroupInvite(group.id);
-			if (!res.success || !res.inviteUrl) {
-				showError(res.message || "Failed to generate invite link.");
-				return;
-			}
-		} catch (_error) {
-			showError("Failed to generate invite link.");
-		} finally {
-			setIsCreatingInvite(false);
-		}
-	}
 
 	const {
 		meetingsPendingAvailability,
@@ -127,14 +102,11 @@ export function GroupMemberList({
 			variant="outlined"
 			size={isMobile ? "square" : undefined}
 			onClick={() => setShowAddMembers(true)}
-			disabled={!canShareInvites || isCreatingInvite}
+			disabled={!canShareInvites}
 		>
 			<Share
 				sx={{
-					color:
-						!canShareInvites || isCreatingInvite
-							? "text.disabled"
-							: "primary.main",
+					color: !canShareInvites ? "text.disabled" : "primary.main",
 				}}
 			/>
 			<Typography className="hidden md:block">Share</Typography>
@@ -145,10 +117,7 @@ export function GroupMemberList({
 		<Link href={`/?groupId=${group.id}`}>
 			<Button variant="contained" size={isMobile ? "square" : undefined}>
 				<Add />
-				<Typography className="hidden md:block">
-					{" "}
-					Create New Meeting{" "}
-				</Typography>
+				<Typography className="hidden md:block">Create New Meeting</Typography>
 			</Button>
 		</Link>
 	);
@@ -240,21 +209,27 @@ export function GroupMemberList({
 			</div>
 
 			<div className="mt-4 flex flex-col gap-4">
+				{/* Mobile-only header row: section title + action buttons */}
+				<div className="flex items-center justify-between md:hidden">
+					<h2 className="font-semibold text-2xl">
+						{tab === 0 ? "Meetings" : "Members"}
+					</h2>
+					<div className="flex items-center gap-2">
+						{tab === 0 && createButton}
+						{shareButton}
+					</div>
+				</div>
+
+				{/* Search input + desktop action buttons */}
 				<div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-					{/* Mobile: section title + action buttons; Desktop: search input */}
-					<div className="flex items-center justify-between md:contents">
-						{tab === 0 && (
-							<h2 className="font-semibold text-2xl md:hidden">Meetings</h2>
-						)}
-						<input
-							type="text"
-							placeholder="Search..."
-							className="hidden h-11 w-full rounded-lg border border-gray-300 px-4 text-sm outline-none focus:border-gray-500 md:block md:max-w-sm"
-						/>
-						<div className="flex items-center gap-2">
-							{createButton}
-							{shareButton}
-						</div>
+					<input
+						type="text"
+						placeholder="Search..."
+						className="h-11 w-full rounded-lg border border-gray-300 px-4 text-sm outline-none focus:border-gray-500 md:max-w-sm"
+					/>
+					<div className="hidden items-center gap-2 md:flex">
+						{tab === 0 && createButton}
+						{shareButton}
 					</div>
 				</div>
 
