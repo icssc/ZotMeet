@@ -8,12 +8,11 @@ import { AvailabilityActions } from "@/components/availability/availability-acti
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
-import { InviteMembersDialog } from "@/components/availability/invite-members-dialog";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { RoomRecommendationSettings } from "@/components/availability/room-recommendations";
-import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
+import { InviteMembersDialog } from "@/components/groups/add-member-dialog";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useAvailabilityActionHandlers } from "@/hooks/use-availability-action-handlers";
 import { useAvailabilityData } from "@/hooks/use-availability-data";

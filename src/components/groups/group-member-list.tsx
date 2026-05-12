@@ -1,7 +1,5 @@
 "use client";
 
-import { inviteGroupMember } from "@actions/group/add-member/action";
-import { searchUsers } from "@actions/user/action";
 import { Add, ArrowBack, People, Settings, Share } from "@mui/icons-material";
 import {
 	Avatar,
@@ -15,8 +13,7 @@ import {
 	Typography,
 } from "@mui/material";
 import Link from "next/link";
-import { useCallback, useMemo, useRef, useState } from "react";
-import type { SearchUser } from "@/components/groups/add-member-dialog";
+import { useMemo, useState } from "react";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { GroupRole, SelectGroup } from "@/db/schema";
@@ -61,10 +58,6 @@ export function GroupMemberList({
 		"all" | "created" | "upcoming"
 	>("all");
 	const [showAddMembers, setShowAddMembers] = useState(false);
-	const [memberQuery, setMemberQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
-	const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-	const latestQueryRef = useRef("");
 
 	async function handleCreateInviteLink() {
 		if (!canShareInvites) {
@@ -137,49 +130,6 @@ export function GroupMemberList({
 		() => new Set(meetingsPendingAvailability.map((m) => m.id)),
 		[meetingsPendingAvailability],
 	);
-
-	const handleMemberSearch = useCallback(
-		(query: string) => {
-			setMemberQuery(query);
-
-			if (searchTimeoutRef.current) {
-				clearTimeout(searchTimeoutRef.current);
-			}
-
-			if (query.length < 2) {
-				setSearchResults([]);
-				return;
-			}
-
-			searchTimeoutRef.current = setTimeout(async () => {
-				latestQueryRef.current = query;
-				const results = await searchUsers(query);
-
-				// Ignore stale responses from earlier queries
-				if (latestQueryRef.current !== query) return;
-
-				const filtered = results.filter(
-					(user) => !members.some((member) => member.userId === user.id),
-				);
-				setSearchResults(filtered);
-			}, 50);
-		},
-		[members],
-	);
-
-	async function addMembers(users: SearchUser[]) {
-		for (const user of users) {
-			const res = await inviteGroupMember(group.id, user.id);
-
-			if (!res.success) {
-				showError(`Failed to invite ${user.email}: ${res.message}`);
-			} else {
-				showSuccess(`Invite sent to ${user.email}`);
-			}
-		}
-
-		setSearchResults([]);
-	}
 
 	return (
 		<div>
@@ -516,9 +466,8 @@ export function GroupMemberList({
 			<AddMemberDialog
 				open={showAddMembers}
 				onClose={() => setShowAddMembers(false)}
-				onSearch={handleMemberSearch}
-				onAddMember={addMembers}
-				searchResults={searchResults}
+				groupId={group.id}
+				excludeUserIds={members.map((m) => m.userId)}
 			/>
 		</div>
 	);
