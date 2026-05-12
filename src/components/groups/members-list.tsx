@@ -54,98 +54,96 @@ export function MembersList({
 							isLastAdmin={member.role === GroupRole.ADMIN && adminCount === 1}
 						/>
 					) : (
-						<div className="flex flex-col">
-							<div
-								key={member.userId}
-								style={{ borderBottom: `1px solid ${theme.palette.divider}` }}
-								className="flex h-[83px] items-center justify-between px-4 transition-colors hover:bg-gray-50/50"
-							>
-								<div className="flex items-center gap-4">
-									<MemberAvatar email={member.email} />
-									<span
-										style={{ color: theme.palette.text.primary }}
-										className="font-medium text-base"
-									>
-										{member.email.split("@")[0]}
-										{member.userId === currentUserId && (
-											<span
-												style={{ color: theme.palette.text.secondary }}
-												className="ml-2 text-xs"
-											>
-												(you)
-											</span>
-										)}
-									</span>
-								</div>
+						<div
+							key={member.userId}
+							style={{ borderBottom: `1px solid ${theme.palette.divider}` }}
+							className="flex h-[83px] items-center justify-between px-4 transition-colors hover:bg-gray-50/50"
+						>
+							<div className="flex items-center gap-4">
+								<MemberAvatar email={member.email} />
+								<span
+									style={{ color: theme.palette.text.primary }}
+									className="font-medium text-base"
+								>
+									{member.email.split("@")[0]}
+									{member.userId === currentUserId && (
+										<span
+											style={{ color: theme.palette.text.secondary }}
+											className="ml-2 text-xs"
+										>
+											(you)
+										</span>
+									)}
+								</span>
+							</div>
 
-								<div className="flex items-center gap-4">
-									{member.userId === currentUserId &&
-										(isMobile ? (
-											<IconButton
-												onClick={() => setShowLeaveDialog(true)}
+							<div className="flex items-center gap-4">
+								{member.userId === currentUserId &&
+									(isMobile ? (
+										<IconButton
+											onClick={() => setShowLeaveDialog(true)}
+											sx={{
+												color: "error.main",
+												padding: 0,
+											}}
+										>
+											<Logout
 												sx={{
 													color: "error.main",
-													padding: 0,
 												}}
-											>
+											/>
+										</IconButton>
+									) : (
+										<Button
+											color="error"
+											variant="text"
+											startIcon={
 												<Logout
 													sx={{
 														color: "error.main",
 													}}
 												/>
-											</IconButton>
-										) : (
-											<Button
-												color="error"
-												variant="text"
-												startIcon={
-													<Logout
-														sx={{
-															color: "error.main",
-														}}
-													/>
-												}
-												onClick={() => setShowLeaveDialog(true)}
-												sx={{
-													textTransform: "none",
-													fontWeight: 600,
-												}}
-											>
-												Leave
-											</Button>
-										))}
-									<span
-										style={{ color: theme.palette.text.secondary }}
-										className="font-medium text-sm italic"
-									>
-										{member.role === GroupRole.ADMIN ? "Admin" : "Member"}
-									</span>
-								</div>
-
-								{member.userId === currentUserId && (
-									<LeaveGroupDialog
-										open={showLeaveDialog}
-										email={member.email}
-										onClose={() => setShowLeaveDialog(false)}
-										onConfirm={async () => {
-											const result = await removeGroupMember(
-												groupId,
-												member.userId,
-												true,
-											);
-
-											if (result?.success) {
-												showSuccess(result.message);
-												router.push("/groups");
-											} else {
-												showError(result?.message);
 											}
-
-											setShowLeaveDialog(false);
-										}}
-									/>
-								)}
+											onClick={() => setShowLeaveDialog(true)}
+											sx={{
+												textTransform: "none",
+												fontWeight: 600,
+											}}
+										>
+											Leave
+										</Button>
+									))}
+								<span
+									style={{ color: theme.palette.text.secondary }}
+									className="font-medium text-sm italic"
+								>
+									{member.role === GroupRole.ADMIN ? "Admin" : "Member"}
+								</span>
 							</div>
+
+							{member.userId === currentUserId && (
+								<LeaveGroupDialog
+									open={showLeaveDialog}
+									email={member.email}
+									onClose={() => setShowLeaveDialog(false)}
+									onConfirm={async () => {
+										const result = await removeGroupMember(
+											groupId,
+											member.userId,
+											true,
+										);
+
+										if (result?.success) {
+											showSuccess(result.message);
+											router.push("/groups");
+										} else {
+											showError(result?.message);
+										}
+
+										setShowLeaveDialog(false);
+									}}
+								/>
+							)}
 						</div>
 					),
 				)}
