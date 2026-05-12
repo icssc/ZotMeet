@@ -199,6 +199,9 @@ export async function GET(request: Request): Promise<Response> {
 	const selectedDates = sortMeetingIsoDatesAsc(selectedDatesRaw);
 	const meetingType = searchParams.get("meetingType");
 	const timezone = searchParams.get("timezone") || "America/Los_Angeles";
+	const groupIdParam = searchParams.get("groupId");
+	const group_id =
+		groupIdParam && groupIdParam.length > 0 ? groupIdParam : undefined;
 
 	// If valid meeting data exists, create the meeting
 	if (
@@ -222,6 +225,7 @@ export async function GET(request: Request): Promise<Response> {
 				dates: selectedDates,
 				description: "",
 				meetingType: meetingType as "dates" | "days",
+				...(group_id ? { group_id } : {}),
 			};
 
 			const result = await createMeetingFromData(meetingData, memberId);
