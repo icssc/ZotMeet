@@ -26,7 +26,10 @@ import {
 	mergeImportedPersonalGridSlots,
 	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
-import type { MemberMeetingAvailability } from "@/lib/types/availability";
+import type {
+	GoogleCalendarInfo,
+	MemberMeetingAvailability,
+} from "@/lib/types/availability";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
@@ -170,6 +173,32 @@ export function Availability({
 		currentPage,
 		itemsPerPage,
 	});
+
+	const hiddenCalendarIds = useAvailabilityStore((s) => s.hiddenCalendarIds);
+
+	const googleCalendars = useMemo<GoogleCalendarInfo[]>(() => {
+		const seen = new Map<string, GoogleCalendarInfo>();
+		for (const event of googleCalendarEvents) {
+			if (event.calendarId && !seen.has(event.calendarId)) {
+				seen.set(event.calendarId, {
+					id: event.calendarId,
+					name: event.calendarName ?? event.calendarId,
+					color: event.calendarColor,
+				});
+			}
+		}
+		return Array.from(seen.values());
+	}, [googleCalendarEvents]);
+
+	const visibleCalendarEvents = useMemo(
+		() =>
+			hiddenCalendarIds.size === 0
+				? googleCalendarEvents
+				: googleCalendarEvents.filter(
+						(e) => !e.calendarId || !hiddenCalendarIds.has(e.calendarId),
+					),
+		[googleCalendarEvents, hiddenCalendarIds],
+	);
 
 	const isLastPage =
 		currentPage === Math.floor((meetingData.dates.length - 1) / itemsPerPage);
@@ -373,7 +402,7 @@ export function Availability({
 										fromTimeMinutes={fromTimeMinutes}
 										availabilityDates={availabilityDates}
 										currentPageAvailability={currentPageAvailability}
-										googleCalendarEvents={googleCalendarEvents}
+										googleCalendarEvents={visibleCalendarEvents}
 										meetingDates={meetingData.dates}
 										userTimezone={userTimezone}
 										handlers={handlers}
@@ -448,6 +477,7 @@ export function Availability({
 									canImport={Boolean(user?.memberId)}
 									onImportSlots={handleImportSlotsFromMeeting}
 									onClearAvailability={handleClearAvailability}
+									googleCalendars={googleCalendars}
 								/>
 							</Paper>
 						</div>

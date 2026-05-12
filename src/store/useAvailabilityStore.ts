@@ -64,6 +64,9 @@ interface AvailabilityStore {
 			ifNeededIsoStrings: readonly string[];
 		} | null,
 	) => void;
+
+	hiddenCalendarIds: Set<string>;
+	toggleCalendarVisibility: (calendarId: string) => void;
 }
 
 export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
@@ -113,6 +116,7 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 				isMobileDrawerOpen: false,
 				paintMode: "available",
 				importPreview: null,
+				hiddenCalendarIds: new Set<string>(),
 			};
 		}),
 	setHasAvailability: (hasAvailability) => set({ hasAvailability }),
@@ -240,6 +244,18 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 							availableIsoSet: new Set(preview.availableIsoStrings),
 							ifNeededIsoSet: new Set(preview.ifNeededIsoStrings),
 						},
+		}),
+
+	hiddenCalendarIds: new Set<string>(),
+	toggleCalendarVisibility: (calendarId) =>
+		set((state) => {
+			const next = new Set(state.hiddenCalendarIds);
+			if (next.has(calendarId)) {
+				next.delete(calendarId);
+			} else {
+				next.add(calendarId);
+			}
+			return { hiddenCalendarIds: next };
 		}),
 }));
 
