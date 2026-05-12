@@ -16,7 +16,7 @@ import { Check, Copy } from "lucide-react";
 import { useCallback, useRef, useState, useTransition } from "react";
 import { createGroup } from "@/server/actions/group/create/action";
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+export const MAX_GROUP_ICON_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 interface SelectedMember {
 	id: string;
@@ -29,7 +29,7 @@ interface CreateGroupDialogProps {
 	onOpenChange: (open: boolean) => void;
 }
 
-const compressImage = async (file: File) => {
+export const compressImage = async (file: File) => {
 	const bitmap = await createImageBitmap(file);
 	const canvas = document.createElement("canvas");
 	const ctx = canvas.getContext("2d");
@@ -124,7 +124,7 @@ export function CreateGroupDialog({
 			return;
 		}
 
-		if (file.size > MAX_FILE_SIZE) {
+		if (file.size > MAX_GROUP_ICON_FILE_SIZE) {
 			setError("Image must be under 5MB.");
 			return;
 		}

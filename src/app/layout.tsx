@@ -26,7 +26,11 @@ export default async function RootLayout({
 	const initialMode = await getUserThemeMode();
 
 	return (
-		<html lang="en" className={figtree.className}>
+		<html
+			lang="en"
+			className={cn(figtree.className, initialMode === "dark" && "dark")}
+		>
+			{/* TODO: Standardize CSS classes for light and dark mode ^ */}
 			<body
 				className={cn(
 					`${figtree.variable} antialiased`,

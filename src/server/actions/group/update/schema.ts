@@ -19,6 +19,7 @@ export const updateGroupSchema = z.object({
 			message: "Description must be less than 500 characters",
 		})
 		.optional(),
+	icon: z.string().optional(),
 });
 
 export type UpdateGroupInput = z.infer<typeof updateGroupSchema>;

@@ -24,6 +24,10 @@ const config: Config = {
 					DEFAULT: "hsl(var(--primary))",
 					foreground: "hsl(var(--primary-foreground))",
 				},
+				paper: {
+					DEFAULT: "hsl(var(--paper))",
+					foreground: "hsl(var(--paper-foreground))",
+				},
 				secondary: {
 					DEFAULT: "hsl(var(--secondary))",
 					foreground: "hsl(var(--secondary-foreground))",
@@ -70,6 +74,10 @@ const config: Config = {
 					base: "#CBD5E1" /* slate-300 */,
 					medium: "#94A3B8" /* slate-400 */,
 				},
+			},
+			backgroundImage: {
+				"stripes-primary":
+					"repeating-linear-gradient(45deg, hsl(var(--primary)) 0 3px, transparent 3px 6px)",
 			},
 			borderRadius: {
 				lg: "var(--radius)",

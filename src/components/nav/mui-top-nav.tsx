@@ -265,8 +265,12 @@ function Notifications({
 											color="inherit"
 											size="small"
 											sx={{ ml: "auto", my: 2 }}
-											onClick={() => {
-												if (notif.type === "Meeting Invite") {
+											onClick={async () => {
+												await deleteNotification(notif.id);
+												if (
+													notif.type === "Meeting Invite" ||
+													notif.type === "Nudge"
+												) {
 													setAnchorEl(null);
 													router.push(notif.redirect ?? "");
 												} else {

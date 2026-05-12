@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { availabilities, meetingInvites, users } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { createInviteEmail } from "@/lib/email/templates";
+import { createBrandedTransactionalEmail } from "@/lib/email/templates";
 import { getExistingMeetingInvite } from "@/server/data/meeting/invite-queries";
 import { getExistingMeeting } from "@/server/data/meeting/queries";
 import { createNewNotification } from "@/server/data/user/queries";
@@ -59,7 +60,9 @@ export async function inviteMeetingMembers(
 		}
 
 		const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-		const meetingLink = `${baseUrl}/availability/${meetingId}`;
+		const origin = baseUrl.replace(/\/$/, "");
+		const meetingLink = `${origin}/availability/${meetingId}`;
+		const inviterName = user.displayName?.trim() || "Someone";
 
 		await createNewNotification(
 			memberIds,
@@ -70,10 +73,17 @@ export async function inviteMeetingMembers(
 			null,
 			user.id,
 			{
-				email: createInviteEmail({
-					title: `You're invited to "${meeting.title}" on Zotmeet`,
-					message: `Availability is requested for "${meeting.title}".`,
-					url: meetingLink,
+				email: createBrandedTransactionalEmail({
+					subject: `Action Required: Add Availability for "${meeting.title}" on ZotMeet`,
+					headline: `${inviterName} invited you to a meeting.`,
+					bodyLines: [
+						`${inviterName} has invited you to join "${meeting.title}" on ZotMeet.`,
+						`Please share your availability so ${inviterName} can schedule the meeting.`,
+					],
+					ctaLabel: "Join Meeting",
+					ctaUrl: meetingLink,
+					footerLearnMoreUrl: `${origin}/`,
+					footerTopic: "meetings",
 				}),
 			},
 		);

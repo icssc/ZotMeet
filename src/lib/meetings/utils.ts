@@ -1,5 +1,26 @@
 import type { SelectScheduledMeeting } from "@/db/schema";
 
+export function formatScheduledTime(time: string): string {
+	const [hourStr = "0", minStr = "0"] = time.split(":");
+	const hour = Number(hourStr);
+	const min = Number(minStr);
+	const ampm = hour >= 12 ? "PM" : "AM";
+	const h = hour % 12 || 12;
+	return min === 0
+		? `${h}${ampm}`
+		: `${h}:${String(min).padStart(2, "0")}${ampm}`;
+}
+
+export function buildScheduledLabel(
+	scheduledDate: Date,
+	fromTime: string,
+	toTime: string,
+): string {
+	const month = scheduledDate.getUTCMonth() + 1;
+	const day = scheduledDate.getUTCDate();
+	return `Scheduled: ${month}/${day}, ${formatScheduledTime(fromTime)}-${formatScheduledTime(toTime)}`;
+}
+
 interface TimeInterval {
 	from: string;
 	to: string;
@@ -20,7 +41,7 @@ export function groupScheduledBlocksByDate(
 	for (const block of blocks) {
 		const key = formatLocalDateKey(block.scheduledDate);
 		if (!map.has(key)) map.set(key, []);
-		map.get(key)!.push(block);
+		map.get(key)?.push(block);
 	}
 
 	return [...map.entries()]

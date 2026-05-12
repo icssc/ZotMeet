@@ -1,22 +1,48 @@
 "use client";
 
 import { alpha, useTheme } from "@mui/material/styles";
-import React, { useCallback, useEffect, useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
-import { GroupAvailabilityBlock } from "@/components/availability/group-availability-block";
-
+import {
+	type BlockFill,
+	EMPTY_FILL,
+	GroupAvailabilityBlock,
+} from "@/components/availability/group-availability-block";
+import type { GridCellHandlers } from "@/components/availability/table/availability-block-cell";
+import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import {
 	formatScheduledTimeRange,
+	generateCellKey,
 	generateDateKey,
 	getTimestampFromBlockIndex,
 	spacerBeforeDate,
 } from "@/lib/availability/utils";
-import type { Member } from "@/lib/types/availability";
+import {
+	type Member,
+	rangeCoversCell,
+	type SelectionStateType,
+} from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
-function calculateBlockColor({
+function proportionalFill(
+	available: number,
+	ifNeeded: number,
+	denominator: number,
+	primaryColor: string,
+): BlockFill {
+	if (denominator === 0) return EMPTY_FILL;
+	return {
+		solid:
+			available > 0
+				? { color: alpha(primaryColor, available / denominator) }
+				: null,
+		stripes: ifNeeded > 0 ? { opacity: ifNeeded / denominator } : null,
+	};
+}
+
+function calculateBlockFill({
 	block,
 	hoveredMember,
 	selectedMembers,
@@ -34,133 +60,143 @@ function calculateBlockColor({
 	maxAvailability: number;
 	primaryColor: string;
 	ifNeededBlock: string[];
-}): string {
+}): BlockFill {
 	if (selectedMembers.length) {
-		const selectedInBlock = selectedMembers.filter((memberId) =>
+		const selectedAvailable = selectedMembers.filter((memberId) =>
 			block.includes(memberId),
-		);
-		const ifNeededInBlock = selectedMembers.filter((memberId) =>
+		).length;
+		const selectedIfNeeded = selectedMembers.filter((memberId) =>
 			ifNeededBlock.includes(memberId),
+		).length;
+		return proportionalFill(
+			selectedAvailable,
+			selectedIfNeeded,
+			selectedMembers.length,
+			primaryColor,
 		);
-
-		if (selectedInBlock.length) {
-			const proportion = selectedInBlock.length / selectedMembers.length;
-			return alpha(primaryColor, proportion); // available = pink
-		}
-		if (ifNeededInBlock.length) {
-			const proportion = ifNeededInBlock.length / selectedMembers.length;
-			return `rgba(0, 100, 137, ${proportion})`; // if-needed = blue
-		}
-		return "transparent";
 	}
 
 	if (hoveredMember) {
-		if (block.includes(hoveredMember)) {
-			return alpha(primaryColor, 1); // available = pink
-		}
-		if (ifNeededBlock.includes(hoveredMember)) {
-			return "rgba(0, 100, 137, 1)"; // if-needed = blue
-		}
-		return "transparent";
+		return proportionalFill(
+			block.includes(hoveredMember) ? 1 : 0,
+			ifNeededBlock.includes(hoveredMember) ? 1 : 0,
+			1,
+			primaryColor,
+		);
 	}
 
 	if (showBestTimes) {
-		if (block.length === maxAvailability && maxAvailability > 0) {
-			return "rgba(242, 100, 137, 1)";
+		const combined = block.length + ifNeededBlock.length;
+		if (combined === maxAvailability && maxAvailability > 0) {
+			return proportionalFill(
+				block.length,
+				ifNeededBlock.length,
+				numMembers,
+				primaryColor,
+			);
 		}
-		return "transparent";
+		return EMPTY_FILL;
 	}
 
 	if (numMembers) {
-		if (ifNeededBlock.length > 0) {
-			const opacity = ifNeededBlock.length / numMembers;
-			return `rgba(0, 100, 137, ${opacity})`; // if-needed = blue
-		}
-		if (block.length > 0) {
-			const opacity = block.length / numMembers;
-			return alpha(primaryColor, opacity); // available = pink
-		}
+		return proportionalFill(
+			block.length,
+			ifNeededBlock.length,
+			numMembers,
+			primaryColor,
+		);
 	}
 
-	return "transparent";
+	return EMPTY_FILL;
+}
+
+export interface SelectionEdges {
+	top: boolean;
+	right: boolean;
+	bottom: boolean;
+	left: boolean;
+}
+
+function edgesFor(
+	range: SelectionStateType | undefined,
+	zotDateIndex: number,
+	blockIndex: number,
+): SelectionEdges | null {
+	if (!rangeCoversCell(range, zotDateIndex, blockIndex)) return null;
+	// biome-ignore lint/style/noNonNullAssertion: rangeCoversCell guarantees range is defined
+	const r = range!;
+	return {
+		top: blockIndex === r.earlierBlockIndex,
+		bottom: blockIndex === r.laterBlockIndex,
+		left: zotDateIndex === r.earlierDateIndex,
+		right: zotDateIndex === r.laterDateIndex,
+	};
 }
 
 interface GroupAvailabilityProps {
-	meetingId: string;
 	meetingTitle?: string;
-	timeBlock: number;
-	blockIndex: number;
 	availabilityTimeBlocks: number[];
 	fromTime: number;
 	availabilityDates: ZotDate[];
+	ifNeededDates: ZotDate[];
 	currentPageAvailability: {
-		availabilities: ZotDate[];
-		ifNeeded: ZotDate[];
+		availabilities: (ZotDate | null)[];
+		ifNeeded: (ZotDate | null)[];
 	};
 	members: Member[];
 	onMouseLeave: () => void;
 	isScheduling: boolean;
 	timeZone: string;
+	handlers: GridCellHandlers;
 }
 
 export function GroupAvailability({
 	meetingTitle,
-	timeBlock,
-	blockIndex,
 	availabilityTimeBlocks,
 	fromTime,
 	availabilityDates,
+	ifNeededDates,
 	currentPageAvailability,
 	members,
 	onMouseLeave,
 	isScheduling,
 	timeZone,
+	handlers,
 }: GroupAvailabilityProps) {
 	const theme = useTheme();
+	const primaryColor = theme.palette.primary.main;
 
-	const { currentPage, itemsPerPage } = useAvailabilityStore(
+	const {
+		currentPage,
+		itemsPerPage,
+		hoveredMember,
+		selectedMembers,
+		draftRange,
+		hoverRange,
+		committedRange,
+		scheduledTimes,
+		pendingAdds,
+		pendingRemovals,
+		showBestTimes,
+		isScheduled,
+	} = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
 			itemsPerPage: state.itemsPerPage,
-		})),
-	);
-
-	const {
-		selectedZotDateIndex,
-		selectedBlockIndex,
-		selectionIsLocked,
-		hoveredMember,
-		selectedMembers,
-		setSelectedZotDateIndex,
-		setSelectedBlockIndex,
-		setSelectionIsLocked,
-		setIsMobileDrawerOpen,
-		toggleHoverGrid,
-	} = useAvailabilityStore(
-		useShallow((state) => ({
-			selectedZotDateIndex: state.selectedZotDateIndex,
-			selectedBlockIndex: state.selectedBlockIndex,
-			selectionIsLocked: state.selectionIsLocked,
 			hoveredMember: state.hoveredMember,
 			selectedMembers: state.selectedMembers,
-			setSelectedZotDateIndex: state.setSelectedZotDateIndex,
-			setSelectedBlockIndex: state.setSelectedBlockIndex,
-			setSelectionIsLocked: state.setSelectionIsLocked,
-			setIsMobileDrawerOpen: state.setIsMobileDrawerOpen,
-			toggleHoverGrid: state.toggleHoverGrid,
+			draftRange: state.draftRange,
+			hoverRange: state.hoverRange,
+			committedRange: state.committedRange,
+			scheduledTimes: state.scheduledTimes,
+			pendingAdds: state.pendingAdds,
+			pendingRemovals: state.pendingRemovals,
+			showBestTimes: state.enabled,
+			isScheduled: state.isScheduled,
 		})),
 	);
 
 	const numMembers = members.length;
-	const showBestTimes = useAvailabilityStore((state) => state.enabled);
-
-	const { scheduledTimes, pendingAdds, pendingRemovals } = useAvailabilityStore(
-		useShallow((state) => ({
-			scheduledTimes: state.scheduledTimes,
-			pendingAdds: state.pendingAdds,
-			pendingRemovals: state.pendingRemovals,
-		})),
-	);
 
 	const { scheduledTimeRange, scheduledBlockCount } = useMemo(() => {
 		const effective = new Set([...scheduledTimes, ...pendingAdds]);
@@ -175,488 +211,196 @@ export function GroupAvailability({
 
 	const maxAvailability = useMemo(() => {
 		if (!showBestTimes || numMembers === 0) return 0;
-
 		let max = 0;
-		availabilityDates.forEach((date) => {
-			Object.values(date.groupAvailability).forEach((memberIds) => {
-				max = Math.max(max, memberIds.length);
-			});
-		});
+		for (let i = 0; i < availabilityDates.length; i++) {
+			const availDay = availabilityDates[i];
+			const ifNeededDay = ifNeededDates[i];
+			const timestamps = new Set<string>([
+				...Object.keys(availDay?.groupAvailability ?? {}),
+				...Object.keys(ifNeededDay?.groupAvailability ?? {}),
+			]);
+			for (const ts of timestamps) {
+				const a = availDay?.groupAvailability[ts]?.length ?? 0;
+				const n = ifNeededDay?.groupAvailability[ts]?.length ?? 0;
+				max = Math.max(max, a + n);
+			}
+		}
 		return max;
-	}, [showBestTimes, numMembers, availabilityDates]);
+	}, [showBestTimes, numMembers, availabilityDates, ifNeededDates]);
 
-	const {
-		startBlockSelection,
-		endBlockSelection,
-		setStartBlockSelection,
-		setEndBlockSelection,
-		setSelectionState,
-	} = useAvailabilityStore(
-		useShallow((state) => ({
-			startBlockSelection: state.startBlockSelection,
-			endBlockSelection: state.endBlockSelection,
-			setStartBlockSelection: state.setStartBlockSelection,
-			setEndBlockSelection: state.setEndBlockSelection,
-			setSelectionState: state.setSelectionState,
-		})),
-	);
-
-	const { replaceEntireSelection, isScheduled } = useAvailabilityStore(
-		useShallow((state) => ({
-			replaceEntireSelection: state.replaceEntireSelection,
-			isScheduled: state.isScheduled,
-		})),
-	);
-	// to load scheduled time blocks when meeting is loaded
-	// Forces re-render when scheduled or pending times change
-
-	useAvailabilityStore((state) => state.scheduledTimes.size);
-	useAvailabilityStore((state) => state.pendingAdds.size);
-
-	// update start and end block selection state
-	useEffect(() => {
-		if (startBlockSelection && endBlockSelection) {
-			if (startBlockSelection.zotDateIndex !== endBlockSelection.zotDateIndex) {
-				setSelectionState(undefined);
-				return;
-			}
-			setSelectionState({
-				earlierDateIndex: Math.min(
-					startBlockSelection.zotDateIndex,
-					endBlockSelection.zotDateIndex,
-				),
-				laterDateIndex: Math.max(
-					startBlockSelection.zotDateIndex,
-					endBlockSelection.zotDateIndex,
-				),
-				earlierBlockIndex: Math.min(
-					startBlockSelection.blockIndex,
-					endBlockSelection.blockIndex,
-				),
-				laterBlockIndex: Math.max(
-					startBlockSelection.blockIndex,
-					endBlockSelection.blockIndex,
-				),
-			});
-		}
-	}, [startBlockSelection, endBlockSelection, setSelectionState]);
-
-	const updateSelection = useCallback(
-		({
-			zotDateIndex,
-			blockIndex,
-		}: {
-			zotDateIndex: number;
-			blockIndex: number;
-		}) => {
-			if (isScheduling) {
-				setStartBlockSelection({
-					zotDateIndex,
-					blockIndex,
-				});
-				setEndBlockSelection({
-					zotDateIndex,
-					blockIndex,
-				});
-			} else {
-				setIsMobileDrawerOpen(true);
-				setSelectedZotDateIndex(zotDateIndex);
-				setSelectedBlockIndex(blockIndex);
-			}
-		},
-		[
-			isScheduling,
-			setIsMobileDrawerOpen,
-			setSelectedZotDateIndex,
-			setSelectedBlockIndex,
-			setStartBlockSelection,
-			setEndBlockSelection,
-		],
-	);
-
-	const handleCellClick = useCallback(
-		({
-			zotDateIndex,
-			blockIndex,
-		}: {
-			zotDateIndex: number;
-			blockIndex: number;
-		}) => {
-			if (!isScheduling) {
-				if (selectionIsLocked) {
-					setSelectionIsLocked(false);
-				} else {
-					setSelectionIsLocked(true);
-					updateSelection({ zotDateIndex, blockIndex });
-				}
-				return;
-			}
-
-			setStartBlockSelection({ zotDateIndex, blockIndex });
-			setEndBlockSelection({ zotDateIndex, blockIndex });
-		},
-		[
-			isScheduling,
-			selectionIsLocked,
-			setSelectionIsLocked,
-			updateSelection,
-			setStartBlockSelection,
-			setEndBlockSelection,
-		],
-	);
-
-	const handleCellHover = useCallback(
-		({
-			zotDateIndex,
-			blockIndex,
-		}: {
-			zotDateIndex: number;
-			blockIndex: number;
-		}) => {
-			toggleHoverGrid(true);
-
-			if (isScheduling) {
-				// In schedule mode, keep the drag on the start day (same row index = time slot).
-				if (startBlockSelection) {
-					setEndBlockSelection({
-						zotDateIndex: startBlockSelection.zotDateIndex,
-						blockIndex,
-					});
-				}
-			} else {
-				if (!selectionIsLocked) {
-					updateSelection({ zotDateIndex, blockIndex });
-				}
-			}
-		},
-		[
-			isScheduling,
-			selectionIsLocked,
-			updateSelection,
-			startBlockSelection,
-			setEndBlockSelection,
-			toggleHoverGrid,
-		],
-	);
-
-	const handleMouseDown = useCallback(
-		({
-			zotDateIndex,
-			blockIndex,
-		}: {
-			zotDateIndex: number;
-			blockIndex: number;
-		}) => {
-			if (isScheduling) {
-				setStartBlockSelection({ zotDateIndex, blockIndex });
-				setEndBlockSelection({ zotDateIndex, blockIndex });
-			}
-		},
-		[isScheduling, setStartBlockSelection, setEndBlockSelection],
-	);
-
-	const handleMouseMove = useCallback(
-		({
-			zotDateIndex,
-			blockIndex,
-		}: {
-			zotDateIndex: number;
-			blockIndex: number;
-		}) => {
-			if (isScheduling && startBlockSelection) {
-				setEndBlockSelection({
-					zotDateIndex: startBlockSelection.zotDateIndex,
-					blockIndex,
-				});
-			}
-		},
-		[isScheduling, startBlockSelection, setEndBlockSelection],
-	);
-
-	const handleMouseUp = useCallback(() => {
-		if (isScheduling && startBlockSelection && endBlockSelection) {
-			const day = startBlockSelection.zotDateIndex;
-			const earlierBlockIndex = Math.min(
-				startBlockSelection.blockIndex,
-				endBlockSelection.blockIndex,
-			);
-			const laterBlockIndex = Math.max(
-				startBlockSelection.blockIndex,
-				endBlockSelection.blockIndex,
-			);
-
-			const timestamps: string[] = [];
-			for (
-				let blockIdx = earlierBlockIndex;
-				blockIdx <= laterBlockIndex;
-				blockIdx++
-			) {
-				const timestamp = getTimestampFromBlockIndex(
-					blockIdx,
-					day,
-					fromTime,
-					availabilityDates,
-					timeZone,
+	const timestampsByCell = useMemo(() => {
+		const map = new Map<string, string>();
+		for (let d = 0; d < availabilityDates.length; d++) {
+			for (let b = 0; b < availabilityTimeBlocks.length; b++) {
+				map.set(
+					generateCellKey(d, b),
+					getTimestampFromBlockIndex(
+						b,
+						d,
+						fromTime,
+						availabilityDates,
+						timeZone,
+					),
 				);
-				if (timestamp) {
-					timestamps.push(timestamp);
-				}
-			}
-
-			// Each drag replaces the full scheduled selection (one rectangle; prior slots cleared)
-			if (timestamps.length > 0) {
-				replaceEntireSelection(timestamps);
-
-				// Reset selection
-				setStartBlockSelection(undefined);
-				setEndBlockSelection(undefined);
-				setSelectionState(undefined);
 			}
 		}
-	}, [
-		isScheduling,
-		startBlockSelection,
-		endBlockSelection,
-		fromTime,
-		availabilityDates,
-		timeZone,
-		replaceEntireSelection,
-		setStartBlockSelection,
-		setEndBlockSelection,
-		setSelectionState,
-	]);
+		return map;
+	}, [availabilityDates, availabilityTimeBlocks, fromTime, timeZone]);
 
-	const handleTouchStart = (e: React.TouchEvent) => {
-		if (!isScheduling) return;
-		if (e.cancelable) {
-			e.preventDefault();
-		}
+	const spacers = spacerBeforeDate(currentPageAvailability.availabilities);
+	const lastRowIndex = availabilityTimeBlocks.length - 1;
 
-		const touch = e.touches[0];
-		const element = document.elementFromPoint(touch.clientX, touch.clientY);
-
-		if (!element) return;
-
-		const zotDateIndex = parseInt(
-			element.getAttribute("data-date-index") || "",
-			10,
-		);
-		const blockIndex = parseInt(
-			element.getAttribute("data-block-index") || "",
-			10,
-		);
-
-		if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIndex)) {
-			setStartBlockSelection({ zotDateIndex, blockIndex });
-			setEndBlockSelection({ zotDateIndex, blockIndex });
-		}
-	};
-
-	const handleTouchMove = (e: React.TouchEvent) => {
-		if (!isScheduling) return;
-
-		const touch = e.touches[0];
-		const element = document.elementFromPoint(touch.clientX, touch.clientY);
-
-		if (!element || !startBlockSelection) return;
-
-		const zotDateIndex = parseInt(
-			element.getAttribute("data-date-index") || "",
-			10,
-		);
-		const blockIndex = parseInt(
-			element.getAttribute("data-block-index") || "",
-			10,
-		);
-
-		if (!Number.isNaN(zotDateIndex) && !Number.isNaN(blockIndex)) {
-			setEndBlockSelection({
-				zotDateIndex: startBlockSelection.zotDateIndex,
-				blockIndex,
-			});
-		}
-	};
-
-	const handleTouchEnd = (e: React.TouchEvent) => {
-		if (!isScheduling) return;
-		if (e.cancelable) {
-			e.preventDefault();
-		}
-
-		if (startBlockSelection && endBlockSelection) {
-			const day = startBlockSelection.zotDateIndex;
-			const earlierBlockIndex = Math.min(
-				startBlockSelection.blockIndex,
-				endBlockSelection.blockIndex,
-			);
-			const laterBlockIndex = Math.max(
-				startBlockSelection.blockIndex,
-				endBlockSelection.blockIndex,
-			);
-
-			const timestamps: string[] = [];
-			for (
-				let blockIdx = earlierBlockIndex;
-				blockIdx <= laterBlockIndex;
-				blockIdx++
-			) {
-				const timestamp = getTimestampFromBlockIndex(
-					blockIdx,
-					day,
-					fromTime,
-					availabilityDates,
-					timeZone,
-				);
-				if (timestamp) timestamps.push(timestamp);
-			}
-
-			if (timestamps.length > 0) {
-				replaceEntireSelection(timestamps);
-
-				setStartBlockSelection(undefined);
-				setEndBlockSelection(undefined);
-				setSelectionState(undefined);
-			}
-		}
-	};
-
-	const isTopOfHour = timeBlock % 60 === 0;
-	const isHalfHour = timeBlock % 60 === 30;
-	const isLastRow = blockIndex === availabilityTimeBlocks.length - 1;
-
-	const spacers = spacerBeforeDate(currentPageAvailability["availabilities"]);
-
-	return currentPageAvailability.availabilities.map(
-		(selectedDate, pageDateIndex) => {
-			const ifNeededDate = currentPageAvailability.ifNeeded[pageDateIndex];
-
-			const key = generateDateKey({
-				selectedDate,
-				timeBlock,
-				pageDateIndex,
-			});
-
-			if (selectedDate) {
-				const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
-
-				const isSelected =
-					selectedZotDateIndex === zotDateIndex &&
-					selectedBlockIndex === blockIndex;
-
-				const timestamp = getTimestampFromBlockIndex(
-					blockIndex,
-					zotDateIndex,
-					fromTime,
-					availabilityDates,
-					timeZone,
-				);
-
-				const block = selectedDate.groupAvailability[timestamp] || [];
-				const ifNeededBlock = ifNeededDate?.groupAvailability[timestamp] || [];
-				//console.log(ifNeededBlock, block)
-				const blockColor = calculateBlockColor({
-					block,
-					hoveredMember,
-					selectedMembers,
-					numMembers,
-					showBestTimes,
-					maxAvailability,
-					ifNeededBlock,
-					primaryColor: theme.palette.primary.main,
-				});
-				const blockIsScheduled = isScheduled(timestamp);
-
-				const prevTimestamp =
-					blockIndex > 0
-						? getTimestampFromBlockIndex(
-								blockIndex - 1,
-								zotDateIndex,
-								fromTime,
-								availabilityDates,
-								timeZone,
-							)
-						: "";
-				const nextTimestamp =
-					blockIndex < availabilityTimeBlocks.length - 1
-						? getTimestampFromBlockIndex(
-								blockIndex + 1,
-								zotDateIndex,
-								fromTime,
-								availabilityDates,
-								timeZone,
-							)
-						: "";
-				const isTopEdge =
-					blockIsScheduled && (!prevTimestamp || !isScheduled(prevTimestamp));
-				const isBottomEdge =
-					blockIsScheduled && (!nextTimestamp || !isScheduled(nextTimestamp));
-
-				const tableCellStyles = cn(
-					isTopOfHour ? "border-t-[1px] border-t-gray-base" : "",
-					isHalfHour
-						? "border-t border-t-gray-base [border-top-style:dotted]"
-						: "",
-					isLastRow ? "border-b-[1px]" : "",
-					isSelected && !isScheduling
-						? "outline-dashed outline-2 outline-slate-500"
-						: "",
-				);
+	return (
+		<>
+			{availabilityTimeBlocks.map((timeBlock, blockIndex) => {
+				const isTopOfHour = timeBlock % 60 === 0;
+				const isHalfHour = timeBlock % 60 === 30;
+				const isLastRow = blockIndex === lastRowIndex;
 
 				return (
-					<React.Fragment key={key}>
-						{spacers[pageDateIndex] && (
-							<td className="w-3 md:w-4" aria-hidden="true" />
+					<tr key={`block-${timeBlock}`}>
+						<AvailabilityTimeTicks timeBlock={timeBlock} />
+						{currentPageAvailability.availabilities.map(
+							(selectedDate, pageDateIndex) => {
+								const ifNeededDate =
+									currentPageAvailability.ifNeeded[pageDateIndex];
+								const key = generateDateKey({
+									selectedDate,
+									timeBlock,
+									pageDateIndex,
+								});
+
+								if (!selectedDate) {
+									// Hidden spacer columns treat hover-in as a grid-leave.
+									return (
+										<Fragment key={key}>
+											{spacers[pageDateIndex] && (
+												<td
+													className="w-3 bg-paper md:w-4"
+													aria-hidden="true"
+													onMouseEnter={onMouseLeave}
+												/>
+											)}
+											<td className="bg-paper" onMouseEnter={onMouseLeave} />
+										</Fragment>
+									);
+								}
+
+								const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
+
+								const draftEdges = edgesFor(
+									draftRange,
+									zotDateIndex,
+									blockIndex,
+								);
+								const hoverEdges =
+									draftEdges === null
+										? edgesFor(hoverRange, zotDateIndex, blockIndex)
+										: null;
+								const committedEdges =
+									draftRange === undefined &&
+									hoverEdges === null &&
+									!isScheduling
+										? edgesFor(committedRange, zotDateIndex, blockIndex)
+										: null;
+								const selectionEdges =
+									draftEdges ?? hoverEdges ?? committedEdges ?? null;
+
+								const timestamp =
+									timestampsByCell.get(
+										generateCellKey(zotDateIndex, blockIndex),
+									) ?? "";
+
+								const block = selectedDate.groupAvailability[timestamp] || [];
+								const ifNeededBlock =
+									ifNeededDate?.groupAvailability[timestamp] || [];
+								const fill = calculateBlockFill({
+									block,
+									hoveredMember,
+									selectedMembers,
+									numMembers,
+									showBestTimes,
+									maxAvailability,
+									ifNeededBlock,
+									primaryColor,
+								});
+								const blockIsScheduled = isScheduled(timestamp);
+
+								const prevTimestamp =
+									blockIndex > 0
+										? (timestampsByCell.get(
+												generateCellKey(zotDateIndex, blockIndex - 1),
+											) ?? "")
+										: "";
+								const nextTimestamp =
+									blockIndex < availabilityTimeBlocks.length - 1
+										? (timestampsByCell.get(
+												generateCellKey(zotDateIndex, blockIndex + 1),
+											) ?? "")
+										: "";
+								const isTopEdge =
+									blockIsScheduled &&
+									(!prevTimestamp || !isScheduled(prevTimestamp));
+								const isBottomEdge =
+									blockIsScheduled &&
+									(!nextTimestamp || !isScheduled(nextTimestamp));
+
+								const tableCellStyles = cn(
+									isTopOfHour ? "border-t-[1px] border-t-gray-base" : "",
+									isHalfHour
+										? "border-t border-t-gray-base [border-top-style:dotted]"
+										: "",
+									isLastRow ? "border-b-[1px]" : "",
+									isHalfHour && !fill.stripes && "bg-paper",
+								);
+
+								return (
+									<Fragment key={key}>
+										{spacers[pageDateIndex] && (
+											<td className="w-3 bg-paper md:w-4" aria-hidden="true" />
+										)}
+										<td
+											className={cn("px-0 py-0", isTopEdge && "relative z-[1]")}
+										>
+											<GroupAvailabilityBlock
+												className={cn(
+													"group-availability-block block",
+													isScheduling &&
+														"cursor-row-resize [touch-action:none]",
+												)}
+												onPointerDown={handlers.onPointerDown}
+												onPointerMove={handlers.onPointerMove}
+												onPointerUp={handlers.onPointerUp}
+												onPointerCancel={handlers.onPointerCancel}
+												onKeyDown={handlers.onKeyDown}
+												onHoverCell={handlers.onCellHover}
+												fill={fill}
+												isScheduled={blockIsScheduled}
+												isScheduledTopEdge={isTopEdge}
+												isScheduledBottomEdge={isBottomEdge}
+												scheduledMeetingTitle={
+													isTopEdge ? meetingTitle : undefined
+												}
+												scheduledTimeRange={
+													isTopEdge ? scheduledTimeRange : undefined
+												}
+												scheduledBlockCount={
+													isTopEdge ? scheduledBlockCount : undefined
+												}
+												tableCellStyles={tableCellStyles}
+												hasSpacerBefore={spacers[pageDateIndex]}
+												dateIndex={zotDateIndex}
+												blockIndex={blockIndex}
+												selectionEdges={selectionEdges}
+											/>
+										</td>
+									</Fragment>
+								);
+							},
 						)}
-						<td className={cn("px-0 py-0", isTopEdge && "relative z-[1]")}>
-							<GroupAvailabilityBlock
-								className={cn(
-									"group-availability-block block",
-									isScheduling && "cursor-row-resize [touch-action:pinch-zoom]",
-								)}
-								onClick={() =>
-									handleCellClick({
-										zotDateIndex,
-										blockIndex,
-									})
-								}
-								onHover={() =>
-									handleCellHover({
-										zotDateIndex,
-										blockIndex,
-									})
-								}
-								blockColor={blockColor}
-								isScheduled={blockIsScheduled}
-								isScheduledTopEdge={isTopEdge}
-								isScheduledBottomEdge={isBottomEdge}
-								scheduledMeetingTitle={isTopEdge ? meetingTitle : undefined}
-								scheduledTimeRange={isTopEdge ? scheduledTimeRange : undefined}
-								scheduledBlockCount={
-									isTopEdge ? scheduledBlockCount : undefined
-								}
-								tableCellStyles={tableCellStyles}
-								hasSpacerBefore={spacers[pageDateIndex]}
-								dateIndex={zotDateIndex}
-								blockIndex={blockIndex}
-							/>
-						</td>
-					</React.Fragment>
+					</tr>
 				);
-			} else {
-				return (
-					// Because these elements are hidden spacers, we consider mouse hovers to be "leaving" the table
-					<React.Fragment key={key}>
-						{spacers[pageDateIndex] && (
-							<td
-								className="w-3 md:w-4"
-								aria-hidden="true"
-								onMouseEnter={onMouseLeave}
-							/>
-						)}
-						<td onMouseEnter={onMouseLeave}></td>
-					</React.Fragment>
-				);
-			}
-		},
+			})}
+		</>
 	);
 }

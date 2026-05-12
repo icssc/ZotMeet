@@ -1,65 +1,68 @@
-import { useMemo } from "react";
-import type { SelectionStateType } from "@/lib/types/availability";
+import {
+	type CellPaintTarget,
+	type ImportPreviewTarget,
+	type PaintMode,
+	paintWillChange,
+} from "@/lib/availability/paint-selection";
 import { cn } from "@/lib/utils";
 
 interface AvailabilityBlockProps {
 	isAvailable: boolean;
 	isIfNeeded: boolean;
-	zotDateIndex: number;
-	blockIndex: number;
-	selectionState: SelectionStateType | undefined;
-	importPreviewType?: "available" | "if-needed" | null;
+	isInDraftRange: boolean;
+	paintMode: PaintMode;
+	importPreviewType?: ImportPreviewTarget;
 }
 
 export function AvailabilityBlock({
 	isAvailable,
 	isIfNeeded,
-	zotDateIndex,
-	blockIndex,
-	selectionState,
+	isInDraftRange,
+	paintMode,
 	importPreviewType = null,
 }: AvailabilityBlockProps) {
-	/**
-	 * Computes the background color of a single time block cell
-	 */
-	const backgroundColor = useMemo(() => {
-		// Render different background color if user is in middle of making a selection and is in range
-		if (selectionState) {
-			const {
-				earlierDateIndex,
-				laterDateIndex,
-				earlierBlockIndex,
-				laterBlockIndex,
-			} = selectionState;
-			const dateInRange =
-				earlierDateIndex <= zotDateIndex && zotDateIndex <= laterDateIndex;
-			const timeInRange =
-				earlierBlockIndex <= blockIndex && blockIndex <= laterBlockIndex;
+	const state = { isAvailable, isIfNeeded };
 
-			if (dateInRange && timeInRange) {
-				return "bg-primary/40";
-			}
-		}
-		return isAvailable
-			? "bg-[#F26489]"
-			: isIfNeeded
-				? "bg-[#006489]"
-				: "transparent";
-	}, [selectionState, isAvailable, isIfNeeded, zotDateIndex, blockIndex]);
+	const draftTarget: CellPaintTarget | null =
+		isInDraftRange && paintWillChange(paintMode, state) ? paintMode : null;
+	const importTarget: CellPaintTarget | null =
+		!draftTarget &&
+		importPreviewType &&
+		paintWillChange(importPreviewType, state)
+			? importPreviewType
+			: null;
+
+	const previewTarget: CellPaintTarget | null = draftTarget ?? importTarget;
+
+	const previewWillBeNonIfNeeded =
+		previewTarget !== null && previewTarget !== "if-needed";
+	const renderPaperBase = !isIfNeeded || previewWillBeNonIfNeeded;
 
 	return (
 		<div className="pointer-events-none relative block h-full w-full py-2">
-			<div className={cn("absolute inset-0", backgroundColor)} />
-			{importPreviewType && (
+			{renderPaperBase && (
 				<div
 					className={cn(
-						"absolute inset-0 border-2",
-						importPreviewType === "if-needed"
-							? "border-[#006489]/70 bg-[#006489]/20"
-							: "border-primary/70 bg-primary/20",
+						"absolute inset-0 bg-paper",
+						previewTarget === "if-needed" && "opacity-60",
 					)}
-					aria-hidden
 				/>
+			)}
+
+			{isAvailable && (
+				<div
+					className={cn(
+						"absolute inset-0 bg-primary",
+						previewTarget && previewTarget !== "available" && "opacity-40",
+					)}
+				/>
+			)}
+
+			{previewTarget === "available" && !isAvailable && (
+				<div className="absolute inset-0 bg-primary/40" />
+			)}
+			{draftTarget === "unavailable" && (isAvailable || isIfNeeded) && (
+				<div className="absolute inset-0 bg-paper/60" />
 			)}
 		</div>
 	);

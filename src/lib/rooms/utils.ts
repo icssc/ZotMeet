@@ -1,4 +1,6 @@
 import { formatLocalDateKey } from "@/lib/meetings/utils";
+import { CAPACITY_RANGES, type Capacity } from "@/lib/types/studyrooms";
+import type { ZotDate } from "@/lib/zotdate";
 
 export const formatISOToLocalTime = (isoString: string): string => {
 	return new Date(isoString)
@@ -155,76 +157,6 @@ export function groupSlotsIntoIntervals<
 		};
 	});
 }
-
-// to fit api format, am/pm is needed
-function formatRange(start: Date, end: Date) {
-	const format = (d: Date) => {
-		let hours = d.getHours();
-		const minutes = d.getMinutes().toString().padStart(2, "0");
-
-		const ampm = hours >= 12 ? "pm" : "am";
-		hours = hours % 12;
-		if (hours === 0) hours = 12;
-
-		return `${hours}:${minutes}${ampm}`;
-	};
-	const rangeEnd = new Date(end.getTime() + 15 * 60 * 1000);
-	return `${format(start)}-${format(rangeEnd)}`;
-}
-
-export function getBestTimeRanges(availabilityDates: any[]) {
-	let max = 0;
-
-	availabilityDates.forEach((date) => {
-		Object.values(date.groupAvailability).forEach((memberIds) => {
-			max = Math.max(max, (memberIds as string[]).length);
-		});
-	});
-
-	const timestamps: string[] = [];
-
-	availabilityDates.forEach((date) => {
-		Object.entries(date.groupAvailability).forEach(
-			([timestamp, memberIds]: [string, unknown]) => {
-				if ((memberIds as string[]).length === max && max > 0) {
-					timestamps.push(timestamp);
-				}
-			},
-		);
-	});
-
-	if (!timestamps.length) return [];
-	const sorted = [...timestamps].sort();
-	const results: { date: string; time: string }[] = [];
-
-	let start = new Date(sorted[0]);
-	let prev = start;
-
-	for (let i = 1; i < sorted.length; i++) {
-		const curr = new Date(sorted[i]);
-
-		const diffMinutes = (curr.getTime() - prev.getTime()) / 60000;
-
-		const sameDay = formatLocalDateKey(curr) === formatLocalDateKey(prev);
-
-		if (diffMinutes !== 15 || !sameDay) {
-			results.push({
-				date: formatLocalDateKey(start),
-				time: formatRange(start, prev),
-			});
-			start = curr;
-		}
-		prev = curr;
-	}
-
-	results.push({
-		date: formatLocalDateKey(start),
-		time: formatRange(start, prev),
-	});
-
-	return results;
-}
-
 export const toLocalStr = (d: Date) => {
 	const h = d.getHours();
 	const m = d.getMinutes();
@@ -251,4 +183,94 @@ export function getDefaultWindow() {
 	const rawEnd = new Date(start.getTime() + WINDOW_MS);
 	const end = rawEnd > elevenPm ? elevenPm : rawEnd;
 	return { start, end };
+}
+
+const SLOT_INCREMENT_MINUTES = 15;
+
+function slotStartsToApiRange(firstSlot: Date, lastSlot: Date): string {
+	const rangeEnd = new Date(
+		lastSlot.getTime() + SLOT_INCREMENT_MINUTES * 60 * 1000,
+	);
+	return `${toLocalStr(firstSlot)}-${toLocalStr(rangeEnd)}`;
+}
+
+const NEAR_BEST_TOLERANCE = 1;
+
+export function getBestTimeRanges(
+	availabilityDates: ZotDate[],
+): { date: string; time: string }[] {
+	let peak = 0;
+	for (const date of availabilityDates) {
+		for (const memberIds of Object.values(date.groupAvailability)) {
+			if (memberIds.length > peak) peak = memberIds.length;
+		}
+	}
+
+	const threshold = Math.max(1, peak - NEAR_BEST_TOLERANCE);
+	const timestamps: string[] = [];
+	for (const date of availabilityDates) {
+		for (const [timestamp, memberIds] of Object.entries(
+			date.groupAvailability,
+		)) {
+			if (memberIds.length >= threshold) timestamps.push(timestamp);
+		}
+	}
+
+	if (!timestamps.length) return [];
+
+	const sorted = [...timestamps].sort();
+	const results: { date: string; time: string }[] = [];
+
+	let start = new Date(sorted[0]);
+	let prev = start;
+
+	for (let i = 1; i < sorted.length; i++) {
+		const curr = new Date(sorted[i]);
+		const diffMinutes = (curr.getTime() - prev.getTime()) / 60000;
+		const sameDay = formatLocalDateKey(curr) === formatLocalDateKey(prev);
+
+		if (diffMinutes !== SLOT_INCREMENT_MINUTES || !sameDay) {
+			results.push({
+				date: formatLocalDateKey(start),
+				time: slotStartsToApiRange(start, prev),
+			});
+			start = curr;
+		}
+		prev = curr;
+	}
+
+	results.push({
+		date: formatLocalDateKey(start),
+		time: slotStartsToApiRange(start, prev),
+	});
+
+	return results;
+}
+
+export function getCapacityRange(capacities: Capacity[]): {
+	capacityMin?: number;
+	capacityMax?: number;
+} {
+	if (capacities.length === 0) return {};
+
+	let min = Infinity;
+	let max = -Infinity;
+	let hasOpenEnded = false;
+
+	for (const label of capacities) {
+		const range = CAPACITY_RANGES.find((r) => r.label === label);
+		if (!range) continue;
+
+		if (range.min < min) min = range.min;
+		if ("max" in range) {
+			if (range.max > max) max = range.max;
+		} else {
+			hasOpenEnded = true;
+		}
+	}
+
+	return {
+		capacityMin: min !== Infinity ? min : undefined,
+		capacityMax: hasOpenEnded ? undefined : max !== -Infinity ? max : undefined,
+	};
 }
