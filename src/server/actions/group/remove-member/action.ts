@@ -15,6 +15,7 @@ export type RemoveGroupMemberState = {
 export async function removeGroupMember(
 	groupId: string,
 	userId: string,
+	isLeaving: boolean,
 ): Promise<RemoveGroupMemberState> {
 	const { user } = await getCurrentSession();
 
@@ -26,7 +27,7 @@ export async function removeGroupMember(
 	}
 
 	const admin = await isGroupAdmin({ userId: user.id, groupId });
-	if (!admin) {
+	if (!admin && !isLeaving) {
 		return {
 			success: false,
 			message: "You do not have permission to remove a group member.",
@@ -43,6 +44,8 @@ export async function removeGroupMember(
 
 	return {
 		success: true,
-		message: "Group member removed successfully.",
+		message: isLeaving
+			? "You have left the group."
+			: "Group member removed successfully.",
 	};
 }

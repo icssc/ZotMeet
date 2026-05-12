@@ -97,7 +97,7 @@ export function AdminMemberRow({
 			return;
 		}
 
-		const result = await removeGroupMember(groupId, member.userId);
+		const result = await removeGroupMember(groupId, member.userId, false);
 
 		if (result?.success) {
 			showSuccess(result.message);

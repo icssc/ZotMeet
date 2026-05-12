@@ -1,6 +1,13 @@
+import { removeGroupMember } from "@actions/group/remove-member/action";
+import { Logout } from "@mui/icons-material";
+import { Button } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import { useRouter } from "next/dist/client/components/navigation";
+import { useState } from "react";
 import { GroupRole } from "@/db/schema";
+import { useSnackbar } from "../ui/snackbar-provider";
 import { AdminMemberRow } from "./admin-member-row";
+import { LeaveGroupDialog } from "./leave-group-dialog";
 import { MemberAvatar } from "./member-avatar";
 
 type Member = {
@@ -25,6 +32,9 @@ export function MembersList({
 	const adminCount = members.filter(
 		(member) => member.role === GroupRole.ADMIN,
 	).length;
+	const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+	const { showSuccess, showError } = useSnackbar();
+	const router = useRouter();
 
 	return (
 		<div className="mt-4">
@@ -65,12 +75,57 @@ export function MembersList({
 									)}
 								</span>
 							</div>
-							<span
-								style={{ color: theme.palette.text.secondary }}
-								className="font-medium text-sm italic"
-							>
-								{member.role === GroupRole.ADMIN ? "Admin" : "Member"}
-							</span>
+
+							<div className="flex items-center gap-4">
+								{member.userId === currentUserId && (
+									<Button
+										color="error"
+										variant="text"
+										startIcon={
+											<Logout
+												sx={{
+													color: "error.main",
+												}}
+											/>
+										}
+										onClick={() => setShowLeaveDialog(true)}
+										sx={{
+											textTransform: "none",
+											fontWeight: 600,
+										}}
+									>
+										Leave
+									</Button>
+								)}
+								<span
+									style={{ color: theme.palette.text.secondary }}
+									className="font-medium text-sm italic"
+								>
+									{member.role === GroupRole.ADMIN ? "Admin" : "Member"}
+								</span>
+							</div>
+
+							<LeaveGroupDialog
+								open={showLeaveDialog}
+								email={member.email}
+								onClose={() => setShowLeaveDialog(false)}
+								onConfirm={async () => {
+									const result = await removeGroupMember(
+										groupId,
+										member.userId,
+										true,
+									);
+
+									if (result?.success) {
+										showSuccess(result.message);
+										router.push("/groups");
+									} else {
+										showError(result?.message);
+									}
+
+									setShowLeaveDialog(false);
+								}}
+							/>
 						</div>
 					),
 				)}
