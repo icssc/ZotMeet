@@ -80,6 +80,7 @@ export function MemberInviteFields({
 	const handleMemberSearch = useCallback(
 		(query: string) => {
 			setMemberQuery(query);
+			latestQueryRef.current = query;
 
 			if (searchTimeoutRef.current) {
 				clearTimeout(searchTimeoutRef.current);
@@ -91,7 +92,6 @@ export function MemberInviteFields({
 			}
 
 			searchTimeoutRef.current = setTimeout(async () => {
-				latestQueryRef.current = query;
 				const results = await searchUsers(query);
 				if (latestQueryRef.current !== query) return;
 
