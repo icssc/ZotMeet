@@ -1,28 +1,22 @@
 "use client";
 
-import { searchUsers } from "@actions/user/action";
 import { AddAPhoto } from "@mui/icons-material";
-import Autocomplete from "@mui/material/Autocomplete";
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { Check, Copy } from "lucide-react";
 import { useCallback, useRef, useState, useTransition } from "react";
+import {
+	MemberInviteFields,
+	type SearchUser,
+} from "@/components/groups/add-member-dialog";
 import { createGroup } from "@/server/actions/group/create/action";
 
 export const MAX_GROUP_ICON_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-
-interface SelectedMember {
-	id: string;
-	email: string;
-	profilePicture: string | null;
-}
 
 interface CreateGroupDialogProps {
 	open: boolean;
@@ -84,28 +78,21 @@ export function CreateGroupDialog({
 }: CreateGroupDialogProps) {
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
-	const [members, setMembers] = useState<SelectedMember[]>([]);
-	const [memberQuery, setMemberQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<
-		{ id: string; email: string; profilePicture: string | null }[]
-	>([]);
+	const [members, setMembers] = useState<SearchUser[]>([]);
 	const [inviteLink, setInviteLink] = useState("");
-	const [copied, setCopied] = useState(false);
+	const [inviteFieldsKey, setInviteFieldsKey] = useState(0);
 	const [isPending, startTransition] = useTransition();
 	const [iconBase64, setIconBase64] = useState("");
 	const [error, setError] = useState("");
 
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
-	const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	const resetForm = useCallback(() => {
 		setName("");
 		setDescription("");
 		setMembers([]);
-		setMemberQuery("");
-		setSearchResults([]);
 		setInviteLink("");
-		setCopied(false);
+		setInviteFieldsKey((k) => k + 1);
 		setIconBase64("");
 		setError("");
 	}, []);
@@ -138,59 +125,6 @@ export function CreateGroupDialog({
 		}
 	}, []);
 
-	const handleMemberSearch = useCallback(
-		(query: string) => {
-			setMemberQuery(query);
-
-			if (searchTimeoutRef.current) {
-				clearTimeout(searchTimeoutRef.current);
-			}
-
-			if (query.length < 2) {
-				setSearchResults([]);
-				return;
-			}
-
-			searchTimeoutRef.current = setTimeout(async () => {
-				const results = await searchUsers(query);
-				const filtered = results.filter(
-					(r) => !members.some((m) => m.id === r.id),
-				);
-				setSearchResults(filtered);
-			}, 50);
-		},
-		[members],
-	);
-
-	const addMember = useCallback(
-		(user: { id: string; email: string; profilePicture: string | null }) => {
-			if (!members.some((m) => m.id === user.id)) {
-				setMembers((prev) => [
-					...prev,
-					{
-						id: user.id,
-						email: user.email,
-						profilePicture: user.profilePicture,
-					},
-				]);
-			}
-			setMemberQuery("");
-			setSearchResults([]);
-		},
-		[members],
-	);
-
-	const removeMember = useCallback((userId: string) => {
-		setMembers((prev) => prev.filter((m) => m.id !== userId));
-	}, []);
-
-	const handleCopyLink = useCallback(async () => {
-		if (!inviteLink) return;
-		await navigator.clipboard.writeText(inviteLink);
-		setCopied(true);
-		setTimeout(() => setCopied(false), 2000);
-	}, [inviteLink]);
-
 	const handleSubmit = useCallback(() => {
 		if (!name.trim()) {
 			setError("Group name is required");
@@ -215,11 +149,6 @@ export function CreateGroupDialog({
 			}
 		});
 	}, [name, description, members, handleOpenChange, iconBase64]);
-
-	const getInitials = (email: string) => {
-		const name = email.split("@")[0] ?? "";
-		return name.slice(0, 2).toUpperCase();
-	};
 
 	return (
 		<Dialog
@@ -281,87 +210,19 @@ export function CreateGroupDialog({
 						slotProps={{ formHelperText: { sx: { textAlign: "right" } } }}
 					/>
 
-					<Autocomplete
-						options={searchResults}
-						getOptionLabel={(option) => option.email}
-						filterOptions={(x) => x}
-						inputValue={memberQuery}
-						onInputChange={(_, value, reason) => {
-							if (reason !== "reset") handleMemberSearch(value);
+					<MemberInviteFields
+						key={inviteFieldsKey}
+						selectedMembers={members}
+						onSelectedMembersChange={setMembers}
+						excludeUserIds={[]}
+						searchDebounceMs={50}
+						searchFieldLabel="Add Members"
+						shareLink={{
+							url: inviteLink,
+							placeholder: "Link available after group is created",
+							caption: "Anyone with this link can join the group",
 						}}
-						onChange={(_, user) => {
-							if (user) addMember(user);
-						}}
-						value={null}
-						isOptionEqualToValue={(option, value) => option.id === value.id}
-						noOptionsText={
-							memberQuery.length < 2 ? "Type to search…" : "No users found"
-						}
-						disablePortal
-						renderInput={(params) => (
-							<TextField {...params} label="Add Members" size="small" />
-						)}
-						renderOption={({ key, ...optionProps }, option) => (
-							<li key={key ?? option.id} {...optionProps}>
-								<div className="flex items-center gap-3">
-									<Avatar
-										src={option.profilePicture ?? undefined}
-										slotProps={{ img: { referrerPolicy: "no-referrer" } }}
-									>
-										{getInitials(option.email)}
-									</Avatar>
-									<span className="text-sm">{option.email}</span>
-								</div>
-							</li>
-						)}
 					/>
-
-					{members.length > 0 && (
-						<div className="flex flex-wrap gap-2">
-							{members.map((member) => (
-								<Chip
-									key={member.id}
-									avatar={
-										<Avatar
-											src={member.profilePicture ?? undefined}
-											slotProps={{ img: { referrerPolicy: "no-referrer" } }}
-										>
-											{getInitials(member.email)}
-										</Avatar>
-									}
-									label={member.email.split("@")[0]}
-									onDelete={() => removeMember(member.id)}
-									variant="filled"
-								/>
-							))}
-						</div>
-					)}
-
-					<div>
-						<p className="mb-1.5 text-gray-500 text-sm">Or Share Invite Link</p>
-						<div className="flex items-center gap-2">
-							<TextField
-								value={inviteLink}
-								placeholder="Link available after group is created"
-								size="small"
-								fullWidth
-								slotProps={{ input: { readOnly: true } }}
-							/>
-							<Button
-								variant="contained"
-								disableElevation
-								onClick={handleCopyLink}
-								disabled={!inviteLink}
-								color={copied ? "success" : "primary"}
-								startIcon={copied ? <Check /> : <Copy />}
-							>
-								{copied ? "Copied" : "Copy"}
-							</Button>
-						</div>
-						<p className="mt-1 text-gray-400 text-xs">
-							Anyone with this link can join the group
-						</p>
-					</div>
 
 					{error && (
 						<Typography variant="body2" color="error">
