@@ -117,8 +117,8 @@ export async function nudgePendingMembers(
 			user.id,
 			{
 				email: createBrandedTransactionalEmail({
-					subject: `Reminder: Add your availability for "${meeting.title}"`,
-					headline: `We still need your availability for "${meeting.title}".`,
+					subject: `Action Required: Add Availability for "${meeting.title}" on ZotMeet`,
+					headline: `${hostName} has nudged you! Please add your availability for "${meeting.title}".`,
 					bodyLines: [
 						`${hostName} is organizing "${meeting.title}" and your response is still missing.`,
 						`Add your availability on ZotMeet so the group can pick a time that works for everyone.`,

@@ -73,11 +73,11 @@ export async function inviteMeetingMembers(
 			user.id,
 			{
 				email: createBrandedTransactionalEmail({
-					subject: `You're invited to "${meeting.title}" on ZotMeet`,
+					subject: `Action Required: Add Availability for "${meeting.title}" on ZotMeet`,
 					headline: `${inviterName} invited you to a meeting.`,
 					bodyLines: [
-						`${inviterName} has invited you to respond with your availability to the ZotMeet meeting "${meeting.title}".`,
-						`Accept the invite to join the meeting. Share your availability so ${inviterName} can schedule the meeting. You can leave the meeting whenever you want.`,
+						`${inviterName} has invited you to join "${meeting.title}" on ZotMeet.`,
+						`Please share your availability so ${inviterName} can schedule the meeting.`,
 					],
 					ctaLabel: "Join Meeting",
 					ctaUrl: meetingLink,
