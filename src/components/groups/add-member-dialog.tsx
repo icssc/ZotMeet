@@ -67,7 +67,9 @@ export function AddMemberDialog({
 				<div className="flex flex-col gap-5 pt-1">
 					{/* Search */}
 					<Autocomplete
-						options={searchResults}
+						options={searchResults.filter(
+							(user) => !selectedMembers.some((m) => m.id === user.id),
+						)}
 						getOptionLabel={(option) => option.email}
 						filterOptions={(x) => x}
 						inputValue={memberQuery}

@@ -162,7 +162,7 @@ export function GroupMemberList({
 					(user) => !members.some((member) => member.userId === user.id),
 				);
 				setSearchResults(filtered);
-			}, 150);
+			}, 50);
 		},
 		[members],
 	);
