@@ -170,6 +170,16 @@ export function AdminMemberRow({
 								/>
 							</IconButton>
 						)}
+						{!isSelf && (
+							<ButtonBase
+								onClick={() => setShowRemoveDialog(true)}
+								sx={{
+									padding: 0,
+								}}
+							>
+								<PersonRemoveIcon />
+							</ButtonBase>
+						)}
 
 						<Button
 							disabled={isPending || isSelf}
