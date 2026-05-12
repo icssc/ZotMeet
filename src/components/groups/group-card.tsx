@@ -2,9 +2,8 @@ import {
 	CalendarToday,
 	Error as ErrorIcon,
 	KeyboardArrowRight,
-	PeopleOutline,
 } from "@mui/icons-material";
-import { Avatar, Box, Typography } from "@mui/material";
+import { Avatar, AvatarGroup, Box, Typography } from "@mui/material";
 import { alpha, lighten } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,14 +13,18 @@ import {
 	MuiCardContent,
 	MuiCardHeader,
 } from "@/components/ui/mui/card";
+import type { GroupMember } from "@/server/data/groups/queries";
+
+const AVATAR_GROUP_MAX = 6;
 
 interface GroupCardProps {
 	id: string;
 	name: string;
 	description: string | null;
-	memberEmails?: string[];
-	totalMembers: number;
+	members?: GroupMember[];
+	totalMeetings: number;
 	creatorName: string;
+	creatorAvatar?: string | null;
 	actionRequired?: boolean;
 	pendingMeetingName?: string | null;
 	upcomingMeetingName?: string | null;
@@ -32,8 +35,10 @@ export function GroupCard({
 	id,
 	name,
 	description,
-	totalMembers,
+	members = [],
+	totalMeetings,
 	creatorName,
+	creatorAvatar,
 	actionRequired = false,
 	pendingMeetingName,
 	upcomingMeetingName,
@@ -148,7 +153,37 @@ export function GroupCard({
 							/>
 						</Box>
 					}
-					title={<Typography variant="h6">{name}</Typography>}
+					title={
+						<>
+							<Typography variant="h6">{name}</Typography>
+							<AvatarGroup
+								max={AVATAR_GROUP_MAX}
+								sx={{
+									display: { xs: "none", sm: "flex" },
+									justifyContent: "flex-start",
+									mt: 1,
+									"& .MuiAvatar-root": {
+										width: 32,
+										height: 32,
+										fontSize: "0.75rem",
+										border: "2px solid",
+										borderColor: "background.paper",
+									},
+								}}
+							>
+								{members.map((m) => (
+									<Avatar
+										key={m.userId}
+										src={m.profilePicture ?? undefined}
+										alt={m.displayName}
+										sx={{ bgcolor: "grey.400" }}
+									>
+										{m.displayName[0]}
+									</Avatar>
+								))}
+							</AvatarGroup>
+						</>
+					}
 					subheader={
 						!actionRequired ? (
 							<Box
@@ -159,9 +194,9 @@ export function GroupCard({
 									mt: "2px",
 								}}
 							>
-								<PeopleOutline sx={{ fontSize: 12, color: "text.secondary" }} />
+								<CalendarToday sx={{ fontSize: 12, color: "text.secondary" }} />
 								<Typography variant="caption" sx={{ color: "text.secondary" }}>
-									{totalMembers}
+									{totalMeetings}
 								</Typography>
 							</Box>
 						) : null
@@ -233,9 +268,9 @@ export function GroupCard({
 							flexShrink: 0,
 						}}
 					>
-						<PeopleOutline sx={{ fontSize: 12, color: "text.secondary" }} />
+						<CalendarToday sx={{ fontSize: 12, color: "text.secondary" }} />
 						<Typography variant="overline" sx={{ color: "text.secondary" }}>
-							{totalMembers} Members
+							{totalMeetings} {totalMeetings === 1 ? "Meeting" : "Meetings"}
 						</Typography>
 					</Box>
 					<Box
@@ -247,6 +282,8 @@ export function GroupCard({
 						}}
 					>
 						<Avatar
+							src={creatorAvatar ?? undefined}
+							alt={creatorName}
 							sx={{
 								width: 18,
 								height: 18,

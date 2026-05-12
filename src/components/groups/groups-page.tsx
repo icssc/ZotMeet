@@ -197,9 +197,10 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									id={group.id}
 									name={group.name}
 									description={group.description}
-									memberEmails={group.memberEmails}
-									totalMembers={group.totalMembers}
+									members={group.members}
+									totalMeetings={group.totalMeetings}
 									creatorName={group.creatorName}
+									creatorAvatar={group.creatorAvatar}
 									actionRequired={true}
 									pendingMeetingName={group.pendingMeetingName}
 									icon={group.icon}
@@ -262,9 +263,10 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									id={group.id}
 									name={group.name}
 									description={group.description}
-									memberEmails={group.memberEmails}
-									totalMembers={group.totalMembers}
+									members={group.members}
+									totalMeetings={group.totalMeetings}
 									creatorName={group.creatorName}
+									creatorAvatar={group.creatorAvatar}
 									actionRequired={group.needsAvailability}
 									upcomingMeetingName={group.upcomingMeetingName}
 									icon={group.icon}
