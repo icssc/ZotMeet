@@ -17,6 +17,7 @@ import { TimeZoneDropdown } from "@/components/availability/table/availability-t
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useAvailabilityActionHandlers } from "@/hooks/use-availability-action-handlers";
 import { useAvailabilityData } from "@/hooks/use-availability-data";
+import { useCalendarOverlays } from "@/hooks/use-calendar-overlays";
 import { useGridInteraction } from "@/hooks/use-grid-interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRoomRecommendations } from "@/hooks/use-room-recommendations";
@@ -173,6 +174,9 @@ export function Availability({
 		currentPage,
 		itemsPerPage,
 	});
+
+	const { calendars: googleCalendars, visibleEvents: visibleCalendarEvents } =
+		useCalendarOverlays(googleCalendarEvents);
 
 	const isLastPage =
 		currentPage === Math.floor((meetingData.dates.length - 1) / itemsPerPage);
@@ -417,7 +421,7 @@ export function Availability({
 										fromTimeMinutes={fromTimeMinutes}
 										availabilityDates={availabilityDates}
 										currentPageAvailability={currentPageAvailability}
-										googleCalendarEvents={googleCalendarEvents}
+										googleCalendarEvents={visibleCalendarEvents}
 										meetingDates={meetingData.dates}
 										userTimezone={userTimezone}
 										handlers={handlers}
@@ -488,6 +492,7 @@ export function Availability({
 								canImport={Boolean(user?.memberId)}
 								onImportSlots={handleImportSlotsFromMeeting}
 								onClearAvailability={handleClearAvailability}
+								googleCalendars={googleCalendars}
 							/>
 						</Paper>
 					</div>
