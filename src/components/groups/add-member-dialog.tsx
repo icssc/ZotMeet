@@ -22,7 +22,7 @@ type AddMemberDialogProps = {
 	open: boolean;
 	onClose: () => void;
 	onSearch: (query: string) => void;
-	onAddMember: (user: SearchUser) => void;
+	onAddMember: (users: SearchUser[]) => Promise<void>;
 	searchResults: SearchUser[];
 };
 
@@ -139,9 +139,7 @@ export function AddMemberDialog({
 						variant="contained"
 						disabled={selectedMembers.length === 0}
 						onClick={() => {
-							selectedMembers.forEach((member) => {
-								onAddMember(member);
-							});
+							onAddMember(selectedMembers);
 
 							setSelectedMembers([]);
 							setMemberQuery("");

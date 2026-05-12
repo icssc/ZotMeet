@@ -1,6 +1,6 @@
 "use client";
 
-import { addGroupMember } from "@actions/group/add-member/action";
+import { inviteGroupMember } from "@actions/group/add-member/action";
 import { searchUsers } from "@actions/user/action";
 import { Add, ArrowBack, People, Settings, Share } from "@mui/icons-material";
 import {
@@ -163,14 +163,23 @@ export function GroupMemberList({
 		[members],
 	);
 
-	const addMember = useCallback(
-		async (user: SearchUser) => {
-			await addGroupMember(group.id, user.id);
+	async function addMembers(users: SearchUser[]) {
+		for (const user of users) {
+			const res = await inviteGroupMember(group.id, user.id);
 
-			setSearchResults([]);
-		},
-		[group.id],
-	);
+			if (!res.success) {
+				showError(`Failed to invite ${user.email}: ${res.message}`);
+			}
+		}
+
+		showSuccess(
+			users.length > 1
+				? "Members invited successfully."
+				: "Member invited successfully.",
+		);
+
+		setSearchResults([]);
+	}
 
 	return (
 		<div>
@@ -508,7 +517,7 @@ export function GroupMemberList({
 				open={showAddMembers}
 				onClose={() => setShowAddMembers(false)}
 				onSearch={handleMemberSearch}
-				onAddMember={addMember}
+				onAddMember={addMembers}
 				searchResults={searchResults}
 			/>
 		</div>
