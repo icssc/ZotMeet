@@ -77,7 +77,7 @@ const config: Config = {
 			},
 			backgroundImage: {
 				"stripes-primary":
-					"repeating-linear-gradient(45deg, hsl(var(--primary)) 0 1px, transparent 1px 5px)",
+					"repeating-linear-gradient(45deg, hsl(var(--primary)) 0 3px, transparent 3px 6px)",
 			},
 			borderRadius: {
 				lg: "var(--radius)",
