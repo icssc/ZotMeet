@@ -366,7 +366,6 @@ function mergeImportedGridSlots(
 	return updated;
 }
 
-/** Merges imported available + if-needed slots while keeping states mutually exclusive. */
 export function mergeImportedPersonalGridSlots({
 	availabilityDates,
 	ifNeededDates,

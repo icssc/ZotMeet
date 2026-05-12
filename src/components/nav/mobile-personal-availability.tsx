@@ -2,47 +2,93 @@
 
 import { ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import { MobileAvailabilityHeader } from "@/components/availability/header/mobile-availability-header";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobileIsland } from "../mobile/mobile-island";
 import { PERSONAL_AVAILABILITY_OPTIONS } from "./personal-availability-options";
 
-export function MobilePersonalAvailabilitySidebar() {
+export interface MobilePersonalAvailabilitySidebarProps {
+	revertPersonalDraft: () => void;
+	exitToGroupView: () => void;
+	runPersonalSave: () => Promise<boolean>;
+	isPersonalSaveDisabled: boolean;
+	handleScheduleCancel: () => void;
+	runScheduleSave: () => Promise<boolean>;
+	isScheduleSaveDisabled: boolean;
+}
+
+export function MobilePersonalAvailabilitySidebar({
+	revertPersonalDraft,
+	exitToGroupView,
+	runPersonalSave,
+	isPersonalSaveDisabled,
+	handleScheduleCancel,
+	runScheduleSave,
+	isScheduleSaveDisabled,
+}: MobilePersonalAvailabilitySidebarProps) {
+	const availabilityView = useAvailabilityStore((s) => s.availabilityView);
 	const paintMode = useAvailabilityStore((s) => s.paintMode);
 	const setPaintMode = useAvailabilityStore((s) => s.setPaintMode);
 
 	return (
-		<MobileIsland>
-			<ToggleButtonGroup
-				exclusive
-				value={paintMode}
-				onChange={(_, val) => val && setPaintMode(val)}
-				aria-label="availability"
-			>
-				{PERSONAL_AVAILABILITY_OPTIONS.map(({ value, label, icon }) => (
-					<ToggleButton
-						key={value}
-						value={value}
-						aria-label={label}
-						sx={(theme) => ({
-							display: "flex",
-							flexDirection: "column",
-							gap: 1,
-							px: 1.5,
-							py: 1.25,
-							"&.Mui-selected": {
-								backgroundColor: alpha(
-									theme.palette.primary.main,
-									theme.palette.mode === "dark" ? 0.2 : 0.12,
-								),
-								borderColor: theme.palette.primary.main,
-							},
-						})}
+		<div>
+			<MobileAvailabilityHeader
+				revertPersonalDraft={revertPersonalDraft}
+				exitToGroupView={exitToGroupView}
+				runPersonalSave={runPersonalSave}
+				isPersonalSaveDisabled={isPersonalSaveDisabled}
+				handleScheduleCancel={handleScheduleCancel}
+				runScheduleSave={runScheduleSave}
+				isScheduleSaveDisabled={isScheduleSaveDisabled}
+			/>
+
+			{availabilityView === "personal" ? (
+				<MobileIsland>
+					<ToggleButtonGroup
+						exclusive
+						fullWidth
+						value={paintMode}
+						onChange={(_, val) => val && setPaintMode(val)}
+						aria-label="availability"
 					>
-						{icon}
-						<Typography variant="caption">{label}</Typography>
-					</ToggleButton>
-				))}
-			</ToggleButtonGroup>
-		</MobileIsland>
+						{PERSONAL_AVAILABILITY_OPTIONS.map(({ value, label, icon }) => (
+							<ToggleButton
+								key={value}
+								value={value}
+								aria-label={label}
+								sx={(theme) => ({
+									flex: 1,
+									minWidth: 0,
+									minHeight: 0,
+									textTransform: "none",
+									display: "flex",
+									flexDirection: "column",
+									alignItems: "center",
+									justifyContent: "center",
+									gap: theme.spacing(0.5),
+									paddingBlock: theme.spacing(2),
+									paddingInline: theme.spacing(2),
+									"&.Mui-selected": {
+										backgroundColor: alpha(
+											theme.palette.primary.main,
+											theme.palette.mode === "dark" ? 0.2 : 0.12,
+										),
+										borderColor: theme.palette.primary.main,
+									},
+								})}
+							>
+								{icon}
+								<Typography
+									variant="caption"
+									sx={{ display: "block", textAlign: "center" }}
+								>
+									{label}
+								</Typography>
+							</ToggleButton>
+						))}
+					</ToggleButtonGroup>
+				</MobileIsland>
+			) : null}
+		</div>
 	);
 }

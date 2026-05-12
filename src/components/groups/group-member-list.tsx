@@ -357,9 +357,11 @@ function MembersList({
 	const theme = useTheme();
 	return (
 		<div className="mt-4">
-			<p className="mb-2 px-4 font-bold text-[#969696] text-xs uppercase tracking-wide">
-				All Members ({members.length})
-			</p>
+			<div className="mb-3 flex flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between">
+				<p className="font-bold text-[#969696] text-xs uppercase tracking-wide">
+					All Members ({members.length})
+				</p>
+			</div>
 
 			<div className="flex flex-col">
 				{members.map((member) =>

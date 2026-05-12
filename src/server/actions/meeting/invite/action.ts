@@ -1,14 +1,8 @@
 "use server";
 
-import { inArray } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-import { db } from "@/db";
-import { availabilities, meetingInvites, users } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { createInviteEmail } from "@/lib/email/templates";
-import { getExistingMeetingInvite } from "@/server/data/meeting/invite-queries";
 import { getExistingMeeting } from "@/server/data/meeting/queries";
-import { createNewNotification } from "@/server/data/user/queries";
+import { sendMeetingInvitesToUsers } from "@/server/data/meeting/send-meeting-invites";
 
 export type InviteMeetingMembersState = {
 	success: boolean;
@@ -42,73 +36,15 @@ export async function inviteMeetingMembers(
 		return { success: false, message: "No members selected." };
 	}
 
-	try {
-		let invite = await getExistingMeetingInvite(meetingId);
+	const result = await sendMeetingInvitesToUsers({
+		meetingId,
+		meetingTitle: meeting.title,
+		inviter: { id: user.id, displayName: user.displayName },
+		inviteeUserIds: memberIds,
+	});
 
-		if (!invite) {
-			const [newInvite] = await db
-				.insert(meetingInvites)
-				.values({
-					meetingId,
-					inviteToken: crypto.randomUUID(),
-					inviterId: user.id,
-					sentAt: new Date(),
-				})
-				.returning();
-			invite = newInvite;
-		}
-
-		const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-		const meetingLink = `${baseUrl}/availability/${meetingId}`;
-
-		await createNewNotification(
-			memberIds,
-			meeting.title,
-			`You've been invited to join "${meeting.title}". Click to view the meeting.`,
-			"Meeting Invite",
-			meetingLink,
-			null,
-			user.id,
-			{
-				email: createInviteEmail({
-					title: `You're invited to "${meeting.title}" on Zotmeet`,
-					message: `Availability is requested for "${meeting.title}".`,
-					url: meetingLink,
-				}),
-			},
-		);
-
-		const invitedUsers = await db
-			.select({ memberId: users.memberId, userId: users.id })
-			.from(users)
-			.where(inArray(users.id, memberIds));
-
-		if (invitedUsers.length === 0) {
-			return { success: false, message: "No valid members selected." };
-		}
-
-		await db
-			.insert(availabilities)
-			.values(
-				invitedUsers.map(({ memberId }) => ({
-					memberId,
-					meetingId,
-					meetingAvailabilities: [],
-				})),
-			)
-			.onConflictDoNothing({
-				target: [availabilities.memberId, availabilities.meetingId],
-			});
-
-		revalidatePath(`/availability/${meetingId}`);
-		revalidatePath("/summary");
-
+	if (result.success) {
 		return { success: true, message: "Invites sent successfully!" };
-	} catch (error) {
-		console.error("Failed to send meeting invites:", error);
-		return {
-			success: false,
-			message: "Failed to send invites. Please try again.",
-		};
 	}
+	return { success: false, message: result.message };
 }
