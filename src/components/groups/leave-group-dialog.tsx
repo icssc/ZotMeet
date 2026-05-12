@@ -12,6 +12,7 @@ import { MemberAvatar } from "./member-avatar";
 type LeaveGroupDialogProps = {
 	open: boolean;
 	email: string;
+	profilePicture?: string | null;
 	onClose: () => void;
 	onConfirm: () => void;
 };
@@ -19,6 +20,7 @@ type LeaveGroupDialogProps = {
 export function LeaveGroupDialog({
 	open,
 	email,
+	profilePicture,
 	onClose,
 	onConfirm,
 }: LeaveGroupDialogProps) {
@@ -38,7 +40,7 @@ export function LeaveGroupDialog({
 					</Typography>
 
 					<div className="flex items-center gap-4">
-						<MemberAvatar email={email} />
+						<MemberAvatar email={email} profilePicture={profilePicture} />
 
 						<div>
 							<Typography fontWeight={600}>{email.split("@")[0]}</Typography>
