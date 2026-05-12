@@ -44,7 +44,6 @@ export function GroupMemberList({
 	const [tab, setTab] = useState(0);
 	const [showSettings, setShowSettings] = useState(false);
 	const [showAddMembers, setShowAddMembers] = useState(false);
-	const canShareInvites = group.createdBy === currentUserId;
 	const isMobile = useIsMobile();
 	const [activeFilter, setActiveFilter] = useState<
 		"all" | "created" | "upcoming"
@@ -102,11 +101,11 @@ export function GroupMemberList({
 			variant="outlined"
 			size={isMobile ? "square" : undefined}
 			onClick={() => setShowAddMembers(true)}
-			disabled={!canShareInvites}
+			disabled={!isAdmin}
 		>
 			<Share
 				sx={{
-					color: !canShareInvites ? "text.disabled" : "primary.main",
+					color: !isAdmin ? "text.disabled" : "primary.main",
 				}}
 			/>
 			<Typography className="hidden md:block">Share</Typography>
@@ -347,7 +346,7 @@ export function GroupMemberList({
 				onClose={() => setShowAddMembers(false)}
 				groupId={group.id}
 				excludeUserIds={members.map((m) => m.userId)}
-				canLoadInviteLink={canShareInvites}
+				canLoadInviteLink={isAdmin}
 			/>
 		</div>
 	);
