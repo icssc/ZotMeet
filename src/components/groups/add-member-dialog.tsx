@@ -82,6 +82,8 @@ export function AddMemberDialog({
 						onChange={(_, user) => {
 							if (user) {
 								addMember(user);
+								setMemberQuery("");
+								onSearch("");
 							}
 						}}
 						value={null}
