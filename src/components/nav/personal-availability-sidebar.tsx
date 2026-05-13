@@ -9,7 +9,10 @@ import {
 	Accordion,
 	AccordionDetails,
 	AccordionSummary,
+	Box,
 	Button,
+	Checkbox,
+	FormControlLabel,
 	Stack,
 	Switch,
 	ToggleButton,
@@ -17,11 +20,11 @@ import {
 	Typography,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import type React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { PERSONAL_AVAILABILITY_OPTIONS } from "@/components/nav/personal-availability-options";
 import type { PaintMode } from "@/lib/availability/paint-selection";
 import { filterTimestampsToMeetingGrid } from "@/lib/availability/utils";
+import type { GoogleCalendarInfo } from "@/lib/types/availability";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 type RespondedMeeting = { id: string; title: string; createdAt: Date };
@@ -30,6 +33,43 @@ type ImportedMeetingAvailability = {
 	ifNeededAvailabilities: string[];
 };
 
+interface CalendarOverlayRowProps {
+	calendar: GoogleCalendarInfo;
+	hidden: boolean;
+	onToggle: (calendarId: string) => void;
+}
+
+const CalendarOverlayRow = memo(function CalendarOverlayRow({
+	calendar,
+	hidden,
+	onToggle,
+}: CalendarOverlayRowProps) {
+	const handleChange = useCallback(
+		() => onToggle(calendar.id),
+		[onToggle, calendar.id],
+	);
+
+	return (
+		<FormControlLabel
+			label={
+				<Stack direction="row" alignItems="center" spacing={1}>
+					<Box
+						sx={{
+							width: 10,
+							height: 10,
+							borderRadius: "50%",
+							bgcolor: calendar.color,
+							flexShrink: 0,
+						}}
+					/>
+					<Typography variant="body2">{calendar.name}</Typography>
+				</Stack>
+			}
+			control={<Checkbox checked={!hidden} onChange={handleChange} />}
+		/>
+	);
+});
+
 interface PersonalAvailabilitySidebarProps {
 	meetingId: string;
 	userTimezone: string;
@@ -37,6 +77,7 @@ interface PersonalAvailabilitySidebarProps {
 	canImport: boolean;
 	onImportSlots: (slots: ImportedMeetingAvailability) => void;
 	onClearAvailability: () => void;
+	googleCalendars: GoogleCalendarInfo[];
 }
 
 export function PersonalAvailabilitySidebar({
@@ -46,6 +87,7 @@ export function PersonalAvailabilitySidebar({
 	canImport,
 	onImportSlots,
 	onClearAvailability,
+	googleCalendars,
 }: PersonalAvailabilitySidebarProps) {
 	const [importableMeetings, setImportableMeetings] = useState<
 		RespondedMeeting[]
@@ -56,6 +98,10 @@ export function PersonalAvailabilitySidebar({
 	const setImportPreview = useAvailabilityStore((s) => s.setImportPreview);
 	const paintMode = useAvailabilityStore((s) => s.paintMode);
 	const setPaintMode = useAvailabilityStore((s) => s.setPaintMode);
+	const hiddenCalendarIds = useAvailabilityStore((s) => s.hiddenCalendarIds);
+	const toggleCalendarVisibility = useAvailabilityStore(
+		(s) => s.toggleCalendarVisibility,
+	);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: reset cached rows when switching meetings
 	useEffect(() => {
@@ -281,12 +327,34 @@ export function PersonalAvailabilitySidebar({
 				>
 					<AccordionSummary
 						expandIcon={<ArrowDropDownIcon />}
-						aria-controls="panel1-content"
-						id="panel1-header"
+						aria-controls="calendar-overlays-content"
+						id="calendar-overlays-header"
 					>
-						<Typography variant="button">Calendar Overlays</Typography>
+						<Stack>
+							<Typography variant="button">Calendar Overlays</Typography>
+							<Typography variant="caption" color="textSecondary">
+								Selected schedules will overlay their events.
+							</Typography>
+						</Stack>
 					</AccordionSummary>
-					<AccordionDetails></AccordionDetails>
+					<AccordionDetails sx={{ pt: 0 }}>
+						{googleCalendars.length === 0 ? (
+							<Typography variant="caption" color="textSecondary">
+								No Google Calendars connected.
+							</Typography>
+						) : (
+							<Stack spacing={0.25}>
+								{googleCalendars.map((cal) => (
+									<CalendarOverlayRow
+										key={cal.id}
+										calendar={cal}
+										hidden={hiddenCalendarIds.has(cal.id)}
+										onToggle={toggleCalendarVisibility}
+									/>
+								))}
+							</Stack>
+						)}
+					</AccordionDetails>
 				</Accordion>
 
 				<div className="mt-6">

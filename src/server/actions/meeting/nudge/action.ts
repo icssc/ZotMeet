@@ -4,7 +4,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { availabilities, notifications, users } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { createInviteEmail } from "@/lib/email/templates";
+import { createBrandedTransactionalEmail } from "@/lib/email/templates";
 import { getExistingMeeting } from "@/server/data/meeting/queries";
 import { createNewNotification } from "@/server/data/user/queries";
 
@@ -102,6 +102,11 @@ export async function nudgePendingMembers(
 	}
 
 	try {
+		const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+		const origin = baseUrl.replace(/\/$/, "");
+		const meetingUrl = `${origin}${meetingPath}`;
+		const hostName = user.displayName?.trim() || "The meeting host";
+
 		await createNewNotification(
 			userIds,
 			meeting.title,
@@ -111,10 +116,17 @@ export async function nudgePendingMembers(
 			null,
 			user.id,
 			{
-				email: createInviteEmail({
-					title: `Reminder: Add your availability for "${meeting.title}"`,
-					message: `You haven't submitted your availability for "${meeting.title}" yet. Please add it so the group can find a time that works.`,
-					url: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}${meetingPath}`,
+				email: createBrandedTransactionalEmail({
+					subject: `Action Required: Add Availability for "${meeting.title}" on ZotMeet`,
+					headline: `${hostName} has nudged you! Please add your availability for "${meeting.title}".`,
+					bodyLines: [
+						`${hostName} is organizing "${meeting.title}" and your response is still missing.`,
+						`Add your availability on ZotMeet so the group can pick a time that works for everyone.`,
+					],
+					ctaLabel: "Add availability",
+					ctaUrl: meetingUrl,
+					footerLearnMoreUrl: `${origin}/`,
+					footerTopic: "meetings",
 				}),
 			},
 		);

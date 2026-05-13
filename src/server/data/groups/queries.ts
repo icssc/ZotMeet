@@ -61,6 +61,7 @@ export async function getUsersInGroup(groupId: string) {
 			memberId: users.memberId,
 			email: users.email,
 			displayName: members.displayName,
+			profilePicture: members.profilePicture,
 			role: usersInGroup.role,
 		})
 		.from(users)

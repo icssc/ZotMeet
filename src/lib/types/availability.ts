@@ -54,7 +54,15 @@ export interface GoogleCalendarEvent {
 	start: string;
 	end: string;
 	calendarColor: string;
-	calendarId?: string | null; // For UI calendar list groupings
+	calendarId?: string | null;
+	/** Always populated by the server; falls back to id or "Unknown Calendar". */
+	calendarName: string;
+}
+
+export interface GoogleCalendarInfo {
+	id: string;
+	name: string;
+	color: string;
 }
 
 export interface GoogleCalendarEventLayoutInfo {

@@ -4,12 +4,12 @@ import { GoogleCalendarEventSegment } from "./google-calendar-event-segment";
 
 interface GoogleCalendarEventBlockProps {
 	eventSegments: EventSegment[];
-	isAvailable: boolean;
+	rendersOverPrimary: boolean;
 }
 
 export function GoogleCalendarEventBlock({
 	eventSegments,
-	isAvailable,
+	rendersOverPrimary,
 }: GoogleCalendarEventBlockProps) {
 	if (eventSegments.length === 0) {
 		return null;
@@ -19,7 +19,7 @@ export function GoogleCalendarEventBlock({
 
 	return (
 		<div
-			className="pointer-events-none absolute inset-0 z-10 [&_*]:pointer-events-none"
+			className="pointer-events-none absolute inset-0 z-10"
 			style={{
 				display: "grid",
 				gridTemplateColumns: `repeat(${cellGridColumnCountInThisBlock}, minmax(0, 1fr))`,
@@ -29,7 +29,7 @@ export function GoogleCalendarEventBlock({
 				<GoogleCalendarEventSegment
 					key={`${segment.eventId}-${index}`}
 					segment={segment}
-					isAvailable={isAvailable}
+					rendersOverPrimary={rendersOverPrimary}
 				/>
 			))}
 		</div>

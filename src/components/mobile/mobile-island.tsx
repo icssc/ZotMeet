@@ -12,14 +12,14 @@ export function MobileIsland({ children }: MobileIslandProps) {
 				elevation={3}
 				sx={{
 					pointerEvents: "auto",
-					display: "inline-flex",
-					justifyContent: "center",
 					borderRadius: 3,
 					p: 0.5,
 					width: "90vw",
+					maxWidth: "100%",
+					boxSizing: "border-box",
 				}}
 			>
-				{children}
+				<div className="flex w-full min-w-0 flex-col">{children}</div>
 			</Paper>
 		</div>
 	);

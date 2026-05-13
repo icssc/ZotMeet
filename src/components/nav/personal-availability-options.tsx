@@ -30,12 +30,8 @@ export const PERSONAL_AVAILABILITY_OPTIONS: {
 		label: "If Needed",
 		icon: (
 			<div
-				style={{
-					...SWATCH_DIMENSION_STYLE,
-					border: "2px solid hsl(var(--if-needed))",
-					background:
-						"repeating-linear-gradient(45deg, hsl(var(--if-needed)) 0px, hsl(var(--if-needed)) 1.5px, transparent 1.5px, transparent 4px)",
-				}}
+				style={SWATCH_DIMENSION_STYLE}
+				className="border-2 border-primary bg-stripes-primary"
 			/>
 		),
 	},
@@ -44,10 +40,8 @@ export const PERSONAL_AVAILABILITY_OPTIONS: {
 		label: "Unavailable",
 		icon: (
 			<div
-				style={{
-					...SWATCH_DIMENSION_STYLE,
-					border: "2px solid hsl(var(--border))",
-				}}
+				style={SWATCH_DIMENSION_STYLE}
+				className="border-2 border-gray-medium"
 			/>
 		),
 	},
