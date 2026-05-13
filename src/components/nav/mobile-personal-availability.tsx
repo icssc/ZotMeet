@@ -1,5 +1,6 @@
 "use client";
 
+import { KeyboardArrowDown } from "@mui/icons-material";
 import {
 	Button,
 	ToggleButton,
@@ -70,11 +71,11 @@ export function MobilePersonalAvailabilitySidebar({
 				<>
 					<MobileIsland>
 						<div className="flex">
-							<Button
-								onClick={() => setToolsOpen(true)}
-								//onClose={()=>setToolsOpen(false)}
-							>
-								More Options
+							<Button color="inherit" onClick={() => setToolsOpen(true)}>
+								<div className="flex flex-col items-center">
+									<KeyboardArrowDown />
+									<Typography variant="caption">More Options</Typography>
+								</div>
 							</Button>
 							<ToggleButtonGroup
 								exclusive

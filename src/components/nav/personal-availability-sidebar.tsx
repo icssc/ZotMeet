@@ -78,7 +78,7 @@ export interface PersonalAvailabilitySidebarProps {
 	onImportSlots: (slots: ImportedMeetingAvailability) => void;
 	onClearAvailability: () => void;
 	googleCalendars: GoogleCalendarInfo[];
-	layout: string;
+	layout?: string;
 }
 
 export function PersonalAvailabilitySidebar({
@@ -194,7 +194,7 @@ export function PersonalAvailabilitySidebar({
 		<div
 			className={
 				layout === "sheet"
-					? " "
+					? "p-4"
 					: "fixed h-96 w-full px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:flex lg:h-full lg:min-h-0 lg:w-full lg:flex-1 lg:shrink-0 lg:flex-col lg:overflow-y-auto lg:px-4"
 			}
 		>
