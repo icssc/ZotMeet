@@ -55,7 +55,11 @@ export default function Page() {
 				const query = searchRef.current.toLowerCase();
 				setFilteredRooms(
 					query
-						? rooms!.filter((r) => r.location.toLowerCase().includes(query))
+						? rooms!.filter(
+								(r) =>
+									r.location.toLowerCase().includes(query) ||
+									r.name.toLowerCase().includes(query),
+							)
 						: rooms,
 				);
 			});
