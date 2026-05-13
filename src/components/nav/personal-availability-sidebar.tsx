@@ -190,8 +190,9 @@ export function PersonalAvailabilitySidebar({
 				meetingAvailabilities: filteredMeetingAvailabilities,
 				ifNeededAvailabilities: filteredIfNeededAvailabilities,
 			});
+			onRequestClose?.();
 		},
-		[canImport, importGridIsoSet, onImportSlots],
+		[canImport, importGridIsoSet, onImportSlots, onRequestClose],
 	);
 
 	return (
