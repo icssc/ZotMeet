@@ -229,7 +229,7 @@ export function PersonalAvailabilitySidebar({
 					</Typography>
 				</div>
 
-				<div className={layout !== "sheet" && "mt-6"}>
+				<div className={layout !== "sheet" ? "mt-6" : undefined}>
 					<Typography variant="h6">Availability Settings</Typography>
 					<Typography variant="caption" color="textSecondary">
 						Click to switch between availability states
