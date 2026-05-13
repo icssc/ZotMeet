@@ -17,14 +17,10 @@ import {
 	IconButton,
 	Stack,
 	Switch,
-	ToggleButton,
-	ToggleButtonGroup,
 	Typography,
 } from "@mui/material";
-import { alpha } from "@mui/material/styles";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { PERSONAL_AVAILABILITY_OPTIONS } from "@/components/nav/personal-availability-options";
-import type { PaintMode } from "@/lib/availability/paint-selection";
+import { PersonalPaintModeToggle } from "@/components/nav/personal-paint-mode-toggle";
 import { filterTimestampsToMeetingGrid } from "@/lib/availability/utils";
 import type { GoogleCalendarInfo } from "@/lib/types/availability";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
@@ -72,6 +68,16 @@ const CalendarOverlayRow = memo(function CalendarOverlayRow({
 	);
 });
 
+const ARIA_LABEL_MAX_LEN = 80;
+
+function truncateForAria(value: string, max = ARIA_LABEL_MAX_LEN): string {
+	const trimmed = value.trim();
+	if (trimmed.length <= max) return trimmed;
+	return `${trimmed.slice(0, max - 1)}…`;
+}
+
+export type PersonalAvailabilitySidebarLayout = "sheet";
+
 export interface PersonalAvailabilitySidebarProps {
 	meetingId: string;
 	userTimezone: string;
@@ -80,7 +86,7 @@ export interface PersonalAvailabilitySidebarProps {
 	onImportSlots: (slots: ImportedMeetingAvailability) => void;
 	onClearAvailability: () => void;
 	googleCalendars: GoogleCalendarInfo[];
-	layout?: string;
+	layout?: PersonalAvailabilitySidebarLayout;
 	onRequestClose?: () => void;
 }
 
@@ -102,8 +108,6 @@ export function PersonalAvailabilitySidebar({
 		new Map<string, ImportedMeetingAvailability>(),
 	);
 	const setImportPreview = useAvailabilityStore((s) => s.setImportPreview);
-	const paintMode = useAvailabilityStore((s) => s.paintMode);
-	const setPaintMode = useAvailabilityStore((s) => s.setPaintMode);
 	const hiddenCalendarIds = useAvailabilityStore((s) => s.hiddenCalendarIds);
 	const toggleCalendarVisibility = useAvailabilityStore(
 		(s) => s.toggleCalendarVisibility,
@@ -218,7 +222,7 @@ export function PersonalAvailabilitySidebar({
 						: undefined
 				}
 			>
-				<div className={layout && "hidden"}>
+				<div className={layout === "sheet" ? "hidden" : undefined}>
 					<Typography variant="h6">Add Availability</Typography>
 					<Typography variant="caption" color="textSecondary">
 						Drag over the calendar to add your availability
@@ -233,38 +237,7 @@ export function PersonalAvailabilitySidebar({
 				</div>
 
 				<div className="mt-2 flex w-full flex-col items-stretch gap-2">
-					<ToggleButtonGroup
-						exclusive
-						fullWidth
-						value={paintMode}
-						onChange={(_, val: PaintMode | null) => val && setPaintMode(val)}
-						aria-label="availability"
-					>
-						{PERSONAL_AVAILABILITY_OPTIONS.map(({ value, label, icon }) => (
-							<ToggleButton
-								key={value}
-								value={value}
-								aria-label={label}
-								sx={(theme) => ({
-									display: "flex",
-									flexDirection: "column",
-									gap: 1,
-									px: 2,
-									py: 1.5,
-									"&.Mui-selected": {
-										backgroundColor: alpha(
-											theme.palette.primary.main,
-											theme.palette.mode === "dark" ? 0.2 : 0.12,
-										),
-										borderColor: theme.palette.primary.main,
-									},
-								})}
-							>
-								{icon}
-								<Typography variant="caption">{label}</Typography>
-							</ToggleButton>
-						))}
-					</ToggleButtonGroup>
+					<PersonalPaintModeToggle density="comfortable" />
 
 					<Button
 						variant="outlined"
@@ -331,7 +304,7 @@ export function PersonalAvailabilitySidebar({
 												size="small"
 												variant="outlined"
 												disabled={!canImport}
-												aria-label={`Import availability from ${meeting.title}`}
+												aria-label={`Import availability from ${truncateForAria(meeting.title)}`}
 												onClick={(e) => {
 													e.stopPropagation();
 													void importFromMeeting(meeting.id);
