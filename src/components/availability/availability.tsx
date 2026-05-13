@@ -508,6 +508,15 @@ export function Availability({
 							handleScheduleCancel={handleScheduleCancel}
 							runScheduleSave={runScheduleSaveForMobile}
 							isScheduleSaveDisabled={isMeetingDeletionPending}
+							personalSidebarProps={{
+								meetindId: meetingData.id,
+								userTimezone,
+								importGridIsoSet,
+								canImport: Boolean(user?.memberId),
+								onImportSlots: handleImportSlotsFromMeeting,
+								onClearAvailablity: handleClearAvailability,
+								googleCalendars,
+							}}
 						/>
 					</div>
 				)}
