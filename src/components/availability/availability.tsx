@@ -1,6 +1,7 @@
 "use client";
 
 import { Paper } from "@mui/material";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -35,6 +36,8 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
+
+const LG_UP_MEDIA = "(min-width: 1024px)";
 
 export function Availability({
 	meetingData,
@@ -103,6 +106,7 @@ export function Availability({
 	const router = useRouter();
 
 	const isMobile = useIsMobile();
+	const isLgUp = useMediaQuery(LG_UP_MEDIA, { noSsr: true });
 	useEffect(() => {
 		setItemsPerPage(isMobile ? 2 : 5);
 	}, [isMobile, setItemsPerPage]);
@@ -270,6 +274,27 @@ export function Availability({
 		setImportPreview,
 		resetSelection,
 	]);
+
+	const personalSidebarProps = useMemo(
+		() => ({
+			meetingId: meetingData.id,
+			userTimezone,
+			importGridIsoSet,
+			canImport: Boolean(user?.memberId),
+			onImportSlots: handleImportSlotsFromMeeting,
+			onClearAvailability: handleClearAvailability,
+			googleCalendars,
+		}),
+		[
+			meetingData.id,
+			userTimezone,
+			importGridIsoSet,
+			user?.memberId,
+			handleImportSlotsFromMeeting,
+			handleClearAvailability,
+			googleCalendars,
+		],
+	);
 
 	const handleOpenInviteDialog = useCallback(
 		() => setIsInviteDialogOpen(true),
@@ -484,15 +509,9 @@ export function Availability({
 							variant="outlined"
 							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
 						>
-							<PersonalAvailabilitySidebar
-								meetingId={meetingData.id}
-								userTimezone={userTimezone}
-								importGridIsoSet={importGridIsoSet}
-								canImport={Boolean(user?.memberId)}
-								onImportSlots={handleImportSlotsFromMeeting}
-								onClearAvailability={handleClearAvailability}
-								googleCalendars={googleCalendars}
-							/>
+							{isLgUp ? (
+								<PersonalAvailabilitySidebar {...personalSidebarProps} />
+							) : null}
 						</Paper>
 					</div>
 				)}
@@ -508,6 +527,7 @@ export function Availability({
 							handleScheduleCancel={handleScheduleCancel}
 							runScheduleSave={runScheduleSaveForMobile}
 							isScheduleSaveDisabled={isMeetingDeletionPending}
+							personalSidebarProps={personalSidebarProps}
 						/>
 					</div>
 				)}
