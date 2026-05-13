@@ -14,18 +14,10 @@ import { format } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 import { RoomsHeatmapLegend } from "@/components/studyrooms/legend";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
-import { toLocalStr } from "@/lib/rooms/utils";
-import type { StudyRooms } from "@/lib/types/studyrooms";
+import { getDefaultWindow, toLocalStr } from "@/lib/rooms/utils";
+import { BUILDINGS, type StudyRooms } from "@/lib/types/studyrooms";
 
 const MAX_FALLBACK_DAYS = 7;
-const LOCATION_OPTIONS = [
-	"Anteater Learning Pavilion",
-	"Langson Library",
-	"Science Library",
-	"Multimedia Resources Center",
-	"Gateway Study Center",
-	"Plaza Verde",
-];
 
 const CAPACITY_PRESETS = [
 	{ label: "1-2", min: "1", max: "2" },
@@ -319,7 +311,7 @@ export function Sidebar({
 
 					<Autocomplete
 						freeSolo
-						options={LOCATION_OPTIONS}
+						options={BUILDINGS}
 						value={location}
 						onChange={(_, val) => setLocation(val)}
 						onInputChange={(_, val, reason) => {
