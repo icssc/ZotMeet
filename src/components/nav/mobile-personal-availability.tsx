@@ -123,11 +123,25 @@ export function MobilePersonalAvailabilitySidebar({
 						</div>
 					</MobileIsland>
 
-					<MuiBottomSheet open={toolsOpen} onClose={handleCloseTools}>
-						<div data-availability-sidebar="">
+					<MuiBottomSheet
+						open={toolsOpen}
+						onClose={handleCloseTools}
+						paperSx={{
+							height: "85dvh",
+							maxHeight: "85dvh",
+							overflow: "hidden",
+							display: "flex",
+							flexDirection: "column",
+						}}
+					>
+						<div
+							data-availability-sidebar=""
+							className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+						>
 							<PersonalAvailabilitySidebar
 								{...personalSidebarProps}
 								layout="sheet"
+								onRequestClose={handleCloseTools}
 							/>
 						</div>
 					</MuiBottomSheet>

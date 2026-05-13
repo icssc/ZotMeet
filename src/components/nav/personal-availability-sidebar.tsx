@@ -4,6 +4,7 @@ import {
 	getImportableMeetings,
 	getUserAvailabilityForMeeting,
 } from "@actions/availability/copy/action";
+import { Close } from "@mui/icons-material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import {
 	Accordion,
@@ -13,6 +14,7 @@ import {
 	Button,
 	Checkbox,
 	FormControlLabel,
+	IconButton,
 	Stack,
 	Switch,
 	ToggleButton,
@@ -79,6 +81,7 @@ export interface PersonalAvailabilitySidebarProps {
 	onClearAvailability: () => void;
 	googleCalendars: GoogleCalendarInfo[];
 	layout?: string;
+	onRequestClose?: () => void;
 }
 
 export function PersonalAvailabilitySidebar({
@@ -90,6 +93,7 @@ export function PersonalAvailabilitySidebar({
 	onClearAvailability,
 	googleCalendars,
 	layout,
+	onRequestClose,
 }: PersonalAvailabilitySidebarProps) {
 	const [importableMeetings, setImportableMeetings] = useState<
 		RespondedMeeting[]
@@ -194,187 +198,205 @@ export function PersonalAvailabilitySidebar({
 		<div
 			className={
 				layout === "sheet"
-					? "p-4"
+					? "relative flex min-h-0 min-w-0 flex-1 flex-col p-4 pt-12"
 					: "fixed h-96 w-full px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:flex lg:h-full lg:min-h-0 lg:w-full lg:flex-1 lg:shrink-0 lg:flex-col lg:overflow-y-auto lg:px-4"
 			}
 		>
-			<div>
-				<Typography variant="h6">Add Availability</Typography>
-				<Typography variant="caption" color="textSecondary">
-					Drag over the calendar to add your availability
-				</Typography>
-			</div>
+			{layout === "sheet" && onRequestClose ? (
+				<div className="absolute top-2 right-2 z-[1]">
+					<IconButton aria-label="Close" size="small" onClick={onRequestClose}>
+						<Close />
+					</IconButton>
+				</div>
+			) : null}
 
-			<div className="mt-6">
-				<Typography variant="h6">Availability Settings</Typography>
-				<Typography variant="caption" color="textSecondary">
-					Click to switch between availability states
-				</Typography>
-			</div>
-
-			<div className="mt-2 flex w-full flex-col items-stretch gap-2">
-				<ToggleButtonGroup
-					exclusive
-					fullWidth
-					value={paintMode}
-					onChange={(_, val: PaintMode | null) => val && setPaintMode(val)}
-					aria-label="availability"
-				>
-					{PERSONAL_AVAILABILITY_OPTIONS.map(({ value, label, icon }) => (
-						<ToggleButton
-							key={value}
-							value={value}
-							aria-label={label}
-							sx={(theme) => ({
-								display: "flex",
-								flexDirection: "column",
-								gap: 1,
-								px: 2,
-								py: 1.5,
-								"&.Mui-selected": {
-									backgroundColor: alpha(
-										theme.palette.primary.main,
-										theme.palette.mode === "dark" ? 0.2 : 0.12,
-									),
-									borderColor: theme.palette.primary.main,
-								},
-							})}
-						>
-							{icon}
-							<Typography variant="caption">{label}</Typography>
-						</ToggleButton>
-					))}
-				</ToggleButtonGroup>
-
-				<Button
-					variant="outlined"
-					color="inherit"
-					fullWidth
-					disabled={!canImport}
-					onClick={onClearAvailability}
-				>
-					Clear availability
-				</Button>
-
-				<Accordion
-					defaultExpanded
-					elevation={0}
-					sx={{
-						boxShadow: "none",
-						border: "none",
-						"&:before": { display: "none" },
-					}}
-				>
-					<AccordionSummary
-						expandIcon={<ArrowDropDownIcon />}
-						aria-controls="panel1-content"
-						id="panel1-header"
-					>
-						<Typography variant="button">
-							Import Previous Availability
-						</Typography>
-					</AccordionSummary>
-					<AccordionDetails
-						onMouseLeave={() => setImportPreview(null)}
-						sx={{ pt: 0 }}
-					>
-						{importableMeetings.length === 0 ? (
-							<Typography variant="caption" color="textSecondary">
-								No past meetings with overlapping slots.
-							</Typography>
-						) : (
-							<Stack spacing={0.25}>
-								{importableMeetings.map((meeting) => (
-									<Stack
-										key={meeting.id}
-										direction="row"
-										alignItems="center"
-										spacing={1}
-										onMouseEnter={() => void showPreviewForMeeting(meeting.id)}
-										onFocus={() => void showPreviewForMeeting(meeting.id)}
-										onBlur={() => setImportPreview(null)}
-										tabIndex={-1}
-										sx={{
-											borderRadius: 1,
-											px: 1,
-											py: 0.5,
-											"&:hover": { bgcolor: "action.hover" },
-										}}
-									>
-										<Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
-											{meeting.title}
-										</Typography>
-										<Button
-											type="button"
-											size="small"
-											variant="outlined"
-											disabled={!canImport}
-											aria-label={`Import availability from ${meeting.title}`}
-											onClick={(e) => {
-												e.stopPropagation();
-												void importFromMeeting(meeting.id);
-											}}
-										>
-											Import
-										</Button>
-									</Stack>
-								))}
-							</Stack>
-						)}
-					</AccordionDetails>
-				</Accordion>
-
-				<Accordion
-					defaultExpanded
-					elevation={0}
-					sx={{
-						boxShadow: "none",
-						border: "none",
-						"&:before": { display: "none" },
-					}}
-				>
-					<AccordionSummary
-						expandIcon={<ArrowDropDownIcon />}
-						aria-controls="calendar-overlays-content"
-						id="calendar-overlays-header"
-					>
-						<Stack>
-							<Typography variant="button">Calendar Overlays</Typography>
-							<Typography variant="caption" color="textSecondary">
-								Selected schedules will overlay their events.
-							</Typography>
-						</Stack>
-					</AccordionSummary>
-					<AccordionDetails sx={{ pt: 0 }}>
-						{googleCalendars.length === 0 ? (
-							<Typography variant="caption" color="textSecondary">
-								No Google Calendars connected.
-							</Typography>
-						) : (
-							<Stack spacing={0.25}>
-								{googleCalendars.map((cal) => (
-									<CalendarOverlayRow
-										key={cal.id}
-										calendar={cal}
-										hidden={hiddenCalendarIds.has(cal.id)}
-										onToggle={toggleCalendarVisibility}
-									/>
-								))}
-							</Stack>
-						)}
-					</AccordionDetails>
-				</Accordion>
+			<div
+				className={
+					layout === "sheet"
+						? "min-h-0 flex-1 overflow-y-auto overscroll-y-contain"
+						: undefined
+				}
+			>
+				<div className={layout && "hidden"}>
+					<Typography variant="h6">Add Availability</Typography>
+					<Typography variant="caption" color="textSecondary">
+						Drag over the calendar to add your availability
+					</Typography>
+				</div>
 
 				<div className="mt-6">
-					<div className="flex">
-						<Typography variant="h6">Overlay Availabilities</Typography>
-						{/* Need to add Switch Functionality */}
-						<Switch className="ml-auto" size="medium" />
-					</div>
-
+					<Typography variant="h6">Availability Settings</Typography>
 					<Typography variant="caption" color="textSecondary">
-						View all availability while inputting your own
+						Click to switch between availability states
 					</Typography>
+				</div>
+
+				<div className="mt-2 flex w-full flex-col items-stretch gap-2">
+					<ToggleButtonGroup
+						exclusive
+						fullWidth
+						value={paintMode}
+						onChange={(_, val: PaintMode | null) => val && setPaintMode(val)}
+						aria-label="availability"
+					>
+						{PERSONAL_AVAILABILITY_OPTIONS.map(({ value, label, icon }) => (
+							<ToggleButton
+								key={value}
+								value={value}
+								aria-label={label}
+								sx={(theme) => ({
+									display: "flex",
+									flexDirection: "column",
+									gap: 1,
+									px: 2,
+									py: 1.5,
+									"&.Mui-selected": {
+										backgroundColor: alpha(
+											theme.palette.primary.main,
+											theme.palette.mode === "dark" ? 0.2 : 0.12,
+										),
+										borderColor: theme.palette.primary.main,
+									},
+								})}
+							>
+								{icon}
+								<Typography variant="caption">{label}</Typography>
+							</ToggleButton>
+						))}
+					</ToggleButtonGroup>
+
+					<Button
+						variant="outlined"
+						color="inherit"
+						fullWidth
+						disabled={!canImport}
+						onClick={onClearAvailability}
+					>
+						Clear availability
+					</Button>
+
+					<Accordion
+						defaultExpanded
+						elevation={0}
+						sx={{
+							boxShadow: "none",
+							border: "none",
+							"&:before": { display: "none" },
+						}}
+					>
+						<AccordionSummary
+							expandIcon={<ArrowDropDownIcon />}
+							aria-controls="panel1-content"
+							id="panel1-header"
+						>
+							<Typography variant="button">
+								Import Previous Availability
+							</Typography>
+						</AccordionSummary>
+						<AccordionDetails
+							onMouseLeave={() => setImportPreview(null)}
+							sx={{ pt: 0 }}
+						>
+							{importableMeetings.length === 0 ? (
+								<Typography variant="caption" color="textSecondary">
+									No past meetings with overlapping slots.
+								</Typography>
+							) : (
+								<Stack spacing={0.25}>
+									{importableMeetings.map((meeting) => (
+										<Stack
+											key={meeting.id}
+											direction="row"
+											alignItems="center"
+											spacing={1}
+											onMouseEnter={() =>
+												void showPreviewForMeeting(meeting.id)
+											}
+											onFocus={() => void showPreviewForMeeting(meeting.id)}
+											onBlur={() => setImportPreview(null)}
+											tabIndex={-1}
+											sx={{
+												borderRadius: 1,
+												px: 1,
+												py: 0.5,
+												"&:hover": { bgcolor: "action.hover" },
+											}}
+										>
+											<Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
+												{meeting.title}
+											</Typography>
+											<Button
+												type="button"
+												size="small"
+												variant="outlined"
+												disabled={!canImport}
+												aria-label={`Import availability from ${meeting.title}`}
+												onClick={(e) => {
+													e.stopPropagation();
+													void importFromMeeting(meeting.id);
+												}}
+											>
+												Import
+											</Button>
+										</Stack>
+									))}
+								</Stack>
+							)}
+						</AccordionDetails>
+					</Accordion>
+
+					<Accordion
+						defaultExpanded
+						elevation={0}
+						sx={{
+							boxShadow: "none",
+							border: "none",
+							"&:before": { display: "none" },
+						}}
+					>
+						<AccordionSummary
+							expandIcon={<ArrowDropDownIcon />}
+							aria-controls="calendar-overlays-content"
+							id="calendar-overlays-header"
+						>
+							<Stack>
+								<Typography variant="button">Calendar Overlays</Typography>
+								<Typography variant="caption" color="textSecondary">
+									Selected schedules will overlay their events.
+								</Typography>
+							</Stack>
+						</AccordionSummary>
+						<AccordionDetails sx={{ pt: 0 }}>
+							{googleCalendars.length === 0 ? (
+								<Typography variant="caption" color="textSecondary">
+									No Google Calendars connected.
+								</Typography>
+							) : (
+								<Stack spacing={0.25}>
+									{googleCalendars.map((cal) => (
+										<CalendarOverlayRow
+											key={cal.id}
+											calendar={cal}
+											hidden={hiddenCalendarIds.has(cal.id)}
+											onToggle={toggleCalendarVisibility}
+										/>
+									))}
+								</Stack>
+							)}
+						</AccordionDetails>
+					</Accordion>
+
+					<div className="mt-6">
+						<div className="flex">
+							<Typography variant="h6">Overlay Availabilities</Typography>
+							{/* Need to add Switch Functionality */}
+							<Switch className="ml-auto" size="medium" />
+						</div>
+
+						<Typography variant="caption" color="textSecondary">
+							View all availability while inputting your own
+						</Typography>
+					</div>
 				</div>
 			</div>
 		</div>
