@@ -45,7 +45,7 @@ export function ProfileSidebarLayout({ children }: ProfileSidebarLayoutProps) {
 				sx={{
 					width: 260,
 					flexShrink: 0,
-					display: "flex",
+					display: { xs: "none", md: "flex" },
 					flexDirection: "column",
 					borderRight: 1,
 					borderColor: "divider",
