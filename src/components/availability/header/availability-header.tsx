@@ -9,8 +9,7 @@ import {
 	Settings,
 } from "@mui/icons-material";
 import { Button, IconButton, Paper, Typography } from "@mui/material";
-import { MoreVerticalIcon } from "lucide-react";
-import Link from "next/link";
+import { DeleteIcon, MoreVerticalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
@@ -85,119 +84,121 @@ export function AvailabilityHeader({
 	);
 
 	return (
-		<Paper variant="outlined" className="mt-10">
-			<div className="flex flex-col gap-4">
-				<div className="flex items-center sm:hidden">
-					<Button
-						component={Link}
-						href="/summary"
-						startIcon={<ChevronLeft />}
-						color="inherit"
-					>
-						Meetings
-					</Button>
-				</div>
-
-				<div className="flex w-full items-center">
-					<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
-						{meetingData.title}
-					</h1>
-
-					<div className="ml-auto hidden sm:ml-8 sm:block">
-						{copyTitleButton}
-					</div>
-
+		<div className="mt-2">
+			<div className="flex items-center sm:hidden">
+				<Button href="/summary" startIcon={<ChevronLeft />} color="inherit">
+					Meetings
+				</Button>
+				<div className="ml-auto flex items-center">
+					{copyTitleButton}
 					{(isOwner || isMember) && (
-						<div className="ml-auto flex items-center sm:hidden">
-							{copyTitleButton}
-							<IconButton
-								size="small"
-								onClick={() =>
-									isOwner
-										? setIsEditModalOpen(true)
-										: setIsDeleteModalOpen(true)
-								}
-							>
-								<MoreVerticalIcon />
-							</IconButton>
-						</div>
+						<IconButton
+							size="small"
+							onClick={() =>
+								isOwner ? setIsEditModalOpen(true) : setIsDeleteModalOpen(true)
+							}
+						>
+							<MoreVerticalIcon />
+						</IconButton>
 					)}
 				</div>
+			</div>
 
-				<div className="flex flex-wrap items-center gap-x-5 gap-y-3 md:gap-x-5">
-					<div className="flex min-w-0 flex-wrap items-center gap-x-10 gap-y-2 md:gap-x-5">
-						<div className="flex items-center gap-2">
-							<CalendarMonth fontSize="small" />
-							<Typography color="textSecondary" className="whitespace-nowrap">
-								{formattedStartDate} - {formattedEndDate}
-							</Typography>
-						</div>
-
-						<div className="flex items-center gap-2">
-							<AccessTime fontSize="small" />
-							<Typography color="textSecondary" className="whitespace-nowrap">
-								{formattedStartTime} - {formattedEndTime}
-							</Typography>
-						</div>
-
-						{isMember && (
-							<div className="-ml-2 hidden items-center sm:flex">
-								<Button
-									onClick={() => setIsDeleteModalOpen(true)}
-									variant="text"
-									size="medium"
-									color="warning"
-									startIcon={<ExitToApp />}
-								>
-									<Typography>Leave Meeting</Typography>
-								</Button>
+			<Paper variant="outlined" className="mt-2">
+				<div className="flex flex-col gap-4">
+					<div className="flex w-full items-center">
+						<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
+							{meetingData.title}
+						</h1>
+						<div className="ml-6 hidden sm:block">{copyTitleButton}</div>
+					</div>
+					<div className="flex flex-wrap items-start gap-4">
+						<div className="flex min-w-0 flex-wrap items-center gap-x-6 gap-y-2">
+							<div className="flex items-center gap-2">
+								<CalendarMonth fontSize="small" />
+								<Typography color="textSecondary" className="whitespace-nowrap">
+									{formattedStartDate} - {formattedEndDate}
+								</Typography>
 							</div>
-						)}
+
+							<div className="flex items-center gap-2">
+								<AccessTime />
+								<Typography color="textSecondary" className="whitespace-nowrap">
+									{formattedStartTime} - {formattedEndTime}
+								</Typography>
+							</div>
+
+							{meetingData.location && (
+								<div className="flex items-center gap-2">
+									<LocationOn />
+									<Typography
+										color="textSecondary"
+										className="whitespace-nowrap"
+									>
+										{meetingData.location}
+									</Typography>
+								</div>
+							)}
+
+							{isMember && (
+								<div className="-ml-2 hidden items-center gap-x-1 sm:flex">
+									<Button
+										onClick={() => setIsDeleteModalOpen(true)}
+										variant="text"
+										size="medium"
+										color="warning"
+										startIcon={<ExitToApp />}
+									>
+										<Typography>Leave Meeting</Typography>
+									</Button>
+								</div>
+							)}
+
+							{isOwner && (
+								<div className="-ml-2 hidden items-center gap-x-1 sm:flex">
+									<Button
+										onClick={() => setIsEditModalOpen(true)}
+										variant="text"
+										size="medium"
+										color="primary"
+										startIcon={<Settings sx={{ color: "primary.main" }} />}
+									>
+										<Typography>Edit Meeting</Typography>
+									</Button>
+
+									<Button
+										onClick={() => setIsDeleteModalOpen(true)}
+										variant="text"
+										size="medium"
+										startIcon={<DeleteIcon />}
+									>
+										<Typography>Delete Meeting</Typography>
+									</Button>
+								</div>
+							)}
+						</div>
 					</div>
 
-					{meetingData.location && (
-						<div className="flex items-center gap-2">
-							<LocationOn fontSize="small" />
-							<Typography color="textSecondary" className="whitespace-nowrap">
-								{meetingData.location}
-							</Typography>
-						</div>
-					)}
+					<EditModal
+						meetingData={meetingData}
+						isOpen={isEditModalOpen}
+						handleOpenChange={setIsEditModalOpen}
+						onDeleteRequest={() => {
+							setIsEditModalOpen(false);
+							setIsDeleteModalOpen(true);
+						}}
+					/>
 
-					{isOwner && (
-						<div className="hidden items-center gap-x-1 sm:flex">
-							<Button
-								onClick={() => setIsEditModalOpen(true)}
-								variant="text"
-								size="medium"
-								color="primary"
-								startIcon={<Settings sx={{ color: "primary.main" }} />}
-							>
-								<Typography>Edit Meeting</Typography>
-							</Button>
-						</div>
-					)}
+					<DeleteModal
+						meetingData={meetingData}
+						isOpen={isDeleteModalOpen}
+						handleOpenChange={setIsDeleteModalOpen}
+						isOwner={isOwner}
+						isDeletionPending={isMeetingDeletionPending}
+						onDeletionPendingChange={onMeetingDeletionPendingChange}
+					/>
 				</div>
-
-				<EditModal
-					meetingData={meetingData}
-					isOpen={isEditModalOpen}
-					handleOpenChange={setIsEditModalOpen}
-					onDeleteRequest={() => {
-						setIsEditModalOpen(false);
-						setIsDeleteModalOpen(true);
-					}}
-				/>
-
-				<DeleteModal
-					meetingData={meetingData}
-					isOpen={isDeleteModalOpen}
-					handleOpenChange={setIsDeleteModalOpen}
-					isOwner={isOwner}
-					isDeletionPending={isMeetingDeletionPending}
-					onDeletionPendingChange={onMeetingDeletionPendingChange}
-				/>
-			</div>
-		</Paper>
+			</Paper>
+		</div>
 	);
 }
