@@ -152,9 +152,6 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 
 			<Stack sx={{ flex: 1 }} spacing={4}>
 				<Stack spacing={2}>
-					<Typography variant="h6" className="hidden md:block">
-						Profile
-					</Typography>
 					<TextField
 						label="Full Name"
 						required
@@ -199,7 +196,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 					</Stack>
 				</Stack>
 
-				<Divider className="hidden md:block" />
+				<Divider />
 
 				<Stack spacing={2}>
 					<Typography variant="h6">About You</Typography>
