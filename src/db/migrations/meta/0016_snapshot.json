@@ -1,5 +1,5 @@
 {
-  "id": "bb94daf8-9891-4975-90a5-6acce4c11d49",
+  "id": "994d6447-5510-4538-867f-4b641182950b",
   "prevId": "36e060d4-10ad-46f2-914c-bce16882bd1f",
   "version": "7",
   "dialect": "postgresql",
@@ -705,6 +705,75 @@
           "nullsNotDistinct": false,
           "columns": [
             "username"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.notification_preferences": {
+      "name": "notification_preferences",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "member_id": {
+          "name": "member_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "meeting_invites": {
+          "name": "meeting_invites",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "group_invites": {
+          "name": "group_invites",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "nudges": {
+          "name": "nudges",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "notification_preferences_member_id_members_id_fk": {
+          "name": "notification_preferences_member_id_members_id_fk",
+          "tableFrom": "notification_preferences",
+          "tableTo": "members",
+          "columnsFrom": [
+            "member_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "notification_preferences_member_id_unique": {
+          "name": "notification_preferences_member_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "member_id"
           ]
         }
       },
