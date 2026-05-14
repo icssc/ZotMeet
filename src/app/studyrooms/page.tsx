@@ -2,20 +2,29 @@
 
 import FilterListIcon from "@mui/icons-material/FilterList";
 import SearchIcon from "@mui/icons-material/Search";
-import { Box, Button, Drawer, Paper, TextField } from "@mui/material";
+import {
+	Box,
+	Button,
+	Drawer,
+	Paper,
+	TextField,
+	useMediaQuery,
+	useTheme,
+} from "@mui/material";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { MobileIsland } from "@/components/mobile/mobile-island";
 import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
 import { Sidebar } from "@/components/studyrooms/sidebar";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { getDefaultWindow } from "@/lib/rooms/utils";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
 export default function Page() {
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 	const [{ defaultDate, defaultStart, defaultEnd }] = useState(() => {
 		const { start, end } = getDefaultWindow();
 		return {
@@ -28,7 +37,6 @@ export default function Page() {
 			),
 		};
 	});
-	const isMobile = useIsMobile();
 	const [committedStart, setCommittedStart] = useState<Date | null>(
 		defaultStart,
 	);
@@ -42,29 +50,51 @@ export default function Page() {
 	);
 	const [, startTransition] = useTransition();
 	const searchRef = useRef("");
+	const roomsRef = useRef<StudyRooms["data"] | null>(null);
 	const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+	roomsRef.current = rooms;
 
 	useEffect(() => {
 		setFilteredRooms(rooms);
 	}, [rooms]);
+
+	useEffect(() => {
+		return () => clearTimeout(timerRef.current);
+	}, []);
+
 	const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
 		searchRef.current = event.target.value;
 		clearTimeout(timerRef.current);
 		timerRef.current = setTimeout(() => {
 			startTransition(() => {
 				const query = searchRef.current.toLowerCase();
+				const latest = roomsRef.current;
+				if (latest === null) {
+					setFilteredRooms(null);
+					return;
+				}
 				setFilteredRooms(
 					query
-						? rooms!.filter(
+						? latest.filter(
 								(r) =>
 									r.location.toLowerCase().includes(query) ||
 									r.name.toLowerCase().includes(query),
 							)
-						: rooms,
+						: latest,
 				);
 			});
 		}, 300);
 	};
+
+	const showHeatmap =
+		committedDate != null &&
+		committedStart != null &&
+		committedEnd != null &&
+		filteredRooms != null;
+
+	const showInitialLoading = rooms === null;
+
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns}>
 			{fallbackNotice && (
@@ -91,16 +121,20 @@ export default function Page() {
 					className="md:m-4"
 					variant="outlined"
 				>
-					{filteredRooms && committedDate && committedStart && committedEnd ? (
+					{showHeatmap ? (
 						<RoomsHeatmap
 							rooms={filteredRooms}
 							searchDate={committedDate}
 							startTime={committedStart}
 							endTime={committedEnd}
 						/>
-					) : (
+					) : showInitialLoading ? (
 						<Typography variant="body2" color="text.secondary" sx={{ p: 4 }}>
 							Loading available rooms...
+						</Typography>
+					) : (
+						<Typography variant="body2" color="text.secondary" sx={{ p: 4 }}>
+							No rooms match your search. Try different dates or filters.
 						</Typography>
 					)}
 				</Paper>
@@ -129,14 +163,19 @@ export default function Page() {
 								}}
 								onChange={handleSearch}
 							/>
-							<Button onClick={() => setOpen(true)} sx={{ flex: 1 }}>
-								{" "}
-								<FilterListIcon />{" "}
+							<Button
+								type="button"
+								onClick={() => setOpen(true)}
+								sx={{ flex: 1, minWidth: 0 }}
+								aria-label="Open search filters"
+							>
+								<FilterListIcon />
 							</Button>
 							<Drawer
 								anchor="bottom"
 								open={drawerOpen}
 								onClose={() => setOpen(false)}
+								ModalProps={{ keepMounted: true }}
 								sx={{
 									"& .MuiDrawer-paper": {
 										display: "flex",

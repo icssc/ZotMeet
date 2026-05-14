@@ -14,19 +14,20 @@ import { format } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 import { RoomsHeatmapLegend } from "@/components/studyrooms/legend";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
-import { getDefaultWindow, toLocalStr } from "@/lib/rooms/utils";
-import { BUILDINGS, type StudyRooms } from "@/lib/types/studyrooms";
+import { toLocalStr } from "@/lib/rooms/utils";
+import {
+	BUILDINGS,
+	CAPACITY_RANGES,
+	type StudyRooms,
+} from "@/lib/types/studyrooms";
 
 const MAX_FALLBACK_DAYS = 7;
 
-const CAPACITY_PRESETS = [
-	{ label: "1-2", min: "1", max: "2" },
-	{ label: "3-4", min: "3", max: "4" },
-	{ label: "5-6", min: "5", max: "6" },
-	{ label: "7-8", min: "7", max: "8" },
-	{ label: "9-12", min: "9", max: "12" },
-	{ label: "13+", min: "13", max: "40" },
-] as const;
+const CAPACITY_PRESETS = CAPACITY_RANGES.map((r) =>
+	"max" in r
+		? { label: r.label, min: String(r.min), max: String(r.max) }
+		: { label: r.label, min: String(r.min), max: "40" },
+);
 
 interface SidebarProps {
 	defaultDate: Date;
@@ -157,11 +158,11 @@ export function Sidebar({
 								`No rooms available for ${format(baseDate, "EEEE, MMM d")}. Showing results for ${format(tryDate, "EEEE, MMM d")} instead.`,
 							);
 						}
-						return;
+						return true;
 					}
 				} catch (err) {
 					setError(err instanceof Error ? err.message : "API call failed");
-					return;
+					return false;
 				}
 			}
 			setRooms([]);
@@ -169,8 +170,9 @@ export function Sidebar({
 			setCommittedStart(null);
 			setCommittedEnd(null);
 			setError(`No rooms available in the next ${MAX_FALLBACK_DAYS} days.`);
+			return false;
 		},
-		//confused why i need to add these dependancies for the linter to work but hey im not questioning it
+		// State setters are stable; listed for react-hooks/exhaustive-deps.
 		[
 			setRooms,
 			setCommittedDate,
@@ -215,15 +217,17 @@ export function Sidebar({
 		baseDate.setHours(0, 0, 0, 0);
 		setIsLoading(true);
 		try {
-			await searchWithFallback({
+			const foundRooms = await searchWithFallback({
 				baseDate,
 				startTime,
 				endTime,
 				filters: { location, capacityMin, capacityMax, isTechEnhanced },
 			});
+			if (foundRooms) {
+				setDrawerClose(false);
+			}
 		} finally {
 			setIsLoading(false);
-			setDrawerClose(false);
 		}
 	};
 	useEffect(() => {
