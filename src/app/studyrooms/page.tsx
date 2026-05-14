@@ -91,7 +91,8 @@ export default function Page() {
 		committedDate != null &&
 		committedStart != null &&
 		committedEnd != null &&
-		filteredRooms != null;
+		filteredRooms != null &&
+		filteredRooms.length > 0;
 
 	const showInitialLoading = rooms === null;
 
