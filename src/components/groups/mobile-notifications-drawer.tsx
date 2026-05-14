@@ -1,11 +1,12 @@
 "use client";
 
-import { deleteNotification } from "@actions/user/action";
-import { ChevronRight, Close } from "@mui/icons-material";
+import { readNotification } from "@actions/user/action";
+import { CheckCircle, ChevronRight, Close } from "@mui/icons-material";
 import {
 	Avatar,
 	Badge,
 	Box,
+	Button,
 	Divider,
 	Drawer,
 	IconButton,
@@ -48,8 +49,29 @@ export function MobileNotificationsDrawer({
 	const [showGroupInvite, setShowGroupInvite] = useState(false);
 	const [activeNotification, setActiveNotification] =
 		useState<NotificationItem | null>(null);
+	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
 	const unread = notifications.filter((n) => !n.readAt);
+
+	function toggleSelected(id: string) {
+		setSelectedIds((prev) => {
+			const next = new Set(prev);
+			if (next.has(id)) next.delete(id);
+			else next.add(id);
+			return next;
+		});
+	}
+
+	function selectAll() {
+		setSelectedIds(new Set(unread.map((n) => n.id)));
+	}
+
+	async function markSelectedAsRead() {
+		const ids =
+			selectedIds.size > 0 ? [...selectedIds] : unread.map((n) => n.id);
+		await Promise.all(ids.map((id) => readNotification(id)));
+		setSelectedIds(new Set());
+	}
 
 	return (
 		<>
@@ -98,10 +120,38 @@ export function MobileNotificationsDrawer({
 
 				<Divider />
 
+				<Box
+					sx={{
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "space-between",
+						px: 1,
+						py: 0.5,
+					}}
+				>
+					<Button
+						size="small"
+						color="info"
+						onClick={selectAll}
+						sx={{ textTransform: "capitalize" }}
+					>
+						Select All
+					</Button>
+					<Button
+						size="small"
+						color="inherit"
+						onClick={markSelectedAsRead}
+						sx={{ textTransform: "capitalize", color: "text.primary" }}
+					>
+						Mark as Read
+					</Button>
+				</Box>
+
 				<Box sx={{ display: "flex", flexDirection: "column" }}>
 					{unread.map((notif) => (
 						<Box
 							key={notif.id}
+							onClick={() => toggleSelected(notif.id)}
 							sx={{
 								pl: 2,
 								pr: 1,
@@ -111,6 +161,8 @@ export function MobileNotificationsDrawer({
 								display: "flex",
 								alignItems: "center",
 								gap: 1.5,
+								cursor: "pointer",
+								"&:hover": { bgcolor: "action.hover" },
 							}}
 						>
 							<Badge
@@ -119,16 +171,32 @@ export function MobileNotificationsDrawer({
 								overlap="circular"
 								anchorOrigin={{ vertical: "top", horizontal: "left" }}
 							>
-								<Avatar
-									alt={notif.title || "Group icon"}
-									src={
-										notif.createdByAvatar ||
-										notif.groupIcon ||
-										"/icssc-logo.svg"
-									}
-									slotProps={{ img: { referrerPolicy: "no-referrer" } }}
-									sx={{ width: 48, height: 48 }}
-								/>
+								<Box sx={{ position: "relative", width: 48, height: 48 }}>
+									<Avatar
+										alt={notif.title || "Group icon"}
+										src={
+											notif.createdByAvatar ||
+											notif.groupIcon ||
+											"/icssc-logo.svg"
+										}
+										slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+										sx={{ width: 48, height: 48 }}
+									/>
+									{selectedIds.has(notif.id) && (
+										<CheckCircle
+											sx={{
+												position: "absolute",
+												top: "50%",
+												left: "50%",
+												transform: "translate(-50%, -50%)",
+												fontSize: 36,
+												color: "primary.main",
+												bgcolor: "background.paper",
+												borderRadius: "50%",
+											}}
+										/>
+									)}
+								</Box>
 							</Badge>
 							<Box sx={{ flex: 1, minWidth: 0 }}>
 								<Typography variant="subtitle2">{notif.title}</Typography>
@@ -138,7 +206,9 @@ export function MobileNotificationsDrawer({
 							</Box>
 							<IconButton
 								size="small"
-								onClick={() => {
+								onClick={(e) => {
+									e.stopPropagation();
+									readNotification(notif.id);
 									if (notif.type === "Meeting Invite") {
 										onClose();
 										router.push(notif.redirect ?? "");
@@ -149,12 +219,6 @@ export function MobileNotificationsDrawer({
 								}}
 							>
 								<ChevronRight fontSize="small" />
-							</IconButton>
-							<IconButton
-								size="small"
-								onClick={() => deleteNotification(notif.id)}
-							>
-								<Close fontSize="small" />
 							</IconButton>
 						</Box>
 					))}
@@ -173,6 +237,7 @@ export function MobileNotificationsDrawer({
 
 			{activeNotification && (
 				<AcceptGroupInvite
+					source="notification"
 					open={showGroupInvite}
 					notification={activeNotification}
 					onOpenChange={(open) => {
