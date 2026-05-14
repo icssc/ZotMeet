@@ -3,12 +3,14 @@
 import {
 	AccessTime,
 	CalendarMonth,
+	ChevronLeft,
 	ExitToApp,
 	LocationOn,
 	Settings,
 } from "@mui/icons-material";
 import { Button, IconButton, Paper, Typography } from "@mui/material";
 import { MoreVerticalIcon } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
@@ -85,6 +87,17 @@ export function AvailabilityHeader({
 	return (
 		<Paper variant="outlined" className="mt-10">
 			<div className="flex flex-col gap-4">
+				<div className="flex items-center sm:hidden">
+					<Button
+						component={Link}
+						href="/summary"
+						startIcon={<ChevronLeft />}
+						color="inherit"
+					>
+						Meetings
+					</Button>
+				</div>
+
 				<div className="flex w-full items-center">
 					<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
 						{meetingData.title}

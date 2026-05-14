@@ -10,7 +10,6 @@ import {
 	DialogContent,
 	DialogContentText,
 	DialogTitle,
-	Divider,
 	Drawer,
 	Typography,
 	useMediaQuery,
@@ -19,6 +18,10 @@ import {
 import { useRouter } from "next/navigation";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
+
+function DeleteLeaveActionIcon({ isOwner }: { isOwner: boolean }) {
+	return isOwner ? <DeleteForever /> : <ExitToApp />;
+}
 
 interface DeleteModalProps {
 	meetingData: SelectMeeting;
@@ -40,10 +43,11 @@ export const DeleteModal = ({
 	const router = useRouter();
 	const { showSuccess, showError } = useSnackbar();
 	const theme = useTheme();
-	const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+	const isMobile = useMediaQuery(theme.breakpoints.down("sm"), {
+		noSsr: true,
+	});
 
 	const actionLabel = isOwner ? "Delete Meeting" : "Leave Meeting";
-	const actionIcon = isOwner ? <DeleteForever /> : <ExitToApp />;
 	const confirmColor = isOwner ? "error" : "warning";
 
 	const bodyText = isOwner
@@ -76,7 +80,7 @@ export const DeleteModal = ({
 	const ConfirmContent = (
 		<>
 			<div className="mb-0.5 flex items-center gap-1">
-				{actionIcon}
+				<DeleteLeaveActionIcon isOwner={isOwner} />
 				<Typography variant="h6" className="font-semibold">
 					{actionLabel}
 				</Typography>
@@ -103,7 +107,7 @@ export const DeleteModal = ({
 				color={confirmColor}
 				onClick={handleConfirm}
 				disabled={isDeletionPending}
-				startIcon={actionIcon}
+				startIcon={<DeleteLeaveActionIcon isOwner={isOwner} />}
 			>
 				{actionLabel}
 			</Button>
@@ -143,7 +147,7 @@ export const DeleteModal = ({
 		>
 			<DialogTitle className="pb-4">
 				<div className="flex items-center gap-1">
-					{actionIcon}
+					<DeleteLeaveActionIcon isOwner={isOwner} />
 					{actionLabel}
 				</div>
 			</DialogTitle>
@@ -162,9 +166,9 @@ export const DeleteModal = ({
 				<Button
 					onClick={handleConfirm}
 					color={confirmColor}
-					variant="outlined"
+					variant="contained"
 					disabled={isDeletionPending}
-					startIcon={actionIcon}
+					startIcon={<DeleteLeaveActionIcon isOwner={isOwner} />}
 				>
 					{actionLabel}
 				</Button>

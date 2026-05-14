@@ -6,10 +6,7 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
-	useMediaQuery,
-	useTheme,
 } from "@mui/material";
-import { DeleteIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";

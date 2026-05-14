@@ -2,18 +2,51 @@
 
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { availabilities, type SelectMeeting } from "@/db/schema";
+import { availabilities, meetings, type SelectMeeting } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 
-export async function leaveMeeting(meetingData: SelectMeeting) {
+export type LeaveMeetingResult =
+	| { success: true; error?: undefined }
+	| { success: false; error: string };
+
+export async function leaveMeeting(
+	meetingData: SelectMeeting,
+): Promise<LeaveMeetingResult> {
 	const { user } = await getCurrentSession();
 
 	if (!user) {
-		return { error: "You must be logged in to leave a meeting." };
+		return {
+			success: false,
+			error: "You must be logged in to leave a meeting.",
+		};
 	}
 
-	if (meetingData.hostId === user.memberId) {
+	const [meeting] = await db
+		.select({
+			hostId: meetings.hostId,
+			archived: meetings.archived,
+		})
+		.from(meetings)
+		.where(eq(meetings.id, meetingData.id))
+		.limit(1);
+
+	if (!meeting) {
 		return {
+			success: false,
+			error: "Meeting not found.",
+		};
+	}
+
+	if (meeting.archived) {
+		return {
+			success: false,
+			error: "This meeting is no longer available.",
+		};
+	}
+
+	if (meeting.hostId === user.memberId) {
+		return {
+			success: false,
 			error:
 				"Meeting owners cannot leave their own meeting. Delete it instead.",
 		};
