@@ -202,13 +202,15 @@ export function MobileNotificationsDrawer({
 					<ActionButton size="small" color="info" onClick={selectAll}>
 						Select All
 					</ActionButton>
-					<MarkReadButton
-						size="small"
-						color="inherit"
-						onClick={markSelectedAsRead}
-					>
-						Mark as Read
-					</MarkReadButton>
+					{selectedIds.size > 0 && (
+						<MarkReadButton
+							size="small"
+							color="inherit"
+							onClick={markSelectedAsRead}
+						>
+							Mark as Read
+						</MarkReadButton>
+					)}
 				</ActionBar>
 
 				<Box>
