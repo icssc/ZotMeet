@@ -1,6 +1,7 @@
 "use client";
+
 import { archiveMeeting } from "@actions/meeting/archive/action";
-import { leaveMeeting } from "@actions/meeting/leave/action"; // add this server action for member leave
+import { leaveMeeting } from "@actions/meeting/leave/action";
 import { DeleteForever, ExitToApp } from "@mui/icons-material";
 import {
 	Button,
@@ -23,69 +24,52 @@ interface DeleteModalProps {
 	meetingData: SelectMeeting;
 	isOpen: boolean;
 	handleOpenChange: (open: boolean) => void;
-<<<<<<< HEAD
+	isOwner: boolean;
 	isDeletionPending: boolean;
 	onDeletionPendingChange: (pending: boolean) => void;
-=======
-	isOwner: boolean;
->>>>>>> df46f82a3 (feat: ✨ implementing delete meeting capabilities)
 }
 
-const DeleteModal = ({
+export const DeleteModal = ({
 	meetingData,
 	isOpen,
 	handleOpenChange,
-<<<<<<< HEAD
+	isOwner,
 	isDeletionPending,
 	onDeletionPendingChange,
-=======
-	isOwner,
->>>>>>> df46f82a3 (feat: ✨ implementing delete meeting capabilities)
 }: DeleteModalProps) => {
 	const router = useRouter();
 	const { showSuccess, showError } = useSnackbar();
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-<<<<<<< HEAD
-	const handleDeleteClick = async () => {
-		onDeletionPendingChange(true);
-		try {
-			const { success, error } = await archiveMeeting(meetingData);
-
-			if (success) {
-				showSuccess("Meeting deleted successfully!");
-				router.push("/summary");
-			} else {
-				showError(error ?? "Something went wrong.");
-			}
-		} finally {
-			onDeletionPendingChange(false);
-			handleOpenChange(false);
-=======
 	const actionLabel = isOwner ? "Delete Meeting" : "Leave Meeting";
 	const actionIcon = isOwner ? <DeleteForever /> : <ExitToApp />;
 	const confirmColor = isOwner ? "error" : "warning";
 
 	const bodyText = isOwner
-		? "If you delete this meeting, it'll be gone for good and those who have responded to it won't be able to view it."
-		: "You will be removed from this meeting and your availability responses will be cleared.";
+		? "This action is irreversible. All members will be removed from this meeting. "
+		: "You will be removed from this meeting and your availability will be cleared.";
 
 	const handleConfirm = async () => {
-		const { success, error } = isOwner
-			? await archiveMeeting(meetingData)
-			: await leaveMeeting(meetingData);
+		onDeletionPendingChange(true);
+		try {
+			const { success, error } = isOwner
+				? await archiveMeeting(meetingData)
+				: await leaveMeeting(meetingData);
 
-		if (success) {
-			showSuccess(
-				isOwner
-					? `You successfully deleted "${meetingData.title}".`
-					: `You left "${meetingData.title}".`,
-			);
-			router.push("/summary");
-		} else {
-			showError(error ?? "Something went wrong.");
->>>>>>> df46f82a3 (feat: ✨ implementing delete meeting capabilities)
+			if (success) {
+				showSuccess(
+					isOwner
+						? `You successfully deleted "${meetingData.title}".`
+						: `You left "${meetingData.title}".`,
+				);
+				router.push("/summary");
+				handleOpenChange(false);
+			} else {
+				showError(error ?? "Something went wrong.");
+			}
+		} finally {
+			onDeletionPendingChange(false);
 		}
 	};
 
@@ -109,6 +93,7 @@ const DeleteModal = ({
 				fullWidth={isMobile}
 				variant="outlined"
 				onClick={() => handleOpenChange(false)}
+				disabled={isDeletionPending}
 			>
 				Cancel
 			</Button>
@@ -117,6 +102,7 @@ const DeleteModal = ({
 				variant="contained"
 				color={confirmColor}
 				onClick={handleConfirm}
+				disabled={isDeletionPending}
 				startIcon={actionIcon}
 			>
 				{actionLabel}
@@ -129,18 +115,20 @@ const DeleteModal = ({
 			<Drawer
 				anchor="bottom"
 				open={isOpen}
-				onClose={() => handleOpenChange(false)}
+				onClose={() => {
+					if (!isDeletionPending) handleOpenChange(false);
+				}}
 				slotProps={{
 					paper: {
-						className: "rounded-t-2xl px-2 pt-2 pb-4",
+						className: "rounded-t-2xl px-2 pt-8 pb-4",
 					},
 				}}
 			>
-				<div className="mx-auto mb-2 h-1 w-9 rounded bg-divider" />
+				<div className="flex flex-col gap-3">
+					{ConfirmContent}
 
-				{ConfirmContent}
-				<Divider className="my-2" />
-				<div className="flex flex-col gap-1">{ActionButtons}</div>
+					<div className="flex flex-col gap-2">{ActionButtons}</div>
+				</div>
 			</Drawer>
 		);
 	}
@@ -148,31 +136,23 @@ const DeleteModal = ({
 	return (
 		<Dialog
 			open={isOpen}
-<<<<<<< HEAD
 			onClose={() => {
 				if (!isDeletionPending) handleOpenChange(false);
 			}}
-		>
-			<DialogTitle>Delete Meeting</DialogTitle>
-=======
-			onClose={() => handleOpenChange(false)}
-			maxWidth="xs"
 			fullWidth
 		>
-			<DialogTitle className="pb-0">
+			<DialogTitle className="pb-4">
 				<div className="flex items-center gap-1">
 					{actionIcon}
 					{actionLabel}
 				</div>
 			</DialogTitle>
->>>>>>> df46f82a3 (feat: ✨ implementing delete meeting capabilities)
 
-			<DialogContent>
-				<DialogContentText className="mt-1">{bodyText}</DialogContentText>
+			<DialogContent className="mt-1">
+				<DialogContentText>{bodyText}</DialogContentText>
 			</DialogContent>
 
-<<<<<<< HEAD
-			<DialogActions>
+			<DialogActions className="px-4 pb-5">
 				<Button
 					onClick={() => handleOpenChange(false)}
 					disabled={isDeletionPending}
@@ -180,26 +160,15 @@ const DeleteModal = ({
 					Cancel
 				</Button>
 				<Button
-					onClick={handleDeleteClick}
-					color="error"
-					disabled={isDeletionPending}
-				>
-					Delete
-=======
-			<DialogActions className="px-3 pb-2">
-				<Button onClick={() => handleOpenChange(false)}>Cancel</Button>
-				<Button
 					onClick={handleConfirm}
 					color={confirmColor}
-					variant="contained"
+					variant="outlined"
+					disabled={isDeletionPending}
 					startIcon={actionIcon}
 				>
 					{actionLabel}
->>>>>>> df46f82a3 (feat: ✨ implementing delete meeting capabilities)
 				</Button>
 			</DialogActions>
 		</Dialog>
 	);
 };
-
-export { DeleteModal };

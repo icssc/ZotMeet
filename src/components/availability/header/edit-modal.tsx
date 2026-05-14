@@ -1,4 +1,5 @@
 import { editMeeting } from "@actions/meeting/edit/action";
+import { DeleteForever } from "@mui/icons-material";
 import {
 	Button,
 	Dialog,
@@ -37,8 +38,6 @@ export const EditModal = ({
 	onDeleteRequest,
 }: EditModalProps) => {
 	const { showSuccess, showError } = useSnackbar();
-	const theme = useTheme();
-	const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
 	const userTimezone = useMemo(
 		() => Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -152,26 +151,14 @@ export const EditModal = ({
 			</DialogContent>
 
 			<DialogActions className="flex justify-between px-3 pb-2">
-				{isMobile ? (
-					<Button
-						onClick={onDeleteRequest}
-						variant="outlined"
-						color="error"
-						aria-label="Delete Meeting"
-						className="min-w-0 px-3"
-					>
-						<DeleteIcon size={25} />
-					</Button>
-				) : (
-					<Button
-						onClick={onDeleteRequest}
-						variant="outlined"
-						color="error"
-						startIcon={<DeleteIcon />}
-					>
-						Delete Meeting
-					</Button>
-				)}
+				<Button
+					onClick={onDeleteRequest}
+					variant="outlined"
+					color="error"
+					startIcon={<DeleteForever />}
+				>
+					Delete Meeting
+				</Button>
 
 				<div className="flex gap-2">
 					<Button
