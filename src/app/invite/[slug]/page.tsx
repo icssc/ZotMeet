@@ -1,8 +1,9 @@
-import { acceptInvite } from "@actions/group/invite/create/action";
-import { getExistingInvite } from "@data/groups/invite-queries";
 import { notFound, redirect } from "next/navigation";
+import { AcceptGroupInvite } from "@/components/groups/accept-group-invite";
 import { GroupMemberList } from "@/components/groups/group-member-list";
+import type { SelectGroupInvite } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { getExistingInvite } from "@/server/data/groups/invite-queries";
 import {
 	getExistingGroup,
 	getGroupMeetingsWithStats,
@@ -30,20 +31,59 @@ export default async function Page(props: PageProps) {
 		redirect("/auth/login/google");
 	}
 
-	// get group id from token
-	const group = await getExistingInvite(slug);
+	let invite: SelectGroupInvite;
+	try {
+		invite = await getExistingInvite(slug);
+	} catch {
+		notFound();
+	}
 
-	const groupExists = await getExistingGroup(group.groupId).catch(() => null);
-	if (!groupExists) {
+	if (invite.expiresAt && invite.expiresAt < new Date()) {
+		notFound();
+	}
+
+	const group = await getExistingGroup(invite.groupId).catch(() => null);
+	if (!group) {
 		notFound();
 	}
 
 	const userInGroup = await isUserInGroup({
 		userId: session.user.id,
-		groupId: slug,
+		groupId: invite.groupId,
 	});
+
 	if (!userInGroup) {
-		await acceptInvite(params.slug);
-		redirect(`/groups/${group.groupId}`);
+		return (
+			<AcceptGroupInvite
+				source="invite_link"
+				inviteToken={slug}
+				groupId={invite.groupId}
+				groupName={group.name}
+				groupIcon={group.icon}
+			/>
+		);
 	}
+
+	const [members, isAdmin] = await Promise.all([
+		getUsersInGroup(invite.groupId),
+		isGroupAdmin({ userId: session.user.id, groupId: invite.groupId }),
+	]);
+	const meetingsWithStats = await getGroupMeetingsWithStats(
+		invite.groupId,
+		members.length,
+		session.user.memberId,
+	);
+
+	return (
+		<div className="px-8 py-8">
+			<GroupMemberList
+				group={group}
+				members={members}
+				meetings={meetingsWithStats}
+				isAdmin={isAdmin}
+				currentUserId={session.user.id}
+				currentMemberId={session.user.memberId}
+			/>
+		</div>
+	);
 }

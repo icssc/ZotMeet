@@ -297,6 +297,7 @@ function Notifications({
 			</Menu>
 			{activeNotification && (
 				<AcceptGroupInvite
+					source="notification"
 					open={showGroupInvite}
 					notification={activeNotification}
 					onOpenChange={(open) => {
