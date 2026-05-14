@@ -1,6 +1,7 @@
 import {
 	CalendarToday,
 	Error as ErrorIcon,
+	Group,
 	KeyboardArrowRight,
 } from "@mui/icons-material";
 import { Avatar, AvatarGroup, Box, Typography } from "@mui/material";
@@ -21,6 +22,7 @@ interface GroupCardProps {
 	name: string;
 	members?: GroupMember[];
 	totalMeetings: number;
+	totalMembers: number;
 	creatorName: string;
 	creatorAvatar?: string | null;
 	actionRequired?: boolean;
@@ -34,6 +36,7 @@ export function GroupCard({
 	name,
 	members = [],
 	totalMeetings,
+	totalMembers,
 	creatorName,
 	creatorAvatar,
 	actionRequired = false,
@@ -161,9 +164,9 @@ export function GroupCard({
 									mt: "2px",
 								}}
 							>
-								<CalendarToday sx={{ fontSize: 12, color: "text.secondary" }} />
+								<Group sx={{ fontSize: 12, color: "text.secondary" }} />
 								<Typography variant="caption" sx={{ color: "text.secondary" }}>
-									{totalMeetings}
+									{totalMembers} Members
 								</Typography>
 							</Box>
 						) : null
@@ -233,44 +236,12 @@ export function GroupCard({
 							alignItems: "center",
 							gap: "5px",
 							flexShrink: 0,
+							mt: 3,
 						}}
 					>
-						<CalendarToday sx={{ fontSize: 12, color: "text.secondary" }} />
+						<Group sx={{ fontSize: 12, color: "text.secondary" }} />
 						<Typography variant="overline" sx={{ color: "text.secondary" }}>
-							{totalMeetings} {totalMeetings === 1 ? "Meeting" : "Meetings"}
-						</Typography>
-					</Box>
-					<Box
-						sx={{
-							display: "flex",
-							alignItems: "center",
-							gap: "10px",
-							minWidth: 0,
-						}}
-					>
-						<Avatar
-							src={creatorAvatar ?? undefined}
-							alt={creatorName}
-							sx={{
-								width: 18,
-								height: 18,
-								fontSize: "0.625rem",
-								bgcolor: "grey.400",
-								flexShrink: 0,
-							}}
-						>
-							{creatorName[0]}
-						</Avatar>
-						<Typography
-							variant="overline"
-							sx={{
-								color: "text.secondary",
-								overflow: "hidden",
-								textOverflow: "ellipsis",
-								whiteSpace: "nowrap",
-							}}
-						>
-							Owned by {creatorName}
+							{totalMembers} {totalMeetings === 1 ? "Member" : "Members"}
 						</Typography>
 					</Box>
 				</MuiCardActions>

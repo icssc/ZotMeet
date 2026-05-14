@@ -198,6 +198,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									name={group.name}
 									members={group.members}
 									totalMeetings={group.totalMeetings}
+									totalMembers={group.memberCount}
 									creatorName={group.creatorName}
 									creatorAvatar={group.creatorAvatar}
 									actionRequired={true}
@@ -263,6 +264,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									name={group.name}
 									members={group.members}
 									totalMeetings={group.totalMeetings}
+									totalMembers={group.memberCount}
 									creatorName={group.creatorName}
 									creatorAvatar={group.creatorAvatar}
 									actionRequired={group.needsAvailability}
