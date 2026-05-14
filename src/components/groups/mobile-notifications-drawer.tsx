@@ -10,6 +10,7 @@ import {
 	Divider,
 	Drawer,
 	IconButton,
+	styled,
 	Typography,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
@@ -33,6 +34,108 @@ function timeAgo(date: Date | null | undefined): string {
 	if (months < 12) return `${months}mo ago`;
 	return `${Math.floor(days / 365)}y ago`;
 }
+
+const StyledDrawer = styled(Drawer)({
+	"& .MuiDrawer-paper": {
+		borderTopLeftRadius: 16,
+		borderTopRightRadius: 16,
+		paddingLeft: 16,
+		paddingRight: 16,
+		paddingBottom: 24,
+	},
+});
+
+const CloseRow = styled(Box)({
+	display: "flex",
+	justifyContent: "flex-end",
+	paddingTop: 12,
+});
+
+const HeaderBox = styled(Box)(({ theme }) => ({
+	display: "flex",
+	alignItems: "center",
+	gap: theme.spacing(1.5),
+	padding: `0 ${theme.spacing(2)} ${theme.spacing(1.5)}`,
+}));
+
+const UnreadCount = styled(Box)(({ theme }) => ({
+	display: "flex",
+	alignItems: "center",
+	justifyContent: "center",
+	minWidth: 24,
+	height: 24,
+	backgroundColor: theme.palette.action.selected,
+	borderRadius: 100,
+	paddingLeft: theme.spacing(1),
+	paddingRight: theme.spacing(1),
+}));
+
+const ActionBar = styled(Box)(({ theme }) => ({
+	display: "flex",
+	alignItems: "center",
+	justifyContent: "space-between",
+	paddingLeft: theme.spacing(1),
+	paddingRight: theme.spacing(1),
+	paddingTop: theme.spacing(0.5),
+	paddingBottom: theme.spacing(0.5),
+}));
+
+const NotificationRow = styled(Box)(({ theme }) => ({
+	paddingLeft: theme.spacing(2),
+	paddingRight: theme.spacing(1),
+	paddingTop: theme.spacing(1.5),
+	paddingBottom: theme.spacing(1.5),
+	borderBottom: `1px solid ${theme.palette.divider}`,
+	display: "flex",
+	alignItems: "center",
+	gap: theme.spacing(1.5),
+	cursor: "pointer",
+	"&:hover": {
+		backgroundColor: theme.palette.action.hover,
+	},
+}));
+
+const AvatarWrapper = styled(Box)({
+	position: "relative",
+	width: 48,
+	height: 48,
+});
+
+const SelectedCheck = styled(CheckCircle)(({ theme }) => ({
+	position: "absolute",
+	top: "50%",
+	left: "50%",
+	transform: "translate(-50%, -50%)",
+	fontSize: 36,
+	color: theme.palette.primary.main,
+	backgroundColor: theme.palette.background.paper,
+	borderRadius: "50%",
+}));
+
+const TextBlock = styled(Box)({
+	flex: 1,
+	minWidth: 0,
+});
+
+const ActionButton = styled(Button)({
+	textTransform: "capitalize",
+});
+
+const MarkReadButton = styled(ActionButton)(({ theme }) => ({
+	color: theme.palette.text.primary,
+}));
+
+const NotifAvatar = styled(Avatar)({
+	width: 48,
+	height: 48,
+});
+
+const CaughtUpBox = styled(Box)(({ theme }) => ({
+	display: "flex",
+	justifyContent: "center",
+	paddingTop: theme.spacing(2),
+	paddingBottom: theme.spacing(2),
+}));
 
 type MobileNotificationsDrawerProps = {
 	open: boolean;
@@ -75,95 +178,44 @@ export function MobileNotificationsDrawer({
 
 	return (
 		<>
-			<Drawer
-				anchor="bottom"
-				open={open}
-				onClose={onClose}
-				PaperProps={{
-					sx: {
-						borderTopLeftRadius: 16,
-						borderTopRightRadius: 16,
-						px: 2,
-						pb: 3,
-					},
-				}}
-			>
-				<Box sx={{ display: "flex", justifyContent: "flex-end", pt: 1.5 }}>
+			<StyledDrawer anchor="bottom" open={open} onClose={onClose}>
+				<CloseRow>
 					<IconButton onClick={onClose} size="small">
 						<Close />
 					</IconButton>
-				</Box>
+				</CloseRow>
 
-				<Box sx={{ px: 2, pb: 1.5 }}>
-					<Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-						<Typography variant="h5" fontWeight={500}>
-							Notifications
+				<HeaderBox>
+					<Typography variant="h5" fontWeight={500}>
+						Notifications
+					</Typography>
+					<UnreadCount>
+						<Typography variant="caption" fontWeight={500}>
+							{unread.length}
 						</Typography>
-						<Box
-							sx={{
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "center",
-								minWidth: 24,
-								height: 24,
-								bgcolor: "action.selected",
-								borderRadius: "100px",
-								px: 1,
-							}}
-						>
-							<Typography variant="caption" fontWeight={500}>
-								{unread.length}
-							</Typography>
-						</Box>
-					</Box>
-				</Box>
+					</UnreadCount>
+				</HeaderBox>
 
 				<Divider />
 
-				<Box
-					sx={{
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "space-between",
-						px: 1,
-						py: 0.5,
-					}}
-				>
-					<Button
-						size="small"
-						color="info"
-						onClick={selectAll}
-						sx={{ textTransform: "capitalize" }}
-					>
+				<ActionBar>
+					<ActionButton size="small" color="info" onClick={selectAll}>
 						Select All
-					</Button>
-					<Button
+					</ActionButton>
+					<MarkReadButton
 						size="small"
 						color="inherit"
 						onClick={markSelectedAsRead}
-						sx={{ textTransform: "capitalize", color: "text.primary" }}
 					>
 						Mark as Read
-					</Button>
-				</Box>
+					</MarkReadButton>
+				</ActionBar>
 
-				<Box sx={{ display: "flex", flexDirection: "column" }}>
+				<Box>
 					{unread.map((notif) => (
-						<Box
+						<NotificationRow
 							key={notif.id}
 							onClick={() => toggleSelected(notif.id)}
-							sx={{
-								pl: 2,
-								pr: 1,
-								py: 1.5,
-								borderBottom: "1px solid",
-								borderColor: "divider",
-								display: "flex",
-								alignItems: "center",
-								gap: 1.5,
-								cursor: "pointer",
-								"&:hover": { bgcolor: "action.hover" },
-							}}
 						>
 							<Badge
 								variant="dot"
@@ -171,8 +223,8 @@ export function MobileNotificationsDrawer({
 								overlap="circular"
 								anchorOrigin={{ vertical: "top", horizontal: "left" }}
 							>
-								<Box sx={{ position: "relative", width: 48, height: 48 }}>
-									<Avatar
+								<AvatarWrapper>
+									<NotifAvatar
 										alt={notif.title || "Group icon"}
 										src={
 											notif.createdByAvatar ||
@@ -180,30 +232,16 @@ export function MobileNotificationsDrawer({
 											"/icssc-logo.svg"
 										}
 										slotProps={{ img: { referrerPolicy: "no-referrer" } }}
-										sx={{ width: 48, height: 48 }}
 									/>
-									{selectedIds.has(notif.id) && (
-										<CheckCircle
-											sx={{
-												position: "absolute",
-												top: "50%",
-												left: "50%",
-												transform: "translate(-50%, -50%)",
-												fontSize: 36,
-												color: "primary.main",
-												bgcolor: "background.paper",
-												borderRadius: "50%",
-											}}
-										/>
-									)}
-								</Box>
+									{selectedIds.has(notif.id) && <SelectedCheck />}
+								</AvatarWrapper>
 							</Badge>
-							<Box sx={{ flex: 1, minWidth: 0 }}>
+							<TextBlock>
 								<Typography variant="subtitle2">{notif.title}</Typography>
 								<Typography variant="caption" color="text.secondary">
 									{timeAgo(notif.createdAt)} • {notif.createdBy}
 								</Typography>
-							</Box>
+							</TextBlock>
 							<IconButton
 								size="small"
 								onClick={(e) => {
@@ -220,11 +258,11 @@ export function MobileNotificationsDrawer({
 							>
 								<ChevronRight fontSize="small" />
 							</IconButton>
-						</Box>
+						</NotificationRow>
 					))}
 				</Box>
 
-				<Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+				<CaughtUpBox>
 					<Typography
 						variant="caption"
 						color="text.secondary"
@@ -232,8 +270,8 @@ export function MobileNotificationsDrawer({
 					>
 						You&apos;re all caught up! 🎉
 					</Typography>
-				</Box>
-			</Drawer>
+				</CaughtUpBox>
+			</StyledDrawer>
 
 			{activeNotification && (
 				<AcceptGroupInvite
