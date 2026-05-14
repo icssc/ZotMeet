@@ -7,6 +7,7 @@ import {
 	getUserThemeModeFromDB,
 	markNotificationAsRead,
 	searchUsersByEmail,
+	updateNotificationPreferences,
 	updateUserThemeMode,
 } from "@/server/data/user/queries";
 export async function searchUsers(query: string) {
@@ -37,6 +38,18 @@ export async function saveThemePreference(
 	if (!user) return;
 	await updateUserThemeMode(user.id, themeMode);
 	revalidatePath("/", "layout");
+}
+
+export async function saveNotificationPreferences(prefs: {
+	meetingInvites: boolean;
+	groupInvites: boolean;
+	nudges: boolean;
+}) {
+	const { user } = await getCurrentSession();
+	if (!user?.memberId) return { success: false };
+	await updateNotificationPreferences(user.memberId, prefs);
+	revalidatePath("/profile");
+	return { success: true };
 }
 
 export async function getUserThemeMode() {

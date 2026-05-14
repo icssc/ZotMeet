@@ -2,7 +2,13 @@ import "server-only";
 
 import { and, desc, eq, ilike, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { groups, members, notifications, users } from "@/db/schema";
+import {
+	groups,
+	members,
+	notificationPreferences,
+	notifications,
+	users,
+} from "@/db/schema";
 import { sendEmail } from "@/lib/email/send-email";
 
 export async function getUserIdExists(id: string) {
@@ -168,6 +174,43 @@ export async function updateUserThemeMode(
 		.update(users)
 		.set({ themeMode })
 		.where(eq(users.id, userId))
+		.returning();
+}
+
+export async function getNotificationPreferences(memberId: string) {
+	const prefs = await db.query.notificationPreferences.findFirst({
+		where: eq(notificationPreferences.memberId, memberId),
+	});
+
+	return (
+		prefs ?? {
+			meetingInvites: true,
+			groupInvites: true,
+			nudges: true,
+		}
+	);
+}
+
+export async function updateNotificationPreferences(
+	memberId: string,
+	prefs: { meetingInvites: boolean; groupInvites: boolean; nudges: boolean },
+) {
+	const existing = await db.query.notificationPreferences.findFirst({
+		where: eq(notificationPreferences.memberId, memberId),
+		columns: { id: true },
+	});
+
+	if (existing) {
+		return await db
+			.update(notificationPreferences)
+			.set(prefs)
+			.where(eq(notificationPreferences.memberId, memberId))
+			.returning();
+	}
+
+	return await db
+		.insert(notificationPreferences)
+		.values({ memberId, ...prefs })
 		.returning();
 }
 
