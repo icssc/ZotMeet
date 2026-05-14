@@ -14,9 +14,14 @@ import {
 	DialogTitle,
 	Typography,
 } from "@mui/material";
+import type { AvatarProps } from "@mui/material/Avatar";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { NotificationItem } from "@/lib/auth/user";
+
+const AVATAR_IMG_SLOT_PROPS = {
+	img: { referrerPolicy: "no-referrer" as const },
+} satisfies NonNullable<AvatarProps["slotProps"]>;
 
 export type AcceptGroupInviteProps =
 	| {
@@ -33,10 +38,12 @@ export type AcceptGroupInviteProps =
 			groupIcon: string | null;
 	  };
 
+type PendingAction = "accept" | "decline" | null;
+
 const AcceptGroupInvite = (props: AcceptGroupInviteProps) => {
 	const router = useRouter();
 	const [linkOpen, setLinkOpen] = useState(true);
-	const [busy, setBusy] = useState(false);
+	const [pending, setPending] = useState<PendingAction>(null);
 	const [error, setError] = useState<string | null>(null);
 
 	const isLink = props.source === "invite_link";
@@ -48,15 +55,28 @@ const AcceptGroupInvite = (props: AcceptGroupInviteProps) => {
 		}
 	};
 
-	const dismissLink = () => {
-		setLinkOpen(false);
-		router.push("/groups");
+	const finalizeInviteLinkDecline = async () => {
+		if (props.source !== "invite_link") return;
+		setError(null);
+		setPending("decline");
+		try {
+			const result = await declineInvite(props.inviteToken);
+			if (!result.success) {
+				setError(result.message);
+				return;
+			}
+			setLinkOpen(false);
+			router.push("/groups");
+			router.refresh();
+		} finally {
+			setPending(null);
+		}
 	};
 
 	const handleDialogClose = () => {
-		if (busy) return;
+		if (pending) return;
 		if (isLink) {
-			dismissLink();
+			void finalizeInviteLinkDecline();
 		} else {
 			closeNotification();
 		}
@@ -84,7 +104,7 @@ const AcceptGroupInvite = (props: AcceptGroupInviteProps) => {
 
 	const handleAccept = async () => {
 		setError(null);
-		setBusy(true);
+		setPending("accept");
 		try {
 			const result = await acceptInvite(inviteToken);
 			if (!result.success) {
@@ -100,29 +120,30 @@ const AcceptGroupInvite = (props: AcceptGroupInviteProps) => {
 				router.refresh();
 			}
 		} finally {
-			setBusy(false);
+			setPending(null);
 		}
 	};
 
 	const handleDecline = async () => {
+		if (props.source === "invite_link") {
+			await finalizeInviteLinkDecline();
+			return;
+		}
+
 		setError(null);
-		setBusy(true);
+		setPending("decline");
 		try {
-			if (props.source === "notification") {
-				await deleteNotification(props.notification.id);
-				props.onOpenChange(false);
-			} else {
-				const result = await declineInvite(props.inviteToken);
+			if (inviteToken) {
+				const result = await declineInvite(inviteToken);
 				if (!result.success) {
 					setError(result.message);
 					return;
 				}
-				setLinkOpen(false);
-				router.push("/groups");
-				router.refresh();
 			}
+			await deleteNotification(props.notification.id);
+			props.onOpenChange(false);
 		} finally {
-			setBusy(false);
+			setPending(null);
 		}
 	};
 
@@ -133,8 +154,8 @@ const AcceptGroupInvite = (props: AcceptGroupInviteProps) => {
 				<div className="flex items-center gap-3">
 					<Avatar
 						src={avatarSrc}
-						alt=""
-						slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+						alt={primaryText}
+						slotProps={AVATAR_IMG_SLOT_PROPS}
 						sx={{ width: 50, height: 50 }}
 					/>
 					<div>
@@ -153,11 +174,19 @@ const AcceptGroupInvite = (props: AcceptGroupInviteProps) => {
 				) : null}
 			</DialogContent>
 			<DialogActions>
-				<Button onClick={handleDecline} disabled={busy} color="inherit">
-					Decline
+				<Button
+					onClick={handleDecline}
+					disabled={pending !== null}
+					color="inherit"
+				>
+					{pending === "decline" ? "Declining…" : "Decline"}
 				</Button>
-				<Button onClick={handleAccept} disabled={busy} variant="contained">
-					{busy ? "Accepting…" : "Accept"}
+				<Button
+					onClick={handleAccept}
+					disabled={pending !== null}
+					variant="contained"
+				>
+					{pending === "accept" ? "Accepting…" : "Accept"}
 				</Button>
 			</DialogActions>
 		</Dialog>
