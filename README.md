@@ -110,8 +110,8 @@ The script can be run multiple times — each run adds up to 20 more randomly ge
 **Important:** The script cannot access your session, so it has no way of knowing your user ID. After seeding, you must manually add yourself to the group:
 
 1. Open Drizzle Studio: `pnpm db:studio`
-2. Find your user ID in the `users` table.
-3. Insert a row into `usersInGroup` with your user ID and the seeded group's ID.
+2. Find your id (google) in the `users` table.
+3. Insert a row into `usersInGroup` with your ID and the seeded group's ID.
 
 ### Database Schema
 

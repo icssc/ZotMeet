@@ -262,6 +262,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 									key={group.id}
 									id={group.id}
 									name={group.name}
+									description={group.description}
 									members={group.members}
 									totalMeetings={group.totalMeetings}
 									totalMembers={group.memberCount}

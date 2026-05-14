@@ -21,6 +21,7 @@ interface GroupCardProps {
 	id: string;
 	name: string;
 	members?: GroupMember[];
+	description: string;
 	totalMeetings: number;
 	totalMembers: number;
 	creatorName: string;
@@ -35,6 +36,7 @@ export function GroupCard({
 	id,
 	name,
 	members = [],
+	description,
 	totalMeetings,
 	totalMembers,
 	creatorName,
@@ -177,33 +179,11 @@ export function GroupCard({
 						</Box>
 					}
 				/>
-
-				<AvatarGroup
-					max={AVATAR_GROUP_MAX}
-					sx={{
-						display: { xs: "none", sm: "flex" },
-						justifyContent: "flex-end",
-						mt: 1.5,
-						"& .MuiAvatar-root": {
-							width: 32,
-							height: 32,
-							fontSize: "0.75rem",
-							border: "2px solid",
-							borderColor: "background.paper",
-						},
-					}}
-				>
-					{members.map((m) => (
-						<Avatar
-							key={m.userId}
-							src={m.profilePicture ?? undefined}
-							alt={m.displayName}
-							sx={{ bgcolor: "grey.400" }}
-						>
-							{m.displayName[0]}
-						</Avatar>
-					))}
-				</AvatarGroup>
+				<div className="mt-2">
+					<Typography color="textSecondary" className="truncate">
+						{description}
+					</Typography>
+				</div>
 
 				{/* Mobile only: message for action required cards */}
 				{actionRequired && (
@@ -244,6 +224,33 @@ export function GroupCard({
 							{totalMembers} {totalMeetings === 1 ? "Member" : "Members"}
 						</Typography>
 					</Box>
+
+					<AvatarGroup
+						max={AVATAR_GROUP_MAX}
+						sx={{
+							display: { xs: "none", sm: "flex" },
+							justifyContent: "flex-end",
+							mt: 1.5,
+							"& .MuiAvatar-root": {
+								width: 32,
+								height: 32,
+								fontSize: "0.75rem",
+								border: "2px solid",
+								borderColor: "background.paper",
+							},
+						}}
+					>
+						{members.map((m) => (
+							<Avatar
+								key={m.userId}
+								src={m.profilePicture ?? undefined}
+								alt={m.displayName}
+								sx={{ bgcolor: "grey.400" }}
+							>
+								{m.displayName[0]}
+							</Avatar>
+						))}
+					</AvatarGroup>
 				</MuiCardActions>
 			</MuiCard>
 		</Link>
