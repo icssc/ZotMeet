@@ -14,7 +14,9 @@ type MuiAppShellProps = {
 
 /** Routes that render a custom bottom bar (e.g. mobile island) instead of MUI bottom nav. */
 function routeHidesBottomNav(pathname: string) {
-	return pathname.startsWith("/availability");
+	return (
+		pathname.startsWith("/availability") || pathname.startsWith("/studyrooms")
+	);
 }
 
 export function MuiAppShell({
