@@ -9,7 +9,7 @@ import {
 	Settings,
 } from "@mui/icons-material";
 import { Button, IconButton, Paper, Typography } from "@mui/material";
-import { DeleteIcon, MoreVerticalIcon } from "lucide-react";
+import { MoreVerticalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
@@ -164,15 +164,6 @@ export function AvailabilityHeader({
 										startIcon={<Settings sx={{ color: "primary.main" }} />}
 									>
 										<Typography>Edit Meeting</Typography>
-									</Button>
-
-									<Button
-										onClick={() => setIsDeleteModalOpen(true)}
-										variant="text"
-										size="medium"
-										startIcon={<DeleteIcon />}
-									>
-										<Typography>Delete Meeting</Typography>
 									</Button>
 								</div>
 							)}
