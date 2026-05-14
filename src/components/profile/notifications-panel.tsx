@@ -8,10 +8,9 @@ import Typography from "@mui/material/Typography";
 import { useState } from "react";
 
 const NOTIFICATION_OPTIONS = [
-	{ id: "meeting-invites", label: "Meeting invites", description: "Receive" },
-	{ id: "meeting-updates", label: "Meeting updates", description: "Receive" },
-	{ id: "group-activity", label: "Group activity", description: "Receive" },
-	{ id: "reminders", label: "Reminders", description: "Receive" },
+	{ id: "meeting-invites", label: "Meeting Invites", description: "Receive" },
+	{ id: "group-invites", label: "Group Invites", description: "Receive" },
+	{ id: "nudges", label: "Nudges", description: "Receive" },
 ];
 
 export function NotificationsPanel() {
@@ -24,7 +23,7 @@ export function NotificationsPanel() {
 	};
 
 	return (
-		<Stack spacing={3} sx={{ maxWidth: 720 }}>
+		<Stack spacing={3}>
 			<Typography variant="h5">Notifications</Typography>
 
 			<Stack spacing={0}>
