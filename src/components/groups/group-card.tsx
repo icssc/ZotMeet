@@ -21,7 +21,7 @@ interface GroupCardProps {
 	id: string;
 	name: string;
 	members?: GroupMember[];
-	description: string;
+	description?: string | null;
 	totalMeetings: number;
 	totalMembers: number;
 	creatorName: string;
@@ -221,7 +221,7 @@ export function GroupCard({
 					>
 						<Group sx={{ fontSize: 12, color: "text.secondary" }} />
 						<Typography variant="overline" sx={{ color: "text.secondary" }}>
-							{totalMembers} {totalMeetings === 1 ? "Member" : "Members"}
+							{totalMembers} {totalMembers === 1 ? "Member" : "Members"}
 						</Typography>
 					</Box>
 
