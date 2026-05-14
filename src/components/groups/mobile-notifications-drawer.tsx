@@ -262,15 +262,17 @@ export function MobileNotificationsDrawer({
 					))}
 				</Box>
 
-				<CaughtUpBox>
-					<Typography
-						variant="caption"
-						color="text.secondary"
-						fontStyle="italic"
-					>
-						You&apos;re all caught up! 🎉
-					</Typography>
-				</CaughtUpBox>
+				{unread.length === 0 && (
+					<CaughtUpBox>
+						<Typography
+							variant="caption"
+							color="text.secondary"
+							fontStyle="italic"
+						>
+							You&apos;re all caught up! 🎉
+						</Typography>
+					</CaughtUpBox>
+				)}
 			</StyledDrawer>
 
 			{activeNotification && (
