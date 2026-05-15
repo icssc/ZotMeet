@@ -31,6 +31,11 @@ export function MeetingNameField({
 				onChange={handleChange}
 				onBlur={() => onBlur(value)}
 				autoFocus
+				InputProps={{
+					sx: {
+						fontSize: { xs: "1.125rem", sm: "1.3rem" },
+					},
+				}}
 			/>
 		</div>
 	);
