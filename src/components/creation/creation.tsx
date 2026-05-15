@@ -1,7 +1,7 @@
 "use client";
 
 import { createMeeting } from "@actions/meeting/create/action";
-import { Button } from "@mui/material";
+import { Button, Paper } from "@mui/material";
 import {
 	parseAsArrayOf,
 	parseAsString,
@@ -183,7 +183,10 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	}, [selectedDays.length, startTime, endTime, hasMeetingName]);
 
 	return (
-		<div className="mx-auto my-6 flex w-full max-w-6xl flex-col gap-y-6 px-0 md:my-8 md:w-[calc(100%-2rem)] md:rounded-xl md:border md:border-gray-300 md:px-4">
+		<Paper
+			variant="outlined"
+			className="mx-auto my-6 flex w-full max-w-6xl flex-col gap-y-6 px-0 md:my-8 md:w-[calc(100%-2rem)] md:px-4"
+		>
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
 			<div className="w-full px-2 py-6 md:px-14">
 				<h2 className="hidden font-medium text-2xl sm:block md:text-3xl">
@@ -241,6 +244,6 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			</div>
 
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
-		</div>
+		</Paper>
 	);
 }
