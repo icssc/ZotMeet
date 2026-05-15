@@ -255,18 +255,9 @@ export const Meetings = ({
 					>
 						<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
 					</Box>
-					<IconButton
-						aria-label="Create a meeting"
-						component={Link}
-						href="/"
-						sx={{
-							bgcolor: "primary.main",
-							borderRadius: 1,
-							"&:hover": { bgcolor: "primary.dark" },
-						}}
-					>
-						<Add sx={{ color: "white" }} />
-					</IconButton>
+					<Button variant="contained" size="square" href="/">
+						<Add />
+					</Button>
 				</Box>
 			</Box>
 

@@ -6,6 +6,7 @@ import {
 	Box,
 	Button,
 	Divider,
+	IconButton,
 	Stack,
 	TextField,
 	Typography,
@@ -89,28 +90,22 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 		<Box sx={{ width: "100%" }}>
 			<Box
 				sx={{
-					mt: 3,
 					mb: 4,
 					display: { xs: "flex", sm: "none" },
 					alignItems: "center",
 				}}
 			>
-				<Typography variant="h3">Groups</Typography>
-				<Button
-					type="button"
-					variant="contained"
-					onClick={() => setCreateDialogOpen(true)}
-					sx={{
-						fontSize: "2rem",
-						padding: 0,
-						ml: "auto",
-						minWidth: 0,
-						width: "3rem",
-						height: "3rem",
-					}}
-				>
-					+
-				</Button>
+				<Typography variant="h4">Groups</Typography>
+				<div className="ml-auto">
+					<Button
+						type="button"
+						variant="contained"
+						size="square"
+						onClick={() => setCreateDialogOpen(true)}
+					>
+						<Add />
+					</Button>
+				</div>
 			</Box>
 
 			<Box sx={{ display: { xs: "block", sm: "flex" }, gap: { xs: 0, sm: 2 } }}>
