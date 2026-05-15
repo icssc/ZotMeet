@@ -1,8 +1,15 @@
 "use client";
 
 import { Add, ExpandMore, People } from "@mui/icons-material";
-import { Box, Button, Divider, Stack, Typography } from "@mui/material";
-import { Search } from "lucide-react";
+import SearchIcon from "@mui/icons-material/Search";
+import {
+	Box,
+	Button,
+	Divider,
+	Stack,
+	TextField,
+	Typography,
+} from "@mui/material";
 import { useMemo, useState } from "react";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { GroupCard } from "@/components/groups/group-card";
@@ -106,27 +113,29 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 				</Button>
 			</Box>
 
-			<Box sx={{ display: { xs: "block", sm: "flex" } }}>
-				<Box
-					sx={{
-						display: "flex",
-						alignItems: "center",
-						gap: 1.25,
-						borderRadius: 99,
-						bgcolor: "grey.100",
-						px: 2,
-						py: 1,
+			<Box sx={{ display: { xs: "block", sm: "flex" }, gap: { xs: 0, sm: 2 } }}>
+				<TextField
+					aria-label="Search meetings"
+					placeholder="Search"
+					size="small"
+					value={search}
+					onChange={(e) => setSearch(e.target.value)}
+					slotProps={{
+						input: {
+							startAdornment: (
+								<SearchIcon
+									sx={{ fontSize: 20, color: "text.disabled", mr: 0.5 }}
+								/>
+							),
+						},
 					}}
-				>
-					<Search size={20} color="var(--mui-palette-text-disabled, #9e9e9e)" />
-					<input
-						type="text"
-						placeholder="Search"
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
-						className="bg-transparent text-base outline-none placeholder:text-gray-400"
-					/>
-				</Box>
+					sx={{
+						width: { xs: "100%", sm: "auto" },
+						flex: { xs: "none", sm: "1 1 0%" },
+						minWidth: { sm: 0 },
+						maxWidth: { sm: 460 },
+					}}
+				/>
 
 				<Box
 					sx={{
@@ -156,8 +165,6 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					</Button>
 				</Box>
 			</Box>
-
-			<Divider sx={{ mt: 2 }} />
 
 			<Box sx={{ mt: 2, display: "flex", gap: 0.5 }}>
 				<FilterChip
