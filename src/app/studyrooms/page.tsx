@@ -104,7 +104,7 @@ export default function Page() {
 				</Typography>
 			)}
 			<div className="block sm:hidden">
-				<Typography variant="h3" className="p-4">
+				<Typography variant="h4" className="p-6">
 					Rooms
 				</Typography>
 			</div>
