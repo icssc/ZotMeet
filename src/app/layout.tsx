@@ -8,12 +8,13 @@ import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-regis
 import AppThemeProvider from "@/components/theme/theme-provider";
 import { SnackbarProvider } from "@/components/ui/snackbar-provider";
 import { figtree } from "@/fonts";
+import {
+	APP_DESCRIPTION,
+	APP_NAME,
+	APP_URL,
+	BRAND_ACCENT_HEX,
+} from "@/lib/pwa-config.mjs";
 import { cn } from "@/lib/utils";
-
-const APP_NAME = "ZotMeet";
-const APP_DESCRIPTION =
-	"ZotMeet is a simple, clean, and efficient meeting scheduling app for UCI students and groups.";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://zotmeet.com";
 
 export const metadata: Metadata = {
 	metadataBase: new URL(APP_URL),
@@ -40,7 +41,9 @@ export const metadata: Metadata = {
 		capable: true,
 		title: APP_NAME,
 		statusBarStyle: "black-translucent",
-		startupImage: ["/apple-touch-icon.png"],
+		// `startupImage` intentionally omitted: it expects per-device launch
+		// images, not the 180x180 touch icon. iOS will fall back to a blank
+		// screen tinted with the manifest's `background_color`.
 	},
 	formatDetection: {
 		telephone: false,
@@ -65,11 +68,10 @@ export const metadata: Metadata = {
 	},
 };
 
+// Aligned with the manifest's `theme_color` so the iOS standalone status bar
+// and the Android home-screen chrome show the same brand color.
 export const viewport: Viewport = {
-	themeColor: [
-		{ media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
-		{ media: "(prefers-color-scheme: dark)", color: "#0F172A" },
-	],
+	themeColor: BRAND_ACCENT_HEX,
 	width: "device-width",
 	initialScale: 1,
 	maximumScale: 5,

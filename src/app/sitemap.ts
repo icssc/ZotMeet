@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://zotmeet.com";
+import { APP_URL } from "@/lib/pwa-config.mjs";
 
 /**
  * Minimal public sitemap. Authenticated routes (groups, profile, summary) are

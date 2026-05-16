@@ -86,7 +86,12 @@
 				ZotMeet needs an internet connection to show your meetings and groups. Reconnect
 				and try again.
 			</p>
-			<button type="button" onclick="location.reload()">Try again</button>
+			<button id="retry" type="button">Try again</button>
 		</main>
+		<script>
+			document.getElementById("retry").addEventListener("click", () => {
+				location.reload();
+			});
+		</script>
 	</body>
 </html>

@@ -12,8 +12,12 @@ const nextConfig = {
 					{ key: "X-Frame-Options", value: "SAMEORIGIN" },
 					{ key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
 					{
+						// `preload` is intentionally omitted: adding it commits the
+						// domain to the HSTS preload list, which is effectively
+						// permanent. Submit at https://hstspreload.org and re-add
+						// the directive once the domain is verified.
 						key: "Strict-Transport-Security",
-						value: "max-age=63072000; includeSubDomains; preload",
+						value: "max-age=63072000; includeSubDomains",
 					},
 					{
 						key: "Permissions-Policy",

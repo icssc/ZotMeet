@@ -1,4 +1,12 @@
 import type { MetadataRoute } from "next";
+import {
+	ANY_ICON_SIZES,
+	APP_DESCRIPTION,
+	APP_NAME,
+	BRAND_ACCENT_HEX,
+	BRAND_BACKGROUND_HEX,
+	MASKABLE_ICON_SIZES,
+} from "@/lib/pwa-config.mjs";
 
 /**
  * Web App Manifest for ZotMeet.
@@ -17,12 +25,53 @@ import type { MetadataRoute } from "next";
  * Next.js automatically serves this at `/manifest.webmanifest`.
  */
 export default function manifest(): MetadataRoute.Manifest {
+	const anyIcons = ANY_ICON_SIZES.map((size) => ({
+		src: `/icons/icon-${size}.png`,
+		sizes: `${size}x${size}`,
+		type: "image/png",
+		purpose: "any" as const,
+	}));
+
+	const maskableIcons = MASKABLE_ICON_SIZES.map((size) => ({
+		src: `/icons/maskable-${size}.png`,
+		sizes: `${size}x${size}`,
+		type: "image/png",
+		purpose: "maskable" as const,
+	}));
+
+	const shortcutIcon = [
+		{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+	];
+
+	const shortcuts: MetadataRoute.Manifest["shortcuts"] = [
+		{
+			name: "Create a meeting",
+			short_name: "New meeting",
+			description: "Start scheduling a new meeting",
+			url: "/",
+			icons: shortcutIcon,
+		},
+		{
+			name: "My groups",
+			short_name: "Groups",
+			description: "View groups you belong to",
+			url: "/groups",
+			icons: shortcutIcon,
+		},
+		{
+			name: "Study rooms",
+			short_name: "Rooms",
+			description: "Browse available study rooms",
+			url: "/studyrooms",
+			icons: shortcutIcon,
+		},
+	];
+
 	return {
 		id: "/",
-		name: "ZotMeet",
-		short_name: "ZotMeet",
-		description:
-			"ZotMeet is a simple, clean, and efficient meeting scheduling app for UCI students and groups.",
+		name: APP_NAME,
+		short_name: APP_NAME,
+		description: APP_DESCRIPTION,
 		start_url: "/",
 		scope: "/",
 		display: "standalone",
@@ -30,111 +79,10 @@ export default function manifest(): MetadataRoute.Manifest {
 		orientation: "portrait",
 		lang: "en-US",
 		dir: "ltr",
-		background_color: "#FFFFFF",
-		theme_color: "#F26489",
+		background_color: BRAND_BACKGROUND_HEX,
+		theme_color: BRAND_ACCENT_HEX,
 		categories: ["productivity", "social", "education", "utilities"],
-		icons: [
-			{
-				src: "/icons/icon-72.png",
-				sizes: "72x72",
-				type: "image/png",
-				purpose: "any",
-			},
-			{
-				src: "/icons/icon-96.png",
-				sizes: "96x96",
-				type: "image/png",
-				purpose: "any",
-			},
-			{
-				src: "/icons/icon-128.png",
-				sizes: "128x128",
-				type: "image/png",
-				purpose: "any",
-			},
-			{
-				src: "/icons/icon-144.png",
-				sizes: "144x144",
-				type: "image/png",
-				purpose: "any",
-			},
-			{
-				src: "/icons/icon-152.png",
-				sizes: "152x152",
-				type: "image/png",
-				purpose: "any",
-			},
-			{
-				src: "/icons/icon-192.png",
-				sizes: "192x192",
-				type: "image/png",
-				purpose: "any",
-			},
-			{
-				src: "/icons/icon-256.png",
-				sizes: "256x256",
-				type: "image/png",
-				purpose: "any",
-			},
-			{
-				src: "/icons/icon-384.png",
-				sizes: "384x384",
-				type: "image/png",
-				purpose: "any",
-			},
-			{
-				src: "/icons/icon-512.png",
-				sizes: "512x512",
-				type: "image/png",
-				purpose: "any",
-			},
-			{
-				src: "/icons/icon-1024.png",
-				sizes: "1024x1024",
-				type: "image/png",
-				purpose: "any",
-			},
-			{
-				src: "/icons/maskable-192.png",
-				sizes: "192x192",
-				type: "image/png",
-				purpose: "maskable",
-			},
-			{
-				src: "/icons/maskable-512.png",
-				sizes: "512x512",
-				type: "image/png",
-				purpose: "maskable",
-			},
-		],
-		shortcuts: [
-			{
-				name: "Create a meeting",
-				short_name: "New meeting",
-				description: "Start scheduling a new meeting",
-				url: "/?source=pwa-shortcut",
-				icons: [
-					{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-				],
-			},
-			{
-				name: "My groups",
-				short_name: "Groups",
-				description: "View groups you belong to",
-				url: "/groups?source=pwa-shortcut",
-				icons: [
-					{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-				],
-			},
-			{
-				name: "Study rooms",
-				short_name: "Rooms",
-				description: "Browse available study rooms",
-				url: "/studyrooms?source=pwa-shortcut",
-				icons: [
-					{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-				],
-			},
-		],
+		icons: [...anyIcons, ...maskableIcons],
+		shortcuts,
 	};
 }
