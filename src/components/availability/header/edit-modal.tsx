@@ -6,7 +6,6 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
-	Typography,
 } from "@mui/material";
 import { useMemo, useState } from "react";
 import { Calendar } from "@/components/creation/calendar/calendar";
@@ -153,9 +152,10 @@ export const EditModal = ({
 					onClick={onDeleteRequest}
 					variant="outlined"
 					color="error"
-					startIcon={<DeleteForever />}
+					className="gap-2"
 				>
-					<Typogrpahy className="hidden sm:block">Delete Meeting</Typogrpahy>
+					<DeleteForever />
+					<span className="hidden lg:inline">Delete Meeting</span>
 				</Button>
 
 				<div className="flex gap-2">
