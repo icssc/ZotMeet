@@ -21,7 +21,7 @@ import {
 	groupSlotsIntoIntervals,
 	mergeDateAndTime,
 } from "@/lib/rooms/utils";
-import type { StudyRooms } from "@/lib/types/studyrooms";
+import { BUILDINGS, type StudyRooms } from "@/lib/types/studyrooms";
 import { cn } from "@/lib/utils";
 
 interface RoomsHeatmapProps {
@@ -31,12 +31,23 @@ interface RoomsHeatmapProps {
 	endTime: Date;
 }
 
-type SortKey =
-	| "default"
-	| "location"
-	| "capacity"
-	| "availability"
-	| "techEnhanced";
+type SortKey = "default" | "capacity" | "availability";
+
+const LOCATION_SORT_ORDER: readonly string[] = [
+	"Science Library",
+	...BUILDINGS.filter((b) => b !== "Science Library"),
+];
+
+function compareLocationSort(a: string, b: string): number {
+	const ia = LOCATION_SORT_ORDER.indexOf(a);
+	const ib = LOCATION_SORT_ORDER.indexOf(b);
+	const aKnown = ia >= 0;
+	const bKnown = ib >= 0;
+	if (aKnown && bKnown) return ia - ib;
+	if (aKnown && !bKnown) return -1;
+	if (!aKnown && bKnown) return 1;
+	return a.localeCompare(b);
+}
 
 export const RoomsHeatmap = ({
 	rooms,
@@ -70,14 +81,14 @@ export const RoomsHeatmap = ({
 	const sortedRooms = useMemo(() => {
 		const copy = rooms.filter((r) => r.name);
 		switch (sortBy) {
-			case "location":
-				return copy.sort((a, b) => a.location.localeCompare(b.location));
+			case "default":
+				return copy.sort((a, b) => compareLocationSort(a.location, b.location));
 			case "capacity":
 				return copy.sort((a, b) => {
 					if (!a.capacity && !b.capacity) return 0;
 					if (!a.capacity) return 1;
 					if (!b.capacity) return -1;
-					return a.capacity - b.capacity;
+					return b.capacity - a.capacity;
 				});
 			case "availability": {
 				const countAvailable = (room: (typeof rooms)[number]) =>
@@ -86,12 +97,10 @@ export const RoomsHeatmap = ({
 					).length;
 				return copy.sort((a, b) => countAvailable(b) - countAvailable(a));
 			}
-			case "techEnhanced":
-				return copy.sort(
-					(a, b) => Number(b.techEnhanced) - Number(a.techEnhanced),
-				);
-			default:
-				return copy;
+			default: {
+				const _exhaustive: never = sortBy;
+				return _exhaustive;
+			}
 		}
 	}, [rooms, sortBy, windowStart]);
 
@@ -111,10 +120,8 @@ export const RoomsHeatmap = ({
 						onChange={(e) => setSortBy(e.target.value as SortKey)}
 					>
 						<MenuItem value="default">Default</MenuItem>
-						<MenuItem value="location">Location</MenuItem>
 						<MenuItem value="capacity">Capacity</MenuItem>
 						<MenuItem value="availability">Availability</MenuItem>
-						<MenuItem value="techEnhanced">Tech Enhanced</MenuItem>
 					</Select>
 				</FormControl>
 			</Stack>
