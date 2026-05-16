@@ -154,7 +154,7 @@ export const EditModal = ({
 					color="error"
 					startIcon={<DeleteForever />}
 				>
-					Delete Meeting
+					<Typogrpahy className="hidden sm:block">Delete Meeting</Typogrpahy>
 				</Button>
 
 				<div className="flex gap-2">
