@@ -125,7 +125,7 @@ export const RoomsHeatmap = ({
 				<Table
 					size="small"
 					sx={{
-						borderCollapse: "collapse",
+						borderCollapse: "separate",
 						borderSpacing: 0,
 						fontSize: "0.7rem",
 					}}
@@ -135,10 +135,11 @@ export const RoomsHeatmap = ({
 							<TableCell
 								sx={(theme) => ({
 									position: "sticky",
-									left: 0,
-									zIndex: 2,
+									left: -3,
+									zIndex: 3,
 									minWidth: 200,
 									backgroundColor: theme.palette.background.paper,
+									boxShadow: `1px 0 0 ${theme.palette.divider}`,
 								})}
 							>
 								Rooms
@@ -168,8 +169,8 @@ export const RoomsHeatmap = ({
 										className="whitespace-nowrap"
 										sx={(theme) => ({
 											position: "sticky",
-											left: 0,
-											zIndex: 1,
+											left: -3,
+											zIndex: 2,
 											minWidth: 200,
 											backgroundColor: theme.palette.background.paper,
 										})}
