@@ -110,7 +110,7 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 
 			<Box sx={{ display: { xs: "block", sm: "flex" }, gap: { xs: 0, sm: 2 } }}>
 				<TextField
-					aria-label="Search meetings"
+					aria-label="Search groups"
 					placeholder="Search"
 					size="small"
 					value={search}
