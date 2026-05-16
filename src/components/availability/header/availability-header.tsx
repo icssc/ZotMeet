@@ -1,13 +1,15 @@
 "use client";
+
 import {
 	AccessTime,
 	CalendarMonth,
 	ChevronLeft,
+	ExitToApp,
 	LocationOn,
 	Settings,
 } from "@mui/icons-material";
 import { Button, IconButton, Paper, Typography } from "@mui/material";
-import { DeleteIcon, MoreVerticalIcon } from "lucide-react";
+import { MoreVerticalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { DeleteModal } from "@/components/availability/header/delete-modal";
@@ -43,9 +45,7 @@ export function AvailabilityHeader({
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
-
-	// const [isGuestDialogOpen, setIsGuestDialogOpen] = useState(false);
-	// const [guestName, setGuestName] = useState("");
+	const isMember = !!user && !isOwner;
 
 	useEffect(() => {
 		if (!inviteQueryInUrl) return;
@@ -71,7 +71,6 @@ export function AvailabilityHeader({
 	const formattedStartTime = formatTimeWithHoursAndMins(
 		convertTimeFromUTC(meetingData.fromTime, displayTimezone, referenceDate),
 	);
-
 	const formattedEndTime = formatTimeWithHoursAndMins(
 		convertTimeFromUTC(meetingData.toTime, displayTimezone, referenceDate),
 	);
@@ -92,8 +91,13 @@ export function AvailabilityHeader({
 				</Button>
 				<div className="ml-auto flex items-center">
 					{copyTitleButton}
-					{isOwner && (
-						<IconButton size="small" onClick={() => setIsEditModalOpen(true)}>
+					{(isOwner || isMember) && (
+						<IconButton
+							size="small"
+							onClick={() =>
+								isOwner ? setIsEditModalOpen(true) : setIsDeleteModalOpen(true)
+							}
+						>
 							<MoreVerticalIcon />
 						</IconButton>
 					)}
@@ -136,6 +140,20 @@ export function AvailabilityHeader({
 								</div>
 							)}
 
+							{isMember && (
+								<div className="-ml-2 hidden items-center gap-x-1 sm:flex">
+									<Button
+										onClick={() => setIsDeleteModalOpen(true)}
+										variant="text"
+										size="medium"
+										color="warning"
+										startIcon={<ExitToApp />}
+									>
+										<Typography>Leave Meeting</Typography>
+									</Button>
+								</div>
+							)}
+
 							{isOwner && (
 								<div className="-ml-2 hidden items-center gap-x-1 sm:flex">
 									<Button
@@ -147,15 +165,6 @@ export function AvailabilityHeader({
 									>
 										<Typography>Edit Meeting</Typography>
 									</Button>
-
-									<Button
-										onClick={() => setIsDeleteModalOpen(true)}
-										variant="text"
-										size="medium"
-										startIcon={<DeleteIcon />}
-									>
-										<Typography>Delete Meeting</Typography>
-									</Button>
 								</div>
 							)}
 						</div>
@@ -165,12 +174,17 @@ export function AvailabilityHeader({
 						meetingData={meetingData}
 						isOpen={isEditModalOpen}
 						handleOpenChange={setIsEditModalOpen}
+						onDeleteRequest={() => {
+							setIsEditModalOpen(false);
+							setIsDeleteModalOpen(true);
+						}}
 					/>
 
 					<DeleteModal
 						meetingData={meetingData}
 						isOpen={isDeleteModalOpen}
 						handleOpenChange={setIsDeleteModalOpen}
+						isOwner={isOwner}
 						isDeletionPending={isMeetingDeletionPending}
 						onDeletionPendingChange={onMeetingDeletionPendingChange}
 					/>

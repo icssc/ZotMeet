@@ -1,4 +1,8 @@
+"use client";
+
 import { archiveMeeting } from "@actions/meeting/archive/action";
+import { leaveMeeting } from "@actions/meeting/leave/action";
+import { DeleteForever, ExitToApp } from "@mui/icons-material";
 import {
 	Button,
 	Dialog,
@@ -6,45 +10,132 @@ import {
 	DialogContent,
 	DialogContentText,
 	DialogTitle,
+	Drawer,
+	Typography,
+	useMediaQuery,
+	useTheme,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 
+function DeleteLeaveActionIcon({ isOwner }: { isOwner: boolean }) {
+	return isOwner ? <DeleteForever /> : <ExitToApp />;
+}
+
 interface DeleteModalProps {
 	meetingData: SelectMeeting;
 	isOpen: boolean;
 	handleOpenChange: (open: boolean) => void;
+	isOwner: boolean;
 	isDeletionPending: boolean;
 	onDeletionPendingChange: (pending: boolean) => void;
 }
 
-const DeleteModal = ({
+export const DeleteModal = ({
 	meetingData,
 	isOpen,
 	handleOpenChange,
+	isOwner,
 	isDeletionPending,
 	onDeletionPendingChange,
 }: DeleteModalProps) => {
 	const router = useRouter();
 	const { showSuccess, showError } = useSnackbar();
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("sm"), {
+		noSsr: true,
+	});
 
-	const handleDeleteClick = async () => {
+	const actionLabel = isOwner ? "Delete Meeting" : "Leave Meeting";
+	const confirmColor = isOwner ? "error" : "warning";
+
+	const bodyText = isOwner
+		? "This action is irreversible. All members will be removed from this meeting. "
+		: "You will be removed from this meeting and your availability will be cleared.";
+
+	const handleConfirm = async () => {
 		onDeletionPendingChange(true);
 		try {
-			const { success, error } = await archiveMeeting(meetingData);
+			const { success, error } = isOwner
+				? await archiveMeeting(meetingData)
+				: await leaveMeeting(meetingData);
 
 			if (success) {
-				showSuccess("Meeting deleted successfully!");
+				showSuccess(
+					isOwner
+						? `You successfully deleted "${meetingData.title}".`
+						: `You left "${meetingData.title}".`,
+				);
 				router.push("/summary");
+				handleOpenChange(false);
 			} else {
 				showError(error ?? "Something went wrong.");
 			}
 		} finally {
 			onDeletionPendingChange(false);
-			handleOpenChange(false);
 		}
 	};
+
+	const ConfirmContent = (
+		<>
+			<div className="mb-0.5 flex items-center gap-1">
+				<DeleteLeaveActionIcon isOwner={isOwner} />
+				<Typography variant="h6" className="font-semibold">
+					{actionLabel}
+				</Typography>
+			</div>
+			<Typography variant="body2" color="text.secondary" className="mt-1">
+				{bodyText}
+			</Typography>
+		</>
+	);
+
+	const ActionButtons = (
+		<>
+			<Button
+				fullWidth={isMobile}
+				variant="outlined"
+				onClick={() => handleOpenChange(false)}
+				disabled={isDeletionPending}
+			>
+				Cancel
+			</Button>
+			<Button
+				fullWidth={isMobile}
+				variant="contained"
+				color={confirmColor}
+				onClick={handleConfirm}
+				disabled={isDeletionPending}
+				startIcon={<DeleteLeaveActionIcon isOwner={isOwner} />}
+			>
+				{actionLabel}
+			</Button>
+		</>
+	);
+
+	if (isMobile) {
+		return (
+			<Drawer
+				anchor="bottom"
+				open={isOpen}
+				onClose={() => {
+					if (!isDeletionPending) handleOpenChange(false);
+				}}
+				slotProps={{
+					paper: {
+						className: "rounded-t-2xl px-2 pt-8 pb-4",
+					},
+				}}
+			>
+				<div className="flex flex-col gap-3">
+					{ConfirmContent}
+
+					<div className="flex flex-col gap-2">{ActionButtons}</div>
+				</div>
+			</Drawer>
+		);
+	}
 
 	return (
 		<Dialog
@@ -52,17 +143,20 @@ const DeleteModal = ({
 			onClose={() => {
 				if (!isDeletionPending) handleOpenChange(false);
 			}}
+			fullWidth
 		>
-			<DialogTitle>Delete Meeting</DialogTitle>
+			<DialogTitle className="pb-4">
+				<div className="flex items-center gap-1">
+					<DeleteLeaveActionIcon isOwner={isOwner} />
+					{actionLabel}
+				</div>
+			</DialogTitle>
 
-			<DialogContent>
-				<DialogContentText>
-					Are you sure you want to delete this meeting? This action cannot be
-					undone.
-				</DialogContentText>
+			<DialogContent className="mt-1">
+				<DialogContentText>{bodyText}</DialogContentText>
 			</DialogContent>
 
-			<DialogActions>
+			<DialogActions className="px-4 pb-5">
 				<Button
 					onClick={() => handleOpenChange(false)}
 					disabled={isDeletionPending}
@@ -70,15 +164,15 @@ const DeleteModal = ({
 					Cancel
 				</Button>
 				<Button
-					onClick={handleDeleteClick}
-					color="error"
+					onClick={handleConfirm}
+					color={confirmColor}
+					variant="contained"
 					disabled={isDeletionPending}
+					startIcon={<DeleteLeaveActionIcon isOwner={isOwner} />}
 				>
-					Delete
+					{actionLabel}
 				</Button>
 			</DialogActions>
 		</Dialog>
 	);
 };
-
-export { DeleteModal };

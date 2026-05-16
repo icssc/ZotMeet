@@ -1,4 +1,5 @@
 import { editMeeting } from "@actions/meeting/edit/action";
+import { DeleteForever } from "@mui/icons-material";
 import {
 	Button,
 	Dialog,
@@ -24,13 +25,17 @@ interface EditModalProps {
 	meetingData: SelectMeeting;
 	isOpen: boolean;
 	handleOpenChange: (open: boolean) => void;
+	onDeleteRequest: () => void;
 }
 
 export const EditModal = ({
 	meetingData,
 	isOpen,
 	handleOpenChange,
+	onDeleteRequest,
 }: EditModalProps) => {
+	const { showSuccess, showError } = useSnackbar();
+
 	const userTimezone = useMemo(
 		() => Intl.DateTimeFormat().resolvedOptions().timeZone,
 		[],
@@ -103,8 +108,6 @@ export const EditModal = ({
 		handleOpenChange(false);
 	};
 
-	const { showSuccess, showError } = useSnackbar();
-
 	const hasValidInputs = useMemo(() => {
 		return (
 			selectedDays.length > 0 &&
@@ -123,21 +126,18 @@ export const EditModal = ({
 			fullWidth
 		>
 			<DialogTitle>Edit Meeting</DialogTitle>
-
 			<DialogContent>
 				<div className="flex flex-col space-y-6 pt-2">
 					<MeetingNameField
 						initialValue={meetingData.title}
 						onBlur={setMeetingName}
 					/>
-
 					<MeetingTimeField
 						startTime={startTime}
 						setStartTime={setStartTime}
 						endTime={endTime}
 						setEndTime={setEndTime}
 					/>
-
 					<Calendar
 						selectedDays={selectedDays}
 						setSelectedDays={setSelectedDays}
@@ -147,21 +147,33 @@ export const EditModal = ({
 				</div>
 			</DialogContent>
 
-			<DialogActions>
+			<DialogActions className="flex justify-between px-3 pb-2">
 				<Button
+					onClick={onDeleteRequest}
 					variant="outlined"
-					color="inherit"
-					onClick={() => handleOpenChange(false)}
+					color="error"
+					className="gap-2"
 				>
-					Cancel
+					<DeleteForever />
+					<span className="hidden lg:inline">Delete Meeting</span>
 				</Button>
-				<Button
-					onClick={handleEditClick}
-					disabled={!hasValidInputs}
-					variant="contained"
-				>
-					Save
-				</Button>
+
+				<div className="flex gap-2">
+					<Button
+						variant="outlined"
+						color="inherit"
+						onClick={() => handleOpenChange(false)}
+					>
+						Cancel
+					</Button>
+					<Button
+						onClick={handleEditClick}
+						disabled={!hasValidInputs}
+						variant="contained"
+					>
+						Save
+					</Button>
+				</div>
 			</DialogActions>
 		</Dialog>
 	);
