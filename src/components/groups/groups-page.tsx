@@ -1,6 +1,6 @@
 "use client";
 
-import { Add, ExpandMore, People, Notifications } from "@mui/icons-material";
+import { Add, ExpandMore, Notifications, People } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
 import {
 	Badge,
@@ -103,20 +103,20 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 				}}
 			>
 				<Typography variant="h3">Groups</Typography>
-				<Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
-					<IconButton
-						onClick={() => setNotificationsOpen(true)}
-						sx={{
-							border: "1px solid",
-							borderColor: "divider",
-							borderRadius: 1,
-							p: 1,
-						}}
-					>
-						<Badge badgeContent={unreadCount} color="primary">
+				<Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2 }}>
+					<Badge badgeContent={unreadCount} color="primary">
+						<IconButton
+							onClick={() => setNotificationsOpen(true)}
+							sx={{
+								border: "1px solid",
+								borderColor: "divider",
+								borderRadius: 1,
+								p: 1,
+							}}
+						>
 							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
-						</Badge>
-					</IconButton>
+						</IconButton>
+					</Badge>
 					<IconButton
 						onClick={() => setCreateDialogOpen(true)}
 						sx={{
@@ -128,18 +128,13 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 						<Add sx={{ color: "common.white" }} />
 					</IconButton>
 				</Box>
-				<Typography variant="h4">Groups</Typography>
-				<div className="ml-auto">
-					<Button
-						type="button"
-						variant="contained"
-						size="square"
-						onClick={() => setCreateDialogOpen(true)}
-					>
-						<Add />
-					</Button>
-				</div>
 			</Box>
+
+			<MobileNotificationsDrawer
+				open={notificationsOpen}
+				onClose={() => setNotificationsOpen(false)}
+				notifications={notifications}
+			/>
 
 			<Box sx={{ display: { xs: "block", sm: "flex" }, gap: { xs: 0, sm: 2 } }}>
 				<TextField

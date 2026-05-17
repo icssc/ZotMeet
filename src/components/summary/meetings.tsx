@@ -255,18 +255,20 @@ export const Meetings = ({
 				}}
 			>
 				<Typography variant="h4">Meetings</Typography>
-				<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-					<IconButton
-						onClick={() => setNotificationsOpen(true)}
-						sx={{
-							border: "1px solid",
-							borderColor: "divider",
-							borderRadius: 1,
-							p: 1,
-						}}
-					>
-						<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
-					</IconButton>
+				<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+					<Badge badgeContent={unreadCount} color="primary">
+						<IconButton
+							onClick={() => setNotificationsOpen(true)}
+							sx={{
+								border: "1px solid",
+								borderColor: "divider",
+								borderRadius: 1,
+								p: 1,
+							}}
+						>
+							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
+						</IconButton>
+					</Badge>
 					<IconButton
 						aria-label="Create a meeting"
 						component={Link}
