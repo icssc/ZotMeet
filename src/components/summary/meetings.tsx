@@ -51,7 +51,14 @@ const toCard = (
 
 	const isOwner = meeting.hostId === userId;
 
-	return <MeetingCard key={meeting.id} {...cardProps} isOwner={isOwner} />;
+	return (
+		<MeetingCard
+			key={meeting.id}
+			meeting={meeting}
+			{...cardProps}
+			isOwner={isOwner}
+		/>
+	);
 };
 
 const MeetingSection = ({

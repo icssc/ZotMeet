@@ -1,5 +1,7 @@
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import DateRangeIcon from "@mui/icons-material/DateRange";
+import DeleteForever from "@mui/icons-material/DeleteForever";
+import ExitToApp from "@mui/icons-material/ExitToApp";
 import FmdGoodIcon from "@mui/icons-material/FmdGood";
 import GroupIcon from "@mui/icons-material/Group";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -12,14 +14,18 @@ import {
 	CardContent,
 	Chip,
 	IconButton,
+	ListItemIcon,
 	Menu,
 	MenuItem,
 	Typography,
 } from "@mui/material";
 import Link from "next/link";
 import { type ElementType, useState } from "react";
+import { DeleteModal } from "@/components/availability/header/delete-modal";
+import type { SelectMeeting } from "@/db/schema";
 
 interface MeetingCardProps {
+	meeting: SelectMeeting;
 	meetingName: string;
 	meetingOrganizer: string;
 	dateStart: string;
@@ -60,6 +66,7 @@ const MetaItem = ({
 );
 
 const MeetingCard = ({
+	meeting,
 	meetingName,
 	meetingOrganizer,
 	dateStart,
@@ -79,7 +86,14 @@ const MeetingCard = ({
 			: dateStart;
 
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [isDeletionPending, setIsDeletionPending] = useState(false);
 	const open = Boolean(anchorEl);
+
+	const handleOpenDeleteModal = () => {
+		setAnchorEl(null);
+		setIsDeleteModalOpen(true);
+	};
 
 	return (
 		<Card
@@ -136,15 +150,34 @@ const MeetingCard = ({
 							paper: {
 								style: {
 									maxHeight: 48 * 4.5,
-									width: "20ch",
+									minWidth: 180,
 								},
 							},
 						}}
 					>
-						<MenuItem onClick={() => setAnchorEl(null)}>
-							{isOwner ? "Delete Meeting" : "Leave Meeting"}{" "}
+						<MenuItem
+							onClick={handleOpenDeleteModal}
+							sx={{ color: isOwner ? "error.main" : "warning.main" }}
+						>
+							<ListItemIcon sx={{ color: "inherit", minWidth: 36 }}>
+								{isOwner ? (
+									<DeleteForever fontSize="small" />
+								) : (
+									<ExitToApp fontSize="small" />
+								)}
+							</ListItemIcon>
+							{isOwner ? "Delete Meeting" : "Leave Meeting"}
 						</MenuItem>
 					</Menu>
+
+					<DeleteModal
+						meetingData={meeting}
+						isOpen={isDeleteModalOpen}
+						handleOpenChange={setIsDeleteModalOpen}
+						isOwner={isOwner}
+						isDeletionPending={isDeletionPending}
+						onDeletionPendingChange={setIsDeletionPending}
+					/>
 				</Box>
 
 				{scheduled && scheduledLabel ? (
