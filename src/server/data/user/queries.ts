@@ -2,7 +2,13 @@ import "server-only";
 
 import { and, desc, eq, ilike, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { groups, members, notifications, users } from "@/db/schema";
+import {
+	groups,
+	members,
+	notificationPreferences,
+	notifications,
+	users,
+} from "@/db/schema";
 import { sendEmail } from "@/lib/email/send-email";
 
 export async function getUserIdExists(id: string) {
@@ -88,6 +94,17 @@ type CreateNotificationOptions = {
 	email?: NotificationEmail;
 };
 
+type NotificationPrefKey = "meetingInvites" | "groupInvites" | "nudges";
+
+const NOTIFICATION_TYPE_TO_PREF_KEY: Record<
+	string,
+	NotificationPrefKey | undefined
+> = {
+	"Meeting Invite": "meetingInvites",
+	"Group Invite": "groupInvites",
+	Nudge: "nudges",
+};
+
 export async function createNewNotification(
 	userIds: string[],
 	title: string = "New Notification",
@@ -108,10 +125,36 @@ export async function createNewNotification(
 		.from(users)
 		.where(inArray(users.id, userIds));
 
+	const prefKey = NOTIFICATION_TYPE_TO_PREF_KEY[type];
+	let allowedRecipients = recipientRows;
+
+	if (prefKey) {
+		const memberIds = recipientRows.map((r) => r.memberId);
+		const prefs = await db
+			.select({
+				memberId: notificationPreferences.memberId,
+				meetingInvites: notificationPreferences.meetingInvites,
+				groupInvites: notificationPreferences.groupInvites,
+				nudges: notificationPreferences.nudges,
+			})
+			.from(notificationPreferences)
+			.where(inArray(notificationPreferences.memberId, memberIds));
+
+		const disabledMemberIds = new Set(
+			prefs.filter((p) => p[prefKey] === false).map((p) => p.memberId),
+		);
+
+		allowedRecipients = recipientRows.filter(
+			(r) => !disabledMemberIds.has(r.memberId),
+		);
+	}
+
+	if (allowedRecipients.length === 0) return;
+
 	const notificationsCreated = await db
 		.insert(notifications)
 		.values(
-			recipientRows.map(({ memberId }) => ({
+			allowedRecipients.map(({ memberId }) => ({
 				memberId,
 				title,
 				message,
@@ -126,7 +169,7 @@ export async function createNewNotification(
 	if (options?.email) {
 		const payload = options.email;
 		const results = await Promise.allSettled(
-			recipientRows.map((recipient) =>
+			allowedRecipients.map((recipient) =>
 				sendEmail({
 					to: recipient.email,
 					...payload,
@@ -168,6 +211,34 @@ export async function updateUserThemeMode(
 		.update(users)
 		.set({ themeMode })
 		.where(eq(users.id, userId))
+		.returning();
+}
+
+export async function getNotificationPreferences(memberId: string) {
+	const prefs = await db.query.notificationPreferences.findFirst({
+		where: eq(notificationPreferences.memberId, memberId),
+	});
+
+	return (
+		prefs ?? {
+			meetingInvites: true,
+			groupInvites: true,
+			nudges: true,
+		}
+	);
+}
+
+export async function updateNotificationPreferences(
+	memberId: string,
+	prefs: { meetingInvites: boolean; groupInvites: boolean; nudges: boolean },
+) {
+	return await db
+		.insert(notificationPreferences)
+		.values({ memberId, ...prefs })
+		.onConflictDoUpdate({
+			target: notificationPreferences.memberId,
+			set: prefs,
+		})
 		.returning();
 }
 
