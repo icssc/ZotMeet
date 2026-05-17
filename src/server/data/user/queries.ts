@@ -232,22 +232,13 @@ export async function updateNotificationPreferences(
 	memberId: string,
 	prefs: { meetingInvites: boolean; groupInvites: boolean; nudges: boolean },
 ) {
-	const existing = await db.query.notificationPreferences.findFirst({
-		where: eq(notificationPreferences.memberId, memberId),
-		columns: { id: true },
-	});
-
-	if (existing) {
-		return await db
-			.update(notificationPreferences)
-			.set(prefs)
-			.where(eq(notificationPreferences.memberId, memberId))
-			.returning();
-	}
-
 	return await db
 		.insert(notificationPreferences)
 		.values({ memberId, ...prefs })
+		.onConflictDoUpdate({
+			target: notificationPreferences.memberId,
+			set: prefs,
+		})
 		.returning();
 }
 
