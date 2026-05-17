@@ -74,7 +74,6 @@ export const GroupAvailabilityBlock = memo(
 					: undefined,
 			[onHoverCell, dateIndex, blockIndex],
 		);
-
 		return (
 			<button
 				type="button"
@@ -126,61 +125,18 @@ export const GroupAvailabilityBlock = memo(
 						)}
 					/>
 				)}
-				{isScheduled && (
-					<svg
+				{isScheduled && isScheduledTopEdge && (
+					<div
 						aria-hidden="true"
-						className="pointer-events-none absolute inset-0"
-						width="100%"
-						height="100%"
-						overflow="visible"
-					>
-						<line
-							x1="1"
-							y1="0"
-							x2="1"
-							y2="100%"
-							stroke={dashColor}
-							strokeWidth="2"
-							strokeDasharray="12 6"
-						/>
-						<line
-							x1="calc(100% - 1px)"
-							y1="0"
-							x2="calc(100% - 1px)"
-							y2="100%"
-							stroke={dashColor}
-							strokeWidth="2"
-							strokeDasharray="12 6"
-						/>
-						{isScheduledTopEdge && (
-							<line
-								x1="0"
-								y1="1"
-								x2="100%"
-								y2="1"
-								stroke={dashColor}
-								strokeWidth="2"
-								strokeDasharray="12 6"
-							/>
-						)}
-						{isScheduledBottomEdge && (
-							<line
-								x1="0"
-								y1="calc(100% - 1px)"
-								x2="100%"
-								y2="calc(100% - 1px)"
-								stroke={dashColor}
-								strokeWidth="2"
-								strokeDasharray="12 6"
-							/>
-						)}
-					</svg>
+						className="absolute inset-0 w-[87%] rounded-r-xl bg-[#1F2A44] shadow-2xl shadow-inner"
+						style={{ height: `${scheduledBlockCount * 100}%` }}
+					/>
 				)}
 				{isScheduledTopEdge &&
 					(scheduledMeetingTitle || scheduledTimeRange) && (
 						<div
 							aria-hidden="true"
-							className="pointer-events-none absolute inset-x-0 top-0 z-[10] flex flex-col justify-between overflow-hidden p-1.5"
+							className="pointer-events-none absolute inset-x-0 top-0 z-[10] flex w-[87%] flex-col overflow-hidden p-1.5"
 							style={{ height: `calc(${scheduledBlockCount} * 100%)` }}
 						>
 							{scheduledMeetingTitle && (
@@ -193,6 +149,7 @@ export const GroupAvailabilityBlock = memo(
 										overflow: "hidden",
 										lineHeight: 1.2,
 										letterSpacing: "0.15px",
+										color: theme.palette.common.white,
 									}}
 								>
 									{scheduledMeetingTitle}
@@ -206,6 +163,8 @@ export const GroupAvailabilityBlock = memo(
 										fontWeight: 500,
 										lineHeight: 1,
 										letterSpacing: "0.4px",
+										color: theme.palette.common.white,
+										margin: 1,
 									}}
 								>
 									{scheduledTimeRange}
