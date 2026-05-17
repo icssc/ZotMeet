@@ -128,7 +128,7 @@ export const GroupAvailabilityBlock = memo(
 				{isScheduled && isScheduledTopEdge && (
 					<div
 						aria-hidden="true"
-						className="absolute inset-0 w-[87%] rounded-r-xl bg-[#1F2A44] shadow-2xl shadow-inner"
+						className="pointer-events-none absolute inset-0 w-[87%] rounded-r-xl bg-[#1F2A44] shadow-2xl shadow-inner"
 						style={{ height: `${scheduledBlockCount * 100}%` }}
 					/>
 				)}
