@@ -40,6 +40,7 @@ const sectionLabelSx = {
 
 const toCard = (
 	meeting: DisplayMeeting,
+	userId: string,
 	meetingCounts: Record<string, number>,
 	scheduledLabels?: Record<string, string>,
 ) => {
@@ -47,17 +48,22 @@ const toCard = (
 		responderCount: meetingCounts[meeting.id] ?? 0,
 		scheduledLabel: scheduledLabels?.[meeting.id],
 	});
-	return <MeetingCard key={meeting.id} {...cardProps} />;
+
+	const isOwner = meeting.hostId === userId;
+
+	return <MeetingCard key={meeting.id} {...cardProps} isOwner={isOwner} />;
 };
 
 const MeetingSection = ({
 	label,
 	meetings,
+	userId,
 	meetingCounts,
 	scheduledLabels,
 }: {
 	label: string;
 	meetings: DisplayMeeting[];
+	userId: string;
 	meetingCounts: Record<string, number>;
 	scheduledLabels?: Record<string, string>;
 }) => {
@@ -75,7 +81,7 @@ const MeetingSection = ({
 					gap: { xs: 1.5, sm: 2 },
 				}}
 			>
-				{meetings.map((m) => toCard(m, meetingCounts, scheduledLabels))}
+				{meetings.map((m) => toCard(m, userId, meetingCounts, scheduledLabels))}
 			</Box>
 		</Box>
 	);
@@ -180,12 +186,14 @@ export const Meetings = ({
 					<MeetingSection
 						label="Upcoming"
 						meetings={upcoming}
+						userId={userId}
 						meetingCounts={meetingCounts}
 						scheduledLabels={scheduledLabels}
 					/>
 					<MeetingSection
 						label="Scheduled"
 						meetings={rest}
+						userId={userId}
 						meetingCounts={meetingCounts}
 						scheduledLabels={scheduledLabels}
 					/>
@@ -201,12 +209,14 @@ export const Meetings = ({
 					<MeetingSection
 						label="Action Required"
 						meetings={actionRequired}
+						userId={userId}
 						meetingCounts={meetingCounts}
 						scheduledLabels={scheduledLabels}
 					/>
 					<MeetingSection
 						label="Unscheduled"
 						meetings={rest}
+						userId={userId}
 						meetingCounts={meetingCounts}
 						scheduledLabels={scheduledLabels}
 					/>
@@ -224,7 +234,9 @@ export const Meetings = ({
 					gap: { xs: 1.5, sm: 2 },
 				}}
 			>
-				{displayMeetings.map((m) => toCard(m, meetingCounts, scheduledLabels))}
+				{displayMeetings.map((m) =>
+					toCard(m, userId, meetingCounts, scheduledLabels),
+				)}
 			</Box>
 		);
 	};
