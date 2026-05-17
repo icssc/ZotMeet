@@ -2,12 +2,21 @@
 
 import { Add, CalendarMonth, Notifications } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
-import { Box, Button, IconButton, TextField, Typography } from "@mui/material";
+import {
+	Badge,
+	Box,
+	Button,
+	IconButton,
+	TextField,
+	Typography,
+} from "@mui/material";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { MobileNotificationsDrawer } from "@/components/groups/mobile-notifications-drawer";
 import { FilterChip } from "@/components/ui/filter-chip";
 import MeetingCard from "@/components/ui/meeting-card";
 import type { SelectMeeting } from "@/db/schema";
+import type { NotificationItem } from "@/lib/auth/user";
 import {
 	filterMeetingsByQuery,
 	toMeetingCardProps,
@@ -25,6 +34,7 @@ interface MeetingsProps {
 	scheduledLabels?: Record<string, string>;
 	scheduledDates?: Record<string, number>;
 	upcomingMeetingIds?: string[];
+	notifications: NotificationItem[];
 }
 
 type DisplayMeeting = MeetingsProps["meetings"][number];
@@ -88,9 +98,13 @@ export const Meetings = ({
 	scheduledLabels,
 	scheduledDates,
 	upcomingMeetingIds,
+	notifications,
 }: MeetingsProps) => {
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+	const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+	const unreadCount = notifications.filter((n) => !n.readAt).length;
 
 	const upcomingSet = useMemo(
 		() => new Set(upcomingMeetingIds ?? []),
@@ -241,23 +255,31 @@ export const Meetings = ({
 				}}
 			>
 				<Typography variant="h4">Meetings</Typography>
-				<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-					<Box
+				<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+					<Badge badgeContent={unreadCount} color="primary">
+						<IconButton
+							onClick={() => setNotificationsOpen(true)}
+							sx={{
+								border: "1px solid",
+								borderColor: "divider",
+								borderRadius: 1,
+								p: 1,
+							}}
+						>
+							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
+						</IconButton>
+					</Badge>
+					<IconButton
+						href="/"
 						sx={{
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							border: "1px solid",
-							borderColor: "divider",
+							bgcolor: "primary.main",
 							borderRadius: 1,
 							p: 1,
+							"&:hover": { bgcolor: "primary.dark" },
 						}}
 					>
-						<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
-					</Box>
-					<Button variant="contained" size="square" href="/">
-						<Add />
-					</Button>
+						<Add sx={{ color: "common.white" }} />
+					</IconButton>
 				</Box>
 			</Box>
 
@@ -323,6 +345,12 @@ export const Meetings = ({
 			</Box>
 
 			{renderMeetings()}
+
+			<MobileNotificationsDrawer
+				open={notificationsOpen}
+				onClose={() => setNotificationsOpen(false)}
+				notifications={notifications}
+			/>
 		</Box>
 	);
 };
