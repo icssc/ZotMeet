@@ -10,6 +10,7 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Paper from "@mui/material/Paper";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import { useState } from "react";
@@ -20,7 +21,7 @@ export type ProfileTab = "edit-profile" | "notifications";
 const NAV_ITEMS: {
 	id: ProfileTab;
 	label: string;
-	icon: React.ReactNode;
+	icon: React.ReactElement;
 }[] = [
 	{
 		id: "edit-profile",
@@ -42,19 +43,25 @@ export function ProfileSidebarLayout({ children }: ProfileSidebarLayoutProps) {
 	const [activeTab, setActiveTab] = useState<ProfileTab>("edit-profile");
 
 	return (
-		<Box sx={{ display: "flex", minHeight: "calc(100vh - 80px)" }}>
-			<Box
+		<Box
+			sx={{
+				display: "flex",
+				gap: 2,
+				minHeight: "calc(100vh - 80px)",
+				p: { xs: 2, md: 4 },
+			}}
+		>
+			<Paper
+				variant="outlined"
 				sx={{
 					width: 260,
 					flexShrink: 0,
 					display: { xs: "none", md: "flex" },
 					flexDirection: "column",
-					borderRight: 1,
-					borderColor: "divider",
-					bgcolor: "background.paper",
+					overflow: "hidden",
 				}}
 			>
-				<List sx={{ flex: 1, pt: 2 }}>
+				<List sx={{ flex: 1, pt: 1 }}>
 					{NAV_ITEMS.map((item) => (
 						<ListItemButton
 							key={item.id}
@@ -110,9 +117,9 @@ export function ProfileSidebarLayout({ children }: ProfileSidebarLayoutProps) {
 						/>
 					</ListItemButton>
 				</List>
-			</Box>
+			</Paper>
 
-			<Box sx={{ flex: 1, overflow: "auto" }}>
+			<Paper variant="outlined" sx={{ flex: 1, overflow: "auto" }}>
 				<Box
 					sx={{
 						display: { xs: "block", md: "none" },
@@ -137,7 +144,7 @@ export function ProfileSidebarLayout({ children }: ProfileSidebarLayoutProps) {
 					</Tabs>
 				</Box>
 				<Box sx={{ p: 4 }}>{children[activeTab]}</Box>
-			</Box>
+			</Paper>
 		</Box>
 	);
 }
