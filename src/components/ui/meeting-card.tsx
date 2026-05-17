@@ -1,5 +1,7 @@
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import DateRangeIcon from "@mui/icons-material/DateRange";
+import ErrorIcon from "@mui/icons-material/Error";
 import FmdGoodIcon from "@mui/icons-material/FmdGood";
 import GroupIcon from "@mui/icons-material/Group";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -14,6 +16,7 @@ import {
 	IconButton,
 	Typography,
 } from "@mui/material";
+import { lighten } from "@mui/material/styles";
 import Link from "next/link";
 import type { ElementType } from "react";
 
@@ -29,6 +32,7 @@ interface MeetingCardProps {
 	scheduled?: boolean;
 	scheduledLabel?: string;
 	meetingLink: string;
+	status?: "actionRequired" | "upcoming" | null;
 }
 
 const metaIconSx = { fontSize: 16, color: "text.secondary", flexShrink: 0 };
@@ -68,6 +72,7 @@ const MeetingCard = ({
 	scheduled = false,
 	scheduledLabel,
 	meetingLink,
+	status,
 }: MeetingCardProps) => {
 	const dateLabel =
 		dateStart && dateEnd && dateStart !== dateEnd
@@ -77,8 +82,52 @@ const MeetingCard = ({
 	return (
 		<Card
 			variant="outlined"
-			sx={{ display: "flex", flexDirection: "column", p: 0 }}
+			sx={{
+				position: "relative",
+				overflow: "visible",
+				display: "flex",
+				flexDirection: "column",
+				p: 0,
+			}}
 		>
+			{status && (
+				<Box
+					sx={(theme) => ({
+						position: "absolute",
+						top: 0,
+						right: 48,
+						display: { xs: "none", sm: "flex" },
+						alignItems: "center",
+						gap: "10px",
+						px: "10px",
+						py: "5px",
+						bgcolor:
+							status === "actionRequired"
+								? lighten(theme.palette.error.main, 0.9)
+								: lighten(theme.palette.success.main, 0.9),
+						borderRadius: "0 0 5px 5px",
+					})}
+				>
+					{status === "actionRequired" ? (
+						<ErrorIcon sx={{ fontSize: 18, color: "error.main" }} />
+					) : (
+						<CalendarTodayIcon sx={{ fontSize: 18, color: "success.main" }} />
+					)}
+					<Typography
+						variant="caption"
+						sx={{
+							color:
+								status === "actionRequired" ? "error.main" : "success.main",
+							fontWeight: 500,
+							letterSpacing: "0.14px",
+							lineHeight: "20px",
+						}}
+					>
+						{status === "actionRequired" ? "Action Required" : "Upcoming"}
+					</Typography>
+				</Box>
+			)}
+
 			<CardContent
 				sx={{
 					pt: { xs: 2.5, sm: 3 },
