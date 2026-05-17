@@ -50,10 +50,14 @@ export function NotificationsPanel({
 
 	const handleSave = () => {
 		startTransition(async () => {
-			const result = await saveNotificationPreferences(prefs);
-			if (result.success) {
-				showSuccess("Notification preferences saved");
-			} else {
+			try {
+				const result = await saveNotificationPreferences(prefs);
+				if (result.success) {
+					showSuccess("Notification preferences saved");
+				} else {
+					showError("Failed to save notification preferences");
+				}
+			} catch {
 				showError("Failed to save notification preferences");
 			}
 		});

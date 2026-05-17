@@ -10,6 +10,8 @@ import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import { useState } from "react";
 import { logoutAction } from "@/server/actions/auth/logout/action";
 
@@ -110,7 +112,32 @@ export function ProfileSidebarLayout({ children }: ProfileSidebarLayoutProps) {
 				</List>
 			</Box>
 
-			<Box sx={{ flex: 1, p: 4, overflow: "auto" }}>{children[activeTab]}</Box>
+			<Box sx={{ flex: 1, overflow: "auto" }}>
+				<Box
+					sx={{
+						display: { xs: "block", md: "none" },
+						borderBottom: 1,
+						borderColor: "divider",
+					}}
+				>
+					<Tabs
+						value={activeTab}
+						onChange={(_, value) => setActiveTab(value)}
+						variant="fullWidth"
+					>
+						{NAV_ITEMS.map((item) => (
+							<Tab
+								key={item.id}
+								value={item.id}
+								label={item.label}
+								icon={item.icon}
+								iconPosition="start"
+							/>
+						))}
+					</Tabs>
+				</Box>
+				<Box sx={{ p: 4 }}>{children[activeTab]}</Box>
+			</Box>
 		</Box>
 	);
 }
