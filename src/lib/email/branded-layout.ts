@@ -15,6 +15,8 @@ const PAGE_BG = "#f3f4f6";
 const CARD_BORDER = "#e5e7eb";
 const TEXT_MUTED = "#4b5563";
 const TEXT_HEADING = "#111827";
+const FEEDBACK_BUTTON_BG = "#1d233a";
+const FEEDBACK_FORM_URL = "https://forms.gle/oi2T4JM26vT4FToM7";
 
 function escapeHtml(s: string): string {
 	return s
@@ -62,6 +64,10 @@ function logoUrl(): string {
 	return publicAssetUrl("/email/zotmeet-logo.png");
 }
 
+function feedbackMascotUrl(): string {
+	return publicAssetUrl("/email/feedback-mascot.png");
+}
+
 export function createBrandedTransactionalEmail(
 	input: BrandedTransactionalEmailInput,
 ) {
@@ -71,6 +77,8 @@ export function createBrandedTransactionalEmail(
 		input.illustrationUrl ?? defaultIllustrationUrl(),
 	);
 	const verifiedLogoUrl = logoUrl();
+	const verifiedFeedbackUrl = safeWebUrl(FEEDBACK_FORM_URL);
+	const verifiedFeedbackMascotUrl = feedbackMascotUrl();
 	const subject = safeEmailSubject(input.subject);
 	const topicWord = input.footerTopic === "groups" ? "groups" : "meetings";
 
@@ -89,6 +97,10 @@ export function createBrandedTransactionalEmail(
 		`${input.ctaLabel}: ${verifiedCtaUrl}`,
 		"",
 		`Learn more about ZotMeet ${topicWord}: ${verifiedFooterUrl}`,
+		"",
+		"Thank you for using ZotMeet!",
+		"Tell us how we can improve. We value your experience.",
+		`Feedback: ${verifiedFeedbackUrl}`,
 	].join("\n");
 
 	return {
@@ -135,11 +147,33 @@ export function createBrandedTransactionalEmail(
               </td>
             </tr>
             <tr>
-              <td style="padding:20px 28px 28px;text-align:center;">
+              <td style="padding:20px 28px 16px;text-align:center;">
                 <p style="margin:0;font-family:Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:${TEXT_MUTED};">
                   <a href="${escapeHtml(verifiedFooterUrl)}" style="color:${BRAND_PINK};font-weight:600;text-decoration:underline;">Learn more</a>
                   <span> about ZotMeet ${topicWord}.</span>
                 </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 28px 28px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:1px solid ${CARD_BORDER};border-radius:10px;">
+                  <tr>
+                    <td width="130" valign="middle" style="padding:16px 8px 16px 16px;">
+                      <img src="${escapeHtml(verifiedFeedbackMascotUrl)}" width="110" alt="" style="display:block;width:110px;height:auto;border:0;" />
+                    </td>
+                    <td valign="middle" style="padding:16px 20px 16px 8px;">
+                      <p style="margin:0 0 8px;font-family:Helvetica,Arial,sans-serif;font-size:16px;line-height:1.35;font-weight:700;color:${TEXT_HEADING};">Thank you for using ZotMeet!</p>
+                      <p style="margin:0 0 16px;font-family:Helvetica,Arial,sans-serif;font-size:14px;line-height:1.45;color:${TEXT_MUTED};">Tell us how we can improve. We value your experience.</p>
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                        <tr>
+                          <td bgcolor="${FEEDBACK_BUTTON_BG}" style="border-radius:8px;mso-line-height-rule:exactly;">
+                            <a href="${escapeHtml(verifiedFeedbackUrl)}" style="display:inline-block;padding:12px 24px;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">Feedback Form</a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
               </td>
             </tr>
           </table>
