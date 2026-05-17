@@ -8,6 +8,8 @@ import {
 	Login,
 	Person,
 } from "@mui/icons-material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import LogoutIcon from "@mui/icons-material/Logout";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import {
 	AppBar,
@@ -15,6 +17,7 @@ import {
 	Badge,
 	Box,
 	Button,
+	Divider,
 	IconButton,
 	Menu,
 	MenuItem,
@@ -371,13 +374,27 @@ function NavUser({ user }: { user: UserProfile | null }) {
 				>
 					<Person sx={{ mr: 1 }} /> Profile
 				</MenuItem>
+
+				<MenuItem
+					component={Link}
+					target="_blank"
+					href="https://forms.gle/oi2T4JM26vT4FToM7"
+				>
+					<FavoriteIcon sx={{ mr: 1 }} />
+					Feedback
+				</MenuItem>
+
+				<Divider />
+
 				<MenuItem
 					onClick={() => {
 						setAnchorEl(null);
 						logoutAction();
 					}}
+					sx={{ color: "error.main" }}
 				>
-					Log out
+					<LogoutIcon sx={{ mr: 1, color: "error.main" }} />
+					<Typography>Log out</Typography>
 				</MenuItem>
 			</Menu>
 		</>
