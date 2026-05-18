@@ -131,6 +131,11 @@ export const DeleteModal = ({
 			>
 				<div className="flex flex-col gap-3">
 					{ConfirmContent}
+					<Typography color="textSecondary">
+						This action is irreversible. All members will be removed from this
+						meeting.
+					</Typography>
+
 					<div className="flex flex-col gap-2">{ActionButtons}</div>
 				</div>
 			</Drawer>
