@@ -21,7 +21,7 @@ export default $config({
 			region: "us-east-2",
 		});
 
-		new sst.aws.Nextjs("site", {
+		const site = new sst.aws.Nextjs("site", {
 			link: [
 				sst.aws.Email.get("NotificationEmail", "icssc.club", {
 					provider: sesProvider,
@@ -33,6 +33,7 @@ export default $config({
 				OIDC_ISSUER_URL: process.env.OIDC_ISSUER_URL!,
 				GOOGLE_OAUTH_REDIRECT_URI: `${baseUrl}/auth/login/google/callback`,
 				NEXT_PUBLIC_BASE_URL: baseUrl,
+				CRON_SECRET: process.env.CRON_SECRET!,
 			},
 			cachePolicy: "e6e88864-aee5-41aa-b393-c48f78e33d2d",
 			domain: {
@@ -40,6 +41,17 @@ export default $config({
 				dns: sst.aws.dns({
 					zone: "Z0670880YRIE7KPL5SPX",
 				}),
+			},
+		});
+
+		new sst.aws.Cron("MeetingReminderCron", {
+			schedule: "rate(1 minute)",
+			job: {
+				handler: "src/jobs/reminder.handler",
+				environment: {
+					SITE_URL: site.url,
+					CRON_SECRET: process.env.CRON_SECRET!,
+				},
 			},
 		});
 	},
