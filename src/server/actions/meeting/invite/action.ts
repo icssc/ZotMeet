@@ -44,7 +44,10 @@ export async function inviteMeetingMembers(
 	const userIsMember = meetingMembers.some(
 		(member) => member.memberId === user.memberId,
 	);
-	if (!userIsMember && user.memberId !== meeting.hostId) {
+	if (
+		(!userIsMember || !meeting.membersCanInvite) &&
+		user.memberId !== meeting.hostId
+	) {
 		return {
 			success: false,
 			message: "You do not have permission to invite members to this meeting.",
