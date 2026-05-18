@@ -2,15 +2,16 @@
 
 import { Add, CalendarMonth, Notifications } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
-import { Box, Button, IconButton, TextField, Typography } from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { DeleteModal } from "@/components/meetings/delete-modal";
 import { FilterChip } from "@/components/ui/filter-chip";
 import MeetingCard from "@/components/ui/meeting-card";
 import type { SelectMeeting } from "@/db/schema";
 import {
 	filterMeetingsByQuery,
-	toMeetingCardProps,
+	toMeetingCardData,
 } from "@/lib/meeting-card/mapper";
 
 type FilterType = "all" | "unscheduled" | "scheduled" | "by-you";
@@ -20,7 +21,7 @@ interface MeetingsProps {
 		hostDisplayName: string | null;
 		needsAvailability: boolean;
 	})[];
-	userId: string;
+	memberId: string;
 	meetingCounts: Record<string, number>;
 	scheduledLabels?: Record<string, string>;
 	scheduledDates?: Record<string, number>;
@@ -38,27 +39,51 @@ const sectionLabelSx = {
 	color: "text.disabled",
 } as const;
 
+type DeleteTarget = {
+	meeting: DisplayMeeting;
+	isOwner: boolean;
+};
+
 const toCard = (
 	meeting: DisplayMeeting,
+	memberId: string,
 	meetingCounts: Record<string, number>,
+	onDeleteLeave: (target: DeleteTarget) => void,
 	scheduledLabels?: Record<string, string>,
 ) => {
-	const cardProps = toMeetingCardProps(meeting, {
-		responderCount: meetingCounts[meeting.id] ?? 0,
-		scheduledLabel: scheduledLabels?.[meeting.id],
-	});
-	return <MeetingCard key={meeting.id} {...cardProps} />;
+	const { meeting: _meeting, ...cardProps } = toMeetingCardData(
+		meeting,
+		memberId,
+		{
+			responderCount: meetingCounts[meeting.id] ?? 0,
+			scheduledLabel: scheduledLabels?.[meeting.id],
+		},
+	);
+
+	return (
+		<MeetingCard
+			key={meeting.id}
+			{...cardProps}
+			onDeleteLeave={() =>
+				onDeleteLeave({ meeting, isOwner: cardProps.isOwner })
+			}
+		/>
+	);
 };
 
 const MeetingSection = ({
 	label,
 	meetings,
+	memberId,
 	meetingCounts,
+	onDeleteLeave,
 	scheduledLabels,
 }: {
 	label: string;
 	meetings: DisplayMeeting[];
+	memberId: string;
 	meetingCounts: Record<string, number>;
+	onDeleteLeave: (target: DeleteTarget) => void;
 	scheduledLabels?: Record<string, string>;
 }) => {
 	if (meetings.length === 0) return null;
@@ -75,7 +100,9 @@ const MeetingSection = ({
 					gap: { xs: 1.5, sm: 2 },
 				}}
 			>
-				{meetings.map((m) => toCard(m, meetingCounts, scheduledLabels))}
+				{meetings.map((m) =>
+					toCard(m, memberId, meetingCounts, onDeleteLeave, scheduledLabels),
+				)}
 			</Box>
 		</Box>
 	);
@@ -83,7 +110,7 @@ const MeetingSection = ({
 
 export const Meetings = ({
 	meetings,
-	userId,
+	memberId,
 	meetingCounts,
 	scheduledLabels,
 	scheduledDates,
@@ -91,6 +118,12 @@ export const Meetings = ({
 }: MeetingsProps) => {
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+	const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+	const [isDeletionPending, setIsDeletionPending] = useState(false);
+
+	const handleDeleteLeaveRequest = useCallback((target: DeleteTarget) => {
+		setDeleteTarget(target);
+	}, []);
 
 	const upcomingSet = useMemo(
 		() => new Set(upcomingMeetingIds ?? []),
@@ -102,15 +135,15 @@ export const Meetings = ({
 			all: meetings.length,
 			unscheduled: meetings.filter((m) => !m.scheduled).length,
 			scheduled: meetings.filter((m) => m.scheduled === true).length,
-			"by-you": meetings.filter((m) => m.hostId === userId).length,
+			"by-you": meetings.filter((m) => m.hostId === memberId).length,
 		}),
-		[meetings, userId],
+		[meetings, memberId],
 	);
 
 	const filteredByOwner = useMemo(() => {
 		switch (activeFilter) {
 			case "by-you":
-				return meetings.filter((m) => m.hostId === userId);
+				return meetings.filter((m) => m.hostId === memberId);
 			case "unscheduled":
 				return meetings.filter((m) => !m.scheduled);
 			case "scheduled":
@@ -118,7 +151,7 @@ export const Meetings = ({
 			default:
 				return meetings;
 		}
-	}, [meetings, userId, activeFilter]);
+	}, [meetings, memberId, activeFilter]);
 
 	const displayMeetings = useMemo(
 		() => filterMeetingsByQuery(filteredByOwner, search),
@@ -180,13 +213,17 @@ export const Meetings = ({
 					<MeetingSection
 						label="Upcoming"
 						meetings={upcoming}
+						memberId={memberId}
 						meetingCounts={meetingCounts}
+						onDeleteLeave={handleDeleteLeaveRequest}
 						scheduledLabels={scheduledLabels}
 					/>
 					<MeetingSection
 						label="Scheduled"
 						meetings={rest}
+						memberId={memberId}
 						meetingCounts={meetingCounts}
+						onDeleteLeave={handleDeleteLeaveRequest}
 						scheduledLabels={scheduledLabels}
 					/>
 				</Box>
@@ -201,13 +238,17 @@ export const Meetings = ({
 					<MeetingSection
 						label="Action Required"
 						meetings={actionRequired}
+						memberId={memberId}
 						meetingCounts={meetingCounts}
+						onDeleteLeave={handleDeleteLeaveRequest}
 						scheduledLabels={scheduledLabels}
 					/>
 					<MeetingSection
 						label="Unscheduled"
 						meetings={rest}
+						memberId={memberId}
 						meetingCounts={meetingCounts}
+						onDeleteLeave={handleDeleteLeaveRequest}
 						scheduledLabels={scheduledLabels}
 					/>
 				</Box>
@@ -224,7 +265,15 @@ export const Meetings = ({
 					gap: { xs: 1.5, sm: 2 },
 				}}
 			>
-				{displayMeetings.map((m) => toCard(m, meetingCounts, scheduledLabels))}
+				{displayMeetings.map((m) =>
+					toCard(
+						m,
+						memberId,
+						meetingCounts,
+						handleDeleteLeaveRequest,
+						scheduledLabels,
+					),
+				)}
 			</Box>
 		);
 	};
@@ -323,6 +372,19 @@ export const Meetings = ({
 			</Box>
 
 			{renderMeetings()}
+
+			{deleteTarget && (
+				<DeleteModal
+					meetingData={deleteTarget.meeting}
+					isOpen
+					handleOpenChange={(open) => {
+						if (!open) setDeleteTarget(null);
+					}}
+					isOwner={deleteTarget.isOwner}
+					isDeletionPending={isDeletionPending}
+					onDeletionPendingChange={setIsDeletionPending}
+				/>
+			)}
 		</Box>
 	);
 };

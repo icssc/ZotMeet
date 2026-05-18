@@ -26,6 +26,11 @@ interface ToMeetingCardOptions {
 	scheduledLabel?: string;
 }
 
+export type MeetingCardData = MeetingCardViewModel & {
+	meeting: MeetingForCard;
+	isOwner: boolean;
+};
+
 const formatSingleDate = (dateString?: string) => {
 	if (!dateString) return "";
 	return new Intl.DateTimeFormat("en-US", {
@@ -70,6 +75,18 @@ export function filterMeetingsByQuery<
 			(m.location ?? "").toLowerCase().includes(normalized) ||
 			(m.description ?? "").toLowerCase().includes(normalized),
 	);
+}
+
+export function toMeetingCardData(
+	meeting: MeetingForCard,
+	memberId: string,
+	options: Omit<ToMeetingCardOptions, "memberId"> = {},
+): MeetingCardData {
+	return {
+		meeting,
+		isOwner: meeting.hostId === memberId,
+		...toMeetingCardProps(meeting, options),
+	};
 }
 
 export function toMeetingCardProps(

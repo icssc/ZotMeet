@@ -12,23 +12,19 @@ import {
 	CardContent,
 	Chip,
 	IconButton,
+	ListItemIcon,
+	Menu,
+	MenuItem,
 	Typography,
 } from "@mui/material";
 import Link from "next/link";
-import type { ElementType } from "react";
+import { type ElementType, useId, useState } from "react";
+import type { MeetingCardViewModel } from "@/lib/meeting-card/mapper";
+import { getDeleteLeaveAction } from "@/lib/meetings/delete-leave-action";
 
-interface MeetingCardProps {
-	meetingName: string;
-	meetingOrganizer: string;
-	dateStart: string;
-	dateEnd: string;
-	timeStart: string;
-	timeEnd: string;
-	numResponders: number;
-	location?: string | null;
-	scheduled?: boolean;
-	scheduledLabel?: string;
-	meetingLink: string;
+interface MeetingCardProps extends MeetingCardViewModel {
+	isOwner: boolean;
+	onDeleteLeave?: () => void;
 }
 
 const metaIconSx = { fontSize: 16, color: "text.secondary", flexShrink: 0 };
@@ -68,11 +64,24 @@ const MeetingCard = ({
 	scheduled = false,
 	scheduledLabel,
 	meetingLink,
+	isOwner,
+	onDeleteLeave,
 }: MeetingCardProps) => {
+	const menuId = useId();
+	const { label: actionLabel, Icon, menuColor } = getDeleteLeaveAction(isOwner);
+
 	const dateLabel =
 		dateStart && dateEnd && dateStart !== dateEnd
 			? `${dateStart} - ${dateEnd}`
 			: dateStart;
+
+	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const open = Boolean(anchorEl);
+
+	const handleOpenDeleteLeave = () => {
+		setAnchorEl(null);
+		onDeleteLeave?.();
+	};
 
 	return (
 		<Card
@@ -109,9 +118,44 @@ const MeetingCard = ({
 							{meetingOrganizer}
 						</Typography>
 					</Box>
-					<IconButton size="small" edge="end" sx={{ mt: -0.5, flexShrink: 0 }}>
-						<MoreVertIcon sx={{ fontSize: { xs: 24, sm: 20 } }} />
-					</IconButton>
+					{onDeleteLeave && (
+						<>
+							<IconButton
+								size="small"
+								edge="end"
+								sx={{ mt: -0.5, flexShrink: 0 }}
+								aria-label="Meeting options"
+								aria-haspopup="true"
+								aria-expanded={open}
+								aria-controls={open ? menuId : undefined}
+								onClick={(e) => setAnchorEl(e.currentTarget)}
+							>
+								<MoreVertIcon sx={{ fontSize: { xs: 24, sm: 20 } }} />
+							</IconButton>
+
+							<Menu
+								id={menuId}
+								anchorEl={anchorEl}
+								open={open}
+								onClose={() => setAnchorEl(null)}
+								anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+								transformOrigin={{ vertical: "top", horizontal: "right" }}
+								slotProps={{
+									paper: { sx: { minWidth: 180 } },
+								}}
+							>
+								<MenuItem
+									onClick={handleOpenDeleteLeave}
+									sx={{ color: menuColor }}
+								>
+									<ListItemIcon sx={{ color: "inherit", minWidth: 36 }}>
+										<Icon fontSize="small" />
+									</ListItemIcon>
+									{actionLabel}
+								</MenuItem>
+							</Menu>
+						</>
+					)}
 				</Box>
 
 				{scheduled && scheduledLabel ? (
