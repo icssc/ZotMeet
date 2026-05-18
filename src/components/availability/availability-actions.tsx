@@ -1,13 +1,14 @@
 "use client";
 
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
+import { updateMeetingInvitePermissions } from "@actions/meeting/invite/action";
 import {
 	Create,
 	GroupAddOutlined,
 	InsertInvitationRounded,
 } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
-import { Button } from "@mui/material";
+import { Button, FormControlLabel, Switch } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -46,6 +47,9 @@ export function AvailabilityActions({
 	const router = useRouter();
 	const { showSuccess, showError } = useSnackbar();
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+	const [membersCanInvite, setMembersCanInvite] = useState(
+		meetingData.membersCanInvite,
+	);
 
 	const { hasAvailability, availabilityView, setAvailabilityView } =
 		useAvailabilityStore(
@@ -94,6 +98,42 @@ export function AvailabilityActions({
 				</div>
 			) : (
 				<div className="flex flex-col gap-2">
+					{isOwner && (
+						<div className="hidden items-center justify-between rounded-md border p-2 sm:flex">
+							<FormControlLabel
+								control={
+									<Switch
+										checked={membersCanInvite}
+										onChange={async (e) => {
+											const checked = e.target.checked;
+
+											setMembersCanInvite(checked);
+
+											try {
+												const result = await updateMeetingInvitePermissions({
+													meetingId: meetingData.id,
+													membersCanInvite: checked,
+												});
+
+												if (!result.success) {
+													setMembersCanInvite(!checked);
+													showError(result.message);
+													return;
+												}
+
+												showSuccess("Invite permissions updated.");
+											} catch (error) {
+												console.error(error);
+												setMembersCanInvite(!checked);
+												showError("Failed to update invite permissions.");
+											}
+										}}
+									/>
+								}
+								label="Allow members to invite others"
+							/>
+						</div>
+					)}
 					{isScheduled && (
 						<div className="hidden flex-col sm:flex">
 							<Button
@@ -172,15 +212,17 @@ export function AvailabilityActions({
 								<span className="hidden md:flex">Schedule Meeting</span>
 							</Button>
 						)}
-						<Button
-							variant="outlined"
-							startIcon={<GroupAddOutlined />}
-							className="w-full"
-							sx={{ py: 0.75 }}
-							onClick={onOpenInviteDialog}
-						>
-							<span className="hidden md:flex">Invite Members</span>
-						</Button>
+						{(meetingData.membersCanInvite || isOwner) && (
+							<Button
+								variant="outlined"
+								startIcon={<GroupAddOutlined />}
+								className="w-full"
+								sx={{ py: 0.75 }}
+								onClick={onOpenInviteDialog}
+							>
+								<span className="hidden md:flex">Invite Members</span>
+							</Button>
+						)}
 					</div>
 				</div>
 			)}

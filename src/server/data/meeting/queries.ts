@@ -120,6 +120,7 @@ export async function getMeetings(memberId: string) {
 				sql<boolean>`(NOT COALESCE(${meetings.scheduled}, false) AND ${meetings.id} NOT IN ${hasFilledAvailability})`.as(
 					"needs_availability",
 				),
+			membersCanInvite: meetings.membersCanInvite,
 		})
 		.from(meetings)
 		.leftJoin(members, eq(meetings.hostId, members.id))

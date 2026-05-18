@@ -1,5 +1,9 @@
 "use server";
 
+import { eq } from "drizzle-orm/sql/expressions/conditions";
+import { revalidatePath } from "next/cache";
+import { db } from "@/db";
+import { meetings } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import {
 	getAllMemberAvailability,
@@ -62,4 +66,58 @@ export async function inviteMeetingMembers(
 		return { success: true, message: "Invites sent successfully!" };
 	}
 	return { success: false, message: result.message };
+}
+
+export interface UpdateMeetingInvitePermissionsState {
+	success: boolean;
+	message: string;
+}
+
+export async function updateMeetingInvitePermissions({
+	meetingId,
+	membersCanInvite,
+}: {
+	meetingId: string;
+	membersCanInvite: boolean;
+}): Promise<UpdateMeetingInvitePermissionsState> {
+	const { user } = await getCurrentSession();
+
+	if (!user) {
+		return {
+			success: false,
+			message: "You must be logged in.",
+		};
+	}
+
+	const meeting = await db.query.meetings.findFirst({
+		where: eq(meetings.id, meetingId),
+	});
+
+	if (!meeting) {
+		return {
+			success: false,
+			message: "Meeting not found.",
+		};
+	}
+
+	if (meeting.hostId !== user.memberId) {
+		return {
+			success: false,
+			message: "Only the meeting host can update invite permissions.",
+		};
+	}
+
+	await db
+		.update(meetings)
+		.set({
+			membersCanInvite,
+		})
+		.where(eq(meetings.id, meetingId));
+
+	revalidatePath(`/meetings/${meetingId}`);
+
+	return {
+		success: true,
+		message: "Invite permissions updated.",
+	};
 }
