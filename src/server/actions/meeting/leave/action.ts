@@ -63,3 +63,59 @@ export async function leaveMeeting(
 
 	return { success: true };
 }
+
+export async function removeMeetingMember(
+	meetingId: string,
+	targetMemberId: string,
+): Promise<LeaveMeetingResult> {
+	const { user } = await getCurrentSession();
+
+	if (!user) {
+		return { success: false, error: "You must be logged in." };
+	}
+
+	const [meeting] = await db
+		.select({
+			hostId: meetings.hostId,
+			archived: meetings.archived,
+		})
+		.from(meetings)
+		.where(eq(meetings.id, meetingId))
+		.limit(1);
+
+	if (!meeting) {
+		return { success: false, error: "Meeting not found." };
+	}
+
+	if (meeting.archived) {
+		return {
+			success: false,
+			error: "This meeting is no longer available.",
+		};
+	}
+
+	if (meeting.hostId !== user.memberId) {
+		return {
+			success: false,
+			error: "Only the meeting owner can remove members.",
+		};
+	}
+
+	if (targetMemberId === user.memberId) {
+		return {
+			success: false,
+			error: "You cannot remove yourself. Delete the meeting instead.",
+		};
+	}
+
+	await db
+		.delete(availabilities)
+		.where(
+			and(
+				eq(availabilities.meetingId, meetingId),
+				eq(availabilities.memberId, targetMemberId),
+			),
+		);
+
+	return { success: true };
+}

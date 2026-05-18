@@ -2,7 +2,7 @@
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import type { UserProfile } from "@/lib/auth/user";
@@ -175,6 +175,38 @@ export function useAvailabilityData({
 			mode: "if-needed",
 		}),
 	);
+
+	const memberKeyRef = useRef(
+		allAvailabilities
+			.map((a) => a.memberId)
+			.sort()
+			.join(","),
+	);
+	useEffect(() => {
+		const currentKey = allAvailabilities
+			.map((a) => a.memberId)
+			.sort()
+			.join(",");
+		if (currentKey === memberKeyRef.current) return;
+		memberKeyRef.current = currentKey;
+
+		const validIds = new Set(allAvailabilities.map((a) => a.memberId));
+
+		const filterDates = (prev: ZotDate[]): ZotDate[] =>
+			prev.map((date) => {
+				const newGroupAvail: Record<string, string[]> = {};
+				for (const [ts, ids] of Object.entries(date.groupAvailability)) {
+					const filtered = ids.filter((id) => validIds.has(id));
+					if (filtered.length > 0) newGroupAvail[ts] = filtered;
+				}
+				const cloned = new ZotDate(date);
+				cloned.groupAvailability = newGroupAvail;
+				return cloned;
+			});
+
+		setAvailabilityDates(filterDates);
+		setIfNeededDates(filterDates);
+	}, [allAvailabilities]);
 
 	const { cancelEdit, confirmSave, isDirty } = useEditState({
 		currentAvailabilityDates: availabilityDates,
