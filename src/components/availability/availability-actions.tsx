@@ -160,8 +160,8 @@ export function AvailabilityActions({
 							</span>
 						</Button>
 					</div>
-					{isOwner && (
-						<div className="hidden sm:block">
+					<div className="hidden sm:block">
+						{isOwner && (
 							<Button
 								variant="outlined"
 								startIcon={<InsertInvitationRounded />}
@@ -171,17 +171,17 @@ export function AvailabilityActions({
 							>
 								<span className="hidden md:flex">Schedule Meeting</span>
 							</Button>
-							<Button
-								variant="outlined"
-								startIcon={<GroupAddOutlined />}
-								className="w-full"
-								sx={{ py: 0.75 }}
-								onClick={onOpenInviteDialog}
-							>
-								<span className="hidden md:flex">Invite Members</span>
-							</Button>
-						</div>
-					)}
+						)}
+						<Button
+							variant="outlined"
+							startIcon={<GroupAddOutlined />}
+							className="w-full"
+							sx={{ py: 0.75 }}
+							onClick={onOpenInviteDialog}
+						>
+							<span className="hidden md:flex">Invite Members</span>
+						</Button>
+					</div>
 				</div>
 			)}
 		</div>

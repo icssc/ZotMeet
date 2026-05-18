@@ -25,12 +25,13 @@ export async function inviteMeetingMembers(
 		return { success: false, message: "Meeting not found." };
 	}
 
-	if (meeting.hostId !== user.memberId) {
-		return {
-			success: false,
-			message: "You do not have permission to invite members to this meeting.",
-		};
-	}
+	// TODO: Enable check once we add private meetings
+	// if (meeting.hostId !== user.memberId) {
+	// 	return {
+	// 		success: false,
+	// 		message: "You do not have permission to invite members to this meeting.",
+	// 	};
+	// }
 
 	if (!memberIds || memberIds.length === 0) {
 		return { success: false, message: "No members selected." };
