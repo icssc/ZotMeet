@@ -2,7 +2,6 @@
 
 import { archiveMeeting } from "@actions/meeting/archive/action";
 import { leaveMeeting } from "@actions/meeting/leave/action";
-import { DeleteForever, ExitToApp } from "@mui/icons-material";
 import {
 	Button,
 	Dialog,
@@ -15,13 +14,10 @@ import {
 	useMediaQuery,
 	useTheme,
 } from "@mui/material";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
-
-function DeleteLeaveActionIcon({ isOwner }: { isOwner: boolean }) {
-	return isOwner ? <DeleteForever /> : <ExitToApp />;
-}
+import { getDeleteLeaveAction } from "@/lib/meetings/delete-leave-action";
 
 interface DeleteModalProps {
 	meetingData: SelectMeeting;
@@ -41,14 +37,18 @@ export const DeleteModal = ({
 	onDeletionPendingChange,
 }: DeleteModalProps) => {
 	const router = useRouter();
+	const pathname = usePathname();
 	const { showSuccess, showError } = useSnackbar();
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("sm"), {
 		noSsr: true,
 	});
 
-	const actionLabel = isOwner ? "Delete Meeting" : "Leave Meeting";
-	const confirmColor = isOwner ? "error" : "warning";
+	const {
+		label: actionLabel,
+		Icon,
+		confirmColor,
+	} = getDeleteLeaveAction(isOwner);
 
 	const bodyText = isOwner
 		? "This action is irreversible. All members will be removed from this meeting. "
@@ -67,8 +67,12 @@ export const DeleteModal = ({
 						? `You successfully deleted "${meetingData.title}".`
 						: `You left "${meetingData.title}".`,
 				);
-				router.push("/summary");
 				handleOpenChange(false);
+				if (pathname === "/summary") {
+					router.refresh();
+				} else {
+					router.push("/summary");
+				}
 			} else {
 				showError(error ?? "Something went wrong.");
 			}
@@ -80,14 +84,11 @@ export const DeleteModal = ({
 	const ConfirmContent = (
 		<>
 			<div className="mb-0.5 flex items-center gap-1">
-				<DeleteLeaveActionIcon isOwner={isOwner} />
+				<Icon />
 				<Typography variant="h6" className="font-semibold">
 					{actionLabel}
 				</Typography>
 			</div>
-			<Typography variant="body2" color="text.secondary" className="mt-1">
-				{bodyText}
-			</Typography>
 		</>
 	);
 
@@ -107,7 +108,7 @@ export const DeleteModal = ({
 				color={confirmColor}
 				onClick={handleConfirm}
 				disabled={isDeletionPending}
-				startIcon={<DeleteLeaveActionIcon isOwner={isOwner} />}
+				startIcon={<Icon />}
 			>
 				{actionLabel}
 			</Button>
@@ -130,6 +131,7 @@ export const DeleteModal = ({
 			>
 				<div className="flex flex-col gap-3">
 					{ConfirmContent}
+					<Typography color="textSecondary">{bodyText}</Typography>
 
 					<div className="flex flex-col gap-2">{ActionButtons}</div>
 				</div>
@@ -145,17 +147,10 @@ export const DeleteModal = ({
 			}}
 			fullWidth
 		>
-			<DialogTitle className="pb-4">
-				<div className="flex items-center gap-1">
-					<DeleteLeaveActionIcon isOwner={isOwner} />
-					{actionLabel}
-				</div>
-			</DialogTitle>
-
+			<DialogTitle className="pb-4">{actionLabel}</DialogTitle>
 			<DialogContent className="mt-1">
 				<DialogContentText>{bodyText}</DialogContentText>
 			</DialogContent>
-
 			<DialogActions className="px-4 pb-5">
 				<Button
 					onClick={() => handleOpenChange(false)}
@@ -168,7 +163,7 @@ export const DeleteModal = ({
 					color={confirmColor}
 					variant="contained"
 					disabled={isDeletionPending}
-					startIcon={<DeleteLeaveActionIcon isOwner={isOwner} />}
+					startIcon={<Icon />}
 				>
 					{actionLabel}
 				</Button>
