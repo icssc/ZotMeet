@@ -50,6 +50,7 @@ export function AvailabilityActions({
 	const [membersCanInvite, setMembersCanInvite] = useState(
 		meetingData.membersCanInvite,
 	);
+	const [isUpdatingPermissions, setIsUpdatingPermissions] = useState(false);
 
 	const { hasAvailability, availabilityView, setAvailabilityView } =
 		useAvailabilityStore(
@@ -104,9 +105,10 @@ export function AvailabilityActions({
 								control={
 									<Switch
 										checked={membersCanInvite}
+										disabled={isUpdatingPermissions}
 										onChange={async (e) => {
 											const checked = e.target.checked;
-
+											setIsUpdatingPermissions(true);
 											setMembersCanInvite(checked);
 
 											try {
@@ -118,14 +120,15 @@ export function AvailabilityActions({
 												if (!result.success) {
 													setMembersCanInvite(!checked);
 													showError(result.message);
-													return;
+												} else {
+													showSuccess("Invite permissions updated.");
 												}
-
-												showSuccess("Invite permissions updated.");
 											} catch (error) {
 												console.error(error);
 												setMembersCanInvite(!checked);
 												showError("Failed to update invite permissions.");
+											} finally {
+												setIsUpdatingPermissions(false);
 											}
 										}}
 									/>
