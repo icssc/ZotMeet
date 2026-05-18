@@ -55,7 +55,7 @@ export default async function Page() {
 		<div className="px-4 py-8 sm:px-8">
 			<Meetings
 				meetings={meetings}
-				userId={memberId}
+				memberId={memberId}
 				meetingCounts={meetingCounts}
 				scheduledLabels={scheduledLabels}
 				scheduledDates={scheduledDates}
