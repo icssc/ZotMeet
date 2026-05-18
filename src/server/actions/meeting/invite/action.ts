@@ -1,7 +1,10 @@
 "use server";
 
 import { getCurrentSession } from "@/lib/auth";
-import { getExistingMeeting } from "@/server/data/meeting/queries";
+import {
+	getAllMemberAvailability,
+	getExistingMeeting,
+} from "@/server/data/meeting/queries";
 import { sendMeetingInvitesToUsers } from "@/server/data/meeting/send-meeting-invites";
 
 export type InviteMeetingMembersState = {
@@ -32,6 +35,17 @@ export async function inviteMeetingMembers(
 	// 		message: "You do not have permission to invite members to this meeting.",
 	// 	};
 	// }
+
+	const meetingMembers = await getAllMemberAvailability({ meetingId });
+	const userIsMember = meetingMembers.some(
+		(member) => member.memberId === user.memberId,
+	);
+	if (!userIsMember && user.memberId !== meeting.hostId) {
+		return {
+			success: false,
+			message: "You do not have permission to invite members to this meeting.",
+		};
+	}
 
 	if (!memberIds || memberIds.length === 0) {
 		return { success: false, message: "No members selected." };
