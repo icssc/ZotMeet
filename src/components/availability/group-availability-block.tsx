@@ -1,8 +1,10 @@
 import type React from "react";
 import { memo, useMemo } from "react";
 import type { SelectionEdges } from "@/components/availability/group-availability";
-import { GridPreviewOverlay } from "@/components/availability/table/grid-preview-overlay";
-import { StudyRoomsBlock } from "@/components/availability/table/study-rooms-block";
+import {
+	AvailabilityTabOverlay,
+	useAvailabilityTabOverlay,
+} from "@/components/availability/table/availability-tab-overlay";
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import { cn } from "@/lib/utils";
 
@@ -56,7 +58,7 @@ export const GroupAvailabilityBlock = memo(
 		hasSpacerBefore = false,
 		isScheduled = false,
 		isScheduledTopEdge = false,
-		isScheduledBottomEdge = false,
+		isScheduledBottomEdge: _isScheduledBottomEdge = false,
 		scheduledMeetingTitle,
 		scheduledTimeRange,
 		scheduledBlockCount = 1,
@@ -64,6 +66,21 @@ export const GroupAvailabilityBlock = memo(
 		dateIndex,
 		blockIndex,
 	}: GroupAvailabilityBlockProps) => {
+		const scheduledTab =
+			isScheduled && isScheduledTopEdge
+				? {
+						title: scheduledMeetingTitle,
+						timeRange: scheduledTimeRange,
+						blockCount: scheduledBlockCount,
+					}
+				: null;
+
+		const { tab, raiseZ } = useAvailabilityTabOverlay(
+			dateIndex,
+			blockIndex,
+			scheduledTab,
+		);
+
 		const onMouseEnter = useMemo(
 			() =>
 				onHoverCell
@@ -78,7 +95,7 @@ export const GroupAvailabilityBlock = memo(
 				className={cn(
 					"relative h-full w-full select-none border-gray-medium border-r-[1px] [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [touch-action:pan-x_pan-y]",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
-					isScheduledTopEdge && "z-[1]",
+					raiseZ && "z-[1]",
 					tableCellStyles,
 					className,
 				)}
@@ -109,8 +126,8 @@ export const GroupAvailabilityBlock = memo(
 							style={{ background: fill.solid.color }}
 						/>
 					)}
-					<StudyRoomsBlock dateIndex={dateIndex} blockIndex={blockIndex} />
 				</div>
+				<AvailabilityTabOverlay tab={tab} />
 				{selectionEdges && (
 					<div
 						aria-hidden="true"
@@ -123,20 +140,6 @@ export const GroupAvailabilityBlock = memo(
 						)}
 					/>
 				)}
-{isScheduled && (
-	<GridPreviewOverlay
-		edges={{
-			top: isScheduledTopEdge,
-			bottom: isScheduledBottomEdge,
-			left: true,
-			right: true,
-		}}
-		title={scheduledMeetingTitle}
-		timeRange={scheduledTimeRange}
-		blockCount={scheduledBlockCount}
-		showTopLabel={isScheduledTopEdge}
-	/>
-)}
 			</button>
 		);
 	},
