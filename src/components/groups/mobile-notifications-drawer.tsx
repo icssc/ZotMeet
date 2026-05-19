@@ -13,27 +13,14 @@ import {
 	styled,
 	Typography,
 } from "@mui/material";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { AcceptGroupInvite } from "@/components/groups/accept-group-invite";
+import {
+	NotificationEmptyState,
+	NotificationGroupInviteDialog,
+} from "@/components/notifications";
+import { useNotificationActions } from "@/hooks/use-notification-actions";
 import type { NotificationItem } from "@/lib/auth/user";
-
-function timeAgo(date: Date | null | undefined): string {
-	if (!date) return "";
-	const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-	if (seconds < 60) return `${seconds}s ago`;
-	const minutes = Math.floor(seconds / 60);
-	if (minutes < 60) return `${minutes}m ago`;
-	const hours = Math.floor(minutes / 60);
-	if (hours < 24) return `${hours}h ago`;
-	const days = Math.floor(hours / 24);
-	if (days < 7) return `${days}d ago`;
-	const weeks = Math.floor(days / 7);
-	if (weeks < 4) return `${weeks}w ago`;
-	const months = Math.floor(days / 30);
-	if (months < 12) return `${months}mo ago`;
-	return `${Math.floor(days / 365)}y ago`;
-}
+import { getNotificationAvatarSrc, timeAgo } from "@/lib/notification/utils";
 
 const StyledDrawer = styled(Drawer)({
 	"& .MuiDrawer-paper": {
@@ -130,13 +117,6 @@ const NotifAvatar = styled(Avatar)({
 	height: 48,
 });
 
-const CaughtUpBox = styled(Box)(({ theme }) => ({
-	display: "flex",
-	justifyContent: "center",
-	paddingTop: theme.spacing(2),
-	paddingBottom: theme.spacing(2),
-}));
-
 type MobileNotificationsDrawerProps = {
 	open: boolean;
 	onClose: () => void;
@@ -148,13 +128,15 @@ export function MobileNotificationsDrawer({
 	onClose,
 	notifications,
 }: MobileNotificationsDrawerProps) {
-	const router = useRouter();
-	const [showGroupInvite, setShowGroupInvite] = useState(false);
-	const [activeNotification, setActiveNotification] =
-		useState<NotificationItem | null>(null);
+	const {
+		unread,
+		showGroupInvite,
+		setShowGroupInvite,
+		activeNotification,
+		setActiveNotification,
+		handleOpen,
+	} = useNotificationActions(notifications);
 	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
-	const unread = notifications.filter((n) => !n.readAt);
 
 	function toggleSelected(id: string) {
 		setSelectedIds((prev) => {
@@ -228,11 +210,7 @@ export function MobileNotificationsDrawer({
 								<AvatarWrapper>
 									<NotifAvatar
 										alt={notif.title || "Group icon"}
-										src={
-											notif.createdByAvatar ||
-											notif.groupIcon ||
-											"/icssc-logo.svg"
-										}
+										src={getNotificationAvatarSrc(notif)}
 										slotProps={{ img: { referrerPolicy: "no-referrer" } }}
 									/>
 									{selectedIds.has(notif.id) && <SelectedCheck />}
@@ -248,14 +226,10 @@ export function MobileNotificationsDrawer({
 								size="small"
 								onClick={(e) => {
 									e.stopPropagation();
-									readNotification(notif.id);
-									if (notif.type === "Meeting Invite") {
-										onClose();
-										router.push(notif.redirect ?? "");
-									} else {
-										setActiveNotification(notif);
-										setShowGroupInvite(true);
-									}
+									handleOpen(notif, {
+										onClose,
+										beforeOpen: () => readNotification(notif.id),
+									});
 								}}
 							>
 								<ChevronRight fontSize="small" />
@@ -264,30 +238,15 @@ export function MobileNotificationsDrawer({
 					))}
 				</Box>
 
-				{unread.length === 0 && (
-					<CaughtUpBox>
-						<Typography
-							variant="caption"
-							color="text.secondary"
-							fontStyle="italic"
-						>
-							You&apos;re all caught up! 🎉
-						</Typography>
-					</CaughtUpBox>
-				)}
+				{unread.length === 0 && <NotificationEmptyState />}
 			</StyledDrawer>
 
-			{activeNotification && (
-				<AcceptGroupInvite
-					source="notification"
-					open={showGroupInvite}
-					notification={activeNotification}
-					onOpenChange={(open) => {
-						setShowGroupInvite(open);
-						if (!open) setActiveNotification(null);
-					}}
-				/>
-			)}
+			<NotificationGroupInviteDialog
+				open={showGroupInvite}
+				activeNotification={activeNotification}
+				setOpen={setShowGroupInvite}
+				setActiveNotification={setActiveNotification}
+			/>
 		</>
 	);
 }
