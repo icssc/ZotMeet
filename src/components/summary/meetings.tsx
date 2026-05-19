@@ -11,15 +11,19 @@ import MeetingCard from "@/components/ui/meeting-card";
 import type { SelectMeeting } from "@/db/schema";
 import {
 	filterMeetingsByQuery,
+	getMeetingUpcomingPriority,
+	getStartOfTodayMs,
+	isMeetingPast,
 	toMeetingCardData,
 } from "@/lib/meeting-card/mapper";
 
-type FilterType = "all" | "unscheduled" | "scheduled" | "by-you";
+type FilterType = "upcoming" | "past" | "by-you";
 
 interface MeetingsProps {
 	meetings: (SelectMeeting & {
 		hostDisplayName: string | null;
 		needsAvailability: boolean;
+		allAvailabilityFilled: boolean;
 	})[];
 	memberId: string;
 	meetingCounts: Record<string, number>;
@@ -30,19 +34,23 @@ interface MeetingsProps {
 
 type DisplayMeeting = MeetingsProps["meetings"][number];
 
-const sectionLabelSx = {
-	fontSize: 12,
-	fontWeight: 500,
-	letterSpacing: "1px",
-	textTransform: "uppercase",
-	lineHeight: 1,
-	color: "text.disabled",
-} as const;
-
 type DeleteTarget = {
 	meeting: DisplayMeeting;
 	isOwner: boolean;
 };
+
+const FILTER_LABELS: Record<FilterType, string> = {
+	upcoming: "Upcoming",
+	past: "Past",
+	"by-you": "By You",
+};
+
+const cardGridSx = {
+	display: { xs: "flex", sm: "grid" },
+	flexDirection: "column",
+	gridTemplateColumns: { sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
+	gap: { xs: 1.5, sm: 2 },
+} as const;
 
 const toCard = (
 	meeting: DisplayMeeting,
@@ -50,6 +58,7 @@ const toCard = (
 	meetingCounts: Record<string, number>,
 	onDeleteLeave: (target: DeleteTarget) => void,
 	scheduledLabels?: Record<string, string>,
+	upcomingSet?: Set<string>,
 ) => {
 	const { meeting: _meeting, ...cardProps } = toMeetingCardData(
 		meeting,
@@ -64,47 +73,13 @@ const toCard = (
 		<MeetingCard
 			key={meeting.id}
 			{...cardProps}
+			needsAvailability={meeting.needsAvailability}
+			allAvailabilityFilled={meeting.allAvailabilityFilled}
+			isUpcoming={upcomingSet?.has(meeting.id) ?? false}
 			onDeleteLeave={() =>
 				onDeleteLeave({ meeting, isOwner: cardProps.isOwner })
 			}
 		/>
-	);
-};
-
-const MeetingSection = ({
-	label,
-	meetings,
-	memberId,
-	meetingCounts,
-	onDeleteLeave,
-	scheduledLabels,
-}: {
-	label: string;
-	meetings: DisplayMeeting[];
-	memberId: string;
-	meetingCounts: Record<string, number>;
-	onDeleteLeave: (target: DeleteTarget) => void;
-	scheduledLabels?: Record<string, string>;
-}) => {
-	if (meetings.length === 0) return null;
-	return (
-		<Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-			<Typography sx={sectionLabelSx}>
-				{label} ({meetings.length})
-			</Typography>
-			<Box
-				sx={{
-					display: { xs: "flex", sm: "grid" },
-					flexDirection: "column",
-					gridTemplateColumns: { sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
-					gap: { xs: 1.5, sm: 2 },
-				}}
-			>
-				{meetings.map((m) =>
-					toCard(m, memberId, meetingCounts, onDeleteLeave, scheduledLabels),
-				)}
-			</Box>
-		</Box>
 	);
 };
 
@@ -117,7 +92,7 @@ export const Meetings = ({
 	upcomingMeetingIds,
 }: MeetingsProps) => {
 	const [search, setSearch] = useState("");
-	const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+	const [activeFilter, setActiveFilter] = useState<FilterType>("upcoming");
 	const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 	const [isDeletionPending, setIsDeletionPending] = useState(false);
 
@@ -130,32 +105,37 @@ export const Meetings = ({
 		[upcomingMeetingIds],
 	);
 
-	const counts = useMemo(
-		() => ({
-			all: meetings.length,
-			unscheduled: meetings.filter((m) => !m.scheduled).length,
-			scheduled: meetings.filter((m) => m.scheduled === true).length,
-			"by-you": meetings.filter((m) => m.hostId === memberId).length,
-		}),
-		[meetings, memberId],
+	const todayTimestamp = useMemo(() => getStartOfTodayMs(), []);
+
+	const isPastMeeting = useCallback(
+		(m: DisplayMeeting): boolean =>
+			isMeetingPast(m, scheduledDates, todayTimestamp),
+		[scheduledDates, todayTimestamp],
 	);
 
-	const filteredByOwner = useMemo(() => {
+	const counts = useMemo(
+		() => ({
+			upcoming: meetings.filter((m) => !isPastMeeting(m)).length,
+			past: meetings.filter(isPastMeeting).length,
+			"by-you": meetings.filter((m) => m.hostId === memberId).length,
+		}),
+		[meetings, memberId, isPastMeeting],
+	);
+
+	const filteredMeetings = useMemo(() => {
 		switch (activeFilter) {
 			case "by-you":
 				return meetings.filter((m) => m.hostId === memberId);
-			case "unscheduled":
-				return meetings.filter((m) => !m.scheduled);
-			case "scheduled":
-				return meetings.filter((m) => m.scheduled === true);
+			case "past":
+				return meetings.filter(isPastMeeting);
 			default:
-				return meetings;
+				return meetings.filter((m) => !isPastMeeting(m));
 		}
-	}, [meetings, memberId, activeFilter]);
+	}, [meetings, memberId, activeFilter, isPastMeeting]);
 
 	const displayMeetings = useMemo(
-		() => filterMeetingsByQuery(filteredByOwner, search),
-		[filteredByOwner, search],
+		() => filterMeetingsByQuery(filteredMeetings, search),
+		[filteredMeetings, search],
 	);
 
 	const renderMeetings = () => {
@@ -202,76 +182,36 @@ export const Meetings = ({
 			);
 		}
 
-		if (activeFilter === "scheduled") {
-			const sorted = [...displayMeetings].sort(
-				(a, b) => (scheduledDates?.[a.id] ?? 0) - (scheduledDates?.[b.id] ?? 0),
-			);
-			const upcoming = sorted.filter((m) => upcomingSet.has(m.id));
-			const rest = sorted.filter((m) => !upcomingSet.has(m.id));
-			return (
-				<Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-					<MeetingSection
-						label="Upcoming"
-						meetings={upcoming}
-						memberId={memberId}
-						meetingCounts={meetingCounts}
-						onDeleteLeave={handleDeleteLeaveRequest}
-						scheduledLabels={scheduledLabels}
-					/>
-					<MeetingSection
-						label="Scheduled"
-						meetings={rest}
-						memberId={memberId}
-						meetingCounts={meetingCounts}
-						onDeleteLeave={handleDeleteLeaveRequest}
-						scheduledLabels={scheduledLabels}
-					/>
-				</Box>
+		let sorted: DisplayMeeting[];
+
+		if (activeFilter === "past") {
+			sorted = [...displayMeetings].sort((a, b) => {
+				const getTime = (m: DisplayMeeting) => {
+					if (m.scheduled) return scheduledDates?.[m.id] ?? 0;
+					const dates = (m.dates as string[] | null) ?? [];
+					if (dates.length === 0) return 0;
+					return Math.max(...dates.map((d) => new Date(d).getTime()));
+				};
+				return getTime(b) - getTime(a);
+			});
+		} else {
+			sorted = [...displayMeetings].sort(
+				(a, b) =>
+					getMeetingUpcomingPriority(a, memberId, upcomingSet) -
+					getMeetingUpcomingPriority(b, memberId, upcomingSet),
 			);
 		}
 
-		if (activeFilter === "unscheduled") {
-			const actionRequired = displayMeetings.filter((m) => m.needsAvailability);
-			const rest = displayMeetings.filter((m) => !m.needsAvailability);
-			return (
-				<Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-					<MeetingSection
-						label="Action Required"
-						meetings={actionRequired}
-						memberId={memberId}
-						meetingCounts={meetingCounts}
-						onDeleteLeave={handleDeleteLeaveRequest}
-						scheduledLabels={scheduledLabels}
-					/>
-					<MeetingSection
-						label="Unscheduled"
-						meetings={rest}
-						memberId={memberId}
-						meetingCounts={meetingCounts}
-						onDeleteLeave={handleDeleteLeaveRequest}
-						scheduledLabels={scheduledLabels}
-					/>
-				</Box>
-			);
-		}
-
-		// "all" and "by-you": flat grid, no sections
 		return (
-			<Box
-				sx={{
-					display: { xs: "flex", sm: "grid" },
-					flexDirection: "column",
-					gridTemplateColumns: { sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
-					gap: { xs: 1.5, sm: 2 },
-				}}
-			>
-				{displayMeetings.map((m) =>
+			<Box sx={cardGridSx}>
+				{sorted.map((m) =>
 					toCard(
 						m,
 						memberId,
 						meetingCounts,
 						handleDeleteLeaveRequest,
 						scheduledLabels,
+						upcomingSet,
 					),
 				)}
 			</Box>
@@ -338,25 +278,15 @@ export const Meetings = ({
 					/>
 
 					<Box sx={{ display: "flex", gap: 0.75 }}>
-						{(["all", "unscheduled", "scheduled", "by-you"] as const).map(
-							(f) => {
-								const labels: Record<FilterType, string> = {
-									all: "All",
-									unscheduled: "Unscheduled",
-									scheduled: "Scheduled",
-									"by-you": "By You",
-								};
-								return (
-									<FilterChip
-										key={f}
-										label={labels[f]}
-										count={counts[f]}
-										active={activeFilter === f}
-										onClick={() => setActiveFilter(f)}
-									/>
-								);
-							},
-						)}
+						{(["upcoming", "past", "by-you"] as const).map((f) => (
+							<FilterChip
+								key={f}
+								label={FILTER_LABELS[f]}
+								count={counts[f]}
+								active={activeFilter === f}
+								onClick={() => setActiveFilter(f)}
+							/>
+						))}
 					</Box>
 				</Box>
 

@@ -1,5 +1,21 @@
 import type { SelectScheduledMeeting } from "@/db/schema";
 
+const UPCOMING_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
+
+export function getUpcomingMeetingIds(
+	scheduledMeetingMap: Record<string, { scheduledDate: Date }>,
+): string[] {
+	const startOfToday = new Date();
+	startOfToday.setUTCHours(0, 0, 0, 0);
+	const windowEnd = new Date(startOfToday.getTime() + UPCOMING_WINDOW_MS);
+	return Object.entries(scheduledMeetingMap)
+		.filter(
+			([, sm]) =>
+				sm.scheduledDate >= startOfToday && sm.scheduledDate <= windowEnd,
+		)
+		.map(([id]) => id);
+}
+
 export function formatScheduledTime(time: string): string {
 	const [hourStr = "0", minStr = "0"] = time.split(":");
 	const hour = Number(hourStr);
