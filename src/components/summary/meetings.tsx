@@ -2,13 +2,15 @@
 
 import { Add, CalendarMonth, Notifications } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import { Badge, Box, Button, TextField, Typography } from "@mui/material";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
+import { MobileNotificationsDrawer } from "@/components/groups/mobile-notifications-drawer";
 import { DeleteModal } from "@/components/meetings/delete-modal";
 import { FilterChip } from "@/components/ui/filter-chip";
 import MeetingCard from "@/components/ui/meeting-card";
 import type { SelectMeeting } from "@/db/schema";
+import type { NotificationItem } from "@/lib/auth/user";
 import {
 	filterMeetingsByQuery,
 	getMeetingUpcomingPriority,
@@ -30,6 +32,7 @@ interface MeetingsProps {
 	scheduledLabels?: Record<string, string>;
 	scheduledDates?: Record<string, number>;
 	upcomingMeetingIds?: string[];
+	notifications: NotificationItem[];
 }
 
 type DisplayMeeting = MeetingsProps["meetings"][number];
@@ -90,11 +93,15 @@ export const Meetings = ({
 	scheduledLabels,
 	scheduledDates,
 	upcomingMeetingIds,
+	notifications,
 }: MeetingsProps) => {
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<FilterType>("upcoming");
+	const [notificationsOpen, setNotificationsOpen] = useState(false);
 	const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 	const [isDeletionPending, setIsDeletionPending] = useState(false);
+
+	const unreadCount = notifications.filter((n) => !n.readAt).length;
 
 	const handleDeleteLeaveRequest = useCallback((target: DeleteTarget) => {
 		setDeleteTarget(target);
@@ -229,21 +236,17 @@ export const Meetings = ({
 					mb: 3,
 				}}
 			>
-				<Typography variant="h4">Meetings</Typography>
+				<Typography variant="h3">Meetings</Typography>
 				<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-					<Box
-						sx={{
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							border: "1px solid",
-							borderColor: "divider",
-							borderRadius: 1,
-							p: 1,
-						}}
-					>
-						<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
-					</Box>
+					<Badge badgeContent={unreadCount} color="primary">
+						<Button
+							variant="outlined"
+							size="square"
+							onClick={() => setNotificationsOpen(true)}
+						>
+							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
+						</Button>
+					</Badge>
 					<Button variant="contained" size="square" href="/">
 						<Add />
 					</Button>
@@ -302,6 +305,12 @@ export const Meetings = ({
 			</Box>
 
 			{renderMeetings()}
+
+			<MobileNotificationsDrawer
+				open={notificationsOpen}
+				onClose={() => setNotificationsOpen(false)}
+				notifications={notifications}
+			/>
 
 			{deleteTarget && (
 				<DeleteModal

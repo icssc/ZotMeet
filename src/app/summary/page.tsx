@@ -10,6 +10,7 @@ import {
 	getResponderCountsByMeetingIds,
 	getScheduledMeetingsByMeetingIds,
 } from "@/server/data/meeting/queries";
+import { getNotificationsByMemberId } from "@/server/data/user/queries";
 
 export default async function Page() {
 	const session = await getCurrentSession();
@@ -22,7 +23,10 @@ export default async function Page() {
 		notFound();
 	}
 
-	const meetings = await getMeetings(memberId);
+	const [meetings, notifications] = await Promise.all([
+		getMeetings(memberId),
+		getNotificationsByMemberId(memberId),
+	]);
 	const meetingIds = meetings.map((m) => m.id);
 	const [meetingCounts, scheduledMeetingMap] = await Promise.all([
 		getResponderCountsByMeetingIds(meetingIds),
@@ -53,6 +57,7 @@ export default async function Page() {
 				scheduledLabels={scheduledLabels}
 				scheduledDates={scheduledDates}
 				upcomingMeetingIds={upcomingMeetingIds}
+				notifications={notifications}
 			/>
 		</div>
 	);
