@@ -1,12 +1,12 @@
 "use client";
 
-import { Add, ExpandMore, People } from "@mui/icons-material";
+import { Add, ExpandMore, Notifications, People } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
 import {
+	Badge,
 	Box,
 	Button,
 	Divider,
-	IconButton,
 	Stack,
 	TextField,
 	Typography,
@@ -14,7 +14,9 @@ import {
 import { useMemo, useState } from "react";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { GroupCard } from "@/components/groups/group-card";
+import { MobileNotificationsDrawer } from "@/components/groups/mobile-notifications-drawer";
 import { FilterChip } from "@/components/ui/filter-chip";
+import type { NotificationItem } from "@/lib/auth/user";
 import type { GroupWithDetails } from "@/server/data/groups/queries";
 import { InviteDecision } from "./invite-decisions";
 
@@ -22,15 +24,19 @@ type FilterTab = "all" | "created" | "availability";
 
 interface GroupsPageProps {
 	groups: GroupWithDetails[];
+	notifications: NotificationItem[];
 }
 
 const INITIAL_ACTION_REQUIRED_COUNT = 2;
 
-export function GroupsPage({ groups }: GroupsPageProps) {
+export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 	const [showAllActionRequired, setShowAllActionRequired] = useState(false);
+	const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+	const unreadCount = notifications.filter((n) => !n.readAt).length;
 
 	const searchTrimmed = search.trim();
 
@@ -95,18 +101,32 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					alignItems: "center",
 				}}
 			>
-				<Typography variant="h4">Groups</Typography>
-				<div className="ml-auto">
+				<Typography variant="h3">Groups</Typography>
+				<Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
 					<Button
-						type="button"
-						variant="contained"
 						size="square"
+						variant="outlined"
+						onClick={() => setNotificationsOpen(true)}
+					>
+						<Badge badgeContent={unreadCount} color="primary">
+							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
+						</Badge>
+					</Button>
+					<Button
+						size="square"
+						variant="contained"
 						onClick={() => setCreateDialogOpen(true)}
 					>
 						<Add />
 					</Button>
-				</div>
+				</Box>
 			</Box>
+
+			<MobileNotificationsDrawer
+				open={notificationsOpen}
+				onClose={() => setNotificationsOpen(false)}
+				notifications={notifications}
+			/>
 
 			<Box sx={{ display: { xs: "block", sm: "flex" }, gap: { xs: 0, sm: 2 } }}>
 				<TextField
