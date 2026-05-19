@@ -1,8 +1,10 @@
 import { NotificationsOutlined } from "@mui/icons-material";
-import { Avatar, Button, Chip, Switch, Typography } from "@mui/material/";
+import { Avatar, Button, Chip, Switch, Typography } from "@mui/material";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { XIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
+import { MuiBottomSheet } from "@/components/ui/mui/mui-bottom-sheet";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import {
 	computeGroupMembersForRange,
@@ -24,10 +26,11 @@ import {
 } from "@/store/useAvailabilityStore";
 
 const EN_DASH = "\u2013";
-
+/** Tailwind `lg` breakpoint — keep aligned with `lg:` utilities. */
+const LG_UP_MEDIA = "(min-width: 1024px)";
 const RESPONDER_CHIP_CLASS: Record<MemberRangeStatus, string> = {
 	available: "",
-	"if-needed": "[&_.MuiChip-label]:italic",
+	"if-needed": "!border-dashed [&_.MuiChip-label]:italic",
 	unavailable: "[&_.MuiChip-label]:line-through",
 };
 
@@ -91,6 +94,198 @@ interface GroupResponsesProps {
 	isOwner: boolean;
 }
 
+type GroupResponsesPanelProps = {
+	variant: "desktop" | "mobile";
+	blockInfoString: string;
+	showBestTimes: boolean;
+	onShowBestTimesChange: (checked: boolean) => void;
+	respondedMembers: Member[];
+	memberStatus: ReadonlyMap<string, MemberRangeStatus>;
+	selectedMemberIds: ReadonlySet<string>;
+	onMemberHover: (memberId: string | null) => void;
+	onMemberSelect: (memberId: string) => void;
+	onClearSelected: () => void;
+	availableCount: number;
+	isOwner: boolean;
+	pendingMembers: Member[];
+	isNudging: boolean;
+	cooldownRemaining: string | null;
+	onNudge: () => void;
+	onRequestClose: () => void;
+};
+
+function GroupResponsesPanel({
+	variant,
+	blockInfoString,
+	showBestTimes,
+	onShowBestTimesChange,
+	respondedMembers,
+	memberStatus,
+	selectedMemberIds,
+	onMemberHover,
+	onMemberSelect,
+	onClearSelected,
+	availableCount,
+	isOwner,
+	pendingMembers,
+	isNudging,
+	cooldownRemaining,
+	onNudge,
+	onRequestClose,
+}: GroupResponsesPanelProps) {
+	const isDesktop = variant === "desktop";
+
+	return (
+		<>
+			{isDesktop ? (
+				<div className="hidden pb-3 lg:block">
+					<Typography variant="h6">Attendees</Typography>
+					<Typography variant="caption" color="textSecondary">
+						{blockInfoString}
+					</Typography>
+				</div>
+			) : (
+				<div className="flex items-center justify-between py-4">
+					<div>
+						<h3 className="font-medium">Responders</h3>
+						<Typography variant="caption" color="textSecondary">
+							{blockInfoString}
+						</Typography>
+					</div>
+					<button
+						type="button"
+						className="rounded-lg border-[1px] border-slate-400 p-0.5"
+						onClick={onRequestClose}
+						aria-label="Close responders"
+					>
+						<XIcon className="text-lg text-slate-400" aria-hidden />
+					</button>
+				</div>
+			)}
+
+			<div className="mt-3 flex flex-col">
+				<div>
+					<Typography variant="h6">Map Display</Typography>
+					<Typography variant="caption" color="textSecondary">
+						Filter how responder availability shows together on the map
+					</Typography>
+				</div>
+
+				<div className="mt-2 flex items-center gap-2">
+					<Switch
+						id="availability-best-times"
+						checked={showBestTimes}
+						onChange={(e) => onShowBestTimesChange(e.target.checked)}
+						size="medium"
+						inputProps={{ "aria-label": "Best Times" }}
+					/>
+					<label
+						htmlFor="availability-best-times"
+						className="cursor-pointer text-md"
+					>
+						Best Times
+					</label>
+				</div>
+			</div>
+
+			<div className="flex flex-col py-2">
+				<div>
+					<h2 className="font-medium text-xl">Responders</h2>
+					<Typography variant="caption" color="textSecondary">
+						Available ({availableCount})
+					</Typography>
+				</div>
+
+				<ul className="mt-3 flex flex-wrap gap-2">
+					{respondedMembers.map((member) => {
+						const status = memberStatus.get(member.memberId) ?? "available";
+						return (
+							<Chip
+								key={member.memberId}
+								clickable
+								icon={
+									<Avatar
+										alt={member.displayName}
+										src={member.profilePicture ?? undefined}
+										slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+										sx={{ width: 24, height: 24, fontSize: 12 }}
+									/>
+								}
+								label={member.displayName}
+								color={
+									selectedMemberIds.has(member.memberId) ? "primary" : "default"
+								}
+								variant="outlined"
+								className={cn("max-w-full", RESPONDER_CHIP_CLASS[status])}
+								onMouseEnter={() => onMemberHover(member.memberId)}
+								onMouseLeave={() => onMemberHover(null)}
+								onClick={() => onMemberSelect(member.memberId)}
+							/>
+						);
+					})}
+				</ul>
+				<div className="mt-4 ml-auto">
+					<Button variant="text" className="ml-auto" onClick={onClearSelected}>
+						Clear Selected
+					</Button>
+				</div>
+			</div>
+
+			<div className="flex flex-col py-2">
+				<div className="flex items-center justify-between">
+					<Typography variant="h6">Pending Responders</Typography>
+					{isOwner && pendingMembers.length > 0 && (
+						<Button
+							variant="outlined"
+							size="small"
+							startIcon={<NotificationsOutlined />}
+							disabled={isNudging || cooldownRemaining !== null}
+							onClick={onNudge}
+						>
+							Nudge
+						</Button>
+					)}
+				</div>
+
+				{isOwner && cooldownRemaining !== null && (
+					<Typography variant="caption" sx={{ color: "error.main", mt: 0.5 }}>
+						Nudge available in {cooldownRemaining}
+					</Typography>
+				)}
+
+				{pendingMembers.length > 0 ? (
+					<div>
+						<Typography variant="caption" color="textSecondary">
+							Waiting on responses from your group ({pendingMembers.length})
+						</Typography>
+						<ul className="mt-3 flex flex-wrap gap-2">
+							{pendingMembers.map((member) => (
+								<Chip
+									key={member.memberId}
+									icon={
+										<Avatar
+											alt={member.displayName}
+											src={member.profilePicture ?? undefined}
+											slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+											sx={{ height: 24, width: 24 }}
+										/>
+									}
+									label={member.displayName}
+									variant="outlined"
+								/>
+							))}
+						</ul>
+					</div>
+				) : (
+					<Typography variant="caption" color="textSecondary" className="mt-2">
+						Everyone has submitted availability.
+					</Typography>
+				)}
+			</div>
+		</>
+	);
+}
+
 export function GroupResponses({
 	availabilityDates,
 	ifNeededDates,
@@ -103,6 +298,14 @@ export function GroupResponses({
 	meetingId,
 	isOwner,
 }: GroupResponsesProps) {
+	const isLgQuery = useMediaQuery(LG_UP_MEDIA, { noSsr: true });
+	const [layoutReady, setLayoutReady] = useState(false);
+	useEffect(() => {
+		setLayoutReady(true);
+	}, []);
+	// Default to desktop branch until mounted so SSR + first client paint match.
+	const isLg = layoutReady ? isLgQuery : true;
+
 	const { showSuccess, showError } = useSnackbar();
 	const [isNudging, setIsNudging] = useState(false);
 	const [cooldownUntil, setCooldownUntil] = useState<Date | null>(null);
@@ -139,7 +342,7 @@ export function GroupResponses({
 		return () => clearInterval(id);
 	}, [cooldownUntil]);
 
-	const handleNudge = async () => {
+	const handleNudge = useCallback(async () => {
 		setIsNudging(true);
 		try {
 			const result = await nudgePendingMembers(meetingId);
@@ -157,7 +360,7 @@ export function GroupResponses({
 		} finally {
 			setIsNudging(false);
 		}
-	};
+	}, [meetingId, showError, showSuccess]);
 
 	const newAvailDates = useMemo(
 		() =>
@@ -255,169 +458,81 @@ export function GroupResponses({
 		? formatRangeLabel(activeRange, newAvailDates)
 		: "Select a cell to view";
 
+	const handleCloseMobile = useCallback(() => {
+		setIsMobileDrawerOpen(false);
+	}, [setIsMobileDrawerOpen]);
+
+	const onNudge = useCallback(() => {
+		void handleNudge();
+	}, [handleNudge]);
+
+	const selectedMemberIds = useMemo(
+		() => new Set(selectedMembers),
+		[selectedMembers],
+	);
+
+	const mobileSheetPaperSx = useMemo(() => ({ px: 2, py: 1 }) as const, []);
+
+	const panelProps: Omit<GroupResponsesPanelProps, "variant"> = useMemo(
+		() => ({
+			blockInfoString,
+			showBestTimes,
+			onShowBestTimesChange: setShowBestTimes,
+			respondedMembers,
+			memberStatus,
+			selectedMemberIds,
+			onMemberHover: handleMemberHover,
+			onMemberSelect: handleMemberSelect,
+			onClearSelected: handleClearSelected,
+			availableCount,
+			isOwner,
+			pendingMembers,
+			isNudging,
+			cooldownRemaining,
+			onNudge,
+			onRequestClose: handleCloseMobile,
+		}),
+		[
+			availableCount,
+			blockInfoString,
+			cooldownRemaining,
+			handleClearSelected,
+			handleCloseMobile,
+			handleMemberHover,
+			handleMemberSelect,
+			isNudging,
+			isOwner,
+			memberStatus,
+			onNudge,
+			pendingMembers,
+			respondedMembers,
+			selectedMemberIds,
+			setShowBestTimes,
+			showBestTimes,
+		],
+	);
+
+	if (!isLg) {
+		return (
+			<MuiBottomSheet
+				open={isMobileDrawerOpen}
+				onClose={handleCloseMobile}
+				paperSx={mobileSheetPaperSx}
+			>
+				<div data-availability-sidebar="">
+					<GroupResponsesPanel {...panelProps} variant="mobile" />
+				</div>
+			</MuiBottomSheet>
+		);
+	}
+
 	return (
 		<div
 			data-availability-sidebar=""
 			className="flex min-h-0 min-w-0 flex-1 flex-col lg:shrink-0"
 		>
-			<div
-				className={cn(
-					"fixed bottom-0 h-96 max-h-[85dvh] w-full min-w-0 translate-y-full overflow-auto rounded-t-xl bg-opacity-90 px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:top-0 lg:h-full lg:max-h-none lg:min-h-0 lg:w-full lg:flex-1 lg:shrink-0 lg:translate-y-0 lg:self-stretch lg:overflow-y-auto lg:overscroll-y-contain lg:rounded-l-xl lg:bg-opacity-50",
-					isMobileDrawerOpen && "translate-y-0",
-				)}
-			>
-				<div className="hidden pb-3 lg:block">
-					<Typography variant="h6">Attendees</Typography>
-					<Typography variant="caption" color="textSecondary">
-						{blockInfoString}
-					</Typography>
-				</div>
-
-				<div className="flex items-center justify-between py-4 lg:hidden">
-					<div>
-						<h3 className="font-medium">Responders</h3>
-						<Typography variant="caption" color="textSecondary">
-							{blockInfoString}
-						</Typography>
-					</div>
-					<button
-						type="button"
-						className="rounded-lg border-[1px] border-slate-400 p-0.5 lg:hidden"
-						onClick={() => setIsMobileDrawerOpen(false)}
-					>
-						<XIcon className="text-lg text-slate-400" />
-					</button>
-				</div>
-
-				<div className="mt-3 flex flex-col">
-					<div>
-						<Typography variant="h6">Map Display</Typography>
-						<Typography variant="caption" color="textSecondary">
-							Filter how responder availability shows together on the map
-						</Typography>
-					</div>
-
-					<div className="mt-2 flex items-center gap-2">
-						<Switch
-							id="availability-best-times"
-							checked={showBestTimes}
-							onChange={(e) => setShowBestTimes(e.target.checked)}
-							size="medium"
-							inputProps={{ "aria-label": "Best Times" }}
-						/>
-						<label
-							htmlFor="availability-best-times"
-							className="cursor-pointer text-md"
-						>
-							Best Times
-						</label>
-					</div>
-				</div>
-
-				<div className="flex flex-col py-2">
-					<div>
-						<h2 className="font-medium text-xl">Responders</h2>
-						<Typography variant="caption" color="textSecondary">
-							Available ({availableCount})
-						</Typography>
-					</div>
-
-					<ul className="mt-3 flex flex-wrap gap-2">
-						{respondedMembers.map((member) => {
-							const status = memberStatus.get(member.memberId) ?? "available";
-							return (
-								<Chip
-									key={member.memberId}
-									clickable
-									icon={
-										<Avatar
-											alt={member.displayName}
-											src={member.profilePicture ?? undefined}
-											slotProps={{ img: { referrerPolicy: "no-referrer" } }}
-											sx={{ width: 24, height: 24, fontSize: 12 }}
-										/>
-									}
-									label={member.displayName}
-									color={
-										selectedMembers.includes(member.memberId)
-											? "primary"
-											: "default"
-									}
-									variant="outlined"
-									className={cn("max-w-full", RESPONDER_CHIP_CLASS[status])}
-									onMouseEnter={() => handleMemberHover(member.memberId)}
-									onMouseLeave={() => handleMemberHover(null)}
-									onClick={() => handleMemberSelect(member.memberId)}
-								/>
-							);
-						})}
-					</ul>
-					<div className="mt-4 ml-auto">
-						<Button
-							variant="text"
-							className="ml-auto"
-							onClick={handleClearSelected}
-						>
-							Clear Selected
-						</Button>
-					</div>
-				</div>
-
-				<div className="flex flex-col py-2">
-					<div className="flex items-center justify-between">
-						<Typography variant="h6">Pending Responders</Typography>
-						{isOwner && pendingMembers.length > 0 && (
-							<Button
-								variant="outlined"
-								size="small"
-								startIcon={<NotificationsOutlined />}
-								disabled={isNudging || cooldownRemaining !== null}
-								onClick={handleNudge}
-							>
-								Nudge
-							</Button>
-						)}
-					</div>
-
-					{isOwner && cooldownRemaining !== null && (
-						<Typography variant="caption" sx={{ color: "error.main", mt: 0.5 }}>
-							Nudge available in {cooldownRemaining}
-						</Typography>
-					)}
-
-					{pendingMembers.length > 0 ? (
-						<div>
-							<Typography variant="caption" color="textSecondary">
-								Waiting on responses from your group ({pendingMembers.length})
-							</Typography>
-							<ul className="mt-3 flex flex-wrap gap-2">
-								{pendingMembers.map((member) => (
-									<Chip
-										key={member.memberId}
-										icon={
-											<Avatar
-												alt={member.displayName}
-												src={member.profilePicture ?? undefined}
-												slotProps={{ img: { referrerPolicy: "no-referrer" } }}
-												sx={{ height: 24, width: 24 }}
-											/>
-										}
-										label={member.displayName}
-										variant="outlined"
-									/>
-								))}
-							</ul>
-						</div>
-					) : (
-						<Typography
-							variant="caption"
-							color="textSecondary"
-							className="mt-2"
-						>
-							Everyone has submitted availability.
-						</Typography>
-					)}
-				</div>
+			<div className="relative flex min-h-0 min-w-0 flex-1 flex-col self-stretch overflow-y-auto overscroll-y-contain px-4 lg:h-full lg:max-h-none">
+				<GroupResponsesPanel {...panelProps} variant="desktop" />
 			</div>
 		</div>
 	);

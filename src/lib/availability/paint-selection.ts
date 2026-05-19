@@ -18,6 +18,24 @@ export function paintWillChange(
 	}
 }
 
+export type CellPaintTarget = PaintMode;
+
+export type ImportPreviewTarget = "available" | "if-needed" | null;
+
+export function effectiveCellTarget(
+	state: { isAvailable: boolean; isIfNeeded: boolean },
+	draft: { isInDraftRange: boolean; paintMode: PaintMode },
+	importPreview?: ImportPreviewTarget,
+): CellPaintTarget {
+	if (draft.isInDraftRange && paintWillChange(draft.paintMode, state)) {
+		return draft.paintMode;
+	}
+	if (importPreview) return importPreview;
+	if (state.isAvailable) return "available";
+	if (state.isIfNeeded) return "if-needed";
+	return "unavailable";
+}
+
 export function paintPersonalSelection(args: {
 	availabilityDates: ZotDate[];
 	ifNeededDates: ZotDate[];

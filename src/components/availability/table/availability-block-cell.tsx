@@ -3,9 +3,20 @@ import { memo } from "react";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
 import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
-import type { PaintMode } from "@/lib/availability/paint-selection";
+import {
+	type CellPaintTarget,
+	effectiveCellTarget,
+	type ImportPreviewTarget,
+	type PaintMode,
+} from "@/lib/availability/paint-selection";
 import type { EventSegment } from "@/lib/types/availability";
 import { cn } from "@/lib/utils";
+
+const HALF_HOUR_FILL_BY_TARGET: Record<CellPaintTarget, string> = {
+	available: "bg-primary",
+	"if-needed": "",
+	unavailable: "bg-paper",
+};
 
 export interface GridCellHandlers {
 	onPointerDown: React.PointerEventHandler<HTMLElement>;
@@ -31,7 +42,7 @@ interface AvailabilityBlockCellProps
 	isLastRow: boolean;
 	eventSegments: EventSegment[];
 	hasSpacerBefore?: boolean;
-	importPreviewType?: "available" | "if-needed" | null;
+	importPreviewType?: ImportPreviewTarget;
 	isInDraftRange: boolean;
 	paintMode: PaintMode;
 }
@@ -55,6 +66,12 @@ export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 	onPointerCancel,
 	onKeyDown,
 }: AvailabilityBlockCellProps) {
+	const target = effectiveCellTarget(
+		{ isAvailable, isIfNeeded },
+		{ isInDraftRange, paintMode },
+		importPreviewType,
+	);
+
 	return (
 		<td className="relative px-0 py-0">
 			<button
@@ -68,11 +85,12 @@ export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 				onPointerCancel={onPointerCancel}
 				onKeyDown={onKeyDown}
 				className={cn(
-					"block h-full w-full cursor-pointer border-gray-medium border-r-[1px] [touch-action:none]",
-					isTopOfHour && "border-t-[1px] border-t-gray-medium",
-					isHalfHour && "border-top-style:dotted border-t border-t-gray-base",
+					"block h-full w-full cursor-pointer select-none border-gray-medium border-r-[1px] [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [touch-action:none]",
+					isTopOfHour && "border-t-[1px] border-t-gray-base",
+					isHalfHour && "border-t border-t-gray-base [border-top-style:dotted]",
 					isLastRow && "border-b-[1px]",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
+					isHalfHour && HALF_HOUR_FILL_BY_TARGET[target],
 				)}
 			>
 				<AvailabilityBlock
@@ -86,7 +104,7 @@ export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 
 			<GoogleCalendarEventBlock
 				eventSegments={eventSegments}
-				isAvailable={isAvailable}
+				rendersOverPrimary={isAvailable}
 			/>
 		</td>
 	);

@@ -1,48 +1,30 @@
 "use client";
 
-import { Paper } from "@mui/material";
-import Autocomplete from "@mui/material/Autocomplete";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import FormControlLabel from "@mui/material/FormControlLabel";
+import FilterListIcon from "@mui/icons-material/FilterList";
+import SearchIcon from "@mui/icons-material/Search";
+import {
+	Box,
+	Button,
+	Drawer,
+	Paper,
+	TextField,
+	useMediaQuery,
+	useTheme,
+} from "@mui/material";
 import Stack from "@mui/material/Stack";
-import Switch from "@mui/material/Switch";
-import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { format } from "date-fns";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { MobileIsland } from "@/components/mobile/mobile-island";
 import { RoomsHeatmap } from "@/components/studyrooms/heatmap/rooms-heatmap";
-import { RoomsHeatmapLegend } from "@/components/studyrooms/legend";
-import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
-import { getDefaultWindow, toLocalStr } from "@/lib/rooms/utils";
+import { Sidebar } from "@/components/studyrooms/sidebar";
+import { getDefaultWindow } from "@/lib/rooms/utils";
 import type { StudyRooms } from "@/lib/types/studyrooms";
 
-const MAX_FALLBACK_DAYS = 7;
-
-const LOCATION_OPTIONS = [
-	"Anteater Learning Pavilion",
-	"Langson Library",
-	"Science Library",
-	"Multimedia Resources Center",
-	"Gateway Study Center",
-	"Plaza Verde",
-];
-
-const CAPACITY_PRESETS = [
-	{ label: "1-2", min: "1", max: "2" },
-	{ label: "3-4", min: "3", max: "4" },
-	{ label: "5-6", min: "5", max: "6" },
-	{ label: "7-8", min: "7", max: "8" },
-	{ label: "9-12", min: "9", max: "12" },
-	{ label: "13+", min: "13", max: "40" },
-] as const;
-
 export default function Page() {
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 	const [{ defaultDate, defaultStart, defaultEnd }] = useState(() => {
 		const { start, end } = getDefaultWindow();
 		return {
@@ -55,196 +37,64 @@ export default function Page() {
 			),
 		};
 	});
-	const [date, setDate] = useState<Date | null>(defaultDate);
-	const [startTime, setStartTime] = useState<Date | null>(defaultStart);
-	const [endTime, setEndTime] = useState<Date | null>(defaultEnd);
 	const [committedStart, setCommittedStart] = useState<Date | null>(
 		defaultStart,
 	);
 	const [committedEnd, setCommittedEnd] = useState<Date | null>(defaultEnd);
 	const [committedDate, setCommittedDate] = useState<Date | null>(defaultDate);
 	const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
-	const [location, setLocation] = useState<string | null>(null);
-	const [capacityMin, setCapacityMin] = useState("");
-	const [capacityMax, setCapacityMax] = useState("");
-	const [isTechEnhanced, setIsTechEnhanced] = useState(false);
 	const [rooms, setRooms] = useState<StudyRooms["data"] | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [isLoading, setIsLoading] = useState(false);
-
-	const activeFilters = [
-		date && { label: `Date: ${format(date, "MMM d, yyyy")}`, key: "date" },
-		startTime &&
-			endTime && {
-				label: `Time: ${format(startTime, "h:mmaaa")}–${format(endTime, "h:mmaaa")}`,
-				key: "time",
-			},
-		location && { label: `Location: ${location}`, key: "location" },
-		(capacityMin || capacityMax) && {
-			label: `Capacity: ${capacityMin || "any"}–${capacityMax || "any"}`,
-			key: "capacity",
-		},
-		isTechEnhanced && { label: "Tech Enhanced", key: "techEnhanced" },
-	].filter(Boolean) as { label: string; key: string }[];
-
-	const handleClearFilter = (key: string) => {
-		if (key === "date") setDate(null);
-		if (key === "time") {
-			setStartTime(null);
-			setEndTime(null);
-		}
-		if (key === "location") setLocation(null);
-		if (key === "capacity") {
-			setCapacityMin("");
-			setCapacityMax("");
-		}
-		if (key === "techEnhanced") setIsTechEnhanced(false);
-	};
-
-	const searchWithFallback = useCallback(
-		async ({
-			baseDate,
-			startTime: slotStart,
-			endTime: slotEnd,
-			fallbackStart = slotStart,
-			fallbackEnd = slotEnd,
-			filters = {},
-			updateFormState = false,
-		}: {
-			baseDate: Date;
-			startTime: Date;
-			endTime: Date;
-			fallbackStart?: Date;
-			fallbackEnd?: Date;
-			filters?: {
-				location?: string | null;
-				capacityMin?: string;
-				capacityMax?: string;
-				isTechEnhanced?: boolean;
-			};
-			updateFormState?: boolean;
-		}) => {
-			for (let offset = 0; offset < MAX_FALLBACK_DAYS; offset++) {
-				const tryDate = new Date(baseDate);
-				tryDate.setDate(tryDate.getDate() + offset);
-				const isFallback = offset > 0;
-				const start = isFallback ? fallbackStart : slotStart;
-				const end = isFallback ? fallbackEnd : slotEnd;
-
-				try {
-					const { data } = await fetchStudyRooms({
-						date: format(tryDate, "yyyy-MM-dd"),
-						timeRange: `${toLocalStr(start)}-${toLocalStr(end)}`,
-						location: filters.location || undefined,
-						capacityMin: filters.capacityMin
-							? Number(filters.capacityMin)
-							: undefined,
-						capacityMax: filters.capacityMax
-							? Number(filters.capacityMax)
-							: undefined,
-						isTechEnhanced: filters.isTechEnhanced || undefined,
-					});
-
-					if (data.length > 0) {
-						const committedStartForDay = new Date(tryDate);
-						committedStartForDay.setHours(
-							start.getHours(),
-							start.getMinutes(),
-							0,
-							0,
-						);
-						const committedEndForDay = new Date(tryDate);
-						committedEndForDay.setHours(end.getHours(), end.getMinutes(), 0, 0);
-						setRooms(data);
-						setCommittedDate(tryDate);
-						setCommittedStart(committedStartForDay);
-						setCommittedEnd(committedEndForDay);
-						if (updateFormState) {
-							setDate(tryDate);
-							setStartTime(committedStartForDay);
-							setEndTime(committedEndForDay);
-						}
-						if (isFallback) {
-							setFallbackNotice(
-								`No rooms available for ${format(baseDate, "EEEE, MMM d")}. Showing results for ${format(tryDate, "EEEE, MMM d")} instead.`,
-							);
-						}
-						return;
-					}
-				} catch (err) {
-					setError(err instanceof Error ? err.message : "API call failed");
-					return;
-				}
-			}
-			setRooms([]);
-			setCommittedDate(null);
-			setCommittedStart(null);
-			setCommittedEnd(null);
-			setError(`No rooms available in the next ${MAX_FALLBACK_DAYS} days.`);
-		},
-		[],
+	const [drawerOpen, setOpen] = useState(false);
+	const [filteredRooms, setFilteredRooms] = useState<StudyRooms["data"] | null>(
+		null,
 	);
+	const [, startTransition] = useTransition();
+	const searchRef = useRef("");
+	const roomsRef = useRef<StudyRooms["data"] | null>(null);
+	const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-		setError(null);
-		setFallbackNotice(null);
-
-		if (!date || !startTime || !endTime) {
-			setError("Please select a date and time range.");
-			return;
-		}
-
-		const today = new Date();
-		today.setHours(0, 0, 0, 0);
-		if (date < today) {
-			setError("Date cannot be in the past.");
-			return;
-		}
-
-		if (endTime <= startTime) {
-			setError("End time must be after start time.");
-			return;
-		}
-
-		if (
-			capacityMin &&
-			capacityMax &&
-			Number(capacityMin) > Number(capacityMax)
-		) {
-			setError("Min capacity cannot be greater than max capacity.");
-			return;
-		}
-
-		const baseDate = new Date(date);
-		baseDate.setHours(0, 0, 0, 0);
-		setIsLoading(true);
-		try {
-			await searchWithFallback({
-				baseDate,
-				startTime,
-				endTime,
-				filters: { location, capacityMin, capacityMax, isTechEnhanced },
-			});
-		} finally {
-			setIsLoading(false);
-		}
-	};
+	roomsRef.current = rooms;
 
 	useEffect(() => {
-		const fallbackStart = new Date(defaultDate);
-		fallbackStart.setHours(11, 0, 0, 0);
-		const fallbackEnd = new Date(defaultDate);
-		fallbackEnd.setHours(17, 0, 0, 0);
-		searchWithFallback({
-			baseDate: defaultDate,
-			startTime: defaultStart,
-			endTime: defaultEnd,
-			fallbackStart,
-			fallbackEnd,
-			updateFormState: true,
-		});
-	}, [searchWithFallback, defaultDate, defaultStart, defaultEnd]);
+		setFilteredRooms(rooms);
+	}, [rooms]);
+
+	useEffect(() => {
+		return () => clearTimeout(timerRef.current);
+	}, []);
+
+	const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+		searchRef.current = event.target.value;
+		clearTimeout(timerRef.current);
+		timerRef.current = setTimeout(() => {
+			startTransition(() => {
+				const query = searchRef.current.toLowerCase();
+				const latest = roomsRef.current;
+				if (latest === null) {
+					setFilteredRooms(null);
+					return;
+				}
+				setFilteredRooms(
+					query
+						? latest.filter(
+								(r) =>
+									r.location.toLowerCase().includes(query) ||
+									r.name.toLowerCase().includes(query),
+							)
+						: latest,
+				);
+			});
+		}, 300);
+	};
+
+	const showHeatmap =
+		committedDate != null &&
+		committedStart != null &&
+		committedEnd != null &&
+		filteredRooms != null &&
+		filteredRooms.length > 0;
+
+	const showInitialLoading = rooms === null;
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -254,7 +104,7 @@ export default function Page() {
 				</Typography>
 			)}
 			<div className="block sm:hidden">
-				<Typography variant="h3" className="p-4">
+				<Typography variant="h4" className="p-6">
 					Rooms
 				</Typography>
 			</div>
@@ -272,159 +122,95 @@ export default function Page() {
 					className="md:m-4"
 					variant="outlined"
 				>
-					{rooms && committedDate && committedStart && committedEnd ? (
+					{showHeatmap ? (
 						<RoomsHeatmap
-							rooms={rooms}
+							rooms={filteredRooms}
 							searchDate={committedDate}
 							startTime={committedStart}
 							endTime={committedEnd}
 						/>
-					) : (
+					) : showInitialLoading ? (
 						<Typography variant="body2" color="text.secondary" sx={{ p: 4 }}>
 							Loading available rooms...
 						</Typography>
+					) : (
+						<Typography variant="body2" color="text.secondary" sx={{ p: 4 }}>
+							No rooms match your search. Try different dates or filters.
+						</Typography>
 					)}
 				</Paper>
-				<Stack
-					direction="column"
-					sx={{
-						width: 360,
-						pt: 2,
-						pr: 2,
-					}}
-				>
-					<Box className="hidden pb-4 sm:block">
-						<RoomsHeatmapLegend
-							availabilityColor="#86efac"
-							notAvailableColor="#fca5a5"
-						/>
-					</Box>
-					<Paper variant="outlined" className="hidden sm:block">
+				{isMobile ? (
+					<MobileIsland>
 						<Box
-							component="form"
-							onSubmit={handleSubmit}
 							sx={{
 								display: "flex",
-								flex: 1,
-								flexDirection: "column",
-								gap: 2,
-								maxWidth: "sm",
-								p: 2,
+								alignItems: "center",
+								py: 1,
+								pl: 1,
+								width: "100%",
 							}}
 						>
-							<DatePicker
-								label="Date"
-								value={date}
-								onChange={setDate}
-								slotProps={{ textField: { fullWidth: true } }}
-							/>
-
-							<Stack direction="row" spacing={2}>
-								<TimePicker
-									label="Start Time"
-									value={startTime}
-									onAccept={setStartTime}
-									slotProps={{
-										textField: {
-											fullWidth: true,
-											sx: {
-												"& .MuiIconButton-edgeEnd": {
-													marginRight: 0,
-												},
-											},
-										},
-									}}
-								/>
-								<TimePicker
-									label="End Time"
-									value={endTime}
-									onAccept={setEndTime}
-									slotProps={{
-										textField: {
-											fullWidth: true,
-											sx: {
-												"& .MuiIconButton-edgeEnd": {
-													marginRight: 0,
-												},
-											},
-										},
-									}}
-								/>
-							</Stack>
-
-							<Autocomplete
-								freeSolo
-								options={LOCATION_OPTIONS}
-								value={location}
-								onChange={(_, val) => setLocation(val)}
-								onInputChange={(_, val, reason) => {
-									if (reason !== "reset") setLocation(val || null);
+							<TextField
+								sx={{ flex: 7 }}
+								slotProps={{
+									input: {
+										startAdornment: (
+											<SearchIcon
+												sx={{ fontSize: 20, color: "text.disabled", mr: 0.5 }}
+											/>
+										),
+										placeholder: "Search Rooms",
+									},
 								}}
-								renderInput={(params) => (
-									<TextField {...params} label="Location" fullWidth />
-								)}
+								onChange={handleSearch}
 							/>
-
-							<div>
-								{CAPACITY_PRESETS.map(({ label, min, max }) => (
-									<Chip
-										key={label}
-										variant="outlined"
-										color={
-											capacityMin === min && capacityMax === max
-												? "primary"
-												: "default"
-										}
-										label={label}
-										clickable
-										onClick={() => {
-											setCapacityMin(min);
-											setCapacityMax(max);
-										}}
-									/>
-								))}
-							</div>
-							<FormControlLabel
-								control={
-									<Switch
-										checked={isTechEnhanced}
-										onChange={(e) => setIsTechEnhanced(e.target.checked)}
-									/>
-								}
-								label="Tech Enhanced"
-							/>
-
-							{activeFilters.length > 0 && (
-								<Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-									{activeFilters.map((f) => (
-										<Chip
-											key={f.key}
-											label={f.label}
-											onDelete={() => handleClearFilter(f.key)}
-											size="small"
-											variant="outlined"
-										/>
-									))}
-								</Stack>
-							)}
-
-							{error && (
-								<Typography color="error" variant="body2">
-									{error}
-								</Typography>
-							)}
-
 							<Button
-								type="submit"
-								variant="contained"
-								fullWidth
-								disabled={isLoading}
+								type="button"
+								onClick={() => setOpen(true)}
+								sx={{ flex: 1, minWidth: 0 }}
+								aria-label="Open search filters"
 							>
-								{isLoading ? "Searching..." : "Search Rooms"}
+								<FilterListIcon />
 							</Button>
+							<Drawer
+								anchor="bottom"
+								open={drawerOpen}
+								onClose={() => setOpen(false)}
+								ModalProps={{ keepMounted: true }}
+								sx={{
+									"& .MuiDrawer-paper": {
+										display: "flex",
+										alignItems: "center",
+									},
+								}}
+							>
+								<Sidebar
+									defaultDate={defaultDate}
+									defaultStart={defaultStart}
+									defaultEnd={defaultEnd}
+									setRooms={setRooms}
+									setCommittedDate={setCommittedDate}
+									setCommittedStart={setCommittedStart}
+									setCommittedEnd={setCommittedEnd}
+									setFallbackNotice={setFallbackNotice}
+									setDrawerClose={setOpen}
+								/>
+							</Drawer>
 						</Box>
-					</Paper>
-				</Stack>
+					</MobileIsland>
+				) : (
+					<Sidebar
+						defaultDate={defaultDate}
+						defaultStart={defaultStart}
+						defaultEnd={defaultEnd}
+						setRooms={setRooms}
+						setCommittedDate={setCommittedDate}
+						setCommittedStart={setCommittedStart}
+						setCommittedEnd={setCommittedEnd}
+						setFallbackNotice={setFallbackNotice}
+						setDrawerClose={setOpen}
+					/>
+				)}
 			</Stack>
 		</LocalizationProvider>
 	);

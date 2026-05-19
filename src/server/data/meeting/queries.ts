@@ -153,7 +153,16 @@ export async function getResponderCountsByMeetingIds(
 			respondedCount: countDistinct(availabilities.memberId),
 		})
 		.from(availabilities)
-		.where(inArray(availabilities.meetingId, meetingIds))
+		.where(
+			and(
+				inArray(availabilities.meetingId, meetingIds),
+				or(
+					sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+					sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+				),
+			),
+		)
+
 		.groupBy(availabilities.meetingId);
 
 	return Object.fromEntries(

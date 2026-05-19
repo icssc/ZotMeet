@@ -1,7 +1,7 @@
 "use client";
 
 import { createMeeting } from "@actions/meeting/create/action";
-import { Button } from "@mui/material";
+import { Button, Paper } from "@mui/material";
 import {
 	parseAsArrayOf,
 	parseAsString,
@@ -15,7 +15,10 @@ import { MeetingNameField } from "@/components/creation/fields/meeting-name-fiel
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
-import { convertTimeToUTC } from "@/lib/availability/utils";
+import {
+	convertTimeToUTC,
+	sortMeetingIsoDatesAsc,
+} from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -119,6 +122,9 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			);
 			params.set("meetingType", meetingType);
 			params.set("timezone", urlState.timezone);
+			if (urlState.groupId) {
+				params.set("groupId", urlState.groupId);
+			}
 
 			// Update URL with all parameters, then redirect.
 			const currentUrl = new URL(window.location.href);
@@ -133,7 +139,9 @@ export function Creation({ user }: { user: UserProfile | null }) {
 		setIsCreating(true);
 
 		const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-		const dates = selectedDays.map((zotDate) => zotDate.day.toISOString());
+		const dates = sortMeetingIsoDatesAsc(
+			selectedDays.map((zotDate) => zotDate.day.toISOString()),
+		);
 
 		// Convert times from user's local timezone to UTC
 		const referenceDate = dates[0];
@@ -175,7 +183,10 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	}, [selectedDays.length, startTime, endTime, hasMeetingName]);
 
 	return (
-		<div className="mx-auto my-6 flex w-full max-w-6xl flex-col gap-y-6 px-0 md:my-8 md:w-[calc(100%-2rem)] md:rounded-xl md:border md:border-gray-300 md:px-4">
+		<Paper
+			variant="outlined"
+			className="mx-auto my-6 flex w-full max-w-6xl flex-col gap-y-6 px-0 md:my-8 md:w-[calc(100%-2rem)] md:px-4"
+		>
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
 			<div className="w-full px-2 py-6 md:px-14">
 				<h2 className="hidden font-medium text-2xl sm:block md:text-3xl">
@@ -233,6 +244,6 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			</div>
 
 			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
-		</div>
+		</Paper>
 	);
 }

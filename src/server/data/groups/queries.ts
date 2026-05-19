@@ -61,6 +61,7 @@ export async function getUsersInGroup(groupId: string) {
 			memberId: users.memberId,
 			email: users.email,
 			displayName: members.displayName,
+			profilePicture: members.profilePicture,
 			role: usersInGroup.role,
 		})
 		.from(users)
@@ -143,16 +144,24 @@ export async function getGroupMemberCount(groupId: string): Promise<number> {
 	return result[0]?.count ?? 0;
 }
 
+export type GroupMember = {
+	userId: string;
+	displayName: string;
+	profilePicture: string | null;
+	role: GroupRole;
+};
+
 export type GroupWithDetails = SelectGroup & {
 	memberCount: number;
-	memberEmails: string[];
-	totalMembers: number;
+	members: GroupMember[];
+	totalMeetings: number;
 	isCreator: boolean;
 	needsAvailability: boolean;
 	pendingMeetingName: string | null;
 	upcomingMeetingName: string | null;
 	ownerEmail: string;
 	creatorName: string;
+	creatorAvatar: string | null;
 };
 
 export async function getGroupsWithDetails(
@@ -226,17 +235,29 @@ export async function getGroupsWithDetails(
 
 			const creator = members.find((m) => m.userId === group.createdBy);
 
+			const sortedMembers = [...members].sort((a, b) => {
+				if (a.role === GroupRole.ADMIN && b.role !== GroupRole.ADMIN) return -1;
+				if (a.role !== GroupRole.ADMIN && b.role === GroupRole.ADMIN) return 1;
+				return a.displayName.localeCompare(b.displayName);
+			});
+
 			return {
 				...group,
 				memberCount,
-				memberEmails: members.slice(0, 4).map((m) => m.email),
-				totalMembers: members.length,
+				members: sortedMembers.map((m) => ({
+					userId: m.userId,
+					displayName: m.displayName,
+					profilePicture: m.profilePicture,
+					role: m.role,
+				})),
+				totalMeetings: groupMeetings.length,
 				isCreator: group.createdBy === userId,
 				needsAvailability,
 				pendingMeetingName,
 				upcomingMeetingName,
 				ownerEmail: creator?.email ?? "",
 				creatorName: creator?.displayName ?? "",
+				creatorAvatar: creator?.profilePicture ?? null,
 			};
 		}),
 	);

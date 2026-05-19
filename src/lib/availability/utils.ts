@@ -66,6 +66,13 @@ export const convertTimeFromUTC = (
 	return formatInTimeZone(utcDate, timezone, "HH:mm:ss");
 };
 
+/** Meeting `dates` must be chronological for display and time conversion; selection order may differ. */
+export function sortMeetingIsoDatesAsc(dates: readonly string[]): string[] {
+	return [...dates].sort(
+		(a, b) => new Date(a).getTime() - new Date(b).getTime(),
+	);
+}
+
 export const BLOCK_LENGTH: number = 15;
 
 export const generateTimeBlocks = (
@@ -359,7 +366,6 @@ function mergeImportedGridSlots(
 	return updated;
 }
 
-/** Merges imported available + if-needed slots while keeping states mutually exclusive. */
 export function mergeImportedPersonalGridSlots({
 	availabilityDates,
 	ifNeededDates,

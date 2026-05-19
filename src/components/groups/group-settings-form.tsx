@@ -4,7 +4,6 @@ import { AddAPhoto, Close, Delete } from "@mui/icons-material";
 import {
 	Avatar,
 	Button,
-	Drawer,
 	IconButton,
 	TextField,
 	Typography,
@@ -17,6 +16,7 @@ import {
 	compressImage,
 	MAX_GROUP_ICON_FILE_SIZE,
 } from "@/components/groups/create-group-dialog";
+import { MuiBottomSheet } from "@/components/ui/mui/mui-bottom-sheet";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectGroup } from "@/db/schema";
 import { deleteGroup } from "@/server/actions/group/delete/action";
@@ -228,21 +228,16 @@ export function GroupSettingsForm({ group, onCancel }: GroupSettingsFormProps) {
 				)}
 			</div>
 			{isMobile && (
-				<Drawer
-					anchor="bottom"
+				<MuiBottomSheet
 					open={showDeleteConfirm}
 					onClose={() => {
 						setShowDeleteConfirm(false);
 						setDeleteConfirmName("");
 					}}
-					slotProps={{
-						paper: {
-							sx: {
-								borderTopLeftRadius: 16,
-								borderTopRightRadius: 16,
-								p: 3,
-							},
-						},
+					paperSx={{
+						borderTopLeftRadius: 16,
+						borderTopRightRadius: 16,
+						p: 3,
 					}}
 				>
 					<div className="flex flex-col gap-4">
@@ -284,7 +279,7 @@ export function GroupSettingsForm({ group, onCancel }: GroupSettingsFormProps) {
 							{isDeletingGroup ? "Deleting..." : "Delete Group"}
 						</Button>
 					</div>
-				</Drawer>
+				</MuiBottomSheet>
 			)}
 		</div>
 	);

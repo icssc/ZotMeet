@@ -1,4 +1,5 @@
 import { editMeeting } from "@actions/meeting/edit/action";
+import { DeleteForever } from "@mui/icons-material";
 import {
 	Button,
 	Dialog,
@@ -12,7 +13,11 @@ import { MeetingNameField } from "@/components/creation/fields/meeting-name-fiel
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
-import { convertTimeFromUTC, convertTimeToUTC } from "@/lib/availability/utils";
+import {
+	convertTimeFromUTC,
+	convertTimeToUTC,
+	sortMeetingIsoDatesAsc,
+} from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 
@@ -20,18 +25,23 @@ interface EditModalProps {
 	meetingData: SelectMeeting;
 	isOpen: boolean;
 	handleOpenChange: (open: boolean) => void;
+	onDeleteRequest: () => void;
 }
 
 export const EditModal = ({
 	meetingData,
 	isOpen,
 	handleOpenChange,
+	onDeleteRequest,
 }: EditModalProps) => {
+	const { showSuccess, showError } = useSnackbar();
+
 	const userTimezone = useMemo(
 		() => Intl.DateTimeFormat().resolvedOptions().timeZone,
 		[],
 	);
-	const referenceDate = meetingData.dates[0];
+	const referenceDate =
+		sortMeetingIsoDatesAsc(meetingData.dates)[0] ?? meetingData.dates[0] ?? "";
 
 	const fromTimeLocal = useMemo(
 		() => convertTimeFromUTC(meetingData.fromTime, userTimezone, referenceDate),
@@ -59,7 +69,9 @@ export const EditModal = ({
 
 	const handleEditClick = async () => {
 		const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-		const dates = selectedDays.map((zotDate) => zotDate.day.toISOString());
+		const dates = sortMeetingIsoDatesAsc(
+			selectedDays.map((zotDate) => zotDate.day.toISOString()),
+		);
 
 		const referenceDate = dates[0];
 		const fromTimeUTC = convertTimeToUTC(
@@ -96,8 +108,6 @@ export const EditModal = ({
 		handleOpenChange(false);
 	};
 
-	const { showSuccess, showError } = useSnackbar();
-
 	const hasValidInputs = useMemo(() => {
 		return (
 			selectedDays.length > 0 &&
@@ -116,21 +126,18 @@ export const EditModal = ({
 			fullWidth
 		>
 			<DialogTitle>Edit Meeting</DialogTitle>
-
 			<DialogContent>
 				<div className="flex flex-col space-y-6 pt-2">
 					<MeetingNameField
 						initialValue={meetingData.title}
 						onBlur={setMeetingName}
 					/>
-
 					<MeetingTimeField
 						startTime={startTime}
 						setStartTime={setStartTime}
 						endTime={endTime}
 						setEndTime={setEndTime}
 					/>
-
 					<Calendar
 						selectedDays={selectedDays}
 						setSelectedDays={setSelectedDays}
@@ -140,21 +147,33 @@ export const EditModal = ({
 				</div>
 			</DialogContent>
 
-			<DialogActions>
+			<DialogActions className="flex justify-between px-3 pb-2">
 				<Button
+					onClick={onDeleteRequest}
 					variant="outlined"
-					color="inherit"
-					onClick={() => handleOpenChange(false)}
+					color="error"
+					className="gap-2"
 				>
-					Cancel
+					<DeleteForever />
+					<span className="hidden lg:inline">Delete Meeting</span>
 				</Button>
-				<Button
-					onClick={handleEditClick}
-					disabled={!hasValidInputs}
-					variant="contained"
-				>
-					Save
-				</Button>
+
+				<div className="flex gap-2">
+					<Button
+						variant="outlined"
+						color="inherit"
+						onClick={() => handleOpenChange(false)}
+					>
+						Cancel
+					</Button>
+					<Button
+						onClick={handleEditClick}
+						disabled={!hasValidInputs}
+						variant="contained"
+					>
+						Save
+					</Button>
+				</div>
 			</DialogActions>
 		</Dialog>
 	);

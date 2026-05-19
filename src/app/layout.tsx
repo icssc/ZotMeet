@@ -10,11 +10,8 @@ import { figtree } from "@/fonts";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-	title: "ZotMeet | Create a Meeting",
+	title: "ZotMeet",
 	description: "ZotMeet: Simple, clean, and efficient meeting scheduling app",
-	icons: {
-		icon: "/favicon.ico",
-	},
 };
 
 export default async function RootLayout({
@@ -26,7 +23,11 @@ export default async function RootLayout({
 	const initialMode = await getUserThemeMode();
 
 	return (
-		<html lang="en" className={figtree.className}>
+		<html
+			lang="en"
+			className={cn(figtree.className, initialMode === "dark" && "dark")}
+		>
+			{/* TODO: Standardize CSS classes for light and dark mode ^ */}
 			<body
 				className={cn(
 					`${figtree.variable} antialiased`,
