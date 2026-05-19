@@ -34,6 +34,54 @@ export async function getUserById(id: string) {
 	return user ?? null;
 }
 
+export async function searchUsersByUsername(
+	query: string,
+	excludeUserId: string,
+	limit = 5,
+) {
+	if (!query || query.length < 2) return [];
+
+	return await db
+		.select({
+			id: users.id,
+			email: users.email,
+			username: members.username,
+			displayName: members.displayName,
+			profilePicture: members.profilePicture,
+		})
+		.from(users)
+		.innerJoin(members, eq(users.memberId, members.id))
+		.where(
+			and(ilike(members.username, `%${query}%`), ne(users.id, excludeUserId)),
+		)
+		.limit(limit);
+}
+
+export async function searchUsersByDisplayName(
+	query: string,
+	excludeUserId: string,
+	limit = 5,
+) {
+	if (!query || query.length < 2) return [];
+
+	return await db
+		.select({
+			id: users.id,
+			email: users.email,
+			username: members.username,
+			displayName: members.displayName,
+			profilePicture: members.profilePicture,
+		})
+		.from(users)
+		.innerJoin(members, eq(users.memberId, members.id))
+		.where(
+			and(
+				ilike(members.displayName, `%${query}%`),
+				ne(users.id, excludeUserId),
+			),
+		)
+		.limit(limit);
+}
 export async function searchUsersByEmail(
 	query: string,
 	excludeUserId: string,
@@ -45,6 +93,8 @@ export async function searchUsersByEmail(
 		.select({
 			id: users.id,
 			email: users.email,
+			username: members.username,
+			displayName: members.displayName,
 			profilePicture: members.profilePicture,
 		})
 		.from(users)

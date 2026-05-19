@@ -6,15 +6,8 @@ import {
 	deleteNotificationByID,
 	getUserThemeModeFromDB,
 	markNotificationAsRead,
-	searchUsersByEmail,
 	updateUserThemeMode,
 } from "@/server/data/user/queries";
-export async function searchUsers(query: string) {
-	const { user } = await getCurrentSession();
-	if (!user) return [];
-
-	return searchUsersByEmail(query, user.id);
-}
 
 export async function readNotification(notificationId: string) {
 	const { user } = await getCurrentSession();
