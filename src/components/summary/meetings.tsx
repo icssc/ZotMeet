@@ -296,33 +296,18 @@ export const Meetings = ({
 					mb: 3,
 				}}
 			>
-				<Typography variant="h4">Meetings</Typography>
-				<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+				<Typography variant="h3">Meetings</Typography>
+				<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
 					<Badge badgeContent={unreadCount} color="primary">
 						<Button
 							variant="outlined"
+							size="square"
 							onClick={() => setNotificationsOpen(true)}
-							sx={{
-								minWidth: 0,
-								borderRadius: 1,
-								p: 1,
-								boxShadow: "none",
-								borderColor: "divider",
-							}}
 						>
 							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
 						</Button>
 					</Badge>
-					<Button
-						variant="contained"
-						href="/"
-						sx={{
-							minWidth: 0,
-							borderRadius: 1,
-							p: 1,
-							boxShadow: "none",
-						}}
-					>
+					<Button variant="contained" size="square" href="/">
 						<Add />
 					</Button>
 				</Box>

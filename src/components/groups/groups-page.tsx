@@ -101,32 +101,21 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 					alignItems: "center",
 				}}
 			>
-				<Typography variant="h4">Groups</Typography>
-				<Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2 }}>
-					<Badge badgeContent={unreadCount} color="primary">
-						<Button
-							variant="outlined"
-							onClick={() => setNotificationsOpen(true)}
-							sx={{
-								minWidth: 0,
-								borderRadius: 1,
-								p: 1,
-								boxShadow: "none",
-								borderColor: "divider",
-							}}
-						>
-							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
-						</Button>
-					</Badge>
+				<Typography variant="h3">Groups</Typography>
+				<Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
 					<Button
+						size="square"
+						variant="outlined"
+						onClick={() => setNotificationsOpen(true)}
+					>
+						<Badge badgeContent={unreadCount} color="primary">
+							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
+						</Badge>
+					</Button>
+					<Button
+						size="square"
 						variant="contained"
 						onClick={() => setCreateDialogOpen(true)}
-						sx={{
-							minWidth: 0,
-							borderRadius: 1,
-							p: 1,
-							boxShadow: "none",
-						}}
 					>
 						<Add />
 					</Button>
