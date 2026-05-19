@@ -15,7 +15,8 @@ export type MeetingInviteInviter = {
 
 /**
  * Ensures meeting_invites row, notifies users by id, inserts availability rows.
- * Caller must enforce auth (e.g. host-only). `inviteeUserIds` are auth user ids.
+ * Caller must enforce auth (host always; members when the meeting allows it).
+ * `inviteeUserIds` are auth user ids.
  */
 export async function sendMeetingInvitesToUsers(params: {
 	meetingId: string;
