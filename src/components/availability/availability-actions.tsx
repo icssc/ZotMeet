@@ -10,7 +10,7 @@ import {
 import GoogleIcon from "@mui/icons-material/Google";
 import { Button, FormControlLabel, Switch } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
@@ -62,6 +62,39 @@ export function AvailabilityActions({
 		);
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
+	const canShowInviteButton = isOwner || membersCanInvite;
+
+	useEffect(() => {
+		setMembersCanInvite(meetingData.membersCanInvite);
+	}, [meetingData.membersCanInvite]);
+
+	const handleMembersCanInviteChange = useCallback(
+		async (checked: boolean) => {
+			setIsUpdatingPermissions(true);
+			setMembersCanInvite(checked);
+
+			try {
+				const result = await updateMeetingInvitePermissions({
+					meetingId: meetingData.id,
+					membersCanInvite: checked,
+				});
+
+				if (!result.success) {
+					setMembersCanInvite(!checked);
+					showError(result.message);
+				} else {
+					showSuccess(result.message);
+				}
+			} catch (error) {
+				console.error(error);
+				setMembersCanInvite(!checked);
+				showError("Failed to update invite permissions.");
+			} finally {
+				setIsUpdatingPermissions(false);
+			}
+		},
+		[meetingData.id, showError, showSuccess],
+	);
 
 	const handleSaveClick = () => {
 		const action =
@@ -106,30 +139,8 @@ export function AvailabilityActions({
 									<Switch
 										checked={membersCanInvite}
 										disabled={isUpdatingPermissions}
-										onChange={async (e) => {
-											const checked = e.target.checked;
-											setIsUpdatingPermissions(true);
-											setMembersCanInvite(checked);
-
-											try {
-												const result = await updateMeetingInvitePermissions({
-													meetingId: meetingData.id,
-													membersCanInvite: checked,
-												});
-
-												if (!result.success) {
-													setMembersCanInvite(!checked);
-													showError(result.message);
-												} else {
-													showSuccess("Invite permissions updated.");
-												}
-											} catch (error) {
-												console.error(error);
-												setMembersCanInvite(!checked);
-												showError("Failed to update invite permissions.");
-											} finally {
-												setIsUpdatingPermissions(false);
-											}
+										onChange={(e) => {
+											void handleMembersCanInviteChange(e.target.checked);
 										}}
 									/>
 								}
@@ -215,7 +226,7 @@ export function AvailabilityActions({
 								<span className="hidden md:flex">Schedule Meeting</span>
 							</Button>
 						)}
-						{(meetingData.membersCanInvite || isOwner) && (
+						{canShowInviteButton && (
 							<Button
 								variant="outlined"
 								startIcon={<GroupAddOutlined />}
