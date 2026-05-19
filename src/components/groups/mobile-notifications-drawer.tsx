@@ -8,7 +8,6 @@ import {
 	Box,
 	Button,
 	Divider,
-	Drawer,
 	IconButton,
 	styled,
 	Typography,
@@ -18,25 +17,10 @@ import {
 	NotificationEmptyState,
 	NotificationGroupInviteDialog,
 } from "@/components/notifications";
+import { MuiBottomSheet } from "@/components/ui/mui/mui-bottom-sheet";
 import { useNotificationActions } from "@/hooks/use-notification-actions";
 import type { NotificationItem } from "@/lib/auth/user";
 import { getNotificationAvatarSrc, timeAgo } from "@/lib/notification/utils";
-
-const StyledDrawer = styled(Drawer)({
-	"& .MuiDrawer-paper": {
-		borderTopLeftRadius: 16,
-		borderTopRightRadius: 16,
-		paddingLeft: 16,
-		paddingRight: 16,
-		paddingBottom: 24,
-	},
-});
-
-const CloseRow = styled(Box)({
-	display: "flex",
-	justifyContent: "flex-end",
-	paddingTop: 12,
-});
 
 const HeaderBox = styled(Box)(({ theme }) => ({
 	display: "flex",
@@ -99,24 +83,6 @@ const SelectedCheck = styled(CheckCircle)(({ theme }) => ({
 	borderRadius: "50%",
 }));
 
-const TextBlock = styled(Box)({
-	flex: 1,
-	minWidth: 0,
-});
-
-const ActionButton = styled(Button)({
-	textTransform: "capitalize",
-});
-
-const MarkReadButton = styled(ActionButton)(({ theme }) => ({
-	color: theme.palette.text.primary,
-}));
-
-const NotifAvatar = styled(Avatar)({
-	width: 48,
-	height: 48,
-});
-
 type MobileNotificationsDrawerProps = {
 	open: boolean;
 	onClose: () => void;
@@ -160,12 +126,21 @@ export function MobileNotificationsDrawer({
 
 	return (
 		<>
-			<StyledDrawer anchor="bottom" open={open} onClose={onClose}>
-				<CloseRow>
+			<MuiBottomSheet
+				open={open}
+				onClose={onClose}
+				paperSx={{
+					borderTopLeftRadius: 16,
+					borderTopRightRadius: 16,
+					px: 2,
+					pb: 3,
+				}}
+			>
+				<Box sx={{ display: "flex", justifyContent: "flex-end", pt: 1.5 }}>
 					<IconButton onClick={onClose} size="small">
 						<Close />
 					</IconButton>
-				</CloseRow>
+				</Box>
 
 				<HeaderBox>
 					<Typography variant="h5" fontWeight={500}>
@@ -180,20 +155,28 @@ export function MobileNotificationsDrawer({
 
 				<Divider />
 
-				<ActionBar>
-					<ActionButton size="small" color="info" onClick={selectAll}>
-						Select All
-					</ActionButton>
-					{selectedIds.size > 0 && (
-						<MarkReadButton
+				{unread.length > 0 && (
+					<ActionBar>
+						<Button
 							size="small"
-							color="inherit"
-							onClick={markSelectedAsRead}
+							color="info"
+							onClick={selectAll}
+							sx={{ textTransform: "capitalize" }}
 						>
-							Mark as Read
-						</MarkReadButton>
-					)}
-				</ActionBar>
+							Select All
+						</Button>
+						{selectedIds.size > 0 && (
+							<Button
+								size="small"
+								color="inherit"
+								onClick={markSelectedAsRead}
+								sx={{ textTransform: "capitalize", color: "text.primary" }}
+							>
+								Mark as Read
+							</Button>
+						)}
+					</ActionBar>
+				)}
 
 				<Box>
 					{unread.map((notif) => (
@@ -208,20 +191,21 @@ export function MobileNotificationsDrawer({
 								anchorOrigin={{ vertical: "top", horizontal: "left" }}
 							>
 								<AvatarWrapper>
-									<NotifAvatar
+									<Avatar
 										alt={notif.title || "Group icon"}
 										src={getNotificationAvatarSrc(notif)}
 										slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+										sx={{ width: 48, height: 48 }}
 									/>
 									{selectedIds.has(notif.id) && <SelectedCheck />}
 								</AvatarWrapper>
 							</Badge>
-							<TextBlock>
+							<Box sx={{ flex: 1, minWidth: 0 }}>
 								<Typography variant="subtitle2">{notif.title}</Typography>
 								<Typography variant="caption" color="text.secondary">
 									{timeAgo(notif.createdAt)} • {notif.createdBy}
 								</Typography>
-							</TextBlock>
+							</Box>
 							<IconButton
 								size="small"
 								onClick={(e) => {
@@ -239,7 +223,7 @@ export function MobileNotificationsDrawer({
 				</Box>
 
 				{unread.length === 0 && <NotificationEmptyState />}
-			</StyledDrawer>
+			</MuiBottomSheet>
 
 			<NotificationGroupInviteDialog
 				open={showGroupInvite}
