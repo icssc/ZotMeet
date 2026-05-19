@@ -7,82 +7,173 @@ import {
 	useMemo,
 	useState,
 } from "react";
-
+import type { SelectionEdges } from "@/components/availability/group-availability";
 import type { StudyRoomApiEntry } from "@/components/availability/room-recommendations";
+import {
+	BLOCK_LENGTH,
+	formatScheduledTimeRange,
+	generateCellKey,
+	getTimestampFromBlockIndex,
+} from "@/lib/availability/utils";
+import type { ZotDate } from "@/lib/zotdate";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-interface StudyRoomHoverContextValue {
-	/**
-	 * Pre-filtered variants: slots with isAvailable=false have already been
-	 * stripped. Memoized in the provider so filtering only runs once per hover,
-	 * not once per cell render.
-	 */
-	filteredRoomVariants: StudyRoomApiEntry[] | null;
-	setHoveredRoom: (variants: StudyRoomApiEntry[] | null) => void;
-
-	fromTimeMinutes: number;
-	dateIsoToIndex: Map<string, number>;
+export interface HoveredRoomCellPreview {
+	edges: SelectionEdges;
+	label?: {
+		title: string;
+		timeRange: string;
+		blockCount: number;
+	};
 }
 
-// ---------------------------------------------------------------------------
-// Context
-// ---------------------------------------------------------------------------
+interface StudyRoomHoverContextValue {
+	cellPreviewByKey: Map<string, HoveredRoomCellPreview>;
+	setHoveredRoom: (variants: StudyRoomApiEntry[] | null) => void;
+}
 
 const StudyRoomHoverContext = createContext<StudyRoomHoverContextValue>({
-	filteredRoomVariants: null,
+	cellPreviewByKey: new Map(),
 	setHoveredRoom: () => {},
-	fromTimeMinutes: 0,
-	dateIsoToIndex: new Map(),
 });
 
-// ---------------------------------------------------------------------------
-// Provider
-// ---------------------------------------------------------------------------
+function displayRoomName(name: string): string {
+	return name.replace(/\s*\(\d+\s*hours?\)/i, "").trim() || name;
+}
+
+function buildHoveredRoomPreview(
+	filteredVariants: StudyRoomApiEntry[] | null,
+	fromTimeMinutes: number,
+	availabilityDates: ZotDate[],
+	blockCount: number,
+	timeZone: string,
+): Map<string, HoveredRoomCellPreview> {
+	if (!filteredVariants?.length) return new Map();
+
+	const covered = new Set<string>();
+	const cellTimestamps = new Map<string, string>();
+
+	for (let d = 0; d < availabilityDates.length; d++) {
+		for (let b = 0; b < blockCount; b++) {
+			const cellIso = getTimestampFromBlockIndex(
+				b,
+				d,
+				fromTimeMinutes,
+				availabilityDates,
+				timeZone,
+			);
+			if (!cellIso) continue;
+
+			const cellStart = new Date(cellIso);
+			const cellEnd = new Date(cellStart.getTime() + BLOCK_LENGTH * 60_000);
+
+			for (const variant of filteredVariants) {
+				let matched = false;
+				for (const slot of variant.slots) {
+					const slotStart = new Date(slot.start);
+					const slotEnd = new Date(slot.end);
+					if (slotStart < cellEnd && slotEnd > cellStart) {
+						const key = generateCellKey(d, b);
+						covered.add(key);
+						cellTimestamps.set(key, cellIso);
+						matched = true;
+						break;
+					}
+				}
+				if (matched) break;
+			}
+		}
+	}
+
+	if (covered.size === 0) return new Map();
+
+	const roomTitle = displayRoomName(filteredVariants[0]?.name ?? "Room");
+	const previewByKey = new Map<string, HoveredRoomCellPreview>();
+
+	for (const key of covered) {
+		const [dStr, bStr] = key.split("_");
+		const d = Number(dStr);
+		const b = Number(bStr);
+
+		const edges: SelectionEdges = {
+			top: !covered.has(generateCellKey(d, b - 1)),
+			bottom: !covered.has(generateCellKey(d, b + 1)),
+			left: !covered.has(generateCellKey(d - 1, b)),
+			right: !covered.has(generateCellKey(d + 1, b)),
+		};
+
+		let label: HoveredRoomCellPreview["label"];
+		if (edges.top) {
+			let blockCountInRun = 1;
+			let nextBlock = b + 1;
+			while (covered.has(generateCellKey(d, nextBlock))) {
+				blockCountInRun++;
+				nextBlock++;
+			}
+
+			const timestamps: string[] = [];
+			for (let i = 0; i < blockCountInRun; i++) {
+				const ts = cellTimestamps.get(generateCellKey(d, b + i));
+				if (ts) timestamps.push(ts);
+			}
+
+			label = {
+				title: roomTitle,
+				timeRange: formatScheduledTimeRange(timestamps),
+				blockCount: blockCountInRun,
+			};
+		}
+
+		previewByKey.set(key, { edges, label });
+	}
+
+	return previewByKey;
+}
 
 interface StudyRoomHoverProviderProps {
 	children: React.ReactNode;
 	fromTimeMinutes: number;
-	meetingDateIsos: string[];
+	availabilityDates: ZotDate[];
+	availabilityTimeBlocks: number[];
+	timeZone: string;
 }
 
 export function StudyRoomHoverProvider({
 	children,
 	fromTimeMinutes,
-	meetingDateIsos,
+	availabilityDates,
+	availabilityTimeBlocks,
+	timeZone,
 }: StudyRoomHoverProviderProps) {
 	const [hoveredRoomVariants, setHoveredRoomVariants] = useState<
 		StudyRoomApiEntry[] | null
 	>(null);
 
-	const dateIsoToIndex = useMemo(
-		() => new Map(meetingDateIsos.map((iso, i) => [iso, i])),
-		[meetingDateIsos],
-	);
-
-	// ---------------------------------------------------------------------------
-	// Filter out unavailable slots exactly once per hover — not per cell render.
-	// ---------------------------------------------------------------------------
 	const filteredRoomVariants = useMemo(() => {
 		if (!hoveredRoomVariants) return null;
 
-		const filtered = hoveredRoomVariants.map((variant) => ({
+		return hoveredRoomVariants.map((variant) => ({
 			...variant,
 			slots: variant.slots.filter((slot) => slot.isAvailable),
 		}));
-
-		console.log(
-			"[StudyRoomHover] Available slots after filtering unavailable times:",
-			filtered.map((v) => ({
-				name: v.name,
-				availableSlots: v.slots.map((s) => ({ start: s.start, end: s.end })),
-			})),
-		);
-
-		return filtered;
 	}, [hoveredRoomVariants]);
+
+	const cellPreviewByKey = useMemo(
+		() =>
+			buildHoveredRoomPreview(
+				filteredRoomVariants,
+				fromTimeMinutes,
+				availabilityDates,
+				availabilityTimeBlocks.length,
+				timeZone,
+			),
+		[
+			filteredRoomVariants,
+			fromTimeMinutes,
+			availabilityDates,
+			availabilityTimeBlocks.length,
+			timeZone,
+		],
+	);
 
 	const setHoveredRoom = useCallback((variants: StudyRoomApiEntry[] | null) => {
 		setHoveredRoomVariants(variants);
@@ -90,12 +181,10 @@ export function StudyRoomHoverProvider({
 
 	const value = useMemo(
 		() => ({
-			filteredRoomVariants,
+			cellPreviewByKey,
 			setHoveredRoom,
-			fromTimeMinutes,
-			dateIsoToIndex,
 		}),
-		[filteredRoomVariants, setHoveredRoom, fromTimeMinutes, dateIsoToIndex],
+		[cellPreviewByKey, setHoveredRoom],
 	);
 
 	return (
@@ -105,97 +194,16 @@ export function StudyRoomHoverProvider({
 	);
 }
 
-// ---------------------------------------------------------------------------
 // Hooks
-// ---------------------------------------------------------------------------
 
 export function useStudyRoomHover() {
 	return useContext(StudyRoomHoverContext);
 }
 
-// ---------------------------------------------------------------------------
-// Per-cell availability check
-// ---------------------------------------------------------------------------
-
-/**
- * Checks whether the hovered room has ANY available slot that covers the given
- * (dateIndex, blockIndex) position.
- *
- * Logic:
- *   - If no room is hovered → not unavailable (no overlay).
- *   - If a room is hovered but has no slots covering this block → treat as
- *     unavailable (show overlay), since the room can't be booked here.
- *   - If a room has at least one available slot covering this block → available
- *     (no overlay).
- */
-function isRoomAvailableAtBlock(
-	filteredVariants: StudyRoomApiEntry[],
+export function useHoveredRoomPreview(
 	dateIndex: number,
 	blockIndex: number,
-	fromTimeMinutes: number,
-	dateIsoToIndex: Map<string, number>,
-): boolean {
-	for (const variant of filteredVariants) {
-		for (const slot of variant.slots) {
-			// Parse start/end — slots use ISO-8601 with offset, e.g.
-			// "2026-05-20T20:00:00+00:00". We use local Date methods (getFullYear,
-			// getHours, etc.) to stay consistent with how fromTimeMinutes is derived
-			// via convertTimeFromUTC (which also operates in local time).
-			const start = new Date(slot.start);
-			const end = new Date(slot.end);
-
-			// Build the local YYYY-MM-DD for this slot and look it up.
-			const localYear = start.getFullYear();
-			const localMonth = String(start.getMonth() + 1).padStart(2, "0");
-			const localDay = String(start.getDate()).padStart(2, "0");
-			const dateIso = `${localYear}-${localMonth}-${localDay}`;
-
-			if (dateIsoToIndex.get(dateIso) !== dateIndex) continue;
-
-			// Walk the slot in 15-minute steps and check if any step lands on
-			// blockIndex. Block granularity is 15 min to match generateTimeBlocks.
-			let cursor = new Date(start);
-			while (cursor < end) {
-				const localMinutes = cursor.getHours() * 60 + cursor.getMinutes();
-				const slotBlockIndex = Math.floor(
-					(localMinutes - fromTimeMinutes) / 15,
-				);
-
-				if (slotBlockIndex === blockIndex) {
-					// An available slot covers this exact block — no overlay needed.
-					return true;
-				}
-
-				cursor = new Date(cursor.getTime() + 15 * 60 * 1000);
-			}
-		}
-	}
-
-	// No available slot covered this block — show the overlay.
-	return false;
-}
-
-/**
- * Returns true when the hovered study room is NOT available at this grid
- * position (i.e. the cell should show the grey overlay).
- *
- * Returns false when no room is hovered so the grid is unaffected by default.
- */
-export function useIsStudyRoomUnavailable(
-	dateIndex: number,
-	blockIndex: number,
-): boolean {
-	const { filteredRoomVariants, fromTimeMinutes, dateIsoToIndex } =
-		useStudyRoomHover();
-
-	// No room hovered — never show the overlay.
-	if (!filteredRoomVariants) return false;
-
-	return !isRoomAvailableAtBlock(
-		filteredRoomVariants,
-		dateIndex,
-		blockIndex,
-		fromTimeMinutes,
-		dateIsoToIndex,
-	);
+): HoveredRoomCellPreview | null {
+	const { cellPreviewByKey } = useStudyRoomHover();
+	return cellPreviewByKey.get(generateCellKey(dateIndex, blockIndex)) ?? null;
 }

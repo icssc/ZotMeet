@@ -405,7 +405,9 @@ export function Availability({
 	return (
 		<StudyRoomHoverProvider
 			fromTimeMinutes={fromTimeMinutes}
-			meetingDateIsos={meetingData.dates}
+			availabilityDates={availabilityDates}
+			availabilityTimeBlocks={availabilityTimeBlocks}
+			timeZone={userTimezone}
 		>
 			<div className="flex min-h-[80vh] flex-col gap-6">
 				<AvailabilityHeader

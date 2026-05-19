@@ -416,7 +416,7 @@ export function RoomRecommendationSettings({
 								<Typography variant="h6">Room Results</Typography>
 								<Typography variant="caption" color="textSecondary">
 									Click a chip to highlight a room on the calendar. Hover to
-									preview when the room is unavailable.
+									preview room availability on the calendar.
 								</Typography>
 							</div>
 

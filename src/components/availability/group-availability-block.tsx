@@ -1,8 +1,7 @@
-import { Typography } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
 import type React from "react";
 import { memo, useMemo } from "react";
 import type { SelectionEdges } from "@/components/availability/group-availability";
+import { GridPreviewOverlay } from "@/components/availability/table/grid-preview-overlay";
 import { StudyRoomsBlock } from "@/components/availability/table/study-rooms-block";
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import { cn } from "@/lib/utils";
@@ -65,9 +64,6 @@ export const GroupAvailabilityBlock = memo(
 		dateIndex,
 		blockIndex,
 	}: GroupAvailabilityBlockProps) => {
-		const theme = useTheme();
-		const dashColor = theme.palette.secondary.main;
-
 		const onMouseEnter = useMemo(
 			() =>
 				onHoverCell
@@ -127,53 +123,20 @@ export const GroupAvailabilityBlock = memo(
 						)}
 					/>
 				)}
-				{isScheduled && isScheduledTopEdge && (
-					<div
-						aria-hidden="true"
-						className="pointer-events-none absolute inset-0 w-[87%] rounded-r-xl bg-[#1F2A44] shadow-2xl shadow-inner"
-						style={{ height: `${scheduledBlockCount * 100}%` }}
-					/>
-				)}
-				{isScheduledTopEdge &&
-					(scheduledMeetingTitle || scheduledTimeRange) && (
-						<div
-							aria-hidden="true"
-							className="pointer-events-none absolute inset-x-0 top-0 z-[10] flex w-[87%] flex-col overflow-hidden p-1.5"
-							style={{ height: `calc(${scheduledBlockCount} * 100%)` }}
-						>
-							{scheduledMeetingTitle && (
-								<Typography
-									variant="body1"
-									sx={{
-										display: "-webkit-box",
-										WebkitLineClamp: 3,
-										WebkitBoxOrient: "vertical",
-										overflow: "hidden",
-										lineHeight: 1.2,
-										letterSpacing: "0.15px",
-										color: theme.palette.common.white,
-									}}
-								>
-									{scheduledMeetingTitle}
-								</Typography>
-							)}
-							{scheduledTimeRange && (
-								<Typography
-									variant="caption"
-									noWrap
-									sx={{
-										fontWeight: 500,
-										lineHeight: 1,
-										letterSpacing: "0.4px",
-										color: theme.palette.common.white,
-										margin: 1,
-									}}
-								>
-									{scheduledTimeRange}
-								</Typography>
-							)}
-						</div>
-					)}
+{isScheduled && (
+	<GridPreviewOverlay
+		edges={{
+			top: isScheduledTopEdge,
+			bottom: isScheduledBottomEdge,
+			left: true,
+			right: true,
+		}}
+		title={scheduledMeetingTitle}
+		timeRange={scheduledTimeRange}
+		blockCount={scheduledBlockCount}
+		showTopLabel={isScheduledTopEdge}
+	/>
+)}
 			</button>
 		);
 	},

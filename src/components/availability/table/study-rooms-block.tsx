@@ -1,5 +1,8 @@
 "use client";
-import { useIsStudyRoomUnavailable } from "@/components/availability/table/study-room-hover-context";
+
+import { GridPreviewOverlay } from "@/components/availability/table/grid-preview-overlay";
+import { useHoveredRoomPreview } from "@/components/availability/table/study-room-hover-context";
+import { cn } from "@/lib/utils";
 
 interface StudyRoomsBlockProps {
 	dateIndex: number;
@@ -10,21 +13,26 @@ export function StudyRoomsBlock({
 	dateIndex,
 	blockIndex,
 }: StudyRoomsBlockProps) {
-	const isUnavailable = useIsStudyRoomUnavailable(dateIndex, blockIndex);
-	// console.log("StudyRoomsBlock fired", { dateIndex, blockIndex, isUnavailable });
+	const preview = useHoveredRoomPreview(dateIndex, blockIndex);
 
-	if (!isUnavailable) {
+	if (!preview) {
 		return null;
 	}
 
 	return (
 		<div
-			aria-hidden
-			className="pointer-events-none absolute inset-0"
-			style={{
-				backgroundColor: "rgba(0, 0, 0, 0.18)",
-				zIndex: 5,
-			}}
-		/>
+			className={cn(
+				"pointer-events-none absolute inset-0",
+				preview.edges.top && "z-[1]",
+			)}
+		>
+			<GridPreviewOverlay
+				edges={preview.edges}
+				title={preview.label?.title}
+				timeRange={preview.label?.timeRange}
+				blockCount={preview.label?.blockCount}
+				showTopLabel={preview.edges.top && !!preview.label}
+			/>
+		</div>
 	);
 }
