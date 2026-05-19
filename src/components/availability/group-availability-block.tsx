@@ -3,6 +3,7 @@ import { useTheme } from "@mui/material/styles";
 import type React from "react";
 import { memo, useMemo } from "react";
 import type { SelectionEdges } from "@/components/availability/group-availability";
+import { StudyRoomsBlock } from "@/components/availability/table/study-rooms-block";
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import { cn } from "@/lib/utils";
 
@@ -112,6 +113,7 @@ export const GroupAvailabilityBlock = memo(
 							style={{ background: fill.solid.color }}
 						/>
 					)}
+					<StudyRoomsBlock dateIndex={dateIndex} blockIndex={blockIndex} />
 				</div>
 				{selectionEdges && (
 					<div

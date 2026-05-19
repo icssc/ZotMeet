@@ -2,6 +2,7 @@ import type React from "react";
 import { memo } from "react";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
 import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
+import { StudyRoomsBlock } from "@/components/availability/table/study-rooms-block";
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import {
 	type CellPaintTarget,
@@ -106,6 +107,8 @@ export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 				eventSegments={eventSegments}
 				rendersOverPrimary={isAvailable}
 			/>
+			{/* add in display for study rooms heatmap */}
+			<StudyRoomsBlock dateIndex={zotDateIndex} blockIndex={blockIndex} />
 		</td>
 	);
 });
