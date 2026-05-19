@@ -7,7 +7,6 @@ import {
 	Box,
 	Button,
 	Divider,
-	IconButton,
 	Stack,
 	TextField,
 	Typography,
@@ -105,29 +104,32 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 				<Typography variant="h4">Groups</Typography>
 				<Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 2 }}>
 					<Badge badgeContent={unreadCount} color="primary">
-						<IconButton
+						<Button
+							variant="outlined"
 							onClick={() => setNotificationsOpen(true)}
 							sx={{
-								border: "1px solid",
-								borderColor: "divider",
+								minWidth: 0,
 								borderRadius: 1,
 								p: 1,
+								boxShadow: "none",
+								borderColor: "divider",
 							}}
 						>
 							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
-						</IconButton>
+						</Button>
 					</Badge>
-					<IconButton
+					<Button
+						variant="contained"
 						onClick={() => setCreateDialogOpen(true)}
 						sx={{
-							bgcolor: "primary.main",
+							minWidth: 0,
 							borderRadius: 1,
 							p: 1,
-							"&:hover": { bgcolor: "primary.dark" },
+							boxShadow: "none",
 						}}
 					>
-						<Add sx={{ color: "common.white" }} />
-					</IconButton>
+						<Add />
+					</Button>
 				</Box>
 			</Box>
 

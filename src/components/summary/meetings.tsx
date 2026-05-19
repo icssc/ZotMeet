@@ -2,17 +2,10 @@
 
 import { Add, CalendarMonth, Notifications } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
-import {
-	Badge,
-	Box,
-	Button,
-	IconButton,
-	TextField,
-	Typography,
-} from "@mui/material";
+import { Badge, Box, Button, TextField, Typography } from "@mui/material";
 import Link from "next/link";
-import { MobileNotificationsDrawer } from "@/components/groups/mobile-notifications-drawer";
 import { useCallback, useMemo, useState } from "react";
+import { MobileNotificationsDrawer } from "@/components/groups/mobile-notifications-drawer";
 import { DeleteModal } from "@/components/meetings/delete-modal";
 import { FilterChip } from "@/components/ui/filter-chip";
 import MeetingCard from "@/components/ui/meeting-card";
@@ -306,29 +299,32 @@ export const Meetings = ({
 				<Typography variant="h4">Meetings</Typography>
 				<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
 					<Badge badgeContent={unreadCount} color="primary">
-						<IconButton
+						<Button
+							variant="outlined"
 							onClick={() => setNotificationsOpen(true)}
 							sx={{
-								border: "1px solid",
-								borderColor: "divider",
+								minWidth: 0,
 								borderRadius: 1,
 								p: 1,
+								boxShadow: "none",
+								borderColor: "divider",
 							}}
 						>
 							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
-						</IconButton>
+						</Button>
 					</Badge>
-					<IconButton
+					<Button
+						variant="contained"
 						href="/"
 						sx={{
-							bgcolor: "primary.main",
+							minWidth: 0,
 							borderRadius: 1,
 							p: 1,
-							"&:hover": { bgcolor: "primary.dark" },
+							boxShadow: "none",
 						}}
 					>
-						<Add sx={{ color: "common.white" }} />
-					</IconButton>
+						<Add />
+					</Button>
 				</Box>
 			</Box>
 
@@ -400,7 +396,7 @@ export const Meetings = ({
 				onClose={() => setNotificationsOpen(false)}
 				notifications={notifications}
 			/>
-      
+
 			{deleteTarget && (
 				<DeleteModal
 					meetingData={deleteTarget.meeting}
