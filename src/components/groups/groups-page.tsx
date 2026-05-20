@@ -164,9 +164,9 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 				>
 					<Button
 						type="button"
-						variant="outlined"
+						variant="contained"
 						color="secondary"
-						startIcon={<People sx={{ color: "secondary.contrastText" }} />}
+						startIcon={<People />}
 						onClick={() => setShowJoinGroup(true)}
 					>
 						Join Group
