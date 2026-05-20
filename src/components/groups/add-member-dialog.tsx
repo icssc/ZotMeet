@@ -64,7 +64,7 @@ export function MemberInviteFields({
 	selectedMembers,
 	onSelectedMembersChange,
 	excludeUserIds,
-	searchDebounceMs = 200,
+	searchDebounceMs = 150,
 	searchFieldLabel = "Search users",
 	shareLink,
 }: MemberInviteFieldsProps) {
@@ -185,7 +185,13 @@ export function MemberInviteFields({
 				noOptionsText={
 					memberQuery.length < 2 ? "Type to search…" : "No users found"
 				}
-				disablePortal
+				slotProps={{
+					popper: {
+						placement: "bottom-start",
+						modifiers: [{ name: "flip", enabled: false }],
+						sx: (theme) => ({ zIndex: theme.zIndex.modal + 1 }),
+					},
+				}}
 				renderInput={(params) => (
 					<TextField {...params} label={searchFieldLabel} size="small" />
 				)}
