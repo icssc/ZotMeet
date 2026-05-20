@@ -112,7 +112,7 @@ export const Meetings = ({
 		[upcomingMeetingIds],
 	);
 
-	const todayTimestamp = useMemo(() => getStartOfTodayMs(), []);
+	const todayTimestamp = getStartOfTodayMs();
 
 	const isPastMeeting = useCallback(
 		(m: DisplayMeeting): boolean =>
