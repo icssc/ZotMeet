@@ -100,9 +100,11 @@ export function MemberInviteFields({
 			}
 
 			searchTimeoutRef.current = setTimeout(async () => {
-				const resultsEmail = await searchUsersEmail(query);
-				const resultsDisplay = await searchUsersDisplay(query);
-				const resultsUser = await searchUsersUsername(query);
+				const [resultsEmail, resultsDisplay, resultsUser] = await Promise.all([
+					searchUsersEmail(query),
+					searchUsersDisplay(query),
+					searchUsersUsername(query),
+				]);
 
 				if (latestQueryRef.current !== query) return;
 				const seen = new Set<string>();
@@ -204,8 +206,10 @@ export function MemberInviteFields({
 							<div className="flex-col">
 								<span className="flex text-sm">{option.displayName}</span>
 								<div className="flex gap-1">
-									<span className="text-xs">{option.username} •</span>
-									<span className="text-xs">{option.email}</span>
+									<span className="text-gray-500 text-xs">
+										{option.username} •
+									</span>
+									<span className="text-gray-500 text-xs">{option.email}</span>
 								</div>
 							</div>
 						</div>
