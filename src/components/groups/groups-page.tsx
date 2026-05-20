@@ -280,20 +280,29 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 								return priority(a) - priority(b);
 							})
 							.map((group) => (
-								<GroupCard
+								<Box
 									key={group.id}
-									id={group.id}
-									name={group.name}
-									description={group.description}
-									members={group.members}
-									totalMeetings={group.totalMeetings}
-									totalMembers={group.memberCount}
-									creatorName={group.creatorName}
-									creatorAvatar={group.creatorAvatar}
-									actionRequired={group.needsAvailability}
-									upcomingMeetingName={group.upcomingMeetingName}
-									icon={group.icon}
-								/>
+									sx={{
+										display: {
+											xs: group.needsAvailability ? "none" : "block",
+											sm: "block",
+										},
+									}}
+								>
+									<GroupCard
+										id={group.id}
+										name={group.name}
+										description={group.description}
+										members={group.members}
+										totalMeetings={group.totalMeetings}
+										totalMembers={group.memberCount}
+										creatorName={group.creatorName}
+										creatorAvatar={group.creatorAvatar}
+										actionRequired={group.needsAvailability}
+										upcomingMeetingName={group.upcomingMeetingName}
+										icon={group.icon}
+									/>
+								</Box>
 							))}
 					</Box>
 				) : (
