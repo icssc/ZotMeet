@@ -204,15 +204,21 @@ export function MemberInviteFields({
 								{getInitials(option.email)}
 							</Avatar>
 							<div className="flex-col">
-								<Typography color="textPrimary" variant="button">
+								<Typography
+									color="textPrimary"
+									variant="body2"
+									sx={{ fontSize: { xs: "0.75rem", sm: "0.875rem" } }}
+								>
 									{option.displayName}
 								</Typography>
+
 								<div className="flex gap-1">
-									<Typography color="textSecondary" variant="caption">
-										{option.username ? `@${option.username} •` : ""}
-									</Typography>
-									<Typography color="textSecondary" variant="caption">
-										{option.email}
+									<Typography
+										color="textSecondary"
+										variant="caption"
+										sx={{ fontSize: { xs: "0.65rem", sm: "0.75rem" } }}
+									>
+										{option.username} • {option.email}
 									</Typography>
 								</div>
 							</div>
