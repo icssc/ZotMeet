@@ -64,7 +64,7 @@ export function MemberInviteFields({
 	selectedMembers,
 	onSelectedMembersChange,
 	excludeUserIds,
-	searchDebounceMs = 150,
+	searchDebounceMs = 50,
 	searchFieldLabel = "Search users",
 	shareLink,
 }: MemberInviteFieldsProps) {
