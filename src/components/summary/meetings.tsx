@@ -103,8 +103,6 @@ export const Meetings = ({
 	const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 	const [isDeletionPending, setIsDeletionPending] = useState(false);
 
-	const unreadCount = notifications.filter((n) => !n.readAt).length;
-
 	const handleDeleteLeaveRequest = useCallback((target: DeleteTarget) => {
 		setDeleteTarget(target);
 	}, []);
