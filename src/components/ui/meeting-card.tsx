@@ -30,6 +30,14 @@ interface MeetingCardProps extends MeetingCardViewModel {
 
 const metaIconSx = { fontSize: 16, color: "text.secondary", flexShrink: 0 };
 const metaTextSx = { typography: { xs: "body2", sm: "body1" } };
+const bannerBaseSx = {
+	px: 2.5,
+	py: 1.5,
+	display: "flex",
+	alignItems: "center",
+	gap: 0.5,
+} as const;
+const bannerTextSx = { color: "inherit", letterSpacing: "0.14px" } as const;
 const metaGridSx = {
 	display: "grid",
 	gridTemplateColumns: "1fr 1fr",
@@ -224,87 +232,44 @@ const MeetingCard = ({
 
 	const banner =
 		variant === "action-required" ? (
-			<Box
-				sx={{
-					px: 2.5,
-					py: 1.5,
-					display: "flex",
-					alignItems: "center",
-					gap: 0.5,
-					color: "primary.contrastText",
-				}}
-			>
+			<Box sx={{ ...bannerBaseSx, color: "primary.contrastText" }}>
 				<EditIcon sx={{ fontSize: 18, color: "inherit" }} />
-				<Typography
-					variant="caption"
-					sx={{ color: "inherit", letterSpacing: "0.14px" }}
-				>
+				<Typography variant="caption" sx={bannerTextSx}>
 					Add your availability.
 				</Typography>
 			</Box>
 		) : variant === "schedule-alert" ? (
-			<Box
-				sx={{
-					px: 2.5,
-					py: 1.5,
-					display: "flex",
-					alignItems: "center",
-					gap: 0.5,
-					color: "info.contrastText",
-				}}
-			>
+			<Box sx={{ ...bannerBaseSx, color: "info.contrastText" }}>
 				<DateRangeIcon sx={{ fontSize: 18, color: "inherit" }} />
-				<Typography
-					variant="caption"
-					sx={{ color: "inherit", letterSpacing: "0.14px" }}
-				>
+				<Typography variant="caption" sx={bannerTextSx}>
 					Availability complete. Schedule this meeting.
 				</Typography>
 			</Box>
 		) : variant === "upcoming" ? (
 			<Box
 				sx={{
-					px: 2.5,
-					py: 1.5,
-					display: "flex",
-					alignItems: "center",
+					...bannerBaseSx,
+					gap: undefined,
 					justifyContent: "space-between",
 					color: "secondary.contrastText",
 				}}
 			>
 				<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
 					<EventIcon sx={{ fontSize: 18, color: "inherit" }} />
-					<Typography
-						variant="caption"
-						sx={{ color: "inherit", letterSpacing: "0.14px" }}
-					>
+					<Typography variant="caption" sx={bannerTextSx}>
 						Upcoming
 					</Typography>
 				</Box>
 				{scheduledLabel && (
-					<Typography
-						variant="caption"
-						sx={{ color: "inherit", letterSpacing: "0.14px" }}
-					>
+					<Typography variant="caption" sx={bannerTextSx}>
 						{scheduledLabel}
 					</Typography>
 				)}
 			</Box>
 		) : (
-			<Box
-				sx={{
-					px: 2.5,
-					py: 1.5,
-					display: "flex",
-					alignItems: "center",
-					color: "secondary.contrastText",
-				}}
-			>
+			<Box sx={{ ...bannerBaseSx, color: "secondary.contrastText" }}>
 				{scheduledLabel && (
-					<Typography
-						variant="caption"
-						sx={{ color: "inherit", letterSpacing: "0.14px" }}
-					>
+					<Typography variant="caption" sx={bannerTextSx}>
 						{scheduledLabel}
 					</Typography>
 				)}

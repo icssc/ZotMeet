@@ -6,7 +6,7 @@ export function getUpcomingMeetingIds(
 	scheduledMeetingMap: Record<string, { scheduledDate: Date }>,
 ): string[] {
 	const startOfToday = new Date();
-	startOfToday.setUTCHours(0, 0, 0, 0);
+	startOfToday.setHours(0, 0, 0, 0);
 	const windowEnd = new Date(startOfToday.getTime() + UPCOMING_WINDOW_MS);
 	return Object.entries(scheduledMeetingMap)
 		.filter(
