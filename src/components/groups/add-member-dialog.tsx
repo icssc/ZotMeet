@@ -3,7 +3,11 @@
 import { inviteGroupMember } from "@actions/group/add-member/action";
 import { createGroupInvite } from "@actions/group/invite/create/action";
 import { inviteMeetingMembers } from "@actions/meeting/invite/action";
-import { searchUsers } from "@actions/user/action";
+import {
+	searchUsersDisplay,
+	searchUsersEmail,
+	searchUsersUsername,
+} from "@actions/user/search";
 import {
 	Autocomplete,
 	Avatar,
@@ -30,6 +34,8 @@ import { useSnackbar } from "@/components/ui/snackbar-provider";
 export type SearchUser = {
 	id: string;
 	email: string;
+	username: string | null;
+	displayName: string | null;
 	profilePicture: string | null;
 };
 
@@ -94,8 +100,23 @@ export function MemberInviteFields({
 			}
 
 			searchTimeoutRef.current = setTimeout(async () => {
-				const results = await searchUsers(query);
+				const [resultsEmail, resultsDisplay, resultsUser] = await Promise.all([
+					searchUsersEmail(query),
+					searchUsersDisplay(query),
+					searchUsersUsername(query),
+				]);
+
 				if (latestQueryRef.current !== query) return;
+				const seen = new Set<string>();
+				const results = [
+					...resultsDisplay,
+					...resultsUser,
+					...resultsEmail,
+				].filter((r) => {
+					if (seen.has(r.id)) return false;
+					seen.add(r.id);
+					return true;
+				});
 
 				setSearchResults(results.filter((r) => !excludeSet.has(r.id)));
 			}, searchDebounceMs);
@@ -111,6 +132,8 @@ export function MemberInviteFields({
 				{
 					id: user.id,
 					email: user.email,
+					username: user.username,
+					displayName: user.displayName,
 					profilePicture: user.profilePicture ?? null,
 				},
 			]);
@@ -144,7 +167,6 @@ export function MemberInviteFields({
 	const options = searchResults.filter(
 		(user) => !selectedMembers.some((m) => m.id === user.id),
 	);
-
 	return (
 		<div className="flex flex-col gap-5 pt-1">
 			<Autocomplete
@@ -167,6 +189,9 @@ export function MemberInviteFields({
 				renderInput={(params) => (
 					<TextField {...params} label={searchFieldLabel} size="small" />
 				)}
+				ListboxProps={{
+					style: { maxHeight: 140, overflowY: "auto" },
+				}}
 				renderOption={({ key, ...optionProps }, option) => (
 					<li key={key ?? option.id} {...optionProps}>
 						<div className="flex items-center gap-3">
@@ -178,7 +203,19 @@ export function MemberInviteFields({
 							>
 								{getInitials(option.email)}
 							</Avatar>
-							<span className="text-sm">{option.email}</span>
+							<div className="flex-col">
+								<Typography color="textPrimary" variant="button">
+									{option.displayName}
+								</Typography>
+								<div className="flex gap-1">
+									<Typography color="textSecondary" variant="caption">
+										{option.username ? `@${option.username} •` : ""}
+									</Typography>
+									<Typography color="textSecondary" variant="caption">
+										{option.email}
+									</Typography>
+								</div>
+							</div>
 						</div>
 					</li>
 				)}
