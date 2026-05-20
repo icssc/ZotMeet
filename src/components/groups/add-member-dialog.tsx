@@ -177,7 +177,9 @@ function MemberSearchAutocomplete({
 			value={null}
 			isOptionEqualToValue={(option, value) => option.id === value.id}
 			noOptionsText={
-				memberQuery.length < 2 ? "Type to search…" : "No users found"
+				memberQuery.length < 2
+					? "Search via Email, Display Name, Username..."
+					: "No users found"
 			}
 			slotProps={{
 				popper: {
