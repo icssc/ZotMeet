@@ -209,7 +209,7 @@ export function MemberInviteFields({
 								</Typography>
 								<div className="flex gap-1">
 									<Typography color="textSecondary" variant="caption">
-										{option.username} •
+										{option.username ? `@${option.username} •` : ""}
 									</Typography>
 									<Typography color="textSecondary" variant="caption">
 										{option.email}
