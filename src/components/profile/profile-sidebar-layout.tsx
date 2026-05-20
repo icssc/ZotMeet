@@ -1,5 +1,6 @@
 "use client";
 
+import type { SvgIconComponent } from "@mui/icons-material";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LogoutIcon from "@mui/icons-material/Logout";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
@@ -13,7 +14,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { logoutAction } from "@/server/actions/auth/logout/action";
 
 export type ProfileTab = "edit-profile" | "notifications";
@@ -21,25 +22,29 @@ export type ProfileTab = "edit-profile" | "notifications";
 const NAV_ITEMS: {
 	id: ProfileTab;
 	label: string;
-	icon: React.ReactElement;
+	Icon: SvgIconComponent;
 }[] = [
 	{
 		id: "edit-profile",
 		label: "Edit Profile",
-		icon: <PersonOutlineIcon />,
+		Icon: PersonOutlineIcon,
 	},
 	{
 		id: "notifications",
 		label: "Notifications",
-		icon: <NotificationsOutlinedIcon />,
+		Icon: NotificationsOutlinedIcon,
 	},
 ];
 
 interface ProfileSidebarLayoutProps {
-	children: Record<ProfileTab, React.ReactNode>;
+	panels: Record<ProfileTab, () => ReactNode>;
 }
 
-export function ProfileSidebarLayout({ children }: ProfileSidebarLayoutProps) {
+function isProfileTab(value: unknown): value is ProfileTab {
+	return value === "edit-profile" || value === "notifications";
+}
+
+export function ProfileSidebarLayout({ panels }: ProfileSidebarLayoutProps) {
 	const [activeTab, setActiveTab] = useState<ProfileTab>("edit-profile");
 
 	return (
@@ -84,7 +89,9 @@ export function ProfileSidebarLayout({ children }: ProfileSidebarLayoutProps) {
 								},
 							}}
 						>
-							<ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+							<ListItemIcon sx={{ minWidth: 40 }}>
+								<item.Icon />
+							</ListItemIcon>
 							<ListItemText
 								primary={item.label}
 								primaryTypographyProps={{ fontSize: "0.95rem" }}
@@ -129,7 +136,9 @@ export function ProfileSidebarLayout({ children }: ProfileSidebarLayoutProps) {
 				>
 					<Tabs
 						value={activeTab}
-						onChange={(_, value) => setActiveTab(value)}
+						onChange={(_, value) => {
+							if (isProfileTab(value)) setActiveTab(value);
+						}}
 						variant="fullWidth"
 					>
 						{NAV_ITEMS.map((item) => (
@@ -137,13 +146,13 @@ export function ProfileSidebarLayout({ children }: ProfileSidebarLayoutProps) {
 								key={item.id}
 								value={item.id}
 								label={item.label}
-								icon={item.icon}
+								icon={<item.Icon />}
 								iconPosition="start"
 							/>
 						))}
 					</Tabs>
 				</Box>
-				<Box sx={{ p: 4 }}>{children[activeTab]}</Box>
+				<Box sx={{ p: 4 }}>{panels[activeTab]()}</Box>
 			</Paper>
 		</Box>
 	);
