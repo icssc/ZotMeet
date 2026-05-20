@@ -153,7 +153,7 @@ export function MobileNotificationsDrawer({
 					</UnreadCount>
 				</HeaderBox>
 
-				<Divider />
+				<Divider sx={{ mx: -2 }} />
 
 				{unread.length > 0 && (
 					<ActionBar>
