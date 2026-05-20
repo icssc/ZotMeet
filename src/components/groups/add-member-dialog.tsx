@@ -201,9 +201,13 @@ export function MemberInviteFields({
 							>
 								{getInitials(option.email)}
 							</Avatar>
-							<span className="text-sm">{option.displayName}</span>
-							<span className="text-sm">{option.username}</span>
-							<span className="text-sm">{option.email}</span>
+							<div className="flex-col">
+								<span className="flex text-sm">{option.displayName}</span>
+								<div className="flex gap-1">
+									<span className="text-xs">{option.username} •</span>
+									<span className="text-xs">{option.email}</span>
+								</div>
+							</div>
 						</div>
 					</li>
 				)}
