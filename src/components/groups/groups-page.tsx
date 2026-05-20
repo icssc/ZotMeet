@@ -269,7 +269,7 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 						sx={{
 							display: "grid",
 							gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
-							gap: { xs: 0.5, sm: 4 },
+							gap: { xs: 1.5, sm: 4 },
 						}}
 					>
 						{filteredGroups
