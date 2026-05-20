@@ -37,6 +37,7 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
+import { MobileScheduleSettings } from "./mobile-schedule-settings";
 
 const LG_UP_MEDIA = "(min-width: 1024px)";
 
@@ -496,17 +497,28 @@ export function Availability({
 						</div>
 
 						<div className="block sm:hidden">
-							<MobileGroupResponses
-								isOwner={isMeetingOwner}
-								respondedMembersCount={Math.max(
-									0,
-									members.length - pendingMembers.length,
-								)}
-								pendingMembersCount={pendingMembers.length}
-								onAddAvailability={handleMobileAddAvailability}
-								onOpenAttendees={handleMobileOpenAttendees}
-								onSchedule={handleMobileSchedule}
-							/>
+							{availabilityView === "schedule" ? (
+								<MobileScheduleSettings
+									respondedMembersCount={Math.max(
+										0,
+										members.length - pendingMembers.length,
+									)}
+									totalMembersCount={members.length}
+									onOpenAttendees={handleMobileOpenAttendees}
+								/>
+							) : (
+								<MobileGroupResponses
+									isOwner={isMeetingOwner}
+									respondedMembersCount={Math.max(
+										0,
+										members.length - pendingMembers.length,
+									)}
+									pendingMembersCount={pendingMembers.length}
+									onAddAvailability={handleMobileAddAvailability}
+									onOpenAttendees={handleMobileOpenAttendees}
+									onSchedule={handleMobileSchedule}
+								/>
+							)}
 						</div>
 					</div>
 				)}
