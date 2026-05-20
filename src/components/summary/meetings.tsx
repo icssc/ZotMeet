@@ -96,7 +96,7 @@ export const Meetings = ({
 	notifications,
 }: MeetingsProps) => {
 	const [search, setSearch] = useState("");
-	const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+	const [activeFilter, setActiveFilter] = useState<FilterType>("upcoming");
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
 
 	const unreadCount = notifications.filter((n) => !n.readAt).length;
