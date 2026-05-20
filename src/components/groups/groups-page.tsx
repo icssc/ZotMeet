@@ -102,7 +102,9 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 				}}
 			>
 				<Typography variant="h3">Groups</Typography>
-				<Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
+				<Box
+					sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1.5 }}
+				>
 					<Badge badgeContent={unreadCount} color="primary">
 						<Button
 							size="square"
