@@ -37,7 +37,7 @@ const NAV_ITEMS: {
 ];
 
 interface ProfileSidebarLayoutProps {
-	panels: Record<ProfileTab, () => ReactNode>;
+	panels: Record<ProfileTab, ReactNode>;
 }
 
 function isProfileTab(value: unknown): value is ProfileTab {
@@ -152,7 +152,7 @@ export function ProfileSidebarLayout({ panels }: ProfileSidebarLayoutProps) {
 						))}
 					</Tabs>
 				</Box>
-				<Box sx={{ p: 4 }}>{panels[activeTab]()}</Box>
+				<Box sx={{ p: 4 }}>{panels[activeTab]}</Box>
 			</Paper>
 		</Box>
 	);

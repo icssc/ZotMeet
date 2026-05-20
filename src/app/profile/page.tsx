@@ -21,8 +21,8 @@ export default async function ProfilePage() {
 	return (
 		<ProfileSidebarLayout
 			panels={{
-				"edit-profile": () => <ProfileSettings user={session.user} />,
-				notifications: () => (
+				"edit-profile": <ProfileSettings user={session.user} />,
+				notifications: (
 					<NotificationsPanel
 						initialPreferences={toNotificationPrefs(notifPrefs)}
 					/>
