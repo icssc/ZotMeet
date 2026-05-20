@@ -1,9 +1,10 @@
 import "server-only";
 
-import { and, desc, eq, ilike, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { groups, members, notifications, users } from "@/db/schema";
 import { sendEmail } from "@/lib/email/send-email";
+import { toIlikeContainsPattern } from "@/lib/sql/like-pattern";
 
 export async function getUserIdExists(id: string) {
 	const user = await db.query.users.findFirst({
@@ -34,35 +35,47 @@ export async function getUserById(id: string) {
 	return user ?? null;
 }
 
+const userSearchSelect = {
+	id: users.id,
+	email: users.email,
+	username: members.username,
+	displayName: members.displayName,
+	profilePicture: members.profilePicture,
+} as const;
+
+/** Single query across email, username, and display name. */
+export async function searchUsersByQuery(
+	query: string,
+	excludeUserId: string,
+	limit = 15,
+) {
+	const pattern = toIlikeContainsPattern(query);
+	if (!pattern) return [];
+
+	return await db
+		.select(userSearchSelect)
+		.from(users)
+		.innerJoin(members, eq(users.memberId, members.id))
+		.where(
+			and(
+				ne(users.id, excludeUserId),
+				or(
+					sql`${users.email} ILIKE ${pattern} ESCAPE '\\'`,
+					sql`${members.username} ILIKE ${pattern} ESCAPE '\\'`,
+					sql`${members.displayName} ILIKE ${pattern} ESCAPE '\\'`,
+				),
+			),
+		)
+		.limit(limit);
+}
+
 export async function searchUsersByUsername(
 	query: string,
 	excludeUserId: string,
 	limit = 5,
 ) {
-	if (!query || query.length < 2) return [];
-
-	return await db
-		.select({
-			id: users.id,
-			email: users.email,
-			username: members.username,
-			displayName: members.displayName,
-			profilePicture: members.profilePicture,
-		})
-		.from(users)
-		.innerJoin(members, eq(users.memberId, members.id))
-		.where(
-			and(ilike(members.username, `%${query}%`), ne(users.id, excludeUserId)),
-		)
-		.limit(limit);
-}
-
-export async function searchUsersByDisplayName(
-	query: string,
-	excludeUserId: string,
-	limit = 5,
-) {
-	if (!query || query.length < 2) return [];
+	const pattern = toIlikeContainsPattern(query);
+	if (!pattern) return [];
 
 	return await db
 		.select({
@@ -76,18 +89,20 @@ export async function searchUsersByDisplayName(
 		.innerJoin(members, eq(users.memberId, members.id))
 		.where(
 			and(
-				ilike(members.displayName, `%${query}%`),
+				sql`${members.username} ILIKE ${pattern} ESCAPE '\\'`,
 				ne(users.id, excludeUserId),
 			),
 		)
 		.limit(limit);
 }
-export async function searchUsersByEmail(
+
+export async function searchUsersByDisplayName(
 	query: string,
 	excludeUserId: string,
 	limit = 5,
 ) {
-	if (!query || query.length < 2) return [];
+	const pattern = toIlikeContainsPattern(query);
+	if (!pattern) return [];
 
 	return await db
 		.select({
@@ -99,7 +114,38 @@ export async function searchUsersByEmail(
 		})
 		.from(users)
 		.innerJoin(members, eq(users.memberId, members.id))
-		.where(and(ilike(users.email, `%${query}%`), ne(users.id, excludeUserId)))
+		.where(
+			and(
+				sql`${members.displayName} ILIKE ${pattern} ESCAPE '\\'`,
+				ne(users.id, excludeUserId),
+			),
+		)
+		.limit(limit);
+}
+export async function searchUsersByEmail(
+	query: string,
+	excludeUserId: string,
+	limit = 5,
+) {
+	const pattern = toIlikeContainsPattern(query);
+	if (!pattern) return [];
+
+	return await db
+		.select({
+			id: users.id,
+			email: users.email,
+			username: members.username,
+			displayName: members.displayName,
+			profilePicture: members.profilePicture,
+		})
+		.from(users)
+		.innerJoin(members, eq(users.memberId, members.id))
+		.where(
+			and(
+				sql`${users.email} ILIKE ${pattern} ESCAPE '\\'`,
+				ne(users.id, excludeUserId),
+			),
+		)
 		.limit(limit);
 }
 
