@@ -190,7 +190,7 @@ export function MemberInviteFields({
 					<TextField {...params} label={searchFieldLabel} size="small" />
 				)}
 				ListboxProps={{
-					style: { maxHeight: 240, overflowY: "auto" },
+					style: { maxHeight: 140, overflowY: "auto" },
 				}}
 				renderOption={({ key, ...optionProps }, option) => (
 					<li key={key ?? option.id} {...optionProps}>
@@ -204,12 +204,16 @@ export function MemberInviteFields({
 								{getInitials(option.email)}
 							</Avatar>
 							<div className="flex-col">
-								<span className="flex text-sm">{option.displayName}</span>
+								<Typography color="textPrimary" variant="button">
+									{option.displayName}
+								</Typography>
 								<div className="flex gap-1">
-									<span className="text-gray-500 text-xs">
+									<Typography color="textSecondary" variant="caption">
 										{option.username} •
-									</span>
-									<span className="text-gray-500 text-xs">{option.email}</span>
+									</Typography>
+									<Typography color="textSecondary" variant="caption">
+										{option.email}
+									</Typography>
 								</div>
 							</div>
 						</div>
