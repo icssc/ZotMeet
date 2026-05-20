@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, desc, eq, ilike, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, ne, or } from "drizzle-orm";
 import { db } from "@/db";
 import { groups, members, notifications, users } from "@/db/schema";
 import { sendEmail } from "@/lib/email/send-email";
@@ -32,6 +32,41 @@ export async function getUserById(id: string) {
 	});
 
 	return user ?? null;
+}
+
+const userSearchSelect = {
+	id: users.id,
+	email: users.email,
+	username: members.username,
+	displayName: members.displayName,
+	profilePicture: members.profilePicture,
+} as const;
+
+/** Single query across email, username, and display name. */
+export async function searchUsersByQuery(
+	query: string,
+	excludeUserId: string,
+	limit = 15,
+) {
+	if (!query || query.length < 2) return [];
+
+	const pattern = `%${query}%`;
+
+	return await db
+		.select(userSearchSelect)
+		.from(users)
+		.innerJoin(members, eq(users.memberId, members.id))
+		.where(
+			and(
+				ne(users.id, excludeUserId),
+				or(
+					ilike(users.email, pattern),
+					ilike(members.username, pattern),
+					ilike(members.displayName, pattern),
+				),
+			),
+		)
+		.limit(limit);
 }
 
 export async function searchUsersByUsername(
