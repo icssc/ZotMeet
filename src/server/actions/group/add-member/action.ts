@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { groupInvites, usersInGroup } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { NOTIFICATION_TYPES } from "@/lib/notification/types";
 import { getExistingGroup, isGroupAdmin } from "@/server/data/groups/queries";
 import { createNewNotification } from "@/server/data/user/queries";
 
@@ -83,7 +84,7 @@ export async function inviteGroupMember(
 				[userId],
 				group.name,
 				`You've been invited to join ${group.name}!`,
-				"Group Invite",
+				NOTIFICATION_TYPES.GROUP_INVITE,
 				inviteToken,
 				groupId,
 				user.id,

@@ -1,6 +1,6 @@
 {
-  "id": "994d6447-5510-4538-867f-4b641182950b",
-  "prevId": "36e060d4-10ad-46f2-914c-bce16882bd1f",
+  "id": "62e292cf-c9cb-455d-815d-b2d1f130d5c5",
+  "prevId": "994d6447-5510-4538-867f-4b641182950b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -970,6 +970,12 @@
           "type": "time",
           "primaryKey": false,
           "notNull": true
+        },
+        "reminder_sent_at": {
+          "name": "reminder_sent_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},

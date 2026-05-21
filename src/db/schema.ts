@@ -216,6 +216,7 @@ export const meetings = pgTable("meetings", {
 	meetingType: meetingTypeEnum("meeting_type").notNull().default("dates"),
 	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 	archived: boolean("archived").default(false).notNull(),
+	membersCanInvite: boolean("members_can_invite").default(true).notNull(),
 });
 
 export const scheduledMeetings = pgTable("scheduled_meetings", {
@@ -317,6 +318,34 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 	}),
 }));
 
+export const notificationPreferences = pgTable("notification_preferences", {
+	id: uuid("id").defaultRandom().primaryKey(),
+	memberId: uuid("member_id")
+		.notNull()
+		.references(() => members.id, { onDelete: "cascade" })
+		.unique(),
+	meetingInvites: boolean("meeting_invites").notNull().default(true),
+	groupInvites: boolean("group_invites").notNull().default(true),
+	nudges: boolean("nudges").notNull().default(true),
+});
+
+export type SelectNotificationPreferences = InferSelectModel<
+	typeof notificationPreferences
+>;
+export type InsertNotificationPreferences = InferInsertModel<
+	typeof notificationPreferences
+>;
+
+export const notificationPreferencesRelations = relations(
+	notificationPreferences,
+	({ one }) => ({
+		member: one(members, {
+			fields: [notificationPreferences.memberId],
+			references: [members.id],
+		}),
+	}),
+);
+
 export const availabilities = pgTable(
 	"availabilities",
 	{
@@ -385,6 +414,7 @@ export const membersRelations = relations(members, ({ one, many }) => ({
 	}),
 	availabilities: many(availabilities),
 	notifications: many(notifications),
+	notificationPreferences: one(notificationPreferences),
 	user: one(users, {
 		fields: [members.id],
 		references: [users.memberId],

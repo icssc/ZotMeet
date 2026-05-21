@@ -128,6 +128,19 @@ export function generateCellKey(
 	return `${zotDateIndex}_${blockIndex}`;
 }
 
+export type PageEdgeVariant = "none" | "first" | "middle" | "last";
+
+export function getPageEdgeVariant(
+	hasMultiplePages: boolean,
+	isFirstPage: boolean,
+	isLastPage: boolean,
+): PageEdgeVariant {
+	if (!hasMultiplePages) return "none";
+	if (isFirstPage) return "first";
+	if (isLastPage) return "last";
+	return "middle";
+}
+
 export const spacerBeforeDate = (
 	currentPageAvailability: (ZotDate | null)[],
 ): boolean[] => {
@@ -437,6 +450,28 @@ export function mergeImportedPersonalGridSlots({
 		availabilityDates: mergedAvailabilityDates,
 		ifNeededDates: mergedIfNeededDates,
 	};
+}
+
+/** Stable key for comparing member rosters (order-independent). */
+export function memberIdsKey(memberIds: readonly string[]): string {
+	return [...memberIds].sort().join(",");
+}
+
+/** Drops removed members from group heatmap buckets; omits empty buckets. */
+export function pruneGroupAvailabilityByMemberIds(
+	dates: readonly ZotDate[],
+	validIds: ReadonlySet<string>,
+): ZotDate[] {
+	return dates.map((date) => {
+		const newGroupAvail: Record<string, string[]> = {};
+		for (const [ts, ids] of Object.entries(date.groupAvailability)) {
+			const filtered = ids.filter((id) => validIds.has(id));
+			if (filtered.length > 0) newGroupAvail[ts] = filtered;
+		}
+		const cloned = new ZotDate(date);
+		cloned.groupAvailability = newGroupAvail;
+		return cloned;
+	});
 }
 
 /** Clears personal available/if-needed slots */

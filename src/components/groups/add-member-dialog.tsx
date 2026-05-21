@@ -3,7 +3,7 @@
 import { inviteGroupMember } from "@actions/group/add-member/action";
 import { createGroupInvite } from "@actions/group/invite/create/action";
 import { inviteMeetingMembers } from "@actions/meeting/invite/action";
-import { searchUsers } from "@actions/user/action";
+import { searchUsers } from "@actions/user/search";
 import {
 	Autocomplete,
 	Avatar,
@@ -18,6 +18,8 @@ import {
 } from "@mui/material";
 import { Check, Copy } from "lucide-react";
 import {
+	type HTMLAttributes,
+	memo,
 	useCallback,
 	useEffect,
 	useMemo,
@@ -30,6 +32,8 @@ import { useSnackbar } from "@/components/ui/snackbar-provider";
 export type SearchUser = {
 	id: string;
 	email: string;
+	username: string | null;
+	displayName: string | null;
 	profilePicture: string | null;
 };
 
@@ -54,30 +58,67 @@ type MemberInviteFieldsProps = {
 	shareLink?: MemberInviteShareLink | null;
 };
 
-export function MemberInviteFields({
-	selectedMembers,
-	onSelectedMembersChange,
+type MemberSearchAutocompleteProps = {
+	selectedMemberIds: Set<string>;
+	excludeUserIds: string[];
+	searchDebounceMs: number;
+	searchFieldLabel: string;
+	onSelectMember: (user: SearchUser) => void;
+};
+
+const MemberSearchOption = memo(function MemberSearchOption({
+	option,
+	...optionProps
+}: HTMLAttributes<HTMLLIElement> & { option: SearchUser }) {
+	const secondaryText = option.username
+		? `@${option.username} • ${option.email}`
+		: option.email;
+
+	return (
+		<li {...optionProps}>
+			<div className="flex w-full min-w-0 items-center gap-3">
+				<Avatar
+					className="shrink-0"
+					src={option.profilePicture ?? undefined}
+					slotProps={{
+						img: { referrerPolicy: "no-referrer" },
+					}}
+				>
+					{getInitials(option.email)}
+				</Avatar>
+				<div className="min-w-0 flex-1 overflow-hidden">
+					<Typography color="textPrimary" variant="body2" noWrap>
+						{option.displayName}
+					</Typography>
+					<Typography color="textSecondary" variant="caption" noWrap>
+						{secondaryText}
+					</Typography>
+				</div>
+			</div>
+		</li>
+	);
+});
+
+function MemberSearchAutocomplete({
+	selectedMemberIds,
 	excludeUserIds,
-	searchDebounceMs = 200,
-	searchFieldLabel = "Search users",
-	shareLink,
-}: MemberInviteFieldsProps) {
-	const { showError } = useSnackbar();
+	searchDebounceMs,
+	searchFieldLabel,
+	onSelectMember,
+}: MemberSearchAutocompleteProps) {
 	const [memberQuery, setMemberQuery] = useState("");
 	const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
+	const [isSearching, startSearchTransition] = useTransition();
 	const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 	const latestQueryRef = useRef("");
-	const [copied, setCopied] = useState(false);
-	const copiedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+	const excludeSet = useMemo(() => new Set(excludeUserIds), [excludeUserIds]);
 
 	useEffect(() => {
 		return () => {
 			if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
 		};
 	}, []);
-
-	const excludeSet = useMemo(() => new Set(excludeUserIds), [excludeUserIds]);
 
 	const handleMemberSearch = useCallback(
 		(query: string) => {
@@ -89,18 +130,102 @@ export function MemberInviteFields({
 			}
 
 			if (query.length < 2) {
-				setSearchResults([]);
+				startSearchTransition(() => setSearchResults([]));
 				return;
 			}
 
-			searchTimeoutRef.current = setTimeout(async () => {
-				const results = await searchUsers(query);
-				if (latestQueryRef.current !== query) return;
+			searchTimeoutRef.current = setTimeout(() => {
+				void (async () => {
+					const results = await searchUsers(query);
+					if (latestQueryRef.current !== query) return;
 
-				setSearchResults(results.filter((r) => !excludeSet.has(r.id)));
+					startSearchTransition(() => {
+						setSearchResults(
+							results.filter(
+								(r) => !excludeSet.has(r.id) && !selectedMemberIds.has(r.id),
+							),
+						);
+					});
+				})();
 			}, searchDebounceMs);
 		},
-		[excludeSet, searchDebounceMs],
+		[excludeSet, searchDebounceMs, selectedMemberIds],
+	);
+
+	const options = useMemo(
+		() => searchResults.filter((user) => !selectedMemberIds.has(user.id)),
+		[searchResults, selectedMemberIds],
+	);
+
+	return (
+		<Autocomplete
+			options={options}
+			loading={isSearching}
+			getOptionLabel={(option) => option.email}
+			filterOptions={(x) => x}
+			inputValue={memberQuery}
+			onInputChange={(_, value, reason) => {
+				if (reason !== "reset") handleMemberSearch(value);
+			}}
+			onChange={(_, user) => {
+				if (user) {
+					onSelectMember(user);
+					setMemberQuery("");
+					setSearchResults([]);
+				}
+			}}
+			value={null}
+			isOptionEqualToValue={(option, value) => option.id === value.id}
+			noOptionsText={
+				memberQuery.length < 2
+					? "Search via Email, Display Name, Username..."
+					: "No users found"
+			}
+			slotProps={{
+				popper: {
+					placement: "bottom-start",
+					modifiers: [{ name: "flip", enabled: false }],
+					sx: (theme) => ({ zIndex: theme.zIndex.modal + 1 }),
+				},
+			}}
+			renderInput={(params) => (
+				<TextField {...params} label={searchFieldLabel} size="small" />
+			)}
+			ListboxProps={{
+				style: { maxHeight: 140, overflowY: "auto" },
+			}}
+			renderOption={({ key, ...optionProps }, option) => (
+				<MemberSearchOption
+					key={key ?? option.id}
+					option={option}
+					{...optionProps}
+				/>
+			)}
+		/>
+	);
+}
+
+export function MemberInviteFields({
+	selectedMembers,
+	onSelectedMembersChange,
+	excludeUserIds,
+	searchDebounceMs = 100,
+	searchFieldLabel = "Search users",
+	shareLink,
+}: MemberInviteFieldsProps) {
+	const { showError } = useSnackbar();
+	const [copied, setCopied] = useState(false);
+	const copiedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+	useEffect(() => {
+		return () => {
+			if (copiedTimeoutRef.current) clearTimeout(copiedTimeoutRef.current);
+		};
+	}, []);
+
+	const selectedMemberIds = useMemo(
+		() => new Set(selectedMembers.map((m) => m.id)),
+		[selectedMembers],
 	);
 
 	const addMember = useCallback(
@@ -111,11 +236,11 @@ export function MemberInviteFields({
 				{
 					id: user.id,
 					email: user.email,
+					username: user.username,
+					displayName: user.displayName,
 					profilePicture: user.profilePicture ?? null,
 				},
 			]);
-			setMemberQuery("");
-			setSearchResults([]);
 		},
 		[selectedMembers, onSelectedMembersChange],
 	);
@@ -139,49 +264,14 @@ export function MemberInviteFields({
 		}
 	}, [shareLink?.url, showError]);
 
-	// Filter again at render time so members selected while a debounced search
-	// is in-flight are immediately hidden from the dropdown.
-	const options = searchResults.filter(
-		(user) => !selectedMembers.some((m) => m.id === user.id),
-	);
-
 	return (
 		<div className="flex flex-col gap-5 pt-1">
-			<Autocomplete
-				options={options}
-				getOptionLabel={(option) => option.email}
-				filterOptions={(x) => x}
-				inputValue={memberQuery}
-				onInputChange={(_, value, reason) => {
-					if (reason !== "reset") handleMemberSearch(value);
-				}}
-				onChange={(_, user) => {
-					if (user) addMember(user);
-				}}
-				value={null}
-				isOptionEqualToValue={(option, value) => option.id === value.id}
-				noOptionsText={
-					memberQuery.length < 2 ? "Type to search…" : "No users found"
-				}
-				disablePortal
-				renderInput={(params) => (
-					<TextField {...params} label={searchFieldLabel} size="small" />
-				)}
-				renderOption={({ key, ...optionProps }, option) => (
-					<li key={key ?? option.id} {...optionProps}>
-						<div className="flex items-center gap-3">
-							<Avatar
-								src={option.profilePicture ?? undefined}
-								slotProps={{
-									img: { referrerPolicy: "no-referrer" },
-								}}
-							>
-								{getInitials(option.email)}
-							</Avatar>
-							<span className="text-sm">{option.email}</span>
-						</div>
-					</li>
-				)}
+			<MemberSearchAutocomplete
+				selectedMemberIds={selectedMemberIds}
+				excludeUserIds={excludeUserIds}
+				searchDebounceMs={searchDebounceMs}
+				searchFieldLabel={searchFieldLabel}
+				onSelectMember={addMember}
 			/>
 
 			{selectedMembers.length > 0 && (

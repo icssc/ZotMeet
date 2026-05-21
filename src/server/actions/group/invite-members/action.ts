@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentSession } from "@/lib/auth";
 import { createBrandedTransactionalEmail } from "@/lib/email/templates";
+import { NOTIFICATION_TYPES } from "@/lib/notification/types";
 import { getOrCreateActiveGroupInviteToken } from "@/server/data/groups/invite-queries";
 import {
 	getExistingGroup,
@@ -75,7 +76,7 @@ export async function inviteGroupMembers(
 			targetIds,
 			groupName,
 			`You've been invited to join "${groupName}". Open ZotMeet to respond.`,
-			"Group Invite",
+			NOTIFICATION_TYPES.GROUP_INVITE,
 			inviteToken,
 			groupId,
 			user.id,

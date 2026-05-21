@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { GroupRole, groupInvites, groups, usersInGroup } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { createBrandedTransactionalEmail } from "@/lib/email/templates";
+import { NOTIFICATION_TYPES } from "@/lib/notification/types";
 
 export type CreateGroupState = {
 	success: boolean;
@@ -111,7 +112,7 @@ export async function createGroup(
 					toNotify,
 					groupName,
 					`You've been invited to join "${groupName}". Open ZotMeet to respond.`,
-					"Group Invite",
+					NOTIFICATION_TYPES.GROUP_INVITE,
 					inviteToken,
 					result.id,
 					user.id,

@@ -66,6 +66,24 @@ export const getAvailability = async ({
 	return availability;
 };
 
+export async function isMemberOfMeeting({
+	meetingId,
+	memberId,
+}: {
+	meetingId: string;
+	memberId: string;
+}): Promise<boolean> {
+	const row = await db.query.availabilities.findFirst({
+		columns: { memberId: true },
+		where: and(
+			eq(availabilities.meetingId, meetingId),
+			eq(availabilities.memberId, memberId),
+		),
+	});
+
+	return row !== undefined;
+}
+
 export const getAllMemberAvailability = async ({
 	meetingId,
 }: {
@@ -124,6 +142,7 @@ export async function getMeetings(memberId: string) {
 				sql<boolean>`(NOT COALESCE(${meetings.scheduled}, false) AND ${meetings.id} NOT IN ${hasFilledAvailability})`.as(
 					"needs_availability",
 				),
+			membersCanInvite: meetings.membersCanInvite,
 		})
 		.from(meetings)
 		.leftJoin(members, eq(meetings.hostId, members.id))
