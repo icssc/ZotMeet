@@ -59,6 +59,13 @@ export const mergeContiguousTimeBlocks = (
 ): TimeInterval | null => {
 	if (blocks.length === 0) return null;
 
+	const dateKey = blocks[0].scheduledDate.toISOString().slice(0, 10);
+	for (const block of blocks) {
+		if (block.scheduledDate.toISOString().slice(0, 10) !== dateKey) {
+			return null;
+		}
+	}
+
 	// Sort by start time
 	const sorted = [...blocks].sort((a, b) =>
 		a.scheduledFromTime.localeCompare(b.scheduledFromTime),

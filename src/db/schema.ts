@@ -241,6 +241,45 @@ export type SelectScheduledMeeting = InferSelectModel<typeof scheduledMeetings>;
 export type InsertMeeting = InferInsertModel<typeof meetings>;
 export type SelectMeeting = InferSelectModel<typeof meetings>;
 
+export type MeetingGoogleCalendarSnapshot = {
+	date: string;
+	fromTime: string;
+	toTime: string;
+};
+
+export const meetingGoogleCalendarEvents = pgTable(
+	"meeting_google_calendar_events",
+	{
+		meetingId: uuid("meeting_id")
+			.notNull()
+			.references(() => meetings.id, { onDelete: "cascade" }),
+		memberId: uuid("member_id")
+			.notNull()
+			.references(() => members.id, { onDelete: "cascade" }),
+		googleCalendarId: text("google_calendar_id").notNull().default("primary"),
+		googleEventId: text("google_event_id").notNull(),
+		lastSyncedSnapshot: jsonb("last_synced_snapshot")
+			.$type<MeetingGoogleCalendarSnapshot>()
+			.notNull(),
+		updatedAt: timestamp("updated_at", {
+			withTimezone: true,
+			mode: "date",
+		})
+			.notNull()
+			.defaultNow(),
+	},
+	(table) => ({
+		pk: primaryKey({ columns: [table.meetingId, table.memberId] }),
+	}),
+);
+
+export type InsertMeetingGoogleCalendarEvent = InferInsertModel<
+	typeof meetingGoogleCalendarEvents
+>;
+export type SelectMeetingGoogleCalendarEvent = InferSelectModel<
+	typeof meetingGoogleCalendarEvents
+>;
+
 export const meetingInvites = pgTable("meeting_invites", {
 	id: uuid("id").defaultRandom().primaryKey(),
 	meetingId: uuid("meeting_id")
@@ -429,6 +468,20 @@ export const scheduledMeetingsRelations = relations(
 		meeting: one(meetings, {
 			fields: [scheduledMeetings.meetingId],
 			references: [meetings.id],
+		}),
+	}),
+);
+
+export const meetingGoogleCalendarEventsRelations = relations(
+	meetingGoogleCalendarEvents,
+	({ one }) => ({
+		meeting: one(meetings, {
+			fields: [meetingGoogleCalendarEvents.meetingId],
+			references: [meetings.id],
+		}),
+		member: one(members, {
+			fields: [meetingGoogleCalendarEvents.memberId],
+			references: [members.id],
 		}),
 	}),
 );

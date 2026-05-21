@@ -14,7 +14,11 @@ import { RoomRecommendationSettings } from "@/components/availability/room-recom
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import { InviteMembersDialog } from "@/components/groups/add-member-dialog";
-import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
+import type {
+	MeetingGoogleCalendarSnapshot,
+	SelectMeeting,
+	SelectScheduledMeeting,
+} from "@/db/schema";
 import { useAvailabilityActionHandlers } from "@/hooks/use-availability-action-handlers";
 import { useAvailabilityData } from "@/hooks/use-availability-data";
 import { useCalendarOverlays } from "@/hooks/use-calendar-overlays";
@@ -44,6 +48,8 @@ export function Availability({
 	allAvailabilities,
 	user,
 	scheduledBlocks,
+	mergedScheduledInterval = null,
+	googleCalendarLinkSnapshot = null,
 	autoOpenInviteDialog = false,
 	inviteQueryInUrl = false,
 }: {
@@ -51,6 +57,8 @@ export function Availability({
 	allAvailabilities: MemberMeetingAvailability[];
 	user: UserProfile | null;
 	scheduledBlocks: SelectScheduledMeeting[];
+	mergedScheduledInterval?: MeetingGoogleCalendarSnapshot | null;
+	googleCalendarLinkSnapshot?: MeetingGoogleCalendarSnapshot | null;
 	autoOpenInviteDialog?: boolean;
 	inviteQueryInUrl?: boolean;
 }) {
@@ -338,6 +346,8 @@ export function Availability({
 		setTimezone: setUserTimezone,
 		onOpenInviteDialog: handleOpenInviteDialog,
 		isMeetingDeletionPending,
+		mergedScheduledInterval,
+		googleCalendarLinkSnapshot,
 	};
 
 	const isMeetingOwner = Boolean(user && meetingData.hostId === user.memberId);

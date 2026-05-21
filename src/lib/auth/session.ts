@@ -100,15 +100,15 @@ export async function invalidateSession(sessionId: string): Promise<void> {
 export async function updateSessionGoogleTokens(
 	sessionId: string,
 	tokens: {
-		oauthAccessToken: string;
-		oauthAccessTokenExpiresAt: Date;
+		googleAccessToken: string;
+		googleAccessTokenExpiresAt: Date;
 	},
 ): Promise<void> {
 	await db
 		.update(sessions)
 		.set({
-			googleAccessToken: tokens.oauthAccessToken,
-			googleAccessTokenExpiresAt: tokens.oauthAccessTokenExpiresAt,
+			googleAccessToken: tokens.googleAccessToken,
+			googleAccessTokenExpiresAt: tokens.googleAccessTokenExpiresAt,
 		})
 		.where(eq(sessions.id, sessionId));
 }

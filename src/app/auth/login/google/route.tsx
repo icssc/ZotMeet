@@ -20,6 +20,7 @@ export async function GET(): Promise<Response> {
 				"profile",
 				"email",
 				"https://www.googleapis.com/auth/calendar.readonly",
+				"https://www.googleapis.com/auth/calendar.events.owned",
 			],
 		),
 	);
