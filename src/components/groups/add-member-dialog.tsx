@@ -70,10 +70,15 @@ const MemberSearchOption = memo(function MemberSearchOption({
 	option,
 	...optionProps
 }: HTMLAttributes<HTMLLIElement> & { option: SearchUser }) {
+	const secondaryText = option.username
+		? `@${option.username} • ${option.email}`
+		: option.email;
+
 	return (
 		<li {...optionProps}>
-			<div className="flex items-center gap-3">
+			<div className="flex w-full min-w-0 items-center gap-3">
 				<Avatar
+					className="shrink-0"
 					src={option.profilePicture ?? undefined}
 					slotProps={{
 						img: { referrerPolicy: "no-referrer" },
@@ -81,18 +86,13 @@ const MemberSearchOption = memo(function MemberSearchOption({
 				>
 					{getInitials(option.email)}
 				</Avatar>
-				<div className="flex-col">
-					<Typography color="textPrimary" variant="button">
+				<div className="min-w-0 flex-1 overflow-hidden">
+					<Typography color="textPrimary" variant="body2" noWrap>
 						{option.displayName}
 					</Typography>
-					<div className="flex gap-1">
-						<Typography color="textSecondary" variant="caption">
-							{option.username ? `@${option.username} •` : ""}
-						</Typography>
-						<Typography color="textSecondary" variant="caption">
-							{option.email}
-						</Typography>
-					</div>
+					<Typography color="textSecondary" variant="caption" noWrap>
+						{secondaryText}
+					</Typography>
 				</div>
 			</div>
 		</li>
