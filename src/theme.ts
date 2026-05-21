@@ -217,18 +217,24 @@ export const getTheme = (mode: "light" | "dark") =>
 					root: {
 						textTransform: "none",
 					},
-					contained: ({ theme }) => ({
-						boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 ${theme.palette.primary.main}`,
-						"& .MuiSvgIcon-root": { color: "inherit" },
-						"&:hover": {
-							boxShadow: `0 2px 0 0 rgba(0,0,0,0.15), 0 2px 0 0 ${theme.palette.primary.main}`,
-							transform: "translateY(2px)",
-						},
-						"&:active": {
-							boxShadow: "none",
-							transform: "translateY(4px)",
-						},
-					}),
+					contained: ({ theme, ownerState }) => {
+						const paletteColor =
+							ownerState.color && ownerState.color !== "inherit"
+								? theme.palette[ownerState.color]?.main
+								: theme.palette.primary.main;
+						return {
+							boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 ${paletteColor}`,
+							"& .MuiSvgIcon-root": { color: "inherit" },
+							"&:hover": {
+								boxShadow: `0 2px 0 0 rgba(0,0,0,0.15), 0 2px 0 0 ${paletteColor}`,
+								transform: "translateY(2px)",
+							},
+							"&:active": {
+								boxShadow: "none",
+								transform: "translateY(4px)",
+							},
+						};
+					},
 					containedPrimary: ({ theme }) => ({
 						"&:hover": {
 							backgroundColor: theme.palette.primary.main,

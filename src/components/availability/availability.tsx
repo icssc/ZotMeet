@@ -11,6 +11,7 @@ import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { RoomRecommendationSettings } from "@/components/availability/room-recommendations";
+import { ScheduleMeetingSettings } from "@/components/availability/schedule-meeting-settings";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import { InviteMembersDialog } from "@/components/groups/add-member-dialog";
@@ -40,6 +41,7 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
+import { MobileScheduleSettings } from "./mobile-schedule-settings";
 
 const LG_UP_MEDIA = "(min-width: 1024px)";
 
@@ -364,6 +366,7 @@ export function Availability({
 			doesntNeedDay,
 			meetingId: meetingData.id,
 			isOwner: isMeetingOwner,
+			hostId: meetingData.hostId,
 		}),
 		[
 			availabilityDates,
@@ -375,6 +378,7 @@ export function Availability({
 			currentPageAvailability,
 			doesntNeedDay,
 			meetingData.id,
+			meetingData.hostId,
 			isMeetingOwner,
 		],
 	);
@@ -479,7 +483,15 @@ export function Availability({
 				{(availabilityView === "group" || availabilityView === "schedule") && (
 					<div>
 						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-							<AvailabilityActions {...actionsProps} />
+							{availabilityView === "schedule" ? (
+								<ScheduleMeetingSettings
+									handleScheduleCancel={handleScheduleCancel}
+									handleScheduleSave={handleScheduleSave}
+									isMeetingDeletionPending={isMeetingDeletionPending}
+								/>
+							) : (
+								<AvailabilityActions {...actionsProps} />
+							)}
 							<Paper
 								variant="outlined"
 								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
@@ -497,17 +509,28 @@ export function Availability({
 						</div>
 
 						<div className="block sm:hidden">
-							<MobileGroupResponses
-								isOwner={isMeetingOwner}
-								respondedMembersCount={Math.max(
-									0,
-									members.length - pendingMembers.length,
-								)}
-								pendingMembersCount={pendingMembers.length}
-								onAddAvailability={handleMobileAddAvailability}
-								onOpenAttendees={handleMobileOpenAttendees}
-								onSchedule={handleMobileSchedule}
-							/>
+							{availabilityView === "schedule" ? (
+								<MobileScheduleSettings
+									respondedMembersCount={Math.max(
+										0,
+										members.length - pendingMembers.length,
+									)}
+									totalMembersCount={members.length}
+									onOpenAttendees={handleMobileOpenAttendees}
+								/>
+							) : (
+								<MobileGroupResponses
+									isOwner={isMeetingOwner}
+									respondedMembersCount={Math.max(
+										0,
+										members.length - pendingMembers.length,
+									)}
+									pendingMembersCount={pendingMembers.length}
+									onAddAvailability={handleMobileAddAvailability}
+									onOpenAttendees={handleMobileOpenAttendees}
+									onSchedule={handleMobileSchedule}
+								/>
+							)}
 						</div>
 					</div>
 				)}

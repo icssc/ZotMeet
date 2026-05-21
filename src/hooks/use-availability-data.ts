@@ -2,13 +2,15 @@
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	buildMeetingGridIsoSet,
 	buildZotDateRowsForMeetingDays,
+	memberIdsKey,
+	pruneGroupAvailabilityByMemberIds,
 } from "@/lib/availability/utils";
 import type {
 	GoogleCalendarEvent,
@@ -175,6 +177,25 @@ export function useAvailabilityData({
 			mode: "if-needed",
 		}),
 	);
+
+	const memberIds = useMemo(
+		() => allAvailabilities.map((a) => a.memberId),
+		[allAvailabilities],
+	);
+	const memberIdsKeyValue = useMemo(() => memberIdsKey(memberIds), [memberIds]);
+
+	const memberKeyRef = useRef(memberIdsKeyValue);
+	useEffect(() => {
+		if (memberIdsKeyValue === memberKeyRef.current) return;
+		memberKeyRef.current = memberIdsKeyValue;
+
+		const validIds = new Set(memberIds);
+		const prune = (prev: ZotDate[]) =>
+			pruneGroupAvailabilityByMemberIds(prev, validIds);
+
+		setAvailabilityDates(prune);
+		setIfNeededDates(prune);
+	}, [memberIds, memberIdsKeyValue]);
 
 	const { cancelEdit, confirmSave, isDirty } = useEditState({
 		currentAvailabilityDates: availabilityDates,

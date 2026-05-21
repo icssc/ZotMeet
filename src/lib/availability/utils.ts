@@ -439,6 +439,28 @@ export function mergeImportedPersonalGridSlots({
 	};
 }
 
+/** Stable key for comparing member rosters (order-independent). */
+export function memberIdsKey(memberIds: readonly string[]): string {
+	return [...memberIds].sort().join(",");
+}
+
+/** Drops removed members from group heatmap buckets; omits empty buckets. */
+export function pruneGroupAvailabilityByMemberIds(
+	dates: readonly ZotDate[],
+	validIds: ReadonlySet<string>,
+): ZotDate[] {
+	return dates.map((date) => {
+		const newGroupAvail: Record<string, string[]> = {};
+		for (const [ts, ids] of Object.entries(date.groupAvailability)) {
+			const filtered = ids.filter((id) => validIds.has(id));
+			if (filtered.length > 0) newGroupAvail[ts] = filtered;
+		}
+		const cloned = new ZotDate(date);
+		cloned.groupAvailability = newGroupAvail;
+		return cloned;
+	});
+}
+
 /** Clears personal available/if-needed slots */
 export function clearPersonalGridSlots(
 	availabilityDates: readonly ZotDate[],

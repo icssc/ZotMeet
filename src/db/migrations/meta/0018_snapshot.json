@@ -1,6 +1,6 @@
 {
-  "id": "994d6447-5510-4538-867f-4b641182950b",
-  "prevId": "36e060d4-10ad-46f2-914c-bce16882bd1f",
+  "id": "3baca779-b35c-4c33-9b85-421c7ca106e1",
+  "prevId": "994d6447-5510-4538-867f-4b641182950b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -332,6 +332,92 @@
         }
       },
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.meeting_google_calendar_events": {
+      "name": "meeting_google_calendar_events",
+      "schema": "",
+      "columns": {
+        "meeting_id": {
+          "name": "meeting_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "member_id": {
+          "name": "member_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "google_calendar_id": {
+          "name": "google_calendar_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'primary'"
+        },
+        "google_event_id": {
+          "name": "google_event_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "last_synced_snapshot": {
+          "name": "last_synced_snapshot",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "meeting_google_calendar_events_meeting_id_meetings_id_fk": {
+          "name": "meeting_google_calendar_events_meeting_id_meetings_id_fk",
+          "tableFrom": "meeting_google_calendar_events",
+          "tableTo": "meetings",
+          "columnsFrom": [
+            "meeting_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "meeting_google_calendar_events_member_id_members_id_fk": {
+          "name": "meeting_google_calendar_events_member_id_members_id_fk",
+          "tableFrom": "meeting_google_calendar_events",
+          "tableTo": "members",
+          "columnsFrom": [
+            "member_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "meeting_google_calendar_events_meeting_id_member_id_pk": {
+          "name": "meeting_google_calendar_events_meeting_id_member_id_pk",
+          "columns": [
+            "meeting_id",
+            "member_id"
+          ]
+        }
+      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},

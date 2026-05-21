@@ -77,7 +77,7 @@ export function GroupCard({
 					<Box
 						sx={(theme) => ({
 							position: "absolute",
-							top: -4,
+							top: 0,
 							right: 24,
 							display: { xs: "none", sm: "flex" },
 							alignItems: "center",
@@ -108,7 +108,7 @@ export function GroupCard({
 					<Box
 						sx={(theme) => ({
 							position: "absolute",
-							top: -4,
+							top: 0,
 							right: 24,
 							display: { xs: "none", sm: "flex" },
 							alignItems: "center",
