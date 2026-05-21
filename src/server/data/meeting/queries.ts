@@ -21,6 +21,7 @@ import {
 	members,
 	type SelectMeeting,
 	scheduledMeetings,
+	users,
 } from "@/db/schema";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 
@@ -215,7 +216,7 @@ export async function getScheduledMeetingsByMeetingIds(
 export async function getScheduledMeetingsNeedingReminder() {
 	return db
 		.select({
-			id: scheduledMeetings.id,
+			blockId: scheduledMeetings.id,
 			meetingId: scheduledMeetings.meetingId,
 			scheduledDate: scheduledMeetings.scheduledDate,
 			scheduledFromTime: scheduledMeetings.scheduledFromTime,
@@ -241,12 +242,51 @@ export async function getScheduledMeetingsNeedingReminder() {
 		);
 }
 
-/** Mark all scheduled blocks for a meeting as having had their reminder sent. */
-export async function markReminderSent(meetingId: string) {
+/**
+ * Mark all scheduled blocks for a single meeting occurrence
+ * (one meeting + one scheduled_date) as having had their reminder sent.
+ * Sibling occurrences on other dates are left untouched so they can still
+ * fire their own reminders.
+ */
+export async function markReminderSentForOccurrence(
+	meetingId: string,
+	scheduledDate: Date,
+) {
 	return db
 		.update(scheduledMeetings)
 		.set({ reminderSentAt: new Date() })
-		.where(eq(scheduledMeetings.meetingId, meetingId));
+		.where(
+			and(
+				eq(scheduledMeetings.meetingId, meetingId),
+				eq(scheduledMeetings.scheduledDate, scheduledDate),
+			),
+		);
+}
+
+/**
+ * Batched lookup: for the given meetingIds, return a map from
+ * meetingId -> userIds of registered users who have an availability row
+ * for that meeting (i.e. who should receive notifications).
+ */
+export async function getNotifiableUserIdsByMeeting(meetingIds: string[]) {
+	const map = new Map<string, string[]>();
+	if (meetingIds.length === 0) return map;
+
+	const rows = await db
+		.select({
+			meetingId: availabilities.meetingId,
+			userId: users.id,
+		})
+		.from(availabilities)
+		.innerJoin(users, eq(availabilities.memberId, users.memberId))
+		.where(inArray(availabilities.meetingId, meetingIds));
+
+	for (const { meetingId, userId } of rows) {
+		const list = map.get(meetingId) ?? [];
+		list.push(userId);
+		map.set(meetingId, list);
+	}
+	return map;
 }
 
 /**

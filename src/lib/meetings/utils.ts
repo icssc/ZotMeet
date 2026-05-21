@@ -1,3 +1,4 @@
+import { fromZonedTime } from "date-fns-tz";
 import type { SelectScheduledMeeting } from "@/db/schema";
 
 export function formatScheduledTime(time: string): string {
@@ -31,6 +32,17 @@ export function formatLocalDateKey(date: Date): string {
 	const mm = String(date.getMonth() + 1).padStart(2, "0");
 	const dd = String(date.getDate()).padStart(2, "0");
 	return `${yyyy}-${mm}-${dd}`;
+}
+
+export function getBlockStartUtc(
+	scheduledDate: Date,
+	scheduledFromTime: string,
+	timezone: string,
+): Date {
+	return fromZonedTime(
+		`${formatLocalDateKey(scheduledDate)}T${scheduledFromTime}`,
+		timezone,
+	);
 }
 
 export function groupScheduledBlocksByDate(

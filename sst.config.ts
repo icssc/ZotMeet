@@ -45,7 +45,7 @@ export default $config({
 		});
 
 		new sst.aws.Cron("MeetingReminderCron", {
-			schedule: "rate(1 minute)",
+			schedule: "rate(5 minutes)",
 			job: {
 				handler: "src/jobs/reminder.handler",
 				environment: {

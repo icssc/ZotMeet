@@ -1,77 +1,116 @@
-import { fromZonedTime } from "date-fns-tz";
-import { eq } from "drizzle-orm";
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { availabilities, users } from "@/db/schema";
+import { formatLocalDateKey, getBlockStartUtc } from "@/lib/meetings/utils";
 import {
+	getNotifiableUserIdsByMeeting,
 	getScheduledMeetingsNeedingReminder,
-	markReminderSent,
+	markReminderSentForOccurrence,
 } from "@/server/data/meeting/queries";
 import { createNewNotification } from "@/server/data/user/queries";
 
+const REMINDER_WINDOW_START_MS = 25 * 60_000;
+const REMINDER_WINDOW_END_MS = 35 * 60_000;
+
+function isAuthorized(req: Request, secret: string): boolean {
+	const header = req.headers.get("authorization");
+	if (!header) return false;
+	const expected = Buffer.from(`Bearer ${secret}`);
+	const received = Buffer.from(header);
+	if (expected.length !== received.length) return false;
+	return timingSafeEqual(expected, received);
+}
+
+type Occurrence = {
+	meetingId: string;
+	scheduledDate: Date;
+	scheduledFromTime: string;
+	timezone: string;
+	title: string;
+	groupId: string | null;
+	startUtc: Date;
+};
+
 export async function GET(req: Request) {
 	const secret = process.env.CRON_SECRET;
-	if (!secret || req.headers.get("authorization") !== `Bearer ${secret}`) {
+	if (!secret || !isAuthorized(req, secret)) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
 	const candidates = await getScheduledMeetingsNeedingReminder();
 
 	const now = new Date();
-	const windowEnd = new Date(now.getTime() + 35 * 60000);
+	const windowStart = new Date(now.getTime() + REMINDER_WINDOW_START_MS);
+	const windowEnd = new Date(now.getTime() + REMINDER_WINDOW_END_MS);
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
-	const byMeeting = new Map<string, typeof candidates>();
+	// Group rows into occurrences keyed by (meetingId, scheduledDate).
+	// Multiple 15-min contiguous rows on the same date are a single occurrence;
+	// rows on different dates (e.g. weekly meetings) are distinct occurrences.
+	const occurrencesByKey = new Map<string, Occurrence>();
 	for (const block of candidates) {
-		const group = byMeeting.get(block.meetingId) ?? [];
-		group.push(block);
-		byMeeting.set(block.meetingId, group);
-	}
-	let processed = 0;
-	for (const [meetingId, blocks] of byMeeting) {
-		const earliest = blocks.reduce((a, b) => {
-			const aStart = fromZonedTime(
-				`${a.scheduledDate.getFullYear()}-${String(a.scheduledDate.getMonth() + 1).padStart(2, "0")}-${String(a.scheduledDate.getDate()).padStart(2, "0")}T${a.scheduledFromTime}`,
-				a.timezone,
-			);
-			const bStart = fromZonedTime(
-				`${b.scheduledDate.getFullYear()}-${String(b.scheduledDate.getMonth() + 1).padStart(2, "0")}-${String(b.scheduledDate.getDate()).padStart(2, "0")}T${b.scheduledFromTime}`,
-				b.timezone,
-			);
-			return aStart <= bStart ? a : b;
-		});
-
-		const { scheduledDate, scheduledFromTime, timezone } = earliest;
-		const yyyy = scheduledDate.getFullYear();
-		const mm = String(scheduledDate.getMonth() + 1).padStart(2, "0");
-		const dd = String(scheduledDate.getDate()).padStart(2, "0");
-		const utcStart = fromZonedTime(
-			`${yyyy}-${mm}-${dd}T${scheduledFromTime}`,
-			timezone,
-		);
-
-		if (utcStart <= now || utcStart > windowEnd) continue;
-
-		const memberUsers = await db
-			.select({ userId: users.id })
-			.from(availabilities)
-			.innerJoin(users, eq(availabilities.memberId, users.memberId))
-			.where(eq(availabilities.meetingId, meetingId));
-
-		const userIds = memberUsers.map(({ userId }) => userId);
-
-		if (userIds.length > 0) {
-			await createNewNotification(
-				userIds,
-				earliest.title,
-				`Your meeting starts in 30 minutes.`,
-				"Meeting Reminder",
-				`${baseUrl}/availability/${meetingId}`,
-				earliest.groupId ?? null,
-				null,
+		const key = `${block.meetingId}|${formatLocalDateKey(block.scheduledDate)}`;
+		const existing = occurrencesByKey.get(key);
+		if (!existing) {
+			occurrencesByKey.set(key, {
+				meetingId: block.meetingId,
+				scheduledDate: block.scheduledDate,
+				scheduledFromTime: block.scheduledFromTime,
+				timezone: block.timezone,
+				title: block.title,
+				groupId: block.groupId,
+				startUtc: getBlockStartUtc(
+					block.scheduledDate,
+					block.scheduledFromTime,
+					block.timezone,
+				),
+			});
+			continue;
+		}
+		if (block.scheduledFromTime < existing.scheduledFromTime) {
+			existing.scheduledFromTime = block.scheduledFromTime;
+			existing.startUtc = getBlockStartUtc(
+				block.scheduledDate,
+				block.scheduledFromTime,
+				block.timezone,
 			);
 		}
-		await markReminderSent(meetingId);
+	}
+
+	const eligible: Occurrence[] = [];
+	for (const occ of occurrencesByKey.values()) {
+		if (occ.startUtc >= windowStart && occ.startUtc <= windowEnd) {
+			eligible.push(occ);
+		}
+	}
+
+	if (eligible.length === 0) {
+		return NextResponse.json({ processed: 0 });
+	}
+
+	const userIdsByMeeting = await getNotifiableUserIdsByMeeting(
+		eligible.map((o) => o.meetingId),
+	);
+
+	let processed = 0;
+	for (const occ of eligible) {
+		const userIds = userIdsByMeeting.get(occ.meetingId) ?? [];
+		if (userIds.length === 0) continue;
+
+		const minutesUntil = Math.max(
+			1,
+			Math.round((occ.startUtc.getTime() - now.getTime()) / 60_000),
+		);
+
+		await createNewNotification(
+			userIds,
+			occ.title,
+			`Your meeting starts in ${minutesUntil} minutes.`,
+			"Meeting Reminder",
+			`${baseUrl}/availability/${occ.meetingId}`,
+			occ.groupId ?? null,
+			null,
+		);
+		await markReminderSentForOccurrence(occ.meetingId, occ.scheduledDate);
 		processed++;
 	}
 
