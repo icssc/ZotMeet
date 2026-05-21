@@ -4,9 +4,9 @@ import { useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import type { PageEdgeVariant } from "@/lib/availability/utils";
 
-const EDGE_WIDTH = 10;
-const TOOTH_HEIGHT = 8;
-const TOOTH_DEPTH = 6;
+const EDGE_WIDTH = 12;
+const TOOTH_HEIGHT = 20;
+const TOOTH_DEPTH = 10;
 
 /** Filled strip with a sawtooth on the inner (right) edge. */
 function buildLeftEdgePath(height: number): string {
