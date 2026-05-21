@@ -249,9 +249,11 @@ function GroupResponsesPanel({
 								sx={
 									canRemove
 										? {
-												"& .MuiChip-deleteIcon": { opacity: 0 },
-												"&:hover .MuiChip-deleteIcon, &:focus-within .MuiChip-deleteIcon":
-													{ opacity: 1 },
+												...(isDesktop && {
+													"& .MuiChip-deleteIcon": { opacity: 0 },
+													"&:hover .MuiChip-deleteIcon, &:focus-within .MuiChip-deleteIcon":
+														{ opacity: 1 },
+												}),
 											}
 										: undefined
 								}
@@ -318,9 +320,11 @@ function GroupResponsesPanel({
 										sx={
 											canRemove
 												? {
-														"& .MuiChip-deleteIcon": { opacity: 0 },
-														"&:hover .MuiChip-deleteIcon, &:focus-within .MuiChip-deleteIcon":
-															{ opacity: 1 },
+														...(isDesktop && {
+															"& .MuiChip-deleteIcon": { opacity: 0 },
+															"&:hover .MuiChip-deleteIcon, &:focus-within .MuiChip-deleteIcon":
+																{ opacity: 1 },
+														}),
 													}
 												: undefined
 										}
