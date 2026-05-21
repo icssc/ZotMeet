@@ -128,6 +128,19 @@ export function generateCellKey(
 	return `${zotDateIndex}_${blockIndex}`;
 }
 
+export type PageEdgeVariant = "none" | "first" | "middle" | "last";
+
+export function getPageEdgeVariant(
+	hasMultiplePages: boolean,
+	isFirstPage: boolean,
+	isLastPage: boolean,
+): PageEdgeVariant {
+	if (!hasMultiplePages) return "none";
+	if (isFirstPage) return "first";
+	if (isLastPage) return "last";
+	return "middle";
+}
+
 export const spacerBeforeDate = (
 	currentPageAvailability: (ZotDate | null)[],
 ): boolean[] => {
