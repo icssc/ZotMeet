@@ -6,6 +6,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -142,7 +143,15 @@ export function ProfileSidebarLayout({ panels }: ProfileSidebarLayoutProps) {
 				</List>
 			</Paper>
 
-			<Paper variant="outlined" sx={{ flex: 1, overflow: "auto" }}>
+			<Paper
+				variant="outlined"
+				sx={{
+					flex: 1,
+					overflow: "auto",
+					display: "flex",
+					flexDirection: "column",
+				}}
+			>
 				<Box
 					sx={{
 						display: { xs: "block", md: "none" },
@@ -168,7 +177,27 @@ export function ProfileSidebarLayout({ panels }: ProfileSidebarLayoutProps) {
 						))}
 					</Tabs>
 				</Box>
-				<Box sx={{ p: 4 }}>{panels[activeTab]}</Box>
+				<Box sx={{ p: 4, flex: 1 }}>{panels[activeTab]}</Box>
+				<Box
+					sx={{
+						display: { xs: "flex", md: "none" },
+						justifyContent: "center",
+						p: 2,
+						borderTop: 1,
+						borderColor: "divider",
+					}}
+				>
+					<Button
+						onClick={() => logoutAction()}
+						startIcon={<LogoutIcon />}
+						sx={{
+							color: "primary.main",
+							fontWeight: 600,
+						}}
+					>
+						Log out
+					</Button>
+				</Box>
 			</Paper>
 		</Box>
 	);
