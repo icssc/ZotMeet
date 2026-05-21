@@ -246,17 +246,6 @@ function GroupResponsesPanel({
 								onMouseLeave={() => onMemberHover(null)}
 								onClick={() => onMemberSelect(member.memberId)}
 								onDelete={canRemove ? () => onRemoveMember(member) : undefined}
-								sx={
-									canRemove
-										? {
-												...(isDesktop && {
-													"& .MuiChip-deleteIcon": { opacity: 0 },
-													"&:hover .MuiChip-deleteIcon, &:focus-within .MuiChip-deleteIcon":
-														{ opacity: 1 },
-												}),
-											}
-										: undefined
-								}
 							/>
 						);
 					})}
@@ -316,17 +305,6 @@ function GroupResponsesPanel({
 										variant="outlined"
 										onDelete={
 											canRemove ? () => onRemoveMember(member) : undefined
-										}
-										sx={
-											canRemove
-												? {
-														...(isDesktop && {
-															"& .MuiChip-deleteIcon": { opacity: 0 },
-															"&:hover .MuiChip-deleteIcon, &:focus-within .MuiChip-deleteIcon":
-																{ opacity: 1 },
-														}),
-													}
-												: undefined
 										}
 									/>
 								);
