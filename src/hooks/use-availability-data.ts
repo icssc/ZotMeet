@@ -9,6 +9,8 @@ import type { UserProfile } from "@/lib/auth/user";
 import {
 	buildMeetingGridIsoSet,
 	buildZotDateRowsForMeetingDays,
+	memberIdsKey,
+	pruneGroupAvailabilityByMemberIds,
 } from "@/lib/availability/utils";
 import type {
 	GoogleCalendarEvent,
@@ -176,37 +178,24 @@ export function useAvailabilityData({
 		}),
 	);
 
-	const memberKeyRef = useRef(
-		allAvailabilities
-			.map((a) => a.memberId)
-			.sort()
-			.join(","),
+	const memberIds = useMemo(
+		() => allAvailabilities.map((a) => a.memberId),
+		[allAvailabilities],
 	);
+	const memberIdsKeyValue = useMemo(() => memberIdsKey(memberIds), [memberIds]);
+
+	const memberKeyRef = useRef(memberIdsKeyValue);
 	useEffect(() => {
-		const currentKey = allAvailabilities
-			.map((a) => a.memberId)
-			.sort()
-			.join(",");
-		if (currentKey === memberKeyRef.current) return;
-		memberKeyRef.current = currentKey;
+		if (memberIdsKeyValue === memberKeyRef.current) return;
+		memberKeyRef.current = memberIdsKeyValue;
 
-		const validIds = new Set(allAvailabilities.map((a) => a.memberId));
+		const validIds = new Set(memberIds);
+		const prune = (prev: ZotDate[]) =>
+			pruneGroupAvailabilityByMemberIds(prev, validIds);
 
-		const filterDates = (prev: ZotDate[]): ZotDate[] =>
-			prev.map((date) => {
-				const newGroupAvail: Record<string, string[]> = {};
-				for (const [ts, ids] of Object.entries(date.groupAvailability)) {
-					const filtered = ids.filter((id) => validIds.has(id));
-					if (filtered.length > 0) newGroupAvail[ts] = filtered;
-				}
-				const cloned = new ZotDate(date);
-				cloned.groupAvailability = newGroupAvail;
-				return cloned;
-			});
-
-		setAvailabilityDates(filterDates);
-		setIfNeededDates(filterDates);
-	}, [allAvailabilities]);
+		setAvailabilityDates(prune);
+		setIfNeededDates(prune);
+	}, [memberIds, memberIdsKeyValue]);
 
 	const { cancelEdit, confirmSave, isDirty } = useEditState({
 		currentAvailabilityDates: availabilityDates,

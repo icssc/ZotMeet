@@ -354,7 +354,7 @@ export function Availability({
 			doesntNeedDay,
 			meetingId: meetingData.id,
 			isOwner: isMeetingOwner,
-			hostMemberId: meetingData.hostId,
+			hostId: meetingData.hostId,
 		}),
 		[
 			availabilityDates,
