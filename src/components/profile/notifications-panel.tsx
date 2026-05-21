@@ -35,10 +35,6 @@ export function NotificationsPanel({
 		setPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
 	};
 
-	const handleDiscard = () => {
-		setPrefs(savedPrefs);
-	};
-
 	const handleSave = () => {
 		startTransition(async () => {
 			try {
@@ -95,9 +91,6 @@ export function NotificationsPanel({
 				spacing={2}
 				sx={{ pt: 2 }}
 			>
-				<Button variant="text" color="primary" onClick={handleDiscard}>
-					Discard
-				</Button>
 				<Button
 					variant="contained"
 					color="primary"

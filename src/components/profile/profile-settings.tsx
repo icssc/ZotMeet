@@ -91,17 +91,6 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 		}, 500);
 	};
 
-	const handleDiscard = () => {
-		if (debounceRef.current) clearTimeout(debounceRef.current);
-		checkCounterRef.current++;
-		setDisplayName(initial.displayName);
-		setUsername(initial.username);
-		setYear(initial.year);
-		setSchool(initial.school);
-		setUsernameError(null);
-		setUsernameAvailable(false);
-	};
-
 	const handleSave = () => {
 		if (usernameError) return;
 		startTransition(async () => {
@@ -227,9 +216,6 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 				</Box>
 
 				<Stack direction="row" justifyContent="flex-end" spacing={2}>
-					<Button variant="text" color="primary" onClick={handleDiscard}>
-						Discard
-					</Button>
 					<Button
 						variant="contained"
 						color="primary"
