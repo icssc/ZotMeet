@@ -71,16 +71,32 @@ export function ProfileSidebarLayout({ children }: ProfileSidebarLayoutProps) {
 								py: 1.5,
 								px: 3,
 								"&.Mui-selected": {
-									bgcolor: "primary.light",
+									bgcolor: (theme) =>
+										theme.palette.mode === "dark"
+											? "rgba(242, 100, 137, 0.45)"
+											: theme.palette.primary.light,
 									"& .MuiListItemIcon-root": {
 										color: "primary.main",
 									},
 									"& .MuiListItemText-primary": {
 										fontWeight: 600,
+										color: (theme) =>
+											theme.palette.mode === "dark"
+												? theme.palette.common.white
+												: undefined,
 									},
 								},
 								"&.Mui-selected:hover": {
-									bgcolor: "primary.light",
+									bgcolor: (theme) =>
+										theme.palette.mode === "dark"
+											? "rgba(242, 100, 137, 0.55)"
+											: theme.palette.primary.light,
+								},
+								"&:hover": {
+									bgcolor: (theme) =>
+										theme.palette.mode === "dark"
+											? "rgba(242, 100, 137, 0.2)"
+											: undefined,
 								},
 							}}
 						>
