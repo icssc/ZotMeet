@@ -215,7 +215,6 @@ export function CreateGroupDialog({
 						selectedMembers={members}
 						onSelectedMembersChange={setMembers}
 						excludeUserIds={[]}
-						searchDebounceMs={50}
 						searchFieldLabel="Add Members"
 						shareLink={{
 							url: inviteLink,

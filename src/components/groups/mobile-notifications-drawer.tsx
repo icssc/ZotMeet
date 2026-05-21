@@ -117,6 +117,12 @@ export function MobileNotificationsDrawer({
 		setSelectedIds(new Set(unread.map((n) => n.id)));
 	}
 
+	function deselectAll() {
+		setSelectedIds(new Set());
+	}
+
+	const allSelected = unread.length > 0 && selectedIds.size === unread.length;
+
 	async function markSelectedAsRead() {
 		const ids =
 			selectedIds.size > 0 ? [...selectedIds] : unread.map((n) => n.id);
@@ -153,17 +159,17 @@ export function MobileNotificationsDrawer({
 					</UnreadCount>
 				</HeaderBox>
 
-				<Divider />
+				<Divider sx={{ mx: -2 }} />
 
 				{unread.length > 0 && (
 					<ActionBar>
 						<Button
 							size="small"
 							color="info"
-							onClick={selectAll}
+							onClick={allSelected ? deselectAll : selectAll}
 							sx={{ textTransform: "capitalize" }}
 						>
-							Select All
+							{allSelected ? "Deselect All" : "Select All"}
 						</Button>
 						{selectedIds.size > 0 && (
 							<Button
