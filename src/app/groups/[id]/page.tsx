@@ -47,7 +47,6 @@ export default async function Page(props: PageProps) {
 	]);
 	const meetingsWithStats = await getGroupMeetingsWithStats(
 		id,
-		members.length,
 		session.user.memberId,
 	);
 

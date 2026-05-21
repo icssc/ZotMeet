@@ -1,6 +1,16 @@
 import "server-only";
 
-import { and, count, countDistinct, eq, gte, inArray, lte } from "drizzle-orm";
+import {
+	and,
+	count,
+	countDistinct,
+	eq,
+	gte,
+	inArray,
+	lte,
+	or,
+	sql,
+} from "drizzle-orm";
 import { db } from "@/db";
 import {
 	availabilities,
@@ -275,7 +285,6 @@ export type MeetingWithStats = SelectMeeting & {
 
 export async function getGroupMeetingsWithStats(
 	groupId: string,
-	totalMembers: number,
 	currentMemberId: string,
 ): Promise<MeetingWithStats[]> {
 	const groupMeetings = await getMeetingsByGroupId(groupId);
@@ -288,16 +297,34 @@ export async function getGroupMeetingsWithStats(
 	const hostIds = Array.from(new Set(groupMeetings.map((m) => m.hostId)));
 
 	// Fetch everything in bulk
-	const [responseCounts, userResponses, scheduledBlocks, hosts] =
+	const [memberCounts, respondedCounts, userResponses, scheduledBlocks, hosts] =
 		await Promise.all([
-			// Count responses per meeting
+			// Count members invited to each meeting
+			db
+				.select({
+					meetingId: availabilities.meetingId,
+					totalMembers: countDistinct(availabilities.memberId),
+				})
+				.from(availabilities)
+				.where(inArray(availabilities.meetingId, meetingIds))
+				.groupBy(availabilities.meetingId),
+
+			// Count members who submitted availability per meeting
 			db
 				.select({
 					meetingId: availabilities.meetingId,
 					respondedCount: countDistinct(availabilities.memberId),
 				})
 				.from(availabilities)
-				.where(inArray(availabilities.meetingId, meetingIds))
+				.where(
+					and(
+						inArray(availabilities.meetingId, meetingIds),
+						or(
+							sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+							sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+						),
+					),
+				)
 				.groupBy(availabilities.meetingId),
 
 			// Check if the current user responded
@@ -308,6 +335,10 @@ export async function getGroupMeetingsWithStats(
 					and(
 						eq(availabilities.memberId, currentMemberId),
 						inArray(availabilities.meetingId, meetingIds),
+						or(
+							sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+							sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+						),
 					),
 				),
 
@@ -322,8 +353,11 @@ export async function getGroupMeetingsWithStats(
 			}),
 		]);
 
-	const responseMap = new Map(
-		responseCounts.map((r) => [r.meetingId, r.respondedCount]),
+	const memberCountMap = new Map(
+		memberCounts.map((r) => [r.meetingId, r.totalMembers]),
+	);
+	const respondedCountMap = new Map(
+		respondedCounts.map((r) => [r.meetingId, r.respondedCount]),
 	);
 	const userRespondedSet = new Set(userResponses.map((r) => r.meetingId));
 	const scheduledMap = new Map(
@@ -335,8 +369,8 @@ export async function getGroupMeetingsWithStats(
 		...meeting,
 		hostName: hostMap.get(meeting.hostId) ?? "Unknown",
 		scheduledDate: scheduledMap.get(meeting.id) ?? null,
-		totalMembers,
-		respondedCount: responseMap.get(meeting.id) ?? 0,
+		totalMembers: memberCountMap.get(meeting.id) ?? 0,
+		respondedCount: respondedCountMap.get(meeting.id) ?? 0,
 		userHasResponded: userRespondedSet.has(meeting.id),
 	}));
 }

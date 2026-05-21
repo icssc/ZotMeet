@@ -1,7 +1,7 @@
 import { nudgePendingMembers } from "@actions/meeting/nudge/action";
 import { People } from "@mui/icons-material";
 import { IconButton, Menu, MenuItem } from "@mui/material";
-import { Calendar, Clock, MoreVertical, Users } from "lucide-react";
+import { Calendar, Clock, MoreVertical } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
@@ -55,11 +55,6 @@ export function MeetingRow({
 								}
 							/>
 						</span>
-					</div>
-
-					<div className="flex items-center gap-1">
-						<Users className="size-4" />
-						<span>{meeting.totalMembers} members</span>
 					</div>
 
 					<div className="flex items-center gap-1">
