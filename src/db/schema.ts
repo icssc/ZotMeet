@@ -216,6 +216,7 @@ export const meetings = pgTable("meetings", {
 	meetingType: meetingTypeEnum("meeting_type").notNull().default("dates"),
 	createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 	archived: boolean("archived").default(false).notNull(),
+	membersCanInvite: boolean("members_can_invite").default(true).notNull(),
 });
 
 export const scheduledMeetings = pgTable("scheduled_meetings", {

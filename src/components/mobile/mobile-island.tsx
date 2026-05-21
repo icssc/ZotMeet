@@ -7,7 +7,7 @@ type MobileIslandProps = {
 
 export function MobileIsland({ children }: MobileIslandProps) {
 	return (
-		<div className="pointer-events-none fixed inset-x-0 bottom-0 z-[1001] flex justify-center px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+		<div className="pointer-events-none fixed inset-x-0 bottom-0 z-[1001] flex justify-center px-2 pb-[max(4rem,env(safe-area-inset-bottom))]">
 			<Paper
 				elevation={3}
 				sx={{

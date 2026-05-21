@@ -7,27 +7,11 @@ import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import { useState, useTransition } from "react";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
+import {
+	NOTIFICATION_PREF_OPTIONS,
+	type NotificationPrefs,
+} from "@/lib/notification/types";
 import { saveNotificationPreferences } from "@/server/actions/user/action";
-
-export type NotificationPrefs = {
-	meetingInvites: boolean;
-	groupInvites: boolean;
-	nudges: boolean;
-};
-
-const NOTIFICATION_OPTIONS = [
-	{
-		key: "meetingInvites" as const,
-		label: "Meeting Invites",
-		description: "Receive",
-	},
-	{
-		key: "groupInvites" as const,
-		label: "Group Invites",
-		description: "Receive",
-	},
-	{ key: "nudges" as const, label: "Nudges", description: "Receive" },
-];
 
 interface NotificationsPanelProps {
 	initialPreferences: NotificationPrefs;
@@ -36,16 +20,23 @@ interface NotificationsPanelProps {
 export function NotificationsPanel({
 	initialPreferences,
 }: NotificationsPanelProps) {
+	const [savedPrefs, setSavedPrefs] =
+		useState<NotificationPrefs>(initialPreferences);
 	const [prefs, setPrefs] = useState<NotificationPrefs>(initialPreferences);
 	const [isPending, startTransition] = useTransition();
 	const { showSuccess, showError } = useSnackbar();
+
+	const isDirty =
+		prefs.meetingInvites !== savedPrefs.meetingInvites ||
+		prefs.groupInvites !== savedPrefs.groupInvites ||
+		prefs.nudges !== savedPrefs.nudges;
 
 	const handleToggle = (key: keyof NotificationPrefs) => {
 		setPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
 	};
 
 	const handleDiscard = () => {
-		setPrefs(initialPreferences);
+		setPrefs(savedPrefs);
 	};
 
 	const handleSave = () => {
@@ -53,6 +44,7 @@ export function NotificationsPanel({
 			try {
 				const result = await saveNotificationPreferences(prefs);
 				if (result.success) {
+					setSavedPrefs(prefs);
 					showSuccess("Notification preferences saved");
 				} else {
 					showError("Failed to save notification preferences");
@@ -68,7 +60,7 @@ export function NotificationsPanel({
 			<Typography variant="h5">Notifications</Typography>
 
 			<Stack spacing={0}>
-				{NOTIFICATION_OPTIONS.map((option) => (
+				{NOTIFICATION_PREF_OPTIONS.map((option) => (
 					<Box
 						key={option.key}
 						sx={{
@@ -110,7 +102,7 @@ export function NotificationsPanel({
 					variant="contained"
 					color="primary"
 					onClick={handleSave}
-					disabled={isPending}
+					disabled={isPending || !isDirty}
 				>
 					{isPending ? "Saving..." : "Save Changes"}
 				</Button>

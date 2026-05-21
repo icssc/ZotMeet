@@ -8,6 +8,8 @@ import {
 	Login,
 	Person,
 } from "@mui/icons-material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import LogoutIcon from "@mui/icons-material/Logout";
 import NotificationsOutlinedIcon from "@mui/icons-material/NotificationsOutlined";
 import {
 	AppBar,
@@ -15,6 +17,7 @@ import {
 	Badge,
 	Box,
 	Button,
+	Divider,
 	IconButton,
 	Menu,
 	MenuItem,
@@ -25,10 +28,15 @@ import type { BadgeProps } from "@mui/material/Badge";
 import { styled } from "@mui/material/styles";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { AcceptGroupInvite } from "@/components/groups/accept-group-invite";
+import {
+	NotificationEmptyState,
+	NotificationGroupInviteDialog,
+} from "@/components/notifications";
+import { useNotificationActions } from "@/hooks/use-notification-actions";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
+import { getNotificationAvatarSrc, timeAgo } from "@/lib/notification/utils";
 import { logoutAction } from "@/server/actions/auth/logout/action";
 import { useThemeMode } from "../theme/theme-provider";
 
@@ -139,44 +147,20 @@ const markAllAsRead = async (notifications: NotificationItem[]) => {
 	}
 };
 
-function timeAgo(date: Date | null | undefined): string {
-	if (!date) return "";
-
-	const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-
-	if (seconds < 60) return `${seconds} seconds ago`;
-
-	const minutes = Math.floor(seconds / 60);
-	if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
-
-	const hours = Math.floor(minutes / 60);
-	if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
-
-	const days = Math.floor(hours / 24);
-	if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
-
-	const weeks = Math.floor(days / 7);
-	if (weeks < 4) return `${weeks} week${weeks === 1 ? "" : "s"} ago`;
-
-	const months = Math.floor(days / 30);
-	if (months < 12) return `${months} month${months === 1 ? "" : "s"} ago`;
-
-	const years = Math.floor(days / 365);
-	return `${years} year${years === 1 ? "" : "s"} ago`;
-}
-
 function Notifications({
 	notifications,
 }: {
 	notifications: NotificationItem[];
 }) {
-	const router = useRouter();
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-	const [showGroupInvite, setShowGroupInvite] = useState(false);
-	const [activeNotification, setActiveNotification] =
-		useState<NotificationItem | null>(null);
-
-	const unread = notifications.filter((n) => !n.readAt);
+	const {
+		unread,
+		showGroupInvite,
+		setShowGroupInvite,
+		activeNotification,
+		setActiveNotification,
+		handleOpen,
+	} = useNotificationActions(notifications);
 
 	const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
 		setAnchorEl(event.currentTarget);
@@ -219,9 +203,7 @@ function Notifications({
 					</Box>
 					<Box sx={{ display: "flex", flexDirection: "column" }}>
 						{unread.length === 0 ? (
-							<Typography sx={{ p: 2 }} variant="body2" color="text.secondary">
-								You're all caught up! 🎉
-							</Typography>
+							<NotificationEmptyState />
 						) : (
 							unread.map((notif) => (
 								<Box
@@ -242,11 +224,7 @@ function Notifications({
 									>
 										<Avatar
 											alt={notif.title || "Group icon"}
-											src={
-												notif.createdByAvatar ||
-												notif.groupIcon ||
-												"/icssc-logo.svg"
-											}
+											src={getNotificationAvatarSrc(notif)}
 											slotProps={{ img: { referrerPolicy: "no-referrer" } }}
 										/>
 										<Box sx={{ p: 1 }}>
@@ -265,19 +243,12 @@ function Notifications({
 											color="inherit"
 											size="small"
 											sx={{ ml: "auto", my: 2 }}
-											onClick={async () => {
-												await deleteNotification(notif.id);
-												if (
-													notif.type === "Meeting Invite" ||
-													notif.type === "Nudge"
-												) {
-													setAnchorEl(null);
-													router.push(notif.redirect ?? "");
-												} else {
-													setActiveNotification(notif);
-													setShowGroupInvite(true);
-												}
-											}}
+											onClick={() =>
+												handleOpen(notif, {
+													onClose: () => setAnchorEl(null),
+													beforeOpen: () => deleteNotification(notif.id),
+												})
+											}
 										>
 											View
 										</Button>
@@ -295,17 +266,12 @@ function Notifications({
 					</Box>
 				</Box>
 			</Menu>
-			{activeNotification && (
-				<AcceptGroupInvite
-					source="notification"
-					open={showGroupInvite}
-					notification={activeNotification}
-					onOpenChange={(open) => {
-						setShowGroupInvite(open);
-						if (!open) setActiveNotification(null);
-					}}
-				/>
-			)}
+			<NotificationGroupInviteDialog
+				open={showGroupInvite}
+				activeNotification={activeNotification}
+				setOpen={setShowGroupInvite}
+				setActiveNotification={setActiveNotification}
+			/>
 		</>
 	);
 }
@@ -371,13 +337,27 @@ function NavUser({ user }: { user: UserProfile | null }) {
 				>
 					<Person sx={{ mr: 1 }} /> Profile
 				</MenuItem>
+
+				<MenuItem
+					component={Link}
+					target="_blank"
+					href="https://forms.gle/oi2T4JM26vT4FToM7"
+				>
+					<FavoriteIcon sx={{ mr: 1 }} />
+					Feedback
+				</MenuItem>
+
+				<Divider />
+
 				<MenuItem
 					onClick={() => {
 						setAnchorEl(null);
 						logoutAction();
 					}}
+					sx={{ color: "error.main" }}
 				>
-					Log out
+					<LogoutIcon sx={{ mr: 1, color: "error.main" }} />
+					<Typography>Log out</Typography>
 				</MenuItem>
 			</Menu>
 		</>

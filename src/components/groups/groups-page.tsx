@@ -1,12 +1,22 @@
 "use client";
 
-import { Add, ExpandMore, People } from "@mui/icons-material";
-import { Box, Button, Divider, Stack, Typography } from "@mui/material";
-import { Search } from "lucide-react";
+import { Add, ExpandMore, Notifications, People } from "@mui/icons-material";
+import SearchIcon from "@mui/icons-material/Search";
+import {
+	Badge,
+	Box,
+	Button,
+	Divider,
+	Stack,
+	TextField,
+	Typography,
+} from "@mui/material";
 import { useMemo, useState } from "react";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { GroupCard } from "@/components/groups/group-card";
+import { MobileNotificationsDrawer } from "@/components/groups/mobile-notifications-drawer";
 import { FilterChip } from "@/components/ui/filter-chip";
+import type { NotificationItem } from "@/lib/auth/user";
 import type { GroupWithDetails } from "@/server/data/groups/queries";
 import { InviteDecision } from "./invite-decisions";
 
@@ -14,15 +24,19 @@ type FilterTab = "all" | "created" | "availability";
 
 interface GroupsPageProps {
 	groups: GroupWithDetails[];
+	notifications: NotificationItem[];
 }
 
 const INITIAL_ACTION_REQUIRED_COUNT = 2;
 
-export function GroupsPage({ groups }: GroupsPageProps) {
+export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
 	const [createDialogOpen, setCreateDialogOpen] = useState(false);
 	const [showAllActionRequired, setShowAllActionRequired] = useState(false);
+	const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+	const unreadCount = notifications.filter((n) => !n.readAt).length;
 
 	const searchTrimmed = search.trim();
 
@@ -82,51 +96,61 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 		<Box sx={{ width: "100%" }}>
 			<Box
 				sx={{
-					mt: 3,
 					mb: 4,
 					display: { xs: "flex", sm: "none" },
 					alignItems: "center",
 				}}
 			>
 				<Typography variant="h3">Groups</Typography>
-				<Button
-					type="button"
-					variant="contained"
-					onClick={() => setCreateDialogOpen(true)}
-					sx={{
-						fontSize: "2rem",
-						padding: 0,
-						ml: "auto",
-						minWidth: 0,
-						width: "3rem",
-						height: "3rem",
-					}}
-				>
-					+
-				</Button>
+				<Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
+					<Button
+						size="square"
+						variant="outlined"
+						onClick={() => setNotificationsOpen(true)}
+					>
+						<Badge badgeContent={unreadCount} color="primary">
+							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
+						</Badge>
+					</Button>
+					<Button
+						size="square"
+						variant="contained"
+						onClick={() => setCreateDialogOpen(true)}
+					>
+						<Add />
+					</Button>
+				</Box>
 			</Box>
 
-			<Box sx={{ display: { xs: "block", sm: "flex" } }}>
-				<Box
-					sx={{
-						display: "flex",
-						alignItems: "center",
-						gap: 1.25,
-						borderRadius: 99,
-						bgcolor: "grey.100",
-						px: 2,
-						py: 1,
+			<MobileNotificationsDrawer
+				open={notificationsOpen}
+				onClose={() => setNotificationsOpen(false)}
+				notifications={notifications}
+			/>
+
+			<Box sx={{ display: { xs: "block", sm: "flex" }, gap: { xs: 0, sm: 2 } }}>
+				<TextField
+					aria-label="Search groups"
+					placeholder="Search"
+					size="small"
+					value={search}
+					onChange={(e) => setSearch(e.target.value)}
+					slotProps={{
+						input: {
+							startAdornment: (
+								<SearchIcon
+									sx={{ fontSize: 20, color: "text.disabled", mr: 0.5 }}
+								/>
+							),
+						},
 					}}
-				>
-					<Search size={20} color="var(--mui-palette-text-disabled, #9e9e9e)" />
-					<input
-						type="text"
-						placeholder="Search"
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
-						className="bg-transparent text-base outline-none placeholder:text-gray-400"
-					/>
-				</Box>
+					sx={{
+						width: { xs: "100%", sm: "auto" },
+						flex: { xs: "none", sm: "1 1 0%" },
+						minWidth: { sm: 0 },
+						maxWidth: { sm: 460 },
+					}}
+				/>
 
 				<Box
 					sx={{
@@ -156,8 +180,6 @@ export function GroupsPage({ groups }: GroupsPageProps) {
 					</Button>
 				</Box>
 			</Box>
-
-			<Divider sx={{ mt: 2 }} />
 
 			<Box sx={{ mt: 2, display: "flex", gap: 0.5 }}>
 				<FilterChip

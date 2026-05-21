@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { availabilities, meetingInvites, users } from "@/db/schema";
 import { createBrandedTransactionalEmail } from "@/lib/email/templates";
+import { NOTIFICATION_TYPES } from "@/lib/notification/types";
 import { getExistingMeetingInvite } from "@/server/data/meeting/invite-queries";
 import { createNewNotification } from "@/server/data/user/queries";
 
@@ -15,7 +16,8 @@ export type MeetingInviteInviter = {
 
 /**
  * Ensures meeting_invites row, notifies users by id, inserts availability rows.
- * Caller must enforce auth (e.g. host-only). `inviteeUserIds` are auth user ids.
+ * Caller must enforce auth (host always; members when the meeting allows it).
+ * `inviteeUserIds` are auth user ids.
  */
 export async function sendMeetingInvitesToUsers(params: {
 	meetingId: string;
@@ -63,7 +65,7 @@ export async function sendMeetingInvitesToUsers(params: {
 			resolvedUserIds,
 			meetingTitle,
 			`You've been invited to join "${meetingTitle}". Click to view the meeting.`,
-			"Meeting Invite",
+			NOTIFICATION_TYPES.MEETING_INVITE,
 			meetingLink,
 			null,
 			inviter.id,

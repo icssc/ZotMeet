@@ -604,6 +604,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": false
+        },
+        "members_can_invite": {
+          "name": "members_can_invite",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
         }
       },
       "indexes": {},

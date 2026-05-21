@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { availabilities, notifications, users } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { createBrandedTransactionalEmail } from "@/lib/email/templates";
+import { NOTIFICATION_TYPES } from "@/lib/notification/types";
 import { getExistingMeeting } from "@/server/data/meeting/queries";
 import { createNewNotification } from "@/server/data/user/queries";
 
@@ -52,7 +53,7 @@ export async function nudgePendingMembers(
 		.from(notifications)
 		.where(
 			and(
-				eq(notifications.type, "Nudge"),
+				eq(notifications.type, NOTIFICATION_TYPES.NUDGE),
 				nudgeRedirectFilter(meetingId),
 				eq(notifications.createdBy, user.id),
 			),
@@ -111,7 +112,7 @@ export async function nudgePendingMembers(
 			userIds,
 			meeting.title,
 			`Reminder: Please add your availability for "${meeting.title}".`,
-			"Nudge",
+			NOTIFICATION_TYPES.NUDGE,
 			meetingPath,
 			null,
 			user.id,
@@ -149,7 +150,7 @@ export async function getNudgeCooldown(
 		.from(notifications)
 		.where(
 			and(
-				eq(notifications.type, "Nudge"),
+				eq(notifications.type, NOTIFICATION_TYPES.NUDGE),
 				nudgeRedirectFilter(meetingId),
 				eq(notifications.createdBy, user.id),
 			),

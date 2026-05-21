@@ -10,6 +10,11 @@ import {
 	users,
 } from "@/db/schema";
 import { sendEmail } from "@/lib/email/send-email";
+import {
+	getNotificationPrefKey,
+	type NotificationPrefs,
+	toNotificationPrefs,
+} from "@/lib/notification/types";
 
 export async function getUserIdExists(id: string) {
 	const user = await db.query.users.findFirst({
@@ -94,17 +99,6 @@ type CreateNotificationOptions = {
 	email?: NotificationEmail;
 };
 
-type NotificationPrefKey = "meetingInvites" | "groupInvites" | "nudges";
-
-const NOTIFICATION_TYPE_TO_PREF_KEY: Record<
-	string,
-	NotificationPrefKey | undefined
-> = {
-	"Meeting Invite": "meetingInvites",
-	"Group Invite": "groupInvites",
-	Nudge: "nudges",
-};
-
 export async function createNewNotification(
 	userIds: string[],
 	title: string = "New Notification",
@@ -125,7 +119,7 @@ export async function createNewNotification(
 		.from(users)
 		.where(inArray(users.id, userIds));
 
-	const prefKey = NOTIFICATION_TYPE_TO_PREF_KEY[type];
+	const prefKey = getNotificationPrefKey(type);
 	let allowedRecipients = recipientRows;
 
 	if (prefKey) {
@@ -219,18 +213,12 @@ export async function getNotificationPreferences(memberId: string) {
 		where: eq(notificationPreferences.memberId, memberId),
 	});
 
-	return (
-		prefs ?? {
-			meetingInvites: true,
-			groupInvites: true,
-			nudges: true,
-		}
-	);
+	return toNotificationPrefs(prefs ?? undefined);
 }
 
 export async function updateNotificationPreferences(
 	memberId: string,
-	prefs: { meetingInvites: boolean; groupInvites: boolean; nudges: boolean },
+	prefs: NotificationPrefs,
 ) {
 	return await db
 		.insert(notificationPreferences)

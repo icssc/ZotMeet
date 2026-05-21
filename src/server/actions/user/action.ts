@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getCurrentSession } from "@/lib/auth";
+import type { NotificationPrefs } from "@/lib/notification/types";
 import {
 	deleteNotificationByID,
 	getUserThemeModeFromDB,
@@ -40,11 +41,7 @@ export async function saveThemePreference(
 	revalidatePath("/", "layout");
 }
 
-export async function saveNotificationPreferences(prefs: {
-	meetingInvites: boolean;
-	groupInvites: boolean;
-	nudges: boolean;
-}) {
+export async function saveNotificationPreferences(prefs: NotificationPrefs) {
 	const { user } = await getCurrentSession();
 	if (!user?.memberId) return { success: false };
 	await updateNotificationPreferences(user.memberId, prefs);
