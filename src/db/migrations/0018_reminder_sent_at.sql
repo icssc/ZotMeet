@@ -1,1 +1,1 @@
-ALTER TABLE "scheduled_meetings" ADD COLUMN "reminder_sent_at" timestamp with time zone;
+ALTER TABLE "scheduled_meetings" ADD COLUMN IF NOT EXISTS "reminder_sent_at" timestamp with time zone;
