@@ -249,9 +249,9 @@ function GroupResponsesPanel({
 								sx={
 									canRemove
 										? {
-												"& .MuiChip-deleteIcon": { display: "none" },
+												"& .MuiChip-deleteIcon": { opacity: 0 },
 												"&:hover .MuiChip-deleteIcon, &:focus-within .MuiChip-deleteIcon":
-													{ display: "flex" },
+													{ opacity: 1 },
 											}
 										: undefined
 								}
@@ -318,9 +318,9 @@ function GroupResponsesPanel({
 										sx={
 											canRemove
 												? {
-														"& .MuiChip-deleteIcon": { display: "none" },
+														"& .MuiChip-deleteIcon": { opacity: 0 },
 														"&:hover .MuiChip-deleteIcon, &:focus-within .MuiChip-deleteIcon":
-															{ display: "flex" },
+															{ opacity: 1 },
 													}
 												: undefined
 										}
