@@ -7,6 +7,7 @@ import { meetings, scheduledMeetings } from "@/db/schema";
 import {
 	type FanOutOutcome,
 	syncMeetingToAllMemberCalendars,
+	unsyncMeetingFromAllMemberCalendars,
 } from "@/server/actions/availability/google/calendar/action";
 import { getExistingMeeting } from "@/server/data/meeting/queries";
 
@@ -23,8 +24,11 @@ export type CommitMeetingScheduleBlock = {
 /**
  * Atomic schedule commit for the host. Wipes and rewrites
  * `scheduled_meetings` for the meeting in a single transaction, flips the
- * `meetings.scheduled` flag, then fans the final schedule out to every
- * eligible member's primary Google Calendar.
+ * `meetings.scheduled` flag, then reconciles the final schedule against
+ * every eligible member's primary Google Calendar:
+ *   - blocks present  → fan-out add/update via `syncMeetingToAllMemberCalendars`
+ *   - blocks empty    → fan-out delete via `unsyncMeetingFromAllMemberCalendars`
+ *     so previously-synced events don't linger when the host unschedules.
  *
  * Fan-out runs *after* the DB transaction commits so a partial Google API
  * failure cannot roll back the local schedule.
@@ -64,7 +68,7 @@ export async function commitMeetingSchedule({
 		const outcome: FanOutOutcome =
 			blocks.length > 0
 				? await syncMeetingToAllMemberCalendars(meetingId)
-				: { synced: 0, skipped: 0, failed: 0, errors: [] };
+				: await unsyncMeetingFromAllMemberCalendars(meetingId);
 
 		revalidatePath(`/availability/${meetingId}`);
 

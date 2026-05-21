@@ -17,6 +17,7 @@ import {
 	type MeetingGoogleCalendarSnapshot,
 	meetingGoogleCalendarEvents,
 	members,
+	type SelectMeeting,
 	sessions,
 	users,
 } from "@/db/schema";
@@ -25,7 +26,10 @@ import {
 	getGoogleAccessTokenForUser,
 	validateGoogleAccessToken,
 } from "@/lib/auth/google";
-import { mergeContiguousTimeBlocks } from "@/lib/meetings/utils";
+import {
+	formatDateInTimezone,
+	mergeContiguousTimeBlocks,
+} from "@/lib/meetings/utils";
 import type { GoogleCalendarEvent } from "@/lib/types/availability";
 
 const PRIMARY_CALENDAR_ID = "primary";
@@ -196,19 +200,26 @@ function buildCalendarClient(accessToken: string): calendar_v3.Calendar {
 export async function loadMergedScheduledInterval(
 	meetingId: string,
 ): Promise<MeetingGoogleCalendarSnapshot | null> {
-	const blocks = await getScheduledTimeBlocks(meetingId);
+	const meeting = await getExistingMeeting(meetingId);
+	return loadMergedScheduledIntervalFor(meeting);
+}
+
+export async function loadMergedScheduledIntervalFor(
+	meeting: SelectMeeting,
+): Promise<MeetingGoogleCalendarSnapshot | null> {
+	const blocks = await getScheduledTimeBlocks(meeting.id);
 
 	if (!blocks.length) {
 		return null;
 	}
 
-	const merged = mergeContiguousTimeBlocks(blocks);
+	const merged = mergeContiguousTimeBlocks(blocks, meeting.timezone);
 	if (!merged) {
 		return null;
 	}
 
 	return {
-		date: blocks[0].scheduledDate.toISOString().slice(0, 10),
+		date: formatDateInTimezone(blocks[0].scheduledDate, meeting.timezone),
 		fromTime: merged.from,
 		toTime: merged.to,
 	};
@@ -219,13 +230,11 @@ export type CalendarWorkerResult =
 	| { status: "skipped"; reason: string }
 	| { status: "failed"; reason: string };
 
-async function buildEventRequestBody(
-	meetingId: string,
+function buildEventRequestBody(
+	meeting: SelectMeeting,
 	memberId: string,
 	interval: MeetingGoogleCalendarSnapshot,
-): Promise<calendar_v3.Schema$Event> {
-	const meeting = await getExistingMeeting(meetingId);
-
+): calendar_v3.Schema$Event {
 	return {
 		summary: meeting.title,
 		description: meeting.description ?? "Meeting scheduled via ZotMeet.",
@@ -240,13 +249,13 @@ async function buildEventRequestBody(
 		},
 		extendedProperties: {
 			private: {
-				zotmeetMeetingId: meetingId,
+				zotmeetMeetingId: meeting.id,
 				zotmeetMemberId: memberId,
 			},
 		},
 		source: {
 			title: "ZotMeet",
-			url: meetingDeepLink(meetingId),
+			url: meetingDeepLink(meeting.id),
 		},
 	};
 }
@@ -304,25 +313,19 @@ async function upsertTrackingRow({
 }
 
 export async function addOrUpdateMeetingGoogleCalendarEvent({
-	meetingId,
+	meeting,
+	interval,
 	memberId,
 	accessToken,
 }: {
-	meetingId: string;
+	meeting: SelectMeeting;
+	interval: MeetingGoogleCalendarSnapshot;
 	memberId: string;
 	accessToken: string;
 }): Promise<CalendarWorkerResult> {
-	const interval = await loadMergedScheduledInterval(meetingId);
-	if (!interval) {
-		return { status: "failed", reason: "non_contiguous_schedule" };
-	}
-
+	const meetingId = meeting.id;
 	const calendar = buildCalendarClient(accessToken);
-	const requestBody = await buildEventRequestBody(
-		meetingId,
-		memberId,
-		interval,
-	);
+	const requestBody = buildEventRequestBody(meeting, memberId, interval);
 	const desiredEventId = deterministicEventId(meetingId, memberId);
 
 	const existing = await db
@@ -448,6 +451,7 @@ export async function removeMeetingGoogleCalendarEvent({
 	} catch (err) {
 		if (!isGoogleNotFound(err)) {
 			console.error("events.delete failed", { meetingId, memberId, err });
+			return { status: "failed", reason: "google_delete_failed" };
 		}
 	}
 
@@ -496,7 +500,8 @@ function tallyOutcome(entries: FanOutEntry[]): FanOutOutcome {
 export async function syncMeetingToAllMemberCalendars(
 	meetingId: string,
 ): Promise<FanOutOutcome> {
-	const interval = await loadMergedScheduledInterval(meetingId);
+	const meeting = await getExistingMeeting(meetingId);
+	const interval = await loadMergedScheduledIntervalFor(meeting);
 	if (!interval) {
 		return {
 			synced: 0,
@@ -555,7 +560,8 @@ export async function syncMeetingToAllMemberCalendars(
 			}
 
 			const result = await addOrUpdateMeetingGoogleCalendarEvent({
-				meetingId,
+				meeting,
+				interval,
 				memberId: row.memberId,
 				accessToken: tokenResult.accessToken,
 			});
@@ -641,8 +647,18 @@ export async function addMeetingToMyGoogleCalendar({
 		};
 	}
 
+	const meeting = await getExistingMeeting(meetingId);
+	const interval = await loadMergedScheduledIntervalFor(meeting);
+	if (!interval) {
+		return {
+			success: true,
+			result: { status: "failed", reason: "non_contiguous_schedule" },
+		};
+	}
+
 	const result = await addOrUpdateMeetingGoogleCalendarEvent({
-		meetingId,
+		meeting,
+		interval,
 		memberId: user.memberId,
 		accessToken: tokenResult.accessToken,
 	});

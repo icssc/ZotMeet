@@ -4,9 +4,18 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { meetings, type SelectMeeting } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { unsyncMeetingFromAllMemberCalendars } from "@/server/actions/availability/google/calendar/action";
+import {
+	type FanOutOutcome,
+	unsyncMeetingFromAllMemberCalendars,
+} from "@/server/actions/availability/google/calendar/action";
 
-export async function archiveMeeting(meetingData: SelectMeeting) {
+export type ArchiveMeetingResult =
+	| { success: true; calendarOutcome?: FanOutOutcome; error?: undefined }
+	| { success?: undefined; error: string };
+
+export async function archiveMeeting(
+	meetingData: SelectMeeting,
+): Promise<ArchiveMeetingResult> {
 	const meetingId = meetingData.id;
 
 	const { user } = await getCurrentSession();
@@ -26,8 +35,18 @@ export async function archiveMeeting(meetingData: SelectMeeting) {
 		.set({ archived: true })
 		.where(eq(meetings.id, meetingId));
 
+	let calendarOutcome: FanOutOutcome | undefined;
 	try {
-		await unsyncMeetingFromAllMemberCalendars(meetingId);
+		calendarOutcome = await unsyncMeetingFromAllMemberCalendars(meetingId);
+		if (calendarOutcome.failed > 0) {
+			console.warn("archiveMeeting: partial Google Calendar unsync", {
+				meetingId,
+				synced: calendarOutcome.synced,
+				skipped: calendarOutcome.skipped,
+				failed: calendarOutcome.failed,
+				errors: calendarOutcome.errors,
+			});
+		}
 	} catch (error) {
 		console.error(
 			"Failed to unsync Google Calendar events on archiveMeeting:",
@@ -38,5 +57,5 @@ export async function archiveMeeting(meetingData: SelectMeeting) {
 		);
 	}
 
-	return { success: true };
+	return { success: true, calendarOutcome };
 }
