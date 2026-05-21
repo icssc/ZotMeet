@@ -102,16 +102,18 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 				}}
 			>
 				<Typography variant="h3">Groups</Typography>
-				<Box sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1 }}>
-					<Button
-						size="square"
-						variant="outlined"
-						onClick={() => setNotificationsOpen(true)}
-					>
-						<Badge badgeContent={unreadCount} color="primary">
+				<Box
+					sx={{ ml: "auto", display: "flex", alignItems: "center", gap: 1.5 }}
+				>
+					<Badge badgeContent={unreadCount} color="primary">
+						<Button
+							size="square"
+							variant="outlined"
+							onClick={() => setNotificationsOpen(true)}
+						>
 							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
-						</Badge>
-					</Button>
+						</Button>
+					</Badge>
 					<Button
 						size="square"
 						variant="contained"
@@ -162,9 +164,9 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 				>
 					<Button
 						type="button"
-						variant="outlined"
+						variant="contained"
 						color="secondary"
-						startIcon={<People sx={{ color: "secondary.contrastText" }} />}
+						startIcon={<People />}
 						onClick={() => setShowJoinGroup(true)}
 					>
 						Join Group
@@ -269,7 +271,7 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 						sx={{
 							display: "grid",
 							gridTemplateColumns: { xs: "1fr", sm: "repeat(3, 1fr)" },
-							gap: { xs: 0.5, sm: 4 },
+							gap: { xs: 1, sm: 4 },
 						}}
 					>
 						{filteredGroups
@@ -280,20 +282,29 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 								return priority(a) - priority(b);
 							})
 							.map((group) => (
-								<GroupCard
+								<Box
 									key={group.id}
-									id={group.id}
-									name={group.name}
-									description={group.description}
-									members={group.members}
-									totalMeetings={group.totalMeetings}
-									totalMembers={group.memberCount}
-									creatorName={group.creatorName}
-									creatorAvatar={group.creatorAvatar}
-									actionRequired={group.needsAvailability}
-									upcomingMeetingName={group.upcomingMeetingName}
-									icon={group.icon}
-								/>
+									sx={{
+										display: {
+											xs: group.needsAvailability ? "none" : "block",
+											sm: "block",
+										},
+									}}
+								>
+									<GroupCard
+										id={group.id}
+										name={group.name}
+										description={group.description}
+										members={group.members}
+										totalMeetings={group.totalMeetings}
+										totalMembers={group.memberCount}
+										creatorName={group.creatorName}
+										creatorAvatar={group.creatorAvatar}
+										actionRequired={group.needsAvailability}
+										upcomingMeetingName={group.upcomingMeetingName}
+										icon={group.icon}
+									/>
+								</Box>
 							))}
 					</Box>
 				) : (
