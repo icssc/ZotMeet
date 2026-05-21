@@ -89,6 +89,8 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
 	return refreshGoogleAccessTokenForSession(session);
 }
 
+const SESSION_FALLBACK_LIMIT = 5;
+
 export async function getGoogleAccessTokenForUser(
 	userId: string,
 ): Promise<OAuthTokenResult> {
@@ -105,11 +107,19 @@ export async function getGoogleAccessTokenForUser(
 			),
 		)
 		.orderBy(desc(sessions.expiresAt))
-		.limit(1);
+		.limit(SESSION_FALLBACK_LIMIT);
 
-	if (candidates.length < 1) {
+	if (candidates.length === 0) {
 		return { accessToken: null, error: "No valid session" };
 	}
 
-	return refreshGoogleAccessTokenForSession(candidates[0]);
+	let lastError: ValidateOAuthAccessTokenError = "No valid session";
+	for (const candidate of candidates) {
+		const result = await refreshGoogleAccessTokenForSession(candidate);
+		if (!result.error) {
+			return result;
+		}
+		lastError = result.error;
+	}
+	return { accessToken: null, error: lastError };
 }

@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { meetings, scheduledMeetings } from "@/db/schema";
+import { getCurrentSession } from "@/lib/auth";
 import {
 	type FanOutOutcome,
 	syncMeetingToAllMemberCalendars,
@@ -41,7 +42,21 @@ export async function commitMeetingSchedule({
 	blocks: CommitMeetingScheduleBlock[];
 }): Promise<CommitMeetingScheduleResult> {
 	try {
-		await getExistingMeeting(meetingId);
+		const { user } = await getCurrentSession();
+		if (!user) {
+			return {
+				success: false,
+				error: "You must be logged in to commit a meeting schedule.",
+			};
+		}
+
+		const meeting = await getExistingMeeting(meetingId);
+		if (meeting.hostId !== user.memberId) {
+			return {
+				success: false,
+				error: "Only the meeting owner can commit a schedule.",
+			};
+		}
 
 		await db.transaction(async (tx) => {
 			await tx
@@ -65,10 +80,24 @@ export async function commitMeetingSchedule({
 				.where(eq(meetings.id, meetingId));
 		});
 
-		const outcome: FanOutOutcome =
-			blocks.length > 0
-				? await syncMeetingToAllMemberCalendars(meetingId)
-				: await unsyncMeetingFromAllMemberCalendars(meetingId);
+		let outcome: FanOutOutcome;
+		try {
+			outcome =
+				blocks.length > 0
+					? await syncMeetingToAllMemberCalendars(meetingId)
+					: await unsyncMeetingFromAllMemberCalendars(meetingId);
+		} catch (error) {
+			console.error("Calendar fan-out threw after schedule commit", {
+				meetingId,
+				error,
+			});
+			outcome = {
+				synced: 0,
+				skipped: 0,
+				failed: 1,
+				errors: [{ memberId: "*", reason: "fanout_threw" }],
+			};
+		}
 
 		revalidatePath(`/availability/${meetingId}`);
 

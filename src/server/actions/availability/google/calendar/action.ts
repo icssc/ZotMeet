@@ -599,9 +599,8 @@ export async function unsyncMeetingFromAllMemberCalendars(
 	const entries = await runBounded(rows, FANOUT_CONCURRENCY, async (row) => {
 		const tokenResult = await getGoogleAccessTokenForUser(row.userId);
 		if (tokenResult.error || !tokenResult.accessToken) {
-			await deleteTrackingRow(meetingId, row.memberId);
 			return {
-				status: "skipped" as const,
+				status: "failed" as const,
 				memberId: row.memberId,
 				reason: tokenResult.error ?? "no_access_token",
 			};

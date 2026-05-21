@@ -10,7 +10,7 @@ import {
 } from "@/server/actions/availability/google/calendar/action";
 
 export type ArchiveMeetingResult =
-	| { success: true; calendarOutcome?: FanOutOutcome; error?: undefined }
+	| { success: true; calendarOutcome: FanOutOutcome; error?: undefined }
 	| { success?: undefined; error: string };
 
 export async function archiveMeeting(
@@ -35,7 +35,7 @@ export async function archiveMeeting(
 		.set({ archived: true })
 		.where(eq(meetings.id, meetingId));
 
-	let calendarOutcome: FanOutOutcome | undefined;
+	let calendarOutcome: FanOutOutcome;
 	try {
 		calendarOutcome = await unsyncMeetingFromAllMemberCalendars(meetingId);
 		if (calendarOutcome.failed > 0) {
@@ -55,6 +55,12 @@ export async function archiveMeeting(
 				error,
 			},
 		);
+		calendarOutcome = {
+			synced: 0,
+			skipped: 0,
+			failed: 1,
+			errors: [{ memberId: "*", reason: "unsync_threw" }],
+		};
 	}
 
 	return { success: true, calendarOutcome };
