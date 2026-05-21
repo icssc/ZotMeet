@@ -356,6 +356,7 @@ export function Availability({
 			doesntNeedDay,
 			meetingId: meetingData.id,
 			isOwner: isMeetingOwner,
+			hostId: meetingData.hostId,
 		}),
 		[
 			availabilityDates,
@@ -367,6 +368,7 @@ export function Availability({
 			currentPageAvailability,
 			doesntNeedDay,
 			meetingData.id,
+			meetingData.hostId,
 			isMeetingOwner,
 		],
 	);

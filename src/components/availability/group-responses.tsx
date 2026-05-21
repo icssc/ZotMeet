@@ -1,9 +1,18 @@
+import { removeMeetingMember } from "@actions/meeting/leave/action";
 import { NotificationsOutlined } from "@mui/icons-material";
 import { Avatar, Button, Chip, Switch, Typography } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { XIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+	type MouseEvent,
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 import { useShallow } from "zustand/shallow";
+import { RemoveMeetingMemberDialog } from "@/components/availability/remove-meeting-member-dialog";
 import { MuiBottomSheet } from "@/components/ui/mui/mui-bottom-sheet";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import {
@@ -92,6 +101,16 @@ interface GroupResponsesProps {
 	doesntNeedDay: boolean;
 	meetingId: string;
 	isOwner: boolean;
+	hostId: string;
+}
+
+function canRemoveMember(
+	memberId: string,
+	isOwner: boolean,
+	hostId: string,
+	onRemoveMember: ((member: Member) => void) | undefined,
+): boolean {
+	return isOwner && onRemoveMember !== undefined && memberId !== hostId;
 }
 
 type GroupResponsesPanelProps = {
@@ -107,11 +126,13 @@ type GroupResponsesPanelProps = {
 	onClearSelected: () => void;
 	availableCount: number;
 	isOwner: boolean;
+	hostId: string;
 	pendingMembers: Member[];
 	isNudging: boolean;
 	cooldownRemaining: string | null;
 	onNudge: () => void;
 	onRequestClose: () => void;
+	onRemoveMember?: (member: Member) => void;
 };
 
 function GroupResponsesPanel({
@@ -127,13 +148,23 @@ function GroupResponsesPanel({
 	onClearSelected,
 	availableCount,
 	isOwner,
+	hostId,
 	pendingMembers,
 	isNudging,
 	cooldownRemaining,
 	onNudge,
 	onRequestClose,
+	onRemoveMember,
 }: GroupResponsesPanelProps) {
 	const isDesktop = variant === "desktop";
+
+	const handleRemoveClick = useCallback(
+		(member: Member) => (event: MouseEvent) => {
+			event.stopPropagation();
+			onRemoveMember?.(member);
+		},
+		[onRemoveMember],
+	);
 
 	return (
 		<>
@@ -199,6 +230,12 @@ function GroupResponsesPanel({
 				<ul className="mt-3 flex flex-wrap gap-2">
 					{respondedMembers.map((member) => {
 						const status = memberStatus.get(member.memberId) ?? "available";
+						const removable = canRemoveMember(
+							member.memberId,
+							isOwner,
+							hostId,
+							onRemoveMember,
+						);
 						return (
 							<Chip
 								key={member.memberId}
@@ -220,6 +257,7 @@ function GroupResponsesPanel({
 								onMouseEnter={() => onMemberHover(member.memberId)}
 								onMouseLeave={() => onMemberHover(null)}
 								onClick={() => onMemberSelect(member.memberId)}
+								onDelete={removable ? handleRemoveClick(member) : undefined}
 							/>
 						);
 					})}
@@ -259,21 +297,30 @@ function GroupResponsesPanel({
 							Waiting on responses from your group ({pendingMembers.length})
 						</Typography>
 						<ul className="mt-3 flex flex-wrap gap-2">
-							{pendingMembers.map((member) => (
-								<Chip
-									key={member.memberId}
-									icon={
-										<Avatar
-											alt={member.displayName}
-											src={member.profilePicture ?? undefined}
-											slotProps={{ img: { referrerPolicy: "no-referrer" } }}
-											sx={{ height: 24, width: 24 }}
-										/>
-									}
-									label={member.displayName}
-									variant="outlined"
-								/>
-							))}
+							{pendingMembers.map((member) => {
+								const removable = canRemoveMember(
+									member.memberId,
+									isOwner,
+									hostId,
+									onRemoveMember,
+								);
+								return (
+									<Chip
+										key={member.memberId}
+										icon={
+											<Avatar
+												alt={member.displayName}
+												src={member.profilePicture ?? undefined}
+												slotProps={{ img: { referrerPolicy: "no-referrer" } }}
+												sx={{ height: 24, width: 24 }}
+											/>
+										}
+										label={member.displayName}
+										variant="outlined"
+										onDelete={removable ? handleRemoveClick(member) : undefined}
+									/>
+								);
+							})}
 						</ul>
 					</div>
 				) : (
@@ -297,6 +344,7 @@ export function GroupResponses({
 	doesntNeedDay,
 	meetingId,
 	isOwner,
+	hostId,
 }: GroupResponsesProps) {
 	const isLgQuery = useMediaQuery(LG_UP_MEDIA, { noSsr: true });
 	const [layoutReady, setLayoutReady] = useState(false);
@@ -306,8 +354,11 @@ export function GroupResponses({
 	// Default to desktop branch until mounted so SSR + first client paint match.
 	const isLg = layoutReady ? isLgQuery : true;
 
+	const router = useRouter();
 	const { showSuccess, showError } = useSnackbar();
 	const [isNudging, setIsNudging] = useState(false);
+	const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
+	const [isRemoving, setIsRemoving] = useState(false);
 	const [cooldownUntil, setCooldownUntil] = useState<Date | null>(null);
 	const [cooldownRemaining, setCooldownRemaining] = useState<string | null>(
 		null,
@@ -388,6 +439,7 @@ export function GroupResponses({
 		toggleSelectedMember,
 		setSelectedMember,
 		selectedMembers,
+		hoveredMember,
 		enabled: showBestTimes,
 		setEnabled: setShowBestTimes,
 	} = useAvailabilityStore(
@@ -398,6 +450,7 @@ export function GroupResponses({
 			toggleSelectedMember: state.toggleSelectedMember,
 			setSelectedMember: state.setSelectedMember,
 			selectedMembers: state.selectedMembers,
+			hoveredMember: state.hoveredMember,
 			enabled: state.enabled,
 			setEnabled: state.setEnabled,
 		})),
@@ -466,6 +519,49 @@ export function GroupResponses({
 		void handleNudge();
 	}, [handleNudge]);
 
+	const handleRemoveMember = useCallback((member: Member) => {
+		setMemberToRemove(member);
+	}, []);
+
+	const handleConfirmRemove = useCallback(async () => {
+		if (!memberToRemove) return;
+		setIsRemoving(true);
+		try {
+			const result = await removeMeetingMember(
+				meetingId,
+				memberToRemove.memberId,
+			);
+			if (result.success) {
+				const removedId = memberToRemove.memberId;
+				setSelectedMember(selectedMembers.filter((id) => id !== removedId));
+				if (hoveredMember === removedId) {
+					setHoveredMember(null);
+				}
+				showSuccess(
+					`${memberToRemove.displayName} has been removed from the meeting.`,
+				);
+				setMemberToRemove(null);
+				router.refresh();
+			} else {
+				showError(result.error ?? "Failed to remove member.");
+			}
+		} catch {
+			showError("Failed to remove member. Please try again.");
+		} finally {
+			setIsRemoving(false);
+		}
+	}, [
+		hoveredMember,
+		memberToRemove,
+		meetingId,
+		router,
+		selectedMembers,
+		setHoveredMember,
+		setSelectedMember,
+		showError,
+		showSuccess,
+	]);
+
 	const selectedMemberIds = useMemo(
 		() => new Set(selectedMembers),
 		[selectedMembers],
@@ -486,11 +582,13 @@ export function GroupResponses({
 			onClearSelected: handleClearSelected,
 			availableCount,
 			isOwner,
+			hostId,
 			pendingMembers,
 			isNudging,
 			cooldownRemaining,
 			onNudge,
 			onRequestClose: handleCloseMobile,
+			onRemoveMember: isOwner ? handleRemoveMember : undefined,
 		}),
 		[
 			availableCount,
@@ -500,6 +598,8 @@ export function GroupResponses({
 			handleCloseMobile,
 			handleMemberHover,
 			handleMemberSelect,
+			handleRemoveMember,
+			hostId,
 			isNudging,
 			isOwner,
 			memberStatus,
@@ -512,28 +612,43 @@ export function GroupResponses({
 		],
 	);
 
+	const removeDialog = (
+		<RemoveMeetingMemberDialog
+			member={memberToRemove}
+			isRemoving={isRemoving}
+			onClose={() => setMemberToRemove(null)}
+			onConfirm={() => void handleConfirmRemove()}
+		/>
+	);
+
 	if (!isLg) {
 		return (
-			<MuiBottomSheet
-				open={isMobileDrawerOpen}
-				onClose={handleCloseMobile}
-				paperSx={mobileSheetPaperSx}
-			>
-				<div data-availability-sidebar="">
-					<GroupResponsesPanel {...panelProps} variant="mobile" />
-				</div>
-			</MuiBottomSheet>
+			<>
+				<MuiBottomSheet
+					open={isMobileDrawerOpen}
+					onClose={handleCloseMobile}
+					paperSx={mobileSheetPaperSx}
+				>
+					<div data-availability-sidebar="">
+						<GroupResponsesPanel {...panelProps} variant="mobile" />
+					</div>
+				</MuiBottomSheet>
+				{removeDialog}
+			</>
 		);
 	}
 
 	return (
-		<div
-			data-availability-sidebar=""
-			className="flex min-h-0 min-w-0 flex-1 flex-col lg:shrink-0"
-		>
-			<div className="relative flex min-h-0 min-w-0 flex-1 flex-col self-stretch overflow-y-auto overscroll-y-contain px-4 lg:h-full lg:max-h-none">
-				<GroupResponsesPanel {...panelProps} variant="desktop" />
+		<>
+			<div
+				data-availability-sidebar=""
+				className="flex min-h-0 min-w-0 flex-1 flex-col lg:shrink-0"
+			>
+				<div className="relative flex min-h-0 min-w-0 flex-1 flex-col self-stretch overflow-y-auto overscroll-y-contain px-4 lg:h-full lg:max-h-none">
+					<GroupResponsesPanel {...panelProps} variant="desktop" />
+				</div>
 			</div>
-		</div>
+			{removeDialog}
+		</>
 	);
 }
