@@ -2,8 +2,19 @@ import "server-only";
 
 import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { groups, members, notifications, users } from "@/db/schema";
+import {
+	groups,
+	members,
+	notificationPreferences,
+	notifications,
+	users,
+} from "@/db/schema";
 import { sendEmail } from "@/lib/email/send-email";
+import {
+	getNotificationPrefKey,
+	type NotificationPrefs,
+	toNotificationPrefs,
+} from "@/lib/notification/types";
 import { toIlikeContainsPattern } from "@/lib/sql/like-pattern";
 
 export async function getUserIdExists(id: string) {
@@ -204,10 +215,36 @@ export async function createNewNotification(
 		.from(users)
 		.where(inArray(users.id, userIds));
 
+	const prefKey = getNotificationPrefKey(type);
+	let allowedRecipients = recipientRows;
+
+	if (prefKey) {
+		const memberIds = recipientRows.map((r) => r.memberId);
+		const prefs = await db
+			.select({
+				memberId: notificationPreferences.memberId,
+				meetingInvites: notificationPreferences.meetingInvites,
+				groupInvites: notificationPreferences.groupInvites,
+				nudges: notificationPreferences.nudges,
+			})
+			.from(notificationPreferences)
+			.where(inArray(notificationPreferences.memberId, memberIds));
+
+		const disabledMemberIds = new Set(
+			prefs.filter((p) => p[prefKey] === false).map((p) => p.memberId),
+		);
+
+		allowedRecipients = recipientRows.filter(
+			(r) => !disabledMemberIds.has(r.memberId),
+		);
+	}
+
+	if (allowedRecipients.length === 0) return;
+
 	const notificationsCreated = await db
 		.insert(notifications)
 		.values(
-			recipientRows.map(({ memberId }) => ({
+			allowedRecipients.map(({ memberId }) => ({
 				memberId,
 				title,
 				message,
@@ -222,7 +259,7 @@ export async function createNewNotification(
 	if (options?.email) {
 		const payload = options.email;
 		const results = await Promise.allSettled(
-			recipientRows.map((recipient) =>
+			allowedRecipients.map((recipient) =>
 				sendEmail({
 					to: recipient.email,
 					...payload,
@@ -264,6 +301,28 @@ export async function updateUserThemeMode(
 		.update(users)
 		.set({ themeMode })
 		.where(eq(users.id, userId))
+		.returning();
+}
+
+export async function getNotificationPreferences(memberId: string) {
+	const prefs = await db.query.notificationPreferences.findFirst({
+		where: eq(notificationPreferences.memberId, memberId),
+	});
+
+	return toNotificationPrefs(prefs ?? undefined);
+}
+
+export async function updateNotificationPreferences(
+	memberId: string,
+	prefs: NotificationPrefs,
+) {
+	return await db
+		.insert(notificationPreferences)
+		.values({ memberId, ...prefs })
+		.onConflictDoUpdate({
+			target: notificationPreferences.memberId,
+			set: prefs,
+		})
 		.returning();
 }
 

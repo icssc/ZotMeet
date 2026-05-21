@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { NotificationItem } from "@/lib/auth/user";
+import { NOTIFICATION_TYPES } from "@/lib/notification/types";
 
 export function useNotificationActions(notifications: NotificationItem[]) {
 	const router = useRouter();
@@ -20,7 +21,10 @@ export function useNotificationActions(notifications: NotificationItem[]) {
 		},
 	) {
 		await options.beforeOpen?.();
-		if (notif.type === "Meeting Invite" || notif.type === "Nudge") {
+		if (
+			notif.type === NOTIFICATION_TYPES.MEETING_INVITE ||
+			notif.type === NOTIFICATION_TYPES.NUDGE
+		) {
 			options.onClose();
 			router.push(notif.redirect ?? "");
 		} else {
