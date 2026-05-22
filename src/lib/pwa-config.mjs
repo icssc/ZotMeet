@@ -58,13 +58,28 @@ export const FAVICON_SIZES = /** @type {const} */ ([16, 32, 48]);
 /** Apple touch icon edge length (px). Must be opaque. */
 export const APPLE_TOUCH_SIZE = 180;
 
-/** Manifest `screenshots` entries (files under `public/screenshots/`). */
+/**
+ * Manifest `screenshots` entries (files under `public/screenshots/`).
+ * `sizes` must match the actual PNG dimensions (verify with `pnpm pwa:icons`).
+ */
 export const PWA_SCREENSHOTS = /** @type {const} */ ([
 	{
-		file: "narrow.png",
-		sizes: "390x844",
+		file: "mobile_meeting.png",
+		sizes: "372x805",
 		form_factor: "narrow",
-		label: "Schedule meetings with your groups",
+		label: "Create and schedule meetings",
+	},
+	{
+		file: "mobile_groups.png",
+		sizes: "372x805",
+		form_factor: "narrow",
+		label: "Manage your groups",
+	},
+	{
+		file: "mobile_rooms.png",
+		sizes: "385x835",
+		form_factor: "narrow",
+		label: "Browse study rooms",
 	},
 	{
 		file: "wide.png",

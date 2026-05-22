@@ -63,9 +63,11 @@ export default function manifest(): MetadataRoute.Manifest {
 		},
 	];
 
+	// Relative URLs resolve against the manifest origin so PWABuilder and stores
+	// work when the site is tested at any canonical host (www vs apex, staging, etc.).
 	const screenshots: MetadataRoute.Manifest["screenshots"] =
 		PWA_SCREENSHOTS.map((shot) => ({
-			src: absolutePwaUrl(`/screenshots/${shot.file}`),
+			src: `/screenshots/${shot.file}`,
 			sizes: shot.sizes,
 			type: "image/png",
 			form_factor: shot.form_factor,

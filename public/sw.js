@@ -28,7 +28,9 @@ const APP_SHELL = [
 	"/apple-touch-icon.png",
 	"/icons/icon-192.png",
 	"/icons/icon-512.png",
-	"/screenshots/narrow.png",
+	"/screenshots/mobile_meeting.png",
+	"/screenshots/mobile_groups.png",
+	"/screenshots/mobile_rooms.png",
 	"/screenshots/wide.png",
 ];
 

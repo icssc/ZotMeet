@@ -205,6 +205,33 @@ async function writeScreenshot(svg, { file, sizes, label }) {
 	return { kind: "screenshot", out, size: sizes, label: sizes };
 }
 
+/** Fail the build script if on-disk screenshots disagree with manifest metadata. */
+async function verifyManifestScreenshots() {
+	for (const shot of PWA_SCREENSHOTS) {
+		const filePath = path.join(SCREENSHOTS_DIR, shot.file);
+		let meta;
+		try {
+			meta = await sharp(filePath).metadata();
+		} catch {
+			throw new Error(
+				`Missing screenshot ${path.relative(ROOT, filePath)} — add the file or update PWA_SCREENSHOTS in pwa-config.mjs`,
+			);
+		}
+		const actual = `${meta.width}x${meta.height}`;
+		if (actual !== shot.sizes) {
+			throw new Error(
+				`Screenshot ${shot.file}: manifest declares ${shot.sizes} but file is ${actual}. ` +
+					`Update PWA_SCREENSHOTS or regenerate the image.`,
+			);
+		}
+		if (meta.format !== "png") {
+			throw new Error(
+				`Screenshot ${shot.file}: manifest type is image/png but file format is ${meta.format}`,
+			);
+		}
+	}
+}
+
 async function main() {
 	console.log("Generating PWA assets (icons + screenshots)...");
 	await fs.mkdir(ICONS_DIR, { recursive: true });
@@ -212,15 +239,21 @@ async function main() {
 
 	const svg = await readSourceSvg();
 
+	// Only auto-generate wide.png; mobile_* are captured from the live UI.
+	const generatedScreenshots = PWA_SCREENSHOTS.filter(
+		(shot) => shot.file === "wide.png",
+	);
+
 	const jobs = [
 		...ANY_ICON_SIZES.map((s) => writeAnyIcon(svg, s)),
 		...MASKABLE_ICON_SIZES.map((s) => writeMaskableIcon(svg, s)),
 		...FAVICON_SIZES.map((s) => writeFavicon(svg, s)),
-		...PWA_SCREENSHOTS.map((shot) => writeScreenshot(svg, shot)),
+		...generatedScreenshots.map((shot) => writeScreenshot(svg, shot)),
 		writeAppleTouchIcon(svg),
 	];
 
 	const results = await Promise.all(jobs);
+	await verifyManifestScreenshots();
 	// Sort for stable, readable output regardless of which job finished first.
 	results
 		.sort((a, b) => a.kind.localeCompare(b.kind) || a.size - b.size)

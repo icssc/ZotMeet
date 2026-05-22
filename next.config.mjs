@@ -58,6 +58,16 @@ const nextConfig = {
 					},
 				],
 			},
+			{
+				source: "/screenshots/:path*",
+				headers: [
+					{ key: "Content-Type", value: "image/png" },
+					{
+						key: "Cache-Control",
+						value: "public, max-age=86400, immutable",
+					},
+				],
+			},
 		];
 	},
 };

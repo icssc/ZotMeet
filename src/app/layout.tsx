@@ -2,6 +2,7 @@ import "./globals.css";
 import { getUserThemeMode } from "@actions/user/action";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
 import AppThemeProvider from "@/components/theme/theme-provider";
@@ -109,9 +110,17 @@ export default async function RootLayout({
 					</AppRouterCacheProvider>
 				</NuqsAdapter>
 				{process.env.NODE_ENV === "production" ? (
-					// Static registration so PWABuilder and the browser discover the SW
-					// without waiting for client hydration.
-					<script defer src="/sw-register.js" />
+					<>
+						{/* Inline register runs even if sw-register.js is slow to load. */}
+						<Script id="zotmeet-sw-inline" strategy="beforeInteractive">
+							{`if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js",{scope:"/"})}`}
+						</Script>
+						<Script
+							id="zotmeet-sw-register"
+							src="/sw-register.js"
+							strategy="beforeInteractive"
+						/>
+					</>
 				) : null}
 			</body>
 		</html>
