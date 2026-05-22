@@ -24,9 +24,12 @@ const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 const APP_SHELL = [
 	"/offline.html",
 	"/manifest.webmanifest",
+	"/sw-register.js",
 	"/apple-touch-icon.png",
 	"/icons/icon-192.png",
 	"/icons/icon-512.png",
+	"/screenshots/narrow.png",
+	"/screenshots/wide.png",
 ];
 
 /**
@@ -40,7 +43,9 @@ function isCacheableStaticPath(pathname) {
 		pathname.startsWith("/icons/") ||
 		pathname === "/apple-touch-icon.png" ||
 		pathname === "/manifest.webmanifest" ||
-		pathname === "/offline.html"
+		pathname === "/offline.html" ||
+		pathname === "/sw-register.js" ||
+		pathname.startsWith("/screenshots/")
 	);
 }
 

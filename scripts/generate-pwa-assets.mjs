@@ -11,17 +11,21 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import {
 	ANY_ICON_SIZES,
+	APP_DESCRIPTION,
+	APP_NAME,
 	APPLE_TOUCH_SIZE,
 	BRAND_ACCENT_HEX,
 	BRAND_BACKGROUND_HEX,
 	FAVICON_SIZES,
 	MASKABLE_ICON_SIZES,
+	PWA_SCREENSHOTS,
 } from "../src/lib/pwa-config.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const SOURCE_SVG = path.join(ROOT, "public", "zotmeet-logo.svg");
 const ICONS_DIR = path.join(ROOT, "public", "icons");
+const SCREENSHOTS_DIR = path.join(ROOT, "public", "screenshots");
 
 async function readSourceSvg() {
 	try {
@@ -127,14 +131,84 @@ async function writeFavicon(svg, size) {
 	return { kind: "favicon", out, size };
 }
 
-function logResult({ kind, out, size }) {
-	const label = `${kind}:`.padEnd(10);
-	console.log(`  ${label}${path.relative(ROOT, out)}  (${size}x${size})`);
+function escapeXml(text) {
+	return text
+		.replaceAll("&", "&amp;")
+		.replaceAll("<", "&lt;")
+		.replaceAll(">", "&gt;")
+		.replaceAll('"', "&quot;");
+}
+
+function logResult({ kind, out, size, label }) {
+	const tag = `${kind}:`.padEnd(12);
+	const dims = label ?? (typeof size === "number" ? `${size}x${size}` : size);
+	console.log(`  ${tag}${path.relative(ROOT, out)}  (${dims})`);
+}
+
+/**
+ * Build a store screenshot with brand colors and the app mark.
+ *
+ * @param {object} opts
+ * @param {Buffer} opts.svg
+ * @param {number} opts.width
+ * @param {number} opts.height
+ * @param {string} opts.label
+ * @returns {Promise<Buffer>}
+ */
+async function renderScreenshot({ svg, width, height, label }) {
+	const logoSize = Math.round(Math.min(width, height) * 0.22);
+	const logo = await renderSquare({
+		svg,
+		size: logoSize,
+		padding: 0.08,
+		background: BRAND_BACKGROUND_HEX,
+	});
+
+	const titleSize = Math.round(width * 0.09);
+	const bodySize = Math.round(width * 0.04);
+	const titleY = Math.round(height * 0.52);
+	const bodyY = titleY + Math.round(bodySize * 1.8);
+
+	const overlay = Buffer.from(`
+<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EEEEEE"/>
+      <stop offset="100%" stop-color="#EAEFF2"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <rect x="0" y="0" width="100%" height="18%" fill="${BRAND_ACCENT_HEX}" opacity="0.12"/>
+  <text x="50%" y="${titleY}" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif"
+    font-size="${titleSize}" font-weight="700" fill="#1e293b">${APP_NAME}</text>
+  <text x="50%" y="${bodyY}" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif"
+    font-size="${bodySize}" fill="#64748b">${escapeXml(APP_DESCRIPTION)}</text>
+  <text x="50%" y="${height - Math.round(height * 0.06)}" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif"
+    font-size="${Math.round(bodySize * 0.85)}" fill="#94a3b8">${escapeXml(label)}</text>
+</svg>`);
+
+	const logoTop = Math.round(height * 0.2);
+	const logoLeft = Math.round((width - logoSize) / 2);
+
+	return sharp(overlay)
+		.composite([{ input: logo, top: logoTop, left: logoLeft }])
+		.resize(width, height)
+		.png({ compressionLevel: 9 })
+		.toBuffer();
+}
+
+async function writeScreenshot(svg, { file, sizes, label }) {
+	const [width, height] = sizes.split("x").map(Number);
+	const buf = await renderScreenshot({ svg, width, height, label });
+	const out = path.join(SCREENSHOTS_DIR, file);
+	await fs.writeFile(out, buf);
+	return { kind: "screenshot", out, size: sizes, label: sizes };
 }
 
 async function main() {
-	console.log("Generating PWA icon assets...");
+	console.log("Generating PWA assets (icons + screenshots)...");
 	await fs.mkdir(ICONS_DIR, { recursive: true });
+	await fs.mkdir(SCREENSHOTS_DIR, { recursive: true });
 
 	const svg = await readSourceSvg();
 
@@ -142,6 +216,7 @@ async function main() {
 		...ANY_ICON_SIZES.map((s) => writeAnyIcon(svg, s)),
 		...MASKABLE_ICON_SIZES.map((s) => writeMaskableIcon(svg, s)),
 		...FAVICON_SIZES.map((s) => writeFavicon(svg, s)),
+		...PWA_SCREENSHOTS.map((shot) => writeScreenshot(svg, shot)),
 		writeAppleTouchIcon(svg),
 	];
 

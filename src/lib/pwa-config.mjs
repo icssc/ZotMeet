@@ -19,6 +19,27 @@ export const APP_DESCRIPTION =
 
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://zotmeet.com";
 
+/**
+ * iOS bundle ID for the App Store wrapper generated via PWA Builder.
+ * Set after packaging (or when you know the final ID) so PWABuilder can
+ * validate `related_applications`.
+ */
+export const IOS_BUNDLE_ID =
+	process.env.NEXT_PUBLIC_IOS_BUNDLE_ID ?? "com.zotmeet.app";
+
+/**
+ * IARC certification code from https://www.globalratings.com/ (free via
+ * participating storefronts). Required for the PWABuilder IARC action item.
+ */
+export const IARC_RATING_ID = process.env.PWA_IARC_RATING_ID ?? "";
+
+/** Resolve a site-root path to an absolute HTTPS URL for store manifests. */
+export function absolutePwaUrl(pathname) {
+	const base = APP_URL.replace(/\/$/, "");
+	const path = pathname.startsWith("/") ? pathname : `/${pathname}`;
+	return `${base}${path}`;
+}
+
 export const BRAND_BACKGROUND_HEX = "#FFFFFF";
 export const BRAND_ACCENT_HEX = "#F26489";
 export const BRAND_DARK_BG_HEX = "#0F172A";
@@ -36,3 +57,19 @@ export const FAVICON_SIZES = /** @type {const} */ ([16, 32, 48]);
 
 /** Apple touch icon edge length (px). Must be opaque. */
 export const APPLE_TOUCH_SIZE = 180;
+
+/** Manifest `screenshots` entries (files under `public/screenshots/`). */
+export const PWA_SCREENSHOTS = /** @type {const} */ ([
+	{
+		file: "narrow.png",
+		sizes: "390x844",
+		form_factor: "narrow",
+		label: "Schedule meetings with your groups",
+	},
+	{
+		file: "wide.png",
+		sizes: "1280x720",
+		form_factor: "wide",
+		label: "ZotMeet on desktop",
+	},
+]);

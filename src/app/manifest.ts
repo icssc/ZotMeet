@@ -3,24 +3,20 @@ import {
 	ANY_ICON_SIZES,
 	APP_DESCRIPTION,
 	APP_NAME,
+	absolutePwaUrl,
 	BRAND_ACCENT_HEX,
 	BRAND_BACKGROUND_HEX,
+	IARC_RATING_ID,
+	IOS_BUNDLE_ID,
 	MASKABLE_ICON_SIZES,
+	PWA_SCREENSHOTS,
 } from "@/lib/pwa-config.mjs";
 
 /**
  * Web App Manifest for ZotMeet.
  *
  * This manifest is consumed both by browsers (for "Add to Home Screen") and
- * by PWA Builder when packaging the app for the iOS App Store. It satisfies
- * PWA Builder's required fields:
- *   - name (>= 2 chars)
- *   - short_name (>= 3 chars)
- *   - description
- *   - start_url
- *   - display: standalone
- *   - icons: at least one 512x512 with purpose "any" + a separate maskable
- *   - background_color, theme_color (HEX values)
+ * by PWA Builder when packaging the app for the iOS App Store.
  *
  * Next.js automatically serves this at `/manifest.webmanifest`.
  */
@@ -67,6 +63,15 @@ export default function manifest(): MetadataRoute.Manifest {
 		},
 	];
 
+	const screenshots: MetadataRoute.Manifest["screenshots"] =
+		PWA_SCREENSHOTS.map((shot) => ({
+			src: absolutePwaUrl(`/screenshots/${shot.file}`),
+			sizes: shot.sizes,
+			type: "image/png",
+			form_factor: shot.form_factor,
+			label: shot.label,
+		}));
+
 	return {
 		id: "/",
 		name: APP_NAME,
@@ -82,7 +87,17 @@ export default function manifest(): MetadataRoute.Manifest {
 		background_color: BRAND_BACKGROUND_HEX,
 		theme_color: BRAND_ACCENT_HEX,
 		categories: ["productivity", "social", "education", "utilities"],
+		prefer_related_applications: false,
+		related_applications: [
+			{
+				platform: "itunes",
+				id: IOS_BUNDLE_ID,
+				url: absolutePwaUrl("/"),
+			},
+		],
+		...(IARC_RATING_ID ? { iarc_rating_id: IARC_RATING_ID } : {}),
 		icons: [...anyIcons, ...maskableIcons],
+		screenshots,
 		shortcuts,
-	};
+	} as MetadataRoute.Manifest;
 }

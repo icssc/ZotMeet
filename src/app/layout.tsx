@@ -4,7 +4,6 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata, Viewport } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
-import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
 import AppThemeProvider from "@/components/theme/theme-provider";
 import { SnackbarProvider } from "@/components/ui/snackbar-provider";
 import { figtree } from "@/fonts";
@@ -109,7 +108,11 @@ export default async function RootLayout({
 						</AppThemeProvider>
 					</AppRouterCacheProvider>
 				</NuqsAdapter>
-				<ServiceWorkerRegistration />
+				{process.env.NODE_ENV === "production" ? (
+					// Static registration so PWABuilder and the browser discover the SW
+					// without waiting for client hydration.
+					<script defer src="/sw-register.js" />
+				) : null}
 			</body>
 		</html>
 	);

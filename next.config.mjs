@@ -38,6 +38,15 @@ const nextConfig = {
 					},
 				],
 			},
+			{
+				source: "/sw-register.js",
+				headers: [
+					{
+						key: "Content-Type",
+						value: "application/javascript; charset=utf-8",
+					},
+				],
+			},
 			// Web app manifest should be discoverable by PWA Builder/crawlers.
 			{
 				source: "/manifest.webmanifest",
