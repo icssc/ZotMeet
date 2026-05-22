@@ -124,8 +124,8 @@ through [PWA Builder](https://www.pwabuilder.com/).
   `src/app/manifest.ts`) with `name`, `short_name`, `description`, `start_url`,
   `display: standalone`, `background_color`, `theme_color`, `icons` (any +
   maskable, including a 512x512), `shortcuts`, `categories`, `screenshots`,
-  `prefer_related_applications`, `related_applications`, and optional
-  `iarc_rating_id`.
+  `prefer_related_applications`, `related_applications`, `launch_handler`,
+  `scope_extensions` (Google OAuth host), and optional `iarc_rating_id`.
 - **Service worker** at `public/sw.js` (network-first navigations, cache-first
   for static assets, offline fallback at `public/offline.html`). Registered via
   `public/sw-register.js` in production.

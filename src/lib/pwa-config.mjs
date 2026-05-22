@@ -33,6 +33,22 @@ export const IOS_BUNDLE_ID =
  */
 export const IARC_RATING_ID = process.env.PWA_IARC_RATING_ID ?? "";
 
+/**
+ * Origins the installed PWA may navigate to beyond `scope` (e.g. OAuth).
+ * Clears the PWABuilder `scope_extensions` action item when non-empty.
+ */
+export const PWA_SCOPE_EXTENSION_ORIGINS = /** @type {const} */ ([
+	"https://auth.icssc.club",
+]);
+
+/**
+ * How the OS should open subsequent launches of the installed PWA.
+ * `navigate-existing` reuses the open window instead of spawning duplicates.
+ */
+export const PWA_LAUNCH_HANDLER = /** @type {const} */ ({
+	client_mode: "navigate-existing",
+});
+
 /** Resolve a site-root path to an absolute HTTPS URL for store manifests. */
 export function absolutePwaUrl(pathname) {
 	const base = APP_URL.replace(/\/$/, "");

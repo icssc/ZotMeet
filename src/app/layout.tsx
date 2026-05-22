@@ -109,7 +109,8 @@ export default async function RootLayout({
 						</AppThemeProvider>
 					</AppRouterCacheProvider>
 				</NuqsAdapter>
-				{process.env.NODE_ENV === "production" ? (
+				{process.env.NODE_ENV === "production" ||
+				process.env.NEXT_PUBLIC_ENABLE_SW === "true" ? (
 					<>
 						{/* Inline register runs even if sw-register.js is slow to load. */}
 						<Script id="zotmeet-sw-inline" strategy="beforeInteractive">

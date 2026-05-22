@@ -9,6 +9,8 @@ import {
 	IARC_RATING_ID,
 	IOS_BUNDLE_ID,
 	MASKABLE_ICON_SIZES,
+	PWA_LAUNCH_HANDLER,
+	PWA_SCOPE_EXTENSION_ORIGINS,
 	PWA_SCREENSHOTS,
 } from "@/lib/pwa-config.mjs";
 
@@ -98,6 +100,14 @@ export default function manifest(): MetadataRoute.Manifest {
 			},
 		],
 		...(IARC_RATING_ID ? { iarc_rating_id: IARC_RATING_ID } : {}),
+		...(PWA_SCOPE_EXTENSION_ORIGINS.length > 0
+			? {
+					scope_extensions: PWA_SCOPE_EXTENSION_ORIGINS.map((origin) => ({
+						origin,
+					})),
+				}
+			: {}),
+		launch_handler: PWA_LAUNCH_HANDLER,
 		icons: [...anyIcons, ...maskableIcons],
 		screenshots,
 		shortcuts,
