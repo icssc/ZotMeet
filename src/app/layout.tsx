@@ -111,17 +111,11 @@ export default async function RootLayout({
 				</NuqsAdapter>
 				{process.env.NODE_ENV === "production" ||
 				process.env.NEXT_PUBLIC_ENABLE_SW === "true" ? (
-					<>
-						{/* Inline register runs even if sw-register.js is slow to load. */}
-						<Script id="zotmeet-sw-inline" strategy="beforeInteractive">
-							{`if("serviceWorker"in navigator){navigator.serviceWorker.register("/sw.js",{scope:"/"})}`}
-						</Script>
-						<Script
-							id="zotmeet-sw-register"
-							src="/sw-register.js"
-							strategy="beforeInteractive"
-						/>
-					</>
+					<Script
+						id="zotmeet-sw-register"
+						src="/sw-register.js"
+						strategy="beforeInteractive"
+					/>
 				) : null}
 			</body>
 		</html>

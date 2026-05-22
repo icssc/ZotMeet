@@ -180,7 +180,7 @@ async function renderScreenshot({ svg, width, height, label }) {
   <rect width="100%" height="100%" fill="url(#bg)"/>
   <rect x="0" y="0" width="100%" height="18%" fill="${BRAND_ACCENT_HEX}" opacity="0.12"/>
   <text x="50%" y="${titleY}" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif"
-    font-size="${titleSize}" font-weight="700" fill="#1e293b">${APP_NAME}</text>
+    font-size="${titleSize}" font-weight="700" fill="#1e293b">${escapeXml(APP_NAME)}</text>
   <text x="50%" y="${bodyY}" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif"
     font-size="${bodySize}" fill="#64748b">${escapeXml(APP_DESCRIPTION)}</text>
   <text x="50%" y="${height - Math.round(height * 0.06)}" text-anchor="middle" font-family="system-ui, -apple-system, Segoe UI, sans-serif"
