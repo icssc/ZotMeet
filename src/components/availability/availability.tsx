@@ -225,6 +225,15 @@ export function Availability({
 
 	const [selectedRoomIds, setSelectedRoomIds] = useState<string[]>([]);
 
+	const showRoomPreviews =
+		availabilityView === "group" || availabilityView === "schedule";
+
+	useEffect(() => {
+		if (!showRoomPreviews && selectedRoomIds.length > 0) {
+			setSelectedRoomIds([]);
+		}
+	}, [showRoomPreviews, selectedRoomIds.length]);
+
 	const rawRoomsByKey = useMemo(
 		() => groupRawRoomsByKey(studyRooms),
 		[studyRooms],
@@ -414,6 +423,7 @@ export function Availability({
 
 	return (
 		<StudyRoomHoverProvider
+			showRoomPreviews={showRoomPreviews}
 			fromTimeMinutes={fromTimeMinutes}
 			availabilityDates={availabilityDates}
 			availabilityTimeBlocks={availabilityTimeBlocks}

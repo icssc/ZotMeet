@@ -4,6 +4,7 @@ import {
 	createContext,
 	useCallback,
 	useContext,
+	useEffect,
 	useMemo,
 	useState,
 } from "react";
@@ -163,6 +164,7 @@ function mergeCellPreviewMaps(
 
 interface StudyRoomHoverProviderProps {
 	children: React.ReactNode;
+	showRoomPreviews: boolean;
 	fromTimeMinutes: number;
 	availabilityDates: ZotDate[];
 	availabilityTimeBlocks: number[];
@@ -173,6 +175,7 @@ interface StudyRoomHoverProviderProps {
 
 export function StudyRoomHoverProvider({
 	children,
+	showRoomPreviews,
 	fromTimeMinutes,
 	availabilityDates,
 	availabilityTimeBlocks,
@@ -183,6 +186,17 @@ export function StudyRoomHoverProvider({
 	const [hoveredRoomVariants, setHoveredRoomVariants] = useState<
 		StudyRoomApiEntry[] | null
 	>(null);
+
+	const emptyPreviewMap = useMemo(
+		() => new Map<string, HoveredRoomCellPreview>(),
+		[],
+	);
+
+	useEffect(() => {
+		if (!showRoomPreviews) {
+			setHoveredRoomVariants(null);
+		}
+	}, [showRoomPreviews]);
 
 	const buildPreview = useCallback(
 		(variants: StudyRoomApiEntry[] | null) =>
@@ -202,16 +216,24 @@ export function StudyRoomHoverProvider({
 	);
 
 	const hoverCellPreviewByKey = useMemo(
-		() => buildPreview(hoveredRoomVariants),
-		[buildPreview, hoveredRoomVariants],
+		() =>
+			showRoomPreviews ? buildPreview(hoveredRoomVariants) : emptyPreviewMap,
+		[showRoomPreviews, buildPreview, hoveredRoomVariants, emptyPreviewMap],
 	);
 
 	const selectedCellPreviewByKey = useMemo(() => {
+		if (!showRoomPreviews) return emptyPreviewMap;
 		const perRoom = selectedRoomIds.map((roomId) =>
 			buildPreview(rawRoomsByKey.get(roomId) ?? null),
 		);
 		return mergeCellPreviewMaps(perRoom);
-	}, [buildPreview, rawRoomsByKey, selectedRoomIds]);
+	}, [
+		showRoomPreviews,
+		buildPreview,
+		rawRoomsByKey,
+		selectedRoomIds,
+		emptyPreviewMap,
+	]);
 
 	const setHoveredRoom = useCallback((variants: StudyRoomApiEntry[] | null) => {
 		setHoveredRoomVariants(variants);
