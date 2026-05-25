@@ -1,16 +1,14 @@
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import DateRangeIcon from "@mui/icons-material/DateRange";
+import EditIcon from "@mui/icons-material/Edit";
+import EventIcon from "@mui/icons-material/Event";
 import FmdGoodIcon from "@mui/icons-material/FmdGood";
 import GroupIcon from "@mui/icons-material/Group";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import {
 	Box,
-	Button,
 	Card,
-	CardActions,
 	CardContent,
-	Chip,
 	IconButton,
 	ListItemIcon,
 	Menu,
@@ -25,10 +23,21 @@ import { getDeleteLeaveAction } from "@/lib/meetings/delete-leave-action";
 interface MeetingCardProps extends MeetingCardViewModel {
 	isOwner: boolean;
 	onDeleteLeave?: () => void;
+	needsAvailability?: boolean;
+	allAvailabilityFilled?: boolean;
+	isUpcoming?: boolean;
 }
 
 const metaIconSx = { fontSize: 16, color: "text.secondary", flexShrink: 0 };
 const metaTextSx = { typography: { xs: "body2", sm: "body1" } };
+const bannerBaseSx = {
+	px: 2.5,
+	py: 1.5,
+	display: "flex",
+	alignItems: "center",
+	gap: 0.5,
+} as const;
+const bannerTextSx = { color: "inherit", letterSpacing: "0.14px" } as const;
 const metaGridSx = {
 	display: "grid",
 	gridTemplateColumns: "1fr 1fr",
@@ -66,6 +75,9 @@ const MeetingCard = ({
 	meetingLink,
 	isOwner,
 	onDeleteLeave,
+	needsAvailability = false,
+	allAvailabilityFilled = false,
+	isUpcoming = false,
 }: MeetingCardProps) => {
 	const menuId = useId();
 	const { label: actionLabel, Icon, menuColor } = getDeleteLeaveAction(isOwner);
@@ -83,123 +95,216 @@ const MeetingCard = ({
 		onDeleteLeave?.();
 	};
 
-	return (
-		<Card
-			variant="outlined"
-			sx={{ display: "flex", flexDirection: "column", p: 0 }}
+	const variant = needsAvailability
+		? "action-required"
+		: !scheduled && allAvailabilityFilled && isOwner
+			? "schedule-alert"
+			: scheduled && isUpcoming
+				? "upcoming"
+				: scheduled
+					? "scheduled"
+					: "default";
+
+	const cardContent = (
+		<CardContent
+			sx={{
+				pt: { xs: 2.5, sm: 3 },
+				px: 2.5,
+				pb: 2.5,
+				"&:last-child": { pb: 2.5 },
+				display: "flex",
+				flexDirection: "column",
+				gap: 2,
+				flexGrow: 1,
+			}}
 		>
-			<CardContent
+			<Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
+				<Box sx={{ flex: 1, minWidth: 0 }}>
+					<Typography
+						component="div"
+						noWrap
+						sx={{ typography: { xs: "h6", sm: "h5" } }}
+					>
+						{meetingName}
+					</Typography>
+					<Typography
+						component="div"
+						color="text.secondary"
+						noWrap
+						sx={metaTextSx}
+					>
+						{meetingOrganizer}
+					</Typography>
+				</Box>
+				{onDeleteLeave && (
+					<>
+						<IconButton
+							size="small"
+							edge="end"
+							sx={{ mt: -0.5, flexShrink: 0, position: "relative", zIndex: 1 }}
+							aria-label="Meeting options"
+							aria-haspopup="true"
+							aria-expanded={open}
+							aria-controls={open ? menuId : undefined}
+							onClick={(e) => {
+								e.stopPropagation();
+								setAnchorEl(e.currentTarget);
+							}}
+						>
+							<MoreVertIcon sx={{ fontSize: { xs: 24, sm: 20 } }} />
+						</IconButton>
+
+						<Menu
+							id={menuId}
+							anchorEl={anchorEl}
+							open={open}
+							onClose={() => setAnchorEl(null)}
+							anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+							transformOrigin={{ vertical: "top", horizontal: "right" }}
+							slotProps={{
+								paper: { sx: { minWidth: 180 } },
+							}}
+						>
+							<MenuItem
+								onClick={handleOpenDeleteLeave}
+								sx={{ color: menuColor }}
+							>
+								<ListItemIcon sx={{ color: "inherit", minWidth: 36 }}>
+									<Icon fontSize="small" />
+								</ListItemIcon>
+								{actionLabel}
+							</MenuItem>
+						</Menu>
+					</>
+				)}
+			</Box>
+
+			<Box sx={metaGridSx}>
+				<MetaItem icon={DateRangeIcon} label={dateLabel} />
+				<MetaItem icon={AccessTimeIcon} label={`${timeStart} - ${timeEnd}`} />
+				<MetaItem icon={GroupIcon} label={`${numResponders} Responders`} />
+				{location && <MetaItem icon={FmdGoodIcon} label={location} />}
+			</Box>
+		</CardContent>
+	);
+
+	if (variant === "default") {
+		return (
+			<Card
+				variant="outlined"
 				sx={{
-					pt: { xs: 2.5, sm: 3 },
-					px: 2.5,
-					pb: 0,
-					"&:last-child": { pb: 0 },
 					display: "flex",
 					flexDirection: "column",
-					gap: 2,
-					flexGrow: 1,
+					position: "relative",
+					cursor: "pointer",
 				}}
 			>
-				<Box sx={{ display: "flex", alignItems: "flex-start", gap: 1 }}>
-					<Box sx={{ flex: 1, minWidth: 0 }}>
-						<Typography
-							component="div"
-							noWrap
-							sx={{ typography: { xs: "h6", sm: "h5" } }}
-						>
-							{meetingName}
-						</Typography>
-						<Typography
-							component="div"
-							color="text.secondary"
-							noWrap
-							sx={metaTextSx}
-						>
-							{meetingOrganizer}
-						</Typography>
-					</Box>
-					{onDeleteLeave && (
-						<>
-							<IconButton
-								size="small"
-								edge="end"
-								sx={{ mt: -0.5, flexShrink: 0 }}
-								aria-label="Meeting options"
-								aria-haspopup="true"
-								aria-expanded={open}
-								aria-controls={open ? menuId : undefined}
-								onClick={(e) => setAnchorEl(e.currentTarget)}
-							>
-								<MoreVertIcon sx={{ fontSize: { xs: 24, sm: 20 } }} />
-							</IconButton>
-
-							<Menu
-								id={menuId}
-								anchorEl={anchorEl}
-								open={open}
-								onClose={() => setAnchorEl(null)}
-								anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-								transformOrigin={{ vertical: "top", horizontal: "right" }}
-								slotProps={{
-									paper: { sx: { minWidth: 180 } },
-								}}
-							>
-								<MenuItem
-									onClick={handleOpenDeleteLeave}
-									sx={{ color: menuColor }}
-								>
-									<ListItemIcon sx={{ color: "inherit", minWidth: 36 }}>
-										<Icon fontSize="small" />
-									</ListItemIcon>
-									{actionLabel}
-								</MenuItem>
-							</Menu>
-						</>
-					)}
-				</Box>
-
-				{scheduled && scheduledLabel ? (
-					<Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-						<Chip
-							label={scheduledLabel}
-							size="small"
-							color="secondary"
-							sx={{ borderRadius: "5px", fontWeight: 500, alignSelf: "start" }}
-						/>
-						<Box sx={metaGridSx}>
-							<MetaItem
-								icon={GroupIcon}
-								label={`${numResponders} Responders`}
-							/>
-							{location && <MetaItem icon={FmdGoodIcon} label={location} />}
-						</Box>
-					</Box>
-				) : (
-					<Box sx={metaGridSx}>
-						<MetaItem icon={DateRangeIcon} label={dateLabel} />
-						<MetaItem
-							icon={AccessTimeIcon}
-							label={`${timeStart} - ${timeEnd}`}
-						/>
-						<MetaItem icon={GroupIcon} label={`${numResponders} Responders`} />
-						{location && <MetaItem icon={FmdGoodIcon} label={location} />}
-					</Box>
-				)}
-			</CardContent>
-
-			<CardActions sx={{ px: 2.5, pb: 2.5, pt: 2, justifyContent: "flex-end" }}>
-				<Button
-					variant="text"
-					color="primary"
-					endIcon={<NavigateNextIcon />}
-					component={Link}
+				<Link
 					href={meetingLink}
-					size="small"
-					sx={{ textTransform: "capitalize", fontWeight: 600 }}
+					aria-label={meetingName}
+					style={{ position: "absolute", inset: 0, zIndex: 0 }}
+				/>
+				{cardContent}
+				<Box
+					aria-hidden
+					sx={{
+						px: 2.5,
+						py: 1.5,
+						display: "flex",
+						alignItems: "center",
+						gap: 0.5,
+						visibility: "hidden",
+					}}
 				>
-					Add availability
-				</Button>
-			</CardActions>
+					<Box sx={{ width: 18, height: 18, flexShrink: 0 }} />
+					<Typography variant="caption">&nbsp;</Typography>
+				</Box>
+			</Card>
+		);
+	}
+
+	const bannerBgColor =
+		variant === "action-required"
+			? "primary.main"
+			: variant === "schedule-alert"
+				? "info.main"
+				: "secondary.main";
+
+	const banner =
+		variant === "action-required" ? (
+			<Box sx={{ ...bannerBaseSx, color: "primary.contrastText" }}>
+				<EditIcon sx={{ fontSize: 18, color: "inherit" }} />
+				<Typography variant="caption" sx={bannerTextSx}>
+					Add your availability.
+				</Typography>
+			</Box>
+		) : variant === "schedule-alert" ? (
+			<Box sx={{ ...bannerBaseSx, color: "info.contrastText" }}>
+				<DateRangeIcon sx={{ fontSize: 18, color: "inherit" }} />
+				<Typography variant="caption" sx={bannerTextSx}>
+					Availability complete. Schedule this meeting.
+				</Typography>
+			</Box>
+		) : variant === "upcoming" ? (
+			<Box
+				sx={{
+					...bannerBaseSx,
+					gap: undefined,
+					justifyContent: "space-between",
+					color: "secondary.contrastText",
+				}}
+			>
+				<Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+					<EventIcon sx={{ fontSize: 18, color: "inherit" }} />
+					<Typography variant="caption" sx={bannerTextSx}>
+						Upcoming
+					</Typography>
+				</Box>
+				{scheduledLabel && (
+					<Typography variant="caption" sx={bannerTextSx}>
+						{scheduledLabel}
+					</Typography>
+				)}
+			</Box>
+		) : (
+			<Box sx={{ ...bannerBaseSx, color: "secondary.contrastText" }}>
+				{scheduledLabel && (
+					<Typography variant="caption" sx={bannerTextSx}>
+						{scheduledLabel}
+					</Typography>
+				)}
+			</Box>
+		);
+
+	return (
+		<Card
+			elevation={0}
+			sx={{
+				bgcolor: bannerBgColor,
+				overflow: "hidden",
+				display: "flex",
+				flexDirection: "column",
+				position: "relative",
+				cursor: "pointer",
+			}}
+		>
+			<Link
+				href={meetingLink}
+				aria-label={meetingName}
+				style={{ position: "absolute", inset: 0, zIndex: 0 }}
+			/>
+			<Card
+				variant="outlined"
+				sx={{
+					display: "flex",
+					flexDirection: "column",
+					borderBottomLeftRadius: 0,
+					borderBottomRightRadius: 0,
+				}}
+			>
+				{cardContent}
+			</Card>
+			{banner}
 		</Card>
 	);
 };
