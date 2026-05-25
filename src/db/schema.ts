@@ -323,6 +323,7 @@ export const notificationPreferences = pgTable("notification_preferences", {
 	meetingInvites: boolean("meeting_invites").notNull().default(true),
 	groupInvites: boolean("group_invites").notNull().default(true),
 	nudges: boolean("nudges").notNull().default(true),
+	meetingScheduled: boolean("meeting_scheduled").notNull().default(true),
 });
 
 export type SelectNotificationPreferences = InferSelectModel<
