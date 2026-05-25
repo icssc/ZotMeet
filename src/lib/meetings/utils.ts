@@ -1,13 +1,83 @@
-import type { SelectScheduledMeeting } from "@/db/schema";
+import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 
 const UPCOMING_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
+
+export function getStartOfTodayMs(): number {
+	const d = new Date();
+	d.setHours(0, 0, 0, 0);
+	return d.getTime();
+}
+
+function getMeetingReferenceTime(
+	m: Pick<SelectMeeting, "id" | "scheduled" | "dates">,
+	scheduledDates: Record<string, number> | undefined,
+): number | null {
+	if (m.scheduled) {
+		const scheduledDate = scheduledDates?.[m.id];
+		return scheduledDate === undefined ? null : scheduledDate;
+	}
+	const dates = (m.dates as string[] | null) ?? [];
+	if (dates.length === 0) return null;
+	return Math.max(...dates.map((d) => new Date(d).getTime()));
+}
+
+export function getMeetingSortTime(
+	m: Pick<SelectMeeting, "id" | "scheduled" | "dates">,
+	scheduledDates: Record<string, number> | undefined,
+): number {
+	return getMeetingReferenceTime(m, scheduledDates) ?? 0;
+}
+
+export function isMeetingPast(
+	m: Pick<SelectMeeting, "id" | "scheduled" | "dates">,
+	scheduledDates: Record<string, number> | undefined,
+	todayMs: number,
+): boolean {
+	const referenceTime = getMeetingReferenceTime(m, scheduledDates);
+	if (referenceTime === null) return false;
+	return referenceTime < todayMs;
+}
+
+export type MeetingWithDates = Pick<
+	SelectMeeting,
+	"id" | "scheduled" | "dates"
+> & {
+	needsAvailability: boolean;
+	allAvailabilityFilled: boolean;
+	hostId: string;
+};
+
+export function getMeetingUpcomingPriority(
+	m: MeetingWithDates,
+	memberId: string,
+	upcomingSet: Set<string>,
+): number {
+	if (m.needsAvailability) return 0;
+	if (m.allAvailabilityFilled && m.hostId === memberId) return 1;
+	if (upcomingSet.has(m.id)) return 2;
+	if (m.scheduled) return 3;
+	return 4;
+}
+
+export function filterMeetingsByQuery<
+	T extends Pick<SelectMeeting, "title" | "location" | "description">,
+>(meetings: T[], query: string): T[] {
+	const normalized = query.trim().toLowerCase();
+	if (!normalized) return meetings;
+	return meetings.filter(
+		(m) =>
+			m.title.toLowerCase().includes(normalized) ||
+			(m.location ?? "").toLowerCase().includes(normalized) ||
+			(m.description ?? "").toLowerCase().includes(normalized),
+	);
+}
 
 export function getUpcomingMeetingIds(
 	scheduledMeetingMap: Record<string, { scheduledDate: Date }>,
 ): string[] {
-	const startOfToday = new Date();
-	startOfToday.setHours(0, 0, 0, 0);
-	const windowEnd = new Date(startOfToday.getTime() + UPCOMING_WINDOW_MS);
+	const startOfTodayMs = getStartOfTodayMs();
+	const startOfToday = new Date(startOfTodayMs);
+	const windowEnd = new Date(startOfTodayMs + UPCOMING_WINDOW_MS);
 	return Object.entries(scheduledMeetingMap)
 		.filter(
 			([, sm]) =>

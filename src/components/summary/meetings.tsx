@@ -11,13 +11,14 @@ import { FilterChip } from "@/components/ui/filter-chip";
 import MeetingCard from "@/components/ui/meeting-card";
 import type { SelectMeeting } from "@/db/schema";
 import type { NotificationItem } from "@/lib/auth/user";
+import { toMeetingCardData } from "@/lib/meeting-card/mapper";
 import {
 	filterMeetingsByQuery,
+	getMeetingSortTime,
 	getMeetingUpcomingPriority,
 	getStartOfTodayMs,
 	isMeetingPast,
-	toMeetingCardData,
-} from "@/lib/meeting-card/mapper";
+} from "@/lib/meetings/utils";
 
 type FilterType = "upcoming" | "past" | "by-you";
 
@@ -192,15 +193,11 @@ export const Meetings = ({
 		let sorted: DisplayMeeting[];
 
 		if (activeFilter === "past") {
-			sorted = [...displayMeetings].sort((a, b) => {
-				const getTime = (m: DisplayMeeting) => {
-					if (m.scheduled) return scheduledDates?.[m.id] ?? 0;
-					const dates = (m.dates as string[] | null) ?? [];
-					if (dates.length === 0) return 0;
-					return Math.max(...dates.map((d) => new Date(d).getTime()));
-				};
-				return getTime(b) - getTime(a);
-			});
+			sorted = [...displayMeetings].sort(
+				(a, b) =>
+					getMeetingSortTime(b, scheduledDates) -
+					getMeetingSortTime(a, scheduledDates),
+			);
 		} else {
 			sorted = [...displayMeetings].sort(
 				(a, b) =>
