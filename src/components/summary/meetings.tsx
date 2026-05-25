@@ -1,8 +1,9 @@
 "use client";
 
-import { Add, CalendarMonth, Notifications } from "@mui/icons-material";
+import { Add, Notifications } from "@mui/icons-material";
 import SearchIcon from "@mui/icons-material/Search";
 import { Badge, Box, Button, TextField, Typography } from "@mui/material";
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { MobileNotificationsDrawer } from "@/components/groups/mobile-notifications-drawer";
@@ -155,7 +156,7 @@ export const Meetings = ({
 						flexDirection: "column",
 						alignItems: "center",
 						gap: 1.25,
-						py: 4,
+						py: 24,
 					}}
 				>
 					<Box
@@ -165,16 +166,13 @@ export const Meetings = ({
 							justifyContent: "center",
 							width: 137,
 							height: 137,
-							borderRadius: "50%",
-							bgcolor: "action.hover",
-							opacity: 0.4,
 						}}
 					>
-						<CalendarMonth sx={{ fontSize: 85, color: "text.disabled" }} />
+						<Image src="/mascot.svg" alt="mascot" width={111} height={111} />
 					</Box>
 					<Typography
 						variant="h5"
-						color="text.secondary"
+						color="textSecondary"
 						sx={{
 							fontStyle: "italic",
 							textAlign: "center",
