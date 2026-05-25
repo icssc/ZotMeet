@@ -27,12 +27,10 @@ export interface HoveredRoomCellPreview {
 }
 
 interface StudyRoomHoverContextValue {
-	cellPreviewByKey: Map<string, HoveredRoomCellPreview>;
 	setHoveredRoom: (variants: StudyRoomApiEntry[] | null) => void;
 }
 
 const StudyRoomHoverContext = createContext<StudyRoomHoverContextValue>({
-	cellPreviewByKey: new Map(),
 	setHoveredRoom: () => {},
 });
 
@@ -40,7 +38,18 @@ function displayRoomName(name: string): string {
 	return name.replace(/\s*\(\d+\s*hours?\)/i, "").trim() || name;
 }
 
-function buildHoveredRoomPreview(
+function filterAvailableVariants(
+	variants: StudyRoomApiEntry[] | null,
+): StudyRoomApiEntry[] | null {
+	if (!variants?.length) return null;
+
+	return variants.map((variant) => ({
+		...variant,
+		slots: variant.slots.filter((slot) => slot.isAvailable),
+	}));
+}
+
+export function buildRoomCellPreview(
 	filteredVariants: StudyRoomApiEntry[] | null,
 	fromTimeMinutes: number,
 	availabilityDates: ZotDate[],
@@ -129,12 +138,37 @@ function buildHoveredRoomPreview(
 	return previewByKey;
 }
 
+function mergeCellPreviewMaps(
+	maps: Map<string, HoveredRoomCellPreview>[],
+): Map<string, HoveredRoomCellPreview> {
+	const merged = new Map<string, HoveredRoomCellPreview>();
+
+	for (const map of maps) {
+		for (const [key, preview] of map) {
+			const existing = merged.get(key);
+			if (!existing) {
+				merged.set(key, preview);
+				continue;
+			}
+
+			merged.set(key, {
+				edges: existing.edges,
+				label: existing.label ?? preview.label,
+			});
+		}
+	}
+
+	return merged;
+}
+
 interface StudyRoomHoverProviderProps {
 	children: React.ReactNode;
 	fromTimeMinutes: number;
 	availabilityDates: ZotDate[];
 	availabilityTimeBlocks: number[];
 	timeZone: string;
+	rawRoomsByKey: Map<string, StudyRoomApiEntry[]>;
+	selectedRoomIds: string[];
 }
 
 export function StudyRoomHoverProvider({
@@ -143,31 +177,23 @@ export function StudyRoomHoverProvider({
 	availabilityDates,
 	availabilityTimeBlocks,
 	timeZone,
+	rawRoomsByKey,
+	selectedRoomIds,
 }: StudyRoomHoverProviderProps) {
 	const [hoveredRoomVariants, setHoveredRoomVariants] = useState<
 		StudyRoomApiEntry[] | null
 	>(null);
 
-	const filteredRoomVariants = useMemo(() => {
-		if (!hoveredRoomVariants) return null;
-
-		return hoveredRoomVariants.map((variant) => ({
-			...variant,
-			slots: variant.slots.filter((slot) => slot.isAvailable),
-		}));
-	}, [hoveredRoomVariants]);
-
-	const cellPreviewByKey = useMemo(
-		() =>
-			buildHoveredRoomPreview(
-				filteredRoomVariants,
+	const buildPreview = useCallback(
+		(variants: StudyRoomApiEntry[] | null) =>
+			buildRoomCellPreview(
+				filterAvailableVariants(variants),
 				fromTimeMinutes,
 				availabilityDates,
 				availabilityTimeBlocks.length,
 				timeZone,
 			),
 		[
-			filteredRoomVariants,
 			fromTimeMinutes,
 			availabilityDates,
 			availabilityTimeBlocks.length,
@@ -175,24 +201,45 @@ export function StudyRoomHoverProvider({
 		],
 	);
 
+	const hoverCellPreviewByKey = useMemo(
+		() => buildPreview(hoveredRoomVariants),
+		[buildPreview, hoveredRoomVariants],
+	);
+
+	const selectedCellPreviewByKey = useMemo(() => {
+		const perRoom = selectedRoomIds.map((roomId) =>
+			buildPreview(rawRoomsByKey.get(roomId) ?? null),
+		);
+		return mergeCellPreviewMaps(perRoom);
+	}, [buildPreview, rawRoomsByKey, selectedRoomIds]);
+
 	const setHoveredRoom = useCallback((variants: StudyRoomApiEntry[] | null) => {
 		setHoveredRoomVariants(variants);
 	}, []);
 
-	const value = useMemo(
-		() => ({
-			cellPreviewByKey,
-			setHoveredRoom,
-		}),
-		[cellPreviewByKey, setHoveredRoom],
-	);
+	const value = useMemo(() => ({ setHoveredRoom }), [setHoveredRoom]);
 
 	return (
 		<StudyRoomHoverContext.Provider value={value}>
-			{children}
+			<StudyRoomPreviewMapsContext.Provider
+				value={{ hoverCellPreviewByKey, selectedCellPreviewByKey }}
+			>
+				{children}
+			</StudyRoomPreviewMapsContext.Provider>
 		</StudyRoomHoverContext.Provider>
 	);
 }
+
+interface StudyRoomPreviewMapsContextValue {
+	hoverCellPreviewByKey: Map<string, HoveredRoomCellPreview>;
+	selectedCellPreviewByKey: Map<string, HoveredRoomCellPreview>;
+}
+
+const StudyRoomPreviewMapsContext =
+	createContext<StudyRoomPreviewMapsContextValue>({
+		hoverCellPreviewByKey: new Map(),
+		selectedCellPreviewByKey: new Map(),
+	});
 
 // Hooks
 
@@ -200,10 +247,23 @@ export function useStudyRoomHover() {
 	return useContext(StudyRoomHoverContext);
 }
 
+export function useRoomCellPreview(
+	dateIndex: number,
+	blockIndex: number,
+): HoveredRoomCellPreview | null {
+	const { hoverCellPreviewByKey, selectedCellPreviewByKey } = useContext(
+		StudyRoomPreviewMapsContext,
+	);
+	const key = generateCellKey(dateIndex, blockIndex);
+	return (
+		hoverCellPreviewByKey.get(key) ?? selectedCellPreviewByKey.get(key) ?? null
+	);
+}
+
+/** @deprecated Use useRoomCellPreview */
 export function useHoveredRoomPreview(
 	dateIndex: number,
 	blockIndex: number,
 ): HoveredRoomCellPreview | null {
-	const { cellPreviewByKey } = useStudyRoomHover();
-	return cellPreviewByKey.get(generateCellKey(dateIndex, blockIndex)) ?? null;
+	return useRoomCellPreview(dateIndex, blockIndex);
 }

@@ -10,9 +10,12 @@ import { GroupAvailability } from "@/components/availability/group-availability"
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
-import { RoomRecommendationSettings } from "@/components/availability/room-recommendations";
 import { ScheduleMeetingSettings } from "@/components/availability/schedule-meeting-settings";
 import { AvailabilityGridJaggedEdges } from "@/components/availability/table/availability-grid-jagged-edges";
+import {
+	groupRawRoomsByKey,
+	RoomRecommendationSettings,
+} from "@/components/availability/room-recommendations";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import { StudyRoomHoverProvider } from "@/components/availability/table/study-room-hover-context";
@@ -220,6 +223,13 @@ export function Availability({
 		showBestRooms: handleShowBestRooms,
 	} = useRoomRecommendations(availabilityDates);
 
+	const [selectedRoomIds, setSelectedRoomIds] = useState<string[]>([]);
+
+	const rawRoomsByKey = useMemo(
+		() => groupRawRoomsByKey(studyRooms),
+		[studyRooms],
+	);
+
 	const handleImportSlotsFromMeeting = useCallback(
 		({
 			meetingAvailabilities,
@@ -408,6 +418,8 @@ export function Availability({
 			availabilityDates={availabilityDates}
 			availabilityTimeBlocks={availabilityTimeBlocks}
 			timeZone={userTimezone}
+			rawRoomsByKey={rawRoomsByKey}
+			selectedRoomIds={selectedRoomIds}
 		>
 			<div className="flex min-h-[80vh] flex-col gap-6">
 				<AvailabilityHeader
@@ -502,6 +514,8 @@ export function Availability({
 									onShowBestRooms={handleShowBestRooms}
 									isLoading={isRoomsLoading}
 									errorMessage={studyRoomsError}
+									selectedRoomIds={selectedRoomIds}
+									onSelectedRoomIdsChange={setSelectedRoomIds}
 								/>
 							</div>
 

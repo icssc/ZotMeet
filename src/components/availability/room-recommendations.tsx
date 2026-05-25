@@ -112,7 +112,7 @@ export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
  * variants of a room to the context at once, enabling correct OR-merge of
  * overlapping sliding-window slots across all booking-length variants.
  */
-function groupRawRoomsByKey(
+export function groupRawRoomsByKey(
 	rooms: StudyRoomApiEntry[],
 ): Map<string, StudyRoomApiEntry[]> {
 	const map = new Map<string, StudyRoomApiEntry[]>();
@@ -415,8 +415,8 @@ export function RoomRecommendationSettings({
 							<div>
 								<Typography variant="h6">Room Results</Typography>
 								<Typography variant="caption" color="textSecondary">
-									Click a chip to highlight a room on the calendar. Hover to
-									preview room availability on the calendar.
+									Click a chip to pin a room on the calendar. Hover to preview
+									without pinning.
 								</Typography>
 							</div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { ScheduledTabOverlay } from "@/components/availability/table/scheduled-tab-overlay";
-import { useHoveredRoomPreview } from "@/components/availability/table/study-room-hover-context";
+import { useRoomCellPreview } from "@/components/availability/table/study-room-hover-context";
 
 export type AvailabilityTabLabel = {
 	title?: string;
@@ -11,14 +11,15 @@ export type AvailabilityTabLabel = {
 
 /**
  * Resolves the navy tab overlay for a grid cell from either a scheduled meeting
- * (passed in) or a hovered study room (from context). Room hover wins when both apply.
+ * (passed in), a clicked/selected study room, or a hovered one (from context).
+ * Hover wins over selected; both win over scheduled.
  */
 export function useAvailabilityTabOverlay(
 	dateIndex: number,
 	blockIndex: number,
 	scheduledTab: AvailabilityTabLabel | null | undefined,
 ): { tab: AvailabilityTabLabel | null; raiseZ: boolean } {
-	const roomPreview = useHoveredRoomPreview(dateIndex, blockIndex);
+	const roomPreview = useRoomCellPreview(dateIndex, blockIndex);
 
 	const roomTab: AvailabilityTabLabel | null = roomPreview?.label
 		? {
@@ -37,7 +38,7 @@ interface AvailabilityTabOverlayProps {
 	tab: AvailabilityTabLabel | null;
 }
 
-/** Navy scheduling tab — shared by scheduled meetings and study-room hover preview. */
+/** Navy scheduling tab — shared by scheduled meetings and study-room preview. */
 export function AvailabilityTabOverlay({ tab }: AvailabilityTabOverlayProps) {
 	if (!tab) {
 		return null;
