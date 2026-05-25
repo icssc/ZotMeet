@@ -2,6 +2,7 @@
 
 import { ScheduledTabOverlay } from "@/components/availability/table/scheduled-tab-overlay";
 import { useRoomCellPreview } from "@/components/availability/table/study-room-hover-context";
+import { cn } from "@/lib/utils";
 
 export type AvailabilityTabLabel = {
 	title?: string;
@@ -10,15 +11,18 @@ export type AvailabilityTabLabel = {
 };
 
 /**
- * Resolves the navy tab overlay for a grid cell from either a scheduled meeting
- * (passed in), a clicked/selected study room, or a hovered one (from context).
- * Hover wins over selected; both win over scheduled.
+ * Resolves navy tab overlays for a grid cell from scheduled meeting (passed in),
+ * a selected study room, or a hovered one (from context).
  */
 export function useAvailabilityTabOverlay(
 	dateIndex: number,
 	blockIndex: number,
 	scheduledTab: AvailabilityTabLabel | null | undefined,
-): { tab: AvailabilityTabLabel | null; raiseZ: boolean } {
+): {
+	roomTab: AvailabilityTabLabel | null;
+	scheduledTab: AvailabilityTabLabel | null;
+	raiseZ: boolean;
+} {
 	const roomPreview = useRoomCellPreview(dateIndex, blockIndex);
 
 	const roomTab: AvailabilityTabLabel | null = roomPreview?.label
@@ -29,23 +33,31 @@ export function useAvailabilityTabOverlay(
 			}
 		: null;
 
-	const tab = roomTab ?? scheduledTab ?? null;
+	const resolvedScheduled = scheduledTab ?? null;
 
-	return { tab, raiseZ: Boolean(tab) };
+	return {
+		roomTab,
+		scheduledTab: resolvedScheduled,
+		raiseZ: Boolean(roomTab || resolvedScheduled),
+	};
 }
 
 interface AvailabilityTabOverlayProps {
-	tab: AvailabilityTabLabel | null;
+	scheduledTab: AvailabilityTabLabel | null;
+	roomTab?: AvailabilityTabLabel | null;
+	/** When true, render both tabs with the meeting block above the room block. */
+	stackScheduleOnTop?: boolean;
 }
 
-/** Navy scheduling tab — shared by scheduled meetings and study-room preview. */
-export function AvailabilityTabOverlay({ tab }: AvailabilityTabOverlayProps) {
-	if (!tab) {
-		return null;
-	}
-
+function TabLayer({
+	tab,
+	className,
+}: {
+	tab: AvailabilityTabLabel;
+	className?: string;
+}) {
 	return (
-		<div className="pointer-events-none absolute inset-0 z-[1]">
+		<div className={cn("pointer-events-none absolute inset-0", className)}>
 			<ScheduledTabOverlay
 				title={tab.title}
 				timeRange={tab.timeRange}
@@ -53,6 +65,32 @@ export function AvailabilityTabOverlay({ tab }: AvailabilityTabOverlayProps) {
 			/>
 		</div>
 	);
+}
+
+/** Navy scheduling tab — shared by scheduled meetings and study-room preview. */
+export function AvailabilityTabOverlay({
+	scheduledTab,
+	roomTab = null,
+	stackScheduleOnTop = false,
+}: AvailabilityTabOverlayProps) {
+	if (stackScheduleOnTop && scheduledTab && roomTab) {
+		return (
+			<>
+				<TabLayer tab={roomTab} className="z-[5]" />
+				<TabLayer tab={scheduledTab} className="z-[10]" />
+			</>
+		);
+	}
+
+	const tab = stackScheduleOnTop
+		? (scheduledTab ?? roomTab)
+		: (roomTab ?? scheduledTab);
+
+	if (!tab) {
+		return null;
+	}
+
+	return <TabLayer tab={tab} className="z-[1]" />;
 }
 
 interface AvailabilityTabOverlayCellProps {
@@ -67,10 +105,12 @@ export function AvailabilityTabOverlayCell({
 	blockIndex,
 	scheduledTab = null,
 }: AvailabilityTabOverlayCellProps) {
-	const { tab } = useAvailabilityTabOverlay(
-		dateIndex,
-		blockIndex,
-		scheduledTab,
+	const { roomTab, scheduledTab: resolvedScheduled } =
+		useAvailabilityTabOverlay(dateIndex, blockIndex, scheduledTab);
+	return (
+		<AvailabilityTabOverlay
+			scheduledTab={resolvedScheduled}
+			roomTab={roomTab}
+		/>
 	);
-	return <AvailabilityTabOverlay tab={tab} />;
 }

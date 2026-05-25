@@ -33,6 +33,7 @@ interface GroupAvailabilityBlockProps {
 	scheduledTimeRange?: string;
 	scheduledBlockCount?: number;
 	selectionEdges?: SelectionEdges | null;
+	isScheduling?: boolean;
 	dateIndex: number;
 	blockIndex: number;
 }
@@ -63,6 +64,7 @@ export const GroupAvailabilityBlock = memo(
 		scheduledTimeRange,
 		scheduledBlockCount = 1,
 		selectionEdges = null,
+		isScheduling = false,
 		dateIndex,
 		blockIndex,
 	}: GroupAvailabilityBlockProps) => {
@@ -75,11 +77,11 @@ export const GroupAvailabilityBlock = memo(
 					}
 				: null;
 
-		const { tab, raiseZ } = useAvailabilityTabOverlay(
-			dateIndex,
-			blockIndex,
-			scheduledTab,
-		);
+		const {
+			roomTab,
+			scheduledTab: resolvedScheduledTab,
+			raiseZ,
+		} = useAvailabilityTabOverlay(dateIndex, blockIndex, scheduledTab);
 
 		const onMouseEnter = useMemo(
 			() =>
@@ -127,7 +129,11 @@ export const GroupAvailabilityBlock = memo(
 						/>
 					)}
 				</div>
-				<AvailabilityTabOverlay tab={tab} />
+				<AvailabilityTabOverlay
+					scheduledTab={resolvedScheduledTab}
+					roomTab={roomTab}
+					stackScheduleOnTop={isScheduling}
+				/>
 				{selectionEdges && (
 					<div
 						aria-hidden="true"
