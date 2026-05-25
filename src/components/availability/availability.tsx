@@ -453,7 +453,10 @@ export function Availability({
 									}}
 								/>
 
-								<tbody onMouseLeave={handleMouseLeave}>
+								<tbody
+									className="bg-stripes-primary"
+									onMouseLeave={handleMouseLeave}
+								>
 									{availabilityView === "group" ||
 									availabilityView === "schedule" ? (
 										<GroupAvailability
