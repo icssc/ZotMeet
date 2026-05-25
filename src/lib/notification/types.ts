@@ -3,6 +3,7 @@ export const NOTIFICATION_TYPES = {
 	MEETING_INVITE: "Meeting Invite",
 	GROUP_INVITE: "Group Invite",
 	NUDGE: "Nudge",
+	MEETING_SCHEDULED: "Meeting Scheduled",
 } as const;
 
 export type PreferenceGatedNotificationType =

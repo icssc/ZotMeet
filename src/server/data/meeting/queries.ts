@@ -18,6 +18,7 @@ import {
 	members,
 	type SelectMeeting,
 	scheduledMeetings,
+	users,
 } from "@/db/schema";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 
@@ -250,6 +251,28 @@ export async function getScheduledTimeBlocks(meetingId: string) {
 	}
 
 	return rows; // array of scheduled blocks
+}
+
+/**
+ * Returns auth user IDs for all members with an availability row for the meeting,
+ * excluding the host. Used to send notifications when a meeting is scheduled.
+ */
+export async function getMeetingResponderUserIds(
+	meetingId: string,
+	hostMemberId: string,
+): Promise<string[]> {
+	const rows = await db
+		.select({ userId: users.id })
+		.from(availabilities)
+		.innerJoin(users, eq(users.memberId, availabilities.memberId))
+		.where(
+			and(
+				eq(availabilities.meetingId, meetingId),
+				ne(availabilities.memberId, hostMemberId),
+			),
+		);
+
+	return rows.map((r) => r.userId);
 }
 
 /** Non-archived meetings the member has availability for, excluding one meeting (e.g. current poll). */
