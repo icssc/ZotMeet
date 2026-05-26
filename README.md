@@ -143,9 +143,9 @@ through [PWA Builder](https://www.pwabuilder.com/).
 ### Configuring the production URL
 
 PWA Builder requires the manifest's URLs to be absolute and reachable over
-HTTPS. Set `NEXT_PUBLIC_APP_URL` in your deployed environment to the canonical
-production URL (e.g. `https://zotmeet.com`). It is consumed by Open Graph,
-robots, and sitemap metadata.
+HTTPS. Deployments set `NEXT_PUBLIC_BASE_URL` per stage in `sst.config.ts`
+(e.g. `https://zotmeet.com` in production). That same variable drives Open
+Graph, robots, sitemap, and invite/email links.
 
 ### Packaging for the iOS App Store
 

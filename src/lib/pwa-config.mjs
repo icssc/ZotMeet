@@ -17,7 +17,20 @@ export const APP_NAME = "ZotMeet";
 export const APP_DESCRIPTION =
 	"ZotMeet is a simple, clean, and efficient meeting scheduling app for UCI students and groups.";
 
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://zotmeet.com";
+/**
+ * Canonical public origin for metadata, sitemap, and store manifests.
+ * Prefer `NEXT_PUBLIC_BASE_URL` (set per-stage in `sst.config.ts`); fall back to
+ * `NEXT_PUBLIC_APP_URL` for local overrides; then localhost for dev.
+ */
+function resolveAppUrl() {
+	const raw =
+		process.env.NEXT_PUBLIC_BASE_URL?.trim() ||
+		process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+		"http://localhost:3000";
+	return raw.replace(/\/$/, "");
+}
+
+export const APP_URL = resolveAppUrl();
 
 /**
  * iOS bundle ID for the App Store wrapper generated via PWA Builder.
