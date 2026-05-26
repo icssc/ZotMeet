@@ -132,7 +132,7 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			window.history.replaceState({}, "", currentUrl.toString());
 
 			// Redirect to auth.
-			window.location.href = "/auth/login/google";
+			window.location.href = "/auth/login";
 			return;
 		}
 

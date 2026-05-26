@@ -1,12 +1,14 @@
-import { Dialog, DialogContent, DialogTitle } from "@mui/material";
-import { GoogleButton } from "@/components/auth/google-button";
+import { Box, Dialog, DialogContent, DialogTitle } from "@mui/material";
+import { SignInButtons } from "@/components/auth/sign-in-buttons";
 
 export function AuthDialog() {
 	return (
 		<Dialog open>
 			<DialogTitle>Sign In</DialogTitle>
 			<DialogContent>
-				<GoogleButton />
+				<Box sx={{ pt: 1, minWidth: 280 }}>
+					<SignInButtons />
+				</Box>
 			</DialogContent>
 		</Dialog>
 	);

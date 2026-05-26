@@ -1,18 +1,5 @@
 import { NextResponse } from "next/server";
 
-/**
- * Apple App Site Association (AASA) file.
- *
- * Served at `https://zotmeet.com/.well-known/apple-app-site-association`
- * (via a rewrite in `next.config.mjs`). Apple's CDN fetches this to:
- *
- * 1. Authorize the ZotMeet iOS app to claim Universal Links for the
- *    `/auth/login/google/callback/native` path — the OAuth redirect URI that
- *    the iOS wrapper hands to `ASWebAuthenticationSession` as its HTTPS callback
- *    (see `ios/src/ZotMeet/ViewController.swift`).
- * 2. Authorize shared web credentials for passkey autofill.
- */
-
 const TEAM_ID = "66682RDDDK";
 
 const BUNDLE_IDS: readonly string[] = ["com.zotmeet"];
@@ -27,7 +14,13 @@ const aasa = {
 				components: [
 					{
 						"/": "/auth/login/google/callback/native",
-						comment: "ZotMeet iOS OAuth callback (ASWebAuthenticationSession)",
+						comment:
+							"ZotMeet iOS Google OAuth callback (ASWebAuthenticationSession)",
+					},
+					{
+						"/": "/auth/login/apple/callback/native",
+						comment:
+							"ZotMeet iOS Apple OAuth callback (ASWebAuthenticationSession)",
 					},
 				],
 			},

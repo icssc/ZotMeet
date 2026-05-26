@@ -17,7 +17,7 @@ export default async function Page(props: PageProps) {
 
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/auth/login/google");
+		redirect("/auth/login");
 	}
 
 	let invite: SelectGroupInvite;

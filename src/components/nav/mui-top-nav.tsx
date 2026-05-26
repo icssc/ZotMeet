@@ -283,7 +283,7 @@ function NavUser({ user }: { user: UserProfile | null }) {
 		return (
 			<Button
 				component="a"
-				href="/auth/login/google"
+				href="/auth/login"
 				startIcon={<Login />}
 				sx={{
 					color: "text.primary",

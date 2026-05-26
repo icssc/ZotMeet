@@ -127,7 +127,7 @@ function NavUser({ user }: { user: UserProfile | null }) {
 			<MuiSidebarMenuItem>
 				<MuiSidebarMenuButton
 					component="a"
-					href="/auth/login/google"
+					href="/auth/login"
 					tooltip="Sign In"
 				>
 					<MuiSidebarMenuIcon>

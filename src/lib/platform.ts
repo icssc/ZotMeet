@@ -1,3 +1,5 @@
+import type { OAuthLoginProvider } from "@/lib/auth/providers";
+
 const NATIVE_IOS_COOKIE = "app-platform=iOS App Store";
 
 export function isNativeIosApp(): boolean {
@@ -20,10 +22,16 @@ export function isNativeIosAppFromCookies(cookieStore: CookieReader): boolean {
  * OAuth redirect URI for sign-in inside the native iOS wrapper.
  *
  * Universal Link backed by the AASA file at
- * https://zotmeet.com/.well-known/apple-app-site-association. ASWebAuthenticationSession
- * (iOS 17.4+) matches this callback via AASA, so only the ZotMeet iOS binary can
- * receive it.
+ * https://zotmeet.com/.well-known/apple-app-site-association.
  */
+export function getNativeIosCallbackRedirectUri(
+	baseUrl: string,
+	provider: OAuthLoginProvider,
+): string {
+	return `${baseUrl}/auth/login/${provider}/callback/native`;
+}
+
+/** @deprecated Use getNativeIosCallbackRedirectUri("google") */
 export function getNativeIosRedirectUri(baseUrl: string) {
-	return `${baseUrl}/auth/login/google/callback/native`;
+	return getNativeIosCallbackRedirectUri(baseUrl, "google");
 }

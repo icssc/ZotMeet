@@ -3,5 +3,5 @@ import { handleOAuthCallback } from "@/lib/auth/handle-oauth-callback";
 
 export async function GET(request: Request): Promise<Response> {
 	const cookieStore = await cookies();
-	return handleOAuthCallback(request, "google", cookieStore);
+	return handleOAuthCallback(request, "apple", cookieStore);
 }

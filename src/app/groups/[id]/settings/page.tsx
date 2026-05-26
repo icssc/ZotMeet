@@ -26,7 +26,7 @@ export default async function GroupSettingsPage(props: PageProps) {
 
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/auth/login/google");
+		redirect("/auth/login");
 	}
 
 	const group = await getExistingGroup(id).catch(() => null);

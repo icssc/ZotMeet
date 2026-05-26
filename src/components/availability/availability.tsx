@@ -11,8 +11,8 @@ import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { RoomRecommendationSettings } from "@/components/availability/room-recommendations";
-import { AvailabilityGridJaggedEdges } from "@/components/availability/table/availability-grid-jagged-edges";
 import { ScheduleMeetingSettings } from "@/components/availability/schedule-meeting-settings";
+import { AvailabilityGridJaggedEdges } from "@/components/availability/table/availability-grid-jagged-edges";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import { InviteMembersDialog } from "@/components/groups/add-member-dialog";
@@ -385,7 +385,7 @@ export function Availability({
 
 	const handleMobileAddAvailability = useCallback(() => {
 		if (!user) {
-			router.push("/auth/login/google");
+			router.push("/auth/login");
 			return;
 		}
 		setChangeableTimezone(false);

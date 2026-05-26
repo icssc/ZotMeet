@@ -7,7 +7,7 @@ import { getNotificationsByMemberId } from "@/server/data/user/queries";
 export default async function Page() {
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/auth/login/google");
+		redirect("/auth/login");
 	}
 
 	const memberId = session.user.memberId;

@@ -201,7 +201,7 @@ export function AvailabilityActions({
 							sx={{ py: 0.75 }}
 							onClick={() => {
 								if (!user) {
-									router.push("/auth/login/google");
+									router.push("/auth/login");
 									return;
 								}
 								setChangeableTimezone(false);

@@ -9,7 +9,7 @@ import { getNotificationPreferences } from "@/server/data/user/queries";
 export default async function ProfilePage() {
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/auth/login/google");
+		redirect("/auth/login");
 	}
 
 	if (!session.user.memberId) {

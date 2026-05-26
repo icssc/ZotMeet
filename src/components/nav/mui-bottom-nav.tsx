@@ -25,7 +25,7 @@ export function MuiBottomNav({ user }: { user: UserProfile | null }) {
 		{ label: "Rooms", value: "/studyrooms", icon: Apartment },
 		user
 			? { label: "Profile", value: "/profile", icon: Person }
-			: { label: "Sign In", value: "/auth/login/google", icon: Login },
+			: { label: "Sign In", value: "/auth/login", icon: Login },
 	];
 
 	return (
