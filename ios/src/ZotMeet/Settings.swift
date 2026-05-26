@@ -10,14 +10,31 @@ let gcmMessageIDKey = "00000000000" // update this with actual ID if using Fireb
 // URL for first launch
 let rootUrl = URL(string: "https://zotmeet.com")!
 
-// allowed origin is for what we are sticking to pwa domain
+// allowed origin is for what we are sticking to the web app domain
 // This should also appear in Info.plist
 let allowedOrigins: [String] = ["zotmeet.com"]
 
-// auth origins will open in modal and show toolbar for back into the main origin.
-// These should also appear in Info.plist
-let authOrigins: [String] = []
-// allowedOrigins + authOrigins <= 10
+// IdP host for ICSSC. Not every path on this host should use ASWebAuthenticationSession —
+// only interactive OAuth/OIDC *authorize* requests. See
+// `shouldHandOffOidcToASWebAuthenticationSession(_:)`.
+let authOrigins: [String] = ["auth.icssc.club"]
+
+/// `true` only for URLs that must run in a real Safari context (Google OAuth, passkeys).
+/// `/logout` and other IdP pages load in the WKWebView so `post_logout_redirect_uri` works
+/// and users don't see a bogus "sign in" sheet on logout.
+func shouldHandOffOidcToASWebAuthenticationSession(_ url: URL) -> Bool {
+    guard let host = url.host else { return false }
+    guard authOrigins.contains(where: { host.range(of: $0) != nil }) else { return false }
+    guard url.path.hasPrefix("/authorize") else { return false }
+
+    let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+    let prompt = components?.queryItems?.first(where: { $0.name == "prompt" })?.value
+    if prompt == "none" {
+        return false
+    }
+
+    return true
+}
 
 let platformCookie = Cookie(name: "app-platform", value: "iOS App Store")
 

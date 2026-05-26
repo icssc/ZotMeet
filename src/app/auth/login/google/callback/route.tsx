@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { db } from "@/db";
 import { members, oauthAccounts } from "@/db/schema";
 import { setSessionTokenCookie } from "@/lib/auth/cookies";
-import { oauth } from "@/lib/auth/oauth";
+import { getOAuthClient } from "@/lib/auth/oauth";
 import { createSession, generateSessionToken } from "@/lib/auth/session";
 import { createGoogleUser, generateUsername } from "@/lib/auth/user";
 import {
@@ -25,10 +25,14 @@ export async function GET(request: Request): Promise<Response> {
 	const storedState = cookieStore.get("oauth_state")?.value ?? null;
 	const codeVerifier = cookieStore.get("oauth_code_verifier")?.value ?? null;
 	const redirectUrl = cookieStore.get("auth_redirect_url")?.value ?? "/";
+	const oauthRedirectUri =
+		cookieStore.get("oauth_redirect_uri")?.value ??
+		process.env.GOOGLE_OAUTH_REDIRECT_URI!;
 
 	cookieStore.delete("auth_redirect_url");
 	cookieStore.delete("oauth_state");
 	cookieStore.delete("oauth_code_verifier");
+	cookieStore.delete("oauth_redirect_uri");
 
 	if (
 		code === null ||
@@ -48,7 +52,7 @@ export async function GET(request: Request): Promise<Response> {
 
 	let tokens: OAuth2Tokens;
 	try {
-		tokens = await oauth.validateAuthorizationCode(
+		tokens = await getOAuthClient(oauthRedirectUri).validateAuthorizationCode(
 			"https://auth.icssc.club/token",
 			code,
 			codeVerifier,

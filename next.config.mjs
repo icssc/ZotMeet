@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	serverExternalPackages: ["@node-rs/argon2"],
+	async rewrites() {
+		return [
+			{
+				source: "/.well-known/apple-app-site-association",
+				destination: "/apple-app-site-association",
+			},
+		];
+	},
 	async headers() {
 		return [
 			// Security headers required/recommended by PWA Builder and Apple's
