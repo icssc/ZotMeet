@@ -62,6 +62,7 @@ const toCard = (
 	memberId: string,
 	meetingCounts: Record<string, number>,
 	onDeleteLeave: (target: DeleteTarget) => void,
+	isPast?: boolean,
 	scheduledLabels?: Record<string, string>,
 	upcomingSet?: Set<string>,
 ) => {
@@ -81,6 +82,7 @@ const toCard = (
 			needsAvailability={meeting.needsAvailability}
 			allAvailabilityFilled={meeting.allAvailabilityFilled}
 			isUpcoming={upcomingSet?.has(meeting.id) ?? false}
+			isPast={isPast}
 			onDeleteLeave={() =>
 				onDeleteLeave({ meeting, isOwner: cardProps.isOwner })
 			}
@@ -212,6 +214,7 @@ export const Meetings = ({
 						memberId,
 						meetingCounts,
 						handleDeleteLeaveRequest,
+						activeFilter === "past",
 						scheduledLabels,
 						upcomingSet,
 					),

@@ -26,6 +26,7 @@ interface MeetingCardProps extends MeetingCardViewModel {
 	needsAvailability?: boolean;
 	allAvailabilityFilled?: boolean;
 	isUpcoming?: boolean;
+	isPast?: boolean;
 }
 
 const metaIconSx = { fontSize: 16, color: "text.secondary", flexShrink: 0 };
@@ -78,6 +79,7 @@ const MeetingCard = ({
 	needsAvailability = false,
 	allAvailabilityFilled = false,
 	isUpcoming = false,
+	isPast = false,
 }: MeetingCardProps) => {
 	const menuId = useId();
 	const { label: actionLabel, Icon, menuColor } = getDeleteLeaveAction(isOwner);
@@ -95,15 +97,17 @@ const MeetingCard = ({
 		onDeleteLeave?.();
 	};
 
-	const variant = needsAvailability
-		? "action-required"
-		: !scheduled && allAvailabilityFilled && isOwner
-			? "schedule-alert"
-			: scheduled && isUpcoming
-				? "upcoming"
-				: scheduled
-					? "scheduled"
-					: "default";
+	const variant = isPast
+		? "default"
+		: needsAvailability
+			? "action-required"
+			: !scheduled && allAvailabilityFilled && isOwner
+				? "schedule-alert"
+				: scheduled && isUpcoming
+					? "upcoming"
+					: scheduled
+						? "scheduled"
+						: "default";
 
 	const cardContent = (
 		<CardContent
