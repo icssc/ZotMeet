@@ -241,11 +241,14 @@ export function StudyRoomHoverProvider({
 
 	const value = useMemo(() => ({ setHoveredRoom }), [setHoveredRoom]);
 
+	const previewMapsValue = useMemo(
+		() => ({ hoverCellPreviewByKey, selectedCellPreviewByKey }),
+		[hoverCellPreviewByKey, selectedCellPreviewByKey],
+	);
+
 	return (
 		<StudyRoomHoverContext.Provider value={value}>
-			<StudyRoomPreviewMapsContext.Provider
-				value={{ hoverCellPreviewByKey, selectedCellPreviewByKey }}
-			>
+			<StudyRoomPreviewMapsContext.Provider value={previewMapsValue}>
 				{children}
 			</StudyRoomPreviewMapsContext.Provider>
 		</StudyRoomHoverContext.Provider>
