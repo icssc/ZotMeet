@@ -298,8 +298,6 @@ const MeetingCard = ({
 				sx={{
 					display: "flex",
 					flexDirection: "column",
-					borderBottomLeftRadius: 0,
-					borderBottomRightRadius: 0,
 				}}
 			>
 				{cardContent}
