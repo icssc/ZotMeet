@@ -272,6 +272,10 @@ export function useStudyRoomHover() {
 	return useContext(StudyRoomHoverContext);
 }
 
+export function useStudyRoomPreviewMaps() {
+	return useContext(StudyRoomPreviewMapsContext);
+}
+
 export function useRoomCellPreview(
 	dateIndex: number,
 	blockIndex: number,

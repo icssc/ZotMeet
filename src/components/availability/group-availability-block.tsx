@@ -77,11 +77,8 @@ export const GroupAvailabilityBlock = memo(
 					}
 				: null;
 
-		const {
-			roomTab,
-			scheduledTab: resolvedScheduledTab,
-			raiseZ,
-		} = useAvailabilityTabOverlay(dateIndex, blockIndex, scheduledTab);
+		const { roomTab, scheduledTab: resolvedScheduledTab } =
+			useAvailabilityTabOverlay(dateIndex, blockIndex, scheduledTab);
 
 		const onMouseEnter = useMemo(
 			() =>
@@ -95,9 +92,8 @@ export const GroupAvailabilityBlock = memo(
 				type="button"
 				tabIndex={0}
 				className={cn(
-					"relative h-full w-full select-none border-gray-medium border-r-[1px] [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [touch-action:pan-x_pan-y]",
+					"relative isolate h-full w-full select-none border-gray-medium border-r-[1px] [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [touch-action:pan-x_pan-y]",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
-					raiseZ && "z-[1]",
 					tableCellStyles,
 					className,
 				)}
@@ -111,7 +107,7 @@ export const GroupAvailabilityBlock = memo(
 				data-block-index={blockIndex}
 			>
 				<div
-					className="pointer-events-none relative block h-full w-full py-2"
+					className="pointer-events-none relative z-0 block h-full w-full py-2"
 					data-date-index={dateIndex}
 					data-block-index={blockIndex}
 				>
@@ -132,13 +128,12 @@ export const GroupAvailabilityBlock = memo(
 				<AvailabilityTabOverlay
 					scheduledTab={resolvedScheduledTab}
 					roomTab={roomTab}
-					stackScheduleOnTop={isScheduling}
 				/>
 				{selectionEdges && (
 					<div
 						aria-hidden="true"
 						className={cn(
-							"pointer-events-none absolute inset-0 border-slate-medium border-dashed",
+							"pointer-events-none absolute inset-0 z-30 border-slate-medium border-dashed",
 							selectionEdges.top && SELECTION_EDGE_WIDTH.top,
 							selectionEdges.bottom && SELECTION_EDGE_WIDTH.bottom,
 							selectionEdges.left && SELECTION_EDGE_WIDTH.left,

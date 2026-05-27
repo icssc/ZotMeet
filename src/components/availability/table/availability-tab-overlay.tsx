@@ -10,6 +10,12 @@ export type AvailabilityTabLabel = {
 	blockCount: number;
 };
 
+/** z-index layers within a grid cell (bottom → top). */
+export const TAB_LAYER_Z = {
+	room: "z-10",
+	schedule: "z-20",
+} as const;
+
 /**
  * Resolves navy tab overlays for a grid cell from scheduled meeting (passed in),
  * a selected study room, or a hovered one (from context).
@@ -21,7 +27,6 @@ export function useAvailabilityTabOverlay(
 ): {
 	roomTab: AvailabilityTabLabel | null;
 	scheduledTab: AvailabilityTabLabel | null;
-	raiseZ: boolean;
 } {
 	const roomPreview = useRoomCellPreview(dateIndex, blockIndex);
 
@@ -38,15 +43,12 @@ export function useAvailabilityTabOverlay(
 	return {
 		roomTab,
 		scheduledTab: resolvedScheduled,
-		raiseZ: Boolean(roomTab || resolvedScheduled),
 	};
 }
 
 interface AvailabilityTabOverlayProps {
 	scheduledTab: AvailabilityTabLabel | null;
 	roomTab?: AvailabilityTabLabel | null;
-	/** When true, render both tabs with the meeting block above the room block. */
-	stackScheduleOnTop?: boolean;
 }
 
 function TabLayer({
@@ -67,30 +69,35 @@ function TabLayer({
 	);
 }
 
-/** Navy scheduling tab — shared by scheduled meetings and study-room preview. */
+/**
+ * Renders study-room and/or scheduled-meeting navy tabs.
+ * Layer order (bottom → top): room preview, then scheduled meeting.
+ */
 export function AvailabilityTabOverlay({
 	scheduledTab,
 	roomTab = null,
-	stackScheduleOnTop = false,
 }: AvailabilityTabOverlayProps) {
-	if (stackScheduleOnTop && scheduledTab && roomTab) {
+	if (scheduledTab && roomTab) {
 		return (
 			<>
-				<TabLayer tab={roomTab} className="z-[5]" />
-				<TabLayer tab={scheduledTab} className="z-[10]" />
+				<TabLayer tab={roomTab} className={TAB_LAYER_Z.room} />
+				<TabLayer tab={scheduledTab} className={TAB_LAYER_Z.schedule} />
 			</>
 		);
 	}
 
-	const tab = stackScheduleOnTop
-		? (scheduledTab ?? roomTab)
-		: (roomTab ?? scheduledTab);
+	const tab = scheduledTab ?? roomTab;
 
 	if (!tab) {
 		return null;
 	}
 
-	return <TabLayer tab={tab} className="z-[1]" />;
+	return (
+		<TabLayer
+			tab={tab}
+			className={scheduledTab ? TAB_LAYER_Z.schedule : TAB_LAYER_Z.room}
+		/>
+	);
 }
 
 interface AvailabilityTabOverlayCellProps {
@@ -99,7 +106,7 @@ interface AvailabilityTabOverlayCellProps {
 	scheduledTab?: AvailabilityTabLabel | null;
 }
 
-/** Convenience wrapper when the parent does not need `raiseZ` for layout. */
+/** Convenience wrapper for personal view cells (room preview only). */
 export function AvailabilityTabOverlayCell({
 	dateIndex,
 	blockIndex,

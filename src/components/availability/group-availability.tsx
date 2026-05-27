@@ -10,6 +10,7 @@ import {
 } from "@/components/availability/group-availability-block";
 import type { GridCellHandlers } from "@/components/availability/table/availability-block-cell";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
+import { useStudyRoomPreviewMaps } from "@/components/availability/table/study-room-hover-context";
 import { applyScheduleSelection } from "@/lib/availability/schedule-selection";
 import {
 	formatScheduledTimeRange,
@@ -274,6 +275,8 @@ export function GroupAvailability({
 
 	const spacers = spacerBeforeDate(currentPageAvailability.availabilities);
 	const lastRowIndex = availabilityTimeBlocks.length - 1;
+	const { hoverCellPreviewByKey, selectedCellPreviewByKey } =
+		useStudyRoomPreviewMaps();
 
 	return (
 		<>
@@ -382,6 +385,19 @@ export function GroupAvailability({
 									isHalfHour && !fill.stripes && "bg-paper",
 								);
 
+								const cellKey = generateCellKey(zotDateIndex, blockIndex);
+								const roomPreview =
+									hoverCellPreviewByKey.get(cellKey) ??
+									selectedCellPreviewByKey.get(cellKey) ??
+									null;
+								const isRoomTopEdge = Boolean(roomPreview?.edges.top);
+								const isRoomCovered = Boolean(roomPreview);
+								const hasOverlayStack =
+									isTopEdge ||
+									isRoomTopEdge ||
+									blockIsScheduled ||
+									isRoomCovered;
+
 								return (
 									<Fragment key={key}>
 										{spacers[pageDateIndex] && (
@@ -390,7 +406,15 @@ export function GroupAvailability({
 										<td
 											className={cn(
 												"px-0 py-0",
-												isTopEdge && "relative z-[200]",
+												hasOverlayStack && "overflow-visible",
+												// Schedule layers above room layers; both above availability fill.
+												isTopEdge && "relative z-40",
+												blockIsScheduled && !isTopEdge && "relative z-30",
+												isRoomTopEdge && !blockIsScheduled && "relative z-20",
+												isRoomCovered &&
+													!isRoomTopEdge &&
+													!blockIsScheduled &&
+													"relative z-10",
 											)}
 										>
 											<GroupAvailabilityBlock
