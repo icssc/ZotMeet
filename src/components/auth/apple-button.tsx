@@ -15,10 +15,17 @@ export function AppleButton() {
 				fullWidth
 				startIcon={<AppleIcon />}
 				sx={{
+					boxShadow: "none",
 					backgroundColor: isDark ? "#fff" : "#000",
 					color: isDark ? "#000" : "#fff",
 					"&:hover": {
 						backgroundColor: isDark ? "#f5f5f5" : "#1a1a1a",
+						transform: "none",
+						boxShadow: "none",
+					},
+					"&:active": {
+						transform: "none",
+						boxShadow: "none",
 					},
 				}}
 			>

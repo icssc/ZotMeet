@@ -18,10 +18,18 @@ import {
 type CookieStore = Awaited<ReturnType<typeof cookies>>;
 type HeaderStore = Awaited<ReturnType<typeof headers>>;
 
+function safeReturnTo(value: string | null | undefined): string | null {
+	if (!value || !value.startsWith("/") || value.startsWith("//")) {
+		return null;
+	}
+	return value;
+}
+
 export async function startOAuthLogin(
 	provider: OAuthLoginProvider,
 	cookieStore: CookieStore,
 	headersList: HeaderStore,
+	returnTo?: string | null,
 ): Promise<Response> {
 	const config = OAUTH_LOGIN_CONFIG[provider];
 	const state = generateState();
@@ -57,9 +65,10 @@ export async function startOAuthLogin(
 	cookieStore.set("oauth_code_verifier", codeVerifier, cookieOptions);
 	cookieStore.set("oauth_redirect_uri", redirectUri, cookieOptions);
 
-	const referer = headersList.get("referer");
-	if (referer) {
-		cookieStore.set("auth_redirect_url", referer, cookieOptions);
+	const redirectAfterAuth =
+		safeReturnTo(returnTo) ?? safeReturnTo(headersList.get("referer"));
+	if (redirectAfterAuth) {
+		cookieStore.set("auth_redirect_url", redirectAfterAuth, cookieOptions);
 	}
 
 	return new Response(null, {

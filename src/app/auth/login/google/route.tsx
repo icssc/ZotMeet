@@ -1,9 +1,9 @@
 import { cookies, headers } from "next/headers";
-import { handleOAuthCallback } from "@/lib/auth/handle-oauth-callback";
 import { startOAuthLogin } from "@/lib/auth/start-oauth-login";
 
-export async function GET(): Promise<Response> {
+export async function GET(request: Request): Promise<Response> {
 	const cookieStore = await cookies();
 	const headersList = await headers();
-	return startOAuthLogin("google", cookieStore, headersList);
+	const returnTo = new URL(request.url).searchParams.get("returnTo");
+	return startOAuthLogin("google", cookieStore, headersList, returnTo);
 }

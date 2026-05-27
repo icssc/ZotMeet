@@ -1,5 +1,6 @@
 "use client";
 
+import { needsGoogleCalendarConnect } from "@actions/auth/google-calendar/action";
 import {
 	getImportableMeetings,
 	getUserAvailabilityForMeeting,
@@ -19,6 +20,8 @@ import {
 	Switch,
 	Typography,
 } from "@mui/material";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { PersonalPaintModeToggle } from "@/components/nav/personal-paint-mode-toggle";
 import { filterTimestampsToMeetingGrid } from "@/lib/availability/utils";
@@ -101,6 +104,8 @@ export function PersonalAvailabilitySidebar({
 	layout,
 	onRequestClose,
 }: PersonalAvailabilitySidebarProps) {
+	const pathname = usePathname();
+	const [showGoogleConnect, setShowGoogleConnect] = useState(false);
 	const [importableMeetings, setImportableMeetings] = useState<
 		RespondedMeeting[]
 	>([]);
@@ -117,6 +122,10 @@ export function PersonalAvailabilitySidebar({
 	useEffect(() => {
 		availabilityCache.current.clear();
 	}, [meetingId]);
+
+	useEffect(() => {
+		void needsGoogleCalendarConnect().then(setShowGoogleConnect);
+	}, []);
 
 	useEffect(() => {
 		void getImportableMeetings(meetingId, userTimezone).then((result) => {
@@ -341,7 +350,23 @@ export function PersonalAvailabilitySidebar({
 							</Stack>
 						</AccordionSummary>
 						<AccordionDetails sx={{ pt: 0 }}>
-							{googleCalendars.length === 0 ? (
+							{showGoogleConnect ? (
+								<Stack spacing={1}>
+									<Typography variant="caption" color="textSecondary">
+										Connect Google Calendar to overlay your events while
+										scheduling.
+									</Typography>
+									<Button
+										component={Link}
+										href={`/auth/login/google?returnTo=${encodeURIComponent(pathname)}`}
+										variant="outlined"
+										size="small"
+										fullWidth
+									>
+										Connect Google Calendar
+									</Button>
+								</Stack>
+							) : googleCalendars.length === 0 ? (
 								<Typography variant="caption" color="textSecondary">
 									No Google Calendars connected.
 								</Typography>
