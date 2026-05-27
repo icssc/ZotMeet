@@ -1,6 +1,7 @@
 import type React from "react";
 import { memo } from "react";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
+import { AvailabilityTabOverlayCell } from "@/components/availability/table/availability-tab-overlay";
 import { GoogleCalendarEventBlock } from "@/components/availability/table/google-calendar-event-block";
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import {
@@ -105,6 +106,10 @@ export const AvailabilityBlockCell = memo(function AvailabilityBlockCell({
 			<GoogleCalendarEventBlock
 				eventSegments={eventSegments}
 				rendersOverPrimary={isAvailable}
+			/>
+			<AvailabilityTabOverlayCell
+				dateIndex={zotDateIndex}
+				blockIndex={blockIndex}
 			/>
 		</td>
 	);

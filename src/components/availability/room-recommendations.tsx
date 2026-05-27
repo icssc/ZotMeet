@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import { ChevronDownIcon, ChevronUpIcon, SparklesIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
+import { useStudyRoomHover } from "@/components/availability/table/study-room-hover-context";
 import type { paths } from "@/lib/types/anteater-api-types";
 import {
 	BUILDINGS,
@@ -32,8 +33,6 @@ interface RoomResult {
 	location: string;
 	capacity: number | null;
 	description: string | null;
-	// Not currently surfaced as a filter; kept on the result so a future
-	// "tech-enhanced" filter has the data without another deduplication pass.
 	techEnhanced: boolean | null;
 	durations: MeetingLength[];
 }
@@ -47,9 +46,14 @@ function dedupeKey(name: string, location: string): string {
 	return `${baseName}|${location}`;
 }
 
-// Collapse multiple duration variants of the same physical room into one entry.
-// The variant with the most available slots wins so the displayed metadata
-// reflects the most useful option; remaining variants only contribute durations.
+/**
+ * Collapses all duration variants (1h, 2h, 3h) of the same physical room into
+ * one display entry.
+ *
+ * Availability is intentionally NOT computed here — the context's
+ * buildUnavailableKeys handles that directly from the raw slots, correctly
+ * OR-merging overlapping sliding-window slots across all variants.
+ */
 export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 	type Entry = RoomResult & { availableCount: number };
 	const seen = new Map<string, Entry>();
@@ -101,6 +105,27 @@ export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 	}
 
 	return Array.from(seen.values());
+}
+
+/**
+ * Groups raw API entries by dedup key so the hover handler passes all duration
+ * variants of a room to the context at once, enabling correct OR-merge of
+ * overlapping sliding-window slots across all booking-length variants.
+ */
+export function groupRawRoomsByKey(
+	rooms: StudyRoomApiEntry[],
+): Map<string, StudyRoomApiEntry[]> {
+	const map = new Map<string, StudyRoomApiEntry[]>();
+	for (const room of rooms) {
+		const key = dedupeKey(room.name, room.location);
+		const existing = map.get(key);
+		if (existing) {
+			existing.push(room);
+		} else {
+			map.set(key, [room]);
+		}
+	}
+	return map;
 }
 
 interface RoomRecommendationSettingsProps {
@@ -173,6 +198,11 @@ export function RoomRecommendationSettings({
 	const [isOpen, setIsOpen] = useState(false);
 
 	const roomResults = useMemo(() => deduplicateRooms(rawRooms), [rawRooms]);
+
+	const rawRoomsByKey = useMemo(() => groupRawRoomsByKey(rawRooms), [rawRooms]);
+
+	const { setHoveredRoom } = useStudyRoomHover();
+
 	const {
 		lengths: selectedLengths,
 		capacities: selectedCapacities,
@@ -189,8 +219,6 @@ export function RoomRecommendationSettings({
 
 	const filteredRooms = useMemo(() => {
 		return roomResults.filter((room) => {
-			// Capacity: rooms with unknown capacity are excluded when the user has
-			// committed to a capacity filter — otherwise they'd silently leak past.
 			if (selectedCapacities.length > 0) {
 				if (room.capacity == null) return false;
 				const matchesCapacity = selectedCapacities.some((range) => {
@@ -274,6 +302,18 @@ export function RoomRecommendationSettings({
 			onRoomSelect,
 		],
 	);
+
+	const handleRoomChipMouseEnter = useCallback(
+		(room: RoomResult) => {
+			const variants = rawRoomsByKey.get(room.id) ?? null;
+			setHoveredRoom(variants);
+		},
+		[rawRoomsByKey, setHoveredRoom],
+	);
+
+	const handleRoomChipMouseLeave = useCallback(() => {
+		setHoveredRoom(null);
+	}, [setHoveredRoom]);
 
 	return (
 		<div className="min-w-0 lg:shrink-0">
@@ -375,7 +415,8 @@ export function RoomRecommendationSettings({
 							<div>
 								<Typography variant="h6">Room Results</Typography>
 								<Typography variant="caption" color="textSecondary">
-									Click a chip to highlight a room on the calendar.
+									Click a chip to pin a room on the calendar. Hover to preview
+									without pinning.
 								</Typography>
 							</div>
 
@@ -423,6 +464,8 @@ export function RoomRecommendationSettings({
 												variant="outlined"
 												color={isSelected ? "primary" : "default"}
 												onClick={() => handleToggleRoom(room)}
+												onMouseEnter={() => handleRoomChipMouseEnter(room)}
+												onMouseLeave={handleRoomChipMouseLeave}
 												sx={{ maxWidth: "100%" }}
 											/>
 										);

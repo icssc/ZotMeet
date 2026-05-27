@@ -10,6 +10,8 @@ import {
 } from "@/components/availability/group-availability-block";
 import type { GridCellHandlers } from "@/components/availability/table/availability-block-cell";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
+import { useStudyRoomPreviewMaps } from "@/components/availability/table/study-room-hover-context";
+import { applyScheduleSelection } from "@/lib/availability/schedule-selection";
 import {
 	formatScheduledTimeRange,
 	generateCellKey,
@@ -178,7 +180,6 @@ export function GroupAvailability({
 		pendingAdds,
 		pendingRemovals,
 		showBestTimes,
-		isScheduled,
 	} = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
@@ -192,22 +193,47 @@ export function GroupAvailability({
 			pendingAdds: state.pendingAdds,
 			pendingRemovals: state.pendingRemovals,
 			showBestTimes: state.enabled,
-			isScheduled: state.isScheduled,
 		})),
 	);
 
 	const numMembers = members.length;
 
-	const { scheduledTimeRange, scheduledBlockCount } = useMemo(() => {
+	/** Live drag preview uses draftRange; otherwise pending/committed schedule times. */
+	const displayScheduleTimestamps = useMemo(() => {
+		if (isScheduling && draftRange) {
+			return new Set(
+				applyScheduleSelection({
+					availabilityDates,
+					range: draftRange,
+					fromTimeMinutes: fromTime,
+					timeZone,
+				}),
+			);
+		}
 		const effective = new Set([...scheduledTimes, ...pendingAdds]);
 		for (const ts of pendingRemovals) {
 			effective.delete(ts);
 		}
+		return effective;
+	}, [
+		isScheduling,
+		draftRange,
+		scheduledTimes,
+		pendingAdds,
+		pendingRemovals,
+		availabilityDates,
+		fromTime,
+		timeZone,
+	]);
+
+	const { scheduledTimeRange, scheduledBlockCount } = useMemo(() => {
 		return {
-			scheduledTimeRange: formatScheduledTimeRange([...effective]),
-			scheduledBlockCount: effective.size,
+			scheduledTimeRange: formatScheduledTimeRange([
+				...displayScheduleTimestamps,
+			]),
+			scheduledBlockCount: displayScheduleTimestamps.size,
 		};
-	}, [scheduledTimes, pendingAdds, pendingRemovals]);
+	}, [displayScheduleTimestamps]);
 
 	const maxAvailability = useMemo(() => {
 		if (!showBestTimes || numMembers === 0) return 0;
@@ -249,6 +275,8 @@ export function GroupAvailability({
 
 	const spacers = spacerBeforeDate(currentPageAvailability.availabilities);
 	const lastRowIndex = availabilityTimeBlocks.length - 1;
+	const { hoverCellPreviewByKey, selectedCellPreviewByKey } =
+		useStudyRoomPreviewMaps();
 
 	return (
 		<>
@@ -324,7 +352,8 @@ export function GroupAvailability({
 									ifNeededBlock,
 									primaryColor,
 								});
-								const blockIsScheduled = isScheduled(timestamp);
+								const blockIsScheduled =
+									timestamp !== "" && displayScheduleTimestamps.has(timestamp);
 
 								const prevTimestamp =
 									blockIndex > 0
@@ -340,10 +369,12 @@ export function GroupAvailability({
 										: "";
 								const isTopEdge =
 									blockIsScheduled &&
-									(!prevTimestamp || !isScheduled(prevTimestamp));
+									(!prevTimestamp ||
+										!displayScheduleTimestamps.has(prevTimestamp));
 								const isBottomEdge =
 									blockIsScheduled &&
-									(!nextTimestamp || !isScheduled(nextTimestamp));
+									(!nextTimestamp ||
+										!displayScheduleTimestamps.has(nextTimestamp));
 
 								const tableCellStyles = cn(
 									isTopOfHour ? "border-t-[1px] border-t-gray-base" : "",
@@ -354,13 +385,37 @@ export function GroupAvailability({
 									isHalfHour && !fill.stripes && "bg-paper",
 								);
 
+								const cellKey = generateCellKey(zotDateIndex, blockIndex);
+								const roomPreview =
+									hoverCellPreviewByKey.get(cellKey) ??
+									selectedCellPreviewByKey.get(cellKey) ??
+									null;
+								const isRoomTopEdge = Boolean(roomPreview?.edges.top);
+								const isRoomCovered = Boolean(roomPreview);
+								const hasOverlayStack =
+									isTopEdge ||
+									isRoomTopEdge ||
+									blockIsScheduled ||
+									isRoomCovered;
+
 								return (
 									<Fragment key={key}>
 										{spacers[pageDateIndex] && (
 											<td className="w-3 bg-paper md:w-4" aria-hidden="true" />
 										)}
 										<td
-											className={cn("px-0 py-0", isTopEdge && "relative z-[1]")}
+											className={cn(
+												"px-0 py-0",
+												hasOverlayStack && "overflow-visible",
+												// Schedule layers above room layers; both above availability fill.
+												isTopEdge && "relative z-40",
+												blockIsScheduled && !isTopEdge && "relative z-30",
+												isRoomTopEdge && !blockIsScheduled && "relative z-20",
+												isRoomCovered &&
+													!isRoomTopEdge &&
+													!blockIsScheduled &&
+													"relative z-10",
+											)}
 										>
 											<GroupAvailabilityBlock
 												className={cn(
@@ -392,6 +447,7 @@ export function GroupAvailability({
 												dateIndex={zotDateIndex}
 												blockIndex={blockIndex}
 												selectionEdges={selectionEdges}
+												isScheduling={isScheduling}
 											/>
 										</td>
 									</Fragment>
