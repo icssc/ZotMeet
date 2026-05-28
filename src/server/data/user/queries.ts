@@ -15,6 +15,7 @@ import {
 	type NotificationPrefs,
 	toNotificationPrefs,
 } from "@/lib/notification/types";
+import { sendPushToUsers } from "@/lib/push/send-push";
 import { toIlikeContainsPattern } from "@/lib/sql/like-pattern";
 
 export async function getUserIdExists(id: string) {
@@ -209,6 +210,7 @@ export async function createNewNotification(
 
 	const recipientRows = await db
 		.select({
+			userId: users.id,
 			memberId: users.memberId,
 			email: users.email,
 		})
@@ -273,6 +275,18 @@ export async function createNewNotification(
 			}
 		}
 	}
+
+	await sendPushToUsers(
+		allowedRecipients.map((recipient) => recipient.userId),
+		{
+			title,
+			message,
+			type,
+			redirect: link,
+			groupId,
+			createdBy,
+		},
+	);
 
 	return notificationsCreated;
 }

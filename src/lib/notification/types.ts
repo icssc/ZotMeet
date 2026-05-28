@@ -62,17 +62,18 @@ export const NOTIFICATION_PREF_OPTIONS: {
 		key: "meetingInvites",
 		label: "Meeting Invites",
 		description:
-			"Receive in-app and email notifications when you're invited to a meeting.",
+			"Receive in-app, email, and push notifications when you're invited to a meeting.",
 	},
 	{
 		key: "groupInvites",
 		label: "Group Invites",
 		description:
-			"Receive in-app and email notifications when you're invited to a group.",
+			"Receive in-app, email, and push notifications when you're invited to a group.",
 	},
 	{
 		key: "nudges",
 		label: "Nudges",
-		description: "Receive in-app and email reminders to add your availability.",
+		description:
+			"Receive in-app, email, and push reminders to add your availability.",
 	},
 ];

@@ -2,6 +2,7 @@
 
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { usePathname } from "next/navigation";
+import { NativeIosPushBridge } from "@/components/push/native-ios-push-bridge";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
 import { MuiBottomNav } from "./mui-bottom-nav";
 import { MuiTopNav } from "./mui-top-nav";
@@ -37,6 +38,7 @@ export function MuiAppShell({
 				minHeight: "100vh",
 			}}
 		>
+			{user ? <NativeIosPushBridge userId={user.id} /> : null}
 			{!isMobile && <MuiTopNav user={user} notifications={notifications} />}
 			<Box
 				sx={{
