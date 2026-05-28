@@ -347,6 +347,69 @@ export const notificationPreferencesRelations = relations(
 	}),
 );
 
+export const nativePushTokens = pgTable(
+	"native_push_tokens",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		token: text("token").notNull().unique(),
+		platform: text("platform").notNull().default("ios"),
+		userAgent: text("user_agent"),
+		createdAt: timestamp("created_at", {
+			withTimezone: true,
+			mode: "date",
+		})
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp("updated_at", {
+			withTimezone: true,
+			mode: "date",
+		})
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => ({
+		userIdIdx: index("native_push_tokens_user_id_idx").on(table.userId),
+	}),
+);
+
+export type SelectNativePushToken = InferSelectModel<typeof nativePushTokens>;
+export type InsertNativePushToken = InferInsertModel<typeof nativePushTokens>;
+
+export const pushSubscriptions = pgTable(
+	"push_subscriptions",
+	{
+		id: uuid("id").defaultRandom().primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		endpoint: text("endpoint").notNull().unique(),
+		p256dh: text("p256dh").notNull(),
+		auth: text("auth").notNull(),
+		userAgent: text("user_agent"),
+		createdAt: timestamp("created_at", {
+			withTimezone: true,
+			mode: "date",
+		})
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp("updated_at", {
+			withTimezone: true,
+			mode: "date",
+		})
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => ({
+		userIdIdx: index("push_subscriptions_user_id_idx").on(table.userId),
+	}),
+);
+
+export type SelectPushSubscription = InferSelectModel<typeof pushSubscriptions>;
+export type InsertPushSubscription = InferInsertModel<typeof pushSubscriptions>;
+
 export const availabilities = pgTable(
 	"availabilities",
 	{

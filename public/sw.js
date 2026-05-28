@@ -174,10 +174,22 @@ function getPushPayload(event) {
 	}
 }
 
+function getSameOriginRedirect(value) {
+	if (typeof value !== "string") return "/summary";
+
+	try {
+		const url = new URL(value, self.location.origin);
+		if (url.origin !== self.location.origin) return "/summary";
+		return `${url.pathname}${url.search}${url.hash}`;
+	} catch (_err) {
+		return "/summary";
+	}
+}
+
 self.addEventListener("push", (event) => {
 	const payload = getPushPayload(event);
 	const title = payload.title || "ZotMeet";
-	const redirect = payload.redirect || payload.url || "/summary";
+	const redirect = getSameOriginRedirect(payload.redirect || payload.url);
 
 	event.waitUntil(
 		self.registration.showNotification(title, {
@@ -192,7 +204,7 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
 	event.notification.close();
 
-	const redirect = event.notification.data?.redirect || "/summary";
+	const redirect = getSameOriginRedirect(event.notification.data?.redirect);
 	const targetUrl = new URL(redirect, self.location.origin).href;
 
 	event.waitUntil(

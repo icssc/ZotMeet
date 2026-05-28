@@ -29,9 +29,21 @@
 			console.warn("[sw] registration failed", err);
 		});
 
+	function getSameOriginRedirect(value) {
+		if (typeof value !== "string") return "/summary";
+
+		try {
+			const url = new URL(value, window.location.origin);
+			if (url.origin !== window.location.origin) return "/summary";
+			return url.pathname + url.search + url.hash;
+		} catch (_err) {
+			return "/summary";
+		}
+	}
+
 	navigator.serviceWorker.addEventListener("message", (event) => {
 		if (event.data && event.data.type === "notification-click") {
-			window.location.assign(event.data.redirect || "/summary");
+			window.location.assign(getSameOriginRedirect(event.data.redirect));
 		}
 	});
 })();

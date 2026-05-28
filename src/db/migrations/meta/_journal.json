@@ -127,6 +127,27 @@
       "when": 1779145500000,
       "tag": "0017_notification_preferences",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1779993600000,
+      "tag": "0018_push_subscriptions",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1780080000000,
+      "tag": "0019_native_push_tokens",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1779982875335,
+      "tag": "0020_nice_synch",
+      "breakpoints": true
     }
   ]
 }

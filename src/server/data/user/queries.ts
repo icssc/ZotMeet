@@ -276,17 +276,21 @@ export async function createNewNotification(
 		}
 	}
 
-	await sendPushToUsers(
-		allowedRecipients.map((recipient) => recipient.userId),
-		{
-			title,
-			message,
-			type,
-			redirect: link,
-			groupId,
-			createdBy,
-		},
-	);
+	try {
+		await sendPushToUsers(
+			allowedRecipients.map((recipient) => recipient.userId),
+			{
+				title,
+				message,
+				type,
+				redirect: link,
+				groupId,
+				createdBy,
+			},
+		);
+	} catch (error) {
+		console.error("Failed to send push notification:", error);
+	}
 
 	return notificationsCreated;
 }

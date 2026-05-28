@@ -1,7 +1,11 @@
 import "server-only";
 
+import { inArray } from "drizzle-orm";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getMessaging } from "firebase-admin/messaging";
+import { db } from "@/db";
+import { nativePushTokens } from "@/db/schema";
+import { sendWebPushToUsers } from "@/lib/push/web-push";
 
 type PushPayload = {
 	title: string;
@@ -76,20 +80,43 @@ function getOrInitFirebaseMessaging() {
 	return getMessaging(app);
 }
 
-function topicForUser(userId: string) {
-	return `user_${userId}`;
+function chunkArray<T>(items: T[], size: number) {
+	const chunks: T[][] = [];
+	for (let index = 0; index < items.length; index += size) {
+		chunks.push(items.slice(index, index + size));
+	}
+	return chunks;
+}
+
+function isStaleTokenError(code: string | undefined) {
+	return (
+		code === "messaging/invalid-registration-token" ||
+		code === "messaging/registration-token-not-registered"
+	);
 }
 
 export async function sendPushToUsers(userIds: string[], payload: PushPayload) {
 	if (userIds.length === 0) return;
 
+	await sendWebPushToUsers(userIds);
+
 	const messaging = getOrInitFirebaseMessaging();
 	if (!messaging) return;
 
-	const sendResults = await Promise.allSettled(
-		userIds.map((userId) =>
-			messaging.send({
-				topic: topicForUser(userId),
+	const tokenRows = await db
+		.select({ token: nativePushTokens.token })
+		.from(nativePushTokens)
+		.where(inArray(nativePushTokens.userId, userIds));
+
+	const tokens = [...new Set(tokenRows.map((row) => row.token))];
+	if (tokens.length === 0) return;
+
+	const staleTokens = new Set<string>();
+
+	for (const tokenChunk of chunkArray(tokens, 500)) {
+		try {
+			const response = await messaging.sendEachForMulticast({
+				tokens: tokenChunk,
 				notification: {
 					title: payload.title,
 					body: payload.message,
@@ -109,13 +136,27 @@ export async function sendPushToUsers(userIds: string[], payload: PushPayload) {
 						},
 					},
 				},
-			}),
-		),
-	);
+			});
 
-	for (const result of sendResults) {
-		if (result.status === "rejected") {
-			console.error("Failed to send push notification:", result.reason);
+			response.responses.forEach((sendResponse, index) => {
+				if (sendResponse.success) return;
+
+				const errorCode = sendResponse.error?.code;
+				if (isStaleTokenError(errorCode)) {
+					staleTokens.add(tokenChunk[index]);
+					return;
+				}
+
+				console.error("Failed to send push notification:", sendResponse.error);
+			});
+		} catch (error) {
+			console.error("Failed to send push notification batch:", error);
 		}
+	}
+
+	if (staleTokens.size > 0) {
+		await db
+			.delete(nativePushTokens)
+			.where(inArray(nativePushTokens.token, [...staleTokens]));
 	}
 }

@@ -20,10 +20,6 @@ function getBridgeHandler(name: string) {
 	return window.webkit?.messageHandlers?.[name];
 }
 
-function getUserTopic(userId: string) {
-	return `user_${userId}`;
-}
-
 function postMessage(name: string, payload?: unknown) {
 	const handler = getBridgeHandler(name);
 	if (!handler) return;
@@ -34,13 +30,27 @@ type NativeIosPushBridgeProps = {
 	userId: string;
 };
 
-export function NativeIosPushBridge({ userId }: NativeIosPushBridgeProps) {
+async function savePushToken(token: string) {
+	const trimmedToken = token.trim();
+	if (!trimmedToken || trimmedToken === "ERROR GET TOKEN") return;
+
+	try {
+		await fetch("/api/push-tokens", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ token: trimmedToken, platform: "ios" }),
+		});
+	} catch (error) {
+		console.error("Failed to save native push token", error);
+	}
+}
+
+export function NativeIosPushBridge({
+	userId: _userId,
+}: NativeIosPushBridgeProps) {
 	useEffect(() => {
 		if (!isNativeIosApp()) return;
 		if (!window.webkit?.messageHandlers) return;
-
-		const topic = getUserTopic(userId);
-		const subscribe = () => postMessage("push-subscribe", { topic });
 
 		const handlePermissionState = (event: Event) => {
 			const detail = (event as CustomEvent<string>).detail;
@@ -49,7 +59,6 @@ export function NativeIosPushBridge({ userId }: NativeIosPushBridgeProps) {
 				detail === "ephemeral" ||
 				detail === "provisional"
 			) {
-				subscribe();
 				postMessage("push-token");
 				return;
 			}
@@ -62,8 +71,14 @@ export function NativeIosPushBridge({ userId }: NativeIosPushBridgeProps) {
 		const handlePermissionRequestResult = (event: Event) => {
 			const detail = (event as CustomEvent<string>).detail;
 			if (detail === "granted") {
-				subscribe();
 				postMessage("push-token");
+			}
+		};
+
+		const handlePushToken = (event: Event) => {
+			const detail = (event as CustomEvent<string>).detail;
+			if (typeof detail === "string") {
+				void savePushToken(detail);
 			}
 		};
 
@@ -72,6 +87,7 @@ export function NativeIosPushBridge({ userId }: NativeIosPushBridgeProps) {
 			"push-permission-request",
 			handlePermissionRequestResult,
 		);
+		window.addEventListener("push-token", handlePushToken);
 
 		postMessage("push-permission-state");
 
@@ -84,9 +100,9 @@ export function NativeIosPushBridge({ userId }: NativeIosPushBridgeProps) {
 				"push-permission-request",
 				handlePermissionRequestResult,
 			);
-			postMessage("push-subscribe", { topic, unsubscribe: true });
+			window.removeEventListener("push-token", handlePushToken);
 		};
-	}, [userId]);
+	}, []);
 
 	return null;
 }
