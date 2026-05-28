@@ -58,7 +58,8 @@ export async function sendMeetingInvitesToUsers(params: {
 
 		const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 		const origin = baseUrl.replace(/\/$/, "");
-		const meetingLink = `${origin}/availability/${meetingId}`;
+		const meetingPath = `/availability/${meetingId}`;
+		const meetingLink = `${origin}${meetingPath}`;
 		const inviterName = inviter.displayName?.trim() || "Someone";
 
 		await createNewNotification(
@@ -66,7 +67,7 @@ export async function sendMeetingInvitesToUsers(params: {
 			meetingTitle,
 			`You've been invited to join "${meetingTitle}". Click to view the meeting.`,
 			NOTIFICATION_TYPES.MEETING_INVITE,
-			meetingLink,
+			meetingPath,
 			null,
 			inviter.id,
 			{

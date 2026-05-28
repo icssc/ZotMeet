@@ -8,67 +8,16 @@ func registerForPushNotifications() {
     }
 }
 
-class SubscribeMessage {
-    var topic  = ""
-    var eventValue = ""
-    var unsubscribe = false
-    struct Keys {
-        static var TOPIC = "topic"
-        static var UNSUBSCRIBE = "unsubscribe"
-        static var EVENTVALUE = "eventValue"
-    }
-    convenience init(dict: Dictionary<String,Any>) {
-        self.init()
-        if let topic = dict[Keys.TOPIC] as? String {
-            self.topic = topic
-        }
-        if let unsubscribe = dict[Keys.UNSUBSCRIBE] as? Bool {
-            self.unsubscribe = unsubscribe
-        }
-        if let eventValue = dict[Keys.EVENTVALUE] as? String {
-            self.eventValue = eventValue
+private let pushPayloadKeys = ["type", "redirect", "title", "message", "groupId", "createdBy"]
+
+func pushPayloadForWebView(userInfo: [AnyHashable: Any]) -> [String: String] {
+    var payload = [String: String]()
+    for key in pushPayloadKeys {
+        if let value = userInfo[key] as? String, !value.isEmpty {
+            payload[key] = value
         }
     }
-}
-
-func handleSubscribeTouch(message: WKScriptMessage) {
-  // [START subscribe_topic]
-    let subscribeMessages = parseSubscribeMessage(message: message)
-    if (subscribeMessages.count > 0){
-        let _message = subscribeMessages[0]
-        if (_message.unsubscribe) {
-            Messaging.messaging().unsubscribe(fromTopic: _message.topic) { error in }
-        }
-        else {
-            Messaging.messaging().subscribe(toTopic: _message.topic) { error in }
-        }
-    }
-    
-
-  // [END subscribe_topic]
-}
-
-func parseSubscribeMessage(message: WKScriptMessage) -> [SubscribeMessage] {
-    var subscribeMessages = [SubscribeMessage]()
-    if let objStr = message.body as? String {
-
-        let data: Data = objStr.data(using: .utf8)!
-        do {
-            let jsObj = try JSONSerialization.jsonObject(with: data, options: .init(rawValue: 0))
-            if let jsonObjDict = jsObj as? Dictionary<String, Any> {
-                let subscribeMessage = SubscribeMessage(dict: jsonObjDict)
-                subscribeMessages.append(subscribeMessage)
-            } else if let jsonArr = jsObj as? [Dictionary<String, Any>] {
-                for jsonObj in jsonArr {
-                    let sMessage = SubscribeMessage(dict: jsonObj)
-                    subscribeMessages.append(sMessage)
-                }
-            }
-        } catch _ {
-            
-        }
-    }
-    return subscribeMessages
+    return payload
 }
 
 func returnPermissionResult(isGranted: Bool){
@@ -169,24 +118,28 @@ func handleFCMToken(){
 }
 
 func sendPushToWebView(userInfo: [AnyHashable: Any]){
+    let payload = pushPayloadForWebView(userInfo: userInfo)
+    guard !payload.isEmpty else { return }
     var json = "";
     do {
-        let jsonData = try JSONSerialization.data(withJSONObject: userInfo)
+        let jsonData = try JSONSerialization.data(withJSONObject: payload)
         json = String(data: jsonData, encoding: .utf8)!
     } catch {
-        print("ERROR: userInfo parsing problem")
+        print("ERROR: push payload parsing problem")
         return
     }
     checkViewAndEvaluate(event: "push-notification", detail: json)
 }
 
 func sendPushClickToWebView(userInfo: [AnyHashable: Any]){
+    let payload = pushPayloadForWebView(userInfo: userInfo)
+    guard !payload.isEmpty else { return }
     var json = "";
     do {
-        let jsonData = try JSONSerialization.data(withJSONObject: userInfo)
+        let jsonData = try JSONSerialization.data(withJSONObject: payload)
         json = String(data: jsonData, encoding: .utf8)!
     } catch {
-        print("ERROR: userInfo parsing problem")
+        print("ERROR: push payload parsing problem")
         return
     }
     checkViewAndEvaluate(event: "push-notification-click", detail: json)

@@ -1,8 +1,10 @@
 import { and, eq } from "drizzle-orm";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { nativePushTokens } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { isNativeIosAppFromCookies } from "@/lib/platform";
 
 type PushTokenPayload = {
 	token?: unknown;
@@ -42,7 +44,22 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: "Invalid push token" }, { status: 400 });
 	}
 
-	const platform = payload.platform === "ios" ? "ios" : "unknown";
+	if (payload.platform !== "ios") {
+		return NextResponse.json(
+			{ error: "Only native iOS push tokens are supported" },
+			{ status: 400 },
+		);
+	}
+
+	const cookieStore = await cookies();
+	if (!isNativeIosAppFromCookies(cookieStore)) {
+		return NextResponse.json(
+			{ error: "Push tokens can only be registered from the iOS app" },
+			{ status: 403 },
+		);
+	}
+
+	const platform = "ios";
 
 	await db
 		.insert(nativePushTokens)

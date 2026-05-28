@@ -1,10 +1,11 @@
 import "server-only";
 
-import { inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getMessaging } from "firebase-admin/messaging";
 import { db } from "@/db";
 import { nativePushTokens } from "@/db/schema";
+import { normalizePushRedirect } from "@/lib/push/redirect";
 
 type PushPayload = {
 	title: string;
@@ -103,10 +104,25 @@ export async function sendPushToUsers(userIds: string[], payload: PushPayload) {
 	const tokenRows = await db
 		.select({ token: nativePushTokens.token })
 		.from(nativePushTokens)
-		.where(inArray(nativePushTokens.userId, userIds));
+		.where(
+			and(
+				inArray(nativePushTokens.userId, userIds),
+				eq(nativePushTokens.platform, "ios"),
+			),
+		);
 
 	const tokens = [...new Set(tokenRows.map((row) => row.token))];
 	if (tokens.length === 0) return;
+
+	const redirect = normalizePushRedirect(payload.type, payload.redirect);
+	const data = {
+		type: payload.type,
+		redirect,
+		title: payload.title,
+		message: payload.message,
+		groupId: payload.groupId ?? "",
+		createdBy: payload.createdBy ?? "",
+	};
 
 	const staleTokens = new Set<string>();
 
@@ -118,19 +134,20 @@ export async function sendPushToUsers(userIds: string[], payload: PushPayload) {
 					title: payload.title,
 					body: payload.message,
 				},
-				data: {
-					type: payload.type,
-					redirect: payload.redirect,
-					title: payload.title,
-					message: payload.message,
-					groupId: payload.groupId ?? "",
-					createdBy: payload.createdBy ?? "",
-				},
+				data,
 				apns: {
+					headers: {
+						"apns-priority": "10",
+					},
 					payload: {
 						aps: {
+							alert: {
+								title: payload.title,
+								body: payload.message,
+							},
 							sound: "default",
 						},
+						...data,
 					},
 				},
 			});

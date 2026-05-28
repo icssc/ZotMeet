@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { NOTIFICATION_TYPES } from "@/lib/notification/types";
 import { isNativeIosApp } from "@/lib/platform";
+import { parseNativePushPayload } from "@/lib/push/parse-payload";
+import { normalizePushRedirect } from "@/lib/push/redirect";
 
 declare global {
 	interface Window {
@@ -47,46 +48,12 @@ async function savePushToken(token: string) {
 	}
 }
 
-type NativePushPayload = {
-	type?: unknown;
-	redirect?: unknown;
-};
-
-function parseNativePushPayload(detail: unknown): NativePushPayload {
-	if (typeof detail !== "string") {
-		return typeof detail === "object" && detail !== null
-			? (detail as NativePushPayload)
-			: {};
-	}
-
-	try {
-		const parsed = JSON.parse(detail) as unknown;
-		return typeof parsed === "object" && parsed !== null
-			? (parsed as NativePushPayload)
-			: {};
-	} catch {
-		return {};
-	}
-}
-
-function getNotificationRedirect(payload: NativePushPayload) {
-	const redirect = typeof payload.redirect === "string" ? payload.redirect : "";
-
-	if (payload.type === NOTIFICATION_TYPES.GROUP_INVITE && redirect) {
-		return redirect.startsWith("/")
-			? redirect
-			: `/invite/${encodeURIComponent(redirect)}`;
-	}
-
-	if (!redirect) return "/summary";
-
-	try {
-		const url = new URL(redirect, window.location.origin);
-		if (url.origin !== window.location.origin) return "/summary";
-		return `${url.pathname}${url.search}${url.hash}`;
-	} catch {
-		return redirect.startsWith("/") ? redirect : "/summary";
-	}
+function getNotificationRedirect(
+	type: string | undefined,
+	redirect: string | undefined,
+) {
+	if (!type || !redirect) return "/summary";
+	return normalizePushRedirect(type, redirect);
 }
 
 export function NativeIosPushBridge() {
@@ -128,7 +95,7 @@ export function NativeIosPushBridge() {
 
 		const handleNotificationClick = (event: Event) => {
 			const payload = parseNativePushPayload((event as CustomEvent).detail);
-			router.push(getNotificationRedirect(payload));
+			router.push(getNotificationRedirect(payload.type, payload.redirect));
 		};
 
 		window.addEventListener("push-permission-state", handlePermissionState);
