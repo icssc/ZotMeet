@@ -61,6 +61,12 @@ export async function startOAuthLogin(
 
 	const redirectAfterAuth =
 		safeReturnTo(returnTo) ?? safeReturnTo(headersList.get("referer"));
+	console.log("[oauth-start]", {
+		provider,
+		returnTo,
+		referer: headersList.get("referer"),
+		redirectAfterAuth,
+	});
 	if (redirectAfterAuth) {
 		cookieStore.set("auth_redirect_url", redirectAfterAuth, cookieOptions);
 	}

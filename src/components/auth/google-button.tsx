@@ -8,30 +8,25 @@ type GoogleButtonProps = {
 
 export function GoogleButton({ returnTo }: GoogleButtonProps = {}) {
 	return (
-		<form
-			action={oauthLoginPath("google", returnTo)}
-			method="GET"
-			className="w-full"
-		>
-			<Button
-				type="submit"
-				variant="outlined"
-				fullWidth
-				startIcon={<GoogleLogo />}
-				sx={{
+		<Button
+			component="a"
+			href={oauthLoginPath("google", returnTo)}
+			variant="outlined"
+			fullWidth
+			startIcon={<GoogleLogo />}
+			sx={{
+				boxShadow: "none",
+				"&:hover": {
 					boxShadow: "none",
-					"&:hover": {
-						boxShadow: "none",
-						transform: "none",
-					},
-					"&:active": {
-						transform: "none",
-						boxShadow: "none",
-					},
-				}}
-			>
-				Sign in with Google
-			</Button>
-		</form>
+					transform: "none",
+				},
+				"&:active": {
+					transform: "none",
+					boxShadow: "none",
+				},
+			}}
+		>
+			Sign in with Google
+		</Button>
 	);
 }

@@ -25,6 +25,8 @@ import {
 	MuiSidebarSeparator,
 	useMuiSidebar,
 } from "@/components/ui/mui/sidebar";
+import { useReturnToPath } from "@/hooks/use-return-to-path";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import { logoutAction } from "@/server/actions/auth/logout/action";
 
@@ -121,13 +123,14 @@ function NavMain() {
 
 function NavUser({ user }: { user: UserProfile | null }) {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const returnToPath = useReturnToPath();
 
 	if (!user) {
 		return (
 			<MuiSidebarMenuItem>
 				<MuiSidebarMenuButton
 					component="a"
-					href="/auth/login"
+					href={loginPathWithReturnTo(returnToPath)}
 					tooltip="Sign In"
 				>
 					<MuiSidebarMenuIcon>
