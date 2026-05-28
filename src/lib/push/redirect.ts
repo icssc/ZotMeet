@@ -25,7 +25,7 @@ function looksLikeInviteToken(redirect: string): boolean {
  * App-relative path used in APNs/SNS payloads and native tap handling.
  * In-app notification rows may still store full URLs or invite tokens.
  *
- * When `type` is omitted (legacy or partial FCM payloads), infers the path from
+ * When `type` is omitted (legacy or partial APNs payloads), infers the path from
  * `redirect` shape (e.g. `/availability/…`, `/invite/…`, or a bare invite token).
  */
 export function normalizePushRedirect(
