@@ -26,7 +26,9 @@ import { useAvailabilityData } from "@/hooks/use-availability-data";
 import { useCalendarOverlays } from "@/hooks/use-calendar-overlays";
 import { useGridInteraction } from "@/hooks/use-grid-interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useReturnToPath } from "@/hooks/use-return-to-path";
 import { useRoomRecommendations } from "@/hooks/use-room-recommendations";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	clearPersonalGridSlots,
@@ -112,6 +114,7 @@ export function Availability({
 	);
 
 	const router = useRouter();
+	const returnToPath = useReturnToPath();
 
 	const isMobile = useIsMobile();
 	const isLgUp = useMediaQuery(LG_UP_MEDIA, { noSsr: true });
@@ -405,13 +408,13 @@ export function Availability({
 
 	const handleMobileAddAvailability = useCallback(() => {
 		if (!user) {
-			router.push("/auth/login");
+			router.push(loginPathWithReturnTo(returnToPath));
 			return;
 		}
 		setChangeableTimezone(false);
 		setUserTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
 		setAvailabilityView("personal");
-	}, [router, setAvailabilityView, user]);
+	}, [router, returnToPath, setAvailabilityView, user]);
 
 	const handleMobileOpenAttendees = useCallback(() => {
 		setIsMobileDrawerOpen(true);

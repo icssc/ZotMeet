@@ -2,13 +2,22 @@
 
 import AppleIcon from "@mui/icons-material/Apple";
 import { Button, useTheme } from "@mui/material";
+import { oauthLoginPath } from "@/lib/auth/return-to";
 
-export function AppleButton() {
+type AppleButtonProps = {
+	returnTo?: string | null;
+};
+
+export function AppleButton({ returnTo }: AppleButtonProps = {}) {
 	const theme = useTheme();
 	const isDark = theme.palette.mode === "dark";
 
 	return (
-		<form action="/auth/login/apple" method="GET" className="w-full">
+		<form
+			action={oauthLoginPath("apple", returnTo)}
+			method="GET"
+			className="w-full"
+		>
 			<Button
 				type="submit"
 				variant="contained"
