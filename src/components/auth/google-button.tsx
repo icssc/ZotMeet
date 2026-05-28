@@ -26,7 +26,7 @@ export function GoogleButton({ returnTo }: GoogleButtonProps = {}) {
 				},
 			}}
 		>
-			Sign in with Google
+			Continue with Google
 		</Button>
 	);
 }

@@ -34,7 +34,7 @@ export function AppleButton({ returnTo }: AppleButtonProps = {}) {
 				},
 			}}
 		>
-			Sign in with Apple
+			Continue with Apple
 		</Button>
 	);
 }
