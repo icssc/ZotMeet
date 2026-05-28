@@ -10,6 +10,7 @@ import {
 	OAUTH_LOGIN_CONFIG,
 	type OAuthLoginProvider,
 } from "@/lib/auth/providers";
+import { safeReturnTo } from "@/lib/auth/return-to";
 import {
 	getNativeIosCallbackRedirectUri,
 	isNativeIosAppFromCookies,
@@ -17,13 +18,6 @@ import {
 
 type CookieStore = Awaited<ReturnType<typeof cookies>>;
 type HeaderStore = Awaited<ReturnType<typeof headers>>;
-
-function safeReturnTo(value: string | null | undefined): string | null {
-	if (!value || !value.startsWith("/") || value.startsWith("//")) {
-		return null;
-	}
-	return value;
-}
 
 export async function startOAuthLogin(
 	provider: OAuthLoginProvider,
@@ -67,6 +61,12 @@ export async function startOAuthLogin(
 
 	const redirectAfterAuth =
 		safeReturnTo(returnTo) ?? safeReturnTo(headersList.get("referer"));
+	console.log("[oauth-start]", {
+		provider,
+		returnTo,
+		referer: headersList.get("referer"),
+		redirectAfterAuth,
+	});
 	if (redirectAfterAuth) {
 		cookieStore.set("auth_redirect_url", redirectAfterAuth, cookieOptions);
 	}

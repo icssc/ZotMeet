@@ -262,6 +262,13 @@ export async function handleOAuthCallback(
 			process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000",
 			provider,
 		);
+	console.log("[oauth-callback]", {
+		provider,
+		redirectUrl,
+		hasState: storedState !== null,
+		hasCodeVerifier: codeVerifier !== null,
+		oauthRedirectUri,
+	});
 
 	cookieStore.delete("auth_redirect_url");
 	cookieStore.delete("oauth_state");

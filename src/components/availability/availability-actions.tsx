@@ -14,6 +14,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
+import { useReturnToPath } from "@/hooks/use-return-to-path";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
@@ -45,6 +47,7 @@ export function AvailabilityActions({
 	isMeetingDeletionPending = false,
 }: AvailabilityActionsProps) {
 	const router = useRouter();
+	const returnToPath = useReturnToPath();
 	const { showSuccess, showError } = useSnackbar();
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false);
 	const [membersCanInvite, setMembersCanInvite] = useState(
@@ -201,7 +204,7 @@ export function AvailabilityActions({
 							sx={{ py: 0.75 }}
 							onClick={() => {
 								if (!user) {
-									router.push("/auth/login");
+									router.push(loginPathWithReturnTo(returnToPath));
 									return;
 								}
 								setChangeableTimezone(false);

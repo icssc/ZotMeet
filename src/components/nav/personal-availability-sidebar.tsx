@@ -24,6 +24,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { PersonalPaintModeToggle } from "@/components/nav/personal-paint-mode-toggle";
+import { oauthLoginPath } from "@/lib/auth/return-to";
 import { filterTimestampsToMeetingGrid } from "@/lib/availability/utils";
 import type { GoogleCalendarInfo } from "@/lib/types/availability";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
@@ -358,7 +359,7 @@ export function PersonalAvailabilitySidebar({
 									</Typography>
 									<Button
 										component={Link}
-										href={`/auth/login/google?returnTo=${encodeURIComponent(pathname)}`}
+										href={oauthLoginPath("google", pathname)}
 										variant="outlined"
 										size="small"
 										fullWidth

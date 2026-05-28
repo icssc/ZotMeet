@@ -7,7 +7,7 @@ export function AuthDialog() {
 			<DialogTitle>Sign In</DialogTitle>
 			<DialogContent>
 				<Box sx={{ pt: 1, minWidth: 280 }}>
-					<SignInButtons />
+					<SignInButtons useCurrentPath />
 				</Box>
 			</DialogContent>
 		</Dialog>
