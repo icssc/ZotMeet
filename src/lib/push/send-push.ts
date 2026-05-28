@@ -5,7 +5,6 @@ import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getMessaging } from "firebase-admin/messaging";
 import { db } from "@/db";
 import { nativePushTokens } from "@/db/schema";
-import { sendWebPushToUsers } from "@/lib/push/web-push";
 
 type PushPayload = {
 	title: string;
@@ -97,8 +96,6 @@ function isStaleTokenError(code: string | undefined) {
 
 export async function sendPushToUsers(userIds: string[], payload: PushPayload) {
 	if (userIds.length === 0) return;
-
-	await sendWebPushToUsers(userIds);
 
 	const messaging = getOrInitFirebaseMessaging();
 	if (!messaging) return;

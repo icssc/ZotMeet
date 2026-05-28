@@ -1,5 +1,12 @@
+import UIKit
 import WebKit
 import FirebaseMessaging
+
+func registerForPushNotifications() {
+    DispatchQueue.main.async {
+        UIApplication.shared.registerForRemoteNotifications()
+    }
+}
 
 class SubscribeMessage {
     var topic  = ""
@@ -82,36 +89,34 @@ func returnPermissionState(state: String){
 
 func handlePushPermission() {
     UNUserNotificationCenter.current().getNotificationSettings () { settings in
-            switch settings.authorizationStatus {
-            case .notDetermined:
-                let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
-                UNUserNotificationCenter.current().requestAuthorization(
-                    options: authOptions,
-                    completionHandler: { (success, error) in
-                        if error == nil {
-                            if success == true {
-                                returnPermissionResult(isGranted: true)
-                                DispatchQueue.main.async {
-                                  UIApplication.shared.registerForRemoteNotifications()
-                                }
-                            }
-                            else {
-                                returnPermissionResult(isGranted: false)
-                            }
-                        }
-                        else {
+        switch settings.authorizationStatus {
+        case .notDetermined:
+            let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+            UNUserNotificationCenter.current().requestAuthorization(
+                options: authOptions,
+                completionHandler: { (success, error) in
+                    if error == nil {
+                        if success == true {
+                            registerForPushNotifications()
+                            returnPermissionResult(isGranted: true)
+                        } else {
                             returnPermissionResult(isGranted: false)
                         }
                     }
-                )
-            case .denied:
-                returnPermissionResult(isGranted: false)
-            case .authorized, .ephemeral, .provisional:
-                returnPermissionResult(isGranted: true)
-            @unknown default:
-                return;
-            }
+                    else {
+                        returnPermissionResult(isGranted: false)
+                    }
+                }
+            )
+        case .denied:
+            returnPermissionResult(isGranted: false)
+        case .authorized, .ephemeral, .provisional:
+            registerForPushNotifications()
+            returnPermissionResult(isGranted: true)
+        @unknown default:
+            return;
         }
+    }
 }
 func handlePushState() {
     UNUserNotificationCenter.current().getNotificationSettings () { settings in
@@ -121,10 +126,13 @@ func handlePushState() {
         case .denied:
             returnPermissionState(state: "denied")
         case .authorized:
+            registerForPushNotifications()
             returnPermissionState(state: "authorized")
         case .ephemeral:
+            registerForPushNotifications()
             returnPermissionState(state: "ephemeral")
         case .provisional:
+            registerForPushNotifications()
             returnPermissionState(state: "provisional")
         @unknown default:
             returnPermissionState(state: "unknown")

@@ -21,6 +21,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // [START register_for_notifications]
    
         UNUserNotificationCenter.current().delegate = self
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+          switch settings.authorizationStatus {
+          case .authorized, .ephemeral, .provisional:
+            registerForPushNotifications()
+          default:
+            return
+          }
+        }
 
       //  let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
       //  UNUserNotificationCenter.current().requestAuthorization(
@@ -45,8 +53,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
           print("Message ID 1: \(messageID)")
         }
 
-        // Print full message.
+#if DEBUG
         print("push userInfo 1:", userInfo)
+#endif
         sendPushToWebView(userInfo: userInfo)
       }
 
@@ -61,8 +70,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
           print("Message ID 2: \(messageID)")
         }
 
-        // Print full message. **
+#if DEBUG
         print("push userInfo 2:", userInfo)
+#endif
         sendPushToWebView(userInfo: userInfo)
 
         completionHandler(UIBackgroundFetchResult.newData)
@@ -99,8 +109,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
           print("Message ID: 3 \(messageID)")
         }
 
-        // Print full message.
+#if DEBUG
         print("push userInfo 3:", userInfo)
+#endif
         sendPushToWebView(userInfo: userInfo)
 
         // Change this to your preferred presentation option
@@ -118,8 +129,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         // With swizzling disabled you must let Messaging know about the message, for Analytics
         // Messaging.messaging().appDidReceiveMessage(userInfo)
-        // Print full message.
+#if DEBUG
         print("push userInfo 4:", userInfo)
+#endif
         sendPushClickToWebView(userInfo: userInfo)
 
         completionHandler()
@@ -130,7 +142,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     extension AppDelegate : MessagingDelegate {
       // [START refresh_token]
       func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
+#if DEBUG
         print("Firebase registration token: \(String(describing: fcmToken))")
+#endif
         
         let dataDict:[String: String] = ["token": fcmToken ?? ""]
         NotificationCenter.default.post(name: Notification.Name("FCMToken"), object: nil, userInfo: dataDict)

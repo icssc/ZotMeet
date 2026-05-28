@@ -9,6 +9,14 @@ type PushTokenPayload = {
 	platform?: unknown;
 };
 
+async function readPayload(request: Request) {
+	try {
+		return (await request.json()) as PushTokenPayload;
+	} catch {
+		return null;
+	}
+}
+
 function getValidToken(payload: PushTokenPayload) {
 	if (typeof payload.token !== "string") return null;
 
@@ -24,7 +32,11 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
-	const payload = (await request.json()) as PushTokenPayload;
+	const payload = await readPayload(request);
+	if (!payload) {
+		return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+	}
+
 	const token = getValidToken(payload);
 	if (!token) {
 		return NextResponse.json({ error: "Invalid push token" }, { status: 400 });
@@ -59,7 +71,11 @@ export async function DELETE(request: Request) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
-	const payload = (await request.json()) as PushTokenPayload;
+	const payload = await readPayload(request);
+	if (!payload) {
+		return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+	}
+
 	const token = getValidToken(payload);
 	if (!token) {
 		return NextResponse.json({ error: "Invalid push token" }, { status: 400 });

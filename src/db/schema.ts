@@ -378,38 +378,6 @@ export const nativePushTokens = pgTable(
 export type SelectNativePushToken = InferSelectModel<typeof nativePushTokens>;
 export type InsertNativePushToken = InferInsertModel<typeof nativePushTokens>;
 
-export const pushSubscriptions = pgTable(
-	"push_subscriptions",
-	{
-		id: uuid("id").defaultRandom().primaryKey(),
-		userId: text("user_id")
-			.notNull()
-			.references(() => users.id, { onDelete: "cascade" }),
-		endpoint: text("endpoint").notNull().unique(),
-		p256dh: text("p256dh").notNull(),
-		auth: text("auth").notNull(),
-		userAgent: text("user_agent"),
-		createdAt: timestamp("created_at", {
-			withTimezone: true,
-			mode: "date",
-		})
-			.defaultNow()
-			.notNull(),
-		updatedAt: timestamp("updated_at", {
-			withTimezone: true,
-			mode: "date",
-		})
-			.defaultNow()
-			.notNull(),
-	},
-	(table) => ({
-		userIdIdx: index("push_subscriptions_user_id_idx").on(table.userId),
-	}),
-);
-
-export type SelectPushSubscription = InferSelectModel<typeof pushSubscriptions>;
-export type InsertPushSubscription = InferInsertModel<typeof pushSubscriptions>;
-
 export const availabilities = pgTable(
 	"availabilities",
 	{

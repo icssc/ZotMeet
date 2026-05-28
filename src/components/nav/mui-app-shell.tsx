@@ -38,7 +38,7 @@ export function MuiAppShell({
 				minHeight: "100vh",
 			}}
 		>
-			{user ? <NativeIosPushBridge userId={user.id} /> : null}
+			{user ? <NativeIosPushBridge /> : null}
 			{!isMobile && <MuiTopNav user={user} notifications={notifications} />}
 			<Box
 				sx={{
