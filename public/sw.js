@@ -153,3 +153,64 @@ self.addEventListener("message", (event) => {
 		self.skipWaiting();
 	}
 });
+
+function getPushPayload(event) {
+	if (!event.data) {
+		return {
+			title: "ZotMeet",
+			message: "You have a new notification.",
+			redirect: "/summary",
+		};
+	}
+
+	try {
+		return event.data.json();
+	} catch (_err) {
+		return {
+			title: "ZotMeet",
+			message: event.data.text(),
+			redirect: "/summary",
+		};
+	}
+}
+
+self.addEventListener("push", (event) => {
+	const payload = getPushPayload(event);
+	const title = payload.title || "ZotMeet";
+	const redirect = payload.redirect || payload.url || "/summary";
+
+	event.waitUntil(
+		self.registration.showNotification(title, {
+			body: payload.message || payload.body || "You have a new notification.",
+			icon: "/icons/icon-192.png",
+			badge: "/icons/icon-96.png",
+			data: { redirect },
+		}),
+	);
+});
+
+self.addEventListener("notificationclick", (event) => {
+	event.notification.close();
+
+	const redirect = event.notification.data?.redirect || "/summary";
+	const targetUrl = new URL(redirect, self.location.origin).href;
+
+	event.waitUntil(
+		(async () => {
+			const clientList = await clients.matchAll({
+				type: "window",
+				includeUncontrolled: true,
+			});
+
+			for (const client of clientList) {
+				if (new URL(client.url).origin === self.location.origin) {
+					await client.focus();
+					client.postMessage({ type: "notification-click", redirect });
+					return;
+				}
+			}
+
+			await clients.openWindow(targetUrl);
+		})(),
+	);
+});

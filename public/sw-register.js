@@ -28,4 +28,10 @@
 		.catch((err) => {
 			console.warn("[sw] registration failed", err);
 		});
+
+	navigator.serviceWorker.addEventListener("message", (event) => {
+		if (event.data && event.data.type === "notification-click") {
+			window.location.assign(event.data.redirect || "/summary");
+		}
+	});
 })();

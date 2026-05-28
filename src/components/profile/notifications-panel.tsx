@@ -6,6 +6,7 @@ import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import { useState, useTransition } from "react";
+import { WebPushPermissionButton } from "@/components/push/web-push-permission-button";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import {
 	NOTIFICATION_PREF_OPTIONS,
@@ -56,6 +57,7 @@ export function NotificationsPanel({
 			<Typography variant="h5">Notifications</Typography>
 
 			<Stack spacing={0}>
+				<WebPushPermissionButton />
 				{NOTIFICATION_PREF_OPTIONS.map((option) => (
 					<Box
 						key={option.key}
