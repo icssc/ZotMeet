@@ -1,10 +1,8 @@
 import { and, eq } from "drizzle-orm";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { nativePushTokens } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
-import { isNativeIosAppFromCookies } from "@/lib/platform";
 
 type PushTokenPayload = {
 	token?: unknown;
@@ -51,13 +49,10 @@ export async function POST(request: Request) {
 		);
 	}
 
-	const cookieStore = await cookies();
-	if (!isNativeIosAppFromCookies(cookieStore)) {
-		return NextResponse.json(
-			{ error: "Push tokens can only be registered from the iOS app" },
-			{ status: 403 },
-		);
-	}
+	// Registration requires a signed-in user. The `app-platform` cookie is set by
+	// the WKWebView for client UX only and must not be used as an auth gate
+	// (it is unsigned and trivially spoofed). Invalid or non-iOS FCM tokens are
+	// rejected by Firebase on send and pruned in sendPushToUsers.
 
 	const platform = "ios";
 

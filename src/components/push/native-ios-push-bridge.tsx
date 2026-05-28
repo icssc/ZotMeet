@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { isNativeIosApp } from "@/lib/platform";
 import { parseNativePushPayload } from "@/lib/push/parse-payload";
-import { normalizePushRedirect } from "@/lib/push/redirect";
+import { resolvePushNotificationPath } from "@/lib/push/redirect";
 
 declare global {
 	interface Window {
@@ -48,14 +48,6 @@ async function savePushToken(token: string) {
 	}
 }
 
-function getNotificationRedirect(
-	type: string | undefined,
-	redirect: string | undefined,
-) {
-	if (!type || !redirect) return "/summary";
-	return normalizePushRedirect(type, redirect);
-}
-
 export function NativeIosPushBridge() {
 	const router = useRouter();
 
@@ -95,7 +87,7 @@ export function NativeIosPushBridge() {
 
 		const handleNotificationClick = (event: Event) => {
 			const payload = parseNativePushPayload((event as CustomEvent).detail);
-			router.push(getNotificationRedirect(payload.type, payload.redirect));
+			router.push(resolvePushNotificationPath(payload.type, payload.redirect));
 		};
 
 		window.addEventListener("push-permission-state", handlePermissionState);
