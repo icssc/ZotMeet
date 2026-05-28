@@ -235,7 +235,7 @@ extension ViewController: WKScriptMessageHandler {
             handlePushState()
         }
         if message.name == "push-token" {
-            handleFCMToken()
+            handleApnsToken()
         }
   }
 }

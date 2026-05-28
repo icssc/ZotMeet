@@ -22,7 +22,7 @@ function looksLikeInviteToken(redirect: string): boolean {
 }
 
 /**
- * App-relative path used in FCM data payloads and native tap handling.
+ * App-relative path used in APNs/SNS payloads and native tap handling.
  * In-app notification rows may still store full URLs or invite tokens.
  *
  * When `type` is omitted (legacy or partial FCM payloads), infers the path from

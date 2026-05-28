@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { nativePushTokens } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { isApnsDeviceToken, isSnsEndpointArn } from "@/lib/push/sns-config";
+import {
+	deleteIosPushEndpoint,
+	registerIosPushEndpoint,
+} from "@/lib/push/sns-register";
 
 type PushTokenPayload = {
 	token?: unknown;
@@ -17,11 +22,12 @@ async function readPayload(request: Request) {
 	}
 }
 
-function getValidToken(payload: PushTokenPayload) {
+function getValidApnsToken(payload: PushTokenPayload) {
 	if (typeof payload.token !== "string") return null;
 
 	const token = payload.token.trim();
 	if (!token || token === "ERROR GET TOKEN") return null;
+	if (!isApnsDeviceToken(token)) return null;
 
 	return token;
 }
@@ -37,9 +43,12 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
 	}
 
-	const token = getValidToken(payload);
-	if (!token) {
-		return NextResponse.json({ error: "Invalid push token" }, { status: 400 });
+	const apnsToken = getValidApnsToken(payload);
+	if (!apnsToken) {
+		return NextResponse.json(
+			{ error: "Invalid APNs device token" },
+			{ status: 400 },
+		);
 	}
 
 	if (payload.platform !== "ios") {
@@ -49,10 +58,13 @@ export async function POST(request: Request) {
 		);
 	}
 
-	// Registration requires a signed-in user. The `app-platform` cookie is set by
-	// the WKWebView for client UX only and must not be used as an auth gate
-	// (it is unsigned and trivially spoofed). Invalid or non-iOS FCM tokens are
-	// rejected by Firebase on send and pruned in sendPushToUsers.
+	const endpointArn = await registerIosPushEndpoint(apnsToken, user.id);
+	if (!endpointArn) {
+		return NextResponse.json(
+			{ error: "Push registration is not configured" },
+			{ status: 503 },
+		);
+	}
 
 	const platform = "ios";
 
@@ -60,7 +72,7 @@ export async function POST(request: Request) {
 		.insert(nativePushTokens)
 		.values({
 			userId: user.id,
-			token,
+			token: endpointArn,
 			platform,
 			userAgent: request.headers.get("user-agent"),
 		})
@@ -88,17 +100,21 @@ export async function DELETE(request: Request) {
 		return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
 	}
 
-	const token = getValidToken(payload);
+	const token = typeof payload.token === "string" ? payload.token.trim() : "";
 	if (!token) {
-		return NextResponse.json({ error: "Invalid push token" }, { status: 400 });
+		return NextResponse.json({ error: "Invalid token" }, { status: 400 });
+	}
+
+	if (isSnsEndpointArn(token)) {
+		await deleteIosPushEndpoint(token);
 	}
 
 	await db
 		.delete(nativePushTokens)
 		.where(
 			and(
-				eq(nativePushTokens.token, token),
 				eq(nativePushTokens.userId, user.id),
+				eq(nativePushTokens.token, token),
 			),
 		);
 

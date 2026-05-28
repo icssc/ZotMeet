@@ -1,11 +1,26 @@
 import UIKit
 import WebKit
-import FirebaseMessaging
+
+var apnsDeviceTokenHex: String?
+
+func setApnsDeviceTokenHex(_ token: String) {
+    apnsDeviceTokenHex = token
+}
 
 func registerForPushNotifications() {
     DispatchQueue.main.async {
         UIApplication.shared.registerForRemoteNotifications()
     }
+}
+
+func apnsTokenHexString(from deviceToken: Data) -> String {
+    return deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+}
+
+func sendApnsTokenToWebView(token: String) {
+    let escaped = token.replacingOccurrences(of: "\\", with: "\\\\")
+        .replacingOccurrences(of: "'", with: "\\'")
+    checkViewAndEvaluate(event: "push-token", detail: "'\(escaped)'")
 }
 
 private let pushPayloadKeys: Set<String> = [
@@ -153,17 +168,20 @@ func checkViewAndEvaluate(event: String, detail: String) {
     }
 }
 
-func handleFCMToken(){
+func handleApnsToken(){
     DispatchQueue.main.async(execute: {
-        Messaging.messaging().token { token, error in
-            if let error = error {
-                print("Error fetching FCM registration token: \(error)")
+        if let token = apnsDeviceTokenHex, !token.isEmpty {
+            sendApnsTokenToWebView(token: token)
+            return
+        }
+        registerForPushNotifications()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            if let token = apnsDeviceTokenHex, !token.isEmpty {
+                sendApnsTokenToWebView(token: token)
+            } else {
                 checkViewAndEvaluate(event: "push-token", detail: "ERROR GET TOKEN")
-            } else if let token = token {
-                print("FCM registration token: \(token)")
-                checkViewAndEvaluate(event: "push-token", detail: "'\(token)'")
             }
-        }   
+        }
     })
 }
 

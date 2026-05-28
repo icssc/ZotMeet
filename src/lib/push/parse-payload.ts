@@ -41,7 +41,7 @@ function pickPushFields(record: Record<string, unknown>): NativePushPayload {
 }
 
 /**
- * Extracts FCM custom data from the JSON blob iOS forwards from `userInfo`.
+ * Extracts APNs custom data from the JSON blob iOS forwards from `userInfo`.
  */
 export function parseNativePushPayload(detail: unknown): NativePushPayload {
 	if (typeof detail === "string") {
