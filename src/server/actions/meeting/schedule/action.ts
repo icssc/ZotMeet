@@ -1,105 +1,109 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { meetings, scheduledMeetings } from "@/db/schema";
+import { getCurrentSession } from "@/lib/auth";
+import {
+	type FanOutOutcome,
+	syncMeetingToAllMemberCalendars,
+	unsyncMeetingFromAllMemberCalendars,
+} from "@/server/actions/availability/google/calendar/action";
 import { getExistingMeeting } from "@/server/data/meeting/queries";
 
+export type CommitMeetingScheduleResult =
+	| { success: true; outcome: FanOutOutcome }
+	| { success: false; error: string };
+
+export type CommitMeetingScheduleBlock = {
+	scheduledDate: Date;
+	scheduledFromTime: string;
+	scheduledToTime: string;
+};
+
 /**
- * Delete a scheduled meeting block.
- * If no blocks remain, mark meeting as unscheduled.
+ * Atomic schedule commit for the host. Wipes and rewrites
+ * `scheduled_meetings` for the meeting in a single transaction, flips the
+ * `meetings.scheduled` flag, then reconciles the final schedule against
+ * every eligible member's primary Google Calendar:
+ *   - blocks present  → fan-out add/update via `syncMeetingToAllMemberCalendars`
+ *   - blocks empty    → fan-out delete via `unsyncMeetingFromAllMemberCalendars`
+ *     so previously-synced events don't linger when the host unschedules.
+ *
+ * Fan-out runs *after* the DB transaction commits so a partial Google API
+ * failure cannot roll back the local schedule.
  */
-export async function deleteScheduledTimeBlock({
+export async function commitMeetingSchedule({
 	meetingId,
-	scheduledFromTime,
-	scheduledToTime,
-	scheduledDate,
+	blocks,
 }: {
 	meetingId: string;
-	scheduledFromTime: string; // format "HH:mm:ss"
-	scheduledToTime: string; // format "HH:mm:ss"
-	scheduledDate: Date;
-}) {
+	blocks: CommitMeetingScheduleBlock[];
+}): Promise<CommitMeetingScheduleResult> {
 	try {
-		// Ensure the meeting exists
-		const meeting = await getExistingMeeting(meetingId);
-		if (!meeting) {
-			return { error: "Invalid meeting ID" };
+		const { user } = await getCurrentSession();
+		if (!user) {
+			return {
+				success: false,
+				error: "You must be logged in to commit a meeting schedule.",
+			};
 		}
 
-		// Delete the specific scheduled block
-		await db
-			.delete(scheduledMeetings)
-			.where(
-				and(
-					eq(scheduledMeetings.meetingId, meetingId),
-					eq(scheduledMeetings.scheduledDate, scheduledDate),
-					eq(scheduledMeetings.scheduledFromTime, scheduledFromTime),
-					eq(scheduledMeetings.scheduledToTime, scheduledToTime),
-				),
-			);
+		const meeting = await getExistingMeeting(meetingId);
+		if (meeting.hostId !== user.memberId) {
+			return {
+				success: false,
+				error: "Only the meeting owner can commit a schedule.",
+			};
+		}
 
-		// Check if any scheduled blocks remain
-		const remaining = await db
-			.select()
-			.from(scheduledMeetings)
-			.where(eq(scheduledMeetings.meetingId, meetingId));
+		await db.transaction(async (tx) => {
+			await tx
+				.delete(scheduledMeetings)
+				.where(eq(scheduledMeetings.meetingId, meetingId));
 
-		// Update meetings.scheduled if no blocks remain
-		if (remaining.length === 0) {
-			await db
+			if (blocks.length > 0) {
+				await tx.insert(scheduledMeetings).values(
+					blocks.map((b) => ({
+						meetingId,
+						scheduledDate: b.scheduledDate,
+						scheduledFromTime: b.scheduledFromTime,
+						scheduledToTime: b.scheduledToTime,
+					})),
+				);
+			}
+
+			await tx
 				.update(meetings)
-				.set({ scheduled: false })
+				.set({ scheduled: blocks.length > 0 })
 				.where(eq(meetings.id, meetingId));
-		}
-
-		return { success: true };
-	} catch (error) {
-		console.error("Error deleting scheduled meeting:", error);
-		return { error: "Failed to delete scheduled meeting." };
-	}
-}
-
-/**
- * Save a scheduled meeting block and update the meetings table
- */
-export async function saveScheduledTimeBlock({
-	meetingId,
-	scheduledFromTime,
-	scheduledToTime,
-	scheduledDate,
-}: {
-	meetingId: string;
-	scheduledFromTime: string; // format: "HH:mm:ss"
-	scheduledToTime: string; // format: "HH:mm:ss"
-	scheduledDate: Date;
-}) {
-	try {
-		// Ensure the meeting exists
-		const meeting = await getExistingMeeting(meetingId);
-		if (!meeting) {
-			return { error: "Invalid meeting ID" };
-		}
-
-		// Insert into scheduled_meetings table
-		await db.insert(scheduledMeetings).values({
-			meetingId,
-			scheduledDate,
-			scheduledFromTime,
-			scheduledToTime,
 		});
 
-		// Update the meetings table to mark as scheduled
-		await db
-			.update(meetings)
-			.set({
-				scheduled: true,
-			})
-			.where(eq(meetings.id, meetingId));
+		let outcome: FanOutOutcome;
+		try {
+			outcome =
+				blocks.length > 0
+					? await syncMeetingToAllMemberCalendars(meetingId)
+					: await unsyncMeetingFromAllMemberCalendars(meetingId);
+		} catch (error) {
+			console.error("Calendar fan-out threw after schedule commit", {
+				meetingId,
+				error,
+			});
+			outcome = {
+				synced: 0,
+				skipped: 0,
+				failed: 1,
+				errors: [{ memberId: "*", reason: "fanout_threw" }],
+			};
+		}
 
-		return { success: true };
+		revalidatePath(`/availability/${meetingId}`);
+
+		return { success: true, outcome };
 	} catch (error) {
-		console.error("Error saving scheduled meeting:", error);
-		return { error: "Failed to save scheduled meeting." };
+		console.error("Error committing meeting schedule:", error);
+		return { success: false, error: "Failed to commit meeting schedule." };
 	}
 }

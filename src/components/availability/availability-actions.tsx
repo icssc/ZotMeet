@@ -1,19 +1,18 @@
 "use client";
 
-import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
 import { updateMeetingInvitePermissions } from "@actions/meeting/invite/action";
 import {
 	Create,
 	GroupAddOutlined,
 	InsertInvitationRounded,
 } from "@mui/icons-material";
-import GoogleIcon from "@mui/icons-material/Google";
 import { Button, FormControlLabel, Switch } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
+import { AddToCalendarButton } from "@/components/availability/add-to-calendar-button";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
-import type { SelectMeeting } from "@/db/schema";
+import type { MeetingGoogleCalendarSnapshot, SelectMeeting } from "@/db/schema";
 import { useReturnToPath } from "@/hooks/use-return-to-path";
 import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
@@ -31,6 +30,8 @@ export interface AvailabilityActionsProps {
 	setTimezone: (timezone: string) => void;
 	onOpenInviteDialog: () => void;
 	isMeetingDeletionPending?: boolean;
+	mergedScheduledInterval?: MeetingGoogleCalendarSnapshot | null;
+	googleCalendarLinkSnapshot?: MeetingGoogleCalendarSnapshot | null;
 }
 
 export function AvailabilityActions({
@@ -45,11 +46,12 @@ export function AvailabilityActions({
 	setTimezone,
 	onOpenInviteDialog,
 	isMeetingDeletionPending = false,
+	mergedScheduledInterval = null,
+	googleCalendarLinkSnapshot = null,
 }: AvailabilityActionsProps) {
 	const router = useRouter();
 	const returnToPath = useReturnToPath();
 	const { showSuccess, showError } = useSnackbar();
-	const [isGeneratingLink, setIsGeneratingLink] = useState(false);
 	const [membersCanInvite, setMembersCanInvite] = useState(
 		meetingData.membersCanInvite,
 	);
@@ -153,47 +155,12 @@ export function AvailabilityActions({
 					)}
 					{isScheduled && (
 						<div className="hidden flex-col sm:flex">
-							<Button
-								variant="outlined"
-								size="medium"
-								startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
-								onClick={async () => {
-									if (isGeneratingLink) return;
-									setIsGeneratingLink(true);
-									try {
-										const { success, link } =
-											await getGoogleCalendarPrefilledLink({
-												meetingId: meetingData.id,
-												meetingTitle: meetingData.title,
-												meetingDescription: meetingData.description,
-												meetingLocation: meetingData.location,
-												timezone: meetingData.timezone,
-											});
-
-										if (!success || !link) {
-											showError("Failed to generate Google Calendar link.");
-											return;
-										}
-
-										window.open(link, "_blank", "noopener,noreferrer");
-										showSuccess(
-											"Google Calendar link opened! Confirm the event in your calendar.",
-										);
-									} catch (error) {
-										console.error(
-											"Error generating Google Calendar link:",
-											error,
-										);
-										showError(
-											"An error occurred while generating the Google Calendar link.",
-										);
-									} finally {
-										setIsGeneratingLink(false);
-									}
-								}}
-							>
-								Add to Calendar
-							</Button>
+							<AddToCalendarButton
+								meetingId={meetingData.id}
+								user={user}
+								mergedScheduledInterval={mergedScheduledInterval}
+								googleCalendarLinkSnapshot={googleCalendarLinkSnapshot}
+							/>
 						</div>
 					)}
 					<div className="hidden sm:block">

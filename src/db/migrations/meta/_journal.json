@@ -127,6 +127,13 @@
       "when": 1779145500000,
       "tag": "0017_notification_preferences",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1779365656823,
+      "tag": "0018_google_calendar_events",
+      "breakpoints": true
     }
   ]
 }

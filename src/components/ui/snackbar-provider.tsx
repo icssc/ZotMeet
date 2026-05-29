@@ -14,6 +14,7 @@ interface SnackbarState {
 interface SnackbarContextType {
 	showSuccess: (message: string) => void;
 	showError: (message: string) => void;
+	showWarning: (message: string) => void;
 }
 
 const SnackbarContext = createContext<SnackbarContextType | undefined>(
@@ -48,13 +49,18 @@ export function SnackbarProvider({ children }: { children: React.ReactNode }) {
 		[show],
 	);
 
+	const showWarning = useCallback(
+		(message: string) => show(message, "warning"),
+		[show],
+	);
+
 	const handleClose = (_: unknown, reason?: string) => {
 		if (reason === "clickaway") return;
 		setState((s) => ({ ...s, open: false }));
 	};
 
 	return (
-		<SnackbarContext.Provider value={{ showSuccess, showError }}>
+		<SnackbarContext.Provider value={{ showSuccess, showError, showWarning }}>
 			{children}
 			<Snackbar
 				open={state.open}

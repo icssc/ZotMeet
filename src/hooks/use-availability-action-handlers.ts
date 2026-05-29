@@ -1,10 +1,7 @@
 "use client";
 
 import { savePersonalAvailability } from "@actions/availability/save/action";
-import {
-	deleteScheduledTimeBlock,
-	saveScheduledTimeBlock,
-} from "@actions/meeting/schedule/action";
+import { commitMeetingSchedule } from "@actions/meeting/schedule/action";
 import { useCallback } from "react";
 import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
@@ -34,7 +31,7 @@ export function useAvailabilityActionHandlers({
 	setChangeableTimezone,
 	isMeetingDeletionPending = false,
 }: UseAvailabilityActionHandlersParams) {
-	const { showError } = useSnackbar();
+	const { showError, showSuccess } = useSnackbar();
 
 	const {
 		setHasAvailability,
@@ -120,10 +117,14 @@ export function useAvailabilityActionHandlers({
 		async (opts?: { skipExitToGroup?: boolean }): Promise<boolean> => {
 			if (isMeetingDeletionPending) return false;
 			try {
-				const { pendingAdds, pendingRemovals } =
+				const { scheduledTimes, pendingAdds, pendingRemovals } =
 					useAvailabilityStore.getState();
 
-				for (const timestamp of pendingRemovals) {
+				const finalTimestamps = new Set<string>(scheduledTimes);
+				for (const ts of pendingRemovals) finalTimestamps.delete(ts);
+				for (const ts of pendingAdds) finalTimestamps.add(ts);
+
+				const blocks = Array.from(finalTimestamps).map((timestamp) => {
 					const date = new Date(timestamp);
 					const scheduledDate = new Date(
 						date.getFullYear(),
@@ -134,48 +135,30 @@ export function useAvailabilityActionHandlers({
 					const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
 						.toTimeString()
 						.slice(0, 8);
+					return { scheduledDate, scheduledFromTime, scheduledToTime };
+				});
 
-					const removalResult = await deleteScheduledTimeBlock({
-						meetingId: meetingData.id,
-						scheduledDate,
-						scheduledFromTime,
-						scheduledToTime,
-					});
-					if ("error" in removalResult) {
-						showError(
-							removalResult.error ?? "Failed to delete scheduled meeting.",
-						);
-						return false;
-					}
-				}
+				const response = await commitMeetingSchedule({
+					meetingId: meetingData.id,
+					blocks,
+				});
 
-				for (const timestamp of pendingAdds) {
-					const date = new Date(timestamp);
-					const scheduledDate = new Date(
-						date.getFullYear(),
-						date.getMonth(),
-						date.getDate(),
-					);
-					const scheduledFromTime = date.toTimeString().slice(0, 8);
-					const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-						.toTimeString()
-						.slice(0, 8);
-
-					const saveResult = await saveScheduledTimeBlock({
-						meetingId: meetingData.id,
-						scheduledDate,
-						scheduledFromTime,
-						scheduledToTime,
-					});
-					if ("error" in saveResult) {
-						showError(saveResult.error ?? "Failed to save scheduled meeting.");
-						return false;
-					}
+				if (!response.success) {
+					showError(response.error ?? "Failed to save meeting schedule.");
+					return false;
 				}
 
 				if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
 					commitPendingTimes();
 				}
+
+				const { synced, skipped, failed } = response.outcome;
+				if (blocks.length > 0 && synced + skipped + failed > 0) {
+					showSuccess(
+						`Scheduled. ${synced} added to calendars, ${skipped} skipped, ${failed} failed.`,
+					);
+				}
+
 				if (!opts?.skipExitToGroup) {
 					setAvailabilityView("group");
 				}
@@ -190,6 +173,7 @@ export function useAvailabilityActionHandlers({
 			isMeetingDeletionPending,
 			meetingData.id,
 			showError,
+			showSuccess,
 			commitPendingTimes,
 			setAvailabilityView,
 		],

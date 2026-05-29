@@ -19,6 +19,7 @@ export const OAUTH_LOGIN_CONFIG = {
 			"profile",
 			"email",
 			"https://www.googleapis.com/auth/calendar.readonly",
+			"https://www.googleapis.com/auth/calendar.events.owned",
 		],
 	},
 	apple: {

@@ -14,6 +14,8 @@ import {
 import { db } from "@/db";
 import {
 	availabilities,
+	type MeetingGoogleCalendarSnapshot,
+	meetingGoogleCalendarEvents,
 	meetings,
 	members,
 	type SelectMeeting,
@@ -280,6 +282,26 @@ export async function getMeetingsWithMemberAvailabilityExcluding({
 			),
 		)
 		.orderBy(desc(meetings.createdAt));
+}
+
+export async function getMeetingGoogleCalendarSnapshot(
+	meetingId: string,
+	memberId: string,
+): Promise<MeetingGoogleCalendarSnapshot | null> {
+	const rows = await db
+		.select({
+			lastSyncedSnapshot: meetingGoogleCalendarEvents.lastSyncedSnapshot,
+		})
+		.from(meetingGoogleCalendarEvents)
+		.where(
+			and(
+				eq(meetingGoogleCalendarEvents.meetingId, meetingId),
+				eq(meetingGoogleCalendarEvents.memberId, memberId),
+			),
+		)
+		.limit(1);
+
+	return rows[0]?.lastSyncedSnapshot ?? null;
 }
 
 /** Availability rows for one member across many meetings (e.g. import/copy flows). */

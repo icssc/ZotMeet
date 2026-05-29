@@ -4,6 +4,8 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { availabilities, meetings, type SelectMeeting } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { validateGoogleAccessToken } from "@/lib/auth/google";
+import { removeMeetingGoogleCalendarEvent } from "@/server/actions/availability/google/calendar/action";
 
 export type MeetingMemberActionResult =
 	| { success: true; error?: undefined }
@@ -78,6 +80,22 @@ export async function leaveMeeting(
 				eq(availabilities.memberId, user.memberId),
 			),
 		);
+
+	try {
+		const tokenResult = await validateGoogleAccessToken();
+		if (tokenResult.accessToken) {
+			await removeMeetingGoogleCalendarEvent({
+				meetingId: meetingData.id,
+				memberId: user.memberId,
+				accessToken: tokenResult.accessToken,
+			});
+		}
+	} catch (error) {
+		console.error(
+			"Failed to remove Google Calendar event on leaveMeeting:",
+			error,
+		);
+	}
 
 	return { success: true };
 }

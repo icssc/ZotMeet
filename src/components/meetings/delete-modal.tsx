@@ -1,6 +1,9 @@
 "use client";
 
-import { archiveMeeting } from "@actions/meeting/archive/action";
+import {
+	type ArchiveMeetingResult,
+	archiveMeeting,
+} from "@actions/meeting/archive/action";
 import { leaveMeeting } from "@actions/meeting/leave/action";
 import {
 	Button,
@@ -38,7 +41,7 @@ export const DeleteModal = ({
 }: DeleteModalProps) => {
 	const router = useRouter();
 	const pathname = usePathname();
-	const { showSuccess, showError } = useSnackbar();
+	const { showSuccess, showError, showWarning } = useSnackbar();
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("sm"), {
 		noSsr: true,
@@ -57,24 +60,35 @@ export const DeleteModal = ({
 	const handleConfirm = async () => {
 		onDeletionPendingChange(true);
 		try {
-			const { success, error } = isOwner
-				? await archiveMeeting(meetingData)
-				: await leaveMeeting(meetingData);
+			if (isOwner) {
+				const result: ArchiveMeetingResult = await archiveMeeting(meetingData);
+				if (!result.success) {
+					showError(result.error ?? "Something went wrong.");
+					return;
+				}
 
-			if (success) {
-				showSuccess(
-					isOwner
-						? `You successfully deleted "${meetingData.title}".`
-						: `You left "${meetingData.title}".`,
-				);
-				handleOpenChange(false);
-				if (pathname === "/summary") {
-					router.refresh();
+				const partialFailures = result.calendarOutcome?.failed ?? 0;
+				if (partialFailures > 0) {
+					showWarning(
+						`Deleted "${meetingData.title}", but could not remove the event from ${partialFailures} member calendar(s). Members may need to delete it manually.`,
+					);
 				} else {
-					router.push("/summary");
+					showSuccess(`You successfully deleted "${meetingData.title}".`);
 				}
 			} else {
-				showError(error ?? "Something went wrong.");
+				const result = await leaveMeeting(meetingData);
+				if (!result.success) {
+					showError(result.error ?? "Something went wrong.");
+					return;
+				}
+				showSuccess(`You left "${meetingData.title}".`);
+			}
+
+			handleOpenChange(false);
+			if (pathname === "/summary") {
+				router.refresh();
+			} else {
+				router.push("/summary");
 			}
 		} finally {
 			onDeletionPendingChange(false);
