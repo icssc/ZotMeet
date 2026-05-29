@@ -1,7 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { Meetings } from "@/components/summary/meetings";
 import { getCurrentSession } from "@/lib/auth";
-import { buildScheduledLabel } from "@/lib/meetings/utils";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
+import {
+	buildScheduledLabel,
+	getUpcomingMeetingIds,
+} from "@/lib/meetings/utils";
 import {
 	getMeetings,
 	getResponderCountsByMeetingIds,
@@ -12,7 +16,7 @@ import { getNotificationsByMemberId } from "@/server/data/user/queries";
 export default async function Page() {
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/auth/login/google");
+		redirect(loginPathWithReturnTo("/summary"));
 	}
 
 	const memberId = session.user.memberId;
@@ -43,17 +47,7 @@ export default async function Page() {
 		scheduledDates[id] = sm.scheduledDate.getTime();
 	}
 
-	const startOfToday = new Date();
-	startOfToday.setUTCHours(0, 0, 0, 0);
-	const threeDaysLater = new Date(
-		startOfToday.getTime() + 3 * 24 * 60 * 60 * 1000,
-	);
-	const upcomingMeetingIds = Object.entries(scheduledMeetingMap)
-		.filter(
-			([, sm]) =>
-				sm.scheduledDate >= startOfToday && sm.scheduledDate <= threeDaysLater,
-		)
-		.map(([id]) => id);
+	const upcomingMeetingIds = getUpcomingMeetingIds(scheduledMeetingMap);
 
 	return (
 		<div className="px-4 py-8 sm:px-8">

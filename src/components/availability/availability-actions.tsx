@@ -13,6 +13,8 @@ import { useShallow } from "zustand/shallow";
 import { AddToCalendarButton } from "@/components/availability/add-to-calendar-button";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { MeetingGoogleCalendarSnapshot, SelectMeeting } from "@/db/schema";
+import { useReturnToPath } from "@/hooks/use-return-to-path";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
@@ -48,6 +50,7 @@ export function AvailabilityActions({
 	googleCalendarLinkSnapshot = null,
 }: AvailabilityActionsProps) {
 	const router = useRouter();
+	const returnToPath = useReturnToPath();
 	const { showSuccess, showError } = useSnackbar();
 	const [membersCanInvite, setMembersCanInvite] = useState(
 		meetingData.membersCanInvite,
@@ -168,7 +171,7 @@ export function AvailabilityActions({
 							sx={{ py: 0.75 }}
 							onClick={() => {
 								if (!user) {
-									router.push("/auth/login/google");
+									router.push(loginPathWithReturnTo(returnToPath));
 									return;
 								}
 								setChangeableTimezone(false);

@@ -140,6 +140,18 @@ export async function getMeetings(memberId: string) {
 				sql<boolean>`(NOT COALESCE(${meetings.scheduled}, false) AND ${meetings.id} NOT IN ${hasFilledAvailability})`.as(
 					"needs_availability",
 				),
+			allAvailabilityFilled: sql<boolean>`(
+					NOT COALESCE(${meetings.scheduled}, false)
+					AND EXISTS (
+						SELECT 1 FROM availabilities a0 WHERE a0.meeting_id = ${meetings.id}
+					)
+					AND NOT EXISTS (
+						SELECT 1 FROM availabilities a1
+						WHERE a1.meeting_id = ${meetings.id}
+						AND COALESCE(jsonb_array_length(a1.meeting_availabilities), 0) = 0
+						AND COALESCE(jsonb_array_length(a1."ifNeeded_availabilities"), 0) = 0
+					)
+				)`.as("all_availability_filled"),
 			membersCanInvite: meetings.membersCanInvite,
 		})
 		.from(meetings)

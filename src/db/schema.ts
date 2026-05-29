@@ -45,6 +45,8 @@ export const members = pgTable(
 	{
 		id: uuid("id").primaryKey().notNull().defaultRandom(),
 		displayName: text("display_name").notNull(),
+		// Snapshot of the Google profile name at first Google (oidc) sign-in.
+		// Used as a profile fallback when displayName is cleared; null for Apple-only users.
 		googleName: text("google_name"),
 		username: text("username").unique(),
 		year: text("year"),
@@ -92,6 +94,9 @@ export const oauthAccounts = pgTable(
 		pk: primaryKey({ columns: [table.providerId, table.providerUserId] }),
 	}),
 );
+// Each user may link multiple OAuth providers (Google via `oidc`, Apple via
+// `apple`). Lookup by (providerId, providerUserId); link additional providers
+// to an existing user by email when the account is not yet connected.
 
 export const sessions = pgTable(
 	"sessions",

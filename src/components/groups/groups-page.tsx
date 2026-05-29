@@ -11,6 +11,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { CreateGroupDialog } from "@/components/groups/create-group-dialog";
 import { GroupCard } from "@/components/groups/group-card";
@@ -308,25 +309,25 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 							))}
 					</Box>
 				) : (
-					<div className="flex min-h-[500px] flex-col items-center justify-center py-20 text-gray-400">
+					<div className="flex min-h-[500px] flex-col items-center justify-center py-20">
+						<Image src="/mascot.svg" alt="mascot" width={111} height={111} />
 						{showNoGroupsFound ? (
-							<Typography variant="h6" className="text-center text-gray-500">
+							<Typography
+								variant="h5"
+								color="textSecondary"
+								className="text-center italic leading-relaxed"
+							>
 								No groups found!
 							</Typography>
 						) : (
-							<>
-								<div className="mb-6">
-									<People sx={{ fontSize: "3.75rem", color: "divider" }} />
-								</div>
-
-								<Typography
-									variant="h6"
-									className="text-center italic leading-relaxed"
-								>
-									Create your first group to start <br />
-									scheduling meetings.
-								</Typography>
-							</>
+							<Typography
+								variant="h5"
+								color="textSecondary"
+								className="text-center italic leading-relaxed"
+							>
+								Create your first group to start <br />
+								scheduling meetings.
+							</Typography>
 						)}
 					</div>
 				)}

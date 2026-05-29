@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+		<meta name="theme-color" content="#F26489" />
+		<title>You're offline · ZotMeet</title>
+		<link rel="icon" href="/icons/icon-192.png" type="image/png" />
+		<style>
+			:root {
+				color-scheme: light dark;
+				--bg: #f5f7fa;
+				--fg: #0f172a;
+				--accent: #f26489;
+				--muted: #475569;
+				--card: #ffffff;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #0f172a;
+					--fg: #f8fafc;
+					--muted: #94a3b8;
+					--card: #1e293b;
+				}
+			}
+			html,
+			body {
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				font-family:
+					system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+					sans-serif;
+				background: var(--bg);
+				color: var(--fg);
+				display: grid;
+				place-items: center;
+				padding: 24px;
+				box-sizing: border-box;
+			}
+			main {
+				background: var(--card);
+				border-radius: 16px;
+				padding: 40px 32px;
+				max-width: 420px;
+				width: 100%;
+				text-align: center;
+				box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+			}
+			img {
+				width: 72px;
+				height: 72px;
+				margin: 0 auto 16px;
+				display: block;
+			}
+			h1 {
+				margin: 0 0 8px;
+				font-size: 1.5rem;
+			}
+			p {
+				margin: 0 0 24px;
+				color: var(--muted);
+				line-height: 1.5;
+			}
+			button {
+				background: var(--accent);
+				color: #fff;
+				border: 0;
+				border-radius: 999px;
+				padding: 12px 24px;
+				font-weight: 600;
+				font-size: 1rem;
+				cursor: pointer;
+			}
+			button:active {
+				transform: translateY(1px);
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<img src="/icons/icon-192.png" alt="ZotMeet" />
+			<h1>You're offline</h1>
+			<p>
+				ZotMeet needs an internet connection to show your meetings and groups. Reconnect
+				and try again.
+			</p>
+			<button id="retry" type="button">Try again</button>
+		</main>
+		<script>
+			document.getElementById("retry").addEventListener("click", () => {
+				location.reload();
+			});
+		</script>
+	</body>
+</html>
