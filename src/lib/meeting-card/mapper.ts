@@ -103,7 +103,9 @@ export function toMeetingCardProps(
 
 	return {
 		meetingName: meeting.title,
-		meetingOrganizer: getMeetingHostDisplayName(meeting.hostDisplayName),
+		meetingOrganizer: getMeetingHostDisplayName({
+			hostDisplayName: meeting.hostDisplayName,
+		}),
 		dateStart: formatDateForMeetingType(firstDate, meeting.meetingType),
 		dateEnd: formatDateForMeetingType(lastDate, meeting.meetingType),
 		timeStart: formatTime(localFromTime),

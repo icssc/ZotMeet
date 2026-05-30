@@ -36,7 +36,12 @@ export async function generateMetadata(props: PageProps) {
 		notFound();
 	}
 
-	const hostName = getMeetingHostDisplayName(meetingData.hostDisplayName);
+	const hostName = getMeetingHostDisplayName({
+		hostDisplayName: meetingData.hostDisplayName,
+		hostUsername: meetingData.hostUsername,
+		hostGoogleName: meetingData.hostGoogleName,
+		hostEmail: meetingData.hostEmail,
+	});
 	const shareTitle = `${hostName} is requesting your availability for ${meetingData.title}`;
 
 	return {

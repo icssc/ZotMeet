@@ -18,11 +18,15 @@ import {
 	members,
 	type SelectMeeting,
 	scheduledMeetings,
+	users,
 } from "@/db/schema";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 
 export type MeetingWithHost = SelectMeeting & {
 	hostDisplayName: string | null;
+	hostUsername: string | null;
+	hostGoogleName: string | null;
+	hostEmail: string | null;
 };
 
 export async function getExistingMeeting(
@@ -46,9 +50,13 @@ export async function getExistingMeeting(
 			archived: meetings.archived,
 			membersCanInvite: meetings.membersCanInvite,
 			hostDisplayName: members.displayName,
+			hostUsername: members.username,
+			hostGoogleName: members.googleName,
+			hostEmail: users.email,
 		})
 		.from(meetings)
 		.leftJoin(members, eq(meetings.hostId, members.id))
+		.leftJoin(users, eq(users.memberId, members.id))
 		.where(and(eq(meetings.id, meetingId), eq(meetings.archived, false)))
 		.limit(1);
 
