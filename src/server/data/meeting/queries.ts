@@ -21,12 +21,36 @@ import {
 } from "@/db/schema";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 
+export type MeetingWithHost = SelectMeeting & {
+	hostDisplayName: string | null;
+};
+
 export async function getExistingMeeting(
 	meetingId: string,
-): Promise<SelectMeeting> {
-	const meeting = await db.query.meetings.findFirst({
-		where: and(eq(meetings.id, meetingId), eq(meetings.archived, false)),
-	});
+): Promise<MeetingWithHost> {
+	const [meeting] = await db
+		.select({
+			id: meetings.id,
+			title: meetings.title,
+			description: meetings.description,
+			location: meetings.location,
+			scheduled: meetings.scheduled,
+			fromTime: meetings.fromTime,
+			toTime: meetings.toTime,
+			timezone: meetings.timezone,
+			group_id: meetings.group_id,
+			hostId: meetings.hostId,
+			dates: meetings.dates,
+			meetingType: meetings.meetingType,
+			createdAt: meetings.createdAt,
+			archived: meetings.archived,
+			membersCanInvite: meetings.membersCanInvite,
+			hostDisplayName: members.displayName,
+		})
+		.from(meetings)
+		.leftJoin(members, eq(meetings.hostId, members.id))
+		.where(and(eq(meetings.id, meetingId), eq(meetings.archived, false)))
+		.limit(1);
 
 	if (!meeting) {
 		throw new Error("Meeting not found");

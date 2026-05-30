@@ -2,15 +2,11 @@ import { notFound } from "next/navigation";
 import { Availability } from "@/components/availability/availability";
 import { getCurrentSession } from "@/lib/auth";
 import {
-	formatDateToUSNumeric,
-	sortMeetingIsoDatesAsc,
-} from "@/lib/availability/utils";
-import {
 	OPEN_INVITE_AFTER_CREATE_PARAM,
 	OPEN_INVITE_AFTER_CREATE_VALUE,
 } from "@/lib/meeting-open-invite";
 import { getMeetingHostDisplayName } from "@/lib/meetings/utils";
-import { APP_DESCRIPTION } from "@/lib/pwa-config.mjs";
+import { APP_DESCRIPTION, APP_NAME } from "@/lib/pwa-config.mjs";
 import {
 	getAllMemberAvailability,
 	getExistingMeeting,
@@ -40,7 +36,8 @@ export async function generateMetadata(props: PageProps) {
 		notFound();
 	}
 
-	const hostName = getMeetingHostDisplayName(meetingData.hostId);
+	const hostName = getMeetingHostDisplayName(meetingData.hostDisplayName);
+	const shareTitle = `${hostName} is requesting your availability for ${meetingData.title}`;
 
 	return {
 		title: {
@@ -48,18 +45,18 @@ export async function generateMetadata(props: PageProps) {
 			absolute: `Availability for ${meetingData.title}`,
 		},
 		openGraph: {
-			title: `${hostName} is requesting your availability for ${meetingData.title}`,
+			title: shareTitle,
 			description: APP_DESCRIPTION,
 			url: `/availability/${slug}`,
 			type: "website",
-			siteName: "ZotMeet",
+			siteName: APP_NAME,
 			images: [
-				{ url: "/icons/icon-512.png", width: 512, height: 512, alt: "ZotMeet" },
+				{ url: "/icons/icon-512.png", width: 512, height: 512, alt: APP_NAME },
 			],
 		},
 		twitter: {
 			card: "summary",
-			title: `${hostName} is requesting your availability for ${meetingData.title}`,
+			title: shareTitle,
 			description: APP_DESCRIPTION,
 			images: ["/icons/icon-512.png"],
 		},
