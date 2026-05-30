@@ -39,6 +39,22 @@ export async function generateMetadata(props: PageProps) {
 			default: "View Meeting Availability",
 			absolute: `Availability for ${meetingData.title}`,
 		},
+		openGraph: {
+			title: `Availability for ${meetingData.title}`,
+			description: `${meetingData.dates}`,
+			url: `/availability/${slug}`,
+			type: "website",
+			siteName: "ZotMeet",
+			images: [
+				{ url: "/icons/icon-512.png", width: 512, height: 512, alt: "ZotMeet" },
+			],
+		},
+		twitter: {
+			card: "summary",
+			title: `Availability for ${meetingData.title}`,
+			description: `${meetingData.dates}`,
+			images: ["/icons/icon-512.png"],
+		},
 		description: `Specify Meeting Availability for ${meetingData.title}`,
 	};
 }
