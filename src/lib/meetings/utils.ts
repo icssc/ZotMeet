@@ -2,6 +2,14 @@ import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 
 const UPCOMING_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 
+/** Resolved host label for cards, metadata, etc. */
+export function getMeetingHostDisplayName(
+	hostDisplayName: string | null | undefined,
+): string {
+	const trimmed = hostDisplayName?.trim();
+	return trimmed || "Unknown organizer";
+}
+
 export function getStartOfTodayMs(): number {
 	const d = new Date();
 	d.setHours(0, 0, 0, 0);

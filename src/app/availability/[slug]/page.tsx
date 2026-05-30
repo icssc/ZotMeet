@@ -2,9 +2,15 @@ import { notFound } from "next/navigation";
 import { Availability } from "@/components/availability/availability";
 import { getCurrentSession } from "@/lib/auth";
 import {
+	formatDateToUSNumeric,
+	sortMeetingIsoDatesAsc,
+} from "@/lib/availability/utils";
+import {
 	OPEN_INVITE_AFTER_CREATE_PARAM,
 	OPEN_INVITE_AFTER_CREATE_VALUE,
 } from "@/lib/meeting-open-invite";
+import { getMeetingHostDisplayName } from "@/lib/meetings/utils";
+import { APP_DESCRIPTION } from "@/lib/pwa-config.mjs";
 import {
 	getAllMemberAvailability,
 	getExistingMeeting,
@@ -34,14 +40,16 @@ export async function generateMetadata(props: PageProps) {
 		notFound();
 	}
 
+	const hostName = getMeetingHostDisplayName(meetingData.hostId);
+
 	return {
 		title: {
 			default: "View Meeting Availability",
 			absolute: `Availability for ${meetingData.title}`,
 		},
 		openGraph: {
-			title: `Availability for ${meetingData.title}`,
-			description: `${meetingData.dates}`,
+			title: `${hostName} is requesting your availability for ${meetingData.title}`,
+			description: APP_DESCRIPTION,
 			url: `/availability/${slug}`,
 			type: "website",
 			siteName: "ZotMeet",
@@ -51,8 +59,8 @@ export async function generateMetadata(props: PageProps) {
 		},
 		twitter: {
 			card: "summary",
-			title: `Availability for ${meetingData.title}`,
-			description: `${meetingData.dates}`,
+			title: `${hostName} is requesting your availability for ${meetingData.title}`,
+			description: APP_DESCRIPTION,
 			images: ["/icons/icon-512.png"],
 		},
 		description: `Specify Meeting Availability for ${meetingData.title}`,

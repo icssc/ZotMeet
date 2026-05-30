@@ -1,5 +1,6 @@
 import type { SelectMeeting } from "@/db/schema";
 import { convertTimeFromUTC } from "@/lib/availability/utils";
+import { getMeetingHostDisplayName } from "@/lib/meetings/utils";
 import { WEEKDAYS } from "@/lib/types/chrono";
 
 export interface MeetingCardViewModel {
@@ -102,7 +103,7 @@ export function toMeetingCardProps(
 
 	return {
 		meetingName: meeting.title,
-		meetingOrganizer: meeting.hostDisplayName ?? "Unknown organizer",
+		meetingOrganizer: getMeetingHostDisplayName(meeting.hostDisplayName),
 		dateStart: formatDateForMeetingType(firstDate, meeting.meetingType),
 		dateEnd: formatDateForMeetingType(lastDate, meeting.meetingType),
 		timeStart: formatTime(localFromTime),

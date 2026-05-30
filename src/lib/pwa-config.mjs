@@ -15,7 +15,7 @@
 export const APP_NAME = "ZotMeet";
 
 export const APP_DESCRIPTION =
-	"ZotMeet is a simple, clean, and efficient meeting scheduling app for UCI students and groups.";
+	"Schedule Meetings, Book UCI Rooms, and Time Sync with ZotMeet";
 
 /**
  * Canonical public origin for metadata, sitemap, and store manifests.
