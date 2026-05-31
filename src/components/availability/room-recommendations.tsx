@@ -54,6 +54,7 @@ function dedupeKey(name: string, location: string): string {
  * buildUnavailableKeys handles that directly from the raw slots, correctly
  * OR-merging overlapping sliding-window slots across all variants.
  */
+
 export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 	type Entry = RoomResult & { availableCount: number };
 	const seen = new Map<string, Entry>();
