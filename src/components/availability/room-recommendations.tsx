@@ -9,7 +9,7 @@ import {
 	Typography,
 } from "@mui/material";
 import { ChevronDownIcon, ChevronUpIcon, SparklesIcon } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useStudyRoomHover } from "@/components/availability/table/study-room-hover-context";
 import type { paths } from "@/lib/types/anteater-api-types";
 import {
@@ -196,6 +196,7 @@ export function RoomRecommendationSettings({
 	onRoomSelect,
 }: RoomRecommendationSettingsProps) {
 	const [isOpen, setIsOpen] = useState(false);
+	const [filtersOpen, setFiltersOpen] = useState(true);
 
 	const roomResults = useMemo(() => deduplicateRooms(rawRooms), [rawRooms]);
 
@@ -257,6 +258,12 @@ export function RoomRecommendationSettings({
 		if (!filteredRooms.length) return { status: "empty" as const };
 		return { status: "results" as const, rooms: filteredRooms };
 	}, [rawRooms, filteredRooms]);
+
+	const hasResults = roomState.status === "results";
+
+	useEffect(() => {
+		if (hasResults) setFiltersOpen(false);
+	}, [hasResults]);
 
 	const handleToggleLength = useCallback(
 		(v: MeetingLength) => {
@@ -368,45 +375,72 @@ export function RoomRecommendationSettings({
 						<Divider />
 
 						<div className="flex flex-col gap-4">
-							<Typography variant="h6">Room Filters</Typography>
+							<button
+								type="button"
+								className="flex w-full items-center justify-between text-left"
+								onClick={() => setFiltersOpen((v) => !v)}
+								aria-expanded={!hasResults || filtersOpen}
+							>
+								<Typography variant="h6">Room Filters</Typography>
+								{hasResults &&
+									(filtersOpen ? (
+										<ChevronUpIcon
+											size={20}
+											className="shrink-0 text-slate-400"
+										/>
+									) : (
+										<ChevronDownIcon
+											size={20}
+											className="shrink-0 text-slate-400"
+										/>
+									))}
+							</button>
 
-							<div className="flex flex-col gap-1">
-								<Typography variant="subtitle2" color="textSecondary">
-									Meeting Length
-								</Typography>
-								<FilterChipGroup
-									options={MEETING_LENGTHS}
-									selected={selectedLengths}
-									onToggle={handleToggleLength}
-									onClear={() => onFiltersChange({ ...filters, lengths: [] })}
-								/>
-							</div>
+							<Collapse in={!hasResults || filtersOpen} timeout="auto">
+								<div className="flex flex-col gap-4">
+									<div className="flex flex-col gap-1">
+										<Typography variant="subtitle2" color="textSecondary">
+											Meeting Length
+										</Typography>
+										<FilterChipGroup
+											options={MEETING_LENGTHS}
+											selected={selectedLengths}
+											onToggle={handleToggleLength}
+											onClear={() =>
+												onFiltersChange({ ...filters, lengths: [] })
+											}
+										/>
+									</div>
 
-							<div className="flex flex-col gap-1">
-								<Typography variant="subtitle2" color="textSecondary">
-									Capacity
-								</Typography>
-								<FilterChipGroup
-									options={CAPACITIES}
-									selected={selectedCapacities}
-									onToggle={handleToggleCapacity}
-									onClear={() =>
-										onFiltersChange({ ...filters, capacities: [] })
-									}
-								/>
-							</div>
+									<div className="flex flex-col gap-1">
+										<Typography variant="subtitle2" color="textSecondary">
+											Capacity
+										</Typography>
+										<FilterChipGroup
+											options={CAPACITIES}
+											selected={selectedCapacities}
+											onToggle={handleToggleCapacity}
+											onClear={() =>
+												onFiltersChange({ ...filters, capacities: [] })
+											}
+										/>
+									</div>
 
-							<div className="flex flex-col gap-1">
-								<Typography variant="subtitle2" color="textSecondary">
-									Buildings
-								</Typography>
-								<FilterChipGroup
-									options={BUILDINGS}
-									selected={selectedBuildings}
-									onToggle={handleToggleBuilding}
-									onClear={() => onFiltersChange({ ...filters, buildings: [] })}
-								/>
-							</div>
+									<div className="flex flex-col gap-1">
+										<Typography variant="subtitle2" color="textSecondary">
+											Buildings
+										</Typography>
+										<FilterChipGroup
+											options={BUILDINGS}
+											selected={selectedBuildings}
+											onToggle={handleToggleBuilding}
+											onClear={() =>
+												onFiltersChange({ ...filters, buildings: [] })
+											}
+										/>
+									</div>
+								</div>
+							</Collapse>
 						</div>
 
 						<Divider />
@@ -441,7 +475,7 @@ export function RoomRecommendationSettings({
 							)}
 
 							{roomState.status === "results" && (
-								<div className="flex flex-wrap gap-2">
+								<div className="flex h-40 flex-wrap gap-2 overflow-y-scroll">
 									{roomState.rooms.map((room) => {
 										const isSelected = effectiveSelectedRoomIds.includes(
 											room.id,
