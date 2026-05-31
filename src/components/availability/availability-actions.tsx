@@ -1,16 +1,15 @@
 "use client";
 
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
-import { updateMeetingInvitePermissions } from "@actions/meeting/invite/action";
 import {
 	Create,
 	GroupAddOutlined,
 	InsertInvitationRounded,
 } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
-import { Button, FormControlLabel, Switch } from "@mui/material";
+import { Button } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
@@ -22,6 +21,7 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 export interface AvailabilityActionsProps {
 	meetingData: SelectMeeting;
 	user: UserProfile | null;
+	membersCanInvite: boolean;
 	handlePersonalCancel: () => void;
 	handlePersonalSave: () => Promise<void>;
 	handleScheduleCancel: () => void;
@@ -36,6 +36,7 @@ export interface AvailabilityActionsProps {
 export function AvailabilityActions({
 	meetingData,
 	user,
+	membersCanInvite,
 	handlePersonalCancel,
 	handlePersonalSave,
 	handleScheduleCancel,
@@ -50,10 +51,6 @@ export function AvailabilityActions({
 	const returnToPath = useReturnToPath();
 	const { showSuccess, showError } = useSnackbar();
 	const [isGeneratingLink, setIsGeneratingLink] = useState(false);
-	const [membersCanInvite, setMembersCanInvite] = useState(
-		meetingData.membersCanInvite,
-	);
-	const [isUpdatingPermissions, setIsUpdatingPermissions] = useState(false);
 
 	const { hasAvailability, availabilityView, setAvailabilityView } =
 		useAvailabilityStore(
@@ -66,38 +63,6 @@ export function AvailabilityActions({
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
 	const canShowInviteButton = isOwner || membersCanInvite;
-
-	useEffect(() => {
-		setMembersCanInvite(meetingData.membersCanInvite);
-	}, [meetingData.membersCanInvite]);
-
-	const handleMembersCanInviteChange = useCallback(
-		async (checked: boolean) => {
-			setIsUpdatingPermissions(true);
-			setMembersCanInvite(checked);
-
-			try {
-				const result = await updateMeetingInvitePermissions({
-					meetingId: meetingData.id,
-					membersCanInvite: checked,
-				});
-
-				if (!result.success) {
-					setMembersCanInvite(!checked);
-					showError(result.message);
-				} else {
-					showSuccess(result.message);
-				}
-			} catch (error) {
-				console.error(error);
-				setMembersCanInvite(!checked);
-				showError("Failed to update invite permissions.");
-			} finally {
-				setIsUpdatingPermissions(false);
-			}
-		},
-		[meetingData.id, showError, showSuccess],
-	);
 
 	const handleSaveClick = () => {
 		const action =
@@ -135,22 +100,6 @@ export function AvailabilityActions({
 				</div>
 			) : (
 				<div className="flex flex-col gap-2">
-					{isOwner && (
-						<div className="hidden items-center justify-between rounded-md border p-2 sm:flex">
-							<FormControlLabel
-								control={
-									<Switch
-										checked={membersCanInvite}
-										disabled={isUpdatingPermissions}
-										onChange={(e) => {
-											void handleMembersCanInviteChange(e.target.checked);
-										}}
-									/>
-								}
-								label="Allow members to invite others"
-							/>
-						</div>
-					)}
 					{isScheduled && (
 						<div className="hidden flex-col sm:flex">
 							<Button

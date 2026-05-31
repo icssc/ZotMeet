@@ -104,7 +104,7 @@ export function AvailabilityHeader({
 				</div>
 			</div>
 
-			<Paper variant="outlined" className="mt-2">
+			<Paper variant="outlined" className="mt-2 w-full">
 				<div className="flex flex-col gap-4">
 					<div className="flex w-full items-center">
 						<h1 className="line-clamp-1 min-w-0 self-start truncate font-medium text-xl md:text-3xl">
