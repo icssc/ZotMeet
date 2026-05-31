@@ -131,6 +131,7 @@ export function groupRawRoomsByKey(
 interface RoomRecommendationSettingsProps {
 	onShowBestRooms?: () => void;
 	rawRooms?: StudyRoomApiEntry[];
+	hasSearched?: boolean;
 	filters: RoomFilters;
 	onFiltersChange: (filters: RoomFilters) => void;
 	isLoading?: boolean;
@@ -189,6 +190,7 @@ export function RoomRecommendationSettings({
 	onFiltersChange,
 	filters,
 	rawRooms = [],
+	hasSearched = false,
 	isLoading = false,
 	errorMessage = null,
 	selectedRoomIds,
@@ -254,10 +256,10 @@ export function RoomRecommendationSettings({
 	}, [roomResults, selectedCapacities, selectedBuildings, selectedLengths]);
 
 	const roomState = useMemo(() => {
-		if (!rawRooms.length) return { status: "initial" as const };
+		if (!hasSearched) return { status: "initial" as const };
 		if (!filteredRooms.length) return { status: "empty" as const };
 		return { status: "results" as const, rooms: filteredRooms };
-	}, [rawRooms, filteredRooms]);
+	}, [hasSearched, filteredRooms]);
 
 	const hasResults = roomState.status === "results";
 
@@ -446,22 +448,19 @@ export function RoomRecommendationSettings({
 						<Divider />
 
 						<div className="flex flex-col gap-2">
-							<div>
-								<Typography variant="h6">Room Results</Typography>
-								<Typography variant="caption" color="textSecondary">
-									Click a chip to pin a room on the calendar. Hover to preview
-									without pinning.
-								</Typography>
-							</div>
-
-							{roomState.status === "initial" && (
-								<Typography
-									variant="caption"
-									color="textSecondary"
-									className="italic"
-								>
-									Click "Show Best Rooms" to search for available study rooms.
-								</Typography>
+							{roomState.status === "results" && (
+								<div>
+									<div className="flex items-center">
+										<Typography variant="h6">Room Results</Typography>
+										<div className="ml-auto">
+											<Button className="">Book Room</Button>
+										</div>
+									</div>
+									<Typography variant="caption" color="textSecondary">
+										Click a chip to pin a room on the calendar. Hover to preview
+										without pinning.
+									</Typography>
+								</div>
 							)}
 
 							{roomState.status === "empty" && (
@@ -470,7 +469,9 @@ export function RoomRecommendationSettings({
 									color="textSecondary"
 									className="italic"
 								>
-									No rooms match your current filters.
+									{rawRooms.length === 0
+										? "No available study rooms for the selected times."
+										: "No rooms match your current filters."}
 								</Typography>
 							)}
 

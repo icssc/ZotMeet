@@ -230,6 +230,7 @@ export function Availability({
 		rooms: studyRooms,
 		error: studyRoomsError,
 		isLoading: isRoomsLoading,
+		hasSearched: hasSearchedRooms,
 		showBestRooms: handleShowBestRooms,
 	} = useRoomRecommendations(availabilityDates);
 
@@ -552,6 +553,7 @@ export function Availability({
 								</Paper>
 								<RoomRecommendationSettings
 									rawRooms={studyRooms}
+									hasSearched={hasSearchedRooms}
 									filters={roomFilters}
 									onFiltersChange={setRoomFilters}
 									onShowBestRooms={handleShowBestRooms}
