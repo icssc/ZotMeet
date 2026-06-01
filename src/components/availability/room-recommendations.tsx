@@ -46,11 +46,28 @@ function dedupeKey(name: string, location: string): string {
 	return `${baseName}|${location}`;
 }
 
+function parseVariantDuration(room: StudyRoomApiEntry): MeetingLength | null {
+	const durationMatch = room.name.match(/\((\d+)\s*hours?\)/i);
+	const rawDuration = durationMatch ? Number(durationMatch[1]) * 60 : null;
+	const parsed = MeetingLengthSchema.safeParse(rawDuration);
+	return parsed.success ? parsed.data : null;
+}
+
 function getRoomBookingUrl(
 	variants: StudyRoomApiEntry[] | undefined,
+	preferredLengths: MeetingLength[] = [],
 ): string | null {
-	const raw = variants?.[0];
-	if (!raw) return null;
+	if (!variants?.length) return null;
+
+	let raw: StudyRoomApiEntry | undefined;
+	if (preferredLengths.length > 0) {
+		for (const length of preferredLengths) {
+			raw = variants.find((v) => parseVariantDuration(v) === length);
+			if (raw) break;
+		}
+	}
+	raw ??= variants[0];
+
 	return raw.url ?? `https://spaces.lib.uci.edu/space/${raw.id}`;
 }
 
@@ -71,10 +88,7 @@ export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 		const key = dedupeKey(room.name, room.location);
 		const baseName = room.name.replace(/\s*\(\d+\s*hours?\)/i, "").trim();
 		const availableCount = room.slots.filter((s) => s.isAvailable).length;
-		const durationMatch = room.name.match(/\((\d+)\s*hours?\)/i);
-		const rawDuration = durationMatch ? Number(durationMatch[1]) * 60 : null;
-		const parsed = MeetingLengthSchema.safeParse(rawDuration);
-		const duration = parsed.success ? parsed.data : null;
+		const duration = parseVariantDuration(room);
 
 		const existing = seen.get(key);
 
@@ -231,8 +245,11 @@ export function RoomRecommendationSettings({
 
 	const selectedBookingUrl = useMemo(() => {
 		if (effectiveSelectedRoomIds.length !== 1) return null;
-		return getRoomBookingUrl(rawRoomsByKey.get(effectiveSelectedRoomIds[0]));
-	}, [effectiveSelectedRoomIds, rawRoomsByKey]);
+		return getRoomBookingUrl(
+			rawRoomsByKey.get(effectiveSelectedRoomIds[0]),
+			selectedLengths,
+		);
+	}, [effectiveSelectedRoomIds, rawRoomsByKey, selectedLengths]);
 
 	const filteredRooms = useMemo(() => {
 		return roomResults.filter((room) => {
