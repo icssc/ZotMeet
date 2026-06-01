@@ -46,6 +46,14 @@ function dedupeKey(name: string, location: string): string {
 	return `${baseName}|${location}`;
 }
 
+function getRoomBookingUrl(
+	variants: StudyRoomApiEntry[] | undefined,
+): string | null {
+	const raw = variants?.[0];
+	if (!raw) return null;
+	return raw.url ?? `https://spaces.lib.uci.edu/space/${raw.id}`;
+}
+
 /**
  * Collapses all duration variants (1h, 2h, 3h) of the same physical room into
  * one display entry.
@@ -220,6 +228,11 @@ export function RoomRecommendationSettings({
 	const effectiveSelectedRoomIds = isSelectionControlled
 		? selectedRoomIds
 		: internalSelectedRoomIds;
+
+	const selectedBookingUrl = useMemo(() => {
+		if (effectiveSelectedRoomIds.length !== 1) return null;
+		return getRoomBookingUrl(rawRoomsByKey.get(effectiveSelectedRoomIds[0]));
+	}, [effectiveSelectedRoomIds, rawRoomsByKey]);
 
 	const filteredRooms = useMemo(() => {
 		return roomResults.filter((room) => {
@@ -451,16 +464,33 @@ export function RoomRecommendationSettings({
 						<div className="flex flex-col gap-2">
 							{roomState.status === "results" && (
 								<div>
-									<div className="flex items-center">
+									<div className="mb-4 flex items-center">
 										<Typography variant="h6">Room Results</Typography>
-										<div className="ml-auto">
-											<Button className="">Book Room</Button>
-										</div>
+										{selectedBookingUrl && (
+											<div className="ml-auto">
+												<Button
+													href={selectedBookingUrl}
+													variant="outlined"
+													target="_blank"
+													rel="noopener noreferrer"
+													size="small"
+												>
+													Book Room
+												</Button>
+											</div>
+										)}
 									</div>
 									<Typography variant="caption" color="textSecondary">
 										Click a chip to pin a room on the calendar. Hover to preview
 										without pinning.
 									</Typography>
+
+									{effectiveSelectedRoomIds.length > 1 && (
+										<Typography variant="caption" color="error">
+											<br />
+											You can only book one room at a time
+										</Typography>
+									)}
 								</div>
 							)}
 
