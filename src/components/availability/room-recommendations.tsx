@@ -9,7 +9,7 @@ import {
 	Typography,
 } from "@mui/material";
 import { ChevronDownIcon, ChevronUpIcon, SparklesIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStudyRoomHover } from "@/components/availability/table/study-room-hover-context";
 import type { paths } from "@/lib/types/anteater-api-types";
 import {
@@ -52,16 +52,22 @@ function getRoomBookingUrl(
 ): string | null {
 	if (!variants?.length) return null;
 
+	// Match preferred lengths in a stable, canonical order (shortest → longest)
+	// instead of the arbitrary order the user toggled the chips in.
+	const orderedLengths = MEETING_LENGTHS.filter((length) =>
+		preferredLengths.includes(length),
+	);
+
 	let raw: StudyRoomApiEntry | undefined;
-	if (preferredLengths.length > 0) {
-		for (const length of preferredLengths) {
-			raw = variants.find((v) => parseRoomDuration(v.name) === length);
-			if (raw) break;
-		}
+	for (const length of orderedLengths) {
+		raw = variants.find((v) => parseRoomDuration(v.name) === length);
+		if (raw) break;
 	}
 	raw ??= variants[0];
 
-	return raw.url ?? `https://spaces.lib.uci.edu/space/${raw.id}`;
+	// Only surface a booking link the API actually provided; constructing a URL
+	// from the room id is unreliable since variants live on different domains.
+	return raw.url ?? null;
 }
 
 /**
@@ -72,7 +78,6 @@ function getRoomBookingUrl(
  * buildUnavailableKeys handles that directly from the raw slots, correctly
  * OR-merging overlapping sliding-window slots across all variants.
  */
-
 export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 	type Entry = RoomResult & { availableCount: number };
 	const seen = new Map<string, Entry>();
@@ -287,8 +292,14 @@ export function RoomRecommendationSettings({
 
 	const hasResults = roomState.status === "results";
 
+	// Collapse the filters only the first time results appear, so a later search
+	// doesn't override the user reopening them.
+	const hasAutoCollapsedFilters = useRef(false);
 	useEffect(() => {
-		if (hasResults) setFiltersOpen(false);
+		if (hasResults && !hasAutoCollapsedFilters.current) {
+			hasAutoCollapsedFilters.current = true;
+			setFiltersOpen(false);
+		}
 	}, [hasResults]);
 
 	const handleToggleLength = useCallback(
@@ -517,7 +528,7 @@ export function RoomRecommendationSettings({
 							)}
 
 							{roomState.status === "results" && (
-								<div className="flex h-40 flex-wrap gap-2 overflow-y-scroll">
+								<div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto">
 									{roomState.rooms.map((room) => {
 										const isSelected = effectiveSelectedRoomIds.includes(
 											room.id,

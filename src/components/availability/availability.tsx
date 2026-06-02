@@ -65,6 +65,9 @@ export function Availability({
 	inviteQueryInUrl?: boolean;
 }) {
 	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+	// Lifted here (rather than owned by the dialog) so the toggle can update
+	// optimistically and be shared with AvailabilityActions; synced to the
+	// server value below whenever meetingData refreshes.
 	const [membersCanInvite, setMembersCanInvite] = useState(
 		meetingData.membersCanInvite,
 	);
@@ -131,6 +134,7 @@ export function Availability({
 		}
 	}, [autoOpenInviteDialog]);
 
+	// Re-sync local optimistic state when the server-provided value changes.
 	useEffect(() => {
 		setMembersCanInvite(meetingData.membersCanInvite);
 	}, [meetingData.membersCanInvite]);
