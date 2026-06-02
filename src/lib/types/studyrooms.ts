@@ -23,7 +23,7 @@ export const MeetingLengthSchema = z.union(
 // normalized to minutes so half-hour variants (30/90) are handled, not just
 // whole-hour labels.
 const DURATION_SUFFIX_REGEX =
-	/\s*\((\d+(?:\.\d+)?)\s*(hours?|hrs?|minutes?|mins?)\)/i;
+	/\s*\((\d+(?:\.\d+)?)\s*(hours?|hrs?|minutes?|mins?)\)\s*$/i;
 
 export function stripRoomDurationSuffix(name: string): string {
 	return name.replace(DURATION_SUFFIX_REGEX, "").trim();
