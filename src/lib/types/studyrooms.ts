@@ -18,6 +18,27 @@ export const MeetingLengthSchema = z.union(
 	],
 );
 
+// Matches a trailing booking-duration label on a study-room name, e.g.
+// "(1 hour)", "(2 hours)", "(90 minutes)", or "(1.5 hours)". Durations are
+// normalized to minutes so half-hour variants (30/90) are handled, not just
+// whole-hour labels.
+const DURATION_SUFFIX_REGEX =
+	/\s*\((\d+(?:\.\d+)?)\s*(hours?|hrs?|minutes?|mins?)\)/i;
+
+export function stripRoomDurationSuffix(name: string): string {
+	return name.replace(DURATION_SUFFIX_REGEX, "").trim();
+}
+
+export function parseRoomDuration(name: string): MeetingLength | null {
+	const match = name.match(DURATION_SUFFIX_REGEX);
+	if (!match) return null;
+	const value = Number(match[1]);
+	const isHours = match[2].toLowerCase().startsWith("h");
+	const minutes = isHours ? value * 60 : value;
+	const parsed = MeetingLengthSchema.safeParse(minutes);
+	return parsed.success ? parsed.data : null;
+}
+
 // Structured capacity ranges so consumers never have to parse the label string.
 // `max` is omitted for the open-ended bucket ("13+").
 export const CAPACITY_RANGES = [

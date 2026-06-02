@@ -19,8 +19,9 @@ import {
 	type Capacity,
 	MEETING_LENGTHS,
 	type MeetingLength,
-	MeetingLengthSchema,
+	parseRoomDuration,
 	type RoomFilters,
+	stripRoomDurationSuffix,
 } from "@/lib/types/studyrooms";
 
 export type StudyRoomApiEntry = NonNullable<
@@ -42,15 +43,7 @@ function toggle<T>(arr: T[], val: T): T[] {
 }
 
 function dedupeKey(name: string, location: string): string {
-	const baseName = name.replace(/\s*\(\d+\s*hours?\)/i, "").trim();
-	return `${baseName}|${location}`;
-}
-
-function parseVariantDuration(room: StudyRoomApiEntry): MeetingLength | null {
-	const durationMatch = room.name.match(/\((\d+)\s*hours?\)/i);
-	const rawDuration = durationMatch ? Number(durationMatch[1]) * 60 : null;
-	const parsed = MeetingLengthSchema.safeParse(rawDuration);
-	return parsed.success ? parsed.data : null;
+	return `${stripRoomDurationSuffix(name)}|${location}`;
 }
 
 function getRoomBookingUrl(
@@ -62,7 +55,7 @@ function getRoomBookingUrl(
 	let raw: StudyRoomApiEntry | undefined;
 	if (preferredLengths.length > 0) {
 		for (const length of preferredLengths) {
-			raw = variants.find((v) => parseVariantDuration(v) === length);
+			raw = variants.find((v) => parseRoomDuration(v.name) === length);
 			if (raw) break;
 		}
 	}
@@ -86,9 +79,9 @@ export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 
 	for (const room of rooms) {
 		const key = dedupeKey(room.name, room.location);
-		const baseName = room.name.replace(/\s*\(\d+\s*hours?\)/i, "").trim();
+		const baseName = stripRoomDurationSuffix(room.name);
 		const availableCount = room.slots.filter((s) => s.isAvailable).length;
-		const duration = parseVariantDuration(room);
+		const duration = parseRoomDuration(room.name);
 
 		const existing = seen.get(key);
 
