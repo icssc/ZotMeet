@@ -2,7 +2,10 @@
 
 import { inviteGroupMember } from "@actions/group/add-member/action";
 import { createGroupInvite } from "@actions/group/invite/create/action";
-import { inviteMeetingMembers } from "@actions/meeting/invite/action";
+import {
+	inviteMeetingMembers,
+	updateMeetingInvitePermissions,
+} from "@actions/meeting/invite/action";
 import { searchUsers } from "@actions/user/search";
 import {
 	Autocomplete,
@@ -13,6 +16,8 @@ import {
 	DialogActions,
 	DialogContent,
 	DialogTitle,
+	FormControlLabel,
+	Switch,
 	TextField,
 	Typography,
 } from "@mui/material";
@@ -336,6 +341,9 @@ export type MemberInviteDialogProps =
 			open: boolean;
 			onOpenChange: (open: boolean) => void;
 			meetingId: string;
+			isOwner: boolean;
+			membersCanInvite: boolean;
+			onMembersCanInviteChange: (value: boolean) => void;
 	  }
 	| {
 			purpose: "group";
@@ -350,12 +358,18 @@ export type MemberInviteDialogProps =
 export function MemberInviteDialog(props: MemberInviteDialogProps) {
 	const { open, onOpenChange, purpose } = props;
 	const meetingId = purpose === "meeting" ? props.meetingId : undefined;
+	const isOwner = purpose === "meeting" ? props.isOwner : false;
+	const membersCanInvite =
+		purpose === "meeting" ? props.membersCanInvite : false;
+	const onMembersCanInviteChange =
+		purpose === "meeting" ? props.onMembersCanInviteChange : undefined;
 	const groupId = purpose === "group" ? props.groupId : undefined;
 	const excludeUserIds = purpose === "group" ? props.excludeUserIds : [];
 	const canLoadInviteLink =
 		purpose === "group" ? props.canLoadInviteLink : false;
 
 	const [members, setMembers] = useState<SearchUser[]>([]);
+	const [isUpdatingPermissions, setIsUpdatingPermissions] = useState(false);
 	const [meetingLink, setMeetingLink] = useState("");
 	const [groupInviteLink, setGroupInviteLink] = useState("");
 	const [isPending, startTransition] = useTransition();
@@ -401,6 +415,36 @@ export function MemberInviteDialog(props: MemberInviteDialogProps) {
 		if (!nextOpen) resetForm();
 		onOpenChange(nextOpen);
 	};
+
+	const handleMembersCanInviteChange = useCallback(
+		async (checked: boolean) => {
+			if (!meetingId || !onMembersCanInviteChange) return;
+
+			setIsUpdatingPermissions(true);
+			onMembersCanInviteChange(checked);
+
+			try {
+				const result = await updateMeetingInvitePermissions({
+					meetingId,
+					membersCanInvite: checked,
+				});
+
+				if (!result.success) {
+					onMembersCanInviteChange(!checked);
+					showError(result.message);
+				} else {
+					showSuccess(result.message);
+				}
+			} catch (error) {
+				console.error(error);
+				onMembersCanInviteChange(!checked);
+				showError("Failed to update invite permissions.");
+			} finally {
+				setIsUpdatingPermissions(false);
+			}
+		},
+		[meetingId, onMembersCanInviteChange, showError, showSuccess],
+	);
 
 	const shareLink: MemberInviteShareLink | null =
 		purpose === "meeting"
@@ -507,7 +551,24 @@ export function MemberInviteDialog(props: MemberInviteDialogProps) {
 				)}
 			</DialogContent>
 
-			<DialogActions>
+			<DialogActions sx={{ justifyContent: "flex-end", px: 3, pb: 2, pt: 1 }}>
+				{purpose === "meeting" && isOwner && (
+					<FormControlLabel
+						sx={{ m: 0, mr: "auto" }}
+						control={
+							<Switch
+								checked={membersCanInvite}
+								disabled={isUpdatingPermissions}
+								onChange={(e) => {
+									void handleMembersCanInviteChange(e.target.checked);
+								}}
+							/>
+						}
+						label={
+							<Typography color="textPrimary">Allow Guest Invites</Typography>
+						}
+					/>
+				)}
 				<Button variant="text" onClick={() => handleOpenChange(false)}>
 					Cancel
 				</Button>
@@ -523,12 +584,18 @@ type InviteMembersDialogProps = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	meetingId: string;
+	isOwner: boolean;
+	membersCanInvite: boolean;
+	onMembersCanInviteChange: (value: boolean) => void;
 };
 
 export function InviteMembersDialog({
 	open,
 	onOpenChange,
 	meetingId,
+	isOwner,
+	membersCanInvite,
+	onMembersCanInviteChange,
 }: InviteMembersDialogProps) {
 	return (
 		<MemberInviteDialog
@@ -536,6 +603,9 @@ export function InviteMembersDialog({
 			open={open}
 			onOpenChange={onOpenChange}
 			meetingId={meetingId}
+			isOwner={isOwner}
+			membersCanInvite={membersCanInvite}
+			onMembersCanInviteChange={onMembersCanInviteChange}
 		/>
 	);
 }

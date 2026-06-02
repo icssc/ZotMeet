@@ -65,6 +65,12 @@ export function Availability({
 	inviteQueryInUrl?: boolean;
 }) {
 	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+	// Lifted here (rather than owned by the dialog) so the toggle can update
+	// optimistically and be shared with AvailabilityActions; synced to the
+	// server value below whenever meetingData refreshes.
+	const [membersCanInvite, setMembersCanInvite] = useState(
+		meetingData.membersCanInvite,
+	);
 	const [isMeetingDeletionPending, setIsMeetingDeletionPending] =
 		useState(false);
 
@@ -127,6 +133,11 @@ export function Availability({
 			setIsInviteDialogOpen(true);
 		}
 	}, [autoOpenInviteDialog]);
+
+	// Re-sync local optimistic state when the server-provided value changes.
+	useEffect(() => {
+		setMembersCanInvite(meetingData.membersCanInvite);
+	}, [meetingData.membersCanInvite]);
 
 	const [userTimezone, setUserTimezone] = useState(
 		Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -223,6 +234,7 @@ export function Availability({
 		rooms: studyRooms,
 		error: studyRoomsError,
 		isLoading: isRoomsLoading,
+		hasSearched: hasSearchedRooms,
 		showBestRooms: handleShowBestRooms,
 	} = useRoomRecommendations(availabilityDates);
 
@@ -364,6 +376,7 @@ export function Availability({
 	const actionsProps = {
 		meetingData,
 		user,
+		membersCanInvite,
 		handlePersonalCancel,
 		handlePersonalSave,
 		handleScheduleCancel,
@@ -434,100 +447,102 @@ export function Availability({
 			rawRoomsByKey={rawRoomsByKey}
 			selectedRoomIds={selectedRoomIds}
 		>
-			<div className="flex min-h-[80vh] flex-col gap-6">
-				<AvailabilityHeader
-					meetingData={meetingData}
-					user={user}
-					inviteQueryInUrl={inviteQueryInUrl}
-					isMeetingDeletionPending={isMeetingDeletionPending}
-					onMeetingDeletionPendingChange={setIsMeetingDeletionPending}
-				/>
-
+			<div className="flex min-h-[80vh] flex-col">
 				<div className="flex min-h-0 w-full min-w-0 flex-1 flex-row items-stretch justify-start">
-					<Paper
-						component="div"
-						variant="outlined"
-						className="flex min-h-0 min-w-0 flex-1 flex-col self-stretch overflow-y-auto [touch-action:pan-y] lg:mr-4 lg:overflow-y-auto lg:overflow-x-hidden lg:pr-14 lg:[touch-action:auto]"
-					>
-						<div className="flex flex-1 flex-col gap-4">
-							<div className="shrink-0 lg:hidden">
-								<AvailabilityActions {...actionsProps} />
-							</div>
-							<div className="relative overflow-visible">
-								<table
-									ref={availabilityGridRef}
-									data-availability-grid=""
-									className="w-full table-fixed"
-								>
-									<AvailabilityTableHeader
-										currentPageAvailability={currentPageAvailability}
-										meetingType={meetingData.meetingType}
-										doesntNeedDay={doesntNeedDay}
-										datePageNav={{
-											onPrev: prevPage,
-											onNext: () => nextPage(availabilityDates.length),
-											isFirstPage,
-											isLastPage,
-										}}
-									/>
+					<div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6 lg:mr-4">
+						<AvailabilityHeader
+							meetingData={meetingData}
+							user={user}
+							inviteQueryInUrl={inviteQueryInUrl}
+							isMeetingDeletionPending={isMeetingDeletionPending}
+							onMeetingDeletionPendingChange={setIsMeetingDeletionPending}
+						/>
 
-									<tbody
-										className="bg-stripes-primary"
-										onMouseLeave={handleMouseLeave}
+						<Paper
+							component="div"
+							variant="outlined"
+							className="flex min-h-0 min-w-0 flex-1 flex-col self-stretch overflow-y-auto [touch-action:pan-y] lg:overflow-y-auto lg:overflow-x-hidden lg:pr-14 lg:[touch-action:auto]"
+						>
+							<div className="flex flex-1 flex-col gap-4">
+								<div className="shrink-0 lg:hidden">
+									<AvailabilityActions {...actionsProps} />
+								</div>
+								<div className="relative overflow-visible">
+									<table
+										ref={availabilityGridRef}
+										data-availability-grid=""
+										className="w-full table-fixed"
 									>
-										{availabilityView === "group" ||
-										availabilityView === "schedule" ? (
-											<GroupAvailability
-												meetingTitle={meetingData.title}
-												availabilityTimeBlocks={availabilityTimeBlocks}
-												fromTime={fromTimeMinutes}
-												availabilityDates={availabilityDates}
-												ifNeededDates={ifNeededDates}
-												currentPageAvailability={currentPageAvailability}
-												members={members}
-												onMouseLeave={handleMouseLeave}
-												isScheduling={availabilityView === "schedule"}
-												timeZone={userTimezone}
-												handlers={gridHandlers}
-											/>
-										) : (
-											<PersonalAvailability
-												availabilityTimeBlocks={availabilityTimeBlocks}
-												fromTimeMinutes={fromTimeMinutes}
-												availabilityDates={availabilityDates}
-												currentPageAvailability={currentPageAvailability}
-												googleCalendarEvents={visibleCalendarEvents}
-												meetingDates={meetingData.dates}
-												userTimezone={userTimezone}
-												handlers={handlers}
-												paintMode={paintMode}
-												isDirty={isDirty}
-											/>
-										)}
-									</tbody>
-								</table>
-								{pageEdgeVariant !== "none" && (
-									<AvailabilityGridJaggedEdges
-										variant={pageEdgeVariant}
-										tableRef={availabilityGridRef}
-									/>
-								)}
-							</div>
+										<AvailabilityTableHeader
+											currentPageAvailability={currentPageAvailability}
+											meetingType={meetingData.meetingType}
+											doesntNeedDay={doesntNeedDay}
+											datePageNav={{
+												onPrev: prevPage,
+												onNext: () => nextPage(availabilityDates.length),
+												isFirstPage,
+												isLastPage,
+											}}
+										/>
 
-							<div className="ml-10 flex flex-row items-center justify-between gap-4 md:ml-16">
-								<TimeZoneDropdown
-									timeZone={userTimezone}
-									changeTimeZone={setUserTimezone}
-									changeableTimezone={changeableTimezone}
-								/>
+										<tbody
+											className="bg-stripes-primary"
+											onMouseLeave={handleMouseLeave}
+										>
+											{availabilityView === "group" ||
+											availabilityView === "schedule" ? (
+												<GroupAvailability
+													meetingTitle={meetingData.title}
+													availabilityTimeBlocks={availabilityTimeBlocks}
+													fromTime={fromTimeMinutes}
+													availabilityDates={availabilityDates}
+													ifNeededDates={ifNeededDates}
+													currentPageAvailability={currentPageAvailability}
+													members={members}
+													onMouseLeave={handleMouseLeave}
+													isScheduling={availabilityView === "schedule"}
+													timeZone={userTimezone}
+													handlers={gridHandlers}
+												/>
+											) : (
+												<PersonalAvailability
+													availabilityTimeBlocks={availabilityTimeBlocks}
+													fromTimeMinutes={fromTimeMinutes}
+													availabilityDates={availabilityDates}
+													currentPageAvailability={currentPageAvailability}
+													googleCalendarEvents={visibleCalendarEvents}
+													meetingDates={meetingData.dates}
+													userTimezone={userTimezone}
+													handlers={handlers}
+													paintMode={paintMode}
+													isDirty={isDirty}
+												/>
+											)}
+										</tbody>
+									</table>
+									{pageEdgeVariant !== "none" && (
+										<AvailabilityGridJaggedEdges
+											variant={pageEdgeVariant}
+											tableRef={availabilityGridRef}
+										/>
+									)}
+								</div>
+
+								<div className="ml-10 flex flex-row items-center justify-between gap-4 md:ml-16">
+									<TimeZoneDropdown
+										timeZone={userTimezone}
+										changeTimeZone={setUserTimezone}
+										changeableTimezone={changeableTimezone}
+									/>
+								</div>
 							</div>
-						</div>
-					</Paper>
+						</Paper>
+					</div>
 
 					{(availabilityView === "group" ||
 						availabilityView === "schedule") && (
 						<div>
-							<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+							<div className="mt-4 hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
 								{availabilityView === "schedule" ? (
 									<ScheduleMeetingSettings
 										handleScheduleCancel={handleScheduleCancel}
@@ -545,6 +560,7 @@ export function Availability({
 								</Paper>
 								<RoomRecommendationSettings
 									rawRooms={studyRooms}
+									hasSearched={hasSearchedRooms}
 									filters={roomFilters}
 									onFiltersChange={setRoomFilters}
 									onShowBestRooms={handleShowBestRooms}
@@ -617,6 +633,9 @@ export function Availability({
 					open={isInviteDialogOpen}
 					onOpenChange={setIsInviteDialogOpen}
 					meetingId={meetingData.id}
+					isOwner={isMeetingOwner}
+					membersCanInvite={membersCanInvite}
+					onMembersCanInviteChange={setMembersCanInvite}
 				/>
 			</div>
 		</StudyRoomHoverProvider>
