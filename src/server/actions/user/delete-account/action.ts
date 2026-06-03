@@ -1,10 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth";
 import { deleteSessionTokenCookie } from "@/lib/auth/cookies";
 import { deleteAccountData, emailsMatch } from "@/lib/auth/delete-account";
+import { getOidcLogoutUrl } from "@/lib/auth/oidc-logout";
 import { invalidateSession } from "@/lib/auth/session";
 
 export type DeleteAccountState = {
@@ -42,6 +44,16 @@ export async function deleteAccountAction(
 
 	await invalidateSession(session.id);
 	await deleteSessionTokenCookie();
+
+	const cookieStore = await cookies();
+	cookieStore.set("account_deleted", "1", {
+		path: "/",
+		httpOnly: true,
+		sameSite: "lax",
+		secure: process.env.NODE_ENV === "production",
+		maxAge: 60 * 15,
+	});
+
 	revalidatePath("/", "layout");
-	redirect("/auth/login?deleted=1");
+	redirect(getOidcLogoutUrl("/auth/login?deleted=1"));
 }

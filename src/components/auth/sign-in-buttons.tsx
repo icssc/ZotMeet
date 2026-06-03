@@ -9,9 +9,17 @@ type SignInButtonsProps = {
 	returnTo?: string | null;
 	/** When true, fall back to the current page if `returnTo` is not set. */
 	useCurrentPath?: boolean;
+	/** Show Google/Apple account picker (e.g. after account deletion). */
+	selectAccount?: boolean;
 };
 
-function SignInButtonStack({ returnTo }: { returnTo?: string | null }) {
+function SignInButtonStack({
+	returnTo,
+	selectAccount = false,
+}: {
+	returnTo?: string | null;
+	selectAccount?: boolean;
+}) {
 	return (
 		<div className="flex w-full max-w-80 flex-col items-center gap-4">
 			<Paper
@@ -25,7 +33,7 @@ function SignInButtonStack({ returnTo }: { returnTo?: string | null }) {
 					p: 1.5,
 				}}
 			>
-				<GoogleButton returnTo={returnTo} />
+				<GoogleButton returnTo={returnTo} selectAccount={selectAccount} />
 				<Typography variant="caption" color="textSecondary">
 					Auto import your Google Calendar
 				</Typography>
@@ -35,7 +43,7 @@ function SignInButtonStack({ returnTo }: { returnTo?: string | null }) {
 			</Typography>
 
 			<div className="w-full">
-				<AppleButton returnTo={returnTo} />
+				<AppleButton returnTo={returnTo} selectAccount={selectAccount} />
 			</div>
 		</div>
 	);
@@ -43,19 +51,34 @@ function SignInButtonStack({ returnTo }: { returnTo?: string | null }) {
 
 function SignInButtonsWithCurrentPath({
 	returnTo: returnToProp,
+	selectAccount = false,
 }: {
 	returnTo?: string | null;
+	selectAccount?: boolean;
 }) {
 	const currentPath = useReturnToPath();
-	return <SignInButtonStack returnTo={returnToProp ?? currentPath} />;
+	return (
+		<SignInButtonStack
+			returnTo={returnToProp ?? currentPath}
+			selectAccount={selectAccount}
+		/>
+	);
 }
 
 export function SignInButtons({
 	returnTo,
 	useCurrentPath = false,
+	selectAccount = false,
 }: SignInButtonsProps = {}) {
 	if (useCurrentPath) {
-		return <SignInButtonsWithCurrentPath returnTo={returnTo} />;
+		return (
+			<SignInButtonsWithCurrentPath
+				returnTo={returnTo}
+				selectAccount={selectAccount}
+			/>
+		);
 	}
-	return <SignInButtonStack returnTo={returnTo} />;
+	return (
+		<SignInButtonStack returnTo={returnTo} selectAccount={selectAccount} />
+	);
 }

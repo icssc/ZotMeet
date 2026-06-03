@@ -6,16 +6,20 @@ import { oauthLoginPath } from "@/lib/auth/return-to";
 
 type AppleButtonProps = {
 	returnTo?: string | null;
+	selectAccount?: boolean;
 };
 
-export function AppleButton({ returnTo }: AppleButtonProps = {}) {
+export function AppleButton({
+	returnTo,
+	selectAccount = false,
+}: AppleButtonProps = {}) {
 	const theme = useTheme();
 	const isDark = theme.palette.mode === "dark";
 
 	return (
 		<Button
 			component="a"
-			href={oauthLoginPath("apple", returnTo)}
+			href={oauthLoginPath("apple", returnTo, { selectAccount })}
 			variant="contained"
 			fullWidth
 			startIcon={<AppleIcon />}
