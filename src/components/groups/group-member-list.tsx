@@ -66,27 +66,30 @@ function GroupMeetingCard({
 		{ responderCount: meeting.respondedCount, scheduledLabel },
 	);
 
-	const nudgeItem = isOwner ? (
-		<MenuItem
-			disabled={isNudging}
-			onClick={async (e) => {
-				e.stopPropagation();
-				setIsNudging(true);
-				try {
-					const result = await nudgePendingMembers(meeting.id);
-					if (result.success) showSuccess(result.message);
-					else showError(result.message);
-				} catch {
-					showError("Failed to send nudge. Please try again.");
-				} finally {
-					setIsNudging(false);
-				}
-			}}
-		>
-			<People sx={{ mr: 1, fontSize: 16 }} />
-			Nudge Members
-		</MenuItem>
-	) : undefined;
+	const nudgeItem = isOwner
+		? (close: () => void) => (
+				<MenuItem
+					disabled={isNudging}
+					onClick={async (e) => {
+						e.stopPropagation();
+						close();
+						setIsNudging(true);
+						try {
+							const result = await nudgePendingMembers(meeting.id);
+							if (result.success) showSuccess(result.message);
+							else showError(result.message);
+						} catch {
+							showError("Failed to send nudge. Please try again.");
+						} finally {
+							setIsNudging(false);
+						}
+					}}
+				>
+					<People sx={{ mr: 1, fontSize: 16 }} />
+					Nudge Members
+				</MenuItem>
+			)
+		: undefined;
 
 	return (
 		<MeetingCard

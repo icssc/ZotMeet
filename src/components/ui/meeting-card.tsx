@@ -23,7 +23,7 @@ import { getDeleteLeaveAction } from "@/lib/meetings/delete-leave-action";
 interface MeetingCardProps extends MeetingCardViewModel {
 	isOwner: boolean;
 	onDeleteLeave?: () => void;
-	extraMenuItems?: ReactNode;
+	extraMenuItems?: (close: () => void) => ReactNode;
 	totalMembers?: number;
 	needsAvailability?: boolean;
 	allAvailabilityFilled?: boolean;
@@ -184,7 +184,7 @@ const MeetingCard = ({
 									{actionLabel}
 								</MenuItem>
 							)}
-							{extraMenuItems}
+							{extraMenuItems?.(() => setAnchorEl(null))}
 						</Menu>
 					</>
 				)}
