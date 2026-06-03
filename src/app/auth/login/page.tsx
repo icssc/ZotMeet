@@ -1,5 +1,5 @@
 import { Alert, Box, Paper, Typography } from "@mui/material";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import Image from "next/image";
 import { SignInButtons } from "@/components/auth/sign-in-buttons";
 import { safeReturnTo } from "@/lib/auth/return-to";
@@ -10,19 +10,7 @@ type LoginPageProps = {
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
 	const { returnTo, deleted } = await searchParams;
-	const cookieStore = await cookies();
-	const hadDeletedCookie = cookieStore.get("account_deleted")?.value === "1";
-	const accountJustDeleted = deleted === "1" || hadDeletedCookie;
-
-	if (hadDeletedCookie) {
-		cookieStore.set("account_deleted", "", {
-			path: "/",
-			httpOnly: true,
-			sameSite: "lax",
-			secure: process.env.NODE_ENV === "production",
-			maxAge: 0,
-		});
-	}
+	const accountJustDeleted = deleted === "1";
 	const headersList = await headers();
 	const refererReturnTo = safeReturnTo(headersList.get("referer"));
 	const resolvedReturnTo = safeReturnTo(returnTo) ?? refererReturnTo;

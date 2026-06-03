@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth";
 import { deleteSessionTokenCookie } from "@/lib/auth/cookies";
@@ -43,15 +42,6 @@ export async function deleteAccountAction(
 
 	await deleteSessionTokenCookie();
 
-	const cookieStore = await cookies();
-	cookieStore.set("account_deleted", "1", {
-		path: "/",
-		httpOnly: true,
-		sameSite: "lax",
-		secure: process.env.NODE_ENV === "production",
-		maxAge: 60 * 15,
-	});
-
 	revalidatePath("/", "layout");
-	redirect(getOidcLogoutUrl("/auth/login"));
+	redirect(getOidcLogoutUrl("/auth/login/deleted"));
 }
