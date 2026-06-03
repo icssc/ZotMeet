@@ -98,7 +98,8 @@ function GroupMeetingCard({
 			allAvailabilityFilled={meeting.respondedCount >= meeting.totalMembers}
 			isUpcoming={status === "upcoming"}
 			isPast={Boolean(
-				meeting.scheduledDate && new Date(meeting.scheduledDate) < new Date(),
+				meeting.scheduledDate &&
+					meeting.scheduledDate < new Date(new Date().setHours(0, 0, 0, 0)),
 			)}
 			extraMenuItems={nudgeItem}
 		/>
