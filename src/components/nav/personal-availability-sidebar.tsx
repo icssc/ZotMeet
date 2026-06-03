@@ -251,7 +251,6 @@ export function PersonalAvailabilitySidebar({
 
 					<Button
 						variant="outlined"
-						color="inherit"
 						fullWidth
 						disabled={!canImport}
 						onClick={onClearAvailability}

@@ -74,7 +74,6 @@ export function AvailabilityActions({
 				<div className="hidden flex-row flex-wrap justify-end gap-2 sm:flex">
 					<Button
 						variant="outlined"
-						color="inherit"
 						size="small"
 						onClick={
 							availabilityView === "personal"
@@ -100,7 +99,6 @@ export function AvailabilityActions({
 						<div className="hidden flex-col sm:flex">
 							<Button
 								variant="outlined"
-								color="inherit"
 								size="medium"
 								startIcon={<GoogleIcon sx={{ fontSize: 18 }} />}
 								onClick={async () => {
@@ -167,7 +165,6 @@ export function AvailabilityActions({
 						{isOwner && (
 							<Button
 								variant="outlined"
-								color="inherit"
 								startIcon={<Event />}
 								className="w-full"
 								sx={{ py: 0.75 }}
@@ -179,7 +176,6 @@ export function AvailabilityActions({
 						{canShowInviteButton && (
 							<Button
 								variant="outlined"
-								color="inherit"
 								startIcon={<GroupAddOutlined />}
 								className="w-full"
 								sx={{ py: 0.75 }}

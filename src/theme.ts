@@ -245,10 +245,14 @@ export const getTheme = (mode: "light" | "dark") =>
 							backgroundColor: theme.palette.secondary.main,
 						},
 					}),
-					outlined: {
-						boxShadow: "0px 3px 0px 0px rgba(0,0,0,0.25)",
+					outlined: ({ theme }) => ({
+						color: theme.palette.text.primary,
+						borderColor: "rgba(0,0,0,0.25)",
+						backgroundColor: theme.palette.background.paper,
+
+						boxShadow: "0px 4px 0px 0px rgba(0,0,0,0.25)",
 						"&:hover": {
-							boxShadow: "0px 1px 0px 0px rgba(0,0,0,0.25)",
+							boxShadow: "0px 2px 0px 0px rgba(0,0,0,0.25)",
 							transform: "translateY(2px)",
 							backgroundColor: "transparent",
 						},
@@ -256,9 +260,8 @@ export const getTheme = (mode: "light" | "dark") =>
 							boxShadow: "none",
 							transform: "translateY(4px)",
 						},
-					},
+					}),
 					outlinedPrimary: ({ theme }) => ({
-						borderColor: `rgba(242, 100, 137, 0.5)`,
 						"&:hover": {
 							borderColor: theme.palette.primary.main,
 						},
