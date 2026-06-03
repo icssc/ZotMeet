@@ -2,14 +2,11 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { groups, members } from "@/db/schema";
 
-export function emailsMatch(
-	confirmEmail: string,
-	accountEmail: string,
-): boolean {
-	return (
-		confirmEmail.trim().toLowerCase() === accountEmail.trim().toLowerCase()
-	);
-}
+export {
+	DELETE_ACCOUNT_CONFIRM_PHRASE,
+	isApplePrivateRelayEmail,
+	isDeleteConfirmationValid,
+} from "@/lib/auth/delete-account-confirm";
 
 export async function deleteAccountData(
 	userId: string,

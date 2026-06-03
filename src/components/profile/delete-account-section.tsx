@@ -17,6 +17,10 @@ import {
 import { useState, useTransition } from "react";
 import { MuiBottomSheet } from "@/components/ui/mui/mui-bottom-sheet";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
+import {
+	DELETE_ACCOUNT_CONFIRM_PHRASE,
+	isApplePrivateRelayEmail,
+} from "@/lib/auth/delete-account-confirm";
 import { deleteAccountAction } from "@/server/actions/user/delete-account/action";
 
 interface DeleteAccountSectionProps {
@@ -25,43 +29,59 @@ interface DeleteAccountSectionProps {
 
 export function DeleteAccountSection({ userEmail }: DeleteAccountSectionProps) {
 	const [showConfirm, setShowConfirm] = useState(false);
-	const [confirmEmail, setConfirmEmail] = useState("");
+	const [confirmPhrase, setConfirmPhrase] = useState("");
 	const [isPending, startTransition] = useTransition();
 	const { showError } = useSnackbar();
 	const theme = useTheme();
 	const isMobile = useMediaQuery(theme.breakpoints.down("sm"), { noSsr: true });
+	const usesAppleRelay = isApplePrivateRelayEmail(userEmail);
 
-	const emailMatches =
-		confirmEmail.trim().toLowerCase() === userEmail.trim().toLowerCase();
+	const phraseMatches = confirmPhrase.trim() === DELETE_ACCOUNT_CONFIRM_PHRASE;
 
 	const closeConfirm = () => {
 		setShowConfirm(false);
-		setConfirmEmail("");
+		setConfirmPhrase("");
 	};
 
 	const handleDelete = () => {
-		if (!emailMatches) {
-			showError("Email does not match your account.");
+		if (!phraseMatches) {
+			showError(`Type "${DELETE_ACCOUNT_CONFIRM_PHRASE}" to confirm.`);
 			return;
 		}
 
 		startTransition(async () => {
-			const result = await deleteAccountAction(confirmEmail);
+			const result = await deleteAccountAction(confirmPhrase);
 			if (result?.success === false) {
 				showError(result.message);
 			}
 		});
 	};
 
+	const accountContext = (
+		<Stack spacing={1}>
+			<Typography variant="body2" color="text.secondary">
+				This will permanently delete the account linked to:
+			</Typography>
+			<Typography variant="body2" fontWeight={600}>
+				{userEmail}
+			</Typography>
+			{usesAppleRelay && (
+				<Typography variant="caption" color="text.secondary">
+					Enter DELETE below to confirm.
+				</Typography>
+			)}
+		</Stack>
+	);
+
 	const confirmField = (
 		<TextField
-			label="Account email"
+			label={`Type ${DELETE_ACCOUNT_CONFIRM_PHRASE} to confirm`}
 			autoFocus
 			fullWidth
-			value={confirmEmail}
-			onChange={(e) => setConfirmEmail(e.target.value)}
+			value={confirmPhrase}
+			onChange={(e) => setConfirmPhrase(e.target.value)}
 			disabled={isPending}
-			helperText="Type your account email to confirm permanent deletion."
+			helperText={`Type ${DELETE_ACCOUNT_CONFIRM_PHRASE} to permanently delete this account.`}
 		/>
 	);
 
@@ -94,6 +114,7 @@ export function DeleteAccountSection({ userEmail }: DeleteAccountSectionProps) {
 					<DialogTitle>Permanently Delete Account?</DialogTitle>
 					<DialogContent>
 						<Stack spacing={2} sx={{ pt: 1 }}>
+							{accountContext}
 							{confirmField}
 						</Stack>
 					</DialogContent>
@@ -105,7 +126,7 @@ export function DeleteAccountSection({ userEmail }: DeleteAccountSectionProps) {
 							variant="contained"
 							color="error"
 							onClick={handleDelete}
-							disabled={isPending || !emailMatches}
+							disabled={isPending || !phraseMatches}
 						>
 							{isPending ? "Deleting..." : "Confirm Delete"}
 						</Button>
@@ -134,13 +155,14 @@ export function DeleteAccountSection({ userEmail }: DeleteAccountSectionProps) {
 								<CloseIcon />
 							</IconButton>
 						</Stack>
+						{accountContext}
 						{confirmField}
 						<Button
 							variant="contained"
 							color="error"
 							fullWidth
 							onClick={handleDelete}
-							disabled={isPending || !emailMatches}
+							disabled={isPending || !phraseMatches}
 						>
 							{isPending ? "Deleting..." : "Confirm Delete "}
 						</Button>

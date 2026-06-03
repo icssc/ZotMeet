@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth";
 import { deleteSessionTokenCookie } from "@/lib/auth/cookies";
-import { deleteAccountData, emailsMatch } from "@/lib/auth/delete-account";
+import { deleteAccountData } from "@/lib/auth/delete-account";
+import { isDeleteConfirmationValid } from "@/lib/auth/delete-account-confirm";
 import { getOidcLogoutUrl } from "@/lib/auth/oidc-logout";
 
 export type DeleteAccountState = {
@@ -13,7 +14,7 @@ export type DeleteAccountState = {
 };
 
 export async function deleteAccountAction(
-	confirmEmail: string,
+	confirmPhrase: string,
 ): Promise<DeleteAccountState | void> {
 	const { session, user } = await getCurrentSession();
 	if (session === null || user === null) {
@@ -23,10 +24,10 @@ export async function deleteAccountAction(
 		};
 	}
 
-	if (!emailsMatch(confirmEmail, user.email)) {
+	if (!isDeleteConfirmationValid(confirmPhrase)) {
 		return {
 			success: false,
-			message: "Email does not match your account.",
+			message: 'Type "DELETE" to confirm account deletion.',
 		};
 	}
 
