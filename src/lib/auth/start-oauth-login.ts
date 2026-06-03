@@ -19,17 +19,11 @@ import {
 type CookieStore = Awaited<ReturnType<typeof cookies>>;
 type HeaderStore = Awaited<ReturnType<typeof headers>>;
 
-type StartOAuthLoginOptions = {
-	/** Ask the IdP to show the account picker (e.g. after account deletion). */
-	selectAccount?: boolean;
-};
-
 export async function startOAuthLogin(
 	provider: OAuthLoginProvider,
 	cookieStore: CookieStore,
 	headersList: HeaderStore,
 	returnTo?: string | null,
-	options: StartOAuthLoginOptions = {},
 ): Promise<Response> {
 	const config = OAUTH_LOGIN_CONFIG[provider];
 	const state = generateState();
@@ -52,9 +46,6 @@ export async function startOAuthLogin(
 		),
 	);
 	url.searchParams.set("provider", config.icsscProvider);
-	if (options.selectAccount) {
-		url.searchParams.set("prompt", "select_account");
-	}
 
 	const cookieOptions = {
 		path: "/",

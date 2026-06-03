@@ -9,17 +9,9 @@ type SignInButtonsProps = {
 	returnTo?: string | null;
 	/** When true, fall back to the current page if `returnTo` is not set. */
 	useCurrentPath?: boolean;
-	/** Show Google/Apple account picker (e.g. after account deletion). */
-	selectAccount?: boolean;
 };
 
-function SignInButtonStack({
-	returnTo,
-	selectAccount = false,
-}: {
-	returnTo?: string | null;
-	selectAccount?: boolean;
-}) {
+function SignInButtonStack({ returnTo }: { returnTo?: string | null }) {
 	return (
 		<div className="flex w-full max-w-80 flex-col items-center gap-4">
 			<Paper
@@ -33,7 +25,7 @@ function SignInButtonStack({
 					p: 1.5,
 				}}
 			>
-				<GoogleButton returnTo={returnTo} selectAccount={selectAccount} />
+				<GoogleButton returnTo={returnTo} />
 				<Typography variant="caption" color="textSecondary">
 					Auto import your Google Calendar
 				</Typography>
@@ -43,7 +35,7 @@ function SignInButtonStack({
 			</Typography>
 
 			<div className="w-full">
-				<AppleButton returnTo={returnTo} selectAccount={selectAccount} />
+				<AppleButton returnTo={returnTo} />
 			</div>
 		</div>
 	);
@@ -51,34 +43,19 @@ function SignInButtonStack({
 
 function SignInButtonsWithCurrentPath({
 	returnTo: returnToProp,
-	selectAccount = false,
 }: {
 	returnTo?: string | null;
-	selectAccount?: boolean;
 }) {
 	const currentPath = useReturnToPath();
-	return (
-		<SignInButtonStack
-			returnTo={returnToProp ?? currentPath}
-			selectAccount={selectAccount}
-		/>
-	);
+	return <SignInButtonStack returnTo={returnToProp ?? currentPath} />;
 }
 
 export function SignInButtons({
 	returnTo,
 	useCurrentPath = false,
-	selectAccount = false,
 }: SignInButtonsProps = {}) {
 	if (useCurrentPath) {
-		return (
-			<SignInButtonsWithCurrentPath
-				returnTo={returnTo}
-				selectAccount={selectAccount}
-			/>
-		);
+		return <SignInButtonsWithCurrentPath returnTo={returnTo} />;
 	}
-	return (
-		<SignInButtonStack returnTo={returnTo} selectAccount={selectAccount} />
-	);
+	return <SignInButtonStack returnTo={returnTo} />;
 }

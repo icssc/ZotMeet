@@ -42,10 +42,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 							Your account and associated data were permanently deleted.
 						</Alert>
 					)}
-					<SignInButtons
-						returnTo={resolvedReturnTo}
-						selectAccount={accountJustDeleted}
-					/>
+					<SignInButtons returnTo={resolvedReturnTo} />
 				</div>
 			</Paper>
 		</Box>

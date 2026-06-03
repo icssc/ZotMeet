@@ -35,17 +35,11 @@ export function loginPathWithReturnTo(returnTo?: string | null): string {
 export function oauthLoginPath(
 	provider: "google" | "apple",
 	returnTo?: string | null,
-	options?: { selectAccount?: boolean },
 ): string {
-	const params = new URLSearchParams();
 	const safe = safeReturnTo(returnTo);
-	if (safe) {
-		params.set("returnTo", safe);
-	}
-	if (options?.selectAccount) {
-		params.set("selectAccount", "1");
-	}
-	const query = params.toString();
 	const base = `/auth/login/${provider}`;
-	return query ? `${base}?${query}` : base;
+	if (!safe) {
+		return base;
+	}
+	return `${base}?returnTo=${encodeURIComponent(safe)}`;
 }

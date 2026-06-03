@@ -55,5 +55,5 @@ export async function deleteAccountAction(
 	});
 
 	revalidatePath("/", "layout");
-	redirect(getOidcLogoutUrl("/auth/login?deleted=1"));
+	redirect(getOidcLogoutUrl("/auth/login"));
 }

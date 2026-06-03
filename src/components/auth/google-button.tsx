@@ -4,17 +4,13 @@ import { oauthLoginPath } from "@/lib/auth/return-to";
 
 type GoogleButtonProps = {
 	returnTo?: string | null;
-	selectAccount?: boolean;
 };
 
-export function GoogleButton({
-	returnTo,
-	selectAccount = false,
-}: GoogleButtonProps = {}) {
+export function GoogleButton({ returnTo }: GoogleButtonProps = {}) {
 	return (
 		<Button
 			component="a"
-			href={oauthLoginPath("google", returnTo, { selectAccount })}
+			href={oauthLoginPath("google", returnTo)}
 			variant="outlined"
 			fullWidth
 			startIcon={<GoogleLogo />}
