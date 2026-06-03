@@ -72,7 +72,7 @@ export function NotificationsPanel({
 							<Typography variant="body1" fontWeight={500} sx={{ mb: 1 }}>
 								{option.label}
 							</Typography>
-							<Typography variant="body2" color="text.secondary">
+							<Typography variant="body2" color="textSecondary">
 								{option.description}
 							</Typography>
 						</Box>

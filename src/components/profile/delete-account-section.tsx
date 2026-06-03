@@ -66,23 +66,23 @@ export function DeleteAccountSection({ userEmail }: DeleteAccountSectionProps) {
 	);
 
 	return (
-		<Stack spacing={2}>
-			<Typography variant="h6" color="error">
-				Delete account
-			</Typography>
+		<div className="flex flex-col gap-2">
+			<div className={isMobile ? "mb-2 flex justify-center" : ""}>
+				<Button
+					variant="outlined"
+					color="error"
+					onClick={() => setShowConfirm(true)}
+					sx={{ alignSelf: "flex-start" }}
+				>
+					Delete account
+				</Button>
+			</div>
+
 			<Typography variant="body2" color="text.secondary">
-				Permanently removes your profile, group memberships, meetings you host,
+				Permanently deletes your profile, group memberships, meetings,
 				availability responses, notifications, and sessions from ZotMeet. This
-				cannot be undone. Your Google or Apple sign-in is not affected.
+				cannot be undone.
 			</Typography>
-			<Button
-				variant="outlined"
-				color="error"
-				onClick={() => setShowConfirm(true)}
-				sx={{ alignSelf: "flex-start" }}
-			>
-				Delete account
-			</Button>
 
 			{!isMobile && (
 				<Dialog
@@ -91,13 +91,9 @@ export function DeleteAccountSection({ userEmail }: DeleteAccountSectionProps) {
 					maxWidth="sm"
 					fullWidth
 				>
-					<DialogTitle>Delete account permanently?</DialogTitle>
+					<DialogTitle>Permanently Delete Account?</DialogTitle>
 					<DialogContent>
 						<Stack spacing={2} sx={{ pt: 1 }}>
-							<Typography variant="body2" color="text.secondary">
-								All data associated with this account will be permanently
-								deleted.
-							</Typography>
 							{confirmField}
 						</Stack>
 					</DialogContent>
@@ -111,7 +107,7 @@ export function DeleteAccountSection({ userEmail }: DeleteAccountSectionProps) {
 							onClick={handleDelete}
 							disabled={isPending || !emailMatches}
 						>
-							{isPending ? "Deleting..." : "Permanently delete account"}
+							{isPending ? "Deleting..." : "Confirm Delete"}
 						</Button>
 					</DialogActions>
 				</Dialog>
@@ -138,9 +134,6 @@ export function DeleteAccountSection({ userEmail }: DeleteAccountSectionProps) {
 								<CloseIcon />
 							</IconButton>
 						</Stack>
-						<Typography variant="body2" color="text.secondary">
-							All data associated with this account will be permanently deleted.
-						</Typography>
 						{confirmField}
 						<Button
 							variant="contained"
@@ -149,11 +142,11 @@ export function DeleteAccountSection({ userEmail }: DeleteAccountSectionProps) {
 							onClick={handleDelete}
 							disabled={isPending || !emailMatches}
 						>
-							{isPending ? "Deleting..." : "Permanently delete account"}
+							{isPending ? "Deleting..." : "Confirm Delete "}
 						</Button>
 					</Stack>
 				</MuiBottomSheet>
 			)}
-		</Stack>
+		</div>
 	);
 }
