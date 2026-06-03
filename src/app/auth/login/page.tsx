@@ -1,15 +1,15 @@
-import { Box, Paper, Typography } from "@mui/material";
+import { Alert, Box, Paper, Typography } from "@mui/material";
 import { headers } from "next/headers";
 import Image from "next/image";
 import { SignInButtons } from "@/components/auth/sign-in-buttons";
 import { safeReturnTo } from "@/lib/auth/return-to";
 
 type LoginPageProps = {
-	searchParams: Promise<{ returnTo?: string }>;
+	searchParams: Promise<{ returnTo?: string; deleted?: string }>;
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-	const { returnTo } = await searchParams;
+	const { returnTo, deleted } = await searchParams;
 	const headersList = await headers();
 	const refererReturnTo = safeReturnTo(headersList.get("referer"));
 	const resolvedReturnTo = safeReturnTo(returnTo) ?? refererReturnTo;
@@ -34,6 +34,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 					<Typography variant="h5" component="h1" textAlign="center">
 						Sign in to ZotMeet
 					</Typography>
+					{deleted === "1" && (
+						<Alert severity="success" sx={{ width: "100%" }}>
+							Your account and associated data were permanently deleted.
+						</Alert>
+					)}
 					<SignInButtons returnTo={resolvedReturnTo} />
 				</div>
 			</Paper>
