@@ -18,6 +18,7 @@ import { toLocalStr } from "@/lib/rooms/utils";
 import {
 	BUILDINGS,
 	CAPACITY_RANGES,
+	formatLocation,
 	type StudyRooms,
 } from "@/lib/types/studyrooms";
 
@@ -68,7 +69,10 @@ export function Sidebar({
 				label: `Time: ${format(startTime, "h:mmaaa")}–${format(endTime, "h:mmaaa")}`,
 				key: "time",
 			},
-		location && { label: `Location: ${location}`, key: "location" },
+		location && {
+			label: `Location: ${formatLocation(location)}`,
+			key: "location",
+		},
 		(capacityMin || capacityMax) && {
 			label: `Capacity: ${capacityMin || "any"}–${capacityMax || "any"}`,
 			key: "capacity",
@@ -317,6 +321,9 @@ export function Sidebar({
 						freeSolo
 						options={BUILDINGS}
 						value={location}
+						getOptionLabel={(opt) =>
+							typeof opt === "string" ? formatLocation(opt) : opt
+						}
 						onChange={(_, val) => setLocation(val)}
 						onInputChange={(_, val, reason) => {
 							if (reason !== "reset") setLocation(val || null);

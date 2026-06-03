@@ -64,6 +64,19 @@ export const BUILDINGS = [
 ] as const;
 export type Building = (typeof BUILDINGS)[number];
 
+export const LOCATION_DISPLAY_NAMES: Record<Building, string> = {
+	"Anteater Learning Pavilion": "ALP",
+	"Science Library": "Sci Lib",
+	"Langson Library": "Langson",
+	"Gateway Study Center": "Gateway",
+	"Plaza Verde": "PV",
+	"Multimedia Resources Center": "MRC",
+};
+
+export function formatLocation(location: string): string {
+	return LOCATION_DISPLAY_NAMES[location as Building] ?? location;
+}
+
 export type RoomFilters = {
 	capacities: Capacity[];
 	buildings: Building[];

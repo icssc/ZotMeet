@@ -17,6 +17,7 @@ import {
 	type Building,
 	CAPACITIES,
 	type Capacity,
+	formatLocation,
 	MEETING_LENGTHS,
 	type MeetingLength,
 	parseRoomDuration,
@@ -167,11 +168,13 @@ function FilterChipGroup<T extends string | number>({
 	selected,
 	onToggle,
 	onClear,
+	getLabel,
 }: {
 	options: readonly T[];
 	selected: T[];
 	onToggle: (value: T) => void;
 	onClear: () => void;
+	getLabel?: (value: T) => string;
 }) {
 	return (
 		<div className="flex flex-col gap-2">
@@ -179,7 +182,7 @@ function FilterChipGroup<T extends string | number>({
 				{options.map((opt) => (
 					<Chip
 						key={String(opt)}
-						label={String(opt)}
+						label={getLabel ? getLabel(opt) : String(opt)}
 						clickable
 						variant="outlined"
 						color={selected.includes(opt) ? "primary" : "default"}
@@ -471,6 +474,7 @@ export function RoomRecommendationSettings({
 											options={BUILDINGS}
 											selected={selectedBuildings}
 											onToggle={handleToggleBuilding}
+											getLabel={formatLocation}
 											onClear={() =>
 												onFiltersChange({ ...filters, buildings: [] })
 											}
@@ -534,10 +538,8 @@ export function RoomRecommendationSettings({
 											room.id,
 										);
 										const label = [
-											room.label,
-											room.capacity != null
-												? `· ${room.capacity} people`
-												: null,
+											`${formatLocation(room.location)}`,
+											room.capacity != null ? `· ${room.capacity} cap` : null,
 											room.techEnhanced ? "· Tech" : null,
 										]
 											.filter(Boolean)

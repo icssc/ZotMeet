@@ -5,7 +5,7 @@ import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import type { StudyRooms } from "@/lib/types/studyrooms";
+import { formatLocation, type StudyRooms } from "@/lib/types/studyrooms";
 
 interface RoomResultsProps {
 	rooms: StudyRooms["data"];
@@ -54,7 +54,7 @@ export function RoomResults({ rooms, startTime, endTime }: RoomResultsProps) {
 						<Stack direction="row" alignItems="center" spacing={1}>
 							<Typography fontWeight="bold">{room.name}</Typography>
 							<Typography variant="body2" color="text.secondary">
-								— {room.location}, capacity {room.capacity}
+								— {formatLocation(room.location)}, capacity {room.capacity}
 								{room.techEnhanced && " (tech enhanced)"}
 							</Typography>
 							<Button
