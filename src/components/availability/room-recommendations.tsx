@@ -18,6 +18,7 @@ import {
 	CAPACITIES,
 	type Capacity,
 	formatLocation,
+	formatRoomChipLabel,
 	MEETING_LENGTHS,
 	type MeetingLength,
 	parseRoomDuration,
@@ -538,7 +539,7 @@ export function RoomRecommendationSettings({
 											room.id,
 										);
 										const label = [
-											`${formatLocation(room.location)}`,
+											formatRoomChipLabel(room.location, room.label),
 											room.capacity != null ? `· ${room.capacity} cap` : null,
 											room.techEnhanced ? "· Tech" : null,
 										]

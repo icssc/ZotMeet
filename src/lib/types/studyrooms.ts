@@ -77,6 +77,27 @@ export function formatLocation(location: string): string {
 	return LOCATION_DISPLAY_NAMES[location as Building] ?? location;
 }
 
+/** Pulls a room id/number from API names like "Science 227" or "Study Pod 1A". */
+export function extractRoomNumber(roomName: string): string | null {
+	const base = stripRoomDurationSuffix(roomName);
+	const trailing = base.match(/(\d+[A-Za-z]?)\s*$/);
+	if (trailing) return trailing[1];
+	const first = base.match(/\b(\d+[A-Za-z]?)\b/);
+	return first ? first[1] : null;
+}
+
+/** Chip label, e.g. "Science Library" + "Science 227" → "Sci Lib 227". */
+export function formatRoomChipLabel(
+	location: string,
+	roomName: string,
+): string {
+	const shortLocation = formatLocation(location);
+	const roomNumber = extractRoomNumber(roomName);
+	if (roomNumber) return `${shortLocation} ${roomNumber}`;
+	const baseName = stripRoomDurationSuffix(roomName);
+	return baseName || shortLocation;
+}
+
 export type RoomFilters = {
 	capacities: Capacity[];
 	buildings: Building[];
