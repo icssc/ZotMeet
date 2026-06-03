@@ -247,7 +247,10 @@ export const getTheme = (mode: "light" | "dark") =>
 					}),
 					outlined: ({ theme }) => ({
 						color: theme.palette.text.primary,
-						borderColor: "rgba(0,0,0,0.25)",
+						borderColor:
+							theme.palette.mode === "dark"
+								? "rgba(255,255,255,0.25)"
+								: "rgba(0,0,0,0.25)",
 						backgroundColor: theme.palette.background.paper,
 
 						boxShadow: "0px 4px 0px 0px rgba(0,0,0,0.25)",
@@ -275,12 +278,6 @@ export const getTheme = (mode: "light" | "dark") =>
 							color: theme.palette.secondary.contrastText,
 							borderColor: theme.palette.secondary.main,
 						},
-					}),
-					outlinedInherit: ({ theme }) => ({
-						borderColor:
-							theme.palette.mode === "dark"
-								? "rgba(255,255,255,0.3)"
-								: "rgba(0,0,0,0.3)",
 					}),
 				},
 			},
