@@ -7,7 +7,6 @@ import { getCurrentSession } from "@/lib/auth";
 import { deleteSessionTokenCookie } from "@/lib/auth/cookies";
 import { deleteAccountData, emailsMatch } from "@/lib/auth/delete-account";
 import { getOidcLogoutUrl } from "@/lib/auth/oidc-logout";
-import { invalidateSession } from "@/lib/auth/session";
 
 export type DeleteAccountState = {
 	success: false;
@@ -42,7 +41,6 @@ export async function deleteAccountAction(
 		};
 	}
 
-	await invalidateSession(session.id);
 	await deleteSessionTokenCookie();
 
 	const cookieStore = await cookies();

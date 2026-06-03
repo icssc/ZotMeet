@@ -11,8 +11,18 @@ type LoginPageProps = {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
 	const { returnTo, deleted } = await searchParams;
 	const cookieStore = await cookies();
-	const accountJustDeleted =
-		deleted === "1" || cookieStore.get("account_deleted")?.value === "1";
+	const hadDeletedCookie = cookieStore.get("account_deleted")?.value === "1";
+	const accountJustDeleted = deleted === "1" || hadDeletedCookie;
+
+	if (hadDeletedCookie) {
+		cookieStore.set("account_deleted", "", {
+			path: "/",
+			httpOnly: true,
+			sameSite: "lax",
+			secure: process.env.NODE_ENV === "production",
+			maxAge: 0,
+		});
+	}
 	const headersList = await headers();
 	const refererReturnTo = safeReturnTo(headersList.get("referer"));
 	const resolvedReturnTo = safeReturnTo(returnTo) ?? refererReturnTo;
