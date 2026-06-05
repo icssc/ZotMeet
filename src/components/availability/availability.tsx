@@ -11,6 +11,7 @@ import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import {
+	deduplicateRooms,
 	groupRawRoomsByKey,
 	RoomRecommendationSettings,
 } from "@/components/availability/room-recommendations";
@@ -45,6 +46,7 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
+import { MobileRoomRecommendations } from "./mobile-room-recommendations";
 import { MobileScheduleSettings } from "./mobile-schedule-settings";
 
 const LG_UP_MEDIA = "(min-width: 1024px)";
@@ -239,6 +241,7 @@ export function Availability({
 	} = useRoomRecommendations(availabilityDates);
 
 	const [selectedRoomIds, setSelectedRoomIds] = useState<string[]>([]);
+	const [isMobileRoomsDrawerOpen, setIsMobileRoomsDrawerOpen] = useState(false);
 
 	const showRoomPreviews =
 		availabilityView === "group" || availabilityView === "schedule";
@@ -253,6 +256,17 @@ export function Availability({
 		() => groupRawRoomsByKey(studyRooms),
 		[studyRooms],
 	);
+
+	const mobileRoomCount = useMemo(
+		() => deduplicateRooms(studyRooms).length,
+		[studyRooms],
+	);
+
+	useEffect(() => {
+		if (availabilityView !== "group") {
+			setIsMobileRoomsDrawerOpen(false);
+		}
+	}, [availabilityView]);
 
 	const handleImportSlotsFromMeeting = useCallback(
 		({
@@ -430,12 +444,22 @@ export function Availability({
 	}, [router, returnToPath, setAvailabilityView, user]);
 
 	const handleMobileOpenAttendees = useCallback(() => {
+		setIsMobileRoomsDrawerOpen(false);
 		setIsMobileDrawerOpen(true);
 	}, [setIsMobileDrawerOpen]);
 
 	const handleMobileSchedule = useCallback(() => {
 		setAvailabilityView("schedule");
 	}, [setAvailabilityView]);
+
+	const handleMobileOpenRooms = useCallback(() => {
+		setIsMobileDrawerOpen(false);
+		setIsMobileRoomsDrawerOpen(true);
+	}, [setIsMobileDrawerOpen]);
+
+	const handleCloseMobileRooms = useCallback(() => {
+		setIsMobileRoomsDrawerOpen(false);
+	}, []);
 
 	return (
 		<StudyRoomHoverProvider
@@ -582,17 +606,35 @@ export function Availability({
 										onOpenAttendees={handleMobileOpenAttendees}
 									/>
 								) : (
-									<MobileGroupResponses
-										isOwner={isMeetingOwner}
-										respondedMembersCount={Math.max(
-											0,
-											members.length - pendingMembers.length,
-										)}
-										pendingMembersCount={pendingMembers.length}
-										onAddAvailability={handleMobileAddAvailability}
-										onOpenAttendees={handleMobileOpenAttendees}
-										onSchedule={handleMobileSchedule}
-									/>
+									<>
+										<MobileGroupResponses
+											isOwner={isMeetingOwner}
+											respondedMembersCount={Math.max(
+												0,
+												members.length - pendingMembers.length,
+											)}
+											pendingMembersCount={pendingMembers.length}
+											roomCount={mobileRoomCount}
+											hasSearchedRooms={hasSearchedRooms}
+											onAddAvailability={handleMobileAddAvailability}
+											onOpenAttendees={handleMobileOpenAttendees}
+											onOpenRooms={handleMobileOpenRooms}
+											onSchedule={handleMobileSchedule}
+										/>
+										<MobileRoomRecommendations
+											open={isMobileRoomsDrawerOpen}
+											onClose={handleCloseMobileRooms}
+											rawRooms={studyRooms}
+											hasSearched={hasSearchedRooms}
+											filters={roomFilters}
+											onFiltersChange={setRoomFilters}
+											onShowBestRooms={handleShowBestRooms}
+											isLoading={isRoomsLoading}
+											errorMessage={studyRoomsError}
+											selectedRoomIds={selectedRoomIds}
+											onSelectedRoomIdsChange={setSelectedRoomIds}
+										/>
+									</>
 								)}
 							</div>
 						</div>

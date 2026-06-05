@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	Apartment,
 	CalendarMonthOutlined,
 	EditCalendarOutlined,
 	PeopleAltOutlined,
@@ -20,8 +21,11 @@ export interface MobileGroupResponsesProps {
 	isOwner: boolean;
 	respondedMembersCount: number;
 	pendingMembersCount: number;
+	roomCount: number;
+	hasSearchedRooms: boolean;
 	onAddAvailability: () => void;
 	onOpenAttendees: () => void;
+	onOpenRooms: () => void;
 	onSchedule: () => void;
 }
 
@@ -29,14 +33,28 @@ export function MobileGroupResponses({
 	isOwner,
 	respondedMembersCount,
 	pendingMembersCount,
+	roomCount,
+	hasSearchedRooms,
 	onAddAvailability,
 	onOpenAttendees,
+	onOpenRooms,
 	onSchedule,
 }: MobileGroupResponsesProps) {
+	const roomsLabel = hasSearchedRooms ? `${roomCount} Rooms` : "Rooms";
+
 	return (
 		<div>
 			<MobileIsland>
 				<div className="flex w-full min-w-0">
+					<Button color="inherit" sx={actionButtonSx} onClick={onOpenRooms}>
+						<Stack spacing={0.5} alignItems="center">
+							<Apartment fontSize="small" />
+							<Typography variant="caption">{roomsLabel}</Typography>
+						</Stack>
+					</Button>
+
+					<Divider orientation="vertical" flexItem />
+
 					<Button color="inherit" sx={actionButtonSx} onClick={onOpenAttendees}>
 						<Stack spacing={0.5} alignItems="center">
 							<PeopleAltOutlined fontSize="small" />
