@@ -242,7 +242,6 @@ function Notifications({
 										</Box>
 										<Button
 											variant="outlined"
-											color="inherit"
 											size="small"
 											sx={{ ml: "auto", my: 2 }}
 											onClick={() =>
