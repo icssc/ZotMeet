@@ -35,7 +35,7 @@ interface RoomsHeatmapProps {
 
 type SortKey = "default" | "capacity" | "availability";
 
-const LOCATION_SORT_ORDER: readonly string[] = [
+const LOCATION_SORT_ORDER = [
 	"Science Library",
 	...BUILDINGS.filter((b) => b !== "Science Library"),
 ];
@@ -43,11 +43,9 @@ const LOCATION_SORT_ORDER: readonly string[] = [
 function compareLocationSort(a: string, b: string): number {
 	const ia = LOCATION_SORT_ORDER.indexOf(a);
 	const ib = LOCATION_SORT_ORDER.indexOf(b);
-	const aKnown = ia >= 0;
-	const bKnown = ib >= 0;
-	if (aKnown && bKnown) return ia - ib;
-	if (aKnown && !bKnown) return -1;
-	if (!aKnown && bKnown) return 1;
+	if (ia >= 0 && ib >= 0) return ia - ib;
+	if (ia >= 0) return -1;
+	if (ib >= 0) return 1;
 	return a.localeCompare(b);
 }
 

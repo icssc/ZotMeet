@@ -8,10 +8,14 @@ const nextConfig = {
 				hostname: "s3.amazonaws.com",
 				pathname: "/libapps/**",
 			},
-			{ protocol: "https", hostname: "libapps.s3.amazonaws.com" },
 			{
 				protocol: "https",
-				hostname: "**.cloudfront.net",
+				hostname: "libapps.s3.amazonaws.com",
+				pathname: "/accounts/**",
+			},
+			{
+				protocol: "https",
+				hostname: "d2jv02qf7xgjwx.cloudfront.net",
 				pathname: "/accounts/**",
 			},
 		],
