@@ -13,8 +13,10 @@ import {
 	Tooltip,
 } from "@mui/material";
 import Box from "@mui/material/Box";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ROOM_IMAGES } from "@/lib/rooms/room-images";
 import {
 	buildHalfHourIntervals,
 	formatISOToLocalTime,
@@ -213,7 +215,33 @@ export const RoomsHeatmap = ({
 													>
 														<Tooltip
 															placement="top"
-															title={`${formatISOToLocalTime(s.start)} - ${formatISOToLocalTime(s.end)}`}
+															title={
+																<div className="w-44 space-y-1 p-1">
+																	{ROOM_IMAGES[room.id] && (
+																		<Image
+																			src={ROOM_IMAGES[room.id]}
+																			alt={room.name ?? "Room"}
+																			width={176}
+																			height={120}
+																			loading="eager"
+																			className="rounded object-cover"
+																		/>
+																	)}
+																	<p className="font-semibold">{room.name}</p>
+																	<p>
+																		{formatISOToLocalTime(s.start)} –{" "}
+																		{formatISOToLocalTime(s.end)}
+																	</p>
+																	{room.capacity && (
+																		<p>Capacity: {room.capacity}</p>
+																	)}
+																	{room.description && (
+																		<p className="opacity-75">
+																			{room.description.slice(0, 50)}
+																		</p>
+																	)}
+																</div>
+															}
 														>
 															<span
 																className={cn(

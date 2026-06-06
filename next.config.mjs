@@ -1,6 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	serverExternalPackages: ["@node-rs/argon2"],
+	images: {
+		remotePatterns: [
+			{
+				protocol: "https",
+				hostname: "s3.amazonaws.com",
+				pathname: "/libapps/**",
+			},
+			{ protocol: "https", hostname: "libapps.s3.amazonaws.com" },
+			{
+				protocol: "https",
+				hostname: "**.cloudfront.net",
+				pathname: "/accounts/**",
+			},
+		],
+	},
 	async headers() {
 		return [
 			// Security headers required/recommended by PWA Builder and Apple's
