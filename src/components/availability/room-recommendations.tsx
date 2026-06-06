@@ -48,7 +48,7 @@ function dedupeKey(name: string, location: string): string {
 	return `${stripRoomDurationSuffix(name)}|${location}`;
 }
 
-function getRoomBookingUrl(
+export function getRoomBookingUrl(
 	variants: StudyRoomApiEntry[] | undefined,
 	preferredLengths: MeetingLength[] = [],
 ): string | null {

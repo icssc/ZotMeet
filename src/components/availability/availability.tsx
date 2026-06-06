@@ -47,6 +47,7 @@ import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availa
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
 import { MobileRoomRecommendations } from "./mobile-room-recommendations";
+import { MobileRoomWheelPicker } from "./mobile-room-wheel-picker";
 import { MobileScheduleSettings } from "./mobile-schedule-settings";
 
 const LG_UP_MEDIA = "(min-width: 1024px)";
@@ -607,6 +608,17 @@ export function Availability({
 									/>
 								) : (
 									<>
+										{hasSearchedRooms &&
+											studyRooms.length > 0 &&
+											!isMobileRoomsDrawerOpen && (
+												<MobileRoomWheelPicker
+													rawRooms={studyRooms}
+													rawRoomsByKey={rawRoomsByKey}
+													filters={roomFilters}
+													selectedRoomIds={selectedRoomIds}
+													onSelectedRoomIdsChange={setSelectedRoomIds}
+												/>
+											)}
 										<MobileGroupResponses
 											isOwner={isMeetingOwner}
 											respondedMembersCount={Math.max(
