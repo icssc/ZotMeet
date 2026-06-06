@@ -15,13 +15,21 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const ANTEATER_API = "https://anteaterapi.com/v2/rest/studyRooms";
-const LIBCAL_BASE = "https://spaces.lib.uci.edu/space";
-const DAYS_TO_SCAN = 30;
+const LIBCAL_BASES = [
+	"https://spaces.lib.uci.edu/space",
+	"https://scheduler.oit.uci.edu/space",
+];
+const DAYS_BACK = 7;
+const DAYS_FORWARD = 30;
 
-function nextWeekdays(from: Date, count: number): string[] {
+function weekdaysAround(anchor: Date, back: number, forward: number): string[] {
+	const start = new Date(anchor);
+	start.setDate(start.getDate() - back);
+	const end = new Date(anchor);
+	end.setDate(end.getDate() + forward);
 	const dates: string[] = [];
-	const cursor = new Date(from);
-	while (dates.length < count) {
+	const cursor = new Date(start);
+	while (cursor <= end) {
 		const day = cursor.getDay();
 		if (day !== 0 && day !== 6) {
 			dates.push(cursor.toISOString().split("T")[0]);
@@ -46,25 +54,32 @@ async function fetchRoomsForDate(
 }
 
 async function fetchRoomImage(roomId: string): Promise<string | null> {
-	try {
-		const res = await fetch(`${LIBCAL_BASE}/${roomId}`, {
-			headers: { "User-Agent": "Mozilla/5.0 (compatible; ZotMeet/1.0)" },
-			signal: AbortSignal.timeout(8000),
-		});
-		if (!res.ok) return null;
-		const html = await res.text();
-		// Room images are hosted on S3 (path-style or virtual-hosted) or CloudFront via Springshare.
-		const match = html.match(
-			/https:\/\/(?:s3\.amazonaws\.com\/libapps|libapps\.s3\.amazonaws\.com|[a-z0-9]+\.cloudfront\.net\/accounts)\/[^"'\s]+\.(?:jpg|jpeg|png|webp)/i,
-		);
-		return match?.[0] ?? null;
-	} catch {
-		return null;
+	for (const base of LIBCAL_BASES) {
+		try {
+			const res = await fetch(`${base}/${roomId}`, {
+				headers: { "User-Agent": "Mozilla/5.0 (compatible; ZotMeet/1.0)" },
+				signal: AbortSignal.timeout(8000),
+			});
+			if (!res.ok) continue;
+			const html = await res.text();
+			// Room images are hosted on S3 (path-style or virtual-hosted) or CloudFront via Springshare.
+			// Some pages use protocol-relative URLs (//host/path) — normalize to https.
+			const match = html.match(
+				/(?:https?:)?\/\/(?:s3\.amazonaws\.com\/libapps|libapps\.s3\.amazonaws\.com|[a-z0-9]+\.cloudfront\.net\/accounts)\/[^"'\s]+\.(?:jpg|jpeg|png|webp)/i,
+			);
+			if (match?.[0]) {
+				const url = match[0].startsWith("//") ? `https:${match[0]}` : match[0];
+				return url;
+			}
+		} catch {
+			// fetch failed for this base URL, try next
+		}
 	}
+	return null;
 }
 
 async function main() {
-	const dates = nextWeekdays(new Date(), DAYS_TO_SCAN);
+	const dates = weekdaysAround(new Date(), DAYS_BACK, DAYS_FORWARD);
 	console.log(
 		`Scanning ${dates.length} weekdays (${dates[0]} → ${dates.at(-1)}) for rooms...\n`,
 	);
