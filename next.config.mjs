@@ -1,6 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	serverExternalPackages: ["@node-rs/argon2"],
+	images: {
+		remotePatterns: [
+			{
+				protocol: "https",
+				hostname: "s3.amazonaws.com",
+				pathname: "/libapps/**",
+			},
+			{
+				protocol: "https",
+				hostname: "libapps.s3.amazonaws.com",
+				pathname: "/accounts/**",
+			},
+			{
+				protocol: "https",
+				hostname: "d2jv02qf7xgjwx.cloudfront.net",
+				pathname: "/accounts/**",
+			},
+		],
+	},
 	async rewrites() {
 		return [
 			{

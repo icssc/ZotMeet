@@ -13,8 +13,10 @@ import {
 	Tooltip,
 } from "@mui/material";
 import Box from "@mui/material/Box";
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ROOM_IMAGES } from "@/lib/rooms/room-images";
 import {
 	buildHalfHourIntervals,
 	formatISOToLocalTime,
@@ -37,7 +39,7 @@ interface RoomsHeatmapProps {
 
 type SortKey = "default" | "capacity" | "availability";
 
-const LOCATION_SORT_ORDER: readonly string[] = [
+const LOCATION_SORT_ORDER = [
 	"Science Library",
 	...BUILDINGS.filter((b) => b !== "Science Library"),
 ];
@@ -45,11 +47,9 @@ const LOCATION_SORT_ORDER: readonly string[] = [
 function compareLocationSort(a: string, b: string): number {
 	const ia = LOCATION_SORT_ORDER.indexOf(a);
 	const ib = LOCATION_SORT_ORDER.indexOf(b);
-	const aKnown = ia >= 0;
-	const bKnown = ib >= 0;
-	if (aKnown && bKnown) return ia - ib;
-	if (aKnown && !bKnown) return -1;
-	if (!aKnown && bKnown) return 1;
+	if (ia >= 0 && ib >= 0) return ia - ib;
+	if (ia >= 0) return -1;
+	if (ib >= 0) return 1;
 	return a.localeCompare(b);
 }
 
@@ -217,7 +217,33 @@ export const RoomsHeatmap = ({
 													>
 														<Tooltip
 															placement="top"
-															title={`${formatISOToLocalTime(s.start)} - ${formatISOToLocalTime(s.end)}`}
+															title={
+																<div className="w-44 space-y-1 p-1">
+																	{ROOM_IMAGES[room.id] && (
+																		<Image
+																			src={ROOM_IMAGES[room.id]}
+																			alt={room.name ?? "Room"}
+																			width={176}
+																			height={120}
+																			loading="eager"
+																			className="rounded object-cover"
+																		/>
+																	)}
+																	<p className="font-semibold">{room.name}</p>
+																	<p>
+																		{formatISOToLocalTime(s.start)} –{" "}
+																		{formatISOToLocalTime(s.end)}
+																	</p>
+																	{room.capacity && (
+																		<p>Capacity: {room.capacity}</p>
+																	)}
+																	{room.description && (
+																		<p className="opacity-75">
+																			{room.description.slice(0, 50)}
+																		</p>
+																	)}
+																</div>
+															}
 														>
 															<span
 																className={cn(
