@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { Meetings } from "@/components/summary/meetings";
 import { getCurrentSession } from "@/lib/auth";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import {
 	buildScheduledLabel,
 	getUpcomingMeetingIds,
@@ -15,7 +16,7 @@ import { getNotificationsByMemberId } from "@/server/data/user/queries";
 export default async function Page() {
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/auth/login/google");
+		redirect(loginPathWithReturnTo("/summary"));
 	}
 
 	const memberId = session.user.memberId;

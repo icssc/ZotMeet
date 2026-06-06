@@ -2,6 +2,49 @@ import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 
 const UPCOMING_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 
+const UUID_RE =
+	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function isUuid(value: string): boolean {
+	return UUID_RE.test(value);
+}
+
+export type MeetingHostNameFields = {
+	hostDisplayName?: string | null;
+	hostUsername?: string | null;
+	hostGoogleName?: string | null;
+	hostEmail?: string | null;
+};
+
+function emailLocalPart(email: string | null | undefined): string | null {
+	const trimmed = email?.trim();
+	if (!trimmed?.includes("@")) return null;
+	const local = trimmed.split("@")[0]?.trim();
+	return local || null;
+}
+
+/** Resolved host label for cards, metadata, etc. */
+export function getMeetingHostDisplayName(
+	host: MeetingHostNameFields | string | null | undefined,
+): string {
+	const fields =
+		typeof host === "string" || host == null ? { hostDisplayName: host } : host;
+
+	for (const candidate of [
+		fields.hostDisplayName,
+		fields.hostGoogleName,
+		fields.hostUsername,
+		emailLocalPart(fields.hostEmail),
+	]) {
+		const trimmed = candidate?.trim();
+		if (trimmed && !isUuid(trimmed)) {
+			return trimmed;
+		}
+	}
+
+	return "Unknown organizer";
+}
+
 export function getStartOfTodayMs(): number {
 	const d = new Date();
 	d.setHours(0, 0, 0, 0);

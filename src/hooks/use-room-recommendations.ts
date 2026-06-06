@@ -11,6 +11,7 @@ export type UseRoomRecommendations = {
 	rooms: StudyRoomApiEntry[];
 	error: string | null;
 	isLoading: boolean;
+	hasSearched: boolean;
 	showBestRooms: () => Promise<void>;
 };
 
@@ -21,6 +22,7 @@ export function useRoomRecommendations(
 	const [rooms, setRooms] = useState<StudyRoomApiEntry[]>([]);
 	const [error, setError] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
+	const [hasSearched, setHasSearched] = useState(false);
 	const abortRef = useRef<AbortController | null>(null);
 
 	const bestTimeRanges = useMemo(
@@ -78,9 +80,20 @@ export function useRoomRecommendations(
 			setError("Failed to load study rooms. Please try again later.");
 			setRooms([]);
 		} finally {
-			if (!controller.signal.aborted) setIsLoading(false);
+			if (!controller.signal.aborted) {
+				setIsLoading(false);
+				setHasSearched(true);
+			}
 		}
 	}, [bestTimeRanges, filters.capacities]);
 
-	return { filters, setFilters, rooms, error, isLoading, showBestRooms };
+	return {
+		filters,
+		setFilters,
+		rooms,
+		error,
+		isLoading,
+		hasSearched,
+		showBestRooms,
+	};
 }

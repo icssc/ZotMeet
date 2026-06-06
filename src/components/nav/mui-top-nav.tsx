@@ -35,6 +35,8 @@ import {
 	NotificationGroupInviteDialog,
 } from "@/components/notifications";
 import { useNotificationActions } from "@/hooks/use-notification-actions";
+import { useReturnToPath } from "@/hooks/use-return-to-path";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
 import { getNotificationAvatarSrc, timeAgo } from "@/lib/notification/utils";
 import { logoutAction } from "@/server/actions/auth/logout/action";
@@ -240,7 +242,6 @@ function Notifications({
 										</Box>
 										<Button
 											variant="outlined"
-											color="inherit"
 											size="small"
 											sx={{ ml: "auto", my: 2 }}
 											onClick={() =>
@@ -278,12 +279,13 @@ function Notifications({
 
 function NavUser({ user }: { user: UserProfile | null }) {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const returnToPath = useReturnToPath();
 
 	if (!user) {
 		return (
 			<Button
 				component="a"
-				href="/auth/login/google"
+				href={loginPathWithReturnTo(returnToPath)}
 				startIcon={<Login />}
 				sx={{
 					color: "text.primary",

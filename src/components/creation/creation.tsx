@@ -14,6 +14,7 @@ import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import type { SelectMeeting } from "@/db/schema";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	convertTimeToUTC,
@@ -132,7 +133,9 @@ export function Creation({ user }: { user: UserProfile | null }) {
 			window.history.replaceState({}, "", currentUrl.toString());
 
 			// Redirect to auth.
-			window.location.href = "/auth/login/google";
+			window.location.href = loginPathWithReturnTo(
+				`${currentUrl.pathname}${currentUrl.search}`,
+			);
 			return;
 		}
 

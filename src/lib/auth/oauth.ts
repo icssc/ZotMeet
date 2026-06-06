@@ -7,8 +7,15 @@ if (!process.env.GOOGLE_OAUTH_REDIRECT_URI) {
 	throw new Error("Missing GOOGLE_OAUTH_REDIRECT_URI env var.");
 }
 
-export const oauth = new OAuth2Client(
-	process.env.OIDC_CLIENT_ID,
-	null,
-	process.env.GOOGLE_OAUTH_REDIRECT_URI,
-);
+const defaultRedirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI;
+const oidcClientId = process.env.OIDC_CLIENT_ID;
+
+export function getOAuthClient(redirectUri?: string) {
+	return new OAuth2Client(
+		oidcClientId,
+		null,
+		redirectUri ?? defaultRedirectUri,
+	);
+}
+
+export const oauth = getOAuthClient();
