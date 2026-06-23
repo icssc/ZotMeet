@@ -228,9 +228,6 @@ extension ViewController: WKScriptMessageHandler {
         if message.name == "print" {
             printView(webView: ZotMeet.webView)
         }
-        if message.name == "push-subscribe" {
-            handleSubscribeTouch(message: message)
-        }
         if message.name == "push-permission-request" {
             handlePushPermission()
         }
@@ -238,7 +235,7 @@ extension ViewController: WKScriptMessageHandler {
             handlePushState()
         }
         if message.name == "push-token" {
-            handleFCMToken()
+            handleApnsToken()
         }
   }
 }
