@@ -30,7 +30,7 @@ export type StudyRoomApiEntry = NonNullable<
 	paths["/v2/rest/studyRooms"]["get"]["responses"]["200"]["content"]["application/json"]
 >["data"][number];
 
-interface RoomResult {
+export interface RoomResult {
 	id: string;
 	label: string;
 	location: string;
@@ -128,6 +128,48 @@ export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 	}
 
 	return Array.from(seen.values());
+}
+
+export function filterRoomResults(
+	rooms: RoomResult[],
+	filters: RoomFilters,
+): RoomResult[] {
+	const {
+		lengths: selectedLengths,
+		capacities: selectedCapacities,
+		buildings: selectedBuildings,
+	} = filters;
+
+	return rooms.filter((room) => {
+		if (selectedCapacities.length > 0) {
+			if (room.capacity == null) return false;
+			const matchesCapacity = selectedCapacities.some((range) => {
+				if (range === "13+")
+					return room.capacity != null && room.capacity >= 13;
+				const [min, max] = range.split("-").map(Number);
+				return (
+					room.capacity != null && room.capacity >= min && room.capacity <= max
+				);
+			});
+			if (!matchesCapacity) return false;
+		}
+
+		if (selectedBuildings.length > 0) {
+			const matchesBuilding = selectedBuildings.some((b) =>
+				room.location.includes(b),
+			);
+			if (!matchesBuilding) return false;
+		}
+
+		if (selectedLengths.length > 0 && room.durations.length > 0) {
+			const matchesLength = room.durations.some((d) =>
+				selectedLengths.includes(d),
+			);
+			if (!matchesLength) return false;
+		}
+
+		return true;
+	});
 }
 
 /**
@@ -256,40 +298,10 @@ export function RoomRecommendationSettings({
 		);
 	}, [effectiveSelectedRoomIds, rawRoomsByKey, selectedLengths]);
 
-	const filteredRooms = useMemo(() => {
-		return roomResults.filter((room) => {
-			if (selectedCapacities.length > 0) {
-				if (room.capacity == null) return false;
-				const matchesCapacity = selectedCapacities.some((range) => {
-					if (range === "13+")
-						return room.capacity != null && room.capacity >= 13;
-					const [min, max] = range.split("-").map(Number);
-					return (
-						room.capacity != null &&
-						room.capacity >= min &&
-						room.capacity <= max
-					);
-				});
-				if (!matchesCapacity) return false;
-			}
-
-			if (selectedBuildings.length > 0) {
-				const matchesBuilding = selectedBuildings.some((b) =>
-					room.location.includes(b),
-				);
-				if (!matchesBuilding) return false;
-			}
-
-			if (selectedLengths.length > 0 && room.durations.length > 0) {
-				const matchesLength = room.durations.some((d) =>
-					selectedLengths.includes(d),
-				);
-				if (!matchesLength) return false;
-			}
-
-			return true;
-		});
-	}, [roomResults, selectedCapacities, selectedBuildings, selectedLengths]);
+	const filteredRooms = useMemo(
+		() => filterRoomResults(roomResults, filters),
+		[roomResults, filters],
+	);
 
 	const roomState = useMemo(() => {
 		if (!hasSearched) return { status: "initial" as const };

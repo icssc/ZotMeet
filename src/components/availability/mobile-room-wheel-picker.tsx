@@ -5,6 +5,7 @@ import { Button, Chip, IconButton, Paper, Typography } from "@mui/material";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
 	deduplicateRooms,
+	filterRoomResults,
 	getRoomBookingUrl,
 	type StudyRoomApiEntry,
 } from "@/components/availability/room-recommendations";
@@ -30,47 +31,9 @@ export function MobileRoomWheelPicker({
 	const [activeIndex, setActiveIndex] = useState(0);
 	const chipRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-	const {
-		lengths: selectedLengths,
-		capacities: selectedCapacities,
-		buildings: selectedBuildings,
-	} = filters;
-
 	const rooms = useMemo(() => {
-		const all = deduplicateRooms(rawRooms);
-		return all.filter((room) => {
-			if (selectedCapacities.length > 0) {
-				if (room.capacity == null) return false;
-				const matchesCapacity = selectedCapacities.some((range) => {
-					if (range === "13+")
-						return room.capacity != null && room.capacity >= 13;
-					const [min, max] = range.split("-").map(Number);
-					return (
-						room.capacity != null &&
-						room.capacity >= min &&
-						room.capacity <= max
-					);
-				});
-				if (!matchesCapacity) return false;
-			}
-
-			if (selectedBuildings.length > 0) {
-				const matchesBuilding = selectedBuildings.some((b) =>
-					room.location.includes(b),
-				);
-				if (!matchesBuilding) return false;
-			}
-
-			if (selectedLengths.length > 0 && room.durations.length > 0) {
-				const matchesLength = room.durations.some((d) =>
-					selectedLengths.includes(d),
-				);
-				if (!matchesLength) return false;
-			}
-
-			return true;
-		});
-	}, [rawRooms, selectedCapacities, selectedBuildings, selectedLengths]);
+		return filterRoomResults(deduplicateRooms(rawRooms), filters);
+	}, [rawRooms, filters]);
 
 	// Clamp activeIndex when room list shrinks
 	useEffect(() => {

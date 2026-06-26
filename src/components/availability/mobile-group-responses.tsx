@@ -40,7 +40,9 @@ export function MobileGroupResponses({
 	onOpenRooms,
 	onSchedule,
 }: MobileGroupResponsesProps) {
-	const roomsLabel = hasSearchedRooms ? `${roomCount} Rooms` : "Rooms";
+	const roomsLabel = hasSearchedRooms
+		? `${roomCount} ${roomCount === 1 ? "Room" : "Rooms"}`
+		: "Rooms";
 
 	return (
 		<div>
