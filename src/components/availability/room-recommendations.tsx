@@ -161,7 +161,7 @@ export function filterRoomResults(
 			if (!matchesBuilding) return false;
 		}
 
-		if (selectedLengths.length > 0 && room.durations.length > 0) {
+		if (selectedLengths.length > 0) {
 			const matchesLength = room.durations.some((d) =>
 				selectedLengths.includes(d),
 			);
