@@ -268,6 +268,8 @@ export async function getGroupsWithDetails(
 export type MeetingWithStats = SelectMeeting & {
 	hostName: string;
 	scheduledDate: Date | null;
+	scheduledFromTime: string | null;
+	scheduledToTime: string | null;
 	totalMembers: number;
 	respondedCount: number;
 	userHasResponded: boolean;
@@ -327,14 +329,23 @@ export async function getGroupMeetingsWithStats(
 	);
 	const userRespondedSet = new Set(userResponses.map((r) => r.meetingId));
 	const scheduledMap = new Map(
-		scheduledBlocks.map((s) => [s.meetingId, s.scheduledDate]),
+		scheduledBlocks.map((s) => [
+			s.meetingId,
+			{
+				scheduledDate: s.scheduledDate,
+				scheduledFromTime: s.scheduledFromTime,
+				scheduledToTime: s.scheduledToTime,
+			},
+		]),
 	);
 	const hostMap = new Map(hosts.map((h) => [h.id, h.displayName]));
 
 	return groupMeetings.map((meeting) => ({
 		...meeting,
 		hostName: hostMap.get(meeting.hostId) ?? "Unknown",
-		scheduledDate: scheduledMap.get(meeting.id) ?? null,
+		scheduledDate: scheduledMap.get(meeting.id)?.scheduledDate ?? null,
+		scheduledFromTime: scheduledMap.get(meeting.id)?.scheduledFromTime ?? null,
+		scheduledToTime: scheduledMap.get(meeting.id)?.scheduledToTime ?? null,
 		totalMembers,
 		respondedCount: responseMap.get(meeting.id) ?? 0,
 		userHasResponded: userRespondedSet.has(meeting.id),
