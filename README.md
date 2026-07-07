@@ -157,8 +157,26 @@ Graph, robots, sitemap, and invite/email links.
 4. Click `Package for stores` → `iOS` → `Generate Package`.
 5. Take note of the `Bundle ID` and download the package.
 6. Open the generated `.xcworkspace` in Xcode (≥ iOS 17 SDK), run
-   `pod install` in `src/`, build, and archive for distribution following the
+   `pod install` in `ios/src/`, build, and archive for distribution following the
    [PWA Builder iOS guide](https://docs.pwabuilder.com/#/builder/app-store).
+
+### iOS push notifications (AWS SNS)
+
+Native push uses **AWS SNS → APNs** (same AWS account pattern as SES email).
+
+1. In [Apple Developer](https://developer.apple.com/account/resources/authkeys/list),
+   create an APNs key (`.p8`) and note Key ID, Team ID, and your app Bundle ID.
+2. In AWS Console → SNS → Mobile → Push notifications → Platform applications,
+   create an **Apple iOS/VoIP/Mac** platform application (token-based `.p8` auth).
+3. Set environment variables (see `.env.example`):
+   - `SNS_IOS_PLATFORM_APPLICATION_ARN` — platform application ARN
+   - `SNS_REGION` — region where the platform app was created (default `us-west-1` in `sst.config.ts`)
+   - `SNS_IOS_APNS_ENV` — `sandbox` for Xcode debug builds, `production` for TestFlight/App Store
+4. Deploy so the Next.js workload has SNS IAM permissions (`sst.config.ts` includes
+   `sns:Publish`, `CreatePlatformEndpoint`, etc.).
+
+After login in the native app, iOS prompts for notification permission, registers an
+APNs device token with the server, and the server stores an SNS platform endpoint ARN.
 
 ### Regenerating PWA assets
 

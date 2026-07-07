@@ -27,12 +27,28 @@ export default $config({
 					provider: sesProvider,
 				}),
 			],
+			permissions: [
+				{
+					actions: [
+						"sns:Publish",
+						"sns:CreatePlatformEndpoint",
+						"sns:SetEndpointAttributes",
+						"sns:GetEndpointAttributes",
+						"sns:DeleteEndpoint",
+					],
+					resources: ["*"],
+				},
+			],
 			environment: {
 				DATABASE_URL: process.env.DATABASE_URL ?? "localhost:3000",
 				OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID!,
 				OIDC_ISSUER_URL: process.env.OIDC_ISSUER_URL!,
 				GOOGLE_OAUTH_REDIRECT_URI: `${baseUrl}/auth/login/google/callback`,
 				NEXT_PUBLIC_BASE_URL: baseUrl,
+				SNS_REGION: "us-west-1",
+				SNS_IOS_PLATFORM_APPLICATION_ARN:
+					process.env.SNS_IOS_PLATFORM_APPLICATION_ARN ?? "",
+				SNS_IOS_APNS_ENV: process.env.SNS_IOS_APNS_ENV ?? "production",
 			},
 			cachePolicy: "e6e88864-aee5-41aa-b393-c48f78e33d2d",
 			domain: {

@@ -1,67 +1,88 @@
+import UIKit
 import WebKit
-import FirebaseMessaging
 
-class SubscribeMessage {
-    var topic  = ""
-    var eventValue = ""
-    var unsubscribe = false
-    struct Keys {
-        static var TOPIC = "topic"
-        static var UNSUBSCRIBE = "unsubscribe"
-        static var EVENTVALUE = "eventValue"
+var apnsDeviceTokenHex: String?
+
+func setApnsDeviceTokenHex(_ token: String) {
+    apnsDeviceTokenHex = token
+}
+
+func registerForPushNotifications() {
+    DispatchQueue.main.async {
+        UIApplication.shared.registerForRemoteNotifications()
     }
-    convenience init(dict: Dictionary<String,Any>) {
-        self.init()
-        if let topic = dict[Keys.TOPIC] as? String {
-            self.topic = topic
+}
+
+func apnsTokenHexString(from deviceToken: Data) -> String {
+    return deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
+}
+
+func sendApnsTokenToWebView(token: String) {
+    let escaped = token.replacingOccurrences(of: "\\", with: "\\\\")
+        .replacingOccurrences(of: "'", with: "\\'")
+    checkViewAndEvaluate(event: "push-token", detail: "'\(escaped)'")
+}
+
+private let pushPayloadKeys: Set<String> = [
+    "type", "redirect", "title", "message", "groupId", "createdBy",
+]
+
+func pushFieldString(_ value: Any?) -> String? {
+    guard let value = value else { return nil }
+
+    if let string = value as? String {
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+    if let string = value as? NSString {
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+    if let number = value as? NSNumber {
+        return number.stringValue
+    }
+    if let bool = value as? Bool {
+        return bool ? "true" : "false"
+    }
+    return nil
+}
+
+private func pushPayloadKeyName(_ key: AnyHashable) -> String? {
+    if let key = key as? String {
+        return key
+    }
+    if let key = key as? NSString {
+        return key as String
+    }
+    return nil
+}
+
+private func mergePushFields(
+    into payload: inout [String: String],
+    from record: [AnyHashable: Any]
+) {
+    for (rawKey, value) in record {
+        guard let key = pushPayloadKeyName(rawKey), pushPayloadKeys.contains(key) else {
+            continue
         }
-        if let unsubscribe = dict[Keys.UNSUBSCRIBE] as? Bool {
-            self.unsubscribe = unsubscribe
+        if payload[key] != nil {
+            continue
         }
-        if let eventValue = dict[Keys.EVENTVALUE] as? String {
-            self.eventValue = eventValue
+        if let string = pushFieldString(value) {
+            payload[key] = string
         }
     }
 }
 
-func handleSubscribeTouch(message: WKScriptMessage) {
-  // [START subscribe_topic]
-    let subscribeMessages = parseSubscribeMessage(message: message)
-    if (subscribeMessages.count > 0){
-        let _message = subscribeMessages[0]
-        if (_message.unsubscribe) {
-            Messaging.messaging().unsubscribe(fromTopic: _message.topic) { error in }
-        }
-        else {
-            Messaging.messaging().subscribe(toTopic: _message.topic) { error in }
-        }
+func pushPayloadForWebView(userInfo: [AnyHashable: Any]) -> [String: String] {
+    var payload = [String: String]()
+    mergePushFields(into: &payload, from: userInfo)
+
+    if let nested = userInfo[AnyHashable("data")] as? [AnyHashable: Any] {
+        mergePushFields(into: &payload, from: nested)
     }
-    
 
-  // [END subscribe_topic]
-}
-
-func parseSubscribeMessage(message: WKScriptMessage) -> [SubscribeMessage] {
-    var subscribeMessages = [SubscribeMessage]()
-    if let objStr = message.body as? String {
-
-        let data: Data = objStr.data(using: .utf8)!
-        do {
-            let jsObj = try JSONSerialization.jsonObject(with: data, options: .init(rawValue: 0))
-            if let jsonObjDict = jsObj as? Dictionary<String, Any> {
-                let subscribeMessage = SubscribeMessage(dict: jsonObjDict)
-                subscribeMessages.append(subscribeMessage)
-            } else if let jsonArr = jsObj as? [Dictionary<String, Any>] {
-                for jsonObj in jsonArr {
-                    let sMessage = SubscribeMessage(dict: jsonObj)
-                    subscribeMessages.append(sMessage)
-                }
-            }
-        } catch _ {
-            
-        }
-    }
-    return subscribeMessages
+    return payload
 }
 
 func returnPermissionResult(isGranted: Bool){
@@ -82,36 +103,34 @@ func returnPermissionState(state: String){
 
 func handlePushPermission() {
     UNUserNotificationCenter.current().getNotificationSettings () { settings in
-            switch settings.authorizationStatus {
-            case .notDetermined:
-                let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
-                UNUserNotificationCenter.current().requestAuthorization(
-                    options: authOptions,
-                    completionHandler: { (success, error) in
-                        if error == nil {
-                            if success == true {
-                                returnPermissionResult(isGranted: true)
-                                DispatchQueue.main.async {
-                                  UIApplication.shared.registerForRemoteNotifications()
-                                }
-                            }
-                            else {
-                                returnPermissionResult(isGranted: false)
-                            }
-                        }
-                        else {
+        switch settings.authorizationStatus {
+        case .notDetermined:
+            let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+            UNUserNotificationCenter.current().requestAuthorization(
+                options: authOptions,
+                completionHandler: { (success, error) in
+                    if error == nil {
+                        if success == true {
+                            registerForPushNotifications()
+                            returnPermissionResult(isGranted: true)
+                        } else {
                             returnPermissionResult(isGranted: false)
                         }
                     }
-                )
-            case .denied:
-                returnPermissionResult(isGranted: false)
-            case .authorized, .ephemeral, .provisional:
-                returnPermissionResult(isGranted: true)
-            @unknown default:
-                return;
-            }
+                    else {
+                        returnPermissionResult(isGranted: false)
+                    }
+                }
+            )
+        case .denied:
+            returnPermissionResult(isGranted: false)
+        case .authorized, .ephemeral, .provisional:
+            registerForPushNotifications()
+            returnPermissionResult(isGranted: true)
+        @unknown default:
+            return;
         }
+    }
 }
 func handlePushState() {
     UNUserNotificationCenter.current().getNotificationSettings () { settings in
@@ -121,10 +140,13 @@ func handlePushState() {
         case .denied:
             returnPermissionState(state: "denied")
         case .authorized:
+            registerForPushNotifications()
             returnPermissionState(state: "authorized")
         case .ephemeral:
+            registerForPushNotifications()
             returnPermissionState(state: "ephemeral")
         case .provisional:
+            registerForPushNotifications()
             returnPermissionState(state: "provisional")
         @unknown default:
             returnPermissionState(state: "unknown")
@@ -146,39 +168,46 @@ func checkViewAndEvaluate(event: String, detail: String) {
     }
 }
 
-func handleFCMToken(){
+func handleApnsToken(){
     DispatchQueue.main.async(execute: {
-        Messaging.messaging().token { token, error in
-            if let error = error {
-                print("Error fetching FCM registration token: \(error)")
+        if let token = apnsDeviceTokenHex, !token.isEmpty {
+            sendApnsTokenToWebView(token: token)
+            return
+        }
+        registerForPushNotifications()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            if let token = apnsDeviceTokenHex, !token.isEmpty {
+                sendApnsTokenToWebView(token: token)
+            } else {
                 checkViewAndEvaluate(event: "push-token", detail: "ERROR GET TOKEN")
-            } else if let token = token {
-                print("FCM registration token: \(token)")
-                checkViewAndEvaluate(event: "push-token", detail: "'\(token)'")
             }
-        }   
+        }
     })
 }
 
 func sendPushToWebView(userInfo: [AnyHashable: Any]){
+    let payload = pushPayloadForWebView(userInfo: userInfo)
+    guard !payload.isEmpty else { return }
     var json = "";
     do {
-        let jsonData = try JSONSerialization.data(withJSONObject: userInfo)
+        let jsonData = try JSONSerialization.data(withJSONObject: payload)
         json = String(data: jsonData, encoding: .utf8)!
     } catch {
-        print("ERROR: userInfo parsing problem")
+        print("ERROR: push payload parsing problem")
         return
     }
     checkViewAndEvaluate(event: "push-notification", detail: json)
 }
 
 func sendPushClickToWebView(userInfo: [AnyHashable: Any]){
+    let payload = pushPayloadForWebView(userInfo: userInfo)
+    guard !payload.isEmpty else { return }
     var json = "";
     do {
-        let jsonData = try JSONSerialization.data(withJSONObject: userInfo)
+        let jsonData = try JSONSerialization.data(withJSONObject: payload)
         json = String(data: jsonData, encoding: .utf8)!
     } catch {
-        print("ERROR: userInfo parsing problem")
+        print("ERROR: push payload parsing problem")
         return
     }
     checkViewAndEvaluate(event: "push-notification-click", detail: json)
