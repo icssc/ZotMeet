@@ -5,6 +5,7 @@ import {
 	deleteScheduledTimeBlock,
 	saveScheduledTimeBlock,
 } from "@actions/meeting/schedule/action";
+import { notifyMeetingScheduled } from "@actions/meeting/schedule/notify";
 import { useCallback } from "react";
 import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
@@ -176,6 +177,16 @@ export function useAvailabilityActionHandlers({
 				if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
 					commitPendingTimes();
 				}
+
+				if (pendingAdds.size > 0) {
+					notifyMeetingScheduled(meetingData.id).catch((err) => {
+						console.error(
+							"Failed to send meeting scheduled notifications:",
+							err,
+						);
+					});
+				}
+
 				if (!opts?.skipExitToGroup) {
 					setAvailabilityView("group");
 				}
