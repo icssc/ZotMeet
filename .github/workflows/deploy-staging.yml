@@ -92,6 +92,40 @@ jobs:
           deployment-id: ${{ steps.create-deployment.outputs.deployment_id }}
           state: failure
 
+      # Surfaces the mobile preview where reviewers already are. The QR is
+      # served by the preview site itself, so there is no third-party QR
+      # service in the path — one less thing to inherit at handoff.
+      - name: Find existing mobile preview comment
+        id: find-mobile-comment
+        if: success()
+        uses: peter-evans/find-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "<!-- mobile-preview -->"
+
+      - name: Comment the mobile preview link
+        if: success()
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
+          comment-id: ${{ steps.find-mobile-comment.outputs.comment-id }}
+          edit-mode: replace
+          body: |
+            <!-- mobile-preview -->
+            ### 📱 Mobile preview
+
+            Open on your phone — no install, no Expo account, nothing to check out:
+
+            **https://mobile.staging-${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}.zotmeet.com**
+
+            <img src="https://mobile.staging-${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}.zotmeet.com/qr.png" width="180" alt="QR code for the mobile preview" />
+
+            Rendered through `react-native-web`, so haptics, the native date
+            picker and real gesture physics will not match a device. Use the
+            EAS Update preview when native fidelity is what's under review.
+
       - name: Add reaction to comment
         if: github.event_name == 'repository_dispatch'
         uses: peter-evans/create-or-update-comment@v4
