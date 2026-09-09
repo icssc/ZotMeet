@@ -16,6 +16,9 @@ export const themeColors = {
 		border: hsl("214.3 31.8% 91.4%"),
 		textDisabled: hsl("0 0% 62%"),
 		destructive: hsl("0 84.2% 60.2%"),
+		paperOutline: hsl("0 0% 88%"),
+		textSecondary: hsl("0 0% 40%"),
+		primaryOutline: hsl("336.7 100% 83.3%"),
 	},
 	dark: {
 		primary: hsl("344.4 84.5% 67.1%"),
@@ -25,6 +28,9 @@ export const themeColors = {
 		border: hsl("217.2 32.6% 17.5%"),
 		textDisabled: hsl("0 0% 42%"),
 		destructive: hsl("0 62.8% 30.6%"),
+		paperOutline: hsl("0 0% 28%"),
+		textSecondary: hsl("0 0% 70%"),
+		primaryOutline: hsl("336.7 45% 45%"),
 	},
 } as const;
 

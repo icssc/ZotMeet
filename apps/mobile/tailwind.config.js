@@ -77,6 +77,11 @@ module.exports = {
 				"elevation-3d": "hsl(var(--elevation-3d))",
 				"primary-tint": "hsl(var(--primary-tint))",
 				"primary-ledge": "hsl(var(--primary-ledge))",
+				/* MUI's paper outline + secondary ink, and the translucent pink
+				 * that fills a chosen availability block. */
+				"paper-outline": "hsl(var(--paper-outline))",
+				"text-secondary": "hsl(var(--text-secondary))",
+				"primary-outline": "hsl(var(--primary-outline))",
 				gray: {
 					light: "#F3F4F6" /* maps to gray-100 */,
 					base: "#D1D5DB" /* gray-300 */,
@@ -96,6 +101,7 @@ module.exports = {
 			 */
 			fontSize: {
 				h5: ["24px", { lineHeight: "32px", letterSpacing: "0px" }],
+				h6: ["20px", { lineHeight: "32px", letterSpacing: "0.15px" }],
 				subtitle1: ["16px", { lineHeight: "19px", letterSpacing: "0.15px" }],
 				body1: ["16px", { lineHeight: "19px", letterSpacing: "0.15px" }],
 				body2: ["14px", { lineHeight: "17px", letterSpacing: "0.17px" }],
