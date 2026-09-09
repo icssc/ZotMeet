@@ -10,14 +10,35 @@ const BRAND_ACCENT_HEX = "#F26489";
 const BRAND_BACKGROUND_HEX = "#FFFFFF";
 const BRAND_DARK_BG_HEX = "#0F172A";
 
+/**
+ * EAS project ID, supplied by the environment rather than committed, so the
+ * repo stays portable across Expo accounts. Absent it, the EAS-specific keys
+ * below are omitted entirely instead of being emitted with an empty ID: a
+ * malformed `updates.url` would make the app fetch updates from a URL that
+ * 404s at runtime, which is far harder to diagnose than a missing key.
+ * `expo start` does not need it; only `eas update` does.
+ */
+const easProjectId = process.env.EAS_PROJECT_ID;
+
 const config: ExpoConfig = {
 	name: "ZotMeet",
 	slug: "zotmeet",
+	// The Expo account holding the EAS project — an org, not the personal
+	// account, so `eas update` resolves the right project for every member.
+	owner: "ethanchaos-team",
 	version: "0.1.0",
 	orientation: "portrait",
 	icon: "./assets/images/icon.png",
 	scheme: "zotmeet",
 	userInterfaceStyle: "automatic",
+	// An update is only served to a client whose runtime matches. The
+	// `sdkVersion` policy keys that on the Expo SDK alone, which is what lets
+	// a plain Expo Go install open these preview updates — `appVersion` would
+	// restrict them to purpose-built dev/production clients.
+	runtimeVersion: { policy: "sdkVersion" },
+	...(easProjectId
+		? { updates: { url: `https://u.expo.dev/${easProjectId}` } }
+		: {}),
 	backgroundColor: BRAND_BACKGROUND_HEX,
 	ios: {
 		// Matches the existing PWABuilder iOS app registered under Apple Team ID
@@ -66,6 +87,7 @@ const config: ExpoConfig = {
 			background: BRAND_BACKGROUND_HEX,
 			darkBackground: BRAND_DARK_BG_HEX,
 		},
+		...(easProjectId ? { eas: { projectId: easProjectId } } : {}),
 	},
 };
 
