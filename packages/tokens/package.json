@@ -1,0 +1,12 @@
+{
+	"name": "@zotmeet/tokens",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Colour tokens shared by the web app and the Expo app.",
+	"main": "index.js",
+	"types": "index.d.ts",
+	"files": [
+		"index.js",
+		"index.d.ts"
+	]
+}

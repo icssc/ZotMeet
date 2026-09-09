@@ -11,6 +11,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@zotmeet/tokens": "workspace:*",
 		"@expo-google-fonts/figtree": "^0.4.1",
 		"@react-native-community/datetimepicker": "9.1.0",
 		"@rn-primitives/dialog": "^1.5.2",

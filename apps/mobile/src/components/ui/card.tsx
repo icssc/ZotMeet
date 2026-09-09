@@ -11,14 +11,35 @@ export function Card({ className, ...props }: ViewProps) {
 	);
 }
 
-export function CardTitle({ children }: { children: React.ReactNode }) {
+export function CardTitle({
+	className,
+	children,
+}: {
+	className?: string;
+	children: React.ReactNode;
+}) {
 	return (
-		<Text className="font-figtree-semibold text-base text-card-foreground">
+		<Text
+			className={cn(
+				"font-figtree-semibold text-base text-card-foreground",
+				className,
+			)}
+		>
 			{children}
 		</Text>
 	);
 }
 
-export function CardDescription({ children }: { children: React.ReactNode }) {
-	return <Text className="mt-1 text-muted-foreground text-sm">{children}</Text>;
+export function CardDescription({
+	className,
+	children,
+}: {
+	className?: string;
+	children: React.ReactNode;
+}) {
+	return (
+		<Text className={cn("mt-1 text-muted-foreground text-sm", className)}>
+			{children}
+		</Text>
+	);
 }

@@ -8,6 +8,9 @@
  * radius- and type-related is 1:1.
  */
 
+const { cssVarBlocks } = require("@zotmeet/tokens");
+const plugin = require("tailwindcss/plugin");
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
 	darkMode: "class",
@@ -137,5 +140,10 @@ module.exports = {
 			},
 		},
 	},
-	plugins: [],
+	plugins: [
+		// Same tokens as the web app, emitted as CSS variables for NativeWind to
+		// resolve at runtime. NativeWind's class-based dark mode keys off
+		// `.dark:root` rather than the web's `.dark`. Source: `packages/tokens`.
+		plugin(({ addBase }) => addBase(cssVarBlocks(".dark:root"))),
+	],
 };

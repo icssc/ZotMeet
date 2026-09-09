@@ -3,109 +3,13 @@
 @tailwind utilities;
 
 /*
- * Design tokens copied verbatim from the web app's `src/app/globals.css`.
- * Keep the two in sync — the whole point of this file is that `bg-primary`
- * renders the same colour on web and native.
- *
- * NativeWind's class-based dark mode keys off `.dark:root` rather than the
- * web's `.dark`; the values are otherwise identical.
+ * Colour tokens are emitted by the Tailwind plugin in `tailwind.config.js`
+ * from `packages/tokens`, the same file the web app's Tailwind config reads.
+ * That shared source is what keeps `bg-primary` the same colour in both apps —
+ * add or change a colour there, not here.
  */
 @layer base {
 	:root {
-		--background: 0 0% 100%;
-		--foreground: 222.2 84% 4.9%;
-		--card: 0 0% 100%;
-		--card-foreground: 222.2 84% 4.9%;
-		--popover: 0 0% 100%;
-		--popover-foreground: 222.2 84% 4.9%;
-		--primary: 344.4 84.5% 67.1%;
-		--primary-foreground: 0 0% 100%;
-		--paper: 0 0% 100%;
-		--paper-foreground: 222.2 84% 4.9%;
-		--secondary: 210 40% 96.1%;
-		--secondary-foreground: 222.2 47.4% 11.2%;
-		--muted: 210 40% 96.1%;
-		--muted-foreground: 215.4 16.3% 46.9%;
-		--accent: 210 40% 96.1%;
-		--accent-foreground: 222.2 47.4% 11.2%;
-		--destructive: 0 84.2% 60.2%;
-		--destructive-foreground: 210 40% 98%;
-		--border: 214.3 31.8% 91.4%;
-		--input: 214.3 31.8% 91.4%;
-		--ring: 344.4 84.5% 67.1%;
 		--radius: 0.3rem;
-		--chart-1: 12 76% 61%;
-		--chart-2: 173 58% 39%;
-		--chart-3: 197 37% 24%;
-		--chart-4: 43 74% 66%;
-		--chart-5: 27 87% 67%;
-		--sidebar-background: 0 0% 98%;
-		--sidebar-foreground: 240 5.3% 26.1%;
-		--sidebar-primary: 240 5.9% 10%;
-		--sidebar-primary-foreground: 0 0% 98%;
-		--sidebar-accent: 240 4.8% 95.9%;
-		--sidebar-accent-foreground: 240 5.9% 10%;
-		--sidebar-border: 220 13% 91%;
-		--sidebar-ring: 217.2 91.2% 59.8%;
-
-		/*
-		 * MUI surface tokens used by the Figma hi-fi wireframes. The web app
-		 * gets these from `src/theme.ts` as translucent inks (rgba(0,0,0,0.38)
-		 * and friends); React Native has no cascade to blend against, so they
-		 * are stored pre-composited on the mode's own background — same
-		 * opaque-HSL convention as every other token in this file.
-		 */
-		--text-disabled: 0 0% 62%; /* rgba(0,0,0,0.38) on white */
-		--action-active: 0 0% 46%; /* rgba(0,0,0,0.54) on white */
-		--input-outlined-border: 0 0% 77%; /* rgba(0,0,0,0.23) on white */
-		--input-standard-border: 0 0% 58%; /* rgba(0,0,0,0.42) on white */
-		--elevation-3d: 0 0% 75%; /* rgba(0,0,0,0.25) on white */
-		--primary-tint: 340 100% 97%; /* rgba(255,135,166,0.1) on white */
-		--primary-ledge: 344.6 55.3% 57.1%; /* rgba(0,0,0,0.15) over primary */
-	}
-
-	.dark:root {
-		--background: 222.2 84% 4.9%;
-		--foreground: 210 40% 98%;
-		--card: 222.2 84% 4.9%;
-		--card-foreground: 210 40% 98%;
-		--popover: 222.2 84% 4.9%;
-		--popover-foreground: 210 40% 98%;
-		--primary: 344.4 84.5% 67.1%;
-		--primary-foreground: 0 0% 100%;
-		--paper: 0 1% 16%;
-		--paper-foreground: 210 40% 98%;
-		--secondary: 217.2 32.6% 17.5%;
-		--secondary-foreground: 210 40% 98%;
-		--muted: 217.2 32.6% 17.5%;
-		--muted-foreground: 215 20.2% 65.1%;
-		--accent: 217.2 32.6% 17.5%;
-		--accent-foreground: 210 40% 98%;
-		--destructive: 0 62.8% 30.6%;
-		--destructive-foreground: 210 40% 98%;
-		--border: 217.2 32.6% 17.5%;
-		--input: 217.2 32.6% 17.5%;
-		--ring: 344.4 84.5% 67.1%;
-		--chart-1: 220 70% 50%;
-		--chart-2: 160 60% 45%;
-		--chart-3: 30 80% 55%;
-		--chart-4: 280 65% 60%;
-		--chart-5: 340 75% 55%;
-		--sidebar-background: 240 5.9% 10%;
-		--sidebar-foreground: 240 4.8% 95.9%;
-		--sidebar-primary: 224.3 76.3% 48%;
-		--sidebar-primary-foreground: 0 0% 100%;
-		--sidebar-accent: 240 3.7% 15.9%;
-		--sidebar-accent-foreground: 240 4.8% 95.9%;
-		--sidebar-border: 240 3.7% 15.9%;
-		--sidebar-ring: 217.2 91.2% 59.8%;
-
-		--text-disabled: 0 0% 42%;
-		--action-active: 0 0% 62%;
-		--input-outlined-border: 0 0% 30%;
-		--input-standard-border: 0 0% 38%;
-		--elevation-3d: 0 0% 0%;
-		--primary-tint: 344 30% 18%;
-		--primary-ledge: 344.6 55.3% 57.1%;
 	}
 }

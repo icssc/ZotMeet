@@ -22,6 +22,7 @@
 		"pwa:icons": "node scripts/generate-pwa-assets.mjs"
 	},
 	"dependencies": {
+		"@zotmeet/tokens": "workspace:*",
 		"@aws-sdk/client-sesv2": "^3.1039.0",
 		"@emotion/cache": "^11.14.0",
 		"@emotion/react": "^11.14.0",

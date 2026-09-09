@@ -20,7 +20,7 @@ export function Screen({
 	return (
 		<View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
 			<ScrollView
-				contentContainerClassName="gap-4 px-4 pt-4 pb-10"
+				contentContainerClassName="grow gap-4 px-4 pt-4 pb-10"
 				showsVerticalScrollIndicator={false}
 			>
 				<View className="gap-1">
