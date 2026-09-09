@@ -26,7 +26,6 @@ jobs:
             unlock
             remove
             deploy
-            preview
           dispatch-type: repository
           issue-type: pull-request
           permission: none
