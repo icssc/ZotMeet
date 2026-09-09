@@ -98,11 +98,18 @@ module.exports = {
 			 * because React Native requires an absolute lineHeight.
 			 */
 			fontSize: {
+				h1: ["96px", { lineHeight: "112px", letterSpacing: "-1.5px" }],
+				h2: ["60px", { lineHeight: "72px", letterSpacing: "-0.5px" }],
+				h3: ["48px", { lineHeight: "56px", letterSpacing: "0px" }],
+				h4: ["34px", { lineHeight: "42px", letterSpacing: "0.25px" }],
 				h5: ["24px", { lineHeight: "32px", letterSpacing: "0px" }],
+				h6: ["20px", { lineHeight: "32px", letterSpacing: "0.15px" }],
 				subtitle1: ["16px", { lineHeight: "19px", letterSpacing: "0.15px" }],
+				subtitle2: ["14px", { lineHeight: "17px", letterSpacing: "0.1px" }],
 				body1: ["16px", { lineHeight: "19px", letterSpacing: "0.15px" }],
 				body2: ["14px", { lineHeight: "17px", letterSpacing: "0.17px" }],
 				caption: ["12px", { lineHeight: "12px", letterSpacing: "0.15px" }],
+				overline: ["12px", { lineHeight: "12px", letterSpacing: "1px" }],
 				helper: ["12px", { lineHeight: "20px", letterSpacing: "0.4px" }],
 				/*
 				 * Named `field`, not `input`: `input` is already a colour token
@@ -125,6 +132,8 @@ module.exports = {
 			 * utilities below wherever the web would reach for a weight class.
 			 */
 			fontFamily: {
+				/* MUI's h1 and h2 are weight 300; everything else uses 400-600. */
+				"figtree-light": ["Figtree_300Light"],
 				figtree: ["Figtree_400Regular"],
 				"figtree-medium": ["Figtree_500Medium"],
 				"figtree-semibold": ["Figtree_600SemiBold"],
