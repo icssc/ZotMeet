@@ -23,12 +23,12 @@ export function MeetingsHome() {
 					variant="contained"
 				/>
 				<IconButton
-					accessibilityLabel="Create meeting"
-					className="mt-4 self-start bg-primary"
+					variant="contained"
+					size={"medium"}
 					onPress={() => router.push("/create-meeting")}
-					size="medium"
+					accessibilityLabel="Create meeting"
 				>
-					<Plus className="text-primary-foreground" size={20} />
+					<Plus size={20} />
 				</IconButton>
 			</Card>
 		</Screen>
