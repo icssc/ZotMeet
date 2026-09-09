@@ -108,6 +108,7 @@ module.exports = {
 				 * last, so `text-input` would silently paint text the border grey.
 				 */
 				field: ["16px", { letterSpacing: "0.15px" }],
+				"button-sm": ["13px", { lineHeight: "22px", letterSpacing: "0.46px" }],
 				"button-md": ["14px", { lineHeight: "24px", letterSpacing: "0.4px" }],
 				"button-lg": ["16px", { lineHeight: "26px", letterSpacing: "0.46px" }],
 			},

@@ -1,5 +1,4 @@
 import { useRouter } from "expo-router";
-import { X } from "lucide-react-native";
 import { useState } from "react";
 import { View } from "react-native";
 import { Button } from "@/components/ui/button";
@@ -18,17 +17,11 @@ import {
 import { Text } from "@/components/ui/text";
 import { TimeField } from "@/components/ui/time-field";
 import { startOfMonth, WEEKDAY_INITIALS } from "@/lib/date";
+import { X } from "@/lib/icons";
 
 type DatePickerMode = "specific" | "weekly";
 type LocationChoice = "recommend" | "known";
 
-/**
- * "[Meetings] Create Meeting (Specific Dates)" from the ZotMeet Hi-Fi
- * Wireframes (node 211:12581), built from the shared native primitives.
- *
- * Local state only — this is the UI half. Wiring it to the meeting-creation
- * server actions (`src/server/actions/meeting`) is a separate pass.
- */
 export function CreateMeetingForm() {
 	const router = useRouter();
 	const canDismiss = router.canGoBack();
@@ -45,12 +38,6 @@ export function CreateMeetingForm() {
 	const endsBeforeItStarts =
 		!!startTime && !!endTime && endTime.getTime() <= startTime.getTime();
 
-	/**
-	 * Applies one sweep from the calendar. Mirrors `updateSelectedRange` in the
-	 * web app's `src/components/creation/calendar/calendar.tsx`: a sweep that
-	 * began on an unselected day adds the range, and one that began on a
-	 * selected day clears it.
-	 */
 	const applyDateRange = (keys: string[], additive: boolean) =>
 		setSelectedDates((current) => {
 			if (!additive) {
@@ -178,7 +165,7 @@ export function CreateMeetingForm() {
 				</View>
 			</View>
 
-			<Button elevated label="Create Meeting" />
+			<Button label="Create Meeting" size="large" variant="contained" />
 		</View>
 	);
 }

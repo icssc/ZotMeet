@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
-import { CalendarDays, CalendarRange, User, Users } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
+import { CalendarDays, CalendarRange, User, Users } from "@/lib/icons";
 import { colorsFor } from "@/lib/theme";
 
 /**
@@ -31,6 +31,12 @@ export default function TabsLayout() {
 					tabBarIcon: ({ color, size }) => (
 						<CalendarDays color={color} size={size} />
 					),
+				}}
+			/>
+			<Tabs.Screen
+				name="create-meeting"
+				options={{
+					href: null,
 				}}
 			/>
 			<Tabs.Screen

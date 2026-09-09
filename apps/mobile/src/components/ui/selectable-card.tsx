@@ -1,7 +1,7 @@
-import { Check } from "lucide-react-native";
 import { View } from "react-native";
 import { Raised } from "@/components/ui/raised";
 import { Text } from "@/components/ui/text";
+import { Check } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -30,8 +30,8 @@ export function SelectableCard({
 			className={cn(
 				"flex-row items-center gap-3 rounded-control border border-input-standard p-4",
 				selected ? "bg-primary-tint" : "bg-paper",
-				className,
 			)}
+			containerClassName={className}
 			onPress={onPress}
 			radiusClassName="rounded-control"
 		>

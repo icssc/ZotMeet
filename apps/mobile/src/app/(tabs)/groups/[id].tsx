@@ -17,7 +17,11 @@ export default function GroupDetailScreen() {
 					`useLocalSearchParams`.
 				</CardDescription>
 			</Card>
-			<Button label="Go back" variant="outline" onPress={() => router.back()} />
+			<Button
+				label="Go back"
+				variant="outlined"
+				onPress={() => router.back()}
+			/>
 		</Screen>
 	);
 }

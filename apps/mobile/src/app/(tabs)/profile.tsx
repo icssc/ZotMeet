@@ -31,8 +31,8 @@ export default function ProfileScreen() {
 				</CardDescription>
 				<Button
 					className="mt-3"
-					variant="outline"
-					size="sm"
+					variant="outlined"
+					size="small"
 					label="Toggle theme"
 					onPress={toggleColorScheme}
 				/>
@@ -41,7 +41,7 @@ export default function ProfileScreen() {
 			{/* Smoke test for the rn-primitives Dialog + PortalHost wiring. */}
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogTrigger asChild>
-					<Button label="Open dialog" variant="secondary" />
+					<Button color="secondary" label="Open dialog" variant="contained" />
 				</DialogTrigger>
 				<DialogContent>
 					<DialogHeader>
@@ -52,7 +52,7 @@ export default function ProfileScreen() {
 					</DialogHeader>
 					<DialogFooter>
 						<DialogClose asChild>
-							<Button label="Close" variant="outline" size="sm" />
+							<Button label="Close" size="small" variant="outlined" />
 						</DialogClose>
 					</DialogFooter>
 				</DialogContent>

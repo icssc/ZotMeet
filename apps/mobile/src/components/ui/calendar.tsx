@@ -1,5 +1,4 @@
 import * as Haptics from "expo-haptics";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react-native";
 import { useCallback, useRef, useState } from "react";
 import { type LayoutChangeEvent, Pressable, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -15,6 +14,7 @@ import {
 	toDateKey,
 	WEEKDAY_INITIALS,
 } from "@/lib/date";
+import { ChevronDown, ChevronLeft, ChevronRight } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -251,7 +251,7 @@ export function Calendar({
 					<Text className="font-figtree-medium text-body1 text-foreground">
 						{month.getFullYear()}
 					</Text>
-					<IconButton accessibilityLabel="Select month" size="sm">
+					<IconButton accessibilityLabel="Select month" size="small">
 						<ChevronDown className="text-action-active" size={24} />
 					</IconButton>
 				</View>
@@ -259,14 +259,14 @@ export function Calendar({
 					<IconButton
 						accessibilityLabel="Previous month"
 						onPress={() => onMonthChange(addMonths(month, -1))}
-						size="sm"
+						size="small"
 					>
 						<ChevronLeft className="text-action-active" size={24} />
 					</IconButton>
 					<IconButton
 						accessibilityLabel="Next month"
 						onPress={() => onMonthChange(addMonths(month, 1))}
-						size="sm"
+						size="small"
 					>
 						<ChevronRight className="text-action-active" size={24} />
 					</IconButton>

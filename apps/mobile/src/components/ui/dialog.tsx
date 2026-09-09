@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@rn-primitives/dialog";
-import { X } from "lucide-react-native";
 import { Platform, View } from "react-native";
 import { Text } from "@/components/ui/text";
+import { X } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 /**

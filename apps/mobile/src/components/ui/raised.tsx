@@ -20,6 +20,13 @@ export type RaisedProps = Omit<PressableProps, "children"> & {
 	ledgeClassName?: string;
 	/** Radius shared by the well and the face, so corners stay flush. */
 	radiusClassName?: string;
+	/**
+	 * Classes for the well — the element that occupies the layout slot. Margins,
+	 * width and flex belong here; on the face they would push the face around
+	 * *inside* the well and expose the ledge on the wrong side.
+	 */
+	containerClassName?: string;
+	/** Classes for the face: padding, fill, and the content's own layout. */
 	className?: string;
 	children?: React.ReactNode;
 };
@@ -28,6 +35,7 @@ export function Raised({
 	depth = 4,
 	ledgeClassName,
 	radiusClassName = "rounded-md",
+	containerClassName,
 	className,
 	children,
 	disabled,
@@ -40,7 +48,12 @@ export function Raised({
 
 	return (
 		<View
-			className={cn(radiusClassName, "bg-elevation-3d", ledgeClassName)}
+			className={cn(
+				radiusClassName,
+				"bg-elevation-3d",
+				ledgeClassName,
+				containerClassName,
+			)}
 			style={{ paddingBottom: depth }}
 		>
 			<Pressable

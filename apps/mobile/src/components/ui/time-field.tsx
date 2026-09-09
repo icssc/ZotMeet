@@ -1,12 +1,12 @@
 import DateTimePicker, {
 	type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
-import { Clock } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 import { useState } from "react";
 import { Modal, Platform, Pressable, View } from "react-native";
 import { FieldButton } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
+import { Clock } from "@/lib/icons";
 import { colorsFor } from "@/lib/theme";
 
 /** "9:00 AM" — the format the wireframes show on the meeting summary. */

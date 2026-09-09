@@ -15,14 +15,12 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
 
-// Hold the splash screen until Figtree is ready, so no frame renders in the
-// system font and then reflows.
+// Holds splash screen until Figtree is ready
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
 	const { colorScheme } = useColorScheme();
 
-	// The same four weights the web app loads in `src/fonts.ts`.
 	const [fontsLoaded, fontError] = useFonts({
 		Figtree_400Regular,
 		Figtree_500Medium,
@@ -31,7 +29,6 @@ export default function RootLayout() {
 	});
 
 	useEffect(() => {
-		// Reveal on error too — a missing font should not leave a blank app.
 		if (fontsLoaded || fontError) {
 			SplashScreen.hideAsync();
 		}
@@ -48,7 +45,6 @@ export default function RootLayout() {
 				<Stack screenOptions={{ headerShown: false }}>
 					<Stack.Screen name="(tabs)" />
 				</Stack>
-				{/* rn-primitives renders overlays (Dialog, Select, …) through this host. */}
 				<PortalHost />
 			</SafeAreaProvider>
 		</GestureHandlerRootView>
