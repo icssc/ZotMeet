@@ -5,12 +5,13 @@ is static placeholder UI; there is no API client, data layer, or auth here.
 
 ## Running
 
-From the repo root:
+From the repo root (after `pnpm install`):
 
 ```bash
-pnpm install
-pnpm --filter @zotmeet/mobile start   # then press i / a, or scan with Expo Go
+pnpm mobile
 ```
+
+Same as `pnpm --filter @zotmeet/mobile start`. Then press `i` / `a` / `w`, or scan the QR code with Expo Go. This is the mobile counterpart of the web app's `pnpm dev`.
 
 ## How this relates to the web app
 

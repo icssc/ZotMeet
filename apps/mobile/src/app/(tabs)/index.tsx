@@ -1,43 +1,26 @@
-import { useState } from "react";
-import { Screen } from "@/components/ui/screen";
-import {
-	Tabs,
-	TabsContent,
-	TabsList,
-	TabsTrigger,
-	TabsTriggerText,
-} from "@/components/ui/tabs";
-import { Text } from "@/components/ui/text";
+import { ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CreateMeetingForm } from "@/components/meetings/create-meeting-form";
 
 /**
- * Route: `/` (the first tab).
+ * Route: `/` (the Meetings tab).
  *
- * Placeholder only. The rn-primitives Tabs are here to prove the headless
- * primitive + NativeWind pattern works, not to build the real Meetings UI.
+ * Renders "[Meetings] Create Meeting (Specific Dates)" from the ZotMeet Hi-Fi
+ * Wireframes. The form brings its own heading, so this screen only supplies
+ * safe-area padding and scrolling — no `<Screen>` title block.
  */
 export default function MeetingsScreen() {
-	const [tab, setTab] = useState("upcoming");
+	const insets = useSafeAreaInsets();
 
 	return (
-		<Screen title="Meetings" subtitle="Route: /">
-			<Tabs value={tab} onValueChange={setTab}>
-				<TabsList>
-					<TabsTrigger value="upcoming">
-						<TabsTriggerText>Upcoming</TabsTriggerText>
-					</TabsTrigger>
-					<TabsTrigger value="past">
-						<TabsTriggerText>Past</TabsTriggerText>
-					</TabsTrigger>
-				</TabsList>
-				<TabsContent value="upcoming">
-					<Text className="text-muted-foreground">
-						Upcoming meetings go here.
-					</Text>
-				</TabsContent>
-				<TabsContent value="past">
-					<Text className="text-muted-foreground">Past meetings go here.</Text>
-				</TabsContent>
-			</Tabs>
-		</Screen>
+		<View className="flex-1 bg-paper" style={{ paddingTop: insets.top }}>
+			<ScrollView
+				contentContainerClassName="grow"
+				keyboardShouldPersistTaps="handled"
+				showsVerticalScrollIndicator={false}
+			>
+				<CreateMeetingForm />
+			</ScrollView>
+		</View>
 	);
 }

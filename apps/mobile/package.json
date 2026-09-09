@@ -11,6 +11,8 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@expo-google-fonts/figtree": "^0.4.1",
+		"@react-native-community/datetimepicker": "9.1.0",
 		"@rn-primitives/dialog": "^1.5.2",
 		"@rn-primitives/portal": "^1.5.3",
 		"@rn-primitives/slot": "^1.5.2",
@@ -19,6 +21,7 @@
 		"clsx": "^2.1.1",
 		"expo": "~57.0.20",
 		"expo-constants": "~57.0.17",
+		"expo-font": "~57.0.3",
 		"expo-haptics": "~57.0.1",
 		"expo-linking": "~57.0.9",
 		"expo-router": "~57.0.19",

@@ -1,25 +1,44 @@
 import * as TabsPrimitive from "@rn-primitives/tabs";
+import { createContext, useContext } from "react";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
 
 /**
  * Native counterpart to the web app's `@radix-ui/react-tabs` wrapper. Same
  * Root / List / Trigger / Content shape, styled with the shared tokens.
+ *
+ * Two looks are supported:
+ * - `segmented` (default) — the shadcn pill group.
+ * - `underline` — MUI's `<Tabs>`, which is what the hi-fi wireframes use:
+ *   flat labels with a 2px primary indicator under the selected one.
  */
+type TabsVariant = "segmented" | "underline";
+
+const TabsVariantContext = createContext<TabsVariant>("segmented");
+
 const Tabs = TabsPrimitive.Root;
 
 function TabsList({
 	className,
+	variant = "segmented",
 	...props
-}: TabsPrimitive.ListProps & { ref?: React.Ref<TabsPrimitive.ListRef> }) {
+}: TabsPrimitive.ListProps & {
+	ref?: React.Ref<TabsPrimitive.ListRef>;
+	variant?: TabsVariant;
+}) {
 	return (
-		<TabsPrimitive.List
-			className={cn(
-				"flex-row items-center justify-center rounded-md bg-muted p-1",
-				className,
-			)}
-			{...props}
-		/>
+		<TabsVariantContext.Provider value={variant}>
+			<TabsPrimitive.List
+				className={cn(
+					"flex-row items-center",
+					variant === "segmented"
+						? "justify-center rounded-md bg-muted p-1"
+						: "items-start",
+					className,
+				)}
+				{...props}
+			/>
+		</TabsVariantContext.Provider>
 	);
 }
 
@@ -28,12 +47,28 @@ function TabsTrigger({
 	...props
 }: TabsPrimitive.TriggerProps & { ref?: React.Ref<TabsPrimitive.TriggerRef> }) {
 	const { value } = TabsPrimitive.useRootContext();
+	const variant = useContext(TabsVariantContext);
+	const active = props.value === value;
+
+	if (variant === "underline") {
+		return (
+			<TabsPrimitive.Trigger
+				className={cn(
+					"items-center justify-center border-b-2 px-4 py-[9px]",
+					active ? "border-b-primary" : "border-b-transparent",
+					props.disabled && "opacity-50",
+					className,
+				)}
+				{...props}
+			/>
+		);
+	}
 
 	return (
 		<TabsPrimitive.Trigger
 			className={cn(
 				"flex-1 items-center justify-center rounded-sm px-3 py-1.5",
-				props.value === value && "bg-background shadow-sm",
+				active && "bg-background shadow-sm",
 				props.disabled && "opacity-50",
 				className,
 			)}
@@ -56,12 +91,22 @@ function TabsContent({
 function TabsTriggerText({ children }: { children: React.ReactNode }) {
 	const { value } = TabsPrimitive.useRootContext();
 	const trigger = TabsPrimitive.useTriggerContext();
+	const variant = useContext(TabsVariantContext);
 	const active = trigger.value === value;
+
+	if (variant === "underline") {
+		// MUI keeps both tab labels at full contrast; only the indicator moves.
+		return (
+			<Text className="font-figtree-semibold text-button-md text-foreground capitalize">
+				{children}
+			</Text>
+		);
+	}
 
 	return (
 		<Text
 			className={cn(
-				"font-medium text-sm",
+				"font-figtree-medium text-sm",
 				active ? "text-foreground" : "text-muted-foreground",
 			)}
 		>

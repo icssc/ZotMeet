@@ -68,7 +68,7 @@ function DialogFooter({ children }: { children: React.ReactNode }) {
 function DialogTitle({ children }: { children: React.ReactNode }) {
 	return (
 		<DialogPrimitive.Title asChild>
-			<Text className="font-semibold text-lg">{children}</Text>
+			<Text className="font-figtree-semibold text-lg">{children}</Text>
 		</DialogPrimitive.Title>
 	);
 }

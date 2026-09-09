@@ -24,7 +24,7 @@ export function Screen({
 				showsVerticalScrollIndicator={false}
 			>
 				<View className="gap-1">
-					<Text className="font-bold text-3xl">{title}</Text>
+					<Text className="font-figtree-bold text-3xl">{title}</Text>
 					{subtitle ? (
 						<Text className="text-base text-muted-foreground">{subtitle}</Text>
 					) : null}

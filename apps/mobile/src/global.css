@@ -47,6 +47,21 @@
 		--sidebar-accent-foreground: 240 5.9% 10%;
 		--sidebar-border: 220 13% 91%;
 		--sidebar-ring: 217.2 91.2% 59.8%;
+
+		/*
+		 * MUI surface tokens used by the Figma hi-fi wireframes. The web app
+		 * gets these from `src/theme.ts` as translucent inks (rgba(0,0,0,0.38)
+		 * and friends); React Native has no cascade to blend against, so they
+		 * are stored pre-composited on the mode's own background — same
+		 * opaque-HSL convention as every other token in this file.
+		 */
+		--text-disabled: 0 0% 62%; /* rgba(0,0,0,0.38) on white */
+		--action-active: 0 0% 46%; /* rgba(0,0,0,0.54) on white */
+		--input-outlined-border: 0 0% 77%; /* rgba(0,0,0,0.23) on white */
+		--input-standard-border: 0 0% 58%; /* rgba(0,0,0,0.42) on white */
+		--elevation-3d: 0 0% 75%; /* rgba(0,0,0,0.25) on white */
+		--primary-tint: 340 100% 97%; /* rgba(255,135,166,0.1) on white */
+		--primary-ledge: 344.6 55.3% 57.1%; /* rgba(0,0,0,0.15) over primary */
 	}
 
 	.dark:root {
@@ -84,5 +99,13 @@
 		--sidebar-accent-foreground: 240 4.8% 95.9%;
 		--sidebar-border: 240 3.7% 15.9%;
 		--sidebar-ring: 217.2 91.2% 59.8%;
+
+		--text-disabled: 0 0% 42%;
+		--action-active: 0 0% 62%;
+		--input-outlined-border: 0 0% 30%;
+		--input-standard-border: 0 0% 38%;
+		--elevation-3d: 0 0% 0%;
+		--primary-tint: 344 30% 18%;
+		--primary-ledge: 344.6 55.3% 57.1%;
 	}
 }

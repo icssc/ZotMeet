@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { CalendarDays, CalendarRange, User, Users } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
-import { navColors } from "@/lib/theme";
+import { colorsFor } from "@/lib/theme";
 
 /**
  * Loosely mirrors the web bottom nav (`src/components/nav/mui-bottom-nav.tsx`).
@@ -10,7 +10,7 @@ import { navColors } from "@/lib/theme";
  */
 export default function TabsLayout() {
 	const { colorScheme } = useColorScheme();
-	const colors = navColors[colorScheme === "dark" ? "dark" : "light"];
+	const colors = colorsFor(colorScheme);
 
 	return (
 		<Tabs

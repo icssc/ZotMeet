@@ -13,7 +13,7 @@ export function Card({ className, ...props }: ViewProps) {
 
 export function CardTitle({ children }: { children: React.ReactNode }) {
 	return (
-		<Text className="font-semibold text-base text-card-foreground">
+		<Text className="font-figtree-semibold text-base text-card-foreground">
 			{children}
 		</Text>
 	);
