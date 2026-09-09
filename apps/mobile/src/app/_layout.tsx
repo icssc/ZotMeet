@@ -1,6 +1,7 @@
 import {
 	Figtree_300Light,
 	Figtree_400Regular,
+	Figtree_400Regular_Italic,
 	Figtree_500Medium,
 	Figtree_600SemiBold,
 	Figtree_700Bold,
@@ -25,6 +26,7 @@ export default function RootLayout() {
 	const [fontsLoaded, fontError] = useFonts({
 		Figtree_300Light,
 		Figtree_400Regular,
+		Figtree_400Regular_Italic,
 		Figtree_500Medium,
 		Figtree_600SemiBold,
 		Figtree_700Bold,
@@ -46,6 +48,23 @@ export default function RootLayout() {
 				<StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
 				<Stack screenOptions={{ headerShown: false }}>
 					<Stack.Screen name="(tabs)" />
+					{/*
+					 * Create Meeting sits outside the tabs so it can be presented,
+					 * not navigated to: it slides up over whatever screen opened it
+					 * and is dismissed by dragging the card back down.
+					 *
+					 * Not `formSheet`, which would give us iOS's own grabber: its
+					 * content sizing is unreliable here — the sheet lays out at zero
+					 * height and renders blank — so the card presentation stays and
+					 * `<SheetGrabber>` draws the handle on both platforms.
+					 */}
+					<Stack.Screen
+						name="create-meeting"
+						options={{
+							presentation: "modal",
+							animation: "slide_from_bottom",
+						}}
+					/>
 				</Stack>
 				<PortalHost />
 			</SafeAreaProvider>

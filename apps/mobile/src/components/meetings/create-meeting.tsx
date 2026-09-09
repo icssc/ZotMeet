@@ -1,12 +1,11 @@
-import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 import { Button } from "@/components/ui/button";
 import { Calendar, DayCell } from "@/components/ui/calendar";
 import { FormHelperText, FormLabel } from "@/components/ui/form";
-import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { SelectableCard } from "@/components/ui/selectable-card";
+import { SheetGrabber } from "@/components/ui/sheet-grabber";
 import {
 	Tabs,
 	TabsContent,
@@ -17,15 +16,11 @@ import {
 import { Text } from "@/components/ui/text";
 import { TimeField } from "@/components/ui/time-field";
 import { startOfMonth, WEEKDAY_INITIALS } from "@/lib/date";
-import { X } from "@/lib/icons";
 
 type DatePickerMode = "specific" | "weekly";
 type LocationChoice = "recommend" | "known";
 
 export function CreateMeetingForm() {
-	const router = useRouter();
-	const canDismiss = router.canGoBack();
-
 	const [name, setName] = useState("");
 	const [startTime, setStartTime] = useState<Date | undefined>();
 	const [endTime, setEndTime] = useState<Date | undefined>();
@@ -59,19 +54,7 @@ export function CreateMeetingForm() {
 	return (
 		<View className="flex-1 gap-[60px] bg-paper px-6 pt-6 pb-[100px]">
 			<View>
-				<View className="w-full flex-row items-center justify-end px-4">
-					{canDismiss ? (
-						<IconButton
-							accessibilityLabel="Close"
-							onPress={() => router.back()}
-						>
-							<X className="text-action-active" size={24} />
-						</IconButton>
-					) : (
-						// Keeps the heading optically centred when there is no X.
-						<View className="size-10" />
-					)}
-				</View>
+				<SheetGrabber />
 				<View className="w-full items-center pt-2 pb-3">
 					<Text className="font-figtree-medium text-foreground text-h5">
 						Create Meeting

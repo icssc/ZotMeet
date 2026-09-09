@@ -34,12 +34,6 @@ export default function TabsLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="create-meeting"
-				options={{
-					href: null,
-				}}
-			/>
-			<Tabs.Screen
 				name="groups"
 				options={{
 					title: "Groups",

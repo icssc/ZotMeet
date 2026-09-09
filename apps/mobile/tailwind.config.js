@@ -135,6 +135,12 @@ module.exports = {
 				/* MUI's h1 and h2 are weight 300; everything else uses 400-600. */
 				"figtree-light": ["Figtree_300Light"],
 				figtree: ["Figtree_400Regular"],
+				/*
+				 * RN will not slant a font for you: `italic` on its own leaves a
+				 * custom family upright, so the italic face is its own family here,
+				 * exactly like the weights above.
+				 */
+				"figtree-italic": ["Figtree_400Regular_Italic"],
 				"figtree-medium": ["Figtree_500Medium"],
 				"figtree-semibold": ["Figtree_600SemiBold"],
 				"figtree-bold": ["Figtree_700Bold"],

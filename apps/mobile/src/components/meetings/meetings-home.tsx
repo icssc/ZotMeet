@@ -5,6 +5,7 @@ import { CardDescription, CardTitle } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { Plus } from "@/lib/icons";
+import { Typography } from "../ui/typography";
 
 export function MeetingsHome() {
 	const router = useRouter();
@@ -40,9 +41,10 @@ export function MeetingsHome() {
 				/>
 
 				<View className="max-w-xs items-center">
-					<CardDescription className="text-center">
-						Create a meeting to collect availability and coordinate a time.
-					</CardDescription>
+					<Typography color="textSecondary" className="font-figtree-italic">
+						Create your first meeting to start {"\n"} collaborating with your
+						team.{" "}
+					</Typography>
 				</View>
 			</View>
 		</Screen>
