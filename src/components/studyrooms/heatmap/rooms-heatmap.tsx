@@ -186,7 +186,7 @@ export const RoomsHeatmap = ({
 											backgroundColor: theme.palette.background.paper,
 										})}
 									>
-										<p className="">{formatLocation(room.location)}</p>
+										<p className="">{room.location}</p>
 										<div className="flex items-center gap-2 text-xs">
 											<p className="text-xs">{room.name?.slice(0, 20)}</p>
 											<p>{room.capacity ? `•  Cap: ${room.capacity}` : null}</p>
