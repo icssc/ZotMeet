@@ -63,7 +63,12 @@ jobs:
             exit 0
           fi
 
-          if printf '%s' "$output" | grep -qiE "not found|does not exist|doesn't exist"; then
+          # Both halves must land on the same line: a bare "not found" also
+          # matches a bad EAS_PROJECT_ID ("Project not found"), a GraphQL 404,
+          # or a token failure — errors that must not pass as a clean cleanup.
+          if printf '%s\n' "$output" \
+            | grep -E "pr-$PR_NUM([^0-9]|$)" \
+            | grep -qiE "not found|does not exist|doesn't exist"; then
             echo "::notice::No update branch pr-$PR_NUM to delete."
             exit 0
           fi
