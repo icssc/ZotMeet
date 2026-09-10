@@ -142,12 +142,20 @@ export function Button({
 	disabled,
 	...props
 }: ButtonProps) {
+	// RN throws on a bare string child, so a primitive `children` takes the same
+	// `<Text>` path as `label` rather than reaching `Pressable` unwrapped.
+	const text =
+		label ??
+		(typeof children === "string" || typeof children === "number"
+			? children
+			: null);
+
 	const content =
-		label === undefined ? (
+		text === null ? (
 			children
 		) : (
 			<Text className={buttonTextVariants({ variant, color, size })}>
-				{label}
+				{text}
 			</Text>
 		);
 

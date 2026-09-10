@@ -170,17 +170,16 @@ export function Calendar({
 	const touchDown = useRef<{ x: number; y: number } | null>(null);
 
 	/**
-	 * Mirrors `anchor` for the gesture callbacks. `onStart` and `onUpdate` can
-	 * both fire before React re-renders, so reading the state here would still
-	 * see `null` and drop the first day of every sweep.
+	 * Synchronous mirrors of `anchor` / `cursor`, for the gesture callbacks.
+	 *
+	 * The whole sweep — `onStart`, every `onUpdate`, `onFinalize` — can run
+	 * before React commits the render that publishes `setAnchor` / `setCursor`,
+	 * because the callbacks are plain JS (`runOnJS`) and React batches the
+	 * updates. Reading the state here would see `null` on a fast flick and drop
+	 * the range entirely. The state still exists, but only to drive rendering.
 	 */
 	const anchorRef = useRef<Date | null>(null);
-
-	/**
-	 * The day the last tick fired for, so the haptic can sit outside the
-	 * `setCursor` updater — updaters must be pure and React may re-run them.
-	 */
-	const lastTick = useRef<Date | null>(null);
+	const cursorRef = useRef<Date | null>(null);
 
 	const begin = useCallback((x: number, y: number) => {
 		touchDown.current = { x, y };
@@ -193,7 +192,7 @@ export function Calendar({
 		const day = dayAt(point.x, point.y);
 		if (!isSelectable(day)) return;
 		anchorRef.current = day;
-		lastTick.current = day;
+		cursorRef.current = day;
 		setAnchor(day);
 		setCursor(day);
 	}, [dayAt, isSelectable]);
@@ -208,8 +207,8 @@ export function Calendar({
 			// `onUpdate` fires on every finger movement, so bail unless the day
 			// under it actually changed — otherwise the sweep re-renders (and
 			// buzzes) many times a second on a single day.
-			if (lastTick.current && isSameDay(lastTick.current, day)) return;
-			lastTick.current = day;
+			if (cursorRef.current && isSameDay(cursorRef.current, day)) return;
+			cursorRef.current = day;
 			// One tick per day crossed, the way a native picker feels.
 			Haptics.selectionAsync().catch(() => {});
 			setCursor(day);
@@ -218,25 +217,28 @@ export function Calendar({
 	);
 
 	const commit = useCallback(() => {
+		// Taken from the refs, which are current even when the sweep finished
+		// before React re-rendered; the state may still read `null` here.
+		const from = anchorRef.current;
+		const to = cursorRef.current;
+
 		touchDown.current = null;
 		anchorRef.current = null;
-		lastTick.current = null;
+		cursorRef.current = null;
+		setAnchor(null);
+		setCursor(null);
+
 		// No anchor means the pan never activated — the touch was a tap, which
 		// the day's own Pressable handles, or a scroll that we correctly let go.
-		if (!anchor || !cursor) {
-			setAnchor(null);
-			setCursor(null);
-			return;
-		}
-		const additive = !selectedKeys.includes(toDateKey(anchor));
-		const keys = datesBetween(anchor, cursor)
+		if (!from || !to) return;
+
+		const additive = !selectedKeys.includes(toDateKey(from));
+		const keys = datesBetween(from, to)
 			.filter((day) => day >= floor)
 			.map(toDateKey);
 
-		setAnchor(null);
-		setCursor(null);
 		if (keys.length > 0) onSelectRange(keys, additive);
-	}, [anchor, cursor, floor, onSelectRange, selectedKeys]);
+	}, [floor, onSelectRange, selectedKeys]);
 
 	// runOnJS: these callbacks touch React state and refs, so they belong on the
 	// JS thread rather than the UI thread.

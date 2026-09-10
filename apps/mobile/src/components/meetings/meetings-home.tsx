@@ -39,7 +39,11 @@ export function MeetingsHome() {
 				/>
 
 				<View className="max-w-xs items-center">
-					<Typography color="textSecondary" className="font-figtree-italic">
+					<Typography
+						align="center"
+						color="textSecondary"
+						className="font-figtree-italic"
+					>
 						Create your first meeting to start {"\n"} collaborating with your
 						team.{" "}
 					</Typography>
