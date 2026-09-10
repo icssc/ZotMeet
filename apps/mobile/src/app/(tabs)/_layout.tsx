@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import { useColorScheme } from "nativewind";
-import { CalendarDays, CalendarRange, User, Users } from "@/lib/icons";
+import { Icon } from "@/lib/icons";
 import { colorsFor } from "@/lib/theme";
 
 /**
@@ -29,7 +29,7 @@ export default function TabsLayout() {
 				options={{
 					title: "Meetings",
 					tabBarIcon: ({ color, size }) => (
-						<CalendarDays color={color} size={size} />
+						<Icon.CalendarDays color={color} size={size} />
 					),
 				}}
 			/>
@@ -37,7 +37,9 @@ export default function TabsLayout() {
 				name="groups"
 				options={{
 					title: "Groups",
-					tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
+					tabBarIcon: ({ color, size }) => (
+						<Icon.Users color={color} size={size} />
+					),
 				}}
 			/>
 			<Tabs.Screen
@@ -45,7 +47,7 @@ export default function TabsLayout() {
 				options={{
 					title: "Availability",
 					tabBarIcon: ({ color, size }) => (
-						<CalendarRange color={color} size={size} />
+						<Icon.CalendarRange color={color} size={size} />
 					),
 				}}
 			/>
@@ -53,7 +55,9 @@ export default function TabsLayout() {
 				name="profile"
 				options={{
 					title: "Profile",
-					tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+					tabBarIcon: ({ color, size }) => (
+						<Icon.User color={color} size={size} />
+					),
 				}}
 			/>
 		</Tabs>

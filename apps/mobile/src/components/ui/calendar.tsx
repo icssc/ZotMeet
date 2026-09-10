@@ -14,7 +14,7 @@ import {
 	toDateKey,
 	WEEKDAY_INITIALS,
 } from "@/lib/date";
-import { ChevronDown, ChevronLeft, ChevronRight } from "@/lib/icons";
+import { Icon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -252,7 +252,7 @@ export function Calendar({
 						{month.getFullYear()}
 					</Text>
 					<IconButton accessibilityLabel="Select month" size="small">
-						<ChevronDown className="text-action-active" size={24} />
+						<Icon.ChevronDown className="text-action-active" size={24} />
 					</IconButton>
 				</View>
 				<View className="flex-row gap-6">
@@ -261,14 +261,14 @@ export function Calendar({
 						onPress={() => onMonthChange(addMonths(month, -1))}
 						size="small"
 					>
-						<ChevronLeft className="text-action-active" size={24} />
+						<Icon.ChevronLeft className="text-action-active" size={24} />
 					</IconButton>
 					<IconButton
 						accessibilityLabel="Next month"
 						onPress={() => onMonthChange(addMonths(month, 1))}
 						size="small"
 					>
-						<ChevronRight className="text-action-active" size={24} />
+						<Icon.ChevronRight className="text-action-active" size={24} />
 					</IconButton>
 				</View>
 			</View>

@@ -1,9 +1,8 @@
 import { useRouter } from "expo-router";
-import { Bell } from "lucide-react-native";
 import { Image, View } from "react-native";
 import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
-import { Plus } from "@/lib/icons";
+import { Icon } from "@/lib/icons";
 import { Typography } from "../ui/typography";
 
 export function MeetingsHome() {
@@ -18,7 +17,7 @@ export function MeetingsHome() {
 					//  onPress={}
 					accessibilityLabel="Notifications"
 				>
-					<Bell />
+					<Icon.Bell />
 				</IconButton>
 
 				<IconButton
@@ -27,7 +26,7 @@ export function MeetingsHome() {
 					onPress={() => router.push("/create-meeting")}
 					accessibilityLabel="Create meeting"
 				>
-					<Plus size={20} />
+					<Icon.Plus size={20} />
 				</IconButton>
 			</View>
 

@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@rn-primitives/dialog";
 import { Platform, View } from "react-native";
 import { Text } from "@/components/ui/text";
-import { X } from "@/lib/icons";
+import { Icon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -49,7 +49,7 @@ function DialogContent({
 				>
 					{children}
 					<DialogPrimitive.Close className="absolute top-4 right-4 rounded-sm p-1 active:opacity-70">
-						<X className="text-muted-foreground" size={18} />
+						<Icon.X className="text-muted-foreground" size={18} />
 					</DialogPrimitive.Close>
 				</DialogPrimitive.Content>
 			</DialogOverlay>

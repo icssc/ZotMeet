@@ -1,7 +1,7 @@
 import { View } from "react-native";
 import { Raised } from "@/components/ui/raised";
 import { Text } from "@/components/ui/text";
-import { Check } from "@/lib/icons";
+import { Icon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -46,7 +46,7 @@ export function SelectableCard({
 				) : null}
 			</View>
 			{selected ? (
-				<Check className="text-primary" size={24} strokeWidth={2} />
+				<Icon.Check className="text-primary" size={24} strokeWidth={2} />
 			) : null}
 		</Raised>
 	);
