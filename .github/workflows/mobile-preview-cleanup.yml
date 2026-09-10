@@ -2,8 +2,19 @@
 ---
 name: Cleanup mobile preview
 
+# `pull_request_target`, not `pull_request`: a fork PR can be previewed by a
+# maintainer running `/preview` (see mobile-preview.yml), and that publishes a
+# `pr-<n>` branch like any other. A `pull_request` run from a fork gets no
+# secrets, so `EXPO_TOKEN` would be empty and its branch could never be
+# deleted — the leak this workflow exists to prevent.
+#
+# The usual `pull_request_target` hazard is running untrusted code with the
+# base repo's secrets. That does not apply here: the checkout below takes the
+# base ref (the default for this trigger, no `ref:` override), nothing from the
+# PR head is fetched or executed, and the only PR-derived value used is the
+# pull request *number*, which is an integer.
 on:
-  pull_request:
+  pull_request_target:
     types:
       - closed
 
@@ -21,8 +32,6 @@ env:
 
 jobs:
   cleanup:
-    if: github.event.pull_request.head.repo.full_name == github.repository
-
     runs-on: ubuntu-latest
 
     steps:
@@ -36,10 +45,28 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # Update branches accumulate one per PR forever otherwise. A web-only PR
-      # never published one, so a missing branch is the normal case, not a
-      # failure — don't fail the run over it.
+      # never published one, so a missing branch is the normal case and must
+      # not fail the run — but only that case. Swallowing every failure would
+      # report an auth error or an EAS outage as a clean cleanup and let the
+      # branch leak silently, which is the opposite of what this job is for.
       - name: Delete the PR's update branch
         working-directory: apps/mobile
         run: |
-          pnpm exec eas branch:delete "pr-$PR_NUM" --non-interactive \
-            || echo "No update branch pr-$PR_NUM to delete."
+          set +e
+          output=$(pnpm exec eas branch:delete "pr-$PR_NUM" --non-interactive 2>&1)
+          status=$?
+          set -e
+
+          echo "$output"
+
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+
+          if printf '%s' "$output" | grep -qiE "not found|does not exist|doesn't exist"; then
+            echo "::notice::No update branch pr-$PR_NUM to delete."
+            exit 0
+          fi
+
+          echo "::error::Could not delete update branch pr-$PR_NUM; it may now be orphaned."
+          exit "$status"
