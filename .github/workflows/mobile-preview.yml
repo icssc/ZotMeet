@@ -60,6 +60,26 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # A missing secret otherwise surfaces deep inside the publish step as an
+      # opaque auth failure. Fail here instead, naming what to add and where.
+      - name: Check the Expo credentials are configured
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN is not set. Add a robot token owned by the ethanchaos-team org (https://expo.dev/settings/access-tokens) as a repository secret. See apps/mobile/README.md."
+            exit 1
+          fi
+          if [ -z "$EAS_PROJECT_ID" ]; then
+            echo "::error::EAS_PROJECT_ID is not set. Add it as a repository *variable* under Settings > Secrets and variables > Actions. See apps/mobile/README.md."
+            exit 1
+          fi
+
+      # The preview action probes a bare `eas --version` before running its
+      # command, and pnpm links binaries only into the owning package's
+      # node_modules/.bin. Exposing that is preferable to installing a second
+      # copy of eas-cli: CI then runs exactly the version in the lockfile.
+      - name: Put the project's eas-cli on PATH
+        run: echo "$GITHUB_WORKSPACE/apps/mobile/node_modules/.bin" >> "$GITHUB_PATH"
+
       - name: Publish preview update and comment on the PR
         uses: expo/expo-github-action/preview@v9
         with:
@@ -69,7 +89,7 @@ jobs:
           # a PR *title* is attacker-controlled text and would be a shell
           # injection vector once interpolated into a run command.
           command: >-
-            pnpm exec eas update
+            eas update
             --branch pr-${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}
             --environment preview
             --message "PR #${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }} @ ${{ github.event.pull_request.head.sha || github.event.client_payload.pull_request.head.sha }}"
