@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ type DatePickerMode = "specific" | "weekly";
 type LocationChoice = "recommend" | "known";
 
 export function CreateMeetingForm() {
+	const router = useRouter();
 	const [name, setName] = useState("");
 	const [startTime, setStartTime] = useState<Date | undefined>();
 	const [endTime, setEndTime] = useState<Date | undefined>();
@@ -50,6 +52,15 @@ export function CreateMeetingForm() {
 				? current.filter((value) => value !== index)
 				: [...current, index],
 		);
+
+	// Front end only for now: nothing is saved, and the meeting screen shows its
+	// placeholder data. `replace` swaps this modal for the meeting screen so
+	// backing out of the meeting returns to the Meetings list, not the form.
+	const submit = () =>
+		router.replace({
+			pathname: "/availability/[slug]",
+			params: { slug: "new" },
+		});
 
 	return (
 		<View className="flex-1 gap-[60px] bg-paper px-6 pt-6 pb-[100px]">
@@ -148,7 +159,12 @@ export function CreateMeetingForm() {
 				</View>
 			</View>
 
-			<Button label="Create Meeting" size="large" variant="contained" />
+			<Button
+				label="Create Meeting"
+				onPress={submit}
+				size="large"
+				variant="contained"
+			/>
 		</View>
 	);
 }

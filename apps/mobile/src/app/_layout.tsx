@@ -48,6 +48,8 @@ export default function RootLayout() {
 				<StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
 				<Stack screenOptions={{ headerShown: false }}>
 					<Stack.Screen name="(tabs)" />
+					{/* Pushed over the tabs once a meeting exists, hiding the tab bar. */}
+					<Stack.Screen name="availability/[slug]" />
 					{/*
 					 * Create Meeting sits outside the tabs so it can be presented,
 					 * not navigated to: it slides up over whatever screen opened it
