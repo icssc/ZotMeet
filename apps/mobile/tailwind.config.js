@@ -97,6 +97,11 @@ module.exports = {
 			 * `text-body2`. Unitless MUI line heights are resolved to px here
 			 * because React Native requires an absolute lineHeight.
 			 */
+			/*
+			 * Mirrored in the `font-size` class group in `src/lib/utils.ts` —
+			 * tailwind-merge cannot see this config, and a key it does not know
+			 * is treated as a text *colour*. Add to both lists together.
+			 */
 			fontSize: {
 				h1: ["96px", { lineHeight: "112px", letterSpacing: "-1.5px" }],
 				h2: ["60px", { lineHeight: "72px", letterSpacing: "-0.5px" }],

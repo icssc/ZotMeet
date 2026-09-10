@@ -11,14 +11,27 @@ import { extendTailwindMerge } from "tailwind-merge";
 const twMerge = extendTailwindMerge({
 	extend: {
 		classGroups: {
+			/*
+			 * Every key of `fontSize` in `tailwind.config.js`. A size missing here is
+			 * not inert — tailwind-merge falls back to reading `text-*` as a colour,
+			 * so `<Typography variant="h1" color="primary">` would drop `text-h1` and
+			 * silently render at body size. Add to both lists together.
+			 */
 			"font-size": [
 				{
 					text: [
+						"h1",
+						"h2",
+						"h3",
+						"h4",
 						"h5",
+						"h6",
 						"subtitle1",
+						"subtitle2",
 						"body1",
 						"body2",
 						"caption",
+						"overline",
 						"helper",
 						"field",
 						"button-sm",
