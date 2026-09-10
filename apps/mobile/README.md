@@ -15,11 +15,13 @@ Same as `pnpm --filter @zotmeet/mobile start`. Then press `i` / `a` / `w`, or sc
 
 ## How this relates to the web app
 
-- **Design tokens** in `src/global.css` are copied verbatim from the Next.js
-  app's `src/app/globals.css`, and `tailwind.config.js` mirrors the root
-  `tailwind.config.ts`. `bg-primary`, `text-muted-foreground`,
-  `border-border`, etc. mean the same thing on both platforms. Keep them in
-  sync by hand — there is no shared package yet.
+- **Design tokens** live in `packages/tokens`, which both apps' Tailwind
+  configs import and emit as CSS variables at build time. `bg-primary`,
+  `text-muted-foreground`, `border-border`, etc. mean the same thing on both
+  platforms because they are the same file. Change a colour there — editing
+  `src/global.css` or the web's `globals.css` will not propagate. The type
+  ramp in `tailwind.config.js` still mirrors the web's `src/theme.ts` by
+  hand.
 - **Components** in `src/components/ui` are the rn-primitives analogues of the
   web app's Radix wrappers (`Dialog`, `Tabs`). MUI has no counterpart here and
   is not planned.

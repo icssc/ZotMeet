@@ -113,7 +113,7 @@ module.exports = {
 				subtitle2: ["14px", { lineHeight: "17px", letterSpacing: "0.1px" }],
 				body1: ["16px", { lineHeight: "19px", letterSpacing: "0.15px" }],
 				body2: ["14px", { lineHeight: "17px", letterSpacing: "0.17px" }],
-				caption: ["12px", { lineHeight: "12px", letterSpacing: "0.15px" }],
+				caption: ["12px", { lineHeight: "12px", letterSpacing: "0.4px" }],
 				overline: ["12px", { lineHeight: "12px", letterSpacing: "1px" }],
 				helper: ["12px", { lineHeight: "20px", letterSpacing: "0.4px" }],
 				/*

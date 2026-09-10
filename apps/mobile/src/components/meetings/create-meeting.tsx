@@ -87,7 +87,7 @@ export function CreateMeetingForm() {
 				</View>
 				{endsBeforeItStarts ? (
 					<FormHelperText className="text-destructive">
-						End time is before the start time.
+						End time must be after the start time.
 					</FormHelperText>
 				) : null}
 

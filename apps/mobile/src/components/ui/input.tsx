@@ -166,6 +166,9 @@ export function FieldButton({
 		<Pressable
 			accessibilityLabel={accessibilityLabel ?? placeholder}
 			accessibilityRole="button"
+			// The label is the field's name, so without this a screen reader
+			// announces "Start Time, button" whether or not a time is set.
+			accessibilityValue={value ? { text: value } : undefined}
 			accessibilityState={{ disabled }}
 			className={className}
 			disabled={disabled}
