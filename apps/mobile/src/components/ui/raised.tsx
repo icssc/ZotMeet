@@ -41,6 +41,7 @@ export function Raised({
 	disabled,
 	onPressIn,
 	onPressOut,
+	style,
 	...props
 }: RaisedProps) {
 	const [pressed, setPressed] = useState(false);
@@ -68,7 +69,15 @@ export function Raised({
 					setPressed(false);
 					onPressOut?.(event);
 				}}
-				style={{ transform: [{ translateY: sunk ? depth : 0 }] }}
+				// The caller's style composes with the sink rather than replacing it:
+				// `props` is spread last, so a plain `style` prop here would silently
+				// drop the transform and the button would stop animating on press.
+				// `Pressable` also accepts `style` as a function of its press state,
+				// so that form is resolved before it is merged.
+				style={(state) => [
+					{ transform: [{ translateY: sunk ? depth : 0 }] },
+					typeof style === "function" ? style(state) : style,
+				]}
 				{...props}
 			>
 				{children}
