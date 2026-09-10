@@ -92,6 +92,10 @@ export function Typography({
 }: TypographyProps) {
 	return (
 		<Text
+			// `inherit` means "take the surrounding text's value", so the base
+			// `Text` must not stamp its own default over it.
+			inheritFont={variant === "inherit"}
+			inheritColor={color === "inherit"}
 			className={cn(
 				typographyVariants({ variant, align }),
 				color && colorClassNames[color],
