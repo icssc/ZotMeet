@@ -169,6 +169,19 @@ export function Calendar({
 	 */
 	const touchDown = useRef<{ x: number; y: number } | null>(null);
 
+	/**
+	 * Mirrors `anchor` for the gesture callbacks. `onStart` and `onUpdate` can
+	 * both fire before React re-renders, so reading the state here would still
+	 * see `null` and drop the first day of every sweep.
+	 */
+	const anchorRef = useRef<Date | null>(null);
+
+	/**
+	 * The day the last tick fired for, so the haptic can sit outside the
+	 * `setCursor` updater — updaters must be pure and React may re-run them.
+	 */
+	const lastTick = useRef<Date | null>(null);
+
 	const begin = useCallback((x: number, y: number) => {
 		touchDown.current = { x, y };
 	}, []);
@@ -179,26 +192,35 @@ export function Calendar({
 		if (!point) return;
 		const day = dayAt(point.x, point.y);
 		if (!isSelectable(day)) return;
+		anchorRef.current = day;
+		lastTick.current = day;
 		setAnchor(day);
 		setCursor(day);
 	}, [dayAt, isSelectable]);
 
 	const extend = useCallback(
 		(x: number, y: number) => {
+			// No anchor means `start` rejected the touch-down day; `commit` will
+			// discard this sweep, so it must not buzz along the way either.
+			if (!anchorRef.current) return;
 			const day = dayAt(x, y);
 			if (!isSelectable(day)) return;
-			setCursor((current) => {
-				if (current && isSameDay(current, day)) return current;
-				// One tick per day crossed, the way a native picker feels.
-				Haptics.selectionAsync().catch(() => {});
-				return day;
-			});
+			// `onUpdate` fires on every finger movement, so bail unless the day
+			// under it actually changed — otherwise the sweep re-renders (and
+			// buzzes) many times a second on a single day.
+			if (lastTick.current && isSameDay(lastTick.current, day)) return;
+			lastTick.current = day;
+			// One tick per day crossed, the way a native picker feels.
+			Haptics.selectionAsync().catch(() => {});
+			setCursor(day);
 		},
 		[dayAt, isSelectable],
 	);
 
 	const commit = useCallback(() => {
 		touchDown.current = null;
+		anchorRef.current = null;
+		lastTick.current = null;
 		// No anchor means the pan never activated — the touch was a tap, which
 		// the day's own Pressable handles, or a scroll that we correctly let go.
 		if (!anchor || !cursor) {
