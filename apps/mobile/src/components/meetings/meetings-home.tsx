@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import { Bell } from "lucide-react-native";
 import { Image, View } from "react-native";
-import { CardDescription, CardTitle } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/icon-button";
 import { Screen } from "@/components/ui/screen";
 import { Plus } from "@/lib/icons";
