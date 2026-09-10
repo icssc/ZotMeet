@@ -8,6 +8,7 @@
 		"android": "expo start --android",
 		"ios": "expo start --ios",
 		"web": "expo start --web",
+		"preview": "eas update --branch preview --environment preview --message \"$(git log -1 --pretty=%s)\"",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -29,6 +30,7 @@
 		"expo-splash-screen": "~57.0.8",
 		"expo-status-bar": "~57.0.1",
 		"expo-system-ui": "~57.0.3",
+		"expo-updates": "~57.0.21",
 		"lucide-react-native": "^1.42.0",
 		"nativewind": "^4.2.6",
 		"react": "19.2.3",
@@ -48,7 +50,7 @@
 	},
 	"devDependencies": {
 		"@types/react": "19.2.7",
-		"qrcode": "^1.5.4",
+		"eas-cli": "^23.2.0",
 		"tailwindcss": "^3.4.1",
 		"tailwindcss-animate": "^1.0.7",
 		"typescript": "~6.0.3"
