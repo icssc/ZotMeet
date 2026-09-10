@@ -1,4 +1,6 @@
+import { cssVarBlocks } from "@zotmeet/tokens";
 import type { Config } from "tailwindcss";
+import plugin from "tailwindcss/plugin";
 
 const config: Config = {
 	darkMode: ["class"],
@@ -90,6 +92,11 @@ const config: Config = {
 			},
 		},
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		// Writes the colour tokens out as CSS variables, so `globals.css` no
+		// longer hand-maintains a copy of them. Source: `packages/tokens`.
+		plugin(({ addBase }) => addBase(cssVarBlocks(".dark"))),
+	],
 };
 export default config;
