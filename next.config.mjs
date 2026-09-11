@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
 	serverExternalPackages: ["@node-rs/argon2"],
+	// Workspace packages ship TypeScript source; Next treats symlinked packages
+	// as externals unless told to compile them.
+	transpilePackages: ["@zotmeet/shared"],
 	async rewrites() {
 		return [
 			{
@@ -32,6 +35,21 @@ const nextConfig = {
 						value:
 							"camera=(), microphone=(), geolocation=(), interest-cohort=()",
 					},
+				],
+			},
+			// The Expo app's API. Native clients are not subject to CORS; these
+			// headers exist for the Expo *web* preview, which runs on another
+			// origin. `*` is safe here: reads are public, writes need a bearer
+			// token, and cross-origin fetches never carry the session cookie.
+			{
+				source: "/api/:path*",
+				headers: [
+					{ key: "Access-Control-Allow-Origin", value: "*" },
+					{
+						key: "Access-Control-Allow-Headers",
+						value: "Authorization, Content-Type",
+					},
+					{ key: "Access-Control-Allow-Methods", value: "GET, POST, OPTIONS" },
 				],
 			},
 			// Service workers must be served fresh so updates ship immediately.

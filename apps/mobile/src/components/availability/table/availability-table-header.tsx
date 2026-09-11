@@ -1,3 +1,4 @@
+import { formatDateToUSNumeric, type MeetingType } from "@zotmeet/shared";
 import { View } from "react-native";
 import { AvailabilityNavButton } from "@/components/availability/table/availability-nav-button";
 import { DAY_HEADER_HEIGHT } from "@/components/availability/table/availability-table-metrics";
@@ -10,15 +11,14 @@ export interface AvailabilityDatePageNav {
 	isLastPage: boolean;
 }
 
-export type AvailabilityDateHeader = {
-	/** Uppercase weekday abbreviation as the wireframe shows it: "THUR". */
-	weekday: string;
-	/** Short numeric date: "1/1". */
-	date: string;
-};
-
 interface AvailabilityTableHeaderProps {
-	dateHeader: AvailabilityDateHeader;
+	/** Local midnight of the column's day — see `localMidnightFromIsoDate`. */
+	dateHeader: Date;
+	/**
+	 * A "days" meeting stores anchor dates, so only the weekday is shown for
+	 * it — the same rule as the web's table header.
+	 */
+	meetingType: MeetingType;
 	/** Position of this date within the page, for placing the nav arrows. */
 	isFirstColumn: boolean;
 	isLastColumn: boolean;
@@ -31,9 +31,14 @@ interface AvailabilityTableHeaderProps {
  * renders the whole `<thead>` row at once; here each day column carries its
  * own header so the column and its cells stay one flex child. The nav arrows
  * sit inside the first and last headers, where the wireframe puts them.
+ *
+ * Labels are formatted as the web does: `toLocaleDateString` weekday, then
+ * `formatDateToUSNumeric` — uppercased here because the wireframe sets the
+ * weekday in caps.
  */
 export function AvailabilityTableHeader({
 	dateHeader,
+	meetingType,
 	isFirstColumn,
 	isLastColumn,
 	datePageNav,
@@ -52,10 +57,12 @@ export function AvailabilityTableHeader({
 				style={{ height: DAY_HEADER_HEIGHT }}
 			>
 				<Text className="font-figtree-medium text-[11px] leading-4 tracking-[0.5px]">
-					{dateHeader.weekday}
+					{dateHeader
+						.toLocaleDateString("en-US", { weekday: "short" })
+						.toUpperCase()}
 				</Text>
 				<Text className="font-figtree-medium text-[16px] leading-6 tracking-[0.15px]">
-					{dateHeader.date}
+					{meetingType === "dates" ? formatDateToUSNumeric(dateHeader) : ""}
 				</Text>
 			</View>
 			{isLastColumn ? (

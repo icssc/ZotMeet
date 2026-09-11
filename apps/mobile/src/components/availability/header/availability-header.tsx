@@ -1,4 +1,12 @@
+import {
+	convertTimeFromUTC,
+	formatDateToUSNumeric,
+	formatTimeWithHoursAndMins,
+	type MeetingResponse,
+	sortMeetingIsoDatesAsc,
+} from "@zotmeet/shared";
 import { useRouter } from "expo-router";
+import { useMemo } from "react";
 import { View } from "react-native";
 import { Button, buttonTextVariants } from "@/components/ui/button";
 import { IconButton } from "@/components/ui/icon-button";
@@ -25,12 +33,7 @@ function MeetingDetail({
 }
 
 export interface AvailabilityHeaderProps {
-	title: string;
-	/** Already formatted, e.g. "2/16-2/20". */
-	dateRange: string;
-	/** Already formatted, e.g. "9 AM - 5 PM". */
-	timeRange: string;
-	location: string;
+	meetingData: MeetingResponse;
 }
 
 /**
@@ -39,15 +42,41 @@ export interface AvailabilityHeaderProps {
  * (`sm:hidden`) form: the "Meetings" back button with the copy and overflow
  * buttons opposite, then the meeting's title and its date, time and location.
  *
- * The web header formats its own dates from `meetingData`; that moves here
- * once there is a backend to format from, so for now it takes strings.
+ * The date and time strings are derived exactly as the web header derives
+ * them: first and last of the sorted dates, and the stored UTC times brought
+ * back into the meeting's own timezone. A "days of the week" meeting stores
+ * anchor dates, so its date range is not meaningful and is left out, as on
+ * the web table header.
  */
-export function AvailabilityHeader({
-	title,
-	dateRange,
-	timeRange,
-	location,
-}: AvailabilityHeaderProps) {
+export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
+	const { dateRange, timeRange } = useMemo(() => {
+		const sortedDates = sortMeetingIsoDatesAsc(meetingData.dates);
+		const first = sortedDates.at(0) ?? meetingData.dates.at(0) ?? "";
+		const last = sortedDates.at(-1) ?? first;
+
+		const start = formatDateToUSNumeric(new Date(first));
+		const end = formatDateToUSNumeric(new Date(last));
+
+		const displayTimezone =
+			meetingData.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+		const startTime = formatTimeWithHoursAndMins(
+			convertTimeFromUTC(meetingData.fromTime, displayTimezone, first),
+		);
+		const endTime = formatTimeWithHoursAndMins(
+			convertTimeFromUTC(meetingData.toTime, displayTimezone, first),
+		);
+
+		return {
+			dateRange:
+				meetingData.meetingType === "dates"
+					? start === end
+						? start
+						: `${start}-${end}`
+					: null,
+			timeRange: `${startTime} - ${endTime}`,
+		};
+	}, [meetingData]);
+
 	const router = useRouter();
 
 	return (
@@ -82,25 +111,32 @@ export function AvailabilityHeader({
 			</View>
 
 			<View className="w-full gap-2 px-3 pb-3">
-				<Typography variant="h6">{title}</Typography>
+				<Typography variant="h6">{meetingData.title}</Typography>
 				<View className="w-full flex-row items-center justify-between">
-					<MeetingDetail
-						icon={
-							<Icon.CalendarRange className="text-muted-foreground" size={14} />
-						}
-					>
-						{dateRange}
-					</MeetingDetail>
+					{dateRange ? (
+						<MeetingDetail
+							icon={
+								<Icon.CalendarRange
+									className="text-muted-foreground"
+									size={14}
+								/>
+							}
+						>
+							{dateRange}
+						</MeetingDetail>
+					) : null}
 					<MeetingDetail
 						icon={<Icon.Clock className="text-muted-foreground" size={14} />}
 					>
 						{timeRange}
 					</MeetingDetail>
-					<MeetingDetail
-						icon={<Icon.MapPin className="text-muted-foreground" size={14} />}
-					>
-						{location}
-					</MeetingDetail>
+					{meetingData.location ? (
+						<MeetingDetail
+							icon={<Icon.MapPin className="text-muted-foreground" size={14} />}
+						>
+							{meetingData.location}
+						</MeetingDetail>
+					) : null}
 				</View>
 			</View>
 		</View>

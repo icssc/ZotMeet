@@ -1,3 +1,8 @@
+import {
+	ANCHOR_DATES,
+	convertTimeToUTC,
+	sortMeetingIsoDatesAsc,
+} from "@zotmeet/shared";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
@@ -16,7 +21,13 @@ import {
 } from "@/components/ui/tabs";
 import { Text } from "@/components/ui/text";
 import { TimeField } from "@/components/ui/time-field";
-import { startOfMonth, WEEKDAY_INITIALS } from "@/lib/date";
+import { createMeeting } from "@/lib/api/meetings";
+import {
+	dateKeyToLocalMidnightIso,
+	dateToHourMinuteString,
+	startOfMonth,
+	WEEKDAY_INITIALS,
+} from "@/lib/date";
 
 type DatePickerMode = "specific" | "weekly";
 type LocationChoice = "recommend" | "known";
@@ -31,9 +42,22 @@ export function CreateMeetingForm() {
 	const [selectedDates, setSelectedDates] = useState<string[]>([]);
 	const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>([]);
 	const [location, setLocation] = useState<LocationChoice>("recommend");
+	const [isCreating, setIsCreating] = useState(false);
+	const [submitError, setSubmitError] = useState<string | null>(null);
 
 	const endsBeforeItStarts =
 		!!startTime && !!endTime && endTime.getTime() <= startTime.getTime();
+
+	// Same gate as the web form's `hasValidInputs` in
+	// `src/components/creation/creation.tsx`.
+	const hasValidInputs =
+		name.trim().length > 0 &&
+		!!startTime &&
+		!!endTime &&
+		!endsBeforeItStarts &&
+		(mode === "specific"
+			? selectedDates.length > 0
+			: selectedWeekdays.length > 0);
 
 	const applyDateRange = (keys: string[], additive: boolean) =>
 		setSelectedDates((current) => {
@@ -53,14 +77,58 @@ export function CreateMeetingForm() {
 				: [...current, index],
 		);
 
-	// Front end only for now: nothing is saved, and the meeting screen shows its
-	// placeholder data. `replace` swaps this modal for the meeting screen so
-	// backing out of the meeting returns to the Meetings list, not the form.
-	const submit = () =>
-		router.replace({
-			pathname: "/availability/[slug]",
-			params: { slug: "new" },
-		});
+	// Mirrors `handleCreation` in the web app's `creation.tsx`: times are
+	// entered as local wall-clock and stored as UTC, anchored on the first
+	// meeting date; a "days of the week" meeting stores `ANCHOR_DATES` instead
+	// of real dates. The location choice is UI only for now — the web form
+	// does not send a location either.
+	const submit = async () => {
+		if (!hasValidInputs || !startTime || !endTime) return;
+
+		setIsCreating(true);
+		setSubmitError(null);
+
+		const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+		const dates = sortMeetingIsoDatesAsc(
+			mode === "specific"
+				? selectedDates.map(dateKeyToLocalMidnightIso)
+				: selectedWeekdays.map((weekday) =>
+						ANCHOR_DATES[weekday].toISOString(),
+					),
+		);
+		const referenceDate = dates[0];
+
+		try {
+			const { id } = await createMeeting({
+				title: name.trim(),
+				fromTime: convertTimeToUTC(
+					dateToHourMinuteString(startTime),
+					userTimezone,
+					referenceDate,
+				),
+				toTime: convertTimeToUTC(
+					dateToHourMinuteString(endTime),
+					userTimezone,
+					referenceDate,
+				),
+				timezone: userTimezone,
+				dates,
+				meetingType: mode === "specific" ? "dates" : "days",
+				description: "",
+			});
+			// `replace` swaps this modal for the meeting screen, so backing out of
+			// the meeting returns to the Meetings list rather than the form.
+			router.replace({
+				pathname: "/availability/[slug]",
+				params: { slug: id },
+			});
+		} catch (error) {
+			setSubmitError(
+				error instanceof Error ? error.message : "Failed to create meeting.",
+			);
+			setIsCreating(false);
+		}
+	};
 
 	return (
 		<View className="flex-1 gap-[60px] bg-paper px-6 pt-6 pb-[100px]">
@@ -159,12 +227,20 @@ export function CreateMeetingForm() {
 				</View>
 			</View>
 
-			<Button
-				label="Create Meeting"
-				onPress={submit}
-				size="large"
-				variant="contained"
-			/>
+			<View className="w-full gap-3">
+				{submitError ? (
+					<FormHelperText className="text-destructive">
+						{submitError}
+					</FormHelperText>
+				) : null}
+				<Button
+					disabled={!hasValidInputs || isCreating}
+					label={isCreating ? "Creating…" : "Create Meeting"}
+					onPress={submit}
+					size="large"
+					variant="contained"
+				/>
+			</View>
 		</View>
 	);
 }

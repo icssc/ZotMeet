@@ -1,3 +1,5 @@
+import type { HourMinuteString } from "@zotmeet/shared";
+
 /**
  * Minimal calendar maths for the native date picker. The web app uses
  * `date-fns`, which is not a dependency of `@zotmeet/mobile`; these few
@@ -93,4 +95,24 @@ export function datesBetween(a: Date, b: Date): Date[] {
 		cursor.setDate(cursor.getDate() + 1);
 	}
 	return out;
+}
+
+/**
+ * "HH:MM:00" from a picker value — the shape the web app's time fields hand
+ * to `convertTimeToUTC` (see `src/components/creation/fields/meeting-time-field.tsx`).
+ */
+export function dateToHourMinuteString(date: Date): HourMinuteString {
+	const hh = date.getHours().toString().padStart(2, "0");
+	const mm = date.getMinutes().toString().padStart(2, "0");
+	return `${hh}:${mm}:00`;
+}
+
+/**
+ * A selected-day key back to the ISO instant the web app stores: local
+ * midnight of that day (the web calendar builds `new Date(year, month, day)`
+ * and calls `toISOString()` on it).
+ */
+export function dateKeyToLocalMidnightIso(key: string): string {
+	const [year, month, day] = key.split("-").map(Number);
+	return new Date(year, month - 1, day).toISOString();
 }

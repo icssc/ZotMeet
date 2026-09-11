@@ -7,16 +7,21 @@ import {
 } from "@/components/availability/table/availability-table-metrics";
 import { Text } from "@/components/ui/text";
 
-/** "9 AM", "12 PM", "1 PM" — the format the wireframe's time column uses. */
+/**
+ * "9 AM", "12 PM", "1 PM" — the format the wireframe's time column uses.
+ * Hours past 23 belong to a range that wraps past midnight and label the
+ * next day's clock.
+ */
 function formatHour(hour: number): string {
-	const twelveHour = hour % 12 === 0 ? 12 : hour % 12;
-	return `${twelveHour} ${hour < 12 ? "AM" : "PM"}`;
+	const clockHour = hour % 24;
+	const twelveHour = clockHour % 12 === 0 ? 12 : clockHour % 12;
+	return `${twelveHour} ${clockHour < 12 ? "AM" : "PM"}`;
 }
 
 interface AvailabilityTimeTicksProps {
 	/** First labelled hour, 0–23. */
 	startHour: number;
-	/** Last labelled hour, 0–23, inclusive. */
+	/** Last labelled hour, inclusive; may exceed 23 when the range wraps midnight. */
 	endHour: number;
 }
 
