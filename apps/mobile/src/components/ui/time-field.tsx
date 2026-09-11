@@ -76,7 +76,9 @@ export function TimeField({
 			invalid={invalid}
 			onPress={openPicker}
 			placeholder={placeholder}
-			startAdornment={<Icon.Clock className="text-action-active" size={24} />}
+			startAdornment={
+				<Icon name="access-time" className="text-action-active" size={24} />
+			}
 			value={value ? formatTime(value) : undefined}
 		/>
 	);

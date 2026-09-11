@@ -17,7 +17,7 @@ export function MeetingsHome() {
 					//  onPress={}
 					accessibilityLabel="Notifications"
 				>
-					<Icon.Bell />
+					<Icon name="notifications-none" />
 				</IconButton>
 
 				<IconButton
@@ -26,7 +26,7 @@ export function MeetingsHome() {
 					onPress={() => router.push("/create-meeting")}
 					accessibilityLabel="Create meeting"
 				>
-					<Icon.Plus size={20} />
+					<Icon name="add" size={20} />
 				</IconButton>
 			</View>
 

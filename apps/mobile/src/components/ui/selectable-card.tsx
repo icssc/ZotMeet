@@ -46,7 +46,7 @@ export function SelectableCard({
 				) : null}
 			</View>
 			{selected ? (
-				<Icon.Check className="text-primary" size={24} strokeWidth={2} />
+				<Icon name="check" className="text-primary" size={24} />
 			) : null}
 		</Raised>
 	);

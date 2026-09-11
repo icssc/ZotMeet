@@ -29,7 +29,7 @@ export default function TabsLayout() {
 				options={{
 					title: "Meetings",
 					tabBarIcon: ({ color, size }) => (
-						<Icon.CalendarDays color={color} size={size} />
+						<Icon name="calendar-month" color={color} size={size} />
 					),
 				}}
 			/>
@@ -38,7 +38,7 @@ export default function TabsLayout() {
 				options={{
 					title: "Groups",
 					tabBarIcon: ({ color, size }) => (
-						<Icon.Users color={color} size={size} />
+						<Icon name="groups" color={color} size={size} />
 					),
 				}}
 			/>
@@ -47,7 +47,7 @@ export default function TabsLayout() {
 				options={{
 					title: "Availability",
 					tabBarIcon: ({ color, size }) => (
-						<Icon.CalendarRange color={color} size={size} />
+						<Icon name="date-range" color={color} size={size} />
 					),
 				}}
 			/>
@@ -56,7 +56,7 @@ export default function TabsLayout() {
 				options={{
 					title: "Profile",
 					tabBarIcon: ({ color, size }) => (
-						<Icon.User color={color} size={size} />
+						<Icon name="person" color={color} size={size} />
 					),
 				}}
 			/>

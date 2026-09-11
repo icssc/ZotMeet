@@ -80,7 +80,7 @@ Every colour is defined once in `packages/tokens/index.js`. Both Tailwind config
 
 ### Icons — `lib/icons.tsx`
 
-All icons are **lucide** via `<Icon.Name />` (e.g. `<Icon.ChevronLeft size={20} className="text-action-active" />`). Material icons from Figma are substituted with the closest lucide glyph — don't export SVGs from Figma. The wrapper makes `text-*` classes colour the stroke and defaults to `text-foreground` so icons survive dark mode.
+All icons are **Material Icons** (`@react-native-vector-icons/material-icons`) via `<Icon name="…" />` (e.g. `<Icon name="chevron-left" size={20} className="text-action-active" />`). Names are the web app's `@mui/icons-material` imports kebab-cased — `MoreVert` → `more-vert`, `NotificationsNone` → `notifications-none` — so a Figma spec or a web component ports 1:1 and `name` autocompletes. Don't export SVGs from Figma. The glyph is a `<Text>`, so `text-*` classes colour it; the wrapper defaults to `text-foreground` so icons survive dark mode. The font is loaded next to Figtree in the root layout, so nothing is registered per icon and no native config or prebuild is needed (works in Expo Go).
 
 ### Dark mode
 
@@ -194,7 +194,7 @@ The workflow needs two things in the GitHub repo settings; it fails early with a
 
 1. Find the web screen; note its route and component files.
 2. Create the same route under `app/` and the same files under `components/`.
-3. Build with `ui/` primitives, tokens, and `Icon.*`. No literals, no new icon files.
+3. Build with `ui/` primitives, tokens, and `<Icon name="…" />`. No literals, no new icon files.
 4. Need data? Add/extend an `/api` route that wraps existing server code; types in `packages/shared`; client fn in `lib/api/`.
 5. Need a helper? Pure → `packages/shared` (+ web re-export). Native-picker maths → `lib/date.ts`.
 6. Doc comment at the top: web counterpart + any deviation.

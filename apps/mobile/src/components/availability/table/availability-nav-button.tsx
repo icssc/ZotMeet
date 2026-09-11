@@ -31,9 +31,9 @@ export function AvailabilityNavButton({
 			size="small"
 		>
 			{direction === "left" ? (
-				<Icon.ChevronLeft size={20} />
+				<Icon name="chevron-left" size={20} />
 			) : (
-				<Icon.ChevronRight size={20} />
+				<Icon name="chevron-right" size={20} />
 			)}
 		</IconButton>
 	);

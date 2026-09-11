@@ -20,7 +20,7 @@ function AvailabilityAction({
 	label: string;
 }) {
 	// Hand the icon its size the way `IconButton` does, so callers write
-	// `<Icon.Users />` and the action decides how big it renders.
+	// `<Icon name="groups" />` and the action decides how big it renders.
 	const sizedIcon = isValidElement<{ size?: number }>(icon)
 		? cloneElement(icon, { size: icon.props.size ?? 18 })
 		: icon;
@@ -73,18 +73,18 @@ export function AvailabilityActions({
 	return (
 		<>
 			<AvailabilityAction
-				icon={<Icon.Users />}
+				icon={<Icon name="group-add" />}
 				label={`${attendees.responded}/${attendees.total} Attendees`}
 				onPress={onShowResponses}
 			/>
 			<View className="h-[30px] w-px bg-border" />
 			<AvailabilityAction
-				icon={<Icon.Pencil />}
+				icon={<Icon name="create" />}
 				label="Add Availability"
 				onPress={onAddAvailability}
 			/>
 			<AvailabilityAction
-				icon={<Icon.CalendarDays />}
+				icon={<Icon name="event" />}
 				label="Schedule Meeting"
 				onPress={onScheduleMeeting}
 			/>

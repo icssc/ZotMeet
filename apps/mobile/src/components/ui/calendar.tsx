@@ -276,7 +276,11 @@ export function Calendar({
 						{month.getFullYear()}
 					</Text>
 					<IconButton accessibilityLabel="Select month" size="small">
-						<Icon.ChevronDown className="text-action-active" size={24} />
+						<Icon
+							name="keyboard-arrow-down"
+							className="text-action-active"
+							size={24}
+						/>
 					</IconButton>
 				</View>
 				<View className="flex-row gap-6">
@@ -285,14 +289,22 @@ export function Calendar({
 						onPress={() => onMonthChange(addMonths(month, -1))}
 						size="small"
 					>
-						<Icon.ChevronLeft className="text-action-active" size={24} />
+						<Icon
+							name="chevron-left"
+							className="text-action-active"
+							size={24}
+						/>
 					</IconButton>
 					<IconButton
 						accessibilityLabel="Next month"
 						onPress={() => onMonthChange(addMonths(month, 1))}
 						size="small"
 					>
-						<Icon.ChevronRight className="text-action-active" size={24} />
+						<Icon
+							name="chevron-right"
+							className="text-action-active"
+							size={24}
+						/>
 					</IconButton>
 				</View>
 			</View>

@@ -49,7 +49,7 @@ function DialogContent({
 				>
 					{children}
 					<DialogPrimitive.Close className="absolute top-4 right-4 rounded-sm p-1 active:opacity-70">
-						<Icon.X className="text-muted-foreground" size={18} />
+						<Icon name="close" className="text-muted-foreground" size={18} />
 					</DialogPrimitive.Close>
 				</DialogPrimitive.Content>
 			</DialogOverlay>

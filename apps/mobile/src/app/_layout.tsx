@@ -15,9 +15,10 @@ import { useColorScheme } from "nativewind";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { materialIconsFont } from "@/lib/icons";
 import "../global.css";
 
-// Holds splash screen until Figtree is ready
+// Holds splash screen until Figtree and the icon font are ready
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -30,6 +31,7 @@ export default function RootLayout() {
 		Figtree_500Medium,
 		Figtree_600SemiBold,
 		Figtree_700Bold,
+		...materialIconsFont,
 	});
 
 	useEffect(() => {

@@ -89,7 +89,7 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
 					onPress={() => router.back()}
 					size="medium"
 				>
-					<Icon.ChevronLeft size={20} />
+					<Icon name="chevron-left" size={20} />
 					<Text
 						className={buttonTextVariants({
 							variant: "text",
@@ -102,10 +102,10 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
 				</Button>
 				<View className="flex-row items-center gap-1">
 					<IconButton accessibilityLabel="Copy meeting name" color="inherit">
-						<Icon.Copy />
+						<Icon name="content-copy" />
 					</IconButton>
 					<IconButton accessibilityLabel="More options" color="inherit">
-						<Icon.EllipsisVertical />
+						<Icon name="more-vert" />
 					</IconButton>
 				</View>
 			</View>
@@ -116,7 +116,8 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
 					{dateRange ? (
 						<MeetingDetail
 							icon={
-								<Icon.CalendarRange
+								<Icon
+									name="date-range"
 									className="text-muted-foreground"
 									size={14}
 								/>
@@ -126,13 +127,25 @@ export function AvailabilityHeader({ meetingData }: AvailabilityHeaderProps) {
 						</MeetingDetail>
 					) : null}
 					<MeetingDetail
-						icon={<Icon.Clock className="text-muted-foreground" size={14} />}
+						icon={
+							<Icon
+								name="access-time"
+								className="text-muted-foreground"
+								size={14}
+							/>
+						}
 					>
 						{timeRange}
 					</MeetingDetail>
 					{meetingData.location ? (
 						<MeetingDetail
-							icon={<Icon.MapPin className="text-muted-foreground" size={14} />}
+							icon={
+								<Icon
+									name="fmd-good"
+									className="text-muted-foreground"
+									size={14}
+								/>
+							}
 						>
 							{meetingData.location}
 						</MeetingDetail>
