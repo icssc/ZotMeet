@@ -72,7 +72,7 @@ Simple, clean, and efficient meeting scheduling app.
 
 ### Mobile app (Expo)
 
-`apps/mobile` is an exploratory React Native client (Expo Router). It is **prototype UI only** — no API, auth, or shared data layer yet. It does not replace the PWA.
+`apps/mobile` is the React Native client (Expo Router). It mirrors the web app's structure, shares its colour tokens (`packages/tokens`) and domain helpers (`packages/shared`), and talks to the same database through the web app's `/api` routes. It does not replace the PWA.
 
 The local equivalent of `pnpm dev` is:
 
