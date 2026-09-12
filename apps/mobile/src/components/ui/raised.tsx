@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, type PressableProps, View } from "react-native";
+import { Pressable, type PressableProps, StyleSheet, View } from "react-native";
 import { cn } from "@/lib/utils";
 
 /**
@@ -73,11 +73,25 @@ export function Raised({
 				// `props` is spread last, so a plain `style` prop here would silently
 				// drop the transform and the button would stop animating on press.
 				// `Pressable` also accepts `style` as a function of its press state,
-				// so that form is resolved before it is merged.
-				style={(state) => [
-					{ transform: [{ translateY: sunk ? depth : 0 }] },
-					typeof style === "function" ? style(state) : style,
-				]}
+				// so that form is resolved before it is merged. A style *array*
+				// would not be enough: flattening overwrites whole properties, so a
+				// caller's `transform` would replace the sink rather than add to it.
+				// The sink is therefore merged entry by entry, and goes first so the
+				// caller's transforms (a scale, say) do not scale the translation.
+				style={(state) => {
+					const { transform, ...rest } =
+						StyleSheet.flatten(
+							typeof style === "function" ? style(state) : style,
+						) ?? {};
+
+					return {
+						...rest,
+						transform: [
+							{ translateY: sunk ? depth : 0 },
+							...(Array.isArray(transform) ? transform : []),
+						],
+					};
+				}}
 				{...props}
 			>
 				{children}
