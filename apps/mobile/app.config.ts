@@ -65,6 +65,10 @@ const config: ExpoConfig = {
 	plugins: [
 		"expo-router",
 		"@react-native-community/datetimepicker",
+		// Sign-in: the in-app browser and the keychain the session token lives
+		// in. Both work in Expo Go without these; they matter for `prebuild`.
+		"expo-web-browser",
+		"expo-secure-store",
 		[
 			"expo-splash-screen",
 			{

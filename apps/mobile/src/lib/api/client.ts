@@ -1,12 +1,15 @@
 import type { ApiErrorResponse } from "@zotmeet/shared";
+import { getSessionToken } from "@/lib/auth/session";
 
 /**
  * Thin `fetch` wrapper for the web app's `/api/*` routes. The mobile app has
  * no session cookie; it authenticates with a bearer token instead (see the
- * web app's `src/lib/auth/bearer.ts`). Both values are inlined at bundle time
- * from `EXPO_PUBLIC_*` env vars — see `.env.example`.
+ * web app's `src/lib/auth/bearer.ts`): the session token from a native
+ * sign-in when there is one (`lib/auth/session.ts`), else the dev token
+ * below. Both env values are inlined at bundle time from `EXPO_PUBLIC_*` env
+ * vars — see `.env.example`.
  */
-const API_URL = process.env.EXPO_PUBLIC_API_URL;
+export const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 /**
  * `MOBILE_DEV_API_TOKEN` is a *shared* credential standing in for one member,
@@ -19,9 +22,8 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
  * Reading it behind `__DEV__` keeps it out of those bundles rather than
  * trusting the process not to build one: `__DEV__` is a literal `false` in a
  * release bundle, so Metro drops this branch and the token string with it.
- * Until a real native login issues per-user session tokens (which
- * `getMemberIdFromBearer` already accepts), a distributed build is
- * unauthenticated by design.
+ * A distributed build therefore has no credential until the user signs in,
+ * by design.
  */
 const API_TOKEN = __DEV__ ? process.env.EXPO_PUBLIC_API_TOKEN : undefined;
 
@@ -51,7 +53,8 @@ export async function apiFetch<T>(
 	const headers = new Headers(init.headers);
 	headers.set("Accept", "application/json");
 	if (init.body !== undefined) headers.set("Content-Type", "application/json");
-	if (API_TOKEN) headers.set("Authorization", `Bearer ${API_TOKEN}`);
+	const token = (await getSessionToken()) ?? API_TOKEN;
+	if (token) headers.set("Authorization", `Bearer ${token}`);
 
 	const response = await fetch(`${API_URL}${path}`, { ...init, headers });
 
@@ -67,5 +70,7 @@ export async function apiFetch<T>(
 		throw new ApiError(response.status, body);
 	}
 
+	// `204 No Content` (logout) has nothing to parse.
+	if (response.status === 204) return undefined as T;
 	return (await response.json()) as T;
 }

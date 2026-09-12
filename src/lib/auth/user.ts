@@ -1,6 +1,11 @@
+import type { UserProfile } from "@zotmeet/shared";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { members, oauthAccounts, users } from "@/db/schema";
+
+// The shape itself is shared with the Expo app; the projection that produces
+// it from Drizzle stays here.
+export type { UserProfile } from "@zotmeet/shared";
 
 // Projection of user table for db queries to limit what is returned
 export async function generateUsername(displayName: string): Promise<string> {
@@ -41,17 +46,6 @@ export const userProfileProjection = {
 	profilePicture: members.profilePicture,
 };
 
-export type UserProfile = {
-	id: string;
-	email: string;
-	memberId: string;
-	displayName: string;
-	googleName: string | null;
-	username: string | null;
-	year: string | null;
-	school: string | null;
-	profilePicture: string | null;
-};
 export type NotificationItem = {
 	id: string;
 	createdAt: Date | null;

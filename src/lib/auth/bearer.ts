@@ -1,7 +1,10 @@
 import "server-only";
 
 import { timingSafeEqual } from "node:crypto";
-import { validateSessionToken } from "@/lib/auth/session";
+import {
+	type SessionValidationResult,
+	validateSessionToken,
+} from "@/lib/auth/session";
 
 /**
  * Resolves the member behind an `Authorization: Bearer <token>` header, for
@@ -12,8 +15,9 @@ import { validateSessionToken } from "@/lib/auth/session";
  * Two kinds of token are accepted:
  *
  *  - A real session token — the same value the cookie holds — checked with
- *    `validateSessionToken`. Nothing issues these to a native client yet;
- *    when a mobile login flow does, it lands here without touching the routes.
+ *    `validateSessionToken`. The app gets one from
+ *    `POST /api/auth/login/<provider>` at the end of its OAuth flow (see
+ *    `NativeOAuth…` in `@zotmeet/shared`).
  *  - The dev token from `MOBILE_DEV_API_TOKEN`, which stands in for the member
  *    named by `MOBILE_DEV_HOST_MEMBER_ID`. Local development only — it is
  *    ignored when `NODE_ENV` is `production`, so setting the variables on a
@@ -26,10 +30,7 @@ import { validateSessionToken } from "@/lib/auth/session";
 export async function getMemberIdFromBearer(
 	request: Request,
 ): Promise<string | null> {
-	const header = request.headers.get("Authorization");
-	if (!header?.startsWith("Bearer ")) return null;
-
-	const token = header.slice("Bearer ".length).trim();
+	const token = readBearerToken(request);
 	if (!token) return null;
 
 	// The dev token is a shared credential for a single member, so a production
@@ -46,6 +47,28 @@ export async function getMemberIdFromBearer(
 
 	const { user } = await validateSessionToken(token);
 	return user?.memberId ?? null;
+}
+
+/**
+ * The session behind a bearer token — the `/api/*` counterpart to
+ * `getCurrentSession`. Real session tokens only: the dev token stands in for
+ * a member but has no session row to report or revoke, so `/api/auth/*`
+ * treats it as signed out.
+ */
+export async function getSessionFromBearer(
+	request: Request,
+): Promise<SessionValidationResult> {
+	const token = readBearerToken(request);
+	if (!token) return { session: null, user: null };
+	return validateSessionToken(token);
+}
+
+function readBearerToken(request: Request): string | null {
+	const header = request.headers.get("Authorization");
+	if (!header?.startsWith("Bearer ")) return null;
+
+	const token = header.slice("Bearer ".length).trim();
+	return token || null;
 }
 
 function constantTimeEquals(a: string, b: string): boolean {

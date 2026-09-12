@@ -16,13 +16,18 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { materialIconsFont } from "@/lib/icons";
+import { useAuthStore } from "@/store/useAuthStore";
 import "../global.css";
 
-// Holds splash screen until Figtree and the icon font are ready
+// Holds the splash screen until Figtree and the icon font are ready and the
+// stored session has been checked, so the tab bar never flashes "Sign In" at
+// someone who is signed in.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
 	const { colorScheme } = useColorScheme();
+	const authStatus = useAuthStore((state) => state.status);
+	const hydrateAuth = useAuthStore((state) => state.hydrate);
 
 	const [fontsLoaded, fontError] = useFonts({
 		Figtree_300Light,
@@ -35,12 +40,18 @@ export default function RootLayout() {
 	});
 
 	useEffect(() => {
-		if (fontsLoaded || fontError) {
+		hydrateAuth();
+	}, [hydrateAuth]);
+
+	const ready = (fontsLoaded || fontError) && authStatus !== "loading";
+
+	useEffect(() => {
+		if (ready) {
 			SplashScreen.hideAsync();
 		}
-	}, [fontsLoaded, fontError]);
+	}, [ready]);
 
-	if (!fontsLoaded && !fontError) {
+	if (!ready) {
 		return null;
 	}
 

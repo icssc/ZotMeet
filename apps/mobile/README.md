@@ -20,7 +20,9 @@ Env files (copy from the `.env.example` next to each):
 
 `EXPO_PUBLIC_*` values are inlined into the JS bundle at build time — restart Expo after changing them, and never put the token in `eas.json` or `app.config.ts`.
 
-The token is a **shared** credential that impersonates one member, not a per-user session, so it is fenced to local development at both ends: the client reads it only under `__DEV__`, and the server ignores it under `NODE_ENV=production`. A bundle you distribute (`eas build`, or `eas update` on a channel Expo Go can open) therefore carries no token and calls `/api/*` unauthenticated — real native auth needs a login flow that issues per-user session tokens, which `getMemberIdFromBearer` already accepts.
+The dev token is optional once you sign in (§5): it is only the fallback `apiFetch` uses while signed out. It is a **shared** credential that impersonates one member, so it is fenced to local development at both ends: the client reads it only under `__DEV__`, and the server ignores it under `NODE_ENV=production`. A distributed bundle carries no token and is unauthenticated until the user signs in.
+
+**Signing in locally:** Google sign-in round-trips through the web app on `:3000` and ICSSC (§5). The iOS Simulator and the `w` web preview work out of the box — `EXPO_PUBLIC_API_URL` can be `localhost` or your LAN address, because ICSSC returns to `NEXT_PUBLIC_BASE_URL` (`localhost:3000`), which on the simulator is your Mac. On a **physical device** that return address is the phone itself, so the flow cannot complete unless `NEXT_PUBLIC_BASE_URL` is your LAN address *and* registered with ICSSC. Use the simulator, or the dev token, for device testing until then.
 
 ---
 
@@ -33,9 +35,9 @@ The token is a **shared** credential that impersonates one member, not a per-use
 │   └── src/
 │       ├── app/           expo-router routes — same paths as web (see §3)
 │       ├── components/    same folder names as web src/components (see §3)
-│       ├── lib/           icons, theme, date maths, API client
+│       ├── lib/           icons, theme, date maths, API client, auth (mirrors web src/lib/auth)
 │       ├── hooks/         data hooks (useMeeting)
-│       └── store/         zustand stores, same names as web src/store
+│       └── store/         zustand stores, same names as web src/store (+ useAuthStore)
 ├── packages/tokens/   colours — one source for both apps (see §2)
 └── packages/shared/   domain helpers + API contract — one source for both apps (see §4)
 ```
@@ -106,6 +108,11 @@ Routes use the same paths as web, and component folders use the same names. When
 | `components/mobile/mobile-island.tsx` | same | ✅ |
 | `store/useAvailabilityStore.ts` | same (pagination slice only) | ✅ |
 | `app/summary` (meetings list) | `app/(tabs)/index.tsx` → `components/meetings/meetings-home.tsx` | empty state only |
+| `app/auth/login/page.tsx` | `components/auth/sign-in.tsx`, shown by the Profile tab while signed out | ✅ |
+| `components/auth/{sign-in-buttons, google-button, apple-button, google-logo}.tsx` | same | ✅ Google; Apple button declines until a native flow exists |
+| `app/auth/login/google/callback/route.tsx` | `app/auth/login/google/callback.tsx` | ✅ deep-link arrival only (see §5) |
+| `lib/auth/{start-oauth-login, handle-oauth-callback, oauth, session, index}.ts` | same names | ✅ see §5 for what each mirrors |
+| `components/nav/mui-bottom-nav.tsx` | `app/(tabs)/_layout.tsx` | ✅ Profile ⇄ Sign In and Availability ⇄ Rooms swap on the session |
 
 Where a mobile file must deviate (e.g. web renders a `<table>`, mobile uses flex columns), the doc comment at the top of the file says what differs and why.
 
@@ -119,13 +126,18 @@ Anything both apps need that is **pure** (no DOM, no `next/*`, no DB) lives here
 
 ```
 packages/shared/src/
+├── auth/providers.ts   OAUTH_LOGIN_CONFIG (paths, scopes), OAuthLoginProvider, isOAuthLoginProvider
+├── auth/return-to.ts   safeReturnTo, loginPathWithReturnTo, oauthLoginPath
+├── auth/user.ts        UserProfile — the signed-in user as both apps see them
+├── auth/native.ts      the native sign-in contract: nativeOAuthLoginPath, isAllowedNativeRedirectUri,
+│                       nativeOAuthTokenRequestSchema, SessionResponse, NativeOAuthTokenResponse (see §5)
 ├── chrono/types.ts     HourMinuteString, ANCHOR_DATES, Weekday, isAnchorDateMeeting, …
 ├── chrono/time.ts      convertTimeToUTC, convertTimeFromUTC, sortMeetingIsoDatesAsc,
 │                       formatTimeWithHoursAndMins, formatDateToUSNumeric, localMidnightFromIsoDate, …
 └── meetings/schema.ts  createMeetingSchema (zod), CreateMeetingInput, MeetingResponse, ApiErrorResponse
 ```
 
-- The web files that used to own these (`src/lib/types/chrono.ts`, `src/lib/availability/utils.ts`) now **re-export** them, so web imports didn't change. Mobile imports `@zotmeet/shared` directly.
+- The web files that used to own these (`src/lib/types/chrono.ts`, `src/lib/availability/utils.ts`, `src/lib/auth/{providers,return-to,user}.ts`) now **re-export** them, so web imports didn't change. Mobile imports `@zotmeet/shared` directly.
 - The web `createMeeting` server action and the `POST /api/meetings` route both validate with `createMeetingSchema` — one set of rules.
 - `MeetingResponse` is the API's wire shape. The GET route builds its body with `satisfies MeetingResponse`, so a DB column change fails the **web** typecheck instead of silently breaking mobile.
 - **Not shared, on purpose:** `ZotDate` and the 15-minute slot/painting logic stay in web `src/lib/`. They're coupled to the DOM and the web store. Lifting them here is the next step when mobile paints availability.
@@ -148,14 +160,30 @@ The web app has no separate backend — server actions and server components cal
 |---|---|---|
 | `POST /api/meetings` | `createMeetingFromData` (`src/server/actions/meeting/create/action.ts`) | bearer required → 201 `{ id }` |
 | `GET /api/meetings/[id]` | `getExistingMeeting` + responder counts (`src/server/data/meeting/queries.ts`) | public, like the web page |
+| `POST /api/auth/login/google` | `exchangeOAuthCode` + `establishOAuthSession` (`src/lib/auth/handle-oauth-callback.ts`) — the same two halves the browser callback runs | none → 201 `{ token, expiresAt, user }` |
+| `GET /api/auth/session` | `validateSessionToken` (`src/lib/auth/session.ts`), the web's `getCurrentSession` | bearer → `{ expiresAt, user }` or 401 |
+| `POST /api/auth/logout` | `invalidateSession`, the web's `logoutAction` | bearer → 204, idempotent |
 
-**Auth** (`src/lib/auth/bearer.ts`): mobile sends `Authorization: Bearer <token>`. Today a **dev token** maps to the seeded member; the helper falls through to `validateSessionToken`, so when mobile login exists it sends a real session token and nothing else changes.
+**Auth** (`src/lib/auth/bearer.ts`): mobile sends `Authorization: Bearer <token>`. The token is a real session token — the same value the web keeps in its `session` cookie — issued by `POST /api/auth/login/google` at the end of the native sign-in; while signed out in local dev, the **dev token** maps to the seeded member instead.
+
+**How native sign-in works** (the contract is `packages/shared/src/auth/native.ts`; the mobile files mirror the web's `src/lib/auth/` by name):
+
+1. `lib/auth/start-oauth-login.ts` mints a `state` and a PKCE verifier on the device (`lib/auth/oauth.ts`, on `expo-crypto`), stores them (`lib/auth/session.ts`), and opens **the web app's own login route** in an in-app browser: `/auth/login/google?client=expo&state=…&code_challenge=…&redirect_uri=…`. The web app stays the OIDC client — it holds the ICSSC client id and the registered redirect URIs — and the app is a PKCE client *of the web app*.
+2. The web's `startOAuthLogin` forwards the app's challenge to ICSSC instead of minting its own verifier, and wraps the app's state together with its callback link into the OAuth `state` (`src/lib/auth/native-state.ts`). Nothing is kept in a cookie: in dev the app opens the login route on your LAN address while ICSSC returns to `NEXT_PUBLIC_BASE_URL` (localhost), and no cookie survives that host change — the state does, because ICSSC echoes it verbatim. The callback link is checked against an allowlist at both ends: `zotmeet://…` always, `exp://…` and `http://localhost` only outside production.
+3. ICSSC returns the code to the web callback as usual. Seeing the native envelope in `state`, `handleOAuthCallback` does not redeem the code; it bounces `code` + the app's original `state` to the app's link (`zotmeet://auth/login/google/callback`, or `exp://…/--/auth/login/google/callback` in Expo Go).
+4. `lib/auth/handle-oauth-callback.ts` checks the state, then `POST /api/auth/login/google` with the code and the verifier that never left the device. The response carries the session token, which goes into the keychain via `expo-secure-store`; `apiFetch` sends it from then on.
+
+A code crossing the app's deep link is useless without the verifier, so a rogue app squatting the URL scheme learns nothing (RFC 8252). Both arrivals of the callback link — `openAuthSessionAsync` resolving, and the router opening `app/auth/login/google/callback.tsx` (Android can relaunch the app on the link; the web preview lands it in the popup) — go through one de-duplicated handler.
+
+On launch, `useAuthStore().hydrate` runs `lib/auth/index.ts#getCurrentSession` → `GET /api/auth/session`; the root layout holds the splash screen until it answers, and a 401 forgets the token. `signOut` calls `POST /api/auth/logout` best-effort and always clears the device.
+
+**Signing out fully.** The web's `logoutAction` also sends the browser through ICSSC's end-session endpoint (`src/lib/auth/oidc-logout.ts`), otherwise the next sign-in silently reuses the last Google account. The app gets the same result differently: the in-app browser runs as an ephemeral session (`preferEphemeralSession` in `start-oauth-login.ts`), so no ICSSC or Google cookie ever exists outside the app and every sign-in starts at the account chooser — no logout round trip needed. That option is iOS-only; on Android the custom tab shares Chrome's cookies, so an ICSSC end-session hop on sign-out is still to do there.
 
 **Two web-side guards were adjusted for this:** `src/proxy.ts` exempts `/api/*` from the cookie-CSRF Origin check (these routes never read cookies), and `next.config.mjs` adds CORS headers on `/api/*` for the Expo web preview only.
 
 Mobile side: `lib/api/client.ts` (`apiFetch`, `ApiError`) and `lib/api/meetings.ts` (`createMeeting`, `getMeeting`) — the analogue of the web's `@actions/...` and `@data/...` imports.
 
-- **Rule:** to expose something new to mobile, add a route under `src/app/api/` that calls an existing `@actions` / `@data` function, put its request/response types in `packages/shared`, and add the matching function to `lib/api/`. Never reimplement server logic.
+- **Rule:** to expose something new to mobile, add a route under `src/app/api/` that calls an existing `@actions` / `@data` function, put its request/response types in `packages/shared`, and add the matching function to `lib/api/` (`lib/api/auth.ts` is the auth one). Never reimplement server logic.
 
 ---
 
@@ -179,7 +207,7 @@ If Expo Go says the update can't be found or you're not authorised, you're eithe
 - **Forked PRs don't get a preview** — GitHub withholds secrets from forks. A maintainer can comment `/preview` on the PR to publish one.
 - Add the **`no preview`** label to a PR to skip publishing (e.g. a docs-only change under `apps/mobile`).
 - Previews target a stock Expo Go install (the update is keyed to the Expo SDK version, not a native build), so no dev client is needed.
-- Previews can **read** meetings from the deployed API but can't **create** them until real mobile login exists — the dev token is never shipped in a bundle.
+- Previews carry no dev token. Signing in from a preview needs the deployed server to accept an `exp://` redirect, which it does not in production (see §5, step 2) — previews are read-only until the app ships under its own `zotmeet://` scheme.
 
 ### CI setup (maintainers)
 
@@ -206,7 +234,9 @@ The workflow needs two things in the GitHub repo settings; it fails early with a
 
 ## 8. Known gaps
 
-- No mobile login (dev token placeholder).
+- Sign in with Apple: the button is there, but the App Store requires a native flow (not a web view), which is not built; the store declines it with a message.
+- Sign-in from a physical device against a local server (see Quick start), and from Expo Go previews against production (§6).
+- Android sign-out does not end the ICSSC/Google browser session (§5, "Signing out fully"), so the next sign-in may skip the account chooser there.
 - Availability grid is presentational: hour rows, nothing painted, actions unwired.
 - Meetings home is an empty state (needs `GET /api/meetings`).
 - Location is collected but not sent (same as web today).
