@@ -130,6 +130,11 @@ type ButtonProps = PressableProps &
 		 */
 		label?: string;
 		children?: React.ReactNode;
+		/**
+		 * Drop the 4px ledge from a `contained` / `outlined` button, the way the
+		 * web's sign-in buttons override the theme's lift with `boxShadow: none`.
+		 */
+		flat?: boolean;
 	};
 
 export function Button({
@@ -140,6 +145,7 @@ export function Button({
 	label,
 	children,
 	disabled,
+	flat = false,
 	...props
 }: ButtonProps) {
 	// RN throws on a bare string child, so a primitive `children` takes the same
@@ -162,8 +168,9 @@ export function Button({
 	const face = buttonVariants({ variant, color, size });
 
 	// Only `contained` and `outlined` get a ledge in the web theme; `text` sits
-	// flat on the page and just dims on press.
-	if (!variant || variant === "text") {
+	// flat on the page and just dims on press, as does anything opted out of
+	// the ledge with `flat`.
+	if (!variant || variant === "text" || flat) {
 		return (
 			<Pressable
 				accessibilityRole="button"

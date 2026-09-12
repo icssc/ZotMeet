@@ -1,5 +1,6 @@
 import { useColorScheme } from "nativewind";
 import { useState } from "react";
+import { SignIn } from "@/components/auth/sign-in";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import {
@@ -13,17 +14,38 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Screen } from "@/components/ui/screen";
+import { useAuthStore } from "@/store/useAuthStore";
 
 /**
- * Route: `/profile`. Placeholder. Carries the rn-primitives Dialog demo and a
- * theme toggle, which is the quickest way to eyeball the light/dark tokens.
+ * Route: `/profile`. Signed out, this is the sign-in page — the tab itself
+ * reads "Sign In" then, as on the web. Signed in, a placeholder that carries
+ * the rn-primitives Dialog demo and a theme toggle, which is the quickest way
+ * to eyeball the light/dark tokens.
  */
 export default function ProfileScreen() {
 	const { colorScheme, toggleColorScheme } = useColorScheme();
 	const [open, setOpen] = useState(false);
+	const user = useAuthStore((state) => state.user);
+	const signOut = useAuthStore((state) => state.signOut);
+
+	if (!user) {
+		return <SignIn />;
+	}
 
 	return (
-		<Screen title="Profile" subtitle="Route: /profile">
+		<Screen title="Profile" subtitle={user.email}>
+			<Card>
+				<CardTitle>{user.displayName}</CardTitle>
+				<CardDescription>{user.email}</CardDescription>
+				<Button
+					className="mt-3"
+					variant="outlined"
+					size="small"
+					label="Sign out"
+					onPress={signOut}
+				/>
+			</Card>
+
 			<Card>
 				<CardTitle>Theme</CardTitle>
 				<CardDescription>
