@@ -1,4 +1,3 @@
-import { archiveMeetingForMember } from "@actions/meeting/archive/action";
 import type {
 	ApiErrorResponse,
 	MeetingMemberActionResponse,
@@ -6,6 +5,7 @@ import type {
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getMemberIdFromBearer } from "@/lib/auth/bearer";
+import { archiveMeetingForMember } from "@/server/data/meeting/member-actions";
 
 /**
  * `POST /api/meetings/[id]/archive` — the Expo app's counterpart to the

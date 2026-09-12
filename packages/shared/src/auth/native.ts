@@ -105,7 +105,9 @@ export function isAllowedNativeRedirectUri(
 	options: { allowDevelopment: boolean },
 ): boolean {
 	const callbackPath = nativeOAuthCallbackPath(provider);
-	// `Linking.createURL` strips the leading slash on a custom scheme.
+	// The app passes `createURL` the path without its leading slash so the
+	// custom-scheme link comes out as `zotmeet://auth/…` rather than
+	// `zotmeet:///auth/…`.
 	const schemePath = callbackPath.replace(/^\//, "");
 
 	if (redirectUri === `${NATIVE_APP_SCHEME}://${schemePath}`) {

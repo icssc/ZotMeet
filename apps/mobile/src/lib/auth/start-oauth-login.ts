@@ -36,10 +36,15 @@ export async function startOAuthLogin(
 		);
 	}
 
-	// `zotmeet://…` in a build, `exp://<lan-ip>/--/…` in Expo Go. The server
-	// checks this against the same allowlist, so a mismatch is caught here
-	// with a readable error rather than as a 400 in the browser.
-	const redirectUri = Linking.createURL(nativeOAuthCallbackPath(provider));
+	// `zotmeet://auth/…` in a build, `exp://<lan-ip>/--/auth/…` in Expo Go.
+	// Given the path without its leading slash: `createURL` keeps one as-is,
+	// which on a custom scheme yields `zotmeet:///auth/…` — not the form the
+	// allowlist accepts. The server checks this against the same allowlist,
+	// so a mismatch is caught here with a readable error rather than as a
+	// 400 in the browser.
+	const redirectUri = Linking.createURL(
+		nativeOAuthCallbackPath(provider).replace(/^\//, ""),
+	);
 	if (
 		!isAllowedNativeRedirectUri(redirectUri, provider, {
 			allowDevelopment: __DEV__,

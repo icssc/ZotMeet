@@ -54,14 +54,19 @@ export function decodeNativeState(
 ): { state: string; redirectUri: string } | null {
 	if (state === null || !state.startsWith(PREFIX)) return null;
 
-	let envelope: Partial<NativeStateEnvelope>;
+	let parsed: unknown;
 	try {
-		envelope = JSON.parse(
+		parsed = JSON.parse(
 			Buffer.from(state.slice(PREFIX.length), "base64url").toString(),
 		);
 	} catch {
 		return null;
 	}
+	// Valid JSON is not necessarily an object (`null`, a number, …).
+	if (typeof parsed !== "object" || parsed === null) {
+		return null;
+	}
+	const envelope = parsed as Partial<NativeStateEnvelope>;
 	if (typeof envelope.s !== "string" || typeof envelope.r !== "string") {
 		return null;
 	}

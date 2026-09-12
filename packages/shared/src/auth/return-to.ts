@@ -15,7 +15,13 @@ export function safeReturnTo(value: string | null | undefined): string | null {
 		}
 	}
 
-	if (!value.startsWith("/") || value.startsWith("//")) {
+	// Browsers read `/\evil.com` as `//evil.com`, so a backslash anywhere in
+	// the path is treated the same as a protocol-relative URL.
+	if (
+		!value.startsWith("/") ||
+		value.startsWith("//") ||
+		value.includes("\\")
+	) {
 		return null;
 	}
 

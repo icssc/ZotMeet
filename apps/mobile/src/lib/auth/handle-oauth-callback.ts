@@ -1,7 +1,8 @@
 import {
-	isOAuthLoginProvider,
 	NATIVE_OAUTH_CALLBACK_PARAMS,
 	nativeOAuthCallbackPath,
+	OAUTH_LOGIN_PROVIDERS,
+	type OAuthLoginProvider,
 	type UserProfile,
 } from "@zotmeet/shared";
 import * as Linking from "expo-linking";
@@ -42,17 +43,29 @@ export function handleOAuthCallback(url: string): Promise<UserProfile> {
 
 /** Whether a link is one of the app's OAuth callback links at all. */
 export function isOAuthCallbackUrl(url: string): boolean {
-	const { path } = Linking.parse(url);
-	return providerFromCallbackPath(path) !== null;
+	return providerFromCallbackUrl(url) !== null;
 }
 
-function providerFromCallbackPath(path: string | null) {
-	if (path === null) return null;
-	const normalised = `/${path.replace(/^\/+/, "")}`;
-	const match = /^\/auth\/login\/([^/]+)\/callback$/.exec(normalised);
-	const provider = match?.[1];
-	if (!provider || !isOAuthLoginProvider(provider)) return null;
-	return nativeOAuthCallbackPath(provider) === normalised ? provider : null;
+/**
+ * The provider whose callback path a link ends in, or `null`. `Linking.parse`
+ * reports the same link differently per environment — a custom-scheme link
+ * (`zotmeet://auth/login/…`) has no real host, so `auth` lands in `hostname`
+ * with the rest in `path`; an Expo Go link keeps its `/--/` prefix in `path`
+ * unless the app has no custom scheme; the web preview has a real host — so
+ * the path is rebuilt from both fields and matched on its tail.
+ */
+function providerFromCallbackUrl(url: string): OAuthLoginProvider | null {
+	const { hostname, path } = Linking.parse(url);
+	const segments = [hostname, path].filter(
+		(part): part is string => typeof part === "string" && part.length > 0,
+	);
+	if (segments.length === 0) return null;
+	const fullPath = `/${segments.join("/").replace(/^\/+/, "")}`;
+	return (
+		OAUTH_LOGIN_PROVIDERS.find((provider) =>
+			fullPath.endsWith(nativeOAuthCallbackPath(provider)),
+		) ?? null
+	);
 }
 
 function readParam(
@@ -64,8 +77,8 @@ function readParam(
 }
 
 async function completeLogin(url: string): Promise<UserProfile> {
-	const { path, queryParams } = Linking.parse(url);
-	const provider = providerFromCallbackPath(path);
+	const { queryParams } = Linking.parse(url);
+	const provider = providerFromCallbackUrl(url);
 	if (provider === null) {
 		throw new OAuthCallbackError("Not a sign-in callback link");
 	}

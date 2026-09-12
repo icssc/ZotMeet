@@ -1,4 +1,3 @@
-import { leaveMeetingForMember } from "@actions/meeting/leave/action";
 import type {
 	ApiErrorResponse,
 	MeetingMemberActionResponse,
@@ -6,6 +5,7 @@ import type {
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getMemberIdFromBearer } from "@/lib/auth/bearer";
+import { leaveMeetingForMember } from "@/server/data/meeting/member-actions";
 
 /**
  * `POST /api/meetings/[id]/leave` — the Expo app's counterpart to the

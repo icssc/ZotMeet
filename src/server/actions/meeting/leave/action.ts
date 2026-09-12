@@ -2,81 +2,18 @@
 
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { availabilities, meetings, type SelectMeeting } from "@/db/schema";
+import { availabilities, type SelectMeeting } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import {
+	fetchActiveMeeting,
+	leaveMeetingForMember,
+	type MeetingMemberActionResult,
+} from "@/server/data/meeting/member-actions";
 
-export type MeetingMemberActionResult =
-	| { success: true; error?: undefined }
-	| { success: false; error: string };
+export type { MeetingMemberActionResult };
 
 /** @deprecated Use {@link MeetingMemberActionResult} */
 export type LeaveMeetingResult = MeetingMemberActionResult;
-
-type ActiveMeeting = {
-	hostId: string;
-	archived: boolean;
-};
-
-async function fetchActiveMeeting(
-	meetingId: string,
-): Promise<
-	{ ok: true; meeting: ActiveMeeting } | { ok: false; error: string }
-> {
-	const [meeting] = await db
-		.select({
-			hostId: meetings.hostId,
-			archived: meetings.archived,
-		})
-		.from(meetings)
-		.where(eq(meetings.id, meetingId))
-		.limit(1);
-
-	if (!meeting) {
-		return { ok: false, error: "Meeting not found." };
-	}
-
-	if (meeting.archived) {
-		return {
-			ok: false,
-			error: "This meeting is no longer available.",
-		};
-	}
-
-	return { ok: true, meeting };
-}
-
-/**
- * Removes `memberId` from a meeting they do not host. The session-reading
- * `leaveMeeting` below and `POST /api/meetings/[id]/leave` both end up here.
- */
-export async function leaveMeetingForMember(
-	meetingId: string,
-	memberId: string,
-): Promise<MeetingMemberActionResult> {
-	const result = await fetchActiveMeeting(meetingId);
-	if (!result.ok) {
-		return { success: false, error: result.error };
-	}
-
-	if (result.meeting.hostId === memberId) {
-		return {
-			success: false,
-			error:
-				"Meeting owners cannot leave their own meeting. Delete it instead.",
-		};
-	}
-
-	await db
-		.delete(availabilities)
-		.where(
-			and(
-				eq(availabilities.meetingId, meetingId),
-				eq(availabilities.memberId, memberId),
-			),
-		);
-
-	return { success: true };
-}
 
 export async function leaveMeeting(
 	meetingData: SelectMeeting,
