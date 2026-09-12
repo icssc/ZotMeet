@@ -39,6 +39,7 @@ export function Raised({
 	className,
 	children,
 	disabled,
+	accessibilityState,
 	onPressIn,
 	onPressOut,
 	style,
@@ -58,7 +59,10 @@ export function Raised({
 			style={{ paddingBottom: depth }}
 		>
 			<Pressable
-				accessibilityState={{ disabled: !!disabled }}
+				// Merged rather than set before the spread: `props` lands last, so a
+				// caller's `accessibilityState` (`SelectableCard` passes `selected`)
+				// would otherwise replace this object whole and lose `disabled`.
+				accessibilityState={{ ...accessibilityState, disabled: !!disabled }}
 				className={cn(radiusClassName, className)}
 				disabled={disabled}
 				onPressIn={(event) => {
