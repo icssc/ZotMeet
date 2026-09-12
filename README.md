@@ -15,6 +15,8 @@ Simple, clean, and efficient meeting scheduling app.
 
 ```md
 ├── README.md
+├── apps
+│   └── mobile          # Expo / React Native prototype (see below)
 ├── drizzle.config.ts
 ├── next.config.mjs
 ├── node_modules
@@ -67,6 +69,18 @@ Simple, clean, and efficient meeting scheduling app.
 5. Start the development server
    1. `pnpm dev` (run `pnpm dev --host` if you want to access the server from other devices on your network)
 6. The app should be viewable at `localhost:3000` by default.
+
+### Mobile app (Expo)
+
+`apps/mobile` is the React Native client (Expo Router). It mirrors the web app's structure, shares its colour tokens (`packages/tokens`) and domain helpers (`packages/shared`), and talks to the same database through the web app's `/api` routes. It does not replace the PWA.
+
+The local equivalent of `pnpm dev` is:
+
+```bash
+pnpm mobile
+```
+
+That starts the Expo bundler. From the terminal, press `i` (iOS Simulator), `a` (Android emulator), or `w` (web preview), or scan the QR code with [Expo Go](https://expo.dev/go) on a physical device (same Wi-Fi as your machine). More detail lives in `apps/mobile/README.md`.
 
 ### Database Commands
 
