@@ -15,10 +15,12 @@ Env files (copy from the `.env.example` next to each):
 
 | File | Vars | Notes |
 |---|---|---|
-| root `.env` | `MOBILE_DEV_API_TOKEN`, `MOBILE_DEV_HOST_MEMBER_ID` | Dev-only auth for the API. Member id `00000000-0000-0000-0000-000000000000` is "Seed Admin" from `pnpm db:seed`. |
+| root `.env` | `MOBILE_DEV_API_TOKEN`, `MOBILE_DEV_HOST_MEMBER_ID` | Dev-only auth for the API — ignored when the server runs with `NODE_ENV=production`. Member id `00000000-0000-0000-0000-000000000000` is "Seed Admin" from `pnpm db:seed`. |
 | `apps/mobile/.env.local` | `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_API_TOKEN` | Token must equal the root one. Use your Mac's LAN IP instead of `localhost` on a physical device. |
 
 `EXPO_PUBLIC_*` values are inlined into the JS bundle at build time — restart Expo after changing them, and never put the token in `eas.json` or `app.config.ts`.
+
+The token is a **shared** credential that impersonates one member, not a per-user session, so it is fenced to local development at both ends: the client reads it only under `__DEV__`, and the server ignores it under `NODE_ENV=production`. A bundle you distribute (`eas build`, or `eas update` on a channel Expo Go can open) therefore carries no token and calls `/api/*` unauthenticated — real native auth needs a login flow that issues per-user session tokens, which `getMemberIdFromBearer` already accepts.
 
 ---
 

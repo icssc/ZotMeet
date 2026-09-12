@@ -15,8 +15,9 @@ import { validateSessionToken } from "@/lib/auth/session";
  *    `validateSessionToken`. Nothing issues these to a native client yet;
  *    when a mobile login flow does, it lands here without touching the routes.
  *  - The dev token from `MOBILE_DEV_API_TOKEN`, which stands in for the member
- *    named by `MOBILE_DEV_HOST_MEMBER_ID`. Local and preview only: neither
- *    variable may be set in production.
+ *    named by `MOBILE_DEV_HOST_MEMBER_ID`. Local development only — it is
+ *    ignored when `NODE_ENV` is `production`, so setting the variables on a
+ *    deployed server (preview included) does not enable it.
  *
  * Invariant relied on by `src/proxy.ts`: handlers under `/api/*` authenticate
  * only through this helper and never read cookies, which is why that prefix is
@@ -31,10 +32,16 @@ export async function getMemberIdFromBearer(
 	const token = header.slice("Bearer ".length).trim();
 	if (!token) return null;
 
-	const devToken = process.env.MOBILE_DEV_API_TOKEN;
-	const devMemberId = process.env.MOBILE_DEV_HOST_MEMBER_ID;
-	if (devToken && devMemberId && constantTimeEquals(token, devToken)) {
-		return devMemberId;
+	// The dev token is a shared credential for a single member, so a production
+	// server refuses it outright rather than relying on the variables being
+	// left unset there. Without this, one stray env var — or a token extracted
+	// from a distributed mobile bundle — is a full impersonation of that member.
+	if (process.env.NODE_ENV !== "production") {
+		const devToken = process.env.MOBILE_DEV_API_TOKEN;
+		const devMemberId = process.env.MOBILE_DEV_HOST_MEMBER_ID;
+		if (devToken && devMemberId && constantTimeEquals(token, devToken)) {
+			return devMemberId;
+		}
 	}
 
 	const { user } = await validateSessionToken(token);

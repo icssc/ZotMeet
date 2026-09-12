@@ -7,7 +7,23 @@ import type { ApiErrorResponse } from "@zotmeet/shared";
  * from `EXPO_PUBLIC_*` env vars — see `.env.example`.
  */
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
-const API_TOKEN = process.env.EXPO_PUBLIC_API_TOKEN;
+
+/**
+ * `MOBILE_DEV_API_TOKEN` is a *shared* credential standing in for one member,
+ * not a per-user session, so it must never leave a developer's machine: an
+ * `EXPO_PUBLIC_*` value is inlined verbatim into the JS bundle, and anything
+ * distributed — an `eas build`, or an `eas update` published to a channel that
+ * Expo Go can open — hands that token to whoever unpacks the bundle, letting
+ * them call `/api/*` as the configured host.
+ *
+ * Reading it behind `__DEV__` keeps it out of those bundles rather than
+ * trusting the process not to build one: `__DEV__` is a literal `false` in a
+ * release bundle, so Metro drops this branch and the token string with it.
+ * Until a real native login issues per-user session tokens (which
+ * `getMemberIdFromBearer` already accepts), a distributed build is
+ * unauthenticated by design.
+ */
+const API_TOKEN = __DEV__ ? process.env.EXPO_PUBLIC_API_TOKEN : undefined;
 
 /** A non-2xx response, carrying the status and the server's `{ error }` body. */
 export class ApiError extends Error {
