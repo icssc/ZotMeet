@@ -1,0 +1,20 @@
+{
+	"name": "@zotmeet/shared",
+	"version": "0.0.0",
+	"private": true,
+	"description": "Domain code shared by the web app and the Expo app: time helpers and the meeting API contract.",
+	"main": "./src/index.ts",
+	"types": "./src/index.ts",
+	"sideEffects": false,
+	"scripts": {
+		"typecheck": "tsc --noEmit"
+	},
+	"dependencies": {
+		"date-fns": "^4.1.0",
+		"date-fns-tz": "^3.2.0",
+		"zod": "^3.23.8"
+	},
+	"devDependencies": {
+		"typescript": "^5.6.3"
+	}
+}

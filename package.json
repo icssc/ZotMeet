@@ -14,6 +14,7 @@
 		"db:seed": "tsx src/db/seed.ts",
 		"db:setup": "docker compose up -d --wait && pnpm db:migrate",
 		"dev": "next dev",
+		"mobile": "pnpm --filter @zotmeet/mobile start",
 		"lint": "biome lint",
 		"format": "biome format --write",
 		"prepare": "husky",
@@ -21,6 +22,8 @@
 		"pwa:icons": "node scripts/generate-pwa-assets.mjs"
 	},
 	"dependencies": {
+		"@zotmeet/shared": "workspace:*",
+		"@zotmeet/tokens": "workspace:*",
 		"@aws-sdk/client-sesv2": "^3.1039.0",
 		"@emotion/cache": "^11.14.0",
 		"@emotion/react": "^11.14.0",

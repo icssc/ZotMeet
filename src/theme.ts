@@ -2,6 +2,7 @@
 
 import { blue, green, orange, red } from "@mui/material/colors";
 import { createTheme } from "@mui/material/styles";
+import { hsl } from "@zotmeet/tokens";
 import { figtree } from "@/fonts";
 
 export const getTheme = (mode: "light" | "dark") =>
@@ -101,8 +102,12 @@ export const getTheme = (mode: "light" | "dark") =>
 					mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.6)",
 			},
 			primary: {
-				main: "#F26489",
-				contrastText: "#ffffff",
+				// The brand pink, from `packages/tokens` — the same file the Tailwind
+				// configs read, so this palette and `bg-primary` (web and native)
+				// cannot drift apart. The rest of this palette is deliberately not
+				// wired up: those values differ from the Tailwind tokens today.
+				main: hsl("primary"),
+				contrastText: hsl("primary-foreground"),
 				light: "#fed3df",
 			},
 			secondary: {
