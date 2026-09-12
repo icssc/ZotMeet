@@ -13,4 +13,6 @@ export * from "./auth/return-to";
 export * from "./auth/user";
 export * from "./chrono/time";
 export * from "./chrono/types";
+export * from "./meetings/card";
 export * from "./meetings/schema";
+export * from "./meetings/utils";

@@ -63,6 +63,20 @@ const light = {
 	"elevation-3d": "0 0% 75%" /* rgba(0,0,0,0.25) on white */,
 	"primary-tint": "340 100% 97%" /* rgba(255,135,166,0.1) on white */,
 	"primary-ledge": "344.6 55.3% 57.1%" /* rgba(0,0,0,0.15) over primary */,
+	"action-hover": "0 0% 96%" /* rgba(0,0,0,0.04) on white */,
+
+	/*
+	 * MUI palette entries the meeting cards paint their banners with
+	 * (`src/theme.ts`: secondary #1F2A44, info blue[700], warning orange[800]).
+	 * `secondary` above is the shadcn surface the buttons use, so the MUI one
+	 * is `secondary-main`. Same in both modes, as in the MUI theme.
+	 */
+	"secondary-main": "222 37% 19%",
+	"secondary-main-foreground": "0 0% 100%",
+	info: "210 79% 46%",
+	"info-foreground": "0 0% 100%",
+	warning: "27 100% 47%",
+	"warning-foreground": "0 0% 100%",
 };
 
 const dark = {
@@ -108,6 +122,14 @@ const dark = {
 	"elevation-3d": "0 0% 0%",
 	"primary-tint": "344 30% 18%",
 	"primary-ledge": "344.6 55.3% 57.1%",
+	"action-hover": "0 0% 18%" /* rgba(255,255,255,0.08) on #1C1B1B */,
+
+	"secondary-main": "222 37% 19%",
+	"secondary-main-foreground": "0 0% 100%",
+	info: "210 79% 46%",
+	"info-foreground": "0 0% 100%",
+	warning: "27 100% 47%",
+	"warning-foreground": "0 0% 100%",
 };
 
 /** `{ primary: "344.4 …" }` → `{ "--primary": "344.4 …" }`. */

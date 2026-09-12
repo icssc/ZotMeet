@@ -36,7 +36,7 @@ The dev token is optional once you sign in (§5): it is only the fallback `apiFe
 │       ├── app/           expo-router routes — same paths as web (see §3)
 │       ├── components/    same folder names as web src/components (see §3)
 │       ├── lib/           icons, theme, date maths, API client, auth (mirrors web src/lib/auth)
-│       ├── hooks/         data hooks (useMeeting)
+│       ├── hooks/         data hooks (useMeeting, useMeetings)
 │       └── store/         zustand stores, same names as web src/store (+ useAuthStore)
 ├── packages/tokens/   colours — one source for both apps (see §2)
 └── packages/shared/   domain helpers + API contract — one source for both apps (see §4)
@@ -107,7 +107,10 @@ Routes use the same paths as web, and component folders use the same names. When
 | `components/availability/availability-actions.tsx` | same | ✅ no handlers yet |
 | `components/mobile/mobile-island.tsx` | same | ✅ |
 | `store/useAvailabilityStore.ts` | same (pagination slice only) | ✅ |
-| `app/summary` (meetings list) | `app/(tabs)/index.tsx` → `components/meetings/meetings-home.tsx` | empty state only |
+| `app/summary/page.tsx` (meetings list) | `app/(tabs)/index.tsx` → `hooks/use-meetings.ts` | ✅ loading / signed-out / error inline |
+| `components/summary/meetings.tsx` | same | ✅ search, Upcoming / Past / By You, same sort; notifications bell drawn, unwired |
+| `components/ui/meeting-card.tsx`, `components/ui/filter-chip.tsx` | same | ✅ all five card variants; options button opens the confirm directly (the web's one-item menu) |
+| `components/meetings/delete-modal.tsx`, `lib/meetings/delete-leave-action.ts` | same | ✅ dialog form only; error shown inline (no snackbar) |
 | `app/auth/login/page.tsx` | `components/auth/sign-in.tsx`, shown by the Profile tab while signed out | ✅ |
 | `components/auth/{sign-in-buttons, google-button, apple-button, google-logo}.tsx` | same | ✅ Google; Apple button declines until a native flow exists |
 | `app/auth/login/google/callback/route.tsx` | `app/auth/login/google/callback.tsx` | ✅ deep-link arrival only (see §5) |
@@ -137,7 +140,8 @@ packages/shared/src/
 └── meetings/schema.ts  createMeetingSchema (zod), CreateMeetingInput, MeetingResponse, ApiErrorResponse
 ```
 
-- The web files that used to own these (`src/lib/types/chrono.ts`, `src/lib/availability/utils.ts`, `src/lib/auth/{providers,return-to,user}.ts`) now **re-export** them, so web imports didn't change. Mobile imports `@zotmeet/shared` directly.
+- The web files that used to own these (`src/lib/types/chrono.ts`, `src/lib/availability/utils.ts`, `src/lib/auth/{providers,return-to,user}.ts`, `src/lib/meetings/utils.ts`, `src/lib/meeting-card/mapper.ts`) now **re-export** them, so web imports didn't change. Mobile imports `@zotmeet/shared` directly.
+- Shared helpers are typed structurally (`Pick`s of the columns they read) rather than on Drizzle rows, which this package cannot see — a `SelectMeeting` and a `MeetingListItem` both satisfy `MeetingForCard`.
 - The web `createMeeting` server action and the `POST /api/meetings` route both validate with `createMeetingSchema` — one set of rules.
 - `MeetingResponse` is the API's wire shape. The GET route builds its body with `satisfies MeetingResponse`, so a DB column change fails the **web** typecheck instead of silently breaking mobile.
 - **Not shared, on purpose:** `ZotDate` and the 15-minute slot/painting logic stay in web `src/lib/`. They're coupled to the DOM and the web store. Lifting them here is the next step when mobile paints availability.
@@ -158,8 +162,11 @@ The web app has no separate backend — server actions and server components cal
 
 | Route | Wraps | Auth |
 |---|---|---|
+| `GET /api/meetings` | `getMeetings` + responder counts + first scheduled block (`src/server/data/meeting/queries.ts`) — what `app/summary/page.tsx` assembles | bearer → `{ memberId, meetings }` |
 | `POST /api/meetings` | `createMeetingFromData` (`src/server/actions/meeting/create/action.ts`) | bearer required → 201 `{ id }` |
 | `GET /api/meetings/[id]` | `getExistingMeeting` + responder counts (`src/server/data/meeting/queries.ts`) | public, like the web page |
+| `POST /api/meetings/[id]/archive` | `archiveMeetingForMember` — the `archiveMeeting` action, split like `createMeetingFromData` | bearer → `{ success, error? }` |
+| `POST /api/meetings/[id]/leave` | `leaveMeetingForMember` — same split of the `leaveMeeting` action | bearer → `{ success, error? }` |
 | `POST /api/auth/login/google` | `exchangeOAuthCode` + `establishOAuthSession` (`src/lib/auth/handle-oauth-callback.ts`) — the same two halves the browser callback runs | none → 201 `{ token, expiresAt, user }` |
 | `GET /api/auth/session` | `validateSessionToken` (`src/lib/auth/session.ts`), the web's `getCurrentSession` | bearer → `{ expiresAt, user }` or 401 |
 | `POST /api/auth/logout` | `invalidateSession`, the web's `logoutAction` | bearer → 204, idempotent |
@@ -238,5 +245,5 @@ The workflow needs two things in the GitHub repo settings; it fails early with a
 - Sign-in from a physical device against a local server (see Quick start), and from Expo Go previews against production (§6).
 - Android sign-out does not end the ICSSC/Google browser session (§5, "Signing out fully"), so the next sign-in may skip the account chooser there.
 - Availability grid is presentational: hour rows, nothing painted, actions unwired.
-- Meetings home is an empty state (needs `GET /api/meetings`).
+- Notifications: the bell on the Meetings tab is drawn but unwired (needs `GET /api/notifications` + the drawer).
 - Location is collected but not sent (same as web today).

@@ -45,6 +45,39 @@ async function fetchActiveMeeting(
 	return { ok: true, meeting };
 }
 
+/**
+ * Removes `memberId` from a meeting they do not host. The session-reading
+ * `leaveMeeting` below and `POST /api/meetings/[id]/leave` both end up here.
+ */
+export async function leaveMeetingForMember(
+	meetingId: string,
+	memberId: string,
+): Promise<MeetingMemberActionResult> {
+	const result = await fetchActiveMeeting(meetingId);
+	if (!result.ok) {
+		return { success: false, error: result.error };
+	}
+
+	if (result.meeting.hostId === memberId) {
+		return {
+			success: false,
+			error:
+				"Meeting owners cannot leave their own meeting. Delete it instead.",
+		};
+	}
+
+	await db
+		.delete(availabilities)
+		.where(
+			and(
+				eq(availabilities.meetingId, meetingId),
+				eq(availabilities.memberId, memberId),
+			),
+		);
+
+	return { success: true };
+}
+
 export async function leaveMeeting(
 	meetingData: SelectMeeting,
 ): Promise<MeetingMemberActionResult> {
@@ -57,29 +90,7 @@ export async function leaveMeeting(
 		};
 	}
 
-	const result = await fetchActiveMeeting(meetingData.id);
-	if (!result.ok) {
-		return { success: false, error: result.error };
-	}
-
-	if (result.meeting.hostId === user.memberId) {
-		return {
-			success: false,
-			error:
-				"Meeting owners cannot leave their own meeting. Delete it instead.",
-		};
-	}
-
-	await db
-		.delete(availabilities)
-		.where(
-			and(
-				eq(availabilities.meetingId, meetingData.id),
-				eq(availabilities.memberId, user.memberId),
-			),
-		);
-
-	return { success: true };
+	return leaveMeetingForMember(meetingData.id, user.memberId);
 }
 
 export async function removeMeetingMember(

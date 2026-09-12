@@ -80,6 +80,19 @@ module.exports = {
 				"elevation-3d": "hsl(var(--elevation-3d))",
 				"primary-tint": "hsl(var(--primary-tint))",
 				"primary-ledge": "hsl(var(--primary-ledge))",
+				"action-hover": "hsl(var(--action-hover))",
+				"secondary-main": {
+					DEFAULT: "hsl(var(--secondary-main))",
+					foreground: "hsl(var(--secondary-main-foreground))",
+				},
+				info: {
+					DEFAULT: "hsl(var(--info))",
+					foreground: "hsl(var(--info-foreground))",
+				},
+				warning: {
+					DEFAULT: "hsl(var(--warning))",
+					foreground: "hsl(var(--warning-foreground))",
+				},
 				gray: {
 					light: "#F3F4F6" /* maps to gray-100 */,
 					base: "#D1D5DB" /* gray-300 */,

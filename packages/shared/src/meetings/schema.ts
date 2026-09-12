@@ -95,3 +95,55 @@ export type ApiErrorResponse = {
 	/** `ZodError#flatten()` output when the request failed validation. */
 	issues?: unknown;
 };
+
+/**
+ * One row of `GET /api/meetings` — a meeting the member hosts or has joined,
+ * with everything the meetings list needs to sort it, badge it, and draw its
+ * card. Mirrors what `app/summary/page.tsx` assembles for the web's
+ * `<Meetings>`: the `getMeetings` row plus the responder count and the first
+ * scheduled block, flattened onto the meeting so the client does no joining.
+ */
+export type MeetingListItem = {
+	id: string;
+	title: string;
+	description: string | null;
+	location: string | null;
+	fromTime: string;
+	toTime: string;
+	timezone: string;
+	dates: string[];
+	meetingType: MeetingType;
+	hostId: string;
+	group_id: string | null;
+	scheduled: boolean | null;
+	membersCanInvite: boolean;
+	createdAt: string;
+	/** The host's display name, for the card's organizer line. */
+	hostDisplayName: string | null;
+	/** Unscheduled, and this member has not filled in availability yet. */
+	needsAvailability: boolean;
+	/** Unscheduled, and every attached member has filled in availability. */
+	allAvailabilityFilled: boolean;
+	responderCount: number;
+	/** The earliest scheduled block, when the meeting is scheduled. */
+	scheduledAt: {
+		/** ISO instant of the scheduled date (a UTC midnight). */
+		date: string;
+		fromTime: string;
+		toTime: string;
+	} | null;
+};
+
+export type MeetingsListResponse = {
+	/** Whose meetings these are — what the list compares `hostId` against. */
+	memberId: string;
+	meetings: MeetingListItem[];
+};
+
+/**
+ * Result of the member actions on a meeting — `POST /api/meetings/:id/archive`
+ * and `.../leave` — the wire form of the web's `MeetingMemberActionResult`.
+ */
+export type MeetingMemberActionResponse =
+	| { success: true; error?: undefined }
+	| { success: false; error: string };

@@ -27,6 +27,7 @@ const buttonVariants = cva(
 				primary: "",
 				secondary: "",
 				error: "",
+				warning: "",
 				inherit: "",
 			},
 			size: {
@@ -42,6 +43,7 @@ const buttonVariants = cva(
 			{ variant: "contained", color: "primary", className: "bg-primary" },
 			{ variant: "contained", color: "secondary", className: "bg-secondary" },
 			{ variant: "contained", color: "error", className: "bg-destructive" },
+			{ variant: "contained", color: "warning", className: "bg-warning" },
 			{ variant: "contained", color: "inherit", className: "bg-muted" },
 			// Outlined keeps the paper fill and takes its border from the palette,
 			// except `secondary`, which the theme fills solid.
@@ -61,6 +63,7 @@ const buttonVariants = cva(
 				className: "border-secondary bg-secondary",
 			},
 			{ variant: "outlined", color: "error", className: "border-destructive" },
+			{ variant: "outlined", color: "warning", className: "border-warning" },
 		],
 		defaultVariants: { variant: "text", color: "primary", size: "medium" },
 	},
@@ -70,7 +73,7 @@ const buttonVariants = cva(
 const buttonTextVariants = cva("font-figtree-semibold", {
 	variants: {
 		variant: { contained: "", outlined: "", text: "" },
-		color: { primary: "", secondary: "", error: "", inherit: "" },
+		color: { primary: "", secondary: "", error: "", warning: "", inherit: "" },
 		size: {
 			small: "text-button-sm",
 			medium: "text-button-md",
@@ -94,6 +97,11 @@ const buttonTextVariants = cva("font-figtree-semibold", {
 			color: "error",
 			className: "text-destructive-foreground",
 		},
+		{
+			variant: "contained",
+			color: "warning",
+			className: "text-warning-foreground",
+		},
 		{ variant: "contained", color: "inherit", className: "text-foreground" },
 		// The theme forces outlined labels to `text.primary`, whatever the colour,
 		// apart from the two variants that carry their own fill or accent.
@@ -105,9 +113,11 @@ const buttonTextVariants = cva("font-figtree-semibold", {
 			className: "text-secondary-foreground",
 		},
 		{ variant: "outlined", color: "error", className: "text-destructive" },
+		{ variant: "outlined", color: "warning", className: "text-warning" },
 		{ variant: "text", color: "primary", className: "text-primary" },
 		{ variant: "text", color: "secondary", className: "text-secondary" },
 		{ variant: "text", color: "error", className: "text-destructive" },
+		{ variant: "text", color: "warning", className: "text-warning" },
 		{ variant: "text", color: "inherit", className: "text-foreground" },
 	],
 	defaultVariants: { variant: "text", color: "primary", size: "medium" },
@@ -118,6 +128,7 @@ const ledgeClassNames: Record<string, string> = {
 	primary: "bg-primary-ledge",
 	secondary: "bg-elevation-3d",
 	error: "bg-elevation-3d",
+	warning: "bg-elevation-3d",
 	inherit: "bg-elevation-3d",
 };
 
