@@ -30,7 +30,8 @@ interface AvailabilityTableHeaderProps {
  * `components/availability/table/availability-table-header.tsx`. The web
  * renders the whole `<thead>` row at once; here each day column carries its
  * own header so the column and its cells stay one flex child. The nav arrows
- * sit inside the first and last headers, where the wireframe puts them.
+ * sit inside the first and last headers, where the wireframe puts them, as an
+ * overlay so they do not shift the date off its column.
  *
  * Labels are formatted as the web does: `toLocaleDateString` weekday, then
  * `formatDateToUSNumeric` — uppercased here because the wireframe sets the
@@ -44,14 +45,14 @@ export function AvailabilityTableHeader({
 	datePageNav,
 }: AvailabilityTableHeaderProps) {
 	return (
-		<View className="flex-row items-start gap-3">
-			{isFirstColumn ? (
-				<AvailabilityNavButton
-					direction="left"
-					disabled={datePageNav?.isFirstPage}
-					handleClick={datePageNav?.onPrev}
-				/>
-			) : null}
+		// The arrows are overlaid on the header rather than laid out beside the
+		// date: as flex siblings they take part in the centring, pushing the date
+		// cell off its column's centre — right on the first column, left on the
+		// last — so the labels would no longer sit over their own blocks.
+		<View
+			className="relative w-full items-center"
+			style={{ height: DAY_HEADER_HEIGHT }}
+		>
 			<View
 				className="w-[80px] items-center"
 				style={{ height: DAY_HEADER_HEIGHT }}
@@ -65,12 +66,23 @@ export function AvailabilityTableHeader({
 					{meetingType === "dates" ? formatDateToUSNumeric(dateHeader) : ""}
 				</Text>
 			</View>
+			{isFirstColumn ? (
+				<View className="absolute top-0 left-0">
+					<AvailabilityNavButton
+						direction="left"
+						disabled={datePageNav?.isFirstPage}
+						handleClick={datePageNav?.onPrev}
+					/>
+				</View>
+			) : null}
 			{isLastColumn ? (
-				<AvailabilityNavButton
-					direction="right"
-					disabled={datePageNav?.isLastPage}
-					handleClick={datePageNav?.onNext}
-				/>
+				<View className="absolute top-0 right-0">
+					<AvailabilityNavButton
+						direction="right"
+						disabled={datePageNav?.isLastPage}
+						handleClick={datePageNav?.onNext}
+					/>
+				</View>
 			) : null}
 		</View>
 	);
