@@ -25,9 +25,13 @@ on:
 permissions:
   contents: read
 
+# One group for both triggers, deliberately: a push and a manual dispatch
+# both publish the tip of main to the same channel, so whichever run is
+# cancelled, the survivor publishes the same or a newer commit. Separate
+# groups would let two runs publish concurrently, and EAS serves whichever
+# finishes last — an older commit could then end up on the channel.
 concurrency:
   group: ${{ github.workflow }}
-  # Only the newest commit on main is worth publishing.
   cancel-in-progress: true
 
 env:
