@@ -1,9 +1,12 @@
 import {
 	convertTimeFromUTC,
+	deriveInitialAvailability,
+	generateTimeBlocks,
 	getTimeFromHourMinuteString,
 	type HourMinuteString,
-	localMidnightFromIsoDate,
 	type MeetingResponse,
+	type Member,
+	sliceCurrentPageAvailability,
 	sortMeetingIsoDatesAsc,
 } from "@zotmeet/shared";
 import { useEffect, useMemo } from "react";
@@ -23,12 +26,13 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
  * Paper holding the table, and `AvailabilityActions` in the `MobileIsland`.
  *
  * The grid is derived the way the web's `availability.tsx` and
- * `use-availability-data.ts` derive theirs: the stored UTC times are brought
- * into the viewer's timezone, and the sorted meeting dates are paged through
- * `useAvailabilityStore`, two at a time.
+ * `use-availability-data.ts` derive theirs, through the same shared helpers:
+ * the stored UTC times are brought into the viewer's timezone and cut into
+ * 15-minute rows, every member's response becomes one `ZotDate` per meeting
+ * day, and the days are paged through `useAvailabilityStore`, two at a time.
  *
- * Front end only beyond that: the actions do nothing yet, and no availability
- * is painted into the cells.
+ * Read-only for now: the grid shows the group heatmap, and the actions do
+ * nothing yet.
  */
 export function Availability({
 	meetingData,
@@ -48,49 +52,83 @@ export function Availability({
 
 	const viewerTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-	const { days, startHour, endHour } = useMemo(() => {
+	const {
+		availabilityDates,
+		ifNeededDates,
+		availabilityTimeBlocks,
+		fromTimeMinutes,
+		members,
+	} = useMemo(() => {
 		const sortedDates = sortMeetingIsoDatesAsc(meetingData.dates);
 		const referenceDate = sortedDates[0] ?? meetingData.dates[0];
 
 		// `convertTimeFromUTC` returns "HH:mm:ss" but is typed as `string`; the
 		// web casts at the same point.
-		const fromMinutes = getTimeFromHourMinuteString(
+		const fromTimeMinutes = getTimeFromHourMinuteString(
 			convertTimeFromUTC(
 				meetingData.fromTime,
 				viewerTimezone,
 				referenceDate,
 			) as HourMinuteString,
 		);
-		const toMinutes = getTimeFromHourMinuteString(
+		const toTimeMinutes = getTimeFromHourMinuteString(
 			convertTimeFromUTC(
 				meetingData.toTime,
 				viewerTimezone,
 				referenceDate,
 			) as HourMinuteString,
 		);
+		const availabilityTimeBlocks = generateTimeBlocks(
+			fromTimeMinutes,
+			toTimeMinutes,
+		);
 
-		// The mobile grid is hour-granular where the web's is 15-minute rows, so
-		// the range is widened to whole hours. A range that ends at or before it
-		// starts wraps past midnight, as `generateTimeBlocks` treats it on the web.
-		const startHour = Math.floor(fromMinutes / 60);
-		let endHour = Math.ceil(toMinutes / 60);
-		if (endHour <= startHour) endHour += 24;
+		const derive = (mode: "availabilities" | "if-needed") =>
+			deriveInitialAvailability({
+				timezone: viewerTimezone,
+				meetingDates: meetingData.dates,
+				userId: meetingData.viewerMemberId,
+				allAvailabilities: meetingData.availabilities,
+				availabilityTimeBlocks,
+				mode,
+			});
+
+		const members: Member[] = meetingData.availabilities.map(
+			({ memberId, displayName, profilePicture }) => ({
+				memberId,
+				displayName,
+				profilePicture,
+			}),
+		);
 
 		return {
-			days: sortedDates.map(localMidnightFromIsoDate),
-			startHour,
-			endHour,
+			availabilityDates: derive("availabilities"),
+			ifNeededDates: derive("if-needed"),
+			availabilityTimeBlocks,
+			fromTimeMinutes,
+			members,
 		};
 	}, [
 		meetingData.dates,
 		meetingData.fromTime,
 		meetingData.toTime,
+		meetingData.availabilities,
+		meetingData.viewerMemberId,
 		viewerTimezone,
 	]);
 
-	const pageStart = currentPage * itemsPerPage;
-	const pageDays = days.slice(pageStart, pageStart + itemsPerPage);
-	const isLastPage = pageStart + itemsPerPage >= days.length;
+	const currentPageAvailability = useMemo(
+		() =>
+			sliceCurrentPageAvailability(
+				availabilityDates,
+				ifNeededDates,
+				currentPage,
+				itemsPerPage,
+			),
+		[availabilityDates, ifNeededDates, currentPage, itemsPerPage],
+	);
+	const isLastPage =
+		(currentPage + 1) * itemsPerPage >= availabilityDates.length;
 
 	return (
 		<View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
@@ -106,16 +144,19 @@ export function Availability({
 				{/* MUI `<Paper variant="outlined">`, the "calendar with controls" frame. */}
 				<View className="w-full rounded-lg border border-border bg-paper px-3 pt-3 pb-5">
 					<GroupAvailability
-						currentPageAvailability={pageDays}
+						availabilityDates={availabilityDates}
+						availabilityTimeBlocks={availabilityTimeBlocks}
+						currentPageAvailability={currentPageAvailability}
 						datePageNav={{
 							onPrev: prevPage,
-							onNext: () => nextPage(days.length),
+							onNext: () => nextPage(availabilityDates.length),
 							isFirstPage,
 							isLastPage,
 						}}
-						endHour={endHour}
+						fromTime={fromTimeMinutes}
 						meetingType={meetingData.meetingType}
-						startHour={startHour}
+						members={members}
+						timeZone={viewerTimezone}
 					/>
 				</View>
 			</ScrollView>

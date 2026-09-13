@@ -6,15 +6,18 @@ import {
 import type { ApiErrorResponse, MeetingResponse } from "@zotmeet/shared";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getMemberIdFromBearer } from "@/lib/auth/bearer";
 
 /**
  * `GET /api/meetings/[id]` — the Expo app's counterpart to
  * `app/availability/[slug]/page.tsx`. Reads through the same queries and is
  * public for the same reason: anyone with the link can view a meeting. The
  * host's contact details that `getExistingMeeting` joins in stay server-side.
+ * A bearer token is optional here; when present it only identifies which of
+ * the returned availabilities is the viewer's own.
  */
 export async function GET(
-	_request: NextRequest,
+	request: NextRequest,
 	context: { params: Promise<{ id: string }> },
 ) {
 	const { id } = await context.params;
@@ -32,10 +35,12 @@ export async function GET(
 		return notFound();
 	}
 
-	const [responderCounts, memberAvailability] = await Promise.all([
-		getResponderCountsByMeetingIds([id]),
-		getAllMemberAvailability({ meetingId: id }),
-	]);
+	const [responderCounts, memberAvailability, viewerMemberId] =
+		await Promise.all([
+			getResponderCountsByMeetingIds([id]),
+			getAllMemberAvailability({ meetingId: id }),
+			getMemberIdFromBearer(request),
+		]);
 
 	// `satisfies` pins this to the shared contract: a `meetings` column change
 	// fails here at typecheck instead of drifting from what mobile expects.
@@ -58,6 +63,8 @@ export async function GET(
 			responded: responderCounts[id] ?? 0,
 			total: memberAvailability.length,
 		},
+		availabilities: memberAvailability,
+		viewerMemberId,
 	} satisfies MeetingResponse;
 
 	return NextResponse.json<MeetingResponse>(body);

@@ -1,41 +1,17 @@
-// import type { SuperValidated, ZodValidation } from "sveltekit-superforms";
-// import type { AnyZodObject } from "zod";
-
+import type { MemberMeetingAvailability as SharedMemberMeetingAvailability } from "@zotmeet/shared";
 import type { SelectAvailability, SelectMember } from "@/db/schema";
 
-export type AvailabilityBlockType = {
-	zotDateIndex: number;
-	blockIndex: number;
-};
-
-export type AvailabilityView = "group" | "personal" | "schedule";
-
-export type SelectionStateType = {
-	earlierDateIndex: number;
-	laterDateIndex: number;
-	earlierBlockIndex: number;
-	laterBlockIndex: number;
-};
-
-export function rangeCoversCell(
-	range: SelectionStateType | undefined,
-	zotDateIndex: number,
-	blockIndex: number,
-): boolean {
-	if (!range) return false;
-	return (
-		range.earlierDateIndex <= zotDateIndex &&
-		zotDateIndex <= range.laterDateIndex &&
-		range.earlierBlockIndex <= blockIndex &&
-		blockIndex <= range.laterBlockIndex
-	);
-}
-
-//TODO: Guest
-// export interface GuestSession {
-//     guestName: string;
-//     meetingId: string;
-// }
+/*
+ * The grid vocabulary lives in `@zotmeet/shared` so the Expo app can use it;
+ * re-exported here to keep this module's import path stable.
+ */
+export type {
+	AvailabilityBlockType,
+	AvailabilityView,
+	Member,
+	SelectionStateType,
+} from "@zotmeet/shared";
+export { rangeCoversCell } from "@zotmeet/shared";
 
 export type MemberMeetingAvailability = Pick<
 	SelectAvailability,
@@ -43,10 +19,16 @@ export type MemberMeetingAvailability = Pick<
 > &
 	Pick<SelectMember, "displayName" | "profilePicture">;
 
-export type Member = Pick<
-	MemberMeetingAvailability,
-	"memberId" | "displayName" | "profilePicture"
->;
+/**
+ * The shared package cannot import the Drizzle schema, so it keeps its own
+ * copy of this shape; this pins the two together at typecheck.
+ */
+const _memberAvailabilityMatchesShared: SharedMemberMeetingAvailability =
+	null as unknown as MemberMeetingAvailability;
+const _sharedMatchesMemberAvailability: MemberMeetingAvailability =
+	null as unknown as SharedMemberMeetingAvailability;
+void _memberAvailabilityMatchesShared;
+void _sharedMatchesMemberAvailability;
 
 export interface GoogleCalendarEvent {
 	id: string;

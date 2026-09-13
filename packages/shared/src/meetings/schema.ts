@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { MemberMeetingAvailability } from "../availability/types";
 
 /**
  * The meeting API contract: what a client sends to create a meeting and what
@@ -62,10 +63,11 @@ export type CreateMeetingResponse = { id: string };
 
 /**
  * A meeting as the API returns it: the `meetings` row, JSON-serialised, plus
- * the response counts the meeting screen shows. Kept by hand rather than
- * inferred because this package cannot import the Drizzle schema — the GET
- * route builds its body with `satisfies MeetingResponse`, so a column change
- * fails the web typecheck instead of surfacing as a runtime mismatch here.
+ * everything the availability screen needs to draw and fill its grid. Kept
+ * by hand rather than inferred because this package cannot import the Drizzle
+ * schema — the GET route builds its body with `satisfies MeetingResponse`, so
+ * a column change fails the web typecheck instead of surfacing as a runtime
+ * mismatch here.
  */
 export type MeetingResponse = {
 	id: string;
@@ -88,6 +90,16 @@ export type MeetingResponse = {
 		/** Members attached to the meeting, whether or not they have responded. */
 		total: number;
 	};
+	/**
+	 * Every attached member's response — what the web page loads through
+	 * `getAllMemberAvailability` and feeds to `deriveInitialAvailability`.
+	 */
+	availabilities: MemberMeetingAvailability[];
+	/**
+	 * The caller, when the request carried a valid bearer token; `null` for an
+	 * anonymous viewer. The grid's personal layer is this member's slots.
+	 */
+	viewerMemberId: string | null;
 };
 
 export type ApiErrorResponse = {

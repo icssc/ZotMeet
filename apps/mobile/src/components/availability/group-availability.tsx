@@ -1,24 +1,39 @@
-import type { MeetingType } from "@zotmeet/shared";
-import { View } from "react-native";
+import {
+	type BlockFill,
+	buildTimestampsByCell,
+	type CurrentPageAvailability,
+	calculateBlockFill,
+	generateCellKey,
+	getRowChrome,
+	type MeetingType,
+	type Member,
+	spacerBeforeDate,
+	type ZotDate,
+} from "@zotmeet/shared";
+import { useMemo, useState } from "react";
+import { type LayoutChangeEvent, View } from "react-native";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
 import {
 	type AvailabilityDatePageNav,
 	AvailabilityTableHeader,
 } from "@/components/availability/table/availability-table-header";
-import { DAY_HEADER_GAP } from "@/components/availability/table/availability-table-metrics";
+import {
+	blockTop,
+	DAY_HEADER_GAP,
+	DAY_HEADER_HEIGHT,
+} from "@/components/availability/table/availability-table-metrics";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
+import { StripeBackdrop } from "@/components/availability/table/stripe-backdrop";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 export interface GroupAvailabilityProps {
-	/** The dates on the current page — two at a time on mobile — as local midnights. */
-	currentPageAvailability: Date[];
+	availabilityTimeBlocks: number[];
+	fromTime: number;
+	availabilityDates: ZotDate[];
+	currentPageAvailability: CurrentPageAvailability;
+	members: Member[];
 	meetingType: MeetingType;
-	/** First labelled hour, 0–23. */
-	startHour: number;
-	/**
-	 * Last labelled hour. May exceed 23 for a range that wraps past midnight;
-	 * the grid draws `endHour - startHour` blocks either way.
-	 */
-	endHour: number;
+	timeZone: string;
 	datePageNav?: AvailabilityDatePageNav;
 }
 
@@ -29,49 +44,132 @@ export interface GroupAvailabilityProps {
  * without a table this is a tick column beside one flex column per date, each
  * carrying its own header (see `AvailabilityTableHeader`).
  *
- * Presentational for now — no availability is painted into the cells, and
- * the rows are whole hours rather than the web's 15-minute blocks, so a
- * meeting that starts or ends mid-hour shows up to 59 extra minutes of grid.
+ * Every cell's fill is the shared `calculateBlockFill`, fed exactly what the
+ * web feeds it; only the drawing differs. The web's member filter, hover, and
+ * best-times inputs are not in the mobile store yet, so they are passed as
+ * their idle values (best-times is what would need `ifNeededDates` and
+ * `computeMaxAvailability` here).
  */
 export function GroupAvailability({
+	availabilityTimeBlocks,
+	fromTime,
+	availabilityDates,
 	currentPageAvailability,
+	members,
 	meetingType,
-	startHour,
-	endHour,
+	timeZone,
 	datePageNav,
 }: GroupAvailabilityProps) {
-	const hourCount = Math.max(0, endHour - startHour);
-	const hours = Array.from({ length: hourCount }, (_, i) => startHour + i);
-	const lastIndex = currentPageAvailability.length - 1;
+	const { currentPage, itemsPerPage } = useAvailabilityStore();
+	const numMembers = members.length;
+
+	const timestampsByCell = useMemo(
+		() =>
+			buildTimestampsByCell(
+				availabilityDates,
+				availabilityTimeBlocks.length,
+				fromTime,
+				timeZone,
+			),
+		[availabilityDates, availabilityTimeBlocks, fromTime, timeZone],
+	);
+
+	const spacers = spacerBeforeDate(currentPageAvailability.availabilities);
+	const lastIndex = currentPageAvailability.availabilities.length - 1;
+	const columnHeight = blockTop(availabilityTimeBlocks.length);
+
+	// The stripe backdrop is sized from the column's measured width.
+	const [columnWidth, setColumnWidth] = useState(0);
+	const onColumnLayout = (event: LayoutChangeEvent) =>
+		setColumnWidth(event.nativeEvent.layout.width);
 
 	return (
 		<View className="w-full flex-row gap-2">
-			<AvailabilityTimeTicks endHour={endHour} startHour={startHour} />
+			<AvailabilityTimeTicks availabilityTimeBlocks={availabilityTimeBlocks} />
 
 			<View className="flex-1 flex-row">
-				{currentPageAvailability.map((dateHeader, index) => (
-					<View
-						className="flex-1 items-center"
-						key={dateHeader.getTime()}
-						style={{ gap: DAY_HEADER_GAP }}
-					>
-						<AvailabilityTableHeader
-							dateHeader={dateHeader}
-							datePageNav={datePageNav}
-							isFirstColumn={index === 0}
-							isLastColumn={index === lastIndex}
-							meetingType={meetingType}
-						/>
-						<View className="w-full bg-paper">
-							{hours.map((hour, hourIndex) => (
-								<AvailabilityBlock
-									isLastRow={hourIndex === hourCount - 1}
-									key={hour}
-								/>
-							))}
-						</View>
-					</View>
-				))}
+				{currentPageAvailability.availabilities.map(
+					(selectedDate, pageDateIndex) => {
+						const ifNeededDate =
+							currentPageAvailability.ifNeeded[pageDateIndex];
+						const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
+						const hasSpacerBefore = spacers[pageDateIndex];
+
+						return (
+							<View
+								className={`flex-1 items-center ${hasSpacerBefore ? "ml-3" : ""}`}
+								key={
+									selectedDate
+										? selectedDate.valueOf()
+										: `padding-${pageDateIndex}`
+								}
+								style={{ gap: DAY_HEADER_GAP }}
+							>
+								{selectedDate ? (
+									<AvailabilityTableHeader
+										dateHeader={selectedDate.day}
+										datePageNav={datePageNav}
+										isFirstColumn={pageDateIndex === 0}
+										isLastColumn={pageDateIndex === lastIndex}
+										meetingType={meetingType}
+									/>
+								) : (
+									// The last page pads to full width with empty paper columns,
+									// as the web's `<td className="bg-paper" />` does.
+									<View style={{ height: DAY_HEADER_HEIGHT }} />
+								)}
+
+								<View
+									className="w-full bg-paper"
+									onLayout={pageDateIndex === 0 ? onColumnLayout : undefined}
+									style={{ height: columnHeight }}
+								>
+									{selectedDate && (
+										<>
+											<StripeBackdrop
+												height={columnHeight}
+												width={columnWidth}
+											/>
+											{availabilityTimeBlocks.map((timeBlock, blockIndex) => {
+												const timestamp =
+													timestampsByCell.get(
+														generateCellKey(zotDateIndex, blockIndex),
+													) ?? "";
+												const fill: BlockFill = calculateBlockFill({
+													block:
+														selectedDate.groupAvailability[timestamp] ?? [],
+													ifNeededBlock:
+														ifNeededDate?.groupAvailability[timestamp] ?? [],
+													hoveredMember: null,
+													selectedMembers: [],
+													numMembers,
+													showBestTimes: false,
+													maxAvailability: 0,
+												});
+
+												return (
+													<AvailabilityBlock
+														blockIndex={blockIndex}
+														chrome={getRowChrome(
+															timeBlock,
+															blockIndex,
+															availabilityTimeBlocks.length,
+														)}
+														fill={fill}
+														hasSpacerBefore={
+															hasSpacerBefore || pageDateIndex === 0
+														}
+														key={timeBlock}
+													/>
+												);
+											})}
+										</>
+									)}
+								</View>
+							</View>
+						);
+					},
+				)}
 			</View>
 		</View>
 	);

@@ -1,5 +1,6 @@
+import type { BlockFill, RowChrome } from "@zotmeet/shared";
 import { View } from "react-native";
-import { HOUR_HEIGHT } from "@/components/availability/table/availability-table-metrics";
+import { blockTop } from "@/components/availability/table/availability-table-metrics";
 
 /**
  * A 1px dashed rule. React Native only draws a dashed `borderStyle` when the
@@ -9,35 +10,62 @@ import { HOUR_HEIGHT } from "@/components/availability/table/availability-table-
  */
 function DashedRule() {
 	return (
-		<View className="h-px w-full overflow-hidden">
+		<View className="absolute top-0 right-0 left-0 h-px overflow-hidden">
 			<View className="absolute top-0 -right-0.5 -left-0.5 h-[3px] border border-border border-dashed" />
 		</View>
 	);
 }
 
 interface AvailabilityBlockProps {
-	/** Closes the bottom edge; only the last block in a column needs it. */
-	isLastRow: boolean;
+	blockIndex: number;
+	fill: BlockFill;
+	chrome: RowChrome;
+	hasSpacerBefore?: boolean;
 }
 
 /**
- * Native counterpart to the web app's
- * `components/availability/table/availability-block.tsx`: one hour of one
- * day, a solid outline with a dashed half-hour line through it. Blocks stack,
- * so each draws only its top edge — otherwise neighbouring outlines would
- * double up into a 2px rule.
+ * Native counterpart to the web app's `GroupAvailabilityBlock`: one 15-minute
+ * slot of one day. The fill comes from the shared `calculateBlockFill`, and
+ * the layers are the web's — a paper base that thins to reveal the column's
+ * stripe backdrop for if-needed responses, with the primary fill on top at
+ * the available share's opacity.
  *
- * The web block also paints availability, if-needed and draft-paint states;
- * none of that exists on mobile yet, so this is the empty cell only.
+ * Each block draws only its top rule (solid on the hour, dashed on the half)
+ * — otherwise neighbouring outlines would double into a 2px line. Blocks are
+ * placed absolutely at `blockTop` so their edges meet on whole pixels.
  */
-export function AvailabilityBlock({ isLastRow }: AvailabilityBlockProps) {
+export function AvailabilityBlock({
+	blockIndex,
+	fill,
+	chrome,
+	hasSpacerBefore = false,
+}: AvailabilityBlockProps) {
+	const paperOpacity = fill.stripes ? 1 - fill.stripes.opacity : 1;
+	const top = blockTop(blockIndex);
+
 	return (
 		<View
-			className={`w-full border-border border-x border-t ${isLastRow ? "border-b" : ""}`}
-			style={{ height: HOUR_HEIGHT }}
+			className={[
+				"absolute right-0 left-0 border-border border-r",
+				hasSpacerBefore ? "border-l" : "",
+				chrome.isTopOfHour ? "border-t" : "",
+				chrome.isLastRow ? "border-b" : "",
+			].join(" ")}
+			style={{ top, height: blockTop(blockIndex + 1) - top }}
 		>
-			<View style={{ height: HOUR_HEIGHT / 2 }} />
-			<DashedRule />
+			{paperOpacity > 0 && (
+				<View
+					className="absolute inset-0 bg-paper"
+					style={{ opacity: paperOpacity }}
+				/>
+			)}
+			{fill.solid && (
+				<View
+					className="absolute inset-0 bg-primary"
+					style={{ opacity: fill.solid.ratio }}
+				/>
+			)}
+			{chrome.isHalfHour && <DashedRule />}
 		</View>
 	);
 }
