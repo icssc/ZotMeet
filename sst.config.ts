@@ -33,6 +33,13 @@ export default $config({
 				OIDC_ISSUER_URL: process.env.OIDC_ISSUER_URL!,
 				GOOGLE_OAUTH_REDIRECT_URI: `${baseUrl}/auth/login/google/callback`,
 				NEXT_PUBLIC_BASE_URL: baseUrl,
+				// Lets the Expo app's PR previews (Expo Go running an EAS Update
+				// of this project) sign in against this stage — see
+				// `nativeRedirectUriOptions` in src/lib/auth/native-state.ts.
+				// Optional: unset, native sign-in is limited to the built app.
+				...(process.env.EAS_PROJECT_ID
+					? { EAS_PROJECT_ID: process.env.EAS_PROJECT_ID }
+					: {}),
 			},
 			cachePolicy: "e6e88864-aee5-41aa-b393-c48f78e33d2d",
 			domain: {

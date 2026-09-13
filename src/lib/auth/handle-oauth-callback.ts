@@ -1,10 +1,12 @@
+import { NATIVE_OAUTH_CALLBACK_PARAMS } from "@zotmeet/shared";
 import type { OAuth2Tokens } from "arctic";
 import { decodeIdToken } from "arctic";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { cookies } from "next/headers";
 import { db } from "@/db";
-import { members, oauthAccounts } from "@/db/schema";
+import { type InsertSession, members, oauthAccounts } from "@/db/schema";
 import { setSessionTokenCookie } from "@/lib/auth/cookies";
+import { decodeNativeState } from "@/lib/auth/native-state";
 import { getOAuthClient } from "@/lib/auth/oauth";
 import {
 	getOAuthCallbackRedirectUri,
@@ -244,61 +246,43 @@ async function maybeRedirectAfterMeetingCreation(
 	return null;
 }
 
-export async function handleOAuthCallback(
-	request: Request,
+const TOKEN_ENDPOINT = "https://auth.icssc.club/token";
+
+/**
+ * Redeems an authorization code with ICSSC. `redirectUri` must be the one the
+ * authorization request carried. Throws on an invalid or already-used code.
+ */
+export function exchangeOAuthCode(
+	code: string,
+	codeVerifier: string,
+	redirectUri: string,
+): Promise<OAuth2Tokens> {
+	return getOAuthClient(redirectUri).validateAuthorizationCode(
+		TOKEN_ENDPOINT,
+		code,
+		codeVerifier,
+	);
+}
+
+export type EstablishedOAuthSession = {
+	/** The raw token — the cookie value, or the bearer token for the app. */
+	sessionToken: string;
+	session: InsertSession;
+	userId: string;
+	memberId: string;
+};
+
+/**
+ * The provider-independent half of a login, once ICSSC has handed back
+ * tokens: find or create the user behind the id token and open a session for
+ * them. Shared by the browser callback below, which stores the token in the
+ * `session` cookie, and `POST /api/auth/login/<provider>`, which returns it
+ * to the Expo app as JSON.
+ */
+export async function establishOAuthSession(
 	provider: OAuthLoginProvider,
-	cookieStore: CookieStore,
-): Promise<Response> {
-	const url = new URL(request.url);
-	const code = url.searchParams.get("code");
-	const state = url.searchParams.get("state");
-
-	const storedState = cookieStore.get("oauth_state")?.value ?? null;
-	const codeVerifier = cookieStore.get("oauth_code_verifier")?.value ?? null;
-	const redirectUrl = cookieStore.get("auth_redirect_url")?.value ?? "/";
-	const oauthRedirectUri =
-		cookieStore.get("oauth_redirect_uri")?.value ??
-		getOAuthCallbackRedirectUri(
-			process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000",
-			provider,
-		);
-	console.log("[oauth-callback]", {
-		provider,
-		redirectUrl,
-		hasState: storedState !== null,
-		hasCodeVerifier: codeVerifier !== null,
-		oauthRedirectUri,
-	});
-
-	cookieStore.delete("auth_redirect_url");
-	cookieStore.delete("oauth_state");
-	cookieStore.delete("oauth_code_verifier");
-	cookieStore.delete("oauth_redirect_uri");
-
-	if (
-		code === null ||
-		state === null ||
-		storedState === null ||
-		codeVerifier === null
-	) {
-		return new Response(null, { status: 400 });
-	}
-	if (state !== storedState) {
-		return new Response(null, { status: 400 });
-	}
-
-	let tokens: OAuth2Tokens;
-	try {
-		tokens = await getOAuthClient(oauthRedirectUri).validateAuthorizationCode(
-			"https://auth.icssc.club/token",
-			code,
-			codeVerifier,
-		);
-	} catch (e) {
-		console.log("invalid credentials", e);
-		return new Response(null, { status: 400 });
-	}
-
+	tokens: OAuth2Tokens,
+): Promise<EstablishedOAuthSession> {
 	const claims = decodeIdToken(tokens.idToken()) as {
 		sub: string;
 		name?: string;
@@ -332,6 +316,111 @@ export async function handleOAuthCallback(
 		oauthRefreshToken: sessionOptions.oauthRefreshToken,
 		oauthAccessTokenExpiresAt: sessionOptions.oauthAccessTokenExpiresAt,
 	});
+
+	return { sessionToken, session, userId, memberId };
+}
+
+/**
+ * A login the Expo app started (see `startOAuthLogin`) ends here too, but the
+ * code is not redeemed: the app holds the PKCE verifier, so it is bounced —
+ * with the state the app chose, or ICSSC's error — to the app's callback
+ * link, and the app redeems it at `POST /api/auth/login/<provider>`.
+ */
+function bounceToNativeApp(
+	url: URL,
+	native: { state: string; redirectUri: string },
+): Response {
+	const params = new URLSearchParams();
+	const error = url.searchParams.get("error");
+	const code = url.searchParams.get("code");
+	if (error !== null) {
+		params.set(NATIVE_OAUTH_CALLBACK_PARAMS.error, error);
+	} else if (code === null) {
+		params.set(NATIVE_OAUTH_CALLBACK_PARAMS.error, "invalid_response");
+	} else {
+		params.set(NATIVE_OAUTH_CALLBACK_PARAMS.code, code);
+		params.set(NATIVE_OAUTH_CALLBACK_PARAMS.state, native.state);
+	}
+
+	return new Response(null, {
+		status: 302,
+		headers: { Location: `${native.redirectUri}?${params.toString()}` },
+	});
+}
+
+/**
+ * A failure page, not a bare status: an empty `400` shows up in the in-app
+ * browser as a zero-byte "callback" download, which is not a useful clue.
+ */
+function callbackFailure(message: string): Response {
+	return new Response(`Sign-in failed: ${message}`, {
+		status: 400,
+		headers: { "Content-Type": "text/plain; charset=utf-8" },
+	});
+}
+
+export async function handleOAuthCallback(
+	request: Request,
+	provider: OAuthLoginProvider,
+	cookieStore: CookieStore,
+): Promise<Response> {
+	const url = new URL(request.url);
+	const code = url.searchParams.get("code");
+	const state = url.searchParams.get("state");
+
+	const storedState = cookieStore.get("oauth_state")?.value ?? null;
+	const codeVerifier = cookieStore.get("oauth_code_verifier")?.value ?? null;
+	const redirectUrl = cookieStore.get("auth_redirect_url")?.value ?? "/";
+	// ICSSC returns the state verbatim; a native login's rides in it.
+	const native = decodeNativeState(state, provider);
+	const oauthRedirectUri =
+		cookieStore.get("oauth_redirect_uri")?.value ??
+		getOAuthCallbackRedirectUri(
+			process.env.NEXT_PUBLIC_BASE_URL ?? "http://localhost:3000",
+			provider,
+		);
+	console.log("[oauth-callback]", {
+		provider,
+		redirectUrl,
+		native: native !== null,
+		hasState: storedState !== null,
+		hasCodeVerifier: codeVerifier !== null,
+		oauthRedirectUri,
+	});
+
+	cookieStore.delete("auth_redirect_url");
+	cookieStore.delete("oauth_state");
+	cookieStore.delete("oauth_code_verifier");
+	cookieStore.delete("oauth_redirect_uri");
+
+	if (native !== null) {
+		return bounceToNativeApp(url, native);
+	}
+
+	if (
+		code === null ||
+		state === null ||
+		storedState === null ||
+		codeVerifier === null
+	) {
+		return callbackFailure("the sign-in response was incomplete");
+	}
+	if (state !== storedState) {
+		return callbackFailure("the sign-in response did not match");
+	}
+
+	let tokens: OAuth2Tokens;
+	try {
+		tokens = await exchangeOAuthCode(code, codeVerifier, oauthRedirectUri);
+	} catch (e) {
+		console.log("invalid credentials", e);
+		return callbackFailure("the authorization code was rejected");
+	}
+
+	const { sessionToken, session, memberId } = await establishOAuthSession(
+		provider,
+		tokens,
+	);
 	await setSessionTokenCookie(sessionToken, session.expiresAt);
 
 	const meetingRedirect = await maybeRedirectAfterMeetingCreation(
