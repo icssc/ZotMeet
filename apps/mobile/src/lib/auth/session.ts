@@ -82,6 +82,24 @@ export async function deleteSessionToken(): Promise<void> {
 	await storage.remove(SESSION_TOKEN_KEY);
 }
 
+/**
+ * Forgets `token`, but only while it is still the stored one. A 401 condemns
+ * the token that was *sent*, which is not necessarily the token that is stored
+ * by the time the response lands: a sign-in finishing in parallel will have
+ * replaced it, and an unconditional `deleteSessionToken` would then throw away
+ * a session the server considers perfectly good. Returns whether it deleted.
+ *
+ * The read is the cached one, and `setSessionToken` refreshes that cache before
+ * it awaits the keychain, so a token stored mid-flight is always seen here.
+ */
+export async function deleteSessionTokenIfCurrent(
+	token: string,
+): Promise<boolean> {
+	if ((await getSessionToken()) !== token) return false;
+	await deleteSessionToken();
+	return true;
+}
+
 export async function setPendingLogin(pending: PendingLogin): Promise<void> {
 	await storage.set(PENDING_LOGIN_KEY, JSON.stringify(pending));
 }

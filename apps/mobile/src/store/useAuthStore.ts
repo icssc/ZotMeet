@@ -52,9 +52,20 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 	error: null,
 
 	hydrate: async () => {
+		// Hydration only ever reports on the token that was already on the device
+		// at launch, so it is the weakest claim about who is signed in and it
+		// yields to anything newer: if a `completeSignIn` has landed while the
+		// session request was in flight, its answer is the current one and this
+		// result is stale by definition. `status` leaves "loading" exactly once,
+		// so that check is the whole guard.
+		const publish = (next: Pick<AuthStore, "status" | "user">) => {
+			if (get().status !== "loading") return;
+			set(next);
+		};
+
 		try {
 			const session = await getCurrentSession();
-			set(
+			publish(
 				session
 					? { status: "signedIn", user: session.user }
 					: { status: "signedOut", user: null },
@@ -63,7 +74,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 			// Could not reach the server: keep the token, start signed out, and
 			// let a later sign-in or relaunch sort it out.
 			console.warn("[auth] could not restore session", error);
-			set({ status: "signedOut", user: null });
+			publish({ status: "signedOut", user: null });
 		}
 	},
 
