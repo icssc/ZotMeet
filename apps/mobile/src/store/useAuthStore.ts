@@ -4,7 +4,7 @@ import { logout } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { getCurrentSession } from "@/lib/auth";
 import { handleOAuthCallback } from "@/lib/auth/handle-oauth-callback";
-import { deleteSessionToken } from "@/lib/auth/session";
+import { deleteSessionToken, getSessionToken } from "@/lib/auth/session";
 import { startOAuthLogin } from "@/lib/auth/start-oauth-login";
 
 /**
@@ -106,16 +106,33 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 	},
 
 	signOut: async () => {
-		// The server's copy is best-effort: if it cannot be reached the row
-		// lives on until it expires, but the device forgets the token either
-		// way, which is what "sign out" means to the user.
-		try {
-			await logout();
-		} catch (error) {
-			console.warn("[auth] could not revoke session on server", error);
-		}
+		// Signing out is a local act — the device forgets the token, which is
+		// what the word means to the user. Revoking the server's copy is a
+		// courtesy sent *after* that, and deliberately not awaited: a request
+		// that never answers must not be able to keep someone signed in, and
+		// nothing here can answer for the network. Awaiting it used to be safe
+		// only as long as it failed; a black-holed connection leaves `fetch`
+		// pending rather than rejecting (see `timeoutMs` in `api/client.ts`),
+		// which no `catch` can rescue.
+		//
+		// The token is read before it is deleted and handed to `logout`
+		// directly. Reading it inside the request instead would find it already
+		// gone, and a logout carrying no token — or, in development, the dev
+		// token, which `getSessionFromBearer` refuses on purpose — revokes
+		// nothing. If there is no token there is no session row to revoke, so
+		// the request is not worth sending at all.
+		const token = await getSessionToken();
+
 		await deleteSessionToken();
 		set({ status: "signedOut", user: null, error: null });
+
+		if (token !== null) {
+			logout(token).catch((error) => {
+				// The row now lives on until it expires. The device is signed
+				// out regardless, so there is nothing to tell the user.
+				console.warn("[auth] could not revoke session on server", error);
+			});
+		}
 	},
 }));
 

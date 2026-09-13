@@ -31,7 +31,24 @@ export function getSession(): Promise<SessionResponse> {
 	return apiFetch<SessionResponse>("/api/auth/session");
 }
 
-/** `POST /api/auth/logout`. Idempotent; never fails on an already-dead token. */
-export async function logout(): Promise<void> {
-	await apiFetch<undefined>("/api/auth/logout", { method: "POST" });
+/**
+ * How long the detached logout request is given before it is abandoned. It
+ * blocks nothing, so it can be patient; it is bounded only so a hung socket
+ * is eventually released rather than held for the life of the process.
+ */
+const LOGOUT_TIMEOUT_MS = 10_000;
+
+/**
+ * `POST /api/auth/logout`. Idempotent; never fails on an already-dead token.
+ *
+ * The token is passed in rather than read from storage, because `signOut`
+ * deletes it from the device first and does not wait for this to finish —
+ * by the time the request is built there is nothing left to look up.
+ */
+export async function logout(token: string): Promise<void> {
+	await apiFetch<undefined>("/api/auth/logout", {
+		method: "POST",
+		authToken: token,
+		timeoutMs: LOGOUT_TIMEOUT_MS,
+	});
 }

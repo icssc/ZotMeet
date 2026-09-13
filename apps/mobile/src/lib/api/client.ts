@@ -40,9 +40,28 @@ export class ApiError extends Error {
 	}
 }
 
+export type ApiFetchInit = RequestInit & {
+	/**
+	 * Bearer token to send instead of the stored one. For the request that has
+	 * to outlive the token it acts on: `logout`, which the device forgets
+	 * before the server has answered.
+	 */
+	authToken?: string;
+	/**
+	 * Give up after this many milliseconds. There is no timeout otherwise —
+	 * React Native's `fetch` is `whatwg-fetch` over `XMLHttpRequest`, whose
+	 * `timeout` defaults to `0`, and Android's OkHttp client is built with no
+	 * read timeout either. A connection that is black-holed rather than
+	 * refused (a captive portal, a server dropping packets) therefore leaves
+	 * the promise pending indefinitely instead of rejecting, so anything a
+	 * user is waiting on needs its own deadline.
+	 */
+	timeoutMs?: number;
+};
+
 export async function apiFetch<T>(
 	path: string,
-	init: RequestInit = {},
+	init: ApiFetchInit = {},
 ): Promise<T> {
 	if (!API_URL) {
 		throw new Error(
@@ -50,13 +69,34 @@ export async function apiFetch<T>(
 		);
 	}
 
-	const headers = new Headers(init.headers);
+	const { authToken, timeoutMs, ...requestInit } = init;
+
+	const headers = new Headers(requestInit.headers);
 	headers.set("Accept", "application/json");
-	if (init.body !== undefined) headers.set("Content-Type", "application/json");
-	const token = (await getSessionToken()) ?? API_TOKEN;
+	if (requestInit.body !== undefined) {
+		headers.set("Content-Type", "application/json");
+	}
+	const token = authToken ?? (await getSessionToken()) ?? API_TOKEN;
 	if (token) headers.set("Authorization", `Bearer ${token}`);
 
-	const response = await fetch(`${API_URL}${path}`, { ...init, headers });
+	// `AbortController` + `setTimeout` rather than `AbortSignal.timeout`, which
+	// Hermes does not ship.
+	const controller = timeoutMs === undefined ? null : new AbortController();
+	const timer =
+		controller === null
+			? null
+			: setTimeout(() => controller.abort(), timeoutMs);
+
+	let response: Response;
+	try {
+		response = await fetch(`${API_URL}${path}`, {
+			...requestInit,
+			headers,
+			signal: controller?.signal ?? requestInit.signal,
+		});
+	} finally {
+		if (timer !== null) clearTimeout(timer);
+	}
 
 	if (!response.ok) {
 		let body: ApiErrorResponse = {

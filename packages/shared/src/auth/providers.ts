@@ -16,10 +16,21 @@ export const OAUTH_LOGIN_PROVIDERS = Object.keys(
 	OAUTH_ACCOUNT_PROVIDER,
 ) as OAuthLoginProvider[];
 
+/**
+ * Whether an untrusted string — a route segment, a query parameter — names a
+ * provider. `Object.hasOwn`, not `in`: `in` walks the prototype chain, so it
+ * answers yes to the dozen names every object literal inherits from
+ * `Object.prototype` ("constructor", "toString", "__proto__", …). That would
+ * make this an unsound guard, and the narrowing is the whole point of it —
+ * callers go straight from here to `OAUTH_LOGIN_CONFIG[provider]`, which for
+ * an inherited name resolves to something truthy off the prototype rather
+ * than `undefined`, so the mistake reads as a provider whose every setting is
+ * missing instead of failing outright.
+ */
 export function isOAuthLoginProvider(
 	value: string,
 ): value is OAuthLoginProvider {
-	return value in OAUTH_ACCOUNT_PROVIDER;
+	return Object.hasOwn(OAUTH_ACCOUNT_PROVIDER, value);
 }
 
 export type OAuthAccountProviderId =
