@@ -198,6 +198,8 @@ Mobile side: `lib/api/client.ts` (`apiFetch`, `ApiError`) and `lib/api/meetings.
 
 Every PR that touches `apps/mobile/**` or `packages/**` gets a build published as an **EAS Update**, and the `mobile-preview` workflow comments on the PR with a **QR code**. Scan it with [Expo Go](https://expo.dev/go) to run that exact commit on your phone — no Xcode, no local checkout. Only the newest commit on a PR is kept; the update is deleted when the PR closes (`mobile-preview-cleanup.yml`).
 
+The same happens for `main`: `mobile-main.yml` publishes every mobile-touching push to the **`main` channel**, and the QR code in the [root README](../../README.md#try-the-mobile-app) opens the latest update there. Unlike a PR preview, that QR code is static — it names the channel and runtime version rather than one update group — so it needs no regenerating, but the `runtimeVersion` in its URL must be bumped on an Expo SDK upgrade (the README comment says how). The main update talks to **production** (`https://zotmeet.com`), which `deploy-prod.yml` deploys from the same commits.
+
 ### Getting access
 
 The QR code opens an update owned by the **`ethanchaos-team`** Expo organization, and Expo Go will only load it for accounts that belong to that org. To test PRs on a device:
@@ -219,12 +221,12 @@ If Expo Go says the update can't be found or you're not authorised, you're eithe
 
 ### CI setup (maintainers)
 
-The workflow needs two things in the GitHub repo settings; it fails early with a message naming the missing one:
+The preview and main-update workflows need two things in the GitHub repo settings; each fails early with a message naming the missing one:
 
 | Setting | Type | Where it comes from |
 |---|---|---|
 | `EXPO_TOKEN` | repository **secret** | A robot access token owned by `ethanchaos-team` — [expo.dev/settings/access-tokens](https://expo.dev/settings/access-tokens). |
-| `EAS_PROJECT_ID` | repository **variable** | The project's id from the Expo dashboard; `app.config.ts` reads it to set `updates.url`, and `deploy-staging.yml` passes it to the staging server so previews can sign in. |
+| `EAS_PROJECT_ID` | repository **variable** | The project's id from the Expo dashboard; `app.config.ts` reads it to set `updates.url`, and `deploy-staging.yml` / `deploy-prod.yml` pass it to the servers so previews and the `main` update can sign in. |
 
 ---
 
