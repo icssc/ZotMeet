@@ -25,6 +25,11 @@ env:
   # OIDC Configuration
   OIDC_CLIENT_ID: ${{ secrets.OIDC_CLIENT_ID }}
   OIDC_ISSUER_URL: ${{ secrets.OIDC_ISSUER_URL }}
+  # Lets Expo Go running the `main` EAS Update (mobile-main.yml, the QR code
+  # in the README) sign in against production — the server only accepts a
+  # `u.expo.dev/<project id>` callback link once it knows the id. Same
+  # variable the staging deploy passes for PR previews.
+  EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
 
 jobs:
   deploy:
