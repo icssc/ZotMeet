@@ -1,6 +1,6 @@
 "use client";
 
-import { blue, green, orange, red } from "@mui/material/colors";
+import { green, orange, red } from "@mui/material/colors";
 import { createTheme } from "@mui/material/styles";
 import { hsl } from "@zotmeet/tokens";
 import { figtree } from "@/fonts";
@@ -101,18 +101,19 @@ export const getTheme = (mode: "light" | "dark") =>
 				secondary:
 					mode === "dark" ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.6)",
 			},
+			// Every colour this palette shares with the Expo app comes from
+			// `packages/tokens` — the same file both Tailwind configs read — so a
+			// palette entry and its `bg-*` class cannot drift apart. Entries still
+			// written out below (`success`, `error`, the `light`/`dark` shades) have
+			// no native counterpart yet; give one a token when native needs it.
 			primary: {
-				// The brand pink, from `packages/tokens` — the same file the Tailwind
-				// configs read, so this palette and `bg-primary` (web and native)
-				// cannot drift apart. The rest of this palette is deliberately not
-				// wired up: those values differ from the Tailwind tokens today.
 				main: hsl("primary"),
 				contrastText: hsl("primary-foreground"),
 				light: "#fed3df",
 			},
 			secondary: {
-				main: "#1F2A44",
-				contrastText: "#ffffff",
+				main: hsl("secondary-main"),
+				contrastText: hsl("secondary-main-foreground"),
 			},
 			success: {
 				main: green[800],
@@ -121,13 +122,14 @@ export const getTheme = (mode: "light" | "dark") =>
 				contrastText: "#ffffff",
 			},
 			warning: {
-				main: orange[800],
+				main: hsl("warning"),
 				dark: orange[900],
 				light: orange[500],
-				contrastText: "#ffffff",
+				contrastText: hsl("warning-foreground"),
 			},
 			info: {
-				main: blue[700],
+				main: hsl("info"),
+				contrastText: hsl("info-foreground"),
 			},
 			error: {
 				main: red[700],

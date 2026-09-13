@@ -34,6 +34,12 @@ const config: Config = {
 					DEFAULT: "hsl(var(--secondary))",
 					foreground: "hsl(var(--secondary-foreground))",
 				},
+				// MUI's `palette.secondary`, which is a different colour from the
+				// shadcn `secondary` surface above. Named to match the Expo config.
+				"secondary-main": {
+					DEFAULT: "hsl(var(--secondary-main))",
+					foreground: "hsl(var(--secondary-main-foreground))",
+				},
 				muted: {
 					DEFAULT: "hsl(var(--muted))",
 					foreground: "hsl(var(--muted-foreground))",

@@ -11,6 +11,10 @@
  * every consumer picks it up on the next build, because they all read this
  * file. Values are stored the way Tailwind wants them — bare HSL channels,
  * no `hsl()` wrapper — so a token can be composed as `hsl(var(--primary))`.
+ *
+ * One group is the exception, and says so at its definition: the pre-composited
+ * MUI *surface* inks are native-only, because the web wants the translucent
+ * originals. Everything else here is genuinely shared, `getTheme` included.
  */
 
 /** Tokens shared with the web app. Keep the key order grouped by role. */
@@ -51,10 +55,15 @@ const light = {
 	"sidebar-ring": "217.2 91.2% 59.8%",
 
 	/*
-	 * MUI surface tokens, used by the Figma hi-fi wireframes. The web app gets
-	 * these from `src/theme.ts` as translucent inks (rgba(0,0,0,0.38) and
-	 * friends); React Native has no cascade to blend against, so they are stored
-	 * pre-composited on the mode's own background, like every token here.
+	 * MUI surface inks, used by the Figma hi-fi wireframes. **Native-only** —
+	 * the one group in this file `src/theme.ts` does not read. On the web these
+	 * stay translucent (MUI's own `rgba(0,0,0,0.38)` and friends, plus the
+	 * `rgba(0,0,0,0.25)` ledges written into `getTheme`) so they blend against
+	 * whatever surface they land on. React Native has no cascade to blend
+	 * against, so here they are pre-composited on the mode's own background —
+	 * which is exactly why feeding them back to MUI would be wrong: it would
+	 * freeze one surface's composite onto every surface. Change these and only
+	 * the Expo app moves; the web equivalents live in `src/theme.ts`.
 	 */
 	"text-disabled": "0 0% 62%" /* rgba(0,0,0,0.38) on white */,
 	"action-active": "0 0% 46%" /* rgba(0,0,0,0.54) on white */,
@@ -66,16 +75,22 @@ const light = {
 	"action-hover": "0 0% 96%" /* rgba(0,0,0,0.04) on white */,
 
 	/*
-	 * MUI palette entries the meeting cards paint their banners with
-	 * (`src/theme.ts`: secondary #1F2A44, info blue[700], warning orange[800]).
-	 * `secondary` above is the shadcn surface the buttons use, so the MUI one
-	 * is `secondary-main`. Same in both modes, as in the MUI theme.
+	 * MUI palette entries the meeting cards paint their banners with. Unlike the
+	 * inks above these *are* shared: `getTheme` reads them for `palette.secondary`,
+	 * `palette.info` and `palette.warning`, so the banners match on both
+	 * platforms. `secondary` above is the shadcn surface the buttons use, so the
+	 * MUI one is `secondary-main`. Same in both modes, as in the MUI theme.
+	 *
+	 * The decimals are load-bearing: they are the exact HSL of the hexes the MUI
+	 * theme used to hard-code — the per-token comments below name each one — so
+	 * wiring the theme up to them repainted nothing. Round them and the web app
+	 * shifts by a channel or two.
 	 */
-	"secondary-main": "222 37% 19%",
+	"secondary-main": "222.2 37.4% 19.4%" /* #1F2A44 */,
 	"secondary-main-foreground": "0 0% 100%",
-	info: "210 79% 46%",
+	info: "209.8 78.7% 46.1%" /* MUI blue[700] #1976D2 */,
 	"info-foreground": "0 0% 100%",
-	warning: "27 100% 47%",
+	warning: "27.1 100% 46.9%" /* MUI orange[800] #EF6C00 */,
 	"warning-foreground": "0 0% 100%",
 };
 
@@ -124,11 +139,11 @@ const dark = {
 	"primary-ledge": "344.6 55.3% 57.1%",
 	"action-hover": "0 0% 18%" /* rgba(255,255,255,0.08) on #1C1B1B */,
 
-	"secondary-main": "222 37% 19%",
+	"secondary-main": "222.2 37.4% 19.4%",
 	"secondary-main-foreground": "0 0% 100%",
-	info: "210 79% 46%",
+	info: "209.8 78.7% 46.1%",
 	"info-foreground": "0 0% 100%",
-	warning: "27 100% 47%",
+	warning: "27.1 100% 46.9%",
 	"warning-foreground": "0 0% 100%",
 };
 
