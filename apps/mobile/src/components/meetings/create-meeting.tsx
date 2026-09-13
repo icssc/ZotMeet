@@ -77,6 +77,25 @@ export function CreateMeetingForm() {
 				: [...current, index],
 		);
 
+	// Switching tabs starts the date picker over, the same as the web form's
+	// `<Tabs onChange>` in `src/components/creation/calendar/calendar.tsx`. There
+	// a single `selectedDates` array backs both tabs, so its one `setSelectedDays([])`
+	// clears whichever mode was left behind; here the two modes hold separate
+	// state, so both have to be cleared to get the same invariant — the selection
+	// you can see is the only selection there is.
+	//
+	// The equality guard is load-bearing, because the two tab primitives differ:
+	// MUI's `<Tab>` calls `onChange` only when the tab is not already selected,
+	// while `@rn-primitives/tabs` calls `onValueChange` on every press. Without
+	// it, re-tapping the tab you are already on would wipe the dates you just
+	// picked — a way to lose work that the web form does not have.
+	const changeMode = (next: DatePickerMode) => {
+		if (next === mode) return;
+		setMode(next);
+		setSelectedDates([]);
+		setSelectedWeekdays([]);
+	};
+
 	// Mirrors `handleCreation` in the web app's `creation.tsx`: times are
 	// entered as local wall-clock and stored as UTC, anchored on the first
 	// meeting date; a "days of the week" meeting stores `ANCHOR_DATES` instead
@@ -172,7 +191,7 @@ export function CreateMeetingForm() {
 
 				<View className="w-full max-w-[320px] items-center gap-3">
 					<Tabs
-						onValueChange={(value) => setMode(value as DatePickerMode)}
+						onValueChange={(value) => changeMode(value as DatePickerMode)}
 						value={mode}
 					>
 						<TabsList variant="underline">
