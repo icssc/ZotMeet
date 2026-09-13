@@ -1,3 +1,4 @@
+import type { NativeOAuthLoginProvider } from "@zotmeet/shared";
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 
@@ -23,9 +24,15 @@ const PENDING_LOGIN_KEY = "zotmeet.oauth_pending";
  * process if the app was evicted while the browser was in front.
  */
 export type PendingLogin = {
-	provider: "google" | "apple";
+	provider: NativeOAuthLoginProvider;
 	state: string;
 	codeVerifier: string;
+	/**
+	 * The callback link this login asked the web app to bounce the code to.
+	 * The link that comes back must be exactly this one, not merely one of
+	 * the allowed forms.
+	 */
+	redirectUri: string;
 	/** Epoch ms. Older than `PENDING_LOGIN_TTL_MS` is treated as abandoned. */
 	startedAt: number;
 };

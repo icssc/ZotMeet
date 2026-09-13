@@ -1,4 +1,4 @@
-import { Image, View } from "react-native";
+import { Image, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SignInButtons } from "@/components/auth/sign-in-buttons";
 import { Card } from "@/components/ui/card";
@@ -14,10 +14,14 @@ import { Typography } from "@/components/ui/typography";
 export function SignIn() {
 	const insets = useSafeAreaInsets();
 
+	// Scrolls so the Apple button is reachable on short or landscape screens,
+	// where the card is taller than the viewport.
 	return (
-		<View
-			className="flex-1 bg-background px-4"
-			style={{ paddingTop: insets.top + 16 }}
+		<ScrollView
+			className="flex-1 bg-background"
+			contentContainerClassName="px-4 pb-6"
+			contentContainerStyle={{ paddingTop: insets.top + 16 }}
+			keyboardShouldPersistTaps="handled"
 		>
 			<Card className="items-center gap-4 px-6 py-14">
 				<Image
@@ -34,6 +38,6 @@ export function SignIn() {
 
 				<SignInButtons />
 			</Card>
-		</View>
+		</ScrollView>
 	);
 }

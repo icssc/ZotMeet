@@ -1,7 +1,7 @@
 import type {
+	NativeOAuthLoginProvider,
 	NativeOAuthTokenRequest,
 	NativeOAuthTokenResponse,
-	OAuthLoginProvider,
 	SessionResponse,
 } from "@zotmeet/shared";
 import { apiFetch } from "@/lib/api/client";
@@ -15,9 +15,11 @@ import { apiFetch } from "@/lib/api/client";
 /**
  * `POST /api/auth/login/:provider`. Redeems the authorization code the web
  * callback bounced to the app; a rejected code surfaces as `ApiError` 400.
+ * Only the providers with such a route can be named here
+ * (`NATIVE_OAUTH_LOGIN_PROVIDERS`); anything else would be a 404.
  */
 export function exchangeOAuthCode(
-	provider: OAuthLoginProvider,
+	provider: NativeOAuthLoginProvider,
 	request: NativeOAuthTokenRequest,
 ): Promise<NativeOAuthTokenResponse> {
 	return apiFetch<NativeOAuthTokenResponse>(`/api/auth/login/${provider}`, {
@@ -26,9 +28,15 @@ export function exchangeOAuthCode(
 	});
 }
 
-/** `GET /api/auth/session`. A dead token surfaces as `ApiError` 401. */
-export function getSession(): Promise<SessionResponse> {
-	return apiFetch<SessionResponse>("/api/auth/session");
+/**
+ * `GET /api/auth/session`. A dead token surfaces as `ApiError` 401.
+ *
+ * Takes the token rather than reading the stored one, so the caller knows
+ * exactly which token a 401 is a verdict on — the stored one can change
+ * between the caller's read and this request being built.
+ */
+export function getSession(token: string): Promise<SessionResponse> {
+	return apiFetch<SessionResponse>("/api/auth/session", { authToken: token });
 }
 
 /**

@@ -3,6 +3,7 @@ import {
 	NATIVE_OAUTH_CLIENT,
 	NATIVE_OAUTH_PARAMS,
 	type NativeOAuthLoginParams,
+	type NativeOAuthLoginProvider,
 } from "@zotmeet/shared";
 import {
 	CodeChallengeMethod,
@@ -35,11 +36,13 @@ const AUTHORIZATION_ENDPOINT = "https://auth.icssc.club/authorize";
  * throws otherwise — a native login with a bad redirect URI must not fall
  * back to the cookie flow, which would leave the app waiting forever.
  *
+ * Only a login route with a matching `POST /api/auth/login/<provider>` may
+ * call this (`NATIVE_OAUTH_LOGIN_PROVIDERS`); the others stay browser-only.
  * See `NativeOAuth…` in `@zotmeet/shared` for the flow this starts.
  */
 export function parseNativeOAuthLoginParams(
 	searchParams: URLSearchParams,
-	provider: OAuthLoginProvider,
+	provider: NativeOAuthLoginProvider,
 ): NativeOAuthLoginParams | null {
 	if (searchParams.get(NATIVE_OAUTH_PARAMS.client) !== NATIVE_OAUTH_CLIENT) {
 		return null;

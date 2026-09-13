@@ -36,14 +36,34 @@ export function useMeetings(): MeetingsState & {
 	// Skips the focus effect's fetch on first focus, which the mount effect
 	// already covers.
 	const mounted = useRef(false);
+	/**
+	 * Ticket of the newest request. Four things fetch this list — mount, a
+	 * `userId` change, `reload`, and a focus or pull-to-refresh — and any of
+	 * them can be in flight when the next one starts, so responses can land out
+	 * of order. Only the newest request may write state; everything older is a
+	 * stale answer to a question nobody is asking any more.
+	 */
+	const latestRequest = useRef(0);
 
 	const fetchMeetings = useCallback(async (quiet: boolean) => {
+		const ticket = ++latestRequest.current;
+		// Read from the store rather than from a dependency, which would change
+		// this callback's identity and make the focus effect refetch on every
+		// sign-in. Guarding on the user as well as the ticket keeps the check
+		// true on its own terms: a response is only allowed to describe the
+		// person who is signed in now, however it was scheduled.
+		const requestUserId = useAuthStore.getState().user?.id ?? null;
+		const isCurrent = () =>
+			latestRequest.current === ticket &&
+			(useAuthStore.getState().user?.id ?? null) === requestUserId;
+
 		if (quiet) setRefreshing(true);
 		else setState({ status: "loading" });
 		try {
 			const list = await getMeetings();
-			setState({ status: "ready", ...list });
+			if (isCurrent()) setState({ status: "ready", ...list });
 		} catch (error: unknown) {
+			if (!isCurrent()) return;
 			if (error instanceof ApiError && error.status === 401) {
 				setState({ status: "unauthorized" });
 			} else {
@@ -54,42 +74,30 @@ export function useMeetings(): MeetingsState & {
 				});
 			}
 		} finally {
-			setRefreshing(false);
+			// Whoever is newest owns the spinner and will clear it when it
+			// settles; clearing it here too would hide a refetch still running.
+			if (isCurrent()) setRefreshing(false);
 		}
 	}, []);
 
+	// `attempt` and `userId` are the real inputs: `reload` bumps `attempt` to
+	// fetch again, and a sign-in or sign-out changes `userId`. Going through
+	// `fetchMeetings` rather than calling `getMeetings` directly is what makes
+	// the ticket authoritative — a fetch outside it would not supersede one
+	// already running, and could be overwritten by it.
 	useEffect(() => {
-		let cancelled = false;
-		setState({ status: "loading" });
-
-		// Read so both are real inputs of this effect: `reload` bumps `attempt`
-		// to fetch again, and a sign-in or sign-out changes `userId`.
+		// Read so both count as used: the values are the trigger, not an input
+		// `fetchMeetings` needs — it takes the current user from the store.
 		void attempt;
 		void userId;
 
-		getMeetings()
-			.then((list) => {
-				if (!cancelled) setState({ status: "ready", ...list });
-			})
-			.catch((error: unknown) => {
-				if (cancelled) return;
-				if (error instanceof ApiError && error.status === 401) {
-					setState({ status: "unauthorized" });
-				} else {
-					setState({
-						status: "error",
-						error:
-							error instanceof Error
-								? error.message
-								: "Failed to load meetings.",
-					});
-				}
-			});
-
+		void fetchMeetings(false);
+		// Retires the request on unmount as well as before the next run, which
+		// is what the old local `cancelled` flag did for this path alone.
 		return () => {
-			cancelled = true;
+			latestRequest.current += 1;
 		};
-	}, [attempt, userId]);
+	}, [attempt, userId, fetchMeetings]);
 
 	useFocusEffect(
 		useCallback(() => {

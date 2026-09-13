@@ -33,6 +33,15 @@ concurrency:
 env:
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
   EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+  # `EXPO_PUBLIC_*` values are inlined into the bundle when `eas update`
+  # exports it, so the preview must be told which server to talk to here —
+  # the EAS `preview` environment carries no variables, and without one every
+  # request fails on the device with "EXPO_PUBLIC_API_URL is not set".
+  #
+  # The PR's own staging deployment (`deploy-staging.yml`, published for every
+  # PR) is the only server running this PR's `/api/*` routes; production only
+  # has what is already merged. Both are torn down when the PR closes.
+  EXPO_PUBLIC_API_URL: https://staging-${{ github.event.pull_request.number || github.event.client_payload.pull_request.number }}.zotmeet.com
 
 jobs:
   preview:

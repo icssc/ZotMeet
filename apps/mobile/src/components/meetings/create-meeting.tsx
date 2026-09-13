@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/tabs";
 import { Text } from "@/components/ui/text";
 import { TimeField } from "@/components/ui/time-field";
+import { ApiError } from "@/lib/api/client";
 import { createMeeting } from "@/lib/api/meetings";
 import {
 	dateKeyToLocalMidnightIso,
@@ -102,7 +103,9 @@ export function CreateMeetingForm() {
 	// of real dates. The location choice is UI only for now — the web form
 	// does not send a location either.
 	const submit = async () => {
-		if (!hasValidInputs || !startTime || !endTime) return;
+		// `isCreating` first: a second press can land before the disabled
+		// button has re-rendered, and would create the meeting twice.
+		if (isCreating || !hasValidInputs || !startTime || !endTime) return;
 
 		setIsCreating(true);
 		setSubmitError(null);
@@ -142,6 +145,15 @@ export function CreateMeetingForm() {
 				params: { slug: id },
 			});
 		} catch (error) {
+			// The web form sends a visitor to sign in before creating (and
+			// creates on their return). There is no dev-token equivalent of
+			// "visitor" here — in development the shared token stands in for a
+			// member — so the server's verdict is what decides, and a 401 goes
+			// to the Sign In tab the way the web goes to `/auth/login`.
+			if (error instanceof ApiError && error.status === 401) {
+				router.replace("/profile");
+				return;
+			}
 			setSubmitError(
 				error instanceof Error ? error.message : "Failed to create meeting.",
 			);

@@ -1,4 +1,8 @@
-import type { OAuthLoginProvider, UserProfile } from "@zotmeet/shared";
+import {
+	isNativeOAuthLoginProvider,
+	type OAuthLoginProvider,
+	type UserProfile,
+} from "@zotmeet/shared";
 import { create } from "zustand";
 import { logout } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
@@ -18,11 +22,15 @@ import { startOAuthLogin } from "@/lib/auth/start-oauth-login";
  */
 
 /**
- * Providers with a native flow. Apple needs its own — the App Store requires
- * Sign in with Apple to be native, not a web view — so its button is wired
- * but declined until that lands.
+ * Callback links this process has already acted on. Both deliveries of a
+ * link (see `handleOAuthCallback`) go through `completeSignIn`, and the
+ * router's can come again much later — on Android `Linking.useURL()` keeps
+ * reporting the launch link, so the callback screen can mount with it after
+ * the user has since signed out. Whatever the first attempt concluded stands;
+ * a repeat neither overwrites a success with "expired" nor replays a success
+ * over a sign-out. A few strings per sign-in, never pruned.
  */
-const NATIVE_PROVIDERS: readonly OAuthLoginProvider[] = ["google"];
+const handledCallbackUrls = new Set<string>();
 
 export type AuthStatus =
 	/** Launch: the stored session, if any, has not been checked yet. */
@@ -81,7 +89,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 	signIn: async (provider) => {
 		set({ error: null });
 
-		if (!NATIVE_PROVIDERS.includes(provider)) {
+		// Apple needs a native flow — the App Store requires Sign in with Apple
+		// to be native, not a web view — so its button is wired but declined
+		// until that lands (`NATIVE_OAUTH_LOGIN_PROVIDERS` in `@zotmeet/shared`).
+		if (!isNativeOAuthLoginProvider(provider)) {
 			set({ error: "Sign in with Apple isn't available in the app yet." });
 			return;
 		}
@@ -97,6 +108,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 	},
 
 	completeSignIn: async (url) => {
+		if (handledCallbackUrls.has(url)) return;
+		handledCallbackUrls.add(url);
+
 		try {
 			const user = await handleOAuthCallback(url);
 			set({ status: "signedIn", user, error: null });
@@ -121,9 +135,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 		// token, which `getSessionFromBearer` refuses on purpose — revokes
 		// nothing. If there is no token there is no session row to revoke, so
 		// the request is not worth sending at all.
-		const token = await getSessionToken();
-
-		await deleteSessionToken();
+		//
+		// A keychain that cannot be read or written is no reason to stay signed
+		// in: the local sign-out goes ahead without a token to revoke, and the
+		// in-memory copy is dropped even if the stored one could not be.
+		let token: string | null = null;
+		try {
+			token = await getSessionToken();
+		} catch (error) {
+			console.warn("[auth] could not read session token to revoke", error);
+		}
+		try {
+			await deleteSessionToken();
+		} catch (error) {
+			console.warn("[auth] could not delete stored session token", error);
+		}
 		set({ status: "signedOut", user: null, error: null });
 
 		if (token !== null) {

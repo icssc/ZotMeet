@@ -79,9 +79,17 @@ export async function apiFetch<T>(
 	const token = authToken ?? (await getSessionToken()) ?? API_TOKEN;
 	if (token) headers.set("Authorization", `Bearer ${token}`);
 
-	// `AbortController` + `setTimeout` rather than `AbortSignal.timeout`, which
-	// Hermes does not ship.
+	// `AbortController` + `setTimeout` rather than `AbortSignal.timeout`, and
+	// a listener rather than `AbortSignal.any`, neither of which Hermes ships.
+	// The caller's own `signal` still cancels: it is forwarded onto the
+	// timeout's controller, so whichever fires first aborts the request.
 	const controller = timeoutMs === undefined ? null : new AbortController();
+	const callerSignal = requestInit.signal ?? null;
+	const forwardAbort = () => controller?.abort();
+	if (controller !== null && callerSignal !== null) {
+		if (callerSignal.aborted) forwardAbort();
+		else callerSignal.addEventListener("abort", forwardAbort);
+	}
 	const timer =
 		controller === null
 			? null
@@ -92,10 +100,11 @@ export async function apiFetch<T>(
 		response = await fetch(`${API_URL}${path}`, {
 			...requestInit,
 			headers,
-			signal: controller?.signal ?? requestInit.signal,
+			signal: controller?.signal ?? callerSignal ?? undefined,
 		});
 	} finally {
 		if (timer !== null) clearTimeout(timer);
+		callerSignal?.removeEventListener("abort", forwardAbort);
 	}
 
 	if (!response.ok) {

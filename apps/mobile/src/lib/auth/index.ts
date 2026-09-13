@@ -20,9 +20,11 @@ import {
  * forgotten, because a sign-in can complete while this request is in flight —
  * on Android a callback link can relaunch the app straight into one — and the
  * verdict on a token that has since been replaced says nothing about its
- * replacement. Hence `deleteSessionTokenIfCurrent`, and the `null` rather than
- * a throw when it declines: this call's token is gone either way, so there is
- * no session *for it* to report.
+ * replacement. Hence the token read once and handed to `getSession`, so the
+ * request cannot silently pick up a newer one; hence
+ * `deleteSessionTokenIfCurrent`; and hence the `null` rather than a throw when
+ * it declines: this call's token is gone either way, so there is no session
+ * *for it* to report.
  */
 export async function getCurrentSession(): Promise<{
 	user: UserProfile;
@@ -31,7 +33,7 @@ export async function getCurrentSession(): Promise<{
 	if (token === null) return null;
 
 	try {
-		const { user } = await getSession();
+		const { user } = await getSession(token);
 		return { user };
 	} catch (error) {
 		if (error instanceof ApiError && error.status === 401) {

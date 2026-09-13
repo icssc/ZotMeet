@@ -56,6 +56,31 @@ export const NATIVE_OAUTH_CALLBACK_PARAMS = {
 export const NATIVE_APP_SCHEME = "zotmeet";
 
 /**
+ * The providers the app can sign in with, which is not every provider the
+ * web app can: each one here needs a `POST /api/auth/login/<provider>` route
+ * (`src/app/api/auth/login/`), and its login route must accept the native
+ * parameters. Apple is absent because the App Store requires Sign in with
+ * Apple to be native rather than a web view, which is not built; the app's
+ * button is wired but declined until it is.
+ *
+ * Every other helper in this file is typed on this narrower set, so a
+ * provider without a native flow cannot be asked to start one, and the
+ * redirect-URI allowlist refuses its callback paths outright.
+ */
+export const NATIVE_OAUTH_LOGIN_PROVIDERS = [
+	"google",
+] as const satisfies readonly OAuthLoginProvider[];
+
+export type NativeOAuthLoginProvider =
+	(typeof NATIVE_OAUTH_LOGIN_PROVIDERS)[number];
+
+export function isNativeOAuthLoginProvider(
+	provider: OAuthLoginProvider,
+): provider is NativeOAuthLoginProvider {
+	return (NATIVE_OAUTH_LOGIN_PROVIDERS as readonly string[]).includes(provider);
+}
+
+/**
  * Path of the app's callback route, which is the web callback's path so the
  * two file trees line up (`apps/mobile/src/app/auth/login/<provider>/callback.tsx`).
  */
@@ -73,7 +98,7 @@ export type NativeOAuthLoginParams = {
 
 /** The login route URL a native client opens (path + query, no origin). */
 export function nativeOAuthLoginPath(
-	provider: OAuthLoginProvider,
+	provider: NativeOAuthLoginProvider,
 	params: NativeOAuthLoginParams,
 ): string {
 	const query = new URLSearchParams({
@@ -98,12 +123,22 @@ export function nativeOAuthLoginPath(
  * Written on string prefixes rather than `URL` because React Native's `URL`
  * lacks `searchParams` and hostname parsing for custom schemes, and the app
  * uses this to fail fast before opening a browser.
+ *
+ * Both sides apply it: the web app to the `redirect_uri` a login carries and
+ * again to the state ICSSC hands back, and the app to the link it is about
+ * to send and (`matchNativeRedirectUri`) to the link that comes back.
  */
 export function isAllowedNativeRedirectUri(
 	redirectUri: string,
 	provider: OAuthLoginProvider,
 	options: { allowDevelopment: boolean },
 ): boolean {
+	// A provider the app cannot redeem a code for has no callback the web app
+	// should bounce one to, whatever the link looks like.
+	if (!isNativeOAuthLoginProvider(provider)) {
+		return false;
+	}
+
 	const callbackPath = nativeOAuthCallbackPath(provider);
 	// The app passes `createURL` the path without its leading slash so the
 	// custom-scheme link comes out as `zotmeet://auth/…` rather than
@@ -127,6 +162,27 @@ export function isAllowedNativeRedirectUri(
 		redirectUri,
 	);
 	return webPreview?.[3] === callbackPath;
+}
+
+/**
+ * The inverse of `isAllowedNativeRedirectUri`, for the link the app receives
+ * back: which provider's allowed redirect URI it is, with its query removed,
+ * or `null` if it is not one. The link is matched whole — scheme, host and
+ * path against the same forms the web app would have accepted — rather than
+ * on a path suffix, so a crafted deep link with the right tail on some other
+ * host or scheme is not taken for a callback.
+ */
+export function matchNativeRedirectUri(
+	url: string,
+	options: { allowDevelopment: boolean },
+): { provider: NativeOAuthLoginProvider; redirectUri: string } | null {
+	const redirectUri = url.split(/[?#]/, 1)[0] ?? "";
+	for (const provider of NATIVE_OAUTH_LOGIN_PROVIDERS) {
+		if (isAllowedNativeRedirectUri(redirectUri, provider, options)) {
+			return { provider, redirectUri };
+		}
+	}
+	return null;
 }
 
 /** Body of `POST /api/auth/login/<provider>`. */

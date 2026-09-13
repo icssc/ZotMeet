@@ -1,8 +1,8 @@
 import {
 	isAllowedNativeRedirectUri,
+	type NativeOAuthLoginProvider,
 	nativeOAuthCallbackPath,
 	nativeOAuthLoginPath,
-	type OAuthLoginProvider,
 } from "@zotmeet/shared";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
@@ -28,7 +28,7 @@ import { setPendingLogin } from "@/lib/auth/session";
  * user closed the browser. `handleOAuthCallback` finishes from there.
  */
 export async function startOAuthLogin(
-	provider: OAuthLoginProvider,
+	provider: NativeOAuthLoginProvider,
 ): Promise<string | null> {
 	if (!API_URL) {
 		throw new Error(
@@ -59,10 +59,14 @@ export async function startOAuthLogin(
 	const codeVerifier = generateCodeVerifier();
 	const codeChallenge = await createS256CodeChallenge(codeVerifier);
 
+	// Replaces any earlier pending login: the newest attempt is the one the
+	// user is looking at, and a callback for an abandoned one would fail its
+	// state check, which is the right outcome for a code nobody is waiting on.
 	await setPendingLogin({
 		provider,
 		state,
 		codeVerifier,
+		redirectUri,
 		startedAt: Date.now(),
 	});
 

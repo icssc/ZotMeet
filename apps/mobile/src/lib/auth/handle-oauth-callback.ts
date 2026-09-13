@@ -1,8 +1,6 @@
 import {
+	matchNativeRedirectUri,
 	NATIVE_OAUTH_CALLBACK_PARAMS,
-	nativeOAuthCallbackPath,
-	OAUTH_LOGIN_PROVIDERS,
-	type OAuthLoginProvider,
 	type UserProfile,
 } from "@zotmeet/shared";
 import * as Linking from "expo-linking";
@@ -18,10 +16,12 @@ import { setSessionToken, takePendingLogin } from "@/lib/auth/session";
  * never left the device. The session token that comes back is stored where
  * `apiFetch` will find it.
  *
- * Two things can deliver the same link — `openAuthSessionAsync` resolving,
- * and the router opening `app/auth/login/<provider>/callback.tsx` — so a
- * link is completed at most once: `takePendingLogin` clears the pending
- * login, and a second call for the same code joins the first's promise.
+ * A link must be completed at most once — a code is single-use, and
+ * `takePendingLogin` clears the pending login on the first attempt — but two
+ * things can deliver the same one (`openAuthSessionAsync` resolving, and the
+ * router opening `app/auth/login/<provider>/callback.tsx`). This function
+ * does not de-duplicate; `useAuthStore.completeSignIn`, its only caller,
+ * does, since it also owns the state a repeat must not overwrite.
  */
 export class OAuthCallbackError extends Error {
 	constructor(message: string) {
@@ -30,42 +30,17 @@ export class OAuthCallbackError extends Error {
 	}
 }
 
-const inFlight = new Map<string, Promise<UserProfile>>();
-
 export function handleOAuthCallback(url: string): Promise<UserProfile> {
-	const existing = inFlight.get(url);
-	if (existing) return existing;
-
-	const promise = completeLogin(url).finally(() => inFlight.delete(url));
-	inFlight.set(url, promise);
-	return promise;
-}
-
-/** Whether a link is one of the app's OAuth callback links at all. */
-export function isOAuthCallbackUrl(url: string): boolean {
-	return providerFromCallbackUrl(url) !== null;
+	return completeLogin(url);
 }
 
 /**
- * The provider whose callback path a link ends in, or `null`. `Linking.parse`
- * reports the same link differently per environment — a custom-scheme link
- * (`zotmeet://auth/login/…`) has no real host, so `auth` lands in `hostname`
- * with the rest in `path`; an Expo Go link keeps its `/--/` prefix in `path`
- * unless the app has no custom scheme; the web preview has a real host — so
- * the path is rebuilt from both fields and matched on its tail.
+ * Whether a link is one of the app's OAuth callback links at all: the same
+ * allowlist the web app applied before bouncing a code here, so a deep link
+ * that merely ends in a callback path is not one.
  */
-function providerFromCallbackUrl(url: string): OAuthLoginProvider | null {
-	const { hostname, path } = Linking.parse(url);
-	const segments = [hostname, path].filter(
-		(part): part is string => typeof part === "string" && part.length > 0,
-	);
-	if (segments.length === 0) return null;
-	const fullPath = `/${segments.join("/").replace(/^\/+/, "")}`;
-	return (
-		OAUTH_LOGIN_PROVIDERS.find((provider) =>
-			fullPath.endsWith(nativeOAuthCallbackPath(provider)),
-		) ?? null
-	);
+export function isOAuthCallbackUrl(url: string): boolean {
+	return matchNativeRedirectUri(url, { allowDevelopment: __DEV__ }) !== null;
 }
 
 function readParam(
@@ -77,11 +52,12 @@ function readParam(
 }
 
 async function completeLogin(url: string): Promise<UserProfile> {
-	const { queryParams } = Linking.parse(url);
-	const provider = providerFromCallbackUrl(url);
-	if (provider === null) {
+	const match = matchNativeRedirectUri(url, { allowDevelopment: __DEV__ });
+	if (match === null) {
 		throw new OAuthCallbackError("Not a sign-in callback link");
 	}
+	const { provider, redirectUri } = match;
+	const { queryParams } = Linking.parse(url);
 
 	const error = readParam(queryParams, NATIVE_OAUTH_CALLBACK_PARAMS.error);
 	const code = readParam(queryParams, NATIVE_OAUTH_CALLBACK_PARAMS.code);
@@ -99,7 +75,11 @@ async function completeLogin(url: string): Promise<UserProfile> {
 	if (code === null || state === null) {
 		throw new OAuthCallbackError("Sign-in response was incomplete");
 	}
-	if (pending === null || pending.provider !== provider) {
+	if (
+		pending === null ||
+		pending.provider !== provider ||
+		pending.redirectUri !== redirectUri
+	) {
 		throw new OAuthCallbackError("Sign-in expired — please try again");
 	}
 	if (pending.state !== state) {

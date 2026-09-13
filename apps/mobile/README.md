@@ -214,6 +214,7 @@ If Expo Go says the update can't be found or you're not authorised, you're eithe
 - **Forked PRs don't get a preview** — GitHub withholds secrets from forks. A maintainer can comment `/preview` on the PR to publish one.
 - Add the **`no preview`** label to a PR to skip publishing (e.g. a docs-only change under `apps/mobile`).
 - Previews target a stock Expo Go install (the update is keyed to the Expo SDK version, not a native build), so no dev client is needed.
+- A preview talks to the **PR's staging deployment** (`https://staging-<PR>.zotmeet.com`, published by `deploy-staging.yml`), the only server running that PR's `/api/*` routes. The workflow bakes that URL in as `EXPO_PUBLIC_API_URL`; if the staging deploy is skipped (`no deploy` label) or has failed, the preview loads but every request fails.
 - Previews carry no dev token. Signing in from a preview needs the deployed server to accept an `exp://` redirect, which it does not in production (see §5, step 2) — previews are read-only until the app ships under its own `zotmeet://` scheme.
 
 ### CI setup (maintainers)
