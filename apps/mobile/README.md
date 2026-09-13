@@ -22,7 +22,7 @@ Env files (copy from the `.env.example` next to each):
 
 The dev token is optional once you sign in (§5): it is only the fallback `apiFetch` uses while signed out. It is a **shared** credential that impersonates one member, so it is fenced to local development at both ends: the client reads it only under `__DEV__`, and the server ignores it under `NODE_ENV=production`. A distributed bundle carries no token and is unauthenticated until the user signs in.
 
-**Signing in locally:** Google sign-in round-trips through the web app on `:3000` and ICSSC (§5). The iOS Simulator and the `w` web preview work out of the box — `EXPO_PUBLIC_API_URL` can be `localhost` or your LAN address, because ICSSC returns to `NEXT_PUBLIC_BASE_URL` (`localhost:3000`), which on the simulator is your Mac. On a **physical device** that return address is the phone itself, so the flow cannot complete unless `NEXT_PUBLIC_BASE_URL` is your LAN address *and* registered with ICSSC. Use the simulator, or the dev token, for device testing until then.
+**Signing in locally:** Google sign-in round-trips through the web app on `:3000` and ICSSC (§5). The iOS Simulator and the `w` web preview work out of the box — `EXPO_PUBLIC_API_URL` can be `localhost` or your LAN address, because ICSSC returns to `NEXT_PUBLIC_BASE_URL` (`localhost:3000`), which on the simulator is your Mac. On a **physical device** that return address is the phone itself, so the flow cannot complete unless `NEXT_PUBLIC_BASE_URL` is your LAN address *and* registered with ICSSC. To test sign-in on a real phone, use the PR preview (§6), which signs in against the PR's staging server; against a local server use the simulator or the dev token.
 
 ---
 
@@ -176,7 +176,7 @@ The web app has no separate backend — server actions and server components cal
 **How native sign-in works** (the contract is `packages/shared/src/auth/native.ts`; the mobile files mirror the web's `src/lib/auth/` by name):
 
 1. `lib/auth/start-oauth-login.ts` mints a `state` and a PKCE verifier on the device (`lib/auth/oauth.ts`, on `expo-crypto`), stores them (`lib/auth/session.ts`), and opens **the web app's own login route** in an in-app browser: `/auth/login/google?client=expo&state=…&code_challenge=…&redirect_uri=…`. The web app stays the OIDC client — it holds the ICSSC client id and the registered redirect URIs — and the app is a PKCE client *of the web app*.
-2. The web's `startOAuthLogin` forwards the app's challenge to ICSSC instead of minting its own verifier, and wraps the app's state together with its callback link into the OAuth `state` (`src/lib/auth/native-state.ts`). Nothing is kept in a cookie: in dev the app opens the login route on your LAN address while ICSSC returns to `NEXT_PUBLIC_BASE_URL` (localhost), and no cookie survives that host change — the state does, because ICSSC echoes it verbatim. The callback link is checked against an allowlist at both ends: `zotmeet://…` always, `exp://…` and `http://localhost` only outside production.
+2. The web's `startOAuthLogin` forwards the app's challenge to ICSSC instead of minting its own verifier, and wraps the app's state together with its callback link into the OAuth `state` (`src/lib/auth/native-state.ts`). Nothing is kept in a cookie: in dev the app opens the login route on your LAN address while ICSSC returns to `NEXT_PUBLIC_BASE_URL` (localhost), and no cookie survives that host change — the state does, because ICSSC echoes it verbatim. The callback link is checked against an allowlist at both ends (`isAllowedNativeRedirectUri` in `@zotmeet/shared`): `zotmeet://…` always; `exp://u.expo.dev/<EAS project id>/…` — Expo Go running a published update of *this* project, i.e. a PR preview — when the server knows the project id (`EAS_PROJECT_ID`, which the staging deploy sets); any other `exp://…` and `http://localhost` only outside production.
 3. ICSSC returns the code to the web callback as usual. Seeing the native envelope in `state`, `handleOAuthCallback` does not redeem the code; it bounces `code` + the app's original `state` to the app's link (`zotmeet://auth/login/google/callback`, or `exp://…/--/auth/login/google/callback` in Expo Go).
 4. `lib/auth/handle-oauth-callback.ts` checks the state, then `POST /api/auth/login/google` with the code and the verifier that never left the device. The response carries the session token, which goes into the keychain via `expo-secure-store`; `apiFetch` sends it from then on.
 
@@ -215,7 +215,7 @@ If Expo Go says the update can't be found or you're not authorised, you're eithe
 - Add the **`no preview`** label to a PR to skip publishing (e.g. a docs-only change under `apps/mobile`).
 - Previews target a stock Expo Go install (the update is keyed to the Expo SDK version, not a native build), so no dev client is needed.
 - A preview talks to the **PR's staging deployment** (`https://staging-<PR>.zotmeet.com`, published by `deploy-staging.yml`), the only server running that PR's `/api/*` routes. The workflow bakes that URL in as `EXPO_PUBLIC_API_URL`; if the staging deploy is skipped (`no deploy` label) or has failed, the preview loads but every request fails.
-- Previews carry no dev token. Signing in from a preview needs the deployed server to accept an `exp://` redirect, which it does not in production (see §5, step 2) — previews are read-only until the app ships under its own `zotmeet://` scheme.
+- Previews carry no dev token, so a preview starts signed out. **Sign-in works from a preview**: Expo Go's callback link inside a published update is `exp://u.expo.dev/<project id>/group/<update>/--/auth/…`, and the staging server accepts that form for this project's id (§5, step 2; `EAS_PROJECT_ID` reaches the server through `deploy-staging.yml` → `sst.config.ts`). Only updates published under the org's EAS project can live at that address, so it is trusted the way `zotmeet://` is.
 
 ### CI setup (maintainers)
 
@@ -224,7 +224,7 @@ The workflow needs two things in the GitHub repo settings; it fails early with a
 | Setting | Type | Where it comes from |
 |---|---|---|
 | `EXPO_TOKEN` | repository **secret** | A robot access token owned by `ethanchaos-team` — [expo.dev/settings/access-tokens](https://expo.dev/settings/access-tokens). |
-| `EAS_PROJECT_ID` | repository **variable** | The project's id from the Expo dashboard; `app.config.ts` reads it to set `updates.url`. |
+| `EAS_PROJECT_ID` | repository **variable** | The project's id from the Expo dashboard; `app.config.ts` reads it to set `updates.url`, and `deploy-staging.yml` passes it to the staging server so previews can sign in. |
 
 ---
 
@@ -243,7 +243,7 @@ The workflow needs two things in the GitHub repo settings; it fails early with a
 ## 8. Known gaps
 
 - Sign in with Apple: the button is there, but the App Store requires a native flow (not a web view), which is not built; the store declines it with a message.
-- Sign-in from a physical device against a local server (see Quick start), and from Expo Go previews against production (§6).
+- Sign-in from a physical device against a *local* server (see Quick start) — use a PR preview against staging for on-device sign-in (§6).
 - Android sign-out does not end the ICSSC/Google browser session (§5, "Signing out fully"), so the next sign-in may skip the account chooser there.
 - Availability grid is presentational: hour rows, nothing painted, actions unwired.
 - Notifications: the bell on the Meetings tab is drawn but unwired (needs `GET /api/notifications` + the drawer).

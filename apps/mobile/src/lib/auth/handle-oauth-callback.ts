@@ -5,6 +5,7 @@ import {
 } from "@zotmeet/shared";
 import * as Linking from "expo-linking";
 import { exchangeOAuthCode } from "@/lib/api/auth";
+import { nativeRedirectUriOptions } from "@/lib/auth/redirect-uri";
 import { setSessionToken, takePendingLogin } from "@/lib/auth/session";
 
 /**
@@ -40,7 +41,7 @@ export function handleOAuthCallback(url: string): Promise<UserProfile> {
  * that merely ends in a callback path is not one.
  */
 export function isOAuthCallbackUrl(url: string): boolean {
-	return matchNativeRedirectUri(url, { allowDevelopment: __DEV__ }) !== null;
+	return matchNativeRedirectUri(url, nativeRedirectUriOptions()) !== null;
 }
 
 function readParam(
@@ -52,7 +53,7 @@ function readParam(
 }
 
 async function completeLogin(url: string): Promise<UserProfile> {
-	const match = matchNativeRedirectUri(url, { allowDevelopment: __DEV__ });
+	const match = matchNativeRedirectUri(url, nativeRedirectUriOptions());
 	if (match === null) {
 		throw new OAuthCallbackError("Not a sign-in callback link");
 	}

@@ -13,6 +13,7 @@ import {
 	generateCodeVerifier,
 	generateState,
 } from "@/lib/auth/oauth";
+import { nativeRedirectUriOptions } from "@/lib/auth/redirect-uri";
 import { setPendingLogin } from "@/lib/auth/session";
 
 /**
@@ -36,19 +37,22 @@ export async function startOAuthLogin(
 		);
 	}
 
-	// `zotmeet://auth/…` in a build, `exp://<lan-ip>/--/auth/…` in Expo Go.
-	// Given the path without its leading slash: `createURL` keeps one as-is,
-	// which on a custom scheme yields `zotmeet:///auth/…` — not the form the
-	// allowlist accepts. The server checks this against the same allowlist,
-	// so a mismatch is caught here with a readable error rather than as a
-	// 400 in the browser.
+	// `zotmeet://auth/…` in a build, `exp://<lan-ip>/--/auth/…` in Expo Go on
+	// the LAN, `exp://u.expo.dev/<project>/group/<update>/--/auth/…` in Expo
+	// Go running a PR preview. Given the path without its leading slash:
+	// `createURL` keeps one as-is, which on a custom scheme yields
+	// `zotmeet:///auth/…` — not the form the allowlist accepts. The server
+	// checks this against the same allowlist, so a mismatch is caught here
+	// with a readable error rather than as a 400 in the browser.
 	const redirectUri = Linking.createURL(
 		nativeOAuthCallbackPath(provider).replace(/^\//, ""),
 	);
 	if (
-		!isAllowedNativeRedirectUri(redirectUri, provider, {
-			allowDevelopment: __DEV__,
-		})
+		!isAllowedNativeRedirectUri(
+			redirectUri,
+			provider,
+			nativeRedirectUriOptions(),
+		)
 	) {
 		throw new Error(
 			`Callback link ${redirectUri} is not one the server accepts.`,

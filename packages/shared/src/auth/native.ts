@@ -56,6 +56,28 @@ export const NATIVE_OAUTH_CALLBACK_PARAMS = {
 export const NATIVE_APP_SCHEME = "zotmeet";
 
 /**
+ * Host that Expo Go loads EAS Updates from. Only the owners of an EAS project
+ * can publish under `u.expo.dev/<projectId>`, which is what lets a callback
+ * link there be trusted once the project id is pinned.
+ */
+export const EAS_UPDATE_HOST = "u.expo.dev";
+
+/**
+ * What both sides need to know to decide whether a redirect URI is the app's.
+ *
+ * `allowDevelopment` admits the links a developer's own machine produces
+ * (Expo Go on the LAN, the web preview on localhost); the server sets it from
+ * `NODE_ENV`, the app from `__DEV__`. `easProjectId` admits the link Expo Go
+ * produces inside a *published* EAS Update — the PR previews — for exactly
+ * that project; the server reads it from `EAS_PROJECT_ID`, the app from its
+ * own config (`extra.eas.projectId`). Absent, no update link is accepted.
+ */
+export type NativeRedirectUriOptions = {
+	allowDevelopment: boolean;
+	easProjectId?: string | null;
+};
+
+/**
  * The providers the app can sign in with, which is not every provider the
  * web app can: each one here needs a `POST /api/auth/login/<provider>` route
  * (`src/app/api/auth/login/`), and its login route must accept the native
@@ -116,6 +138,11 @@ export function nativeOAuthLoginPath(
  * matched against the exact callback paths rather than trusted:
  *
  *  - A built app: `zotmeet://<callbackPath>`.
+ *  - Expo Go running a published EAS Update of *this* project, when the
+ *    project id is known: `exp://u.expo.dev/<projectId>/…/--/<callbackPath>`
+ *    (the `…` is how Expo Go names the update — `group/<id>` from a PR's QR
+ *    code — and can only ever resolve to code this project's owners
+ *    published). This is what lets a PR preview sign in against staging.
  *  - In development only, Expo Go (`exp://<host>/--/<callbackPath>`, any
  *    host, since Expo Go is reached by LAN address) and the Expo web preview
  *    on localhost.
@@ -131,7 +158,7 @@ export function nativeOAuthLoginPath(
 export function isAllowedNativeRedirectUri(
 	redirectUri: string,
 	provider: OAuthLoginProvider,
-	options: { allowDevelopment: boolean },
+	options: NativeRedirectUriOptions,
 ): boolean {
 	// A provider the app cannot redeem a code for has no callback the web app
 	// should bounce one to, whatever the link looks like.
@@ -147,6 +174,22 @@ export function isAllowedNativeRedirectUri(
 
 	if (redirectUri === `${NATIVE_APP_SCHEME}://${schemePath}`) {
 		return true;
+	}
+
+	// The whole prefix — scheme, host, project id — is matched literally, and
+	// the update segments may not carry a query or fragment, so the only
+	// freedom left is which update of this project Expo Go is running.
+	const easProjectId = options.easProjectId ?? null;
+	if (easProjectId !== null && easProjectId.length > 0) {
+		const prefix = `://${EAS_UPDATE_HOST}/${easProjectId}`;
+		const scheme = /^exps?/.exec(redirectUri)?.[0];
+		if (scheme !== undefined && redirectUri.startsWith(`${scheme}${prefix}`)) {
+			const rest = redirectUri.slice(scheme.length + prefix.length);
+			const update = /^((?:\/[^/?#]+)*)\/--(\/.*)$/.exec(rest);
+			if (update?.[2] === callbackPath) {
+				return true;
+			}
+		}
 	}
 
 	if (!options.allowDevelopment) {
@@ -174,7 +217,7 @@ export function isAllowedNativeRedirectUri(
  */
 export function matchNativeRedirectUri(
 	url: string,
-	options: { allowDevelopment: boolean },
+	options: NativeRedirectUriOptions,
 ): { provider: NativeOAuthLoginProvider; redirectUri: string } | null {
 	const redirectUri = url.split(/[?#]/, 1)[0] ?? "";
 	for (const provider of NATIVE_OAUTH_LOGIN_PROVIDERS) {

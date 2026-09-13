@@ -1,6 +1,7 @@
 import {
 	isAllowedNativeRedirectUri,
 	type NativeOAuthLoginParams,
+	type NativeRedirectUriOptions,
 	type OAuthLoginProvider,
 } from "@zotmeet/shared";
 
@@ -24,6 +25,20 @@ import {
  */
 
 const PREFIX = "n.";
+
+/**
+ * The server's side of the redirect-URI allowlist (`isAllowedNativeRedirectUri`):
+ * a developer's links only outside production, and a PR preview's links —
+ * Expo Go running an EAS Update — only for the project named by
+ * `EAS_PROJECT_ID`, which SST hands the staging stages. Unset, previews
+ * cannot sign in, and nothing else changes.
+ */
+export function nativeRedirectUriOptions(): NativeRedirectUriOptions {
+	return {
+		allowDevelopment: process.env.NODE_ENV !== "production",
+		easProjectId: process.env.EAS_PROJECT_ID ?? null,
+	};
+}
 
 type NativeStateEnvelope = {
 	/** The state the app chose, returned to it unchanged. */
@@ -71,8 +86,13 @@ export function decodeNativeState(
 		return null;
 	}
 
-	const allowDevelopment = process.env.NODE_ENV !== "production";
-	if (!isAllowedNativeRedirectUri(envelope.r, provider, { allowDevelopment })) {
+	if (
+		!isAllowedNativeRedirectUri(
+			envelope.r,
+			provider,
+			nativeRedirectUriOptions(),
+		)
+	) {
 		return null;
 	}
 

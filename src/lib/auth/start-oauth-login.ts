@@ -11,7 +11,10 @@ import {
 	generateState,
 } from "arctic";
 import type { cookies, headers } from "next/headers";
-import { encodeNativeState } from "@/lib/auth/native-state";
+import {
+	encodeNativeState,
+	nativeRedirectUriOptions,
+} from "@/lib/auth/native-state";
 import { getOAuthClient } from "@/lib/auth/oauth";
 import {
 	getOAuthCallbackRedirectUri,
@@ -55,9 +58,12 @@ export function parseNativeOAuthLoginParams(
 		throw new NativeOAuthLoginError("Missing native login parameters");
 	}
 
-	const allowDevelopment = process.env.NODE_ENV !== "production";
 	if (
-		!isAllowedNativeRedirectUri(redirectUri, provider, { allowDevelopment })
+		!isAllowedNativeRedirectUri(
+			redirectUri,
+			provider,
+			nativeRedirectUriOptions(),
+		)
 	) {
 		throw new NativeOAuthLoginError("Redirect URI is not allowed");
 	}
