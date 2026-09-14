@@ -15,14 +15,27 @@ Env files (copy from the `.env.example` next to each):
 
 | File | Vars | Notes |
 |---|---|---|
-| root `.env` | `MOBILE_DEV_API_TOKEN`, `MOBILE_DEV_HOST_MEMBER_ID` | Dev-only auth for the API — ignored when the server runs with `NODE_ENV=production`. Member id `00000000-0000-0000-0000-000000000000` is "Seed Admin" from `pnpm db:seed`. |
+| root `.env` | `MOBILE_DEV_API_TOKEN`, `MOBILE_DEV_HOST_MEMBER_ID` | The guest account (below) — ignored when the server runs with `NODE_ENV=production`. Member id `00000000-0000-0000-0000-000000000000` is "Seed Admin" from `pnpm db:seed`. |
 | `apps/mobile/.env.local` | `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_API_TOKEN` | Token must equal the root one. Use your Mac's LAN IP instead of `localhost` on a physical device. |
 
 `EXPO_PUBLIC_*` values are inlined into the JS bundle at build time — restart Expo after changing them, and never put the token in `eas.json` or `app.config.ts`.
 
-The dev token is optional once you sign in (§5): it is only the fallback `apiFetch` uses while signed out. It is a **shared** credential that impersonates one member, so it is fenced to local development at both ends: the client reads it only under `__DEV__`, and the server ignores it under `NODE_ENV=production`. A distributed bundle carries no token and is unauthenticated until the user signs in.
+### The guest account
 
-**Signing in locally:** Google sign-in round-trips through the web app on `:3000` and ICSSC (§5). The iOS Simulator and the `w` web preview work out of the box — `EXPO_PUBLIC_API_URL` can be `localhost` or your LAN address, because ICSSC returns to `NEXT_PUBLIC_BASE_URL` (`localhost:3000`), which on the simulator is your Mac. On a **physical device** that return address is the phone itself, so the flow cannot complete unless `NEXT_PUBLIC_BASE_URL` is your LAN address *and* registered with ICSSC. To test sign-in on a real phone, use the PR preview (§6), which signs in against the PR's staging server; against a local server use the simulator or the dev token.
+Google sign-in cannot complete on a physical phone against a local server (see below), so local development runs as a **guest** instead: with the dev token set at both ends the app launches signed in as **Seed Admin**, who hosts four seeded meetings — one still needing availability, a days-of-week one, one every member has answered, and one already scheduled — with the seeded members' availabilities filled in for the heatmaps. Set-up, once:
+
+```bash
+cp .env.example .env && cp apps/mobile/.env.example apps/mobile/.env.local   # keep the default token in both
+pnpm db:setup && pnpm db:seed
+# physical device: set EXPO_PUBLIC_API_URL in apps/mobile/.env.local to http://<your LAN IP>:3000
+pnpm dev; pnpm mobile
+```
+
+Re-running `pnpm db:seed` adds another batch of members' answers to the same meetings. Delete the meetings (or `pnpm db:reset && pnpm db:seed`) to start over.
+
+The guest is a **shared** credential that impersonates one member, so it is fenced to local development at both ends: the client reads the token only under `__DEV__`, and the server ignores it under `NODE_ENV=production`. A distributed bundle carries no token and is unauthenticated until the user signs in. Signing in with Google (§5) replaces the guest with a real session; signing out returns to the guest on the next launch. Leave `EXPO_PUBLIC_API_TOKEN` empty to test the signed-out state.
+
+**Signing in with Google locally:** the flow round-trips through the web app on `:3000` and ICSSC (§5). The iOS Simulator and the `w` web preview work out of the box — `EXPO_PUBLIC_API_URL` can be `localhost` or your LAN address, because ICSSC returns to `NEXT_PUBLIC_BASE_URL` (`localhost:3000`), which on the simulator is your Mac. On a **physical device** that return address is the phone itself, so the flow cannot complete unless `NEXT_PUBLIC_BASE_URL` is your LAN address *and* registered with ICSSC. To test sign-in on a real phone, use the PR preview (§6), which signs in against the PR's staging server; against a local server use the simulator or the guest.
 
 ---
 
