@@ -147,6 +147,19 @@ const dark = {
 	"warning-foreground": "0 0% 100%",
 };
 
+/**
+ * Store-listing and splash colours, as hex because that is what the web
+ * manifest, the PWA icon script and Expo's `app.config.ts` all want. `accent`
+ * is the `primary` token above (`hsl(344.4 84.5% 67.1%)` = `#F26489`);
+ * `darkBackground` is the splash/manifest dark ground, which is deliberately
+ * not the dark-mode `background` token.
+ */
+const brand = {
+	accent: "#F26489",
+	background: "#FFFFFF",
+	darkBackground: "#0F172A",
+};
+
 /** `{ primary: "344.4 …" }` → `{ "--primary": "344.4 …" }`. */
 const toCssVars = (tokens) =>
 	Object.fromEntries(
@@ -176,4 +189,4 @@ const hsl = (name, mode = "light") => {
 	return `hsl(${value.split(" ").join(", ")})`;
 };
 
-module.exports = { light, dark, cssVarBlocks, hsl };
+module.exports = { light, dark, brand, cssVarBlocks, hsl };

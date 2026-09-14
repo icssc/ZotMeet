@@ -1,14 +1,13 @@
+import { brand } from "@zotmeet/tokens";
 import type { ExpoConfig } from "expo/config";
 
 /**
- * Brand constants are mirrored from the web app's single source of truth,
- * `src/lib/pwa-config.mjs` (BRAND_ACCENT_HEX / BRAND_BACKGROUND_HEX /
- * BRAND_DARK_BG_HEX). They are duplicated rather than imported because this
- * package has no dependency on the Next.js app yet.
+ * Brand colours come from `packages/tokens`, the same source the web app's
+ * `src/lib/pwa-config.mjs` reads for its manifest and icons.
  */
-const BRAND_ACCENT_HEX = "#F26489";
-const BRAND_BACKGROUND_HEX = "#FFFFFF";
-const BRAND_DARK_BG_HEX = "#0F172A";
+const BRAND_ACCENT_HEX = brand.accent;
+const BRAND_BACKGROUND_HEX = brand.background;
+const BRAND_DARK_BG_HEX = brand.darkBackground;
 
 /**
  * EAS project ID, supplied by the environment rather than committed, so the

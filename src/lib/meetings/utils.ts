@@ -1,3 +1,4 @@
+import { formatLocalDateKey } from "@zotmeet/shared";
 import type { SelectScheduledMeeting } from "@/db/schema";
 
 /**
@@ -7,8 +8,11 @@ import type { SelectScheduledMeeting } from "@/db/schema";
  * helpers below stay here: they read `SelectScheduledMeeting` rows.
  */
 export {
+	buildMeetingsListModel,
 	buildScheduledLabel,
+	buildScheduledMeetingsMeta,
 	filterMeetingsByQuery,
+	formatLocalDateKey,
 	formatScheduledTime,
 	getMeetingHostDisplayName,
 	getMeetingSortTime,
@@ -16,20 +20,16 @@ export {
 	getStartOfTodayMs,
 	getUpcomingMeetingIds,
 	isMeetingPast,
+	MEETINGS_LIST_FILTER_LABELS,
+	MEETINGS_LIST_FILTERS,
 	type MeetingHostNameFields,
+	type MeetingsListFilter,
 	type MeetingWithDates,
 } from "@zotmeet/shared";
 
 interface TimeInterval {
 	from: string;
 	to: string;
-}
-
-export function formatLocalDateKey(date: Date): string {
-	const yyyy = date.getFullYear();
-	const mm = String(date.getMonth() + 1).padStart(2, "0");
-	const dd = String(date.getDate()).padStart(2, "0");
-	return `${yyyy}-${mm}-${dd}`;
 }
 
 export function groupScheduledBlocksByDate(

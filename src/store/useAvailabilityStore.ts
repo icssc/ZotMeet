@@ -1,3 +1,4 @@
+import { nextPageState, pageState, prevPageState } from "@zotmeet/shared";
 import { create } from "zustand";
 import type { PaintMode } from "@/lib/availability/paint-selection";
 import type {
@@ -70,36 +71,13 @@ interface AvailabilityStore {
 }
 
 export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
-	// Pagination
+	// Pagination — transitions in `@zotmeet/shared`, shared with the Expo store.
 	currentPage: 0,
 	itemsPerPage: 5,
 	isFirstPage: true,
-	nextPage: (totalItems) =>
-		set((state) => {
-			const lastPage = Math.floor((totalItems - 1) / state.itemsPerPage);
-			if (state.currentPage < lastPage) {
-				return {
-					currentPage: state.currentPage + 1,
-					isFirstPage: false,
-				};
-			}
-			return state;
-		}),
-	prevPage: () =>
-		set((state) => {
-			if (state.currentPage > 0) {
-				return {
-					currentPage: state.currentPage - 1,
-					isFirstPage: state.currentPage - 1 === 0,
-				};
-			}
-			return state;
-		}),
-	setCurrentPage: (page) =>
-		set({
-			currentPage: page,
-			isFirstPage: page === 0,
-		}),
+	nextPage: (totalItems) => set((state) => nextPageState(state, totalItems)),
+	prevPage: () => set((state) => prevPageState(state)),
+	setCurrentPage: (page) => set((state) => pageState(state, page)),
 	setItemsPerPage: (itemsPerPage) => set({ itemsPerPage }),
 
 	// View

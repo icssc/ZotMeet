@@ -4,9 +4,12 @@
  * module keeps the web app's import path stable.
  */
 export {
+	formatMeetingCardDateLabel,
 	type MeetingCardData,
+	type MeetingCardVariant,
 	type MeetingCardViewModel,
 	type MeetingForCard,
+	meetingCardVariant,
 	toMeetingCardData,
 	toMeetingCardProps,
 } from "@zotmeet/shared";

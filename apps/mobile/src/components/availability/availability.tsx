@@ -1,10 +1,7 @@
 import {
-	convertTimeFromUTC,
-	getTimeFromHourMinuteString,
-	type HourMinuteString,
+	deriveMeetingWindow,
 	localMidnightFromIsoDate,
 	type MeetingResponse,
-	sortMeetingIsoDatesAsc,
 } from "@zotmeet/shared";
 import { useEffect, useMemo } from "react";
 import { ScrollView, View } from "react-native";
@@ -49,24 +46,17 @@ export function Availability({
 	const viewerTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 	const { days, startHour, endHour } = useMemo(() => {
-		const sortedDates = sortMeetingIsoDatesAsc(meetingData.dates);
-		const referenceDate = sortedDates[0] ?? meetingData.dates[0];
-
-		// `convertTimeFromUTC` returns "HH:mm:ss" but is typed as `string`; the
-		// web casts at the same point.
-		const fromMinutes = getTimeFromHourMinuteString(
-			convertTimeFromUTC(
-				meetingData.fromTime,
-				viewerTimezone,
-				referenceDate,
-			) as HourMinuteString,
-		);
-		const toMinutes = getTimeFromHourMinuteString(
-			convertTimeFromUTC(
-				meetingData.toTime,
-				viewerTimezone,
-				referenceDate,
-			) as HourMinuteString,
+		const {
+			sortedDates,
+			fromTimeMinutes: fromMinutes,
+			toTimeMinutes: toMinutes,
+		} = deriveMeetingWindow(
+			{
+				dates: meetingData.dates,
+				fromTime: meetingData.fromTime,
+				toTime: meetingData.toTime,
+			},
+			viewerTimezone,
 		);
 
 		// The mobile grid is hour-granular where the web's is 15-minute rows, so

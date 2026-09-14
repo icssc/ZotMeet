@@ -147,6 +147,19 @@ export const formatDateToUSNumeric = (date: Date) =>
 		day: "numeric",
 	});
 
+/**
+ * Local-time `YYYY-MM-DD`, the stable key for "this calendar day" on the
+ * device's clock: a selection keyed this way survives timezone conversion,
+ * which an ISO instant would not. Both apps group by it — the web's room
+ * recommendations and the Expo app's date picker.
+ */
+export function formatLocalDateKey(date: Date): string {
+	const yyyy = date.getFullYear();
+	const mm = String(date.getMonth() + 1).padStart(2, "0");
+	const dd = String(date.getDate()).padStart(2, "0");
+	return `${yyyy}-${mm}-${dd}`;
+}
+
 export function formatScheduledTimeRange(timestamps: string[]): string {
 	if (timestamps.length === 0) return "";
 	const sorted = [...timestamps].sort();

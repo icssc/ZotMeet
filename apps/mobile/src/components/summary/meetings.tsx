@@ -1,16 +1,15 @@
 import {
-	buildScheduledLabel,
-	filterMeetingsByQuery,
-	getMeetingSortTime,
-	getMeetingUpcomingPriority,
-	getStartOfTodayMs,
-	getUpcomingMeetingIds,
-	isMeetingPast,
+	buildMeetingsListModel,
+	buildScheduledMeetingsMeta,
+	MEETINGS_LIST_FILTER_LABELS,
+	MEETINGS_LIST_FILTERS,
 	type MeetingListItem,
+	type MeetingsListFilter,
+	type ScheduledMeetingBlock,
 	toMeetingCardData,
 } from "@zotmeet/shared";
 import { useRouter } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Image, View } from "react-native";
 import { DeleteModal } from "@/components/meetings/delete-modal";
 import { FilterChip } from "@/components/ui/filter-chip";
@@ -20,8 +19,6 @@ import { MeetingCard } from "@/components/ui/meeting-card";
 import { Screen } from "@/components/ui/screen";
 import { Typography } from "@/components/ui/typography";
 import { Icon } from "@/lib/icons";
-
-type FilterType = "upcoming" | "past" | "by-you";
 
 interface MeetingsProps {
 	meetings: MeetingListItem[];
@@ -36,12 +33,6 @@ interface MeetingsProps {
 type DeleteTarget = {
 	meeting: MeetingListItem;
 	isOwner: boolean;
-};
-
-const FILTER_LABELS: Record<FilterType, string> = {
-	upcoming: "Upcoming",
-	past: "Past",
-	"by-you": "By You",
 };
 
 /**
@@ -67,80 +58,41 @@ export function Meetings({
 }: MeetingsProps) {
 	const router = useRouter();
 	const [search, setSearch] = useState("");
-	const [activeFilter, setActiveFilter] = useState<FilterType>("upcoming");
+	const [activeFilter, setActiveFilter] =
+		useState<MeetingsListFilter>("upcoming");
 	const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
 	const [isDeletionPending, setIsDeletionPending] = useState(false);
 
-	// What `app/summary/page.tsx` derives from `getScheduledMeetingsByMeetingIds`.
+	// What `app/summary/page.tsx` derives on the server from
+	// `getScheduledMeetingsByMeetingIds`; `GET /api/meetings` flattens the
+	// same blocks onto each meeting, so it is rebuilt here on the device.
 	const { scheduledLabels, scheduledDates, upcomingSet } = useMemo(() => {
-		const scheduledMap: Record<string, { scheduledDate: Date }> = {};
-		const labels: Record<string, string> = {};
-		const dates: Record<string, number> = {};
+		const scheduledMap: Record<string, ScheduledMeetingBlock> = {};
 		for (const m of meetings) {
 			if (!m.scheduledAt) continue;
-			const scheduledDate = new Date(m.scheduledAt.date);
-			scheduledMap[m.id] = { scheduledDate };
-			labels[m.id] = buildScheduledLabel(
-				scheduledDate,
-				m.scheduledAt.fromTime,
-				m.scheduledAt.toTime,
-			);
-			dates[m.id] = scheduledDate.getTime();
+			scheduledMap[m.id] = {
+				scheduledDate: new Date(m.scheduledAt.date),
+				scheduledFromTime: m.scheduledAt.fromTime,
+				scheduledToTime: m.scheduledAt.toTime,
+			};
 		}
-		return {
-			scheduledLabels: labels,
-			scheduledDates: dates,
-			upcomingSet: new Set(getUpcomingMeetingIds(scheduledMap)),
-		};
+		const meta = buildScheduledMeetingsMeta(scheduledMap);
+		return { ...meta, upcomingSet: new Set(meta.upcomingMeetingIds) };
 	}, [meetings]);
 
-	const todayTimestamp = getStartOfTodayMs();
-
-	const isPastMeeting = useCallback(
-		(m: MeetingListItem): boolean =>
-			isMeetingPast(m, scheduledDates, todayTimestamp),
-		[scheduledDates, todayTimestamp],
+	// Counts, filter, search and sort — the same model the web builds.
+	const { counts, meetings: displayMeetings } = useMemo(
+		() =>
+			buildMeetingsListModel({
+				meetings,
+				memberId,
+				filter: activeFilter,
+				search,
+				scheduledDates,
+				upcomingSet,
+			}),
+		[meetings, memberId, activeFilter, search, scheduledDates, upcomingSet],
 	);
-
-	const counts = useMemo(
-		() => ({
-			upcoming: meetings.filter((m) => !isPastMeeting(m)).length,
-			past: meetings.filter(isPastMeeting).length,
-			"by-you": meetings.filter((m) => m.hostId === memberId).length,
-		}),
-		[meetings, memberId, isPastMeeting],
-	);
-
-	const filteredMeetings = useMemo(() => {
-		switch (activeFilter) {
-			case "by-you":
-				return meetings.filter((m) => m.hostId === memberId);
-			case "past":
-				return meetings.filter(isPastMeeting);
-			default:
-				return meetings.filter((m) => !isPastMeeting(m));
-		}
-	}, [meetings, memberId, activeFilter, isPastMeeting]);
-
-	const displayMeetings = useMemo(
-		() => filterMeetingsByQuery(filteredMeetings, search),
-		[filteredMeetings, search],
-	);
-
-	const sortedMeetings = useMemo(() => {
-		if (activeFilter === "past") {
-			return [...displayMeetings].sort(
-				(a, b) =>
-					getMeetingSortTime(b, scheduledDates) -
-					getMeetingSortTime(a, scheduledDates),
-			);
-		}
-		return [...displayMeetings].sort(
-			(a, b) =>
-				getMeetingUpcomingPriority(a, memberId, upcomingSet) -
-				getMeetingUpcomingPriority(b, memberId, upcomingSet),
-		);
-	}, [displayMeetings, activeFilter, scheduledDates, memberId, upcomingSet]);
 
 	const renderMeetings = () => {
 		if (displayMeetings.length === 0) {
@@ -168,7 +120,7 @@ export function Meetings({
 
 		return (
 			<View className="gap-3">
-				{sortedMeetings.map((meeting) => {
+				{displayMeetings.map((meeting) => {
 					const { meeting: _meeting, ...cardProps } = toMeetingCardData(
 						meeting,
 						memberId,
@@ -234,10 +186,10 @@ export function Meetings({
 					}
 				/>
 				<View className="flex-row gap-1.5">
-					{(["upcoming", "past", "by-you"] as const).map((f) => (
+					{MEETINGS_LIST_FILTERS.map((f) => (
 						<FilterChip
 							key={f}
-							label={FILTER_LABELS[f]}
+							label={MEETINGS_LIST_FILTER_LABELS[f]}
 							count={counts[f]}
 							active={activeFilter === f}
 							onPress={() => setActiveFilter(f)}

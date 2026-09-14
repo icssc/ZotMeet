@@ -3,84 +3,17 @@
 import { green, orange, red } from "@mui/material/colors";
 import { createTheme } from "@mui/material/styles";
 import { hsl } from "@zotmeet/tokens";
+import { muiTypography } from "@zotmeet/tokens/typography";
 import { figtree } from "@/fonts";
 
 export const getTheme = (mode: "light" | "dark") =>
 	createTheme({
 		typography: {
 			fontFamily: figtree.style.fontFamily,
-			h1: {
-				fontSize: "6rem",
-				fontWeight: 300,
-				lineHeight: 1.167,
-				letterSpacing: "-1.5px",
-			},
-			h2: {
-				fontSize: "3.75rem",
-				fontWeight: 300,
-				lineHeight: 1.2,
-				letterSpacing: "-0.5px",
-			},
-			h3: {
-				fontSize: "3rem",
-				fontWeight: 400,
-				lineHeight: 1.167,
-				letterSpacing: "0px",
-			},
-			h4: {
-				fontSize: "2.125rem",
-				fontWeight: 400,
-				lineHeight: 1.235,
-				letterSpacing: "0.25px",
-			},
-			h5: {
-				fontSize: "1.5rem",
-				fontWeight: 500,
-				lineHeight: 1.334,
-				letterSpacing: "0px",
-			},
-			h6: {
-				fontSize: "1.25rem",
-				fontWeight: 600,
-				lineHeight: 1.6,
-				letterSpacing: "0.15px",
-			},
-			subtitle1: {
-				fontSize: "1rem",
-				fontWeight: 500,
-				lineHeight: 1.2,
-				letterSpacing: "0.15px",
-			},
-			subtitle2: {
-				fontSize: "0.875rem",
-				fontWeight: 500,
-				lineHeight: 1.2,
-				letterSpacing: "0.1px",
-			},
-			body1: {
-				fontSize: "1rem",
-				fontWeight: 400,
-				lineHeight: 1.2,
-				letterSpacing: "0.15px",
-			},
-			body2: {
-				fontSize: "0.875rem",
-				fontWeight: 400,
-				lineHeight: 1.2,
-				letterSpacing: "0.17px",
-			},
-			caption: {
-				fontSize: "0.75rem",
-				fontWeight: 500,
-				lineHeight: 1,
-				letterSpacing: "0.4px",
-			},
-			overline: {
-				fontSize: "0.75rem",
-				fontWeight: 500,
-				lineHeight: 1,
-				letterSpacing: "1px",
-			},
+			// The ramp is written once in `packages/tokens/typography.js`, which
+			// the Expo app's Tailwind config reads too; `muiTypography` renders it
+			// in the rem sizes and unitless line heights this theme always used.
+			...muiTypography(),
 			button: {
 				fontFamily: figtree.style.fontFamily,
 				fontWeight: 600,

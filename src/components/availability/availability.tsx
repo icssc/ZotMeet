@@ -33,15 +33,11 @@ import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	clearPersonalGridSlots,
-	convertTimeFromUTC,
-	generateTimeBlocks,
+	deriveMeetingWindow,
 	getPageEdgeVariant,
-	getTimeFromHourMinuteString,
 	mergeImportedPersonalGridSlots,
-	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
-import type { HourMinuteString } from "@/lib/types/chrono";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
@@ -146,30 +142,19 @@ export function Availability({
 		Intl.DateTimeFormat().resolvedOptions().timeZone,
 	);
 	const [changeableTimezone, setChangeableTimezone] = useState(true);
-	const referenceDate = useMemo(
-		() => sortMeetingIsoDatesAsc(meetingData.dates)[0] ?? meetingData.dates[0],
-		[meetingData.dates],
-	);
-
-	const fromTimeLocal = useMemo(
-		() => convertTimeFromUTC(meetingData.fromTime, userTimezone, referenceDate),
-		[meetingData.fromTime, userTimezone, referenceDate],
-	);
-	const toTimeLocal = useMemo(
-		() => convertTimeFromUTC(meetingData.toTime, userTimezone, referenceDate),
-		[meetingData.toTime, userTimezone, referenceDate],
-	);
-	const fromTimeMinutes = useMemo(
-		() => getTimeFromHourMinuteString(fromTimeLocal as HourMinuteString),
-		[fromTimeLocal],
-	);
-	const toTimeMinutes = useMemo(
-		() => getTimeFromHourMinuteString(toTimeLocal as HourMinuteString),
-		[toTimeLocal],
-	);
-	const availabilityTimeBlocks = useMemo(
-		() => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
-		[fromTimeMinutes, toTimeMinutes],
+	// The grid's time axis in the viewer's zone — the same derivation the Expo
+	// app runs, from `@zotmeet/shared`.
+	const { fromTimeMinutes, availabilityTimeBlocks } = useMemo(
+		() =>
+			deriveMeetingWindow(
+				{
+					dates: meetingData.dates,
+					fromTime: meetingData.fromTime,
+					toTime: meetingData.toTime,
+				},
+				userTimezone,
+			),
+		[meetingData.dates, meetingData.fromTime, meetingData.toTime, userTimezone],
 	);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: trigger on meeting/tz change

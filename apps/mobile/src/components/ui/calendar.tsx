@@ -1,3 +1,4 @@
+import { formatLocalDateKey, MONTHS } from "@zotmeet/shared";
 import * as Haptics from "expo-haptics";
 import { useCallback, useRef, useState } from "react";
 import { type LayoutChangeEvent, Pressable, View } from "react-native";
@@ -9,9 +10,7 @@ import {
 	datesBetween,
 	getMonthGrid,
 	isSameDay,
-	MONTH_NAMES,
 	startOfDay,
-	toDateKey,
 	WEEKDAY_INITIALS,
 } from "@/lib/date";
 import { Icon } from "@/lib/icons";
@@ -232,10 +231,10 @@ export function Calendar({
 		// the day's own Pressable handles, or a scroll that we correctly let go.
 		if (!from || !to) return;
 
-		const additive = !selectedKeys.includes(toDateKey(from));
+		const additive = !selectedKeys.includes(formatLocalDateKey(from));
 		const keys = datesBetween(from, to)
 			.filter((day) => day >= floor)
-			.map(toDateKey);
+			.map(formatLocalDateKey);
 
 		if (keys.length > 0) onSelectRange(keys, additive);
 	}, [floor, onSelectRange, selectedKeys]);
@@ -256,12 +255,12 @@ export function Calendar({
 
 	const previewKeys =
 		anchor && cursor
-			? new Set(datesBetween(anchor, cursor).map(toDateKey))
+			? new Set(datesBetween(anchor, cursor).map(formatLocalDateKey))
 			: null;
 
 	/** A tap is a one-day sweep, so it reuses the same commit path. */
 	const toggleSingle = (day: Date) => {
-		const key = toDateKey(day);
+		const key = formatLocalDateKey(day);
 		onSelectRange([key], !selectedKeys.includes(key));
 	};
 
@@ -270,7 +269,7 @@ export function Calendar({
 			<View className="w-full flex-row items-center py-2 pt-4 pr-3 pl-6">
 				<View className="flex-1 flex-row items-center gap-1.5">
 					<Text className="font-figtree-medium text-body1 text-foreground">
-						{MONTH_NAMES[month.getMonth()]}
+						{MONTHS[month.getMonth()]}
 					</Text>
 					<Text className="font-figtree-medium text-body1 text-foreground">
 						{month.getFullYear()}
@@ -326,7 +325,7 @@ export function Calendar({
 					{weeks.map((week, row) => (
 						<View
 							className="flex-row justify-center gap-0.5"
-							key={toDateKey(
+							key={formatLocalDateKey(
 								week.find((day): day is Date => day !== null) ?? today,
 							)}
 							onLayout={measureRow(row)}
@@ -338,7 +337,7 @@ export function Calendar({
 											<EmptyCell />
 										</View>
 									);
-								const key = toDateKey(day);
+								const key = formatLocalDateKey(day);
 								return (
 									<View key={key} onLayout={measureCell(row, col)}>
 										<DayCell

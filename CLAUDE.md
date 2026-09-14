@@ -13,7 +13,7 @@ pnpm workspace (`pnpm-workspace.yaml`: `apps/*`, `packages/*`). Three code owner
 | web (root) | `src/` | Next.js 16 app (App Router, RSC, server actions), Drizzle, the `/api/*` routes mobile calls, PWA | Node + browser |
 | `@zotmeet/mobile` | `apps/mobile/` | Expo SDK 57 / RN 0.86 app, Expo Router, NativeWind | Hermes (iOS/Android/web preview) |
 | `@zotmeet/shared` | `packages/shared/` | **Pure** TS: time maths, `ZotDate`, grid/paint/fill logic, meetings helpers, zod schemas, API wire types, OAuth contract | Any |
-| `@zotmeet/tokens` | `packages/tokens/` | Colour tokens (light/dark HSL), `hsl()`, `cssVarBlocks()` — plain CommonJS | Any |
+| `@zotmeet/tokens` | `packages/tokens/` | Colour tokens + brand hex (`index.js`), Tailwind colour/radius wiring (`tailwind.js`), type ramp (`typography.js`) — plain CommonJS | Any |
 
 - Mobile **never** imports from `/src`. Web **never** imports from `apps/mobile`.
 - Mobile has **no backend**. It calls `src/app/api/**/route.ts`, which wrap existing `@actions/*` / `@data/*` functions.
@@ -23,13 +23,17 @@ pnpm workspace (`pnpm-workspace.yaml`: `apps/*`, `packages/*`). Three code owner
 
 Apply in order; stop at the first match.
 
-1. **Touches the DB, `next/*`, `server-only`, SES, `googleapis`, cookies, or `process.env` secrets** → `src/server/**` or `src/lib/**` (web). Expose to mobile via a route in `src/app/api/` (see §5).
+1. **Touches the DB, `next/*`, `server-only`, SES, `googleapis`, cookies, or `process.env` secrets** → `src/server/**` or `src/lib/**` (web). Expose to mobile via a route in `src/app/api/` (see §4).
 2. **Pure logic both apps could need** (date/time, grid maths, sorting/filtering, formatting, validation, wire types, constants/enums) → `packages/shared/src/<domain>/`. Then:
    - mobile imports `@zotmeet/shared` directly;
    - web keeps its existing import path by **re-exporting** from the old module (`src/lib/types/chrono.ts`, `src/lib/availability/utils.ts`, etc.). Do not rewrite web imports just to point at the package.
-3. **A colour** → `packages/tokens/index.js`. Never a hex/HSL literal in a component or config.
+3. **A colour, radius or type size** → `packages/tokens`. Never a hex/HSL/px literal in a component, theme or Tailwind config.
 4. **Platform-specific rendering, gestures, navigation, storage, crypto** → the app that owns it, under the **same folder and file name** as its counterpart (`components/availability/table/availability-block.tsx` exists in both). Put a doc comment at the top naming the counterpart and what deviates.
 5. **A React hook** → stays in the app. `@zotmeet/shared` has no React dependency; extract the pure function into shared and wrap it in `useMemo`/`useCallback` per app.
+
+Same-named files that are **intentionally separate** — do not merge them: `lib/utils.ts` (`cn`; mobile's extends tailwind-merge), `lib/auth/*` (server half vs device half of one protocol), `lib/meetings/delete-leave-action.ts` (icon component vs icon name), `nativeRedirectUriOptions` (reads `process.env` vs `expo-constants`), and every `components/**` pair. The two audit items left unconsolidated because they are *not equivalent* — the personal-edit lifecycle (web `hooks/use-edit-state.ts` + `use-availability-action-handlers.ts` vs mobile's inline snapshot) and the month-grid maths (`ZotDate.generateZotDates` vs mobile `lib/date.ts#getMonthGrid`) — need a design call before either is shared.
+
+What `@zotmeet/tokens` owns (both apps read it; change it there or nowhere): colour tokens (`index.js`), the Tailwind colour/radius wiring (`tailwind.js`), the type ramp (`typography.js` → `muiTypography()` for `src/theme.ts`, `tailwindFontSize()` for the Expo config), and the brand hex used by the manifest, icon script and `app.config.ts` (`brand`).
 
 Constraints on `@zotmeet/shared`:
 
@@ -37,23 +41,7 @@ Constraints on `@zotmeet/shared`:
 - Types are **structural** (`Pick<...>` of the fields read), never Drizzle row types. Where the web has a Drizzle-derived twin, pin them together with a typecheck assertion (pattern: `src/lib/types/availability.ts:26-31`).
 - Every export must work identically on Node, browser and Hermes (no `Intl` features Hermes lacks, no `AbortSignal.any`, no `crypto.subtle`).
 
-## 3. Known duplication — consolidate when you touch it
-
-Tracked in `ZOTMEET_STACK_GUIDE.md` → "Known duplication / tech debt". If a task touches one of these files, fold the duplicate into shared as part of the same change rather than editing both copies:
-
-- Pagination slice in both `store/useAvailabilityStore.ts` → pure reducer in `packages/shared/src/availability/`.
-- Filter/count/sort block in both `components/summary/meetings.tsx` → `packages/shared/src/meetings/list-model.ts` (pure function).
-- `variant` chain + `dateLabel` in both `components/ui/meeting-card.tsx` → `packages/shared/src/meetings/card.ts`.
-- Meeting-window derivation (`referenceDate` → minutes → `generateTimeBlocks`) in both `availability.tsx` → `packages/shared/src/availability/derive.ts`.
-- `formatLocalDateKey` (web) / `toDateKey` (mobile) → one copy in `packages/shared/src/chrono/time.ts`.
-- `MONTH_NAMES` in `apps/mobile/src/lib/date.ts` → delete, import `MONTHS` from shared.
-- Tailwind `colors` map + `borderRadius` in both Tailwind configs → export from `packages/tokens`.
-- Type ramp: MUI `typography` in `src/theme.ts` and `fontSize` in `apps/mobile/tailwind.config.js` — keep in sync by hand until tokens owns it; change both or neither.
-- Brand hex in `src/lib/pwa-config.mjs` and `apps/mobile/app.config.ts` — change both or neither.
-
-Do **not** merge these — they are same-named on purpose and correctly separate: `lib/utils.ts` (`cn`), `lib/auth/*` (server half vs device half), `lib/meetings/delete-leave-action.ts`, `nativeRedirectUriOptions`, every `components/**` pair.
-
-## 4. Stack standards
+## 3. Stack standards
 
 ### Both apps
 - React 19.2.3, zod 3, zustand 5, Tailwind 3.4 syntax, `clsx` + `tailwind-merge` via `cn()`, Biome for lint/format (`pnpm check`). Conventional commits with devmoji (`feat: ✨ …`, `fix: 🐛 …`).
@@ -81,7 +69,7 @@ Do **not** merge these — they are same-named on purpose and correctly separate
 - Auth: `useAuthStore` is the only reader of session state. Token lives in `expo-secure-store`; never in AsyncStorage, never logged.
 - Dev token (`EXPO_PUBLIC_API_TOKEN`) is read only under `__DEV__`; never put it in `eas.json`/`app.config.ts`.
 
-## 5. Exposing something to mobile
+## 4. Exposing something to mobile
 
 1. Find the existing `@actions`/`@data` function. If the action is cookie-coupled, split it into `xForMember(data, memberId)` + the thin action (pattern: `createMeetingFromData`, `archiveMeetingForMember`).
 2. Add `src/app/api/<path>/route.ts`: `getMemberIdFromBearer` → parse body with the shared zod schema → call the function → JSON. Build the response with `satisfies <ResponseType>`.
@@ -89,7 +77,7 @@ Do **not** merge these — they are same-named on purpose and correctly separate
 4. Add the client function in `apps/mobile/src/lib/api/<domain>.ts`.
 5. Never reimplement server logic in the route or on the device.
 
-## 6. Commands
+## 5. Commands
 
 ```bash
 pnpm dev                                   # web + /api on :3000 (Postgres on :5434 via docker)
@@ -103,7 +91,7 @@ pnpm db:setup | db:migrate | db:generate | db:seed
 
 Before finishing any change that touches `packages/**`: run all three typechecks. Before touching `apps/mobile/**`: also `pnpm check`. CI does not run typechecks — you are the gate.
 
-## 7. Gotchas
+## 6. Gotchas
 
 - TypeScript is 5.9 on web/shared and 6.0 on mobile. Shared code must satisfy both.
 - `pnpm-workspace.yaml` sets `minimumReleaseAge: 1440` — a package version released today will fail to install; pin one patch back.
@@ -113,11 +101,11 @@ Before finishing any change that touches `packages/**`: run all three typechecks
 - Biome ignores `src/components/ui/**` and `tailwind.config.ts` but **not** their mobile equivalents.
 - `ios/` is the PWABuilder Swift wrapper, not Expo. `apps/mobile/app.config.ts` reuses its bundle id `com.zotmeet` — resolve before any EAS store build.
 
-## 8. Things not to do without asking
+## 7. Things not to do without asking
 
 - Add a dependency to `@zotmeet/shared`, or React/zustand anywhere in `packages/`.
 - Add a data-fetching library, form library, or second component library to either app.
-- Move code between web and mobile, or "clean up" the same-named pairs listed in §3 as intentionally separate.
+- Move code between web and mobile, or "clean up" the same-named pairs §2 lists as intentionally separate.
 - Change colour values in `packages/tokens` (they are the Figma source of truth) or the MUI palette in `src/theme.ts`.
 - Delete web features mobile lacks (groups, notifications, study rooms, Google Calendar import, Apple sign-in, guest availability).
 - Commit or push.
