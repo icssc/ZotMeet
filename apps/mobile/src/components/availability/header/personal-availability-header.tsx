@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { View } from "react-native";
-import Animated, {
+import {
 	useAnimatedStyle,
 	useSharedValue,
 	withTiming,
@@ -8,6 +8,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { IconButton } from "@/components/ui/icon-button";
 import { Text } from "@/components/ui/text";
+import { Animated } from "@/lib/animated";
 import { Icon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
 

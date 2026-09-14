@@ -10,7 +10,8 @@ import {
 	spacerBeforeDate,
 	type ZotDate,
 } from "@zotmeet/shared";
-import { useCallback, useRef, useState } from "react";
+import * as Haptics from "expo-haptics";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { type LayoutChangeEvent, View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import {
@@ -95,7 +96,9 @@ export function PersonalAvailability({
 	datePageNav,
 	onPaint,
 }: PersonalAvailabilityProps) {
-	const { currentPage, itemsPerPage, paintMode } = useAvailabilityStore();
+	const currentPage = useAvailabilityStore((s) => s.currentPage);
+	const itemsPerPage = useAvailabilityStore((s) => s.itemsPerPage);
+	const paintMode = useAvailabilityStore((s) => s.paintMode);
 	const [draftRange, setDraftRange] = useState<
 		SelectionStateType | undefined
 	>();
@@ -107,7 +110,58 @@ export function PersonalAvailability({
 	} | null>(null);
 	const latestRangeRef = useRef<SelectionStateType | undefined>(undefined);
 
+	// A pan reports many points per cell; only a change of cell is a change of
+	// range, and only that should reach React — or the thumb. Painting ticks
+	// once per cell crossed, like a picker wheel; clearing is silent.
+	const updateDraftRange = useCallback(
+		(range: SelectionStateType) => {
+			const prev = latestRangeRef.current;
+			latestRangeRef.current = range;
+			if (
+				prev &&
+				prev.earlierDateIndex === range.earlierDateIndex &&
+				prev.laterDateIndex === range.laterDateIndex &&
+				prev.earlierBlockIndex === range.earlierBlockIndex &&
+				prev.laterBlockIndex === range.laterBlockIndex
+			) {
+				return;
+			}
+			if (paintMode !== "unavailable") {
+				Haptics.selectionAsync().catch(() => {});
+			}
+			setDraftRange(range);
+		},
+		[paintMode],
+	);
+
 	const spacers = spacerBeforeDate(currentPageAvailability.availabilities);
+	// Stable per-row objects, so the memoised cells see unchanged props.
+	const rowChromes = useMemo(
+		() =>
+			availabilityTimeBlocks.map((timeBlock, blockIndex) =>
+				getRowChrome(timeBlock, blockIndex, availabilityTimeBlocks.length),
+			),
+		[availabilityTimeBlocks],
+	);
+	// Saved state per visible cell. `personalCellState` formats an ISO string
+	// per lookup (a timezone round-trip), so it runs when the data changes,
+	// never per pointer move.
+	const cellStates = useMemo(
+		() =>
+			currentPageAvailability.availabilities.map(
+				(selectedDate, pageDateIndex) =>
+					selectedDate
+						? availabilityTimeBlocks.map((_, blockIndex) =>
+								personalCellState(
+									selectedDate,
+									currentPageAvailability.ifNeeded[pageDateIndex],
+									blockIndex,
+								),
+							)
+						: [],
+			),
+		[currentPageAvailability, availabilityTimeBlocks],
+	);
 	const lastIndex = currentPageAvailability.availabilities.length - 1;
 	const columnHeight = blockTop(availabilityTimeBlocks.length);
 	const columnCount = currentPageAvailability.availabilities.length;
@@ -147,11 +201,9 @@ export function PersonalAvailability({
 			const cell = resolveCell(x, y);
 			if (!cell) return;
 			anchorRef.current = cell;
-			const range = toRange(cell, cell);
-			latestRangeRef.current = range;
-			setDraftRange(range);
+			updateDraftRange(toRange(cell, cell));
 		},
-		[resolveCell],
+		[resolveCell, updateDraftRange],
 	);
 
 	const extend = useCallback(
@@ -160,11 +212,9 @@ export function PersonalAvailability({
 			if (!anchor) return;
 			const cell = resolveCell(x, y);
 			if (!cell) return;
-			const range = toRange(anchor, cell);
-			latestRangeRef.current = range;
-			setDraftRange(range);
+			updateDraftRange(toRange(anchor, cell));
 		},
-		[resolveCell],
+		[resolveCell, updateDraftRange],
 	);
 
 	const commit = useCallback(() => {
@@ -194,15 +244,24 @@ export function PersonalAvailability({
 		timeZone,
 	]);
 
+	// The gesture is built once and reads the latest handlers through a ref:
+	// rebuilding it on every draft update would re-attach it mid-drag.
+	const handlersRef = useRef({ begin, extend, commit });
+	handlersRef.current = { begin, extend, commit };
+
 	// Claim vertical pans so painting wins over the surrounding ScrollView.
-	const paintGesture = Gesture.Pan()
-		.runOnJS(true)
-		.minDistance(0)
-		.activeOffsetY([-4, 4])
-		.shouldCancelWhenOutside(false)
-		.onBegin((e) => begin(e.x, e.y))
-		.onUpdate((e) => extend(e.x, e.y))
-		.onFinalize(() => commit());
+	const paintGesture = useMemo(
+		() =>
+			Gesture.Pan()
+				.runOnJS(true)
+				.minDistance(0)
+				.activeOffsetY([-4, 4])
+				.shouldCancelWhenOutside(false)
+				.onBegin((e) => handlersRef.current.begin(e.x, e.y))
+				.onUpdate((e) => handlersRef.current.extend(e.x, e.y))
+				.onFinalize(() => handlersRef.current.commit()),
+		[],
+	);
 
 	return (
 		<View className="w-full flex-row gap-2">
@@ -251,19 +310,11 @@ export function PersonalAvailability({
 													width={columnWidth}
 												/>
 												{availabilityTimeBlocks.map((timeBlock, blockIndex) => {
-													const state = personalCellState(
-														selectedDate,
-														ifNeededDate,
-														blockIndex,
-													);
+													const state = cellStates[pageDateIndex][blockIndex];
 													return (
 														<PersonalAvailabilityBlock
 															blockIndex={blockIndex}
-															chrome={getRowChrome(
-																timeBlock,
-																blockIndex,
-																availabilityTimeBlocks.length,
-															)}
+															chrome={rowChromes[blockIndex]}
 															hasSpacerBefore={
 																hasSpacerBefore || pageDateIndex === 0
 															}

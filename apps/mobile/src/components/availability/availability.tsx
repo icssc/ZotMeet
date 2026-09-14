@@ -22,7 +22,10 @@ import { PersonalAvailabilityHeader } from "@/components/availability/header/per
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { PersonalAvailabilityActions } from "@/components/availability/personal-availability-actions";
 import { PersonalAvailabilityOptionsSheet } from "@/components/availability/personal-availability-options-sheet";
-import { MobileIsland } from "@/components/mobile/mobile-island";
+import {
+	MobileIsland,
+	MobileIslandContent,
+} from "@/components/mobile/mobile-island";
 import { saveAvailability } from "@/lib/api/meetings";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
@@ -324,15 +327,19 @@ export function Availability({
 
 			<MobileIsland>
 				{isPersonal ? (
-					<PersonalAvailabilityActions
-						onMoreOptions={() => setToolsOpen(true)}
-					/>
+					<MobileIslandContent key="personal">
+						<PersonalAvailabilityActions
+							onMoreOptions={() => setToolsOpen(true)}
+						/>
+					</MobileIslandContent>
 				) : (
-					<AvailabilityActions
-						attendees={meetingData.attendees}
-						hasAvailability={hasAvailability}
-						onAddAvailability={handleAddAvailability}
-					/>
+					<MobileIslandContent key="group">
+						<AvailabilityActions
+							attendees={meetingData.attendees}
+							hasAvailability={hasAvailability}
+							onAddAvailability={handleAddAvailability}
+						/>
+					</MobileIslandContent>
 				)}
 			</MobileIsland>
 

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { View } from "react-native";
 
 /** Stripe pitch: 3px of primary, 3px of gap — the web's `bg-stripes-primary`. */
@@ -14,14 +15,23 @@ interface StripeBackdropProps {
  * 45° hatch that if-needed cells reveal by thinning their paper base. React
  * Native has no repeating gradient, so the hatch is a fan of rotated bars,
  * drawn once per column (not per cell) to keep the view count low.
+ *
+ * Memoised: it depends only on the column's size, and a paint drag re-renders
+ * the column many times a second.
  */
-export function StripeBackdrop({ width, height }: StripeBackdropProps) {
+export const StripeBackdrop = memo(function StripeBackdrop({
+	width,
+	height,
+}: StripeBackdropProps) {
 	if (width <= 0 || height <= 0) return null;
 
-	// A 45° bar at horizontal offset x covers the diagonal x - height … x, so
-	// bars run from -height to width to reach both bottom-left and top-right.
-	const barLength = Math.ceil((width + height) * Math.SQRT2);
-	const count = Math.ceil((width + height) / STRIPE_PITCH);
+	// Each bar rotates about its own centre, which sits on the column's
+	// horizontal midline, so a bar at offset x sweeps x − height/2 … x + height/2
+	// across the column's full height. Centres therefore run from −height/2
+	// (to reach the bottom-left corner) to width + height/2 (the top-right).
+	const barLength = Math.ceil(height * Math.SQRT2) + STRIPE_PITCH;
+	const first = -height / 2;
+	const count = Math.ceil((width + height) / STRIPE_PITCH) + 1;
 
 	return (
 		<View
@@ -30,7 +40,7 @@ export function StripeBackdrop({ width, height }: StripeBackdropProps) {
 			aria-hidden
 		>
 			{Array.from({ length: count }, (_, i) => {
-				const x = i * STRIPE_PITCH - height;
+				const x = first + i * STRIPE_PITCH;
 				return (
 					<View
 						className="absolute bg-primary"
@@ -38,8 +48,8 @@ export function StripeBackdrop({ width, height }: StripeBackdropProps) {
 						style={{
 							width: STRIPE_WIDTH,
 							height: barLength,
-							left: x,
-							top: -(barLength - height) / 2,
+							left: x - STRIPE_WIDTH / 2,
+							top: (height - barLength) / 2,
 							transform: [{ rotate: "45deg" }],
 						}}
 					/>
@@ -47,4 +57,4 @@ export function StripeBackdrop({ width, height }: StripeBackdropProps) {
 			})}
 		</View>
 	);
-}
+});

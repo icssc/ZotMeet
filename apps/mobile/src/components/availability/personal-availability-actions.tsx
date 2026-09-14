@@ -1,4 +1,5 @@
 import type { PaintMode } from "@zotmeet/shared";
+import * as Haptics from "expo-haptics";
 import { View } from "react-native";
 import { AvailabilityAction } from "@/components/availability/availability-actions";
 import { Icon } from "@/lib/icons";
@@ -72,7 +73,13 @@ export function PersonalAvailabilityActions({
 					key={value}
 					icon={<PaintSwatch mode={value} />}
 					label={label}
-					onPress={() => setPaintMode(value)}
+					onPress={() => {
+						if (value !== paintMode) {
+							// A picker tick, as the calendar gives on a day change.
+							Haptics.selectionAsync().catch(() => {});
+						}
+						setPaintMode(value);
+					}}
 					selected={paintMode === value}
 				/>
 			))}
