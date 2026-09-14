@@ -114,7 +114,7 @@ Scan with [Expo Go](https://expo.dev/go) (iOS: the Camera app; Android: Expo Go'
 | `pnpm db:generate` | Generate new migrations from schema changes |
 | `pnpm db:migrate` | Apply pending migrations |
 | `pnpm db:studio` | Open Drizzle Studio to browse your database |
-| `pnpm db:seed` | Seed the database with a group and up to 20 random test users |
+| `pnpm db:seed` | Seed the database with a group, up to 20 random test users, and a few meetings hosted by "Seed Admin" (the mobile guest account) |
 
 ### Committing Changes
 
@@ -132,7 +132,7 @@ After changes to the .env file, run `pnpm run check` to update SvelteKit's auto-
 
 ### Seeding the Database (for Testing)
 
-The seed script (`src/db/seed.ts`) creates a group called **"ZotMeet Test Group"** and populates it with up to 20 randomly generated users. This is useful for testing features like availability views and group dashboards without needing real accounts.
+The seed script (`src/db/seed.ts`) creates a group called **"ZotMeet Dev Team"** and populates it with up to 20 randomly generated users. It also creates four meetings hosted by **"Seed Admin"** — the member the mobile app's guest account acts as (see `apps/mobile/README.md`) — with the generated users' availabilities filled in, so heatmaps and meeting cards have data. This is useful for testing features like availability views and group dashboards without needing real accounts.
 
 To seed:
 
