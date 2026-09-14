@@ -5,6 +5,9 @@ import {
 	type MeetingMemberActionResponse,
 	type MeetingResponse,
 	type MeetingsListResponse,
+	type SaveAvailabilityInput,
+	type SaveAvailabilityResponse,
+	saveAvailabilitySchema,
 } from "@zotmeet/shared";
 import { apiFetch } from "@/lib/api/client";
 
@@ -50,5 +53,19 @@ export function leaveMeeting(id: string): Promise<MeetingMemberActionResponse> {
 	return apiFetch<MeetingMemberActionResponse>(
 		`/api/meetings/${encodeURIComponent(id)}/leave`,
 		{ method: "POST" },
+	);
+}
+
+/** `PUT /api/meetings/:id/availability` — the web's `savePersonalAvailability` action. */
+export function saveAvailability(
+	id: string,
+	input: SaveAvailabilityInput,
+): Promise<SaveAvailabilityResponse> {
+	return apiFetch<SaveAvailabilityResponse>(
+		`/api/meetings/${encodeURIComponent(id)}/availability`,
+		{
+			method: "PUT",
+			body: JSON.stringify(saveAvailabilitySchema.parse(input)),
+		},
 	);
 }

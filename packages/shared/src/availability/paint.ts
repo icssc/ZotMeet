@@ -228,3 +228,30 @@ function applyMemberToBucket(
 		day.groupAvailability[timestamp] = bucket;
 	}
 }
+
+/** Clears the member's own available / if-needed slots, keeping everyone else's. */
+export function clearPersonalGridSlots(
+	availabilityDates: readonly ZotDate[],
+	ifNeededDates: readonly ZotDate[],
+	memberId: string,
+): { availabilityDates: ZotDate[]; ifNeededDates: ZotDate[] } {
+	const clearDates = (dates: readonly ZotDate[]) =>
+		dates.map((date) => {
+			const clonedDate = date.clone();
+			clonedDate.availability = [];
+			clonedDate.groupAvailability = Object.fromEntries(
+				Object.entries(clonedDate.groupAvailability).map(
+					([timestamp, members]) => [
+						timestamp,
+						members.filter((id) => id !== memberId),
+					],
+				),
+			);
+			return clonedDate;
+		});
+
+	return {
+		availabilityDates: clearDates(availabilityDates),
+		ifNeededDates: clearDates(ifNeededDates),
+	};
+}

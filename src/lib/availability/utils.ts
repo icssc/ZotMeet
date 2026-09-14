@@ -11,6 +11,7 @@ export {
 	buildMeetingGridIsoSet,
 	buildTimestampsByCell,
 	buildZotDateRowsForMeetingDays,
+	clearPersonalGridSlots,
 	convertTimeFromUTC,
 	convertTimeToUTC,
 	formatDateToUSNumeric,
@@ -236,31 +237,4 @@ export function pruneGroupAvailabilityByMemberIds(
 		cloned.groupAvailability = newGroupAvail;
 		return cloned;
 	});
-}
-
-/** Clears personal available/if-needed slots */
-export function clearPersonalGridSlots(
-	availabilityDates: readonly ZotDate[],
-	ifNeededDates: readonly ZotDate[],
-	memberId: string,
-): { availabilityDates: ZotDate[]; ifNeededDates: ZotDate[] } {
-	const clearDates = (dates: readonly ZotDate[]) =>
-		dates.map((date) => {
-			const clonedDate = date.clone();
-			clonedDate.availability = [];
-			clonedDate.groupAvailability = Object.fromEntries(
-				Object.entries(clonedDate.groupAvailability).map(
-					([timestamp, members]) => [
-						timestamp,
-						members.filter((id) => id !== memberId),
-					],
-				),
-			);
-			return clonedDate;
-		});
-
-	return {
-		availabilityDates: clearDates(availabilityDates),
-		ifNeededDates: clearDates(ifNeededDates),
-	};
 }

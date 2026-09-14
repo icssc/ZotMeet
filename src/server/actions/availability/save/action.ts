@@ -1,10 +1,8 @@
 "use server";
 
-import { getExistingMeeting } from "@data/meeting/queries";
 import { revalidatePath } from "next/cache";
-import { db } from "@/db";
-import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { savePersonalAvailabilityForMember } from "@/server/data/availability/save";
 
 export async function savePersonalAvailability({
 	meetingId,
@@ -22,35 +20,13 @@ export async function savePersonalAvailability({
 			throw new Error("User not found");
 		}
 
-		const memberId = user.memberId;
+		const { groupId } = await savePersonalAvailabilityForMember({
+			meetingId,
+			memberId: user.memberId,
+			meetingAvailabilityTimes,
+			ifNeededAvailabilityTimes,
+		});
 
-		const meeting = await getExistingMeeting(meetingId);
-		if (!meeting) {
-			throw new Error("Meeting not found");
-		}
-
-		const ifNeededSet = new Set(ifNeededAvailabilityTimes);
-		const meetingAvailabilities = meetingAvailabilityTimes.filter(
-			(t) => !ifNeededSet.has(t),
-		);
-
-		await db
-			.insert(availabilities)
-			.values({
-				memberId,
-				meetingId,
-				meetingAvailabilities,
-				ifNeededAvailabilities: ifNeededAvailabilityTimes,
-			})
-			.onConflictDoUpdate({
-				target: [availabilities.memberId, availabilities.meetingId],
-				set: {
-					meetingAvailabilities,
-					ifNeededAvailabilities: ifNeededAvailabilityTimes,
-				},
-			});
-
-		const groupId = meeting.group_id;
 		if (groupId) {
 			revalidatePath(`/groups/${groupId}`);
 		}

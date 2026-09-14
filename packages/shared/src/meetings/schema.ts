@@ -146,6 +146,20 @@ export type MeetingListItem = {
 	} | null;
 };
 
+/**
+ * `PUT /api/meetings/:id/availability` — the wire form of the web's
+ * `savePersonalAvailability` action. Both lists are the grid's ISO slot
+ * strings (`ZotDate#availability`); a slot in both is saved as if-needed.
+ */
+export const saveAvailabilitySchema = z.object({
+	meetingAvailabilityTimes: z.array(z.string().datetime()),
+	ifNeededAvailabilityTimes: z.array(z.string().datetime()),
+});
+
+export type SaveAvailabilityInput = z.infer<typeof saveAvailabilitySchema>;
+
+export type SaveAvailabilityResponse = { success: true };
+
 export type MeetingsListResponse = {
 	/** Whose meetings these are — what the list compares `hostId` against. */
 	memberId: string;

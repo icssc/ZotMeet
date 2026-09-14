@@ -9,18 +9,19 @@ import { cn } from "@/lib/utils";
  * label. The label wraps naturally at the option's fixed width, so a longer
  * one like "Schedule Meeting" breaks onto two lines the way it does in Figma.
  */
-function AvailabilityAction({
+export function AvailabilityAction({
 	icon,
 	label,
 	className,
 	disabled,
+	selected,
 	...props
 }: PressableProps & {
 	icon: React.ReactNode;
 	label: string;
+	/** Pink outline wash used when a paint mode is active (Figma selected state). */
+	selected?: boolean;
 }) {
-	// Hand the icon its size the way `IconButton` does, so callers write
-	// `<Icon name="groups" />` and the action decides how big it renders.
 	const sizedIcon = isValidElement<{ size?: number }>(icon)
 		? cloneElement(icon, { size: icon.props.size ?? 18 })
 		: icon;
@@ -29,10 +30,11 @@ function AvailabilityAction({
 		<Pressable
 			accessibilityLabel={label}
 			accessibilityRole="button"
-			accessibilityState={{ disabled: !!disabled }}
+			accessibilityState={{ disabled: !!disabled, selected: !!selected }}
 			className={cn(
 				"h-[52px] w-[61px] items-center justify-center gap-1 rounded-control",
 				"active:opacity-60",
+				selected && "border border-primary bg-primary/5",
 				disabled && "opacity-50",
 				className,
 			)}
@@ -49,6 +51,8 @@ function AvailabilityAction({
 
 export interface AvailabilityActionsProps {
 	attendees: { responded: number; total: number };
+	/** The viewer has a saved response — the web's `hasAvailability` label switch. */
+	hasAvailability?: boolean;
 	onShowResponses?: () => void;
 	onAddAvailability?: () => void;
 	onScheduleMeeting?: () => void;
@@ -59,13 +63,14 @@ export interface AvailabilityActionsProps {
  * `components/availability/availability-actions.tsx`: the row of actions a
  * meeting offers. On the web these are MUI buttons in the sidebar or island;
  * here they are the three icon-over-label options of the wireframe's floating
- * control bar, with MUI's `<Divider vertical>` splitting the response count
- * from the two actions.
+ * control bar.
  *
- * Front end only: the handlers are optional and nothing is wired to them yet.
+ * Attendees / Schedule handlers stay optional until those flows land; Add
+ * Availability is wired from `Availability` into personal edit mode.
  */
 export function AvailabilityActions({
 	attendees,
+	hasAvailability = false,
 	onShowResponses,
 	onAddAvailability,
 	onScheduleMeeting,
@@ -80,7 +85,7 @@ export function AvailabilityActions({
 			<View className="h-[30px] w-px bg-border" />
 			<AvailabilityAction
 				icon={<Icon name="create" />}
-				label="Add Availability"
+				label={hasAvailability ? "Edit Availability" : "Add Availability"}
 				onPress={onAddAvailability}
 			/>
 			<AvailabilityAction

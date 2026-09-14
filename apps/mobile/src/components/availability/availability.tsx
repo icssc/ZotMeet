@@ -1,4 +1,5 @@
 import {
+	clearPersonalGridSlots,
 	convertTimeFromUTC,
 	deriveInitialAvailability,
 	generateTimeBlocks,
@@ -8,31 +9,34 @@ import {
 	type Member,
 	sliceCurrentPageAvailability,
 	sortMeetingIsoDatesAsc,
+	type ZotDate,
 } from "@zotmeet/shared";
-import { useEffect, useMemo } from "react";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AvailabilityActions } from "@/components/availability/availability-actions";
 import { GroupAvailability } from "@/components/availability/group-availability";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
+import { PersonalAvailabilityHeader } from "@/components/availability/header/personal-availability-header";
+import { PersonalAvailability } from "@/components/availability/personal-availability";
+import { PersonalAvailabilityActions } from "@/components/availability/personal-availability-actions";
+import { PersonalAvailabilityOptionsSheet } from "@/components/availability/personal-availability-options-sheet";
 import { MobileIsland } from "@/components/mobile/mobile-island";
+import { saveAvailability } from "@/lib/api/meetings";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 /**
  * Native counterpart to the web app's
  * `components/availability/availability.tsx` — "[Meetings] New Meeting" in the
- * ZotMeet Hi-Fi Wireframes, the screen a meeting lands on once created. Same
- * composition as the web's mobile layout: `AvailabilityHeader`, the outlined
- * Paper holding the table, and `AvailabilityActions` in the `MobileIsland`.
+ * ZotMeet Hi-Fi Wireframes. Group view shows the heatmap + island actions;
+ * Add Availability switches to personal edit (Figma "[Meetings] Add
+ * Availability"): curtain header, paint grid, and an island with More Options
+ * plus Available / If Needed / Unavailable — mirroring desktop's sidebar tools.
  *
- * The grid is derived the way the web's `availability.tsx` and
- * `use-availability-data.ts` derive theirs, through the same shared helpers:
- * the stored UTC times are brought into the viewer's timezone and cut into
- * 15-minute rows, every member's response becomes one `ZotDate` per meeting
- * day, and the days are paged through `useAvailabilityStore`, two at a time.
- *
- * Read-only for now: the grid shows the group heatmap, and the actions do
- * nothing yet.
+ * Edit state follows the web's `useEditState` / `useAvailabilityActionHandlers`:
+ * entering personal mode snapshots the grid, Cancel restores it, Save PUTs the
+ * painted slots through the API and keeps the optimistic grid on success.
  */
 export function Availability({
 	meetingData,
@@ -40,30 +44,46 @@ export function Availability({
 	meetingData: MeetingResponse;
 }) {
 	const insets = useSafeAreaInsets();
-	const { currentPage, itemsPerPage, isFirstPage, nextPage, prevPage } =
-		useAvailabilityStore();
+	const router = useRouter();
+	const {
+		currentPage,
+		itemsPerPage,
+		isFirstPage,
+		nextPage,
+		prevPage,
+		availabilityView,
+		setAvailabilityView,
+	} = useAvailabilityStore();
 	const setCurrentPage = useAvailabilityStore((s) => s.setCurrentPage);
 
-	// Every meeting starts on its first page — the route keys this component
-	// by meeting id, so a different meeting mounts afresh and lands here.
+	const [toolsOpen, setToolsOpen] = useState(false);
+	const [isSaving, setIsSaving] = useState(false);
+	const [saveError, setSaveError] = useState<string | null>(null);
+	const isPersonal = availabilityView === "personal";
+
+	// The web's `hasAvailability`: flips the island label to "Edit Availability".
+	const viewerResponded = meetingData.availabilities.some(
+		(a) =>
+			a.memberId === meetingData.viewerMemberId &&
+			(a.meetingAvailabilities.length > 0 ||
+				a.ifNeededAvailabilities.length > 0),
+	);
+	const [hasAvailability, setHasAvailability] = useState(viewerResponded);
+	useEffect(() => setHasAvailability(viewerResponded), [viewerResponded]);
+
+	// Every meeting starts on its first page in group view — the route keys
+	// this component by meeting id, so a different meeting mounts afresh.
 	useEffect(() => {
 		setCurrentPage(0);
-	}, [setCurrentPage]);
+		setAvailabilityView("group");
+	}, [setCurrentPage, setAvailabilityView]);
 
 	const viewerTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-	const {
-		availabilityDates,
-		ifNeededDates,
-		availabilityTimeBlocks,
-		fromTimeMinutes,
-		members,
-	} = useMemo(() => {
+	const derived = useMemo(() => {
 		const sortedDates = sortMeetingIsoDatesAsc(meetingData.dates);
 		const referenceDate = sortedDates[0] ?? meetingData.dates[0];
 
-		// `convertTimeFromUTC` returns "HH:mm:ss" but is typed as `string`; the
-		// web casts at the same point.
 		const fromTimeMinutes = getTimeFromHourMinuteString(
 			convertTimeFromUTC(
 				meetingData.fromTime,
@@ -117,6 +137,23 @@ export function Availability({
 		viewerTimezone,
 	]);
 
+	const [availabilityDates, setAvailabilityDates] = useState(
+		derived.availabilityDates,
+	);
+	const [ifNeededDates, setIfNeededDates] = useState(derived.ifNeededDates);
+	const draftSnapshotRef = useRef<{
+		availabilityDates: ZotDate[];
+		ifNeededDates: ZotDate[];
+	} | null>(null);
+
+	useEffect(() => {
+		setAvailabilityDates(derived.availabilityDates);
+		setIfNeededDates(derived.ifNeededDates);
+		draftSnapshotRef.current = null;
+	}, [derived]);
+
+	const { availabilityTimeBlocks, fromTimeMinutes, members } = derived;
+
 	const currentPageAvailability = useMemo(
 		() =>
 			sliceCurrentPageAvailability(
@@ -130,40 +167,183 @@ export function Availability({
 	const isLastPage =
 		(currentPage + 1) * itemsPerPage >= availabilityDates.length;
 
+	const datePageNav = useMemo(
+		() => ({
+			onPrev: prevPage,
+			onNext: () => nextPage(availabilityDates.length),
+			isFirstPage,
+			isLastPage,
+		}),
+		[prevPage, nextPage, availabilityDates.length, isFirstPage, isLastPage],
+	);
+
+	const handleAddAvailability = useCallback(() => {
+		// Signed out, the web sends the visitor to log in and back; the sign-in
+		// screen lives on the Profile tab here.
+		if (!meetingData.viewerMemberId) {
+			router.push("/profile");
+			return;
+		}
+		setSaveError(null);
+		draftSnapshotRef.current = {
+			availabilityDates: availabilityDates.map((d) => d.clone()),
+			ifNeededDates: ifNeededDates.map((d) => d.clone()),
+		};
+		setAvailabilityView("personal");
+	}, [
+		availabilityDates,
+		ifNeededDates,
+		meetingData.viewerMemberId,
+		router,
+		setAvailabilityView,
+	]);
+
+	const handlePersonalCancel = useCallback(() => {
+		const snapshot = draftSnapshotRef.current;
+		if (snapshot) {
+			setAvailabilityDates(snapshot.availabilityDates);
+			setIfNeededDates(snapshot.ifNeededDates);
+		}
+		draftSnapshotRef.current = null;
+		setToolsOpen(false);
+		setAvailabilityView("group");
+	}, [setAvailabilityView]);
+
+	const handlePersonalSave = useCallback(async () => {
+		if (isSaving) return;
+		setIsSaving(true);
+		setSaveError(null);
+		try {
+			await saveAvailability(meetingData.id, {
+				meetingAvailabilityTimes: availabilityDates.flatMap(
+					(date) => date.availability,
+				),
+				ifNeededAvailabilityTimes: ifNeededDates.flatMap(
+					(date) => date.availability,
+				),
+			});
+		} catch (error) {
+			setSaveError(
+				error instanceof Error ? error.message : "Failed to save availability.",
+			);
+			return;
+		} finally {
+			setIsSaving(false);
+		}
+		// Saved: the painted grid is now the truth, as the web's `confirmSave`.
+		draftSnapshotRef.current = null;
+		setHasAvailability(true);
+		setToolsOpen(false);
+		setAvailabilityView("group");
+	}, [
+		availabilityDates,
+		ifNeededDates,
+		isSaving,
+		meetingData.id,
+		setAvailabilityView,
+	]);
+
+	const handlePaint = useCallback(
+		(next: { availabilityDates: ZotDate[]; ifNeededDates: ZotDate[] }) => {
+			setAvailabilityDates(next.availabilityDates);
+			setIfNeededDates(next.ifNeededDates);
+		},
+		[],
+	);
+
+	const handleClearAvailability = useCallback(() => {
+		const memberId = meetingData.viewerMemberId;
+		if (!memberId) return;
+		const cleared = clearPersonalGridSlots(
+			availabilityDates,
+			ifNeededDates,
+			memberId,
+		);
+		setAvailabilityDates(cleared.availabilityDates);
+		setIfNeededDates(cleared.ifNeededDates);
+	}, [availabilityDates, ifNeededDates, meetingData.viewerMemberId]);
+
+	const hasPaintedSlots = useMemo(
+		() =>
+			availabilityDates.some((d) => d.availability.length > 0) ||
+			ifNeededDates.some((d) => d.availability.length > 0),
+		[availabilityDates, ifNeededDates],
+	);
+
 	return (
-		<View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+		<View
+			className="flex-1 bg-background"
+			style={isPersonal ? undefined : { paddingTop: insets.top }}
+		>
+			{isPersonal ? (
+				<PersonalAvailabilityHeader
+					error={saveError}
+					onCancel={handlePersonalCancel}
+					onSave={handlePersonalSave}
+					saveDisabled={isSaving}
+				/>
+			) : null}
+
 			<ScrollView
 				className="flex-1"
-				// Room for the island to sit over empty space rather than the last
-				// hour of the table.
-				contentContainerClassName="px-3 pt-3 pb-[100px]"
+				contentContainerClassName={
+					isPersonal ? "px-3 pt-[100px] pb-[100px]" : "px-3 pt-3 pb-[100px]"
+				}
 				showsVerticalScrollIndicator={false}
 			>
-				<AvailabilityHeader meetingData={meetingData} />
+				{isPersonal ? null : <AvailabilityHeader meetingData={meetingData} />}
 
-				{/* MUI `<Paper variant="outlined">`, the "calendar with controls" frame. */}
 				<View className="w-full rounded-lg border border-border bg-paper px-3 pt-3 pb-5">
-					<GroupAvailability
-						availabilityDates={availabilityDates}
-						availabilityTimeBlocks={availabilityTimeBlocks}
-						currentPageAvailability={currentPageAvailability}
-						datePageNav={{
-							onPrev: prevPage,
-							onNext: () => nextPage(availabilityDates.length),
-							isFirstPage,
-							isLastPage,
-						}}
-						fromTime={fromTimeMinutes}
-						meetingType={meetingData.meetingType}
-						members={members}
-						timeZone={viewerTimezone}
-					/>
+					{isPersonal && meetingData.viewerMemberId ? (
+						<PersonalAvailability
+							availabilityDates={availabilityDates}
+							availabilityTimeBlocks={availabilityTimeBlocks}
+							currentPageAvailability={currentPageAvailability}
+							datePageNav={datePageNav}
+							fromTime={fromTimeMinutes}
+							ifNeededDates={ifNeededDates}
+							meetingType={meetingData.meetingType}
+							memberId={meetingData.viewerMemberId}
+							onPaint={handlePaint}
+							timeZone={viewerTimezone}
+						/>
+					) : (
+						<GroupAvailability
+							availabilityDates={availabilityDates}
+							availabilityTimeBlocks={availabilityTimeBlocks}
+							currentPageAvailability={currentPageAvailability}
+							datePageNav={datePageNav}
+							fromTime={fromTimeMinutes}
+							meetingType={meetingData.meetingType}
+							members={members}
+							timeZone={viewerTimezone}
+						/>
+					)}
 				</View>
 			</ScrollView>
 
 			<MobileIsland>
-				<AvailabilityActions attendees={meetingData.attendees} />
+				{isPersonal ? (
+					<PersonalAvailabilityActions
+						onMoreOptions={() => setToolsOpen(true)}
+					/>
+				) : (
+					<AvailabilityActions
+						attendees={meetingData.attendees}
+						hasAvailability={hasAvailability}
+						onAddAvailability={handleAddAvailability}
+					/>
+				)}
 			</MobileIsland>
+
+			{isPersonal ? (
+				<PersonalAvailabilityOptionsSheet
+					canClear={hasPaintedSlots}
+					onClearAvailability={handleClearAvailability}
+					onClose={() => setToolsOpen(false)}
+					open={toolsOpen}
+				/>
+			) : null}
 		</View>
 	);
 }
