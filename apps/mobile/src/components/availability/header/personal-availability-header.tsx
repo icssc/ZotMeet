@@ -47,7 +47,7 @@ export function PersonalAvailabilityHeader({
 
 	return (
 		<Animated.View
-			className="absolute right-0 left-0 z-20 border-border border-b bg-paper px-3 pb-5"
+			className="absolute top-0 right-0 left-0 z-20 border-border border-b bg-paper px-3 pb-5"
 			style={[{ paddingTop: insets.top + 12 }, animatedStyle]}
 		>
 			<View className="w-full flex-row items-center gap-3">

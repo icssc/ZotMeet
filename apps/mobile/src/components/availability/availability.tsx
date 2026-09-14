@@ -14,6 +14,11 @@ import {
 import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
+import {
+	useAnimatedStyle,
+	useSharedValue,
+	withTiming,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AvailabilityActions } from "@/components/availability/availability-actions";
 import { GroupAvailability } from "@/components/availability/group-availability";
@@ -26,8 +31,12 @@ import {
 	MobileIsland,
 	MobileIslandContent,
 } from "@/components/mobile/mobile-island";
+import { Animated } from "@/lib/animated";
 import { saveAvailability } from "@/lib/api/meetings";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+
+/** Matches the island's cross-fade so the two read as one transition. */
+const GROUP_HEADER_FADE_MS = 220;
 
 /**
  * Native counterpart to the web app's
@@ -273,11 +282,21 @@ export function Availability({
 		[availabilityDates, ifNeededDates],
 	);
 
+	// The group header stays in the layout while editing and only fades, so
+	// the heatmap card keeps its exact position under the sliding curtain
+	// header instead of jumping when the mode flips.
+	const groupHeaderOpacity = useSharedValue(1);
+	useEffect(() => {
+		groupHeaderOpacity.value = withTiming(isPersonal ? 0 : 1, {
+			duration: GROUP_HEADER_FADE_MS,
+		});
+	}, [groupHeaderOpacity, isPersonal]);
+	const groupHeaderStyle = useAnimatedStyle(() => ({
+		opacity: groupHeaderOpacity.value,
+	}));
+
 	return (
-		<View
-			className="flex-1 bg-background"
-			style={isPersonal ? undefined : { paddingTop: insets.top }}
-		>
+		<View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
 			{isPersonal ? (
 				<PersonalAvailabilityHeader
 					error={saveError}
@@ -289,12 +308,15 @@ export function Availability({
 
 			<ScrollView
 				className="flex-1"
-				contentContainerClassName={
-					isPersonal ? "px-3 pt-[100px] pb-[100px]" : "px-3 pt-3 pb-[100px]"
-				}
+				contentContainerClassName="px-3 pt-3 pb-[100px]"
 				showsVerticalScrollIndicator={false}
 			>
-				{isPersonal ? null : <AvailabilityHeader meetingData={meetingData} />}
+				<Animated.View
+					pointerEvents={isPersonal ? "none" : "auto"}
+					style={groupHeaderStyle}
+				>
+					<AvailabilityHeader meetingData={meetingData} />
+				</Animated.View>
 
 				<View className="w-full rounded-lg border border-border bg-paper px-3 pt-3 pb-5">
 					{isPersonal && meetingData.viewerMemberId ? (
