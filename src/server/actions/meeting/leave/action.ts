@@ -10,11 +10,6 @@ import {
 	type MeetingMemberActionResult,
 } from "@/server/data/meeting/member-actions";
 
-export type { MeetingMemberActionResult };
-
-/** @deprecated Use {@link MeetingMemberActionResult} */
-export type LeaveMeetingResult = MeetingMemberActionResult;
-
 export async function leaveMeeting(
 	meetingData: SelectMeeting,
 ): Promise<MeetingMemberActionResult> {
