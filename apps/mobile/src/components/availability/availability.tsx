@@ -336,9 +336,9 @@ export function Availability({
 						<GroupAvailability
 							availabilityDates={availabilityDates}
 							availabilityTimeBlocks={availabilityTimeBlocks}
-							currentPageAvailability={currentPageAvailability}
 							datePageNav={datePageNav}
 							fromTime={fromTimeMinutes}
+							ifNeededDates={ifNeededDates}
 							meetingType={meetingData.meetingType}
 							members={members}
 							timeZone={viewerTimezone}

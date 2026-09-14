@@ -43,9 +43,9 @@ export const PersonalAvailabilityBlock = memo(
 		return (
 			<View
 				className={[
-					"absolute right-0 left-0 border-border border-r",
+					"absolute right-0 left-0 border-gray-medium border-r",
 					hasSpacerBefore ? "border-l" : "",
-					chrome.isTopOfHour ? "border-t" : "",
+					chrome.isTopOfHour ? "border-t border-t-gray-base" : "",
 					chrome.isLastRow ? "border-b" : "",
 				].join(" ")}
 				pointerEvents="none"
@@ -71,7 +71,7 @@ export const PersonalAvailabilityBlock = memo(
 				)}
 				{chrome.isHalfHour && (
 					<View className="absolute top-0 right-0 left-0 h-px overflow-hidden">
-						<View className="absolute top-0 -right-0.5 -left-0.5 h-[3px] border border-border border-dashed" />
+						<View className="absolute top-0 -right-0.5 -left-0.5 h-[3px] border border-gray-base border-dotted" />
 					</View>
 				)}
 			</View>
