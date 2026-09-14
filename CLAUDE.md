@@ -1,8 +1,8 @@
 # CLAUDE.md — ZotMeet
 
 Rules for working in this repo. Read once; follow every session. Longer rationale lives in
-`ZOTMEET_STACK_GUIDE.md` (audit of both stacks) and `apps/mobile/README.md` (mobile conventions).
-Do not duplicate those docs here; update them when a rule below changes.
+`apps/mobile/README.md` (mobile conventions, the web↔mobile file mapping, and the native
+sign-in flow). Do not duplicate that doc here; update it when a rule below changes.
 
 ## 1. Repo shape
 
@@ -65,7 +65,7 @@ Constraints on `@zotmeet/shared`:
 - Icons: `<Icon name="more-vert" />` from `lib/icons.tsx` (Material Icons; MUI name kebab-cased). No SVG exports.
 - Navigation: Expo Router, typed routes. Mirror web paths (`/availability/[slug]`, `/groups/[id]`).
 - Data: `lib/api/client.ts` `apiFetch` → `lib/api/<domain>.ts` functions → hooks in `hooks/`. Validate request bodies with the shared zod schema before sending.
-- Animation/gesture: `react-native-reanimated`, `react-native-gesture-handler`, `expo-haptics`. Use the `Animated` wrapper from `lib/animated.ts`.
+- Animation/gesture: `react-native-reanimated`, `react-native-gesture-handler`, `expo-haptics`. No `Animated` from `react-native` — reanimated is the one animation library.
 - Auth: `useAuthStore` is the only reader of session state. Token lives in `expo-secure-store`; never in AsyncStorage, never logged.
 - Dev token (`EXPO_PUBLIC_API_TOKEN`) is read only under `__DEV__`; never put it in `eas.json`/`app.config.ts`.
 

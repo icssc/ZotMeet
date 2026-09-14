@@ -11,12 +11,12 @@ export interface DatePaginationState {
 	isFirstPage: boolean;
 }
 
-/** `Math.floor((total - 1) / perPage)`; `0` for an empty list. */
+/** Index of the last page; `0` for an empty list rather than `-1`. */
 export function lastPageIndex(
 	totalItems: number,
 	itemsPerPage: number,
 ): number {
-	return Math.floor((totalItems - 1) / itemsPerPage);
+	return Math.max(0, Math.floor((totalItems - 1) / itemsPerPage));
 }
 
 /** The next page, or the same state when already on the last page. */

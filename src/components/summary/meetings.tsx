@@ -15,6 +15,7 @@ import type { NotificationItem } from "@/lib/auth/user";
 import { toMeetingCardData } from "@/lib/meeting-card/mapper";
 import {
 	buildMeetingsListModel,
+	getStartOfTodayMs,
 	MEETINGS_LIST_FILTER_LABELS,
 	MEETINGS_LIST_FILTERS,
 	type MeetingsListFilter,
@@ -109,6 +110,9 @@ export const Meetings = ({
 	);
 
 	// Counts, filter, search and sort — the same model the Expo app builds.
+	// Read on every render, not defaulted inside the memo, so a list that stays
+	// mounted across midnight re-buckets on its next render.
+	const todayMs = getStartOfTodayMs();
 	const { counts, meetings: displayMeetings } = useMemo(
 		() =>
 			buildMeetingsListModel({
@@ -118,8 +122,17 @@ export const Meetings = ({
 				search,
 				scheduledDates,
 				upcomingSet,
+				todayMs,
 			}),
-		[meetings, memberId, activeFilter, search, scheduledDates, upcomingSet],
+		[
+			meetings,
+			memberId,
+			activeFilter,
+			search,
+			scheduledDates,
+			upcomingSet,
+			todayMs,
+		],
 	);
 
 	const renderMeetings = () => {

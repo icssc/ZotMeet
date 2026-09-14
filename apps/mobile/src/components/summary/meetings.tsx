@@ -1,6 +1,7 @@
 import {
 	buildMeetingsListModel,
 	buildScheduledMeetingsMeta,
+	getStartOfTodayMs,
 	MEETINGS_LIST_FILTER_LABELS,
 	MEETINGS_LIST_FILTERS,
 	type MeetingListItem,
@@ -81,6 +82,9 @@ export function Meetings({
 	}, [meetings]);
 
 	// Counts, filter, search and sort — the same model the web builds.
+	// Read on every render, not defaulted inside the memo, so a list that stays
+	// mounted across midnight re-buckets on its next render.
+	const todayMs = getStartOfTodayMs();
 	const { counts, meetings: displayMeetings } = useMemo(
 		() =>
 			buildMeetingsListModel({
@@ -90,8 +94,17 @@ export function Meetings({
 				search,
 				scheduledDates,
 				upcomingSet,
+				todayMs,
 			}),
-		[meetings, memberId, activeFilter, search, scheduledDates, upcomingSet],
+		[
+			meetings,
+			memberId,
+			activeFilter,
+			search,
+			scheduledDates,
+			upcomingSet,
+			todayMs,
+		],
 	);
 
 	const renderMeetings = () => {
