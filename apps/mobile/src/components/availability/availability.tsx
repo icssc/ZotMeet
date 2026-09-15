@@ -70,14 +70,28 @@ export function Availability({
 	const isPersonal = availabilityView === "personal";
 
 	// The web's `hasAvailability`: flips the island label to "Edit Availability".
-	const viewerResponded = meetingData.availabilities.some(
-		(a) =>
-			a.memberId === meetingData.viewerMemberId &&
-			(a.meetingAvailabilities.length > 0 ||
-				a.ifNeededAvailabilities.length > 0),
+	// "Responded" is the server's definition too (`getResponderCountsByMeetingIds`):
+	// a row with at least one slot.
+	const viewerRow = meetingData.availabilities.find(
+		(a) => a.memberId === meetingData.viewerMemberId,
 	);
+	const viewerResponded =
+		viewerRow !== undefined &&
+		(viewerRow.meetingAvailabilities.length > 0 ||
+			viewerRow.ifNeededAvailabilities.length > 0);
 	const [hasAvailability, setHasAvailability] = useState(viewerResponded);
 	useEffect(() => setHasAvailability(viewerResponded), [viewerResponded]);
+	// The island's "n/m Attendees" is from the fetch; once the viewer saves,
+	// the heatmap includes them, so the count does too — as on the web, where
+	// a viewer with no row joins `members` the moment they paint.
+	const attendees = useMemo(() => {
+		if (!hasAvailability || viewerResponded) return meetingData.attendees;
+		const { responded, total } = meetingData.attendees;
+		return {
+			responded: responded + 1,
+			total: viewerRow === undefined ? total + 1 : total,
+		};
+	}, [hasAvailability, meetingData.attendees, viewerResponded, viewerRow]);
 
 	// Every meeting starts on its first page in group view — the route keys
 	// this component by meeting id, so a different meeting mounts afresh.
@@ -287,7 +301,7 @@ export function Availability({
 					error={saveError}
 					onCancel={handlePersonalCancel}
 					onSave={handlePersonalSave}
-					saveDisabled={isSaving}
+					saving={isSaving}
 				/>
 			) : null}
 
@@ -297,6 +311,7 @@ export function Availability({
 				showsVerticalScrollIndicator={false}
 			>
 				<Animated.View
+					aria-hidden={isPersonal}
 					pointerEvents={isPersonal ? "none" : "auto"}
 					style={groupHeaderStyle}
 				>
@@ -342,7 +357,7 @@ export function Availability({
 				) : (
 					<MobileIslandContent key="group">
 						<AvailabilityActions
-							attendees={meetingData.attendees}
+							attendees={attendees}
 							hasAvailability={hasAvailability}
 							onAddAvailability={handleAddAvailability}
 						/>

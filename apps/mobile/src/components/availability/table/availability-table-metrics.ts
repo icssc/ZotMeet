@@ -24,6 +24,13 @@ export function blockTop(blockIndex: number): number {
 	return PixelRatio.roundToNearestPixel(blockIndex * BLOCK_HEIGHT);
 }
 
+/**
+ * Horizontal gap before a column whose date does not follow the previous one
+ * (`spacerBeforeDate`) — the web's `ml-3`. A constant rather than a class so
+ * the personal grid's hit-testing can subtract it.
+ */
+export const DATE_GAP_WIDTH = 12;
+
 /** The day-header row ("THUR" over "1/1") and the gap under it. */
 export const DAY_HEADER_HEIGHT = 44;
 export const DAY_HEADER_GAP = 4;

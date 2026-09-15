@@ -26,6 +26,7 @@ import {
 } from "@/components/availability/table/availability-table-header";
 import {
 	blockTop,
+	DATE_GAP_WIDTH,
 	DAY_HEADER_GAP,
 	DAY_HEADER_HEIGHT,
 } from "@/components/availability/table/availability-table-metrics";
@@ -114,10 +115,15 @@ export function GroupAvailability({
 	// The page the pager is showing (or scrolling to), so an arrow press
 	// scrolls and a swipe that already landed there does not scroll again.
 	const settledPageRef = useRef(currentPage);
+	// The page an arrow press is animating towards. While set, `onScroll`
+	// commits nothing else: the animation's early frames still sit near the
+	// old page and would otherwise write it back over the arrow's choice.
+	const pendingScrollRef = useRef<number | null>(null);
 
 	useEffect(() => {
 		if (pageWidth === 0 || settledPageRef.current === currentPage) return;
 		settledPageRef.current = currentPage;
+		pendingScrollRef.current = currentPage;
 		listRef.current?.scrollToIndex({ index: currentPage, animated: true });
 	}, [currentPage, pageWidth]);
 
@@ -139,12 +145,22 @@ export function GroupAvailability({
 			const offset = event.nativeEvent.contentOffset.x;
 			const page = Math.round(offset / pageWidth);
 			if (Math.abs(offset - page * pageWidth) > 1) return;
+			if (pendingScrollRef.current !== null) {
+				if (page === pendingScrollRef.current) pendingScrollRef.current = null;
+				return;
+			}
 			if (page === settledPageRef.current) return;
 			settledPageRef.current = page;
 			setCurrentPage(page);
 		},
 		[pageWidth, setCurrentPage],
 	);
+
+	// A swipe that interrupts an arrow's animation lands wherever the finger
+	// leaves it; from then on the offset is the truth again.
+	const onScrollBeginDrag = useCallback(() => {
+		pendingScrollRef.current = null;
+	}, []);
 
 	const getItemLayout = useCallback(
 		(_: unknown, index: number) => ({
@@ -169,6 +185,7 @@ export function GroupAvailability({
 						keyExtractor={(_, page) => String(page)}
 						onMomentumScrollEnd={syncPageFromOffset}
 						onScroll={syncPageFromOffset}
+						onScrollBeginDrag={onScrollBeginDrag}
 						pagingEnabled
 						ref={listRef}
 						renderItem={({ item, index }) => (
@@ -235,11 +252,14 @@ function GroupAvailabilityPage({
 
 				return (
 					<View
-						className={`flex-1 items-center ${hasSpacerBefore ? "ml-3" : ""}`}
+						className="flex-1 items-center"
 						key={
 							selectedDate ? selectedDate.valueOf() : `padding-${pageDateIndex}`
 						}
-						style={{ gap: DAY_HEADER_GAP }}
+						style={{
+							gap: DAY_HEADER_GAP,
+							marginLeft: hasSpacerBefore ? DATE_GAP_WIDTH : 0,
+						}}
 					>
 						{selectedDate ? (
 							<AvailabilityTableHeader

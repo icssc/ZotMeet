@@ -75,9 +75,9 @@ export function deriveInitialAvailability(args: {
 			const dateStr = meetingDate.split("T")[0];
 			const date = fromZonedTime(`${dateStr}T00:00:00`, timezone);
 
-			const earliestMinutes = availabilityTimeBlocks[0] || 480;
+			const earliestMinutes = availabilityTimeBlocks[0] ?? 480;
 			const latestMinutes =
-				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] || 1035) +
+				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] ?? 1035) +
 				15;
 
 			return new ZotDate(

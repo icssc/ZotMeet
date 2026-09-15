@@ -6,7 +6,10 @@ import {
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getMemberIdFromBearer } from "@/lib/auth/bearer";
-import { savePersonalAvailabilityForMember } from "@/server/data/availability/save";
+import {
+	MeetingNotFoundError,
+	savePersonalAvailabilityForMember,
+} from "@/server/data/availability/save";
 
 /**
  * `PUT /api/meetings/[id]/availability` — the Expo app's counterpart to the
@@ -51,6 +54,12 @@ export async function PUT(
 			...parsed.data,
 		});
 	} catch (error) {
+		if (error instanceof MeetingNotFoundError) {
+			return NextResponse.json<ApiErrorResponse>(
+				{ error: "Meeting not found" },
+				{ status: 404 },
+			);
+		}
 		console.error("Error saving personal availability:", error);
 		const detail =
 			process.env.NODE_ENV !== "production" && error instanceof Error

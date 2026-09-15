@@ -15,7 +15,11 @@ import { cn } from "@/lib/utils";
 export interface PersonalAvailabilityHeaderProps {
 	onCancel: () => void;
 	onSave: () => void;
-	saveDisabled?: boolean;
+	/**
+	 * While a save is in flight. Disables both buttons: a cancel that lands
+	 * mid-request would revert the grid the server is about to confirm.
+	 */
+	saving?: boolean;
 	/** Replaces the hint line while a save has failed. */
 	error?: string | null;
 }
@@ -28,7 +32,7 @@ export interface PersonalAvailabilityHeaderProps {
 export function PersonalAvailabilityHeader({
 	onCancel,
 	onSave,
-	saveDisabled = false,
+	saving = false,
 	error = null,
 }: PersonalAvailabilityHeaderProps) {
 	const insets = useSafeAreaInsets();
@@ -54,6 +58,7 @@ export function PersonalAvailabilityHeader({
 				<IconButton
 					accessibilityLabel="Cancel"
 					color="inherit"
+					disabled={saving}
 					onPress={onCancel}
 					size="medium"
 					variant="outlined"
@@ -78,7 +83,7 @@ export function PersonalAvailabilityHeader({
 				<IconButton
 					accessibilityLabel="Save"
 					color="primary"
-					disabled={saveDisabled}
+					disabled={saving}
 					onPress={onSave}
 					size="medium"
 					variant="contained"

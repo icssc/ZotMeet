@@ -21,6 +21,7 @@ import {
 import {
 	BLOCK_HEIGHT,
 	blockTop,
+	DATE_GAP_WIDTH,
 	DAY_HEADER_GAP,
 	DAY_HEADER_HEIGHT,
 } from "@/components/availability/table/availability-table-metrics";
@@ -47,19 +48,56 @@ export interface PersonalAvailabilityProps {
 
 const GRID_TOP = DAY_HEADER_HEIGHT + DAY_HEADER_GAP;
 
+/**
+ * Left edge of each column. Columns are equal width, but one with a spacer
+ * before it (a gap in the meeting's dates) starts `DATE_GAP_WIDTH` later, so
+ * every column after a gap is offset — `x / columnWidth` alone would paint
+ * the wrong column near a gap.
+ */
+function columnLeftEdges(
+	columnWidth: number,
+	spacers: readonly boolean[],
+): number[] {
+	let left = 0;
+	return spacers.map((hasSpacerBefore) => {
+		if (hasSpacerBefore) left += DATE_GAP_WIDTH;
+		const edge = left;
+		left += columnWidth;
+		return edge;
+	});
+}
+
+/**
+ * The cell under a point. A point in a spacer is no cell when a selection is
+ * starting (`snapToColumn` false); while a drag extends it snaps to the
+ * nearer column, so sweeping across a gap does not stall the range.
+ */
 function cellFromPoint(
 	x: number,
 	y: number,
 	columnWidth: number,
-	columnCount: number,
+	columnLefts: readonly number[],
 	blockCount: number,
+	snapToColumn: boolean,
 ): { pageDateIndex: number; blockIndex: number } | null {
 	const gridY = y - GRID_TOP;
-	if (columnWidth <= 0 || columnCount <= 0 || gridY < 0) return null;
-	const pageDateIndex = Math.min(
-		columnCount - 1,
-		Math.max(0, Math.floor(x / columnWidth)),
-	);
+	if (columnWidth <= 0 || columnLefts.length === 0 || gridY < 0) return null;
+
+	let pageDateIndex = 0;
+	for (let i = columnLefts.length - 1; i > 0; i--) {
+		if (x >= columnLefts[i]) {
+			pageDateIndex = i;
+			break;
+		}
+	}
+	const isLast = pageDateIndex === columnLefts.length - 1;
+	const pastRightEdge = x >= columnLefts[pageDateIndex] + columnWidth;
+	if (pastRightEdge && !isLast) {
+		if (!snapToColumn) return null;
+		const gapMiddle = columnLefts[pageDateIndex + 1] - DATE_GAP_WIDTH / 2;
+		if (x >= gapMiddle) pageDateIndex += 1;
+	}
+
 	const blockIndex = Math.min(
 		blockCount - 1,
 		Math.max(0, Math.floor(gridY / BLOCK_HEIGHT)),
@@ -134,7 +172,14 @@ export function PersonalAvailability({
 		[paintMode],
 	);
 
-	const spacers = spacerBeforeDate(currentPageAvailability.availabilities);
+	const spacers = useMemo(
+		() => spacerBeforeDate(currentPageAvailability.availabilities),
+		[currentPageAvailability.availabilities],
+	);
+	const columnLefts = useMemo(
+		() => columnLeftEdges(columnWidth, spacers),
+		[columnWidth, spacers],
+	);
 	// Stable per-row objects, so the memoised cells see unchanged props.
 	const rowChromes = useMemo(
 		() =>
@@ -164,19 +209,19 @@ export function PersonalAvailability({
 	);
 	const lastIndex = currentPageAvailability.availabilities.length - 1;
 	const columnHeight = blockTop(availabilityTimeBlocks.length);
-	const columnCount = currentPageAvailability.availabilities.length;
 
 	const onColumnLayout = (event: LayoutChangeEvent) =>
 		setColumnWidth(event.nativeEvent.layout.width);
 
 	const resolveCell = useCallback(
-		(x: number, y: number) => {
+		(x: number, y: number, snapToColumn: boolean) => {
 			const hit = cellFromPoint(
 				x,
 				y,
 				columnWidth,
-				columnCount,
+				columnLefts,
 				availabilityTimeBlocks.length,
+				snapToColumn,
 			);
 			if (!hit) return null;
 			const date = currentPageAvailability.availabilities[hit.pageDateIndex];
@@ -188,7 +233,7 @@ export function PersonalAvailability({
 		},
 		[
 			availabilityTimeBlocks.length,
-			columnCount,
+			columnLefts,
 			columnWidth,
 			currentPage,
 			currentPageAvailability.availabilities,
@@ -198,7 +243,7 @@ export function PersonalAvailability({
 
 	const begin = useCallback(
 		(x: number, y: number) => {
-			const cell = resolveCell(x, y);
+			const cell = resolveCell(x, y, false);
 			if (!cell) return;
 			anchorRef.current = cell;
 			updateDraftRange(toRange(cell, cell));
@@ -210,7 +255,7 @@ export function PersonalAvailability({
 		(x: number, y: number) => {
 			const anchor = anchorRef.current;
 			if (!anchor) return;
-			const cell = resolveCell(x, y);
+			const cell = resolveCell(x, y, true);
 			if (!cell) return;
 			updateDraftRange(toRange(anchor, cell));
 		},
@@ -278,13 +323,16 @@ export function PersonalAvailability({
 
 							return (
 								<View
-									className={`flex-1 items-center ${hasSpacerBefore ? "ml-3" : ""}`}
+									className="flex-1 items-center"
 									key={
 										selectedDate
 											? selectedDate.valueOf()
 											: `padding-${pageDateIndex}`
 									}
-									style={{ gap: DAY_HEADER_GAP }}
+									style={{
+										gap: DAY_HEADER_GAP,
+										marginLeft: hasSpacerBefore ? DATE_GAP_WIDTH : 0,
+									}}
 								>
 									{selectedDate ? (
 										<AvailabilityTableHeader

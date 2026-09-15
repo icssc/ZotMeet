@@ -5,6 +5,18 @@ import { db } from "@/db";
 import { availabilities } from "@/db/schema";
 
 /**
+ * A well-formed meeting id that matches no live meeting (missing or
+ * archived). Thrown as its own class so the API route can answer 404 where
+ * the server action's blanket catch answers 500.
+ */
+export class MeetingNotFoundError extends Error {
+	constructor() {
+		super("Meeting not found");
+		this.name = "MeetingNotFoundError";
+	}
+}
+
+/**
  * The authorised core of saving a member's personal availability, shared by
  * the session-cookie server action (`@actions/availability/save`) and the
  * bearer-token API route (`/api/meetings/[id]/availability`).
@@ -23,7 +35,7 @@ export async function savePersonalAvailabilityForMember(args: {
 
 	const meeting = await getExistingMeeting(meetingId);
 	if (!meeting) {
-		throw new Error("Meeting not found");
+		throw new MeetingNotFoundError();
 	}
 
 	// A slot marked both ways is if-needed; available wins nowhere here so the

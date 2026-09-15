@@ -90,10 +90,14 @@ export async function apiFetch<T>(
 		if (callerSignal.aborted) forwardAbort();
 		else callerSignal.addEventListener("abort", forwardAbort);
 	}
+	let timedOut = false;
 	const timer =
 		controller === null
 			? null
-			: setTimeout(() => controller.abort(), timeoutMs);
+			: setTimeout(() => {
+					timedOut = true;
+					controller.abort();
+				}, timeoutMs);
 
 	let response: Response;
 	try {
@@ -102,6 +106,11 @@ export async function apiFetch<T>(
 			headers,
 			signal: controller?.signal ?? callerSignal ?? undefined,
 		});
+	} catch (error) {
+		// The timer's abort surfaces as a bare `AbortError` ("Aborted"); say
+		// what happened instead. A caller's own abort is rethrown as is.
+		if (timedOut) throw new Error("The request timed out. Please try again.");
+		throw error;
 	} finally {
 		if (timer !== null) clearTimeout(timer);
 		callerSignal?.removeEventListener("abort", forwardAbort);
