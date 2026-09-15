@@ -41,15 +41,15 @@ flowchart TD
     P2 --> P3[header comment: which file it mirrors<br/>and how it deviates]
 ```
 
-Apply in order; stop at the first match.
+Apply in order; stop at the first match. Same order as the diagram.
 
-1. **Touches the DB, `next/*`, `server-only`, SES, `googleapis`, cookies, or `process.env` secrets** → `src/server/**` or `src/lib/**` (web). Expose to mobile via a route in `src/app/api/` (see §4).
-2. **Pure logic both apps could need** (date/time, grid maths, sorting/filtering, formatting, validation, wire types, constants/enums) → `packages/shared/src/<domain>/`. Then:
+1. **Touches the DB, `next/*`, `server-only`, SES, `googleapis`, cookies, or `process.env` secrets** → web: server actions and queries under `src/server/` (`actions/<entity>/<verb>/action.ts`, `data/<entity>/queries.ts`); other server-coupled helpers (auth, email, cookies) under `src/lib/`. Mobile needs it? Expose it via a route in `src/app/api/` (see §4). Otherwise it is web-only and nothing else is required.
+2. **A colour, radius or type size** → `packages/tokens`. Never a hex/HSL/px literal in a component, theme or Tailwind config. (Checked before rule 3 on purpose: a token is also "pure logic", and it must not end up in `@zotmeet/shared`.)
+3. **Pure logic both apps could need** (date/time, grid maths, sorting/filtering, formatting, validation, wire types, constants/enums) → `packages/shared/src/<domain>/`. Then:
    - mobile imports `@zotmeet/shared` directly;
-   - web keeps its existing import path by **re-exporting** from the old module (`src/lib/types/chrono.ts`, `src/lib/availability/utils.ts`, etc.). Do not rewrite web imports just to point at the package.
-3. **A colour, radius or type size** → `packages/tokens`. Never a hex/HSL/px literal in a component, theme or Tailwind config.
-4. **Platform-specific rendering, gestures, navigation, storage, crypto** → the app that owns it, under the **same folder and file name** as its counterpart (`components/availability/table/availability-block.tsx` exists in both). Put a doc comment at the top naming the counterpart and what deviates.
-5. **A React hook** → stays in the app. `@zotmeet/shared` has no React dependency; extract the pure function into shared and wrap it in `useMemo`/`useCallback` per app.
+   - web keeps its existing import path by **re-exporting** from the old module (`src/lib/types/chrono.ts`, `src/lib/availability/utils.ts`, etc.). Do not rewrite web imports just to point at the package;
+   - if it is a **React hook**, only the pure function moves to shared — `@zotmeet/shared` has no React dependency — and each app wraps it in its own `useMemo`/`useCallback`.
+4. **Everything else is platform-specific** (rendering, gestures, navigation, storage, crypto) → the app that owns it, under the **same folder and file name** as its counterpart (`components/availability/table/availability-block.tsx` exists in both). Put a doc comment at the top naming the counterpart and what deviates.
 
 Same-named files that are **intentionally separate** — do not merge them: `lib/utils.ts` (`cn`; mobile's extends tailwind-merge), `lib/auth/*` (server half vs device half of one protocol), `lib/meetings/delete-leave-action.ts` (icon component vs icon name), `nativeRedirectUriOptions` (reads `process.env` vs `expo-constants`), and every `components/**` pair. The two audit items left unconsolidated because they are *not equivalent* — the personal-edit lifecycle (web `hooks/use-edit-state.ts` + `use-availability-action-handlers.ts` vs mobile's inline snapshot) and the month-grid maths (`ZotDate.generateZotDates` vs mobile `lib/date.ts#getMonthGrid`) — need a design call before either is shared.
 
