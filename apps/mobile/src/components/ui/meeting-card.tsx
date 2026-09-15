@@ -1,4 +1,9 @@
-import type { MeetingCardViewModel } from "@zotmeet/shared";
+import {
+	formatMeetingCardDateLabel,
+	type MeetingCardVariant,
+	type MeetingCardViewModel,
+	meetingCardVariant,
+} from "@zotmeet/shared";
 import { type Href, useRouter } from "expo-router";
 import { useRef } from "react";
 import { Pressable, View } from "react-native";
@@ -31,21 +36,20 @@ interface MeetingCardProps extends MeetingCardViewModel {
 	isPast?: boolean;
 }
 
-type Variant =
-	| "default"
-	| "action-required"
-	| "schedule-alert"
-	| "upcoming"
-	| "scheduled";
-
-const bannerClassNames: Record<Exclude<Variant, "default">, string> = {
+const bannerClassNames: Record<
+	Exclude<MeetingCardVariant, "default">,
+	string
+> = {
 	"action-required": "bg-primary",
 	"schedule-alert": "bg-info",
 	upcoming: "bg-secondary-main",
 	scheduled: "bg-secondary-main",
 };
 
-const bannerTextClassNames: Record<Exclude<Variant, "default">, string> = {
+const bannerTextClassNames: Record<
+	Exclude<MeetingCardVariant, "default">,
+	string
+> = {
 	"action-required": "text-primary-foreground",
 	"schedule-alert": "text-info-foreground",
 	upcoming: "text-secondary-main-foreground",
@@ -90,22 +94,16 @@ export function MeetingCard({
 	const router = useRouter();
 	// Set by the options button, read and cleared by the card's own press.
 	const optionsPressed = useRef(false);
-	const dateLabel =
-		dateStart && dateEnd && dateStart !== dateEnd
-			? `${dateStart} - ${dateEnd}`
-			: dateStart;
+	const dateLabel = formatMeetingCardDateLabel(dateStart, dateEnd);
 
-	const variant: Variant = isPast
-		? "default"
-		: needsAvailability
-			? "action-required"
-			: !scheduled && allAvailabilityFilled && isOwner
-				? "schedule-alert"
-				: scheduled && isUpcoming
-					? "upcoming"
-					: scheduled
-						? "scheduled"
-						: "default";
+	const variant = meetingCardVariant({
+		isPast,
+		needsAvailability,
+		scheduled,
+		allAvailabilityFilled,
+		isOwner,
+		isUpcoming,
+	});
 
 	const cardContent = (
 		<View className="gap-4 rounded-lg border border-border bg-paper px-5 pt-5 pb-5">
@@ -219,7 +217,7 @@ function BannerText({
 	variant,
 	children,
 }: {
-	variant: Exclude<Variant, "default">;
+	variant: Exclude<MeetingCardVariant, "default">;
 	children: React.ReactNode;
 }) {
 	return (

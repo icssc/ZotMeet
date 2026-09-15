@@ -12,6 +12,7 @@ export {
 	BLOCK_LENGTH,
 	convertTimeFromUTC,
 	convertTimeToUTC,
+	deriveMeetingWindow,
 	formatDateToUSNumeric,
 	formatScheduledTimeRange,
 	formatTimeWithHoursAndMins,

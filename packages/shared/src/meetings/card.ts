@@ -44,6 +44,57 @@ interface ToMeetingCardOptions {
 	scheduledLabel?: string;
 }
 
+/**
+ * Which of the five card treatments a meeting gets. Both apps derive it
+ * with `meetingCardVariant` and paint the banner for it themselves.
+ */
+export type MeetingCardVariant =
+	| "default"
+	| "action-required"
+	| "schedule-alert"
+	| "upcoming"
+	| "scheduled";
+
+export interface MeetingCardVariantInput {
+	isPast: boolean;
+	needsAvailability: boolean;
+	scheduled: boolean;
+	allAvailabilityFilled: boolean;
+	isOwner: boolean;
+	isUpcoming: boolean;
+}
+
+/**
+ * Past meetings are always plain. Otherwise, in priority order: the viewer
+ * still owes availability; the host can schedule now; scheduled within the
+ * upcoming window; scheduled; plain.
+ */
+export function meetingCardVariant({
+	isPast,
+	needsAvailability,
+	scheduled,
+	allAvailabilityFilled,
+	isOwner,
+	isUpcoming,
+}: MeetingCardVariantInput): MeetingCardVariant {
+	if (isPast) return "default";
+	if (needsAvailability) return "action-required";
+	if (!scheduled && allAvailabilityFilled && isOwner) return "schedule-alert";
+	if (scheduled && isUpcoming) return "upcoming";
+	if (scheduled) return "scheduled";
+	return "default";
+}
+
+/** `"9/1 - 9/5"` for a range, or just the start when it is a single day. */
+export function formatMeetingCardDateLabel(
+	dateStart: string,
+	dateEnd: string,
+): string {
+	return dateStart && dateEnd && dateStart !== dateEnd
+		? `${dateStart} - ${dateEnd}`
+		: dateStart;
+}
+
 export type MeetingCardData<T extends MeetingForCard = MeetingForCard> =
 	MeetingCardViewModel & {
 		meeting: T;

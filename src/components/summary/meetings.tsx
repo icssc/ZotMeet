@@ -14,14 +14,12 @@ import type { SelectMeeting } from "@/db/schema";
 import type { NotificationItem } from "@/lib/auth/user";
 import { toMeetingCardData } from "@/lib/meeting-card/mapper";
 import {
-	filterMeetingsByQuery,
-	getMeetingSortTime,
-	getMeetingUpcomingPriority,
+	buildMeetingsListModel,
 	getStartOfTodayMs,
-	isMeetingPast,
+	MEETINGS_LIST_FILTER_LABELS,
+	MEETINGS_LIST_FILTERS,
+	type MeetingsListFilter,
 } from "@/lib/meetings/utils";
-
-type FilterType = "upcoming" | "past" | "by-you";
 
 interface MeetingsProps {
 	meetings: (SelectMeeting & {
@@ -42,12 +40,6 @@ type DisplayMeeting = MeetingsProps["meetings"][number];
 type DeleteTarget = {
 	meeting: DisplayMeeting;
 	isOwner: boolean;
-};
-
-const FILTER_LABELS: Record<FilterType, string> = {
-	upcoming: "Upcoming",
-	past: "Past",
-	"by-you": "By You",
 };
 
 const cardGridSx = {
@@ -100,7 +92,8 @@ export const Meetings = ({
 	notifications,
 }: MeetingsProps) => {
 	const [search, setSearch] = useState("");
-	const [activeFilter, setActiveFilter] = useState<FilterType>("upcoming");
+	const [activeFilter, setActiveFilter] =
+		useState<MeetingsListFilter>("upcoming");
 	const [notificationsOpen, setNotificationsOpen] = useState(false);
 
 	const unreadCount = notifications.filter((n) => !n.readAt).length;
@@ -116,37 +109,30 @@ export const Meetings = ({
 		[upcomingMeetingIds],
 	);
 
-	const todayTimestamp = getStartOfTodayMs();
-
-	const isPastMeeting = useCallback(
-		(m: DisplayMeeting): boolean =>
-			isMeetingPast(m, scheduledDates, todayTimestamp),
-		[scheduledDates, todayTimestamp],
-	);
-
-	const counts = useMemo(
-		() => ({
-			upcoming: meetings.filter((m) => !isPastMeeting(m)).length,
-			past: meetings.filter(isPastMeeting).length,
-			"by-you": meetings.filter((m) => m.hostId === memberId).length,
-		}),
-		[meetings, memberId, isPastMeeting],
-	);
-
-	const filteredMeetings = useMemo(() => {
-		switch (activeFilter) {
-			case "by-you":
-				return meetings.filter((m) => m.hostId === memberId);
-			case "past":
-				return meetings.filter(isPastMeeting);
-			default:
-				return meetings.filter((m) => !isPastMeeting(m));
-		}
-	}, [meetings, memberId, activeFilter, isPastMeeting]);
-
-	const displayMeetings = useMemo(
-		() => filterMeetingsByQuery(filteredMeetings, search),
-		[filteredMeetings, search],
+	// Counts, filter, search and sort — the same model the Expo app builds.
+	// Read on every render, not defaulted inside the memo, so a list that stays
+	// mounted across midnight re-buckets on its next render.
+	const todayMs = getStartOfTodayMs();
+	const { counts, meetings: displayMeetings } = useMemo(
+		() =>
+			buildMeetingsListModel({
+				meetings,
+				memberId,
+				filter: activeFilter,
+				search,
+				scheduledDates,
+				upcomingSet,
+				todayMs,
+			}),
+		[
+			meetings,
+			memberId,
+			activeFilter,
+			search,
+			scheduledDates,
+			upcomingSet,
+			todayMs,
+		],
 	);
 
 	const renderMeetings = () => {
@@ -190,25 +176,9 @@ export const Meetings = ({
 			);
 		}
 
-		let sorted: DisplayMeeting[];
-
-		if (activeFilter === "past") {
-			sorted = [...displayMeetings].sort(
-				(a, b) =>
-					getMeetingSortTime(b, scheduledDates) -
-					getMeetingSortTime(a, scheduledDates),
-			);
-		} else {
-			sorted = [...displayMeetings].sort(
-				(a, b) =>
-					getMeetingUpcomingPriority(a, memberId, upcomingSet) -
-					getMeetingUpcomingPriority(b, memberId, upcomingSet),
-			);
-		}
-
 		return (
 			<Box sx={cardGridSx}>
-				{sorted.map((m) =>
+				{displayMeetings.map((m) =>
 					toCard(
 						m,
 						memberId,
@@ -279,10 +249,10 @@ export const Meetings = ({
 					/>
 
 					<Box sx={{ display: "flex", gap: 0.75 }}>
-						{(["upcoming", "past", "by-you"] as const).map((f) => (
+						{MEETINGS_LIST_FILTERS.map((f) => (
 							<FilterChip
 								key={f}
-								label={FILTER_LABELS[f]}
+								label={MEETINGS_LIST_FILTER_LABELS[f]}
 								count={counts[f]}
 								active={activeFilter === f}
 								onClick={() => setActiveFilter(f)}

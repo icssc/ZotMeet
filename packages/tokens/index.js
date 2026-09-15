@@ -147,6 +147,49 @@ const dark = {
 	"warning-foreground": "0 0% 100%",
 };
 
+/** `"344.4 84.5% 67.1%"` → `"#F26489"`. Bare HSL channels, as the tokens store them. */
+const hslChannelsToHex = (channels) => {
+	const [h, s, l] = channels.split(" ").map((part) => Number.parseFloat(part));
+	const sat = s / 100;
+	const light = l / 100;
+	const chroma = (1 - Math.abs(2 * light - 1)) * sat;
+	const hue = h / 60;
+	const x = chroma * (1 - Math.abs((hue % 2) - 1));
+	const [r1, g1, b1] =
+		hue < 1
+			? [chroma, x, 0]
+			: hue < 2
+				? [x, chroma, 0]
+				: hue < 3
+					? [0, chroma, x]
+					: hue < 4
+						? [0, x, chroma]
+						: hue < 5
+							? [x, 0, chroma]
+							: [chroma, 0, x];
+	const m = light - chroma / 2;
+	const toHex = (channel) =>
+		Math.round((channel + m) * 255)
+			.toString(16)
+			.padStart(2, "0")
+			.toUpperCase();
+	return `#${toHex(r1)}${toHex(g1)}${toHex(b1)}`;
+};
+
+/**
+ * Store-listing and splash colours, as hex because that is what the web
+ * manifest, the PWA icon script and Expo's `app.config.ts` all want.
+ * `accent` and `background` are derived from the light tokens so they cannot
+ * drift from `bg-primary` / `bg-background`; `darkBackground` is the
+ * splash/manifest dark ground, which is deliberately not the dark-mode
+ * `background` token, so it is the one literal here.
+ */
+const brand = {
+	accent: hslChannelsToHex(light.primary),
+	background: hslChannelsToHex(light.background),
+	darkBackground: "#0F172A",
+};
+
 /** `{ primary: "344.4 …" }` → `{ "--primary": "344.4 …" }`. */
 const toCssVars = (tokens) =>
 	Object.fromEntries(
@@ -176,4 +219,4 @@ const hsl = (name, mode = "light") => {
 	return `hsl(${value.split(" ").join(", ")})`;
 };
 
-module.exports = { light, dark, cssVarBlocks, hsl };
+module.exports = { light, dark, brand, cssVarBlocks, hsl };

@@ -41,6 +41,7 @@ export enum CalendarConstants {
 
 export enum TimeConstants {
 	MINUTES_PER_HOUR = 60,
+	MINUTES_PER_DAY = 1440,
 }
 
 export type HourMinuteString = `${string}:${string}:${string}`;

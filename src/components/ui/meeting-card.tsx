@@ -17,7 +17,11 @@ import {
 } from "@mui/material";
 import Link from "next/link";
 import { type ElementType, useId, useState } from "react";
-import type { MeetingCardViewModel } from "@/lib/meeting-card/mapper";
+import {
+	formatMeetingCardDateLabel,
+	type MeetingCardViewModel,
+	meetingCardVariant,
+} from "@/lib/meeting-card/mapper";
 import { getDeleteLeaveAction } from "@/lib/meetings/delete-leave-action";
 
 interface MeetingCardProps extends MeetingCardViewModel {
@@ -84,10 +88,7 @@ const MeetingCard = ({
 	const menuId = useId();
 	const { label: actionLabel, Icon, menuColor } = getDeleteLeaveAction(isOwner);
 
-	const dateLabel =
-		dateStart && dateEnd && dateStart !== dateEnd
-			? `${dateStart} - ${dateEnd}`
-			: dateStart;
+	const dateLabel = formatMeetingCardDateLabel(dateStart, dateEnd);
 
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
@@ -97,17 +98,14 @@ const MeetingCard = ({
 		onDeleteLeave?.();
 	};
 
-	const variant = isPast
-		? "default"
-		: needsAvailability
-			? "action-required"
-			: !scheduled && allAvailabilityFilled && isOwner
-				? "schedule-alert"
-				: scheduled && isUpcoming
-					? "upcoming"
-					: scheduled
-						? "scheduled"
-						: "default";
+	const variant = meetingCardVariant({
+		isPast,
+		needsAvailability,
+		scheduled,
+		allAvailabilityFilled,
+		isOwner,
+		isUpcoming,
+	});
 
 	const cardContent = (
 		<CardContent

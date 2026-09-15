@@ -1,38 +1,17 @@
-import type { HourMinuteString } from "@zotmeet/shared";
+import { formatLocalDateKey, type HourMinuteString } from "@zotmeet/shared";
 
 /**
  * Minimal calendar maths for the native date picker. The web app uses
  * `date-fns`, which is not a dependency of `@zotmeet/mobile`; these few
  * helpers cover everything the month grid needs without adding one.
  *
- * Dates are handled in local time and keyed by `YYYY-MM-DD`, so a selection
- * survives timezone conversion (unlike an ISO instant).
+ * Dates are handled in local time and keyed by `YYYY-MM-DD` — the shared
+ * `formatLocalDateKey` — so a selection survives timezone conversion (unlike
+ * an ISO instant). Month names come from `MONTHS` in `@zotmeet/shared`.
  */
-
-export const MONTH_NAMES = [
-	"January",
-	"February",
-	"March",
-	"April",
-	"May",
-	"June",
-	"July",
-	"August",
-	"September",
-	"October",
-	"November",
-	"December",
-] as const;
 
 /** Sunday-first, matching the wireframe's S M T W T F S header row. */
 export const WEEKDAY_INITIALS = ["S", "M", "T", "W", "T", "F", "S"] as const;
-
-/** Local-time `YYYY-MM-DD`, used as the stable key for a selected day. */
-export function toDateKey(date: Date): string {
-	const month = `${date.getMonth() + 1}`.padStart(2, "0");
-	const day = `${date.getDate()}`.padStart(2, "0");
-	return `${date.getFullYear()}-${month}-${day}`;
-}
 
 export function startOfMonth(date: Date): Date {
 	return new Date(date.getFullYear(), date.getMonth(), 1);
@@ -47,7 +26,7 @@ export function addMonths(date: Date, amount: number): Date {
 }
 
 export function isSameDay(a: Date, b: Date): boolean {
-	return toDateKey(a) === toDateKey(b);
+	return formatLocalDateKey(a) === formatLocalDateKey(b);
 }
 
 /**
