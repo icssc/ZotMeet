@@ -27,7 +27,7 @@ flowchart TD
     B -- yes --> W[web: src/server/** or src/lib/**]
     W --> W2{Mobile needs it?}
     W2 -- yes --> API[add route in src/app/api/<br/>types + schema in packages/shared<br/>client fn in apps/mobile/src/lib/api/]
-    W2 -- no --> DONE1([done])
+    W2 -- no --> WO[web-only: no API route needed]
     B -- no --> C{A colour, radius<br/>or type size?}
     C -- yes --> T[packages/tokens]
     C -- no --> D{Pure logic both apps<br/>could use?}
@@ -36,7 +36,9 @@ flowchart TD
     E -- no --> S[packages/shared/src/#lt;domain#gt;/]
     H --> S2
     S --> S2[mobile imports @zotmeet/shared<br/>web re-exports from its old module path]
-    D -- no --> P[the owning app, same folder + file name<br/>as its counterpart; doc comment names<br/>the counterpart and what deviates]
+    D -- no --> P[platform-specific: keep it in that app<br/>src/ or apps/mobile/src/]
+    P --> P2[mirror the other app's path, e.g. both have<br/>components/availability/table/availability-block.tsx]
+    P2 --> P3[header comment: which file it mirrors<br/>and how it deviates]
 ```
 
 Apply in order; stop at the first match.
