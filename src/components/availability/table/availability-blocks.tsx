@@ -4,13 +4,15 @@ import {
 	AvailabilityBlockCell,
 	type GridCellHandlers,
 } from "@/components/availability/table/availability-block-cell";
-import type {
-	ImportPreviewTarget,
-	PaintMode,
+import {
+	importPreviewTargetFor,
+	type PaintMode,
+	personalCellState,
 } from "@/lib/availability/paint-selection";
 import {
 	generateCellKey,
 	generateDateKey,
+	getRowChrome,
 	getTimestampFromBlockIndex,
 	spacerBeforeDate,
 } from "@/lib/availability/utils";
@@ -68,9 +70,11 @@ export function AvailabilityBlocks({
 	);
 	const importPreview = useAvailabilityStore((s) => s.importPreview);
 
-	const isTopOfHour = timeBlock % 60 === 0;
-	const isHalfHour = timeBlock % 60 === 30;
-	const isLastRow = blockIndex === availabilityTimeBlocksLength - 1;
+	const { isTopOfHour, isHalfHour, isLastRow } = getRowChrome(
+		timeBlock,
+		blockIndex,
+		availabilityTimeBlocksLength,
+	);
 
 	const spacers = spacerBeforeDate(currentPageAvailability.availabilities);
 
@@ -88,10 +92,11 @@ export function AvailabilityBlocks({
 					if (selectedDate) {
 						const zotDateIndex = pageDateIndex + currentPage * itemsPerPage;
 
-						const isAvailable = selectedDate.getBlockAvailability(blockIndex);
-						const isIfNeeded =
-							!isAvailable &&
-							(ifNeededDate?.getBlockAvailability(blockIndex) ?? false);
+						const { isAvailable, isIfNeeded } = personalCellState(
+							selectedDate,
+							ifNeededDate,
+							blockIndex,
+						);
 
 						const cellKey = generateCellKey(zotDateIndex, blockIndex);
 						const segmentsForCell =
@@ -104,14 +109,10 @@ export function AvailabilityBlocks({
 							availabilityDates,
 							timeZone,
 						);
-						const importPreviewType: ImportPreviewTarget =
-							!importPreview || !slotIso
-								? null
-								: importPreview.ifNeededIsoSet.has(slotIso)
-									? "if-needed"
-									: importPreview.availableIsoSet.has(slotIso)
-										? "available"
-										: null;
+						const importPreviewType = importPreviewTargetFor(
+							slotIso,
+							importPreview,
+						);
 
 						const isInDraftRange = rangeCoversCell(
 							draftRange,

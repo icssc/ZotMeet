@@ -1,48 +1,36 @@
-import { BLOCK_LENGTH } from "@zotmeet/shared";
-import { differenceInCalendarDays } from "date-fns";
-import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import { formatInTimeZone } from "date-fns-tz";
 import { ZotDate } from "@/lib/zotdate";
 
 /*
- * The pure time helpers moved to `@zotmeet/shared` so the Expo app can use
- * them; they are re-exported here to keep this module's import path stable.
- * Everything that touches `ZotDate` stays below.
+ * The pure time and grid helpers moved to `@zotmeet/shared` so the Expo app
+ * can use them; they are re-exported here to keep this module's import path
+ * stable. What stays below is the import/merge bookkeeping only the web needs.
  */
 export {
 	BLOCK_LENGTH,
+	buildMeetingGridIsoSet,
+	buildTimestampsByCell,
+	buildZotDateRowsForMeetingDays,
+	clearPersonalGridSlots,
 	convertTimeFromUTC,
 	convertTimeToUTC,
 	deriveMeetingWindow,
 	formatDateToUSNumeric,
 	formatScheduledTimeRange,
 	formatTimeWithHoursAndMins,
+	generateCellKey,
+	generateDateKey,
 	generateTimeBlocks,
 	getDatePart,
 	getMinutesFromMidnight,
+	getRowChrome,
 	getTimeFromHourMinuteString,
+	getTimestampFromBlockIndex,
+	isoStringForSlot,
+	type RowChrome,
 	sortMeetingIsoDatesAsc,
+	spacerBeforeDate,
 } from "@zotmeet/shared";
-
-export const generateDateKey = ({
-	selectedDate,
-	timeBlock,
-	pageDateIndex,
-}: {
-	selectedDate: ZotDate | null;
-	timeBlock: number;
-	pageDateIndex: number;
-}) => {
-	return selectedDate
-		? `date-${selectedDate.valueOf()}-${timeBlock}-${pageDateIndex}`
-		: `padding-${pageDateIndex}-${timeBlock}`;
-};
-
-export function generateCellKey(
-	zotDateIndex: number,
-	blockIndex: number,
-): string {
-	return `${zotDateIndex}_${blockIndex}`;
-}
 
 export type PageEdgeVariant = "none" | "first" | "middle" | "last";
 
@@ -56,24 +44,6 @@ export function getPageEdgeVariant(
 	if (isLastPage) return "last";
 	return "middle";
 }
-
-export const spacerBeforeDate = (
-	currentPageAvailability: (ZotDate | null)[],
-): boolean[] => {
-	return currentPageAvailability.map((date, index, arr) => {
-		if (index === 0) return false;
-
-		const prev = arr[index - 1];
-		if (!date || !prev) return false;
-
-		const prevDate = prev.day;
-		const currentDate = date.day;
-
-		return (
-			differenceInCalendarDays(new Date(currentDate), new Date(prevDate)) > 1
-		);
-	});
-};
 
 function computeSpillover(
 	currentPageAvailability: (ZotDate | null)[],
@@ -128,89 +98,6 @@ export function cloneDates(
 	const spillover = computeSpillover(currentPageAvailability, doesntNeedDay);
 	if (spillover) newDates.push(spillover.day);
 	return newDates;
-}
-
-/** ISO string for the start of a 15-minute slot; matches ZotDate / drag-save encoding. */
-export function getTimestampFromBlockIndex(
-	blockIndex: number,
-	zotDateIndex: number,
-	fromTimeMinutes: number,
-	availabilityDates: ZotDate[],
-	timeZone?: string,
-): string {
-	const totalMinutes = fromTimeMinutes + blockIndex * BLOCK_LENGTH;
-
-	const selectedDate = availabilityDates.at(zotDateIndex);
-	if (!selectedDate) return "";
-
-	if (timeZone) {
-		const datePart = formatInTimeZone(selectedDate.day, timeZone, "yyyy-MM-dd");
-		const hours = Math.floor(totalMinutes / 60);
-		const minutes = totalMinutes % 60;
-		const localTime = `${datePart}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`;
-		return fromZonedTime(localTime, timeZone).toISOString();
-	}
-
-	const hours = Math.floor(totalMinutes / 60);
-	const minutes = totalMinutes % 60;
-	const date = new Date(selectedDate.day);
-	date.setHours(hours, minutes, 0, 0);
-
-	return date.toISOString();
-}
-
-/** Same day layout as `deriveInitialAvailability` in use-availability-data, without member data. */
-export function buildZotDateRowsForMeetingDays(
-	meetingDates: string[],
-	availabilityTimeBlocks: number[],
-	timeZone?: string,
-): ZotDate[] {
-	return meetingDates
-		.map((meetingDate) => {
-			const dateStr = meetingDate.split("T")[0];
-			const [year, month, day] = dateStr.split("-").map(Number);
-			const date = timeZone
-				? fromZonedTime(`${dateStr}T00:00:00`, timeZone)
-				: new Date(year, month - 1, day);
-
-			const earliestMinutes = availabilityTimeBlocks[0] ?? 480;
-			const latestMinutes =
-				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] ?? 1035) +
-				15;
-
-			return new ZotDate(
-				date,
-				earliestMinutes,
-				latestMinutes,
-				false,
-				[],
-				{},
-				timeZone,
-			);
-		})
-		.sort((a, b) => a.day.getTime() - b.day.getTime());
-}
-
-export function buildMeetingGridIsoSet(
-	availabilityDates: ZotDate[],
-	fromTimeMinutes: number,
-	blockCount: number,
-	timeZone?: string,
-): Set<string> {
-	const set = new Set<string>();
-	for (let d = 0; d < availabilityDates.length; d++) {
-		for (let b = 0; b < blockCount; b++) {
-			const iso = getTimestampFromBlockIndex(
-				b,
-				d,
-				fromTimeMinutes,
-				availabilityDates,
-				timeZone,
-			);
-			if (iso) set.add(iso);
-		}
-	}
-	return set;
 }
 
 export function filterTimestampsToMeetingGrid(
@@ -351,31 +238,4 @@ export function pruneGroupAvailabilityByMemberIds(
 		cloned.groupAvailability = newGroupAvail;
 		return cloned;
 	});
-}
-
-/** Clears personal available/if-needed slots */
-export function clearPersonalGridSlots(
-	availabilityDates: readonly ZotDate[],
-	ifNeededDates: readonly ZotDate[],
-	memberId: string,
-): { availabilityDates: ZotDate[]; ifNeededDates: ZotDate[] } {
-	const clearDates = (dates: readonly ZotDate[]) =>
-		dates.map((date) => {
-			const clonedDate = date.clone();
-			clonedDate.availability = [];
-			clonedDate.groupAvailability = Object.fromEntries(
-				Object.entries(clonedDate.groupAvailability).map(
-					([timestamp, members]) => [
-						timestamp,
-						members.filter((id) => id !== memberId),
-					],
-				),
-			);
-			return clonedDate;
-		});
-
-	return {
-		availabilityDates: clearDates(availabilityDates),
-		ifNeededDates: clearDates(ifNeededDates),
-	};
 }

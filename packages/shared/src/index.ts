@@ -11,7 +11,7 @@ export * from "./auth/native";
 export * from "./auth/providers";
 export * from "./auth/return-to";
 export * from "./auth/user";
-export * from "./availability/pagination";
+export * from "./availability";
 export * from "./chrono/time";
 export * from "./chrono/types";
 export * from "./meetings/card";

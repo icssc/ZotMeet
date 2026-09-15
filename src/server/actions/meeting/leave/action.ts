@@ -10,6 +10,11 @@ import {
 	type MeetingMemberActionResult,
 } from "@/server/data/meeting/member-actions";
 
+// No type re-exports here: in a "use server" module Turbopack registers every
+// export as a server action, so `export type { … }` becomes a runtime
+// `registerServerReference(<undefined>)` that breaks the whole actions chunk.
+// Import `MeetingMemberActionResult` from `@/server/data/meeting/member-actions`.
+
 export async function leaveMeeting(
 	meetingData: SelectMeeting,
 ): Promise<MeetingMemberActionResult> {

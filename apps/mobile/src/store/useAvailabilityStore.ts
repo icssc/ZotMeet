@@ -1,11 +1,16 @@
-import { nextPageState, pageState, prevPageState } from "@zotmeet/shared";
+import {
+	type AvailabilityView,
+	nextPageState,
+	type PaintMode,
+	pageState,
+	prevPageState,
+} from "@zotmeet/shared";
 import { create } from "zustand";
 
 /**
- * Native counterpart to the web app's `src/store/useAvailabilityStore.ts`,
- * starting with just its pagination slice: which page of dates the
- * availability table shows. The web's view / paint-mode / import-preview
- * state joins it here as those features arrive on mobile.
+ * Native counterpart to the web app's `src/store/useAvailabilityStore.ts`.
+ * Pagination plus the personal-edit slice (view + paint mode) so Add
+ * Availability can swap the island and grid the way the web mobile layout does.
  */
 interface AvailabilityStore {
 	currentPage: number;
@@ -15,6 +20,12 @@ interface AvailabilityStore {
 	prevPage: () => void;
 	setCurrentPage: (page: number) => void;
 	setItemsPerPage: (itemsPerPage: number) => void;
+
+	availabilityView: AvailabilityView;
+	setAvailabilityView: (view: AvailabilityView) => void;
+
+	paintMode: PaintMode;
+	setPaintMode: (mode: PaintMode) => void;
 }
 
 export const useAvailabilityStore = create<AvailabilityStore>((set) => ({
@@ -27,4 +38,17 @@ export const useAvailabilityStore = create<AvailabilityStore>((set) => ({
 	prevPage: () => set((state) => prevPageState(state)),
 	setCurrentPage: (page) => set((state) => pageState(state, page)),
 	setItemsPerPage: (itemsPerPage) => set({ itemsPerPage }),
+
+	availabilityView: "group",
+	setAvailabilityView: (view) =>
+		set((state) => {
+			if (state.availabilityView === view) return state;
+			return {
+				availabilityView: view,
+				paintMode: "available",
+			};
+		}),
+
+	paintMode: "available",
+	setPaintMode: (mode) => set({ paintMode: mode }),
 }));

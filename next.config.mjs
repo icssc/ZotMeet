@@ -49,7 +49,10 @@ const nextConfig = {
 						key: "Access-Control-Allow-Headers",
 						value: "Authorization, Content-Type",
 					},
-					{ key: "Access-Control-Allow-Methods", value: "GET, POST, OPTIONS" },
+					{
+						key: "Access-Control-Allow-Methods",
+						value: "GET, POST, PUT, OPTIONS",
+					},
 				],
 			},
 			// Service workers must be served fresh so updates ship immediately.

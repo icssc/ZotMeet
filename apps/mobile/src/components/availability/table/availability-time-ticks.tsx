@@ -1,63 +1,62 @@
+import { BLOCK_LENGTH, TimeConstants, ZotDate } from "@zotmeet/shared";
 import { View } from "react-native";
 import {
+	blockTop,
 	DAY_HEADER_GAP,
 	DAY_HEADER_HEIGHT,
-	HOUR_HEIGHT,
 	TIME_TICK_LINE_HEIGHT,
 } from "@/components/availability/table/availability-table-metrics";
 import { Text } from "@/components/ui/text";
 
-/**
- * "9 AM", "12 PM", "1 PM" — the format the wireframe's time column uses.
- * Hours past 23 belong to a range that wraps past midnight and label the
- * next day's clock.
- */
-function formatHour(hour: number): string {
-	const clockHour = hour % 24;
-	const twelveHour = clockHour % 12 === 0 ? 12 : clockHour % 12;
-	return `${twelveHour} ${clockHour < 12 ? "AM" : "PM"}`;
-}
-
 interface AvailabilityTimeTicksProps {
-	/** First labelled hour, 0–23. */
-	startHour: number;
-	/** Last labelled hour, inclusive; may exceed 23 when the range wraps midnight. */
-	endHour: number;
+	/** The grid's rows, as minutes past midnight — `generateTimeBlocks` output. */
+	availabilityTimeBlocks: readonly number[];
 }
 
 /**
  * Native counterpart to the web app's
  * `components/availability/table/availability-time-ticks.tsx`. On the web
  * each tick is a `<td>` at the start of its hour's row; without a table the
- * ticks are one column, each label owning one hour of height and centred on
- * its hour line.
+ * ticks are one column, each label absolutely placed so it is centred on its
+ * hour line. A grid that ends on the hour gets a closing label too, as the
+ * hour line it sits on is the last block's bottom edge.
  */
 export function AvailabilityTimeTicks({
-	startHour,
-	endHour,
+	availabilityTimeBlocks,
 }: AvailabilityTimeTicksProps) {
-	const hours = Array.from(
-		{ length: Math.max(0, endHour - startHour) + 1 },
-		(_, i) => startHour + i,
-	);
-	const lastIndex = hours.length - 1;
+	const ticks: { minutes: number; y: number }[] = [];
+	availabilityTimeBlocks.forEach((timeBlock, blockIndex) => {
+		const minutesInDay = timeBlock % TimeConstants.MINUTES_PER_DAY;
+		if (minutesInDay % 60 === 0) {
+			ticks.push({ minutes: minutesInDay, y: blockTop(blockIndex) });
+		}
+	});
+	const lastBlock = availabilityTimeBlocks.at(-1);
+	if (lastBlock !== undefined) {
+		const endMinutes =
+			(lastBlock + BLOCK_LENGTH) % TimeConstants.MINUTES_PER_DAY;
+		if (endMinutes % 60 === 0) {
+			ticks.push({
+				minutes: endMinutes,
+				y: blockTop(availabilityTimeBlocks.length),
+			});
+		}
+	}
 
-	// The first label is centred on the top hour line, which sits under the
-	// day header, so the column starts half a line box above it.
-	const paddingTop =
-		DAY_HEADER_HEIGHT + DAY_HEADER_GAP - TIME_TICK_LINE_HEIGHT / 2;
+	// Labels are centred on their hour line; the grid's top edge sits under
+	// the day header.
+	const gridTop = DAY_HEADER_HEIGHT + DAY_HEADER_GAP;
+	const height = gridTop + blockTop(availabilityTimeBlocks.length);
 
 	return (
-		<View className="w-[35px] items-end" style={{ paddingTop }}>
-			{hours.map((hour, index) => (
+		<View className="w-[35px]" style={{ height }}>
+			{ticks.map(({ minutes, y }) => (
 				<Text
-					className="text-right font-figtree-medium text-[11px] text-muted-foreground leading-4 tracking-[0.5px]"
-					key={hour}
-					style={{
-						height: index === lastIndex ? TIME_TICK_LINE_HEIGHT : HOUR_HEIGHT,
-					}}
+					className="absolute right-0 text-right font-figtree-medium text-[11px] text-muted-foreground leading-4 tracking-[0.5px]"
+					key={y}
+					style={{ top: gridTop + y - TIME_TICK_LINE_HEIGHT / 2 }}
 				>
-					{formatHour(hour)}
+					{ZotDate.toTimeBlockString(minutes, true)}
 				</Text>
 			))}
 		</View>

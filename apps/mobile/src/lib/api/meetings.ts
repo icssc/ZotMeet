@@ -5,6 +5,9 @@ import {
 	type MeetingMemberActionResponse,
 	type MeetingResponse,
 	type MeetingsListResponse,
+	type SaveAvailabilityInput,
+	type SaveAvailabilityResponse,
+	saveAvailabilitySchema,
 } from "@zotmeet/shared";
 import { apiFetch } from "@/lib/api/client";
 
@@ -50,5 +53,27 @@ export function leaveMeeting(id: string): Promise<MeetingMemberActionResponse> {
 	return apiFetch<MeetingMemberActionResponse>(
 		`/api/meetings/${encodeURIComponent(id)}/leave`,
 		{ method: "POST" },
+	);
+}
+
+/**
+ * How long a save may take before the editor gives up and shows an error.
+ * The user is waiting on this one with both header buttons disabled, so a
+ * black-holed request must fail rather than hang.
+ */
+const SAVE_TIMEOUT_MS = 15_000;
+
+/** `PUT /api/meetings/:id/availability` — the web's `savePersonalAvailability` action. */
+export function saveAvailability(
+	id: string,
+	input: SaveAvailabilityInput,
+): Promise<SaveAvailabilityResponse> {
+	return apiFetch<SaveAvailabilityResponse>(
+		`/api/meetings/${encodeURIComponent(id)}/availability`,
+		{
+			method: "PUT",
+			body: JSON.stringify(saveAvailabilitySchema.parse(input)),
+			timeoutMs: SAVE_TIMEOUT_MS,
+		},
 	);
 }

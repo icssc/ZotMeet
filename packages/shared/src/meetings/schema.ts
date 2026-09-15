@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { MemberMeetingAvailability } from "../availability/types";
 
 /**
  * The meeting API contract: what a client sends to create a meeting and what
@@ -62,10 +63,11 @@ export type CreateMeetingResponse = { id: string };
 
 /**
  * A meeting as the API returns it: the `meetings` row, JSON-serialised, plus
- * the response counts the meeting screen shows. Kept by hand rather than
- * inferred because this package cannot import the Drizzle schema — the GET
- * route builds its body with `satisfies MeetingResponse`, so a column change
- * fails the web typecheck instead of surfacing as a runtime mismatch here.
+ * everything the availability screen needs to draw and fill its grid. Kept
+ * by hand rather than inferred because this package cannot import the Drizzle
+ * schema — the GET route builds its body with `satisfies MeetingResponse`, so
+ * a column change fails the web typecheck instead of surfacing as a runtime
+ * mismatch here.
  */
 export type MeetingResponse = {
 	id: string;
@@ -88,6 +90,16 @@ export type MeetingResponse = {
 		/** Members attached to the meeting, whether or not they have responded. */
 		total: number;
 	};
+	/**
+	 * Every attached member's response — what the web page loads through
+	 * `getAllMemberAvailability` and feeds to `deriveInitialAvailability`.
+	 */
+	availabilities: MemberMeetingAvailability[];
+	/**
+	 * The caller, when the request carried a valid bearer token; `null` for an
+	 * anonymous viewer. The grid's personal layer is this member's slots.
+	 */
+	viewerMemberId: string | null;
 };
 
 export type ApiErrorResponse = {
@@ -133,6 +145,20 @@ export type MeetingListItem = {
 		toTime: string;
 	} | null;
 };
+
+/**
+ * `PUT /api/meetings/:id/availability` — the wire form of the web's
+ * `savePersonalAvailability` action. Both lists are the grid's ISO slot
+ * strings (`ZotDate#availability`); a slot in both is saved as if-needed.
+ */
+export const saveAvailabilitySchema = z.object({
+	meetingAvailabilityTimes: z.array(z.string().datetime()),
+	ifNeededAvailabilityTimes: z.array(z.string().datetime()),
+});
+
+export type SaveAvailabilityInput = z.infer<typeof saveAvailabilitySchema>;
+
+export type SaveAvailabilityResponse = { success: true };
 
 export type MeetingsListResponse = {
 	/** Whose meetings these are — what the list compares `hostId` against. */
