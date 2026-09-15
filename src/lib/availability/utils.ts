@@ -14,6 +14,7 @@ export {
 	clearPersonalGridSlots,
 	convertTimeFromUTC,
 	convertTimeToUTC,
+	deriveMeetingWindow,
 	formatDateToUSNumeric,
 	formatScheduledTimeRange,
 	formatTimeWithHoursAndMins,

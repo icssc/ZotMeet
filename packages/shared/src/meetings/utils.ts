@@ -129,6 +129,48 @@ export function filterMeetingsByQuery<
 	);
 }
 
+/** A scheduled meeting's first block, as both the DB query and the API give it. */
+export type ScheduledMeetingBlock = {
+	scheduledDate: Date;
+	scheduledFromTime: string;
+	scheduledToTime: string;
+};
+
+export interface ScheduledMeetingsMeta {
+	/** id → "Scheduled: 9/1, 3PM-4PM" */
+	scheduledLabels: Record<string, string>;
+	/** id → epoch ms of the scheduled date, for past/sort decisions. */
+	scheduledDates: Record<string, number>;
+	/** Ids scheduled within the upcoming window. */
+	upcomingMeetingIds: string[];
+}
+
+/**
+ * What the meetings list derives from the scheduled blocks: a label and a
+ * sort time per meeting, plus the "upcoming" set. The web's summary page
+ * runs this on the server from the query result; the Expo app runs it on
+ * the device from `GET /api/meetings`, so "today" is whichever clock calls.
+ */
+export function buildScheduledMeetingsMeta(
+	scheduledMeetingMap: Record<string, ScheduledMeetingBlock>,
+): ScheduledMeetingsMeta {
+	const scheduledLabels: Record<string, string> = {};
+	const scheduledDates: Record<string, number> = {};
+	for (const [id, sm] of Object.entries(scheduledMeetingMap)) {
+		scheduledLabels[id] = buildScheduledLabel(
+			sm.scheduledDate,
+			sm.scheduledFromTime,
+			sm.scheduledToTime,
+		);
+		scheduledDates[id] = sm.scheduledDate.getTime();
+	}
+	return {
+		scheduledLabels,
+		scheduledDates,
+		upcomingMeetingIds: getUpcomingMeetingIds(scheduledMeetingMap),
+	};
+}
+
 export function getUpcomingMeetingIds(
 	scheduledMeetingMap: Record<string, { scheduledDate: Date }>,
 ): string[] {

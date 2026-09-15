@@ -1,4 +1,4 @@
-import { BLOCK_LENGTH, ZotDate } from "@zotmeet/shared";
+import { BLOCK_LENGTH, TimeConstants, ZotDate } from "@zotmeet/shared";
 import { View } from "react-native";
 import {
 	blockTop,
@@ -7,8 +7,6 @@ import {
 	TIME_TICK_LINE_HEIGHT,
 } from "@/components/availability/table/availability-table-metrics";
 import { Text } from "@/components/ui/text";
-
-const MINUTES_PER_DAY = 1440;
 
 interface AvailabilityTimeTicksProps {
 	/** The grid's rows, as minutes past midnight — `generateTimeBlocks` output. */
@@ -28,14 +26,15 @@ export function AvailabilityTimeTicks({
 }: AvailabilityTimeTicksProps) {
 	const ticks: { minutes: number; y: number }[] = [];
 	availabilityTimeBlocks.forEach((timeBlock, blockIndex) => {
-		const minutesInDay = timeBlock % MINUTES_PER_DAY;
+		const minutesInDay = timeBlock % TimeConstants.MINUTES_PER_DAY;
 		if (minutesInDay % 60 === 0) {
 			ticks.push({ minutes: minutesInDay, y: blockTop(blockIndex) });
 		}
 	});
 	const lastBlock = availabilityTimeBlocks.at(-1);
 	if (lastBlock !== undefined) {
-		const endMinutes = (lastBlock + BLOCK_LENGTH) % MINUTES_PER_DAY;
+		const endMinutes =
+			(lastBlock + BLOCK_LENGTH) % TimeConstants.MINUTES_PER_DAY;
 		if (endMinutes % 60 === 0) {
 			ticks.push({
 				minutes: endMinutes,

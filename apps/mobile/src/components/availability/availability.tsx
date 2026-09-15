@@ -1,14 +1,10 @@
 import {
 	clearPersonalGridSlots,
-	convertTimeFromUTC,
 	deriveInitialAvailability,
-	generateTimeBlocks,
-	getTimeFromHourMinuteString,
-	type HourMinuteString,
+	deriveMeetingWindow,
 	type MeetingResponse,
 	type Member,
 	sliceCurrentPageAvailability,
-	sortMeetingIsoDatesAsc,
 	type ZotDate,
 } from "@zotmeet/shared";
 import { useRouter } from "expo-router";
@@ -93,26 +89,15 @@ export function Availability({
 	const viewerTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 	const derived = useMemo(() => {
-		const sortedDates = sortMeetingIsoDatesAsc(meetingData.dates);
-		const referenceDate = sortedDates[0] ?? meetingData.dates[0];
-
-		const fromTimeMinutes = getTimeFromHourMinuteString(
-			convertTimeFromUTC(
-				meetingData.fromTime,
-				viewerTimezone,
-				referenceDate,
-			) as HourMinuteString,
-		);
-		const toTimeMinutes = getTimeFromHourMinuteString(
-			convertTimeFromUTC(
-				meetingData.toTime,
-				viewerTimezone,
-				referenceDate,
-			) as HourMinuteString,
-		);
-		const availabilityTimeBlocks = generateTimeBlocks(
-			fromTimeMinutes,
-			toTimeMinutes,
+		// The grid's time axis in the viewer's zone — the same derivation the
+		// web runs, from `@zotmeet/shared`.
+		const { fromTimeMinutes, availabilityTimeBlocks } = deriveMeetingWindow(
+			{
+				dates: meetingData.dates,
+				fromTime: meetingData.fromTime,
+				toTime: meetingData.toTime,
+			},
+			viewerTimezone,
 		);
 
 		const derive = (mode: "availabilities" | "if-needed") =>

@@ -1,4 +1,5 @@
 import { cssVarBlocks } from "@zotmeet/tokens";
+import { borderRadius, colors } from "@zotmeet/tokens/tailwind";
 import type { Config } from "tailwindcss";
 import plugin from "tailwindcss/plugin";
 
@@ -11,87 +12,14 @@ const config: Config = {
 	],
 	theme: {
 		extend: {
-			colors: {
-				background: "hsl(var(--background))",
-				foreground: "hsl(var(--foreground))",
-				card: {
-					DEFAULT: "hsl(var(--card))",
-					foreground: "hsl(var(--card-foreground))",
-				},
-				popover: {
-					DEFAULT: "hsl(var(--popover))",
-					foreground: "hsl(var(--popover-foreground))",
-				},
-				primary: {
-					DEFAULT: "hsl(var(--primary))",
-					foreground: "hsl(var(--primary-foreground))",
-				},
-				paper: {
-					DEFAULT: "hsl(var(--paper))",
-					foreground: "hsl(var(--paper-foreground))",
-				},
-				secondary: {
-					DEFAULT: "hsl(var(--secondary))",
-					foreground: "hsl(var(--secondary-foreground))",
-				},
-				// MUI's `palette.secondary`, which is a different colour from the
-				// shadcn `secondary` surface above. Named to match the Expo config.
-				"secondary-main": {
-					DEFAULT: "hsl(var(--secondary-main))",
-					foreground: "hsl(var(--secondary-main-foreground))",
-				},
-				muted: {
-					DEFAULT: "hsl(var(--muted))",
-					foreground: "hsl(var(--muted-foreground))",
-				},
-				accent: {
-					DEFAULT: "hsl(var(--accent))",
-					foreground: "hsl(var(--accent-foreground))",
-				},
-				destructive: {
-					DEFAULT: "hsl(var(--destructive))",
-					foreground: "hsl(var(--destructive-foreground))",
-				},
-				border: "hsl(var(--border))",
-				input: "hsl(var(--input))",
-				ring: "hsl(var(--ring))",
-				chart: {
-					"1": "hsl(var(--chart-1))",
-					"2": "hsl(var(--chart-2))",
-					"3": "hsl(var(--chart-3))",
-					"4": "hsl(var(--chart-4))",
-					"5": "hsl(var(--chart-5))",
-				},
-				sidebar: {
-					DEFAULT: "hsl(var(--sidebar-background))",
-					foreground: "hsl(var(--sidebar-foreground))",
-					primary: "hsl(var(--sidebar-primary))",
-					"primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-					accent: "hsl(var(--sidebar-accent))",
-					"accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-					border: "hsl(var(--sidebar-border))",
-					ring: "hsl(var(--sidebar-ring))",
-				},
-				gray: {
-					light: "#F3F4F6" /* maps to gray-100 */,
-					base: "#D1D5DB" /* gray-300 */,
-					medium: "#9CA3AF" /* gray-400 */,
-					dark: "#1F2937" /* gray-800 */,
-				},
-				slate: {
-					base: "#CBD5E1" /* slate-300 */,
-					medium: "#94A3B8" /* slate-400 */,
-				},
-			},
+			// The `hsl(var(--x))` wiring for every colour token, shared with the
+			// Expo config. Source: `packages/tokens/tailwind.js`.
+			colors,
 			backgroundImage: {
 				"stripes-primary":
 					"repeating-linear-gradient(45deg, hsl(var(--primary)) 0 3px, transparent 3px 6px)",
 			},
-			borderRadius: {
-				lg: "var(--radius)",
-				md: "calc(var(--radius) - 2px)",
-				sm: "calc(var(--radius) - 4px)",
-			},
+			borderRadius,
 			fontFamily: {
 				figtree: ["var(--font-figtree)"],
 				default: ["var(--font-figtree)"],
