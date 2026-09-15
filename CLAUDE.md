@@ -21,6 +21,24 @@ pnpm workspace (`pnpm-workspace.yaml`: `apps/*`, `packages/*`). Three code owner
 
 ## 2. Where does new code go? (decision rules)
 
+```mermaid
+flowchart TD
+    A([New code]) --> B{Touches DB, next/*, server-only,<br/>SES, googleapis, cookies,<br/>or secret env vars?}
+    B -- yes --> W[web: src/server/** or src/lib/**]
+    W --> W2{Mobile needs it?}
+    W2 -- yes --> API[add route in src/app/api/<br/>types + schema in packages/shared<br/>client fn in apps/mobile/src/lib/api/]
+    W2 -- no --> DONE1([done])
+    B -- no --> C{A colour, radius<br/>or type size?}
+    C -- yes --> T[packages/tokens]
+    C -- no --> D{Pure logic both apps<br/>could use?}
+    D -- yes --> E{Is it a React hook?}
+    E -- yes --> H[pure part → packages/shared/src/#lt;domain#gt;/<br/>useMemo/useCallback wrapper stays per app]
+    E -- no --> S[packages/shared/src/#lt;domain#gt;/]
+    H --> S2
+    S --> S2[mobile imports @zotmeet/shared<br/>web re-exports from its old module path]
+    D -- no --> P[the owning app, same folder + file name<br/>as its counterpart; doc comment names<br/>the counterpart and what deviates]
+```
+
 Apply in order; stop at the first match.
 
 1. **Touches the DB, `next/*`, `server-only`, SES, `googleapis`, cookies, or `process.env` secrets** → `src/server/**` or `src/lib/**` (web). Expose to mobile via a route in `src/app/api/` (see §4).
