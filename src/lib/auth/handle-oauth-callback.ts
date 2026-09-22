@@ -30,7 +30,6 @@ type SessionTokenOptions = {
 	oidcAccessToken: string;
 	oidcRefreshToken: string | undefined;
 	oauthAccessToken?: string;
-	oauthRefreshToken?: string;
 	oauthAccessTokenExpiresAt?: Date;
 };
 
@@ -131,19 +130,17 @@ function extractGoogleTokens(tokens: OAuth2Tokens): SessionTokenOptions {
 	const oidcRefreshToken = tokens.refreshToken();
 	const tokenData = tokens.data as {
 		google_access_token?: string;
-		google_refresh_token?: string;
 		google_token_expiry?: number;
 	};
 
 	const googleAccessToken = tokenData.google_access_token;
-	const googleRefreshToken = tokenData.google_refresh_token;
 	const googleTokenExpiry = tokenData.google_token_expiry
 		? new Date(tokenData.google_token_expiry)
 		: new Date(Date.now() + 1000 * 60 * 60);
 
-	if (!googleAccessToken || !googleRefreshToken) {
+	if (!googleAccessToken) {
 		console.error(
-			"OAuth Callback - Missing Google tokens in OIDC response:",
+			"OAuth Callback - Missing Google access token in OIDC response:",
 			tokenData,
 		);
 	}
@@ -156,7 +153,6 @@ function extractGoogleTokens(tokens: OAuth2Tokens): SessionTokenOptions {
 		oidcAccessToken,
 		oidcRefreshToken,
 		oauthAccessToken: googleAccessToken,
-		oauthRefreshToken: googleRefreshToken,
 		oauthAccessTokenExpiresAt: googleTokenExpiry,
 	};
 }
@@ -313,7 +309,6 @@ export async function establishOAuthSession(
 		oidcAccessToken: sessionOptions.oidcAccessToken,
 		oidcRefreshToken: sessionOptions.oidcRefreshToken,
 		oauthAccessToken: sessionOptions.oauthAccessToken,
-		oauthRefreshToken: sessionOptions.oauthRefreshToken,
 		oauthAccessTokenExpiresAt: sessionOptions.oauthAccessTokenExpiresAt,
 	});
 

@@ -15,7 +15,6 @@ type OAuthTokenData = {
 	oidcAccessToken?: string;
 	oidcRefreshToken?: string;
 	oauthAccessToken?: string;
-	oauthRefreshToken?: string;
 	oauthAccessTokenExpiresAt?: Date;
 };
 
@@ -41,7 +40,6 @@ export async function createSession(
 		oidcAccessToken: options.oidcAccessToken,
 		oidcRefreshToken: options.oidcRefreshToken,
 		googleAccessToken: options.oauthAccessToken,
-		googleRefreshToken: options.oauthRefreshToken,
 		googleAccessTokenExpiresAt: options.oauthAccessTokenExpiresAt,
 	};
 
