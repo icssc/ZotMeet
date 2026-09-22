@@ -76,18 +76,6 @@ export async function validateSessionToken(
 		return { session: null, user: null };
 	}
 
-	// Renew session if close to expiring
-	if (Date.now() >= session.expiresAt.getTime() - DAYS_MS * 15) {
-		session.expiresAt = new Date(Date.now() + DAYS_MS * 30);
-
-		await db
-			.update(sessions)
-			.set({
-				expiresAt: session.expiresAt,
-			})
-			.where(eq(sessions.id, session.id));
-	}
-
 	return { session, user };
 }
 
