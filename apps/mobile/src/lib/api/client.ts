@@ -24,8 +24,14 @@ export const API_URL = process.env.EXPO_PUBLIC_API_URL;
  * release bundle, so Metro drops this branch and the token string with it.
  * A distributed build therefore has no credential until the user signs in,
  * by design.
+ *
+ * Exported for `getCurrentSession`, which asks the server who the token
+ * stands for so the guest shows as signed in; everything else gets it
+ * through `apiFetch`.
  */
-const API_TOKEN = __DEV__ ? process.env.EXPO_PUBLIC_API_TOKEN : undefined;
+export const DEV_API_TOKEN: string | undefined = __DEV__
+	? process.env.EXPO_PUBLIC_API_TOKEN || undefined
+	: undefined;
 
 /** A non-2xx response, carrying the status and the server's `{ error }` body. */
 export class ApiError extends Error {
@@ -76,7 +82,7 @@ export async function apiFetch<T>(
 	if (requestInit.body !== undefined) {
 		headers.set("Content-Type", "application/json");
 	}
-	const token = authToken ?? (await getSessionToken()) ?? API_TOKEN;
+	const token = authToken ?? (await getSessionToken()) ?? DEV_API_TOKEN;
 	if (token) headers.set("Authorization", `Bearer ${token}`);
 
 	// `AbortController` + `setTimeout` rather than `AbortSignal.timeout`, and
