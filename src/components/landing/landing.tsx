@@ -1,5 +1,6 @@
 import { Button, Typography } from "@mui/material";
 import Image from "next/image";
+import { LandingHowItWorks } from "./landing-how-it-works";
 import { LandingNav } from "./landing-nav";
 
 export function Landing() {
@@ -67,6 +68,9 @@ export function Landing() {
 						</div>
 					</div>
 				</div>
+			</div>
+			<div className="lg:mt-24">
+				<LandingHowItWorks />
 			</div>
 		</div>
 	);
