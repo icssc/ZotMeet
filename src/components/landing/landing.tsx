@@ -1,3 +1,9 @@
+import { LandingNav } from "./landing-nav";
+
 export function Landing() {
-	return <div>bello</div>;
+	return (
+		<div>
+			<LandingNav />
+		</div>
+	);
 }
