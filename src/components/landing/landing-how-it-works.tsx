@@ -111,7 +111,7 @@ export function LandingHowItWorks() {
 		<Box
 			component="section"
 			id="how-it-works"
-			className="mx-auto flex max-w-[1600px] flex-col items-center gap-12 px-6 py-16 lg:gap-14 lg:px-16"
+			className="mx-auto flex max-w-[1600px] scroll-mt-16 flex-col items-center gap-12 px-6 py-16 lg:gap-14 lg:px-16"
 		>
 			<div className="flex max-w-3xl flex-col items-center gap-5 text-center">
 				<Chip
@@ -138,8 +138,7 @@ export function LandingHowItWorks() {
 					booking made simple
 				</Typography>
 				<Typography variant="body2" color="text.secondary">
-					better than when2meet. better than timeful <br /> (we can change this
-					lmao)
+					better than when2meet. better than timeful
 				</Typography>
 			</div>
 

@@ -1,11 +1,12 @@
 import { Button, Typography } from "@mui/material";
 import Image from "next/image";
 import { LandingHowItWorks } from "./landing-how-it-works";
+import { LandingMeetTheTeam } from "./landing-meet-the-team";
 import { LandingNav } from "./landing-nav";
 
 export function Landing() {
 	return (
-		<div>
+		<div id="landing">
 			<LandingNav />
 			<div className="mt-10 overflow-x-clip lg:mt-60">
 				<div className="mx-auto flex max-w-[1600px] flex-col px-6 lg:flex-row lg:items-center lg:px-16">
@@ -21,7 +22,6 @@ export function Landing() {
 							Time Sync and <br /> Schedule Meetings
 						</Typography>
 
-						{/* Manual line breaks only on lg+; smaller screens wrap within max-w-2xl. */}
 						<Typography
 							variant="body1"
 							color="text.secondary"
@@ -71,6 +71,9 @@ export function Landing() {
 			</div>
 			<div className="lg:mt-24">
 				<LandingHowItWorks />
+			</div>
+			<div className="lg:mt-24">
+				<LandingMeetTheTeam />
 			</div>
 		</div>
 	);

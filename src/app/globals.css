@@ -31,6 +31,13 @@
 	}
 }
 
+@layer base {
+	/* Smooth-scroll the landing page's in-page nav links, and nowhere else. */
+	html:has(#landing) {
+		scroll-behavior: smooth;
+	}
+}
+
 @layer utilities {
 	.wrapper {
 		@apply mx-auto w-full max-w-screen-2xl px-2 md:px-20;

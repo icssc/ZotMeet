@@ -9,8 +9,8 @@ const LOGO_SIZE = 40;
 const WORDMARK_OFFSET = LOGO_SIZE * 0.064;
 
 const sectionLinks: LandingNavLink[] = [
-	{ title: "Features", href: "/features" },
-	{ title: "Meet the Team", href: "/team" },
+	{ title: "Features", href: "#how-it-works" },
+	{ title: "Meet the Team", href: "#team" },
 ];
 
 export function LandingNav() {
