@@ -1,47 +1,29 @@
+import GitHubIcon from "@mui/icons-material/GitHub";
+import LanguageIcon from "@mui/icons-material/Language";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import { Box, Button, Chip, Typography } from "@mui/material";
 import Image from "next/image";
+import type { ElementType } from "react";
+import { type TeamMember, teamMembers } from "./team-members";
 
 const GITHUB_URL = "https://github.com/icssc/ZotMeet";
 
-interface TeamMember {
-	name: string;
-	position: string;
-	websiteUrl?: string;
-	linkedinUrl?: string;
-	githubUrl?: string;
-}
+const socialIconSx = { fontSize: 24, color: "primary.main" };
 
-const team: TeamMember[] = [
-	{ name: "Ethan Chao", position: "Project Lead" },
-	{ name: "Kailee Kaocharoen", position: "Design Lead" },
-	{ name: "Valerie Hyunh", position: "Design Lead" },
-	{ name: "Arshia Aravinthan", position: "Developer" },
-	{ name: "Alex Zhuang", position: "Developer" },
-	{ name: "Arya Palanivel", position: "Developer" },
-	{ name: "Anna Chen", position: "Developer" },
-	{ name: "Ethan Tran", position: "Developer" },
-	{ name: "Isaac Phoon", position: "Developer" },
-	{ name: "Alex Liu", position: "Winter PL 26'" },
-	{ name: "Kyle Tran", position: "PL 25'-26'" },
-	{ name: "Arya Mhaiskar", position: "Developer 24'-26'" },
-];
-
+/** Links once `href` is filled in; until then the icon is decorative. */
 function SocialLink({
 	href,
-	icon,
+	icon: Icon,
 	label,
 }: {
 	href?: string;
-	icon: string;
+	icon: ElementType;
 	label: string;
 }) {
-	const img = (
-		<Image src={icon} alt={href ? label : ""} width={24} height={24} />
-	);
-	if (!href) return img;
+	if (!href) return <Icon sx={socialIconSx} aria-hidden />;
 	return (
 		<a href={href} target="_blank" rel="noreferrer" aria-label={label}>
-			{img}
+			<Icon sx={socialIconSx} />
 		</a>
 	);
 }
@@ -49,12 +31,21 @@ function SocialLink({
 function TeamCard({ member }: { member: TeamMember }) {
 	return (
 		<div className="flex w-[150px] flex-col items-center gap-3 sm:w-[187px]">
-			{/* Headshot placeholder until real photos land. */}
 			<Box
 				sx={{ bgcolor: "grey.300", borderRadius: 2 }}
-				className="flex aspect-[187/225] w-full items-center justify-center pt-1.5"
+				className="relative flex aspect-[187/225] w-full items-center justify-center overflow-hidden pt-1.5"
 			>
-				<Image src="/mascot.svg" alt="" width={111} height={111} />
+				{member.headshot ? (
+					<Image
+						src={member.headshot}
+						alt={member.name}
+						fill
+						sizes="(min-width: 640px) 187px, 150px"
+						className="object-cover"
+					/>
+				) : (
+					<Image src="/mascot.svg" alt="" width={111} height={111} />
+				)}
 			</Box>
 			<div className="flex w-full flex-col items-center gap-2 text-center">
 				<div className="flex w-full flex-col gap-0.5">
@@ -66,17 +57,17 @@ function TeamCard({ member }: { member: TeamMember }) {
 				<div className="flex gap-2">
 					<SocialLink
 						href={member.websiteUrl}
-						icon="/landing/website.svg"
+						icon={LanguageIcon}
 						label={`${member.name}'s website`}
 					/>
 					<SocialLink
 						href={member.linkedinUrl}
-						icon="/landing/linkedin.svg"
+						icon={LinkedInIcon}
 						label={`${member.name} on LinkedIn`}
 					/>
 					<SocialLink
 						href={member.githubUrl}
-						icon="/landing/github.svg"
+						icon={GitHubIcon}
 						label={`${member.name} on GitHub`}
 					/>
 				</div>
@@ -138,14 +129,7 @@ export function LandingMeetTheTeam() {
 						href={GITHUB_URL}
 						target="_blank"
 						rel="noreferrer"
-						startIcon={
-							<Image
-								src="/landing/github-button.svg"
-								alt=""
-								width={22}
-								height={22}
-							/>
-						}
+						startIcon={<GitHubIcon sx={{ fontSize: 22 }} />}
 					>
 						Github
 					</Button>
@@ -153,7 +137,7 @@ export function LandingMeetTheTeam() {
 			</div>
 
 			<div className="flex flex-wrap justify-center gap-x-6 gap-y-10 sm:gap-12">
-				{team.map((member) => (
+				{teamMembers.map((member) => (
 					<TeamCard key={member.name} member={member} />
 				))}
 			</div>
