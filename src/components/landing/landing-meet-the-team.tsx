@@ -10,7 +10,7 @@ const GITHUB_URL = "https://github.com/icssc/ZotMeet";
 
 const socialIconSx = { fontSize: 24, color: "primary.main" };
 
-/** Links once `href` is filled in; until then the icon is decorative. */
+/** Renders nothing until `href` is filled in. */
 function SocialLink({
 	href,
 	icon: Icon,
@@ -20,7 +20,7 @@ function SocialLink({
 	icon: ElementType;
 	label: string;
 }) {
-	if (!href) return <Icon sx={socialIconSx} aria-hidden />;
+	if (!href) return null;
 	return (
 		<a href={href} target="_blank" rel="noreferrer" aria-label={label}>
 			<Icon sx={socialIconSx} />
@@ -108,7 +108,6 @@ export function LandingMeetTheTeam() {
 					team on discord and checkout a Github issue.
 				</Typography>
 				<div className="flex gap-5">
-					{/* TODO: link the team Discord invite. */}
 					<Button
 						variant="outlined"
 						size="large"
