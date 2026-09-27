@@ -1,4 +1,4 @@
-import { Button, Typography } from "@mui/material";
+import { Box, Button, Chip, Typography } from "@mui/material";
 import Image from "next/image";
 import { LandingHowItWorks } from "./landing-how-it-works";
 import { LandingMeetTheTeam } from "./landing-meet-the-team";
@@ -10,16 +10,35 @@ export function Landing() {
 			<LandingNav />
 			<div className="mt-10 overflow-x-clip lg:mt-60">
 				<div className="mx-auto flex max-w-[1600px] flex-col px-6 lg:flex-row lg:items-center lg:px-16">
-					<div className="flex shrink-0 flex-col gap-6 py-10">
+					<div className="flex shrink-0 flex-col items-start gap-6 py-10">
+						<Chip
+							label="Brought to you by UCI's ICS Student Council"
+							variant="outlined"
+							component="a"
+							href="https://studentcouncil.ics.uci.edu/"
+							clickable
+							rel="noopener noreferrer"
+							sx={{ borderColor: "primary.main" }}
+						/>
 						<Typography
 							variant="h2"
 							component="h1"
 							sx={{
 								typography: { xs: "h4", sm: "h3", lg: "h2" },
-								fontWeight: { xs: 700, sm: 700, lg: 700 },
+								fontWeight: { xs: 600, sm: 600, lg: 700 },
 							}}
 						>
-							Time Sync and <br /> Schedule Meetings
+							UC Irvine’s all-in-one <br className="hidden lg:inline" />
+							<Box component="span" sx={{ color: "primary.main" }}>
+								meeting
+							</Box>{" "}
+							scheduling <br className="hidden lg:inline" />
+							and{" "}
+							<Box component="span" sx={{ color: "primary.main" }}>
+								room
+							</Box>{" "}
+							exploring <br className="hidden lg:inline" />
+							platform
 						</Typography>
 
 						<Typography
@@ -27,20 +46,24 @@ export function Landing() {
 							color="text.secondary"
 							className="max-w-2xl"
 						>
-							ICSSC Project Teams brings to you ZotMeet a web app and mobile
-							application <br className="hidden lg:inline" /> build by students
-							for students. Effortlessly coordinate group schedule with native{" "}
-							<br className="hidden lg:inline" /> campus integration so your
-							study groups, club boards, and student orgs{" "}
-							<br className="hidden lg:inline" /> can be on top of your meeting
-							game!
+							Find the perfect time and place to meet with your group,{" "}
+							<br className="hidden lg:inline" /> with seamless access to UCI’s
+							campus rooms and resources.
 						</Typography>
 
 						<div className="mt-2 flex gap-4">
-							<Button variant="contained" size="large">
+							<Button
+								variant="contained"
+								size="large"
+								href="http://localhost:3000/auth/login?returnTo=%2F"
+							>
 								Create a Meeting
 							</Button>
-							<Button variant="outlined" size="large">
+							<Button
+								variant="outlined"
+								size="large"
+								href="https://apps.apple.com/us/app/zotmeet/id6773529198"
+							>
 								Download the App
 							</Button>
 						</div>

@@ -101,15 +101,14 @@ export function LandingMeetTheTeam() {
 					The Students behind ZotMeet
 				</Typography>
 				<Typography variant="body1" color="text.secondary">
-					Recruiters please hire us.
-					<br />
-					Interested in how to get involved? We are a project team under ICS
-					Student Council and follow their recruitment cycle. Connect with our
-					team on discord and checkout a Github issue.
+					Interested in how to get involved? We're a project team under ICS
+					Student Council. Connect with our team on discord and checkout a
+					Github issue.
 				</Typography>
 				<div className="flex gap-5">
 					<Button
 						variant="outlined"
+						href="https://discord.gg/QenncaKuQ"
 						size="large"
 						startIcon={
 							<Image
