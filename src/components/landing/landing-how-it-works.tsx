@@ -11,6 +11,7 @@ interface Step {
 	bannerIcon?: ElementType;
 	bannerLabel: string;
 	bannerAlign?: "flex-start" | "flex-end";
+	video?: string;
 }
 
 const steps: Step[] = [
@@ -21,14 +22,17 @@ const steps: Step[] = [
 		bannerColor: "primary.contrastText",
 		bannerIcon: EditIcon,
 		bannerLabel: "Add your availability.",
+		video: "/landing/sign-in.mov",
 	},
 	{
 		title: "Add your availability",
-		description: "Fill out your availability with",
+		description:
+			"Fill out your availability with the calendar overlay or manually.",
 		bannerBgColor: "primary.main",
 		bannerColor: "primary.contrastText",
 		bannerIcon: EditIcon,
 		bannerLabel: "Add your availability.",
+		video: "/landing/add-availability.mp4",
 	},
 	{
 		title: "Schedule when & where",
@@ -37,14 +41,17 @@ const steps: Step[] = [
 		bannerColor: "info.contrastText",
 		bannerIcon: DateRangeIcon,
 		bannerLabel: "Availability complete. Schedule this meeting.",
+		video: "/landing/room-results.mp4",
 	},
 	{
-		title: "Send Reminders",
-		description: "Sign in and link your gcal to zotmeet",
+		title: "Track Upcoming Events",
+		description:
+			"Your dashboard has easy filters to help you notice the meetings you need.",
 		bannerBgColor: "secondary.main",
 		bannerColor: "secondary.contrastText",
 		bannerLabel: "Scheduled: 2/17, 12:30AM-2PM",
 		bannerAlign: "flex-end",
+		video: "/landing/dashboard.mp4",
 	},
 ];
 
@@ -67,21 +74,35 @@ function StepCard({ step, index }: { step: Step; index: number }) {
 				variant="outlined"
 				sx={{
 					display: "flex",
-					gap: 1.5,
-					alignItems: "flex-start",
-					height: { xs: 160, lg: 300 },
+					flexDirection: "column",
+					gap: 2,
+					flexGrow: 1,
+					minHeight: { xs: 160, lg: 300 },
 					p: 2.5,
 				}}
 			>
-				<Chip label={index + 1} />
-				<Box sx={{ flex: 1, minWidth: 0 }}>
-					<Typography variant="h6" component="h3">
-						{step.title}
-					</Typography>
-					<Typography variant="body2" color="text.secondary">
-						{step.description}
-					</Typography>
+				<Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+					<Chip label={index + 1} sx={{ flexShrink: 0 }} />
+					<Box sx={{ flex: 1, minWidth: 0 }}>
+						<Typography variant="h6" component="h3">
+							{step.title}
+						</Typography>
+						<Typography variant="body2" color="text.secondary">
+							{step.description}
+						</Typography>
+					</Box>
 				</Box>
+				{step.video && (
+					<video
+						src={step.video}
+						autoPlay
+						loop
+						muted
+						playsInline
+						aria-hidden
+						className="mx-auto h-auto w-full rounded-lg"
+					/>
+				)}
 			</Card>
 			<Box
 				sx={{
