@@ -11,7 +11,7 @@ export const teamMembers: TeamMember[] = [
 	{
 		name: "Ethan Chao",
 		position: "Project Lead",
-		headshot: undefined,
+		headshot: "/landing/team/ethan-chao.jpeg",
 		websiteUrl: "https://www.ethanwchao.com/",
 		linkedinUrl: "https://www.linkedin.com/in/ethanchaoo/",
 		githubUrl: "https://github.com/ethancha0",
@@ -19,15 +19,15 @@ export const teamMembers: TeamMember[] = [
 	{
 		name: "Kailee Kaocharoen",
 		position: "Design Lead",
-		headshot: undefined,
+		headshot: "/landing/team/kailee-kaocharoen.jpeg",
 		websiteUrl: "https://kaileetea.com/",
 		linkedinUrl: "https://www.linkedin.com/in/kailee-kaocharoen/",
 		githubUrl: undefined,
 	},
 	{
-		name: "Valerie Hyunh",
+		name: "Valerie Huynh",
 		position: "Design Lead",
-		headshot: undefined,
+		headshot: "/landing/team/valerie-huynh.jpeg",
 		websiteUrl: "https://valerielhuynh.com/",
 		linkedinUrl: "https://www.linkedin.com/in/valerie-huynh-aa0723264/",
 		githubUrl: undefined,
@@ -35,7 +35,7 @@ export const teamMembers: TeamMember[] = [
 	{
 		name: "Arshia Aravinthan",
 		position: "Developer",
-		headshot: undefined,
+		headshot: "/landing/team/arshia-aravinthan.jpeg",
 		websiteUrl: undefined,
 		linkedinUrl: "https://www.linkedin.com/in/arshia-aravinthan-2668a1218/",
 		githubUrl: "https://github.com/Windslash123",
@@ -43,7 +43,7 @@ export const teamMembers: TeamMember[] = [
 	{
 		name: "Alex Zhuang",
 		position: "Developer",
-		headshot: undefined,
+		headshot: "/landing/team/alex-zhuang.png",
 		websiteUrl: undefined,
 		linkedinUrl: "linkedin.com/in/alex-r-zhuang-45b99a27b",
 		githubUrl: "https://github.com/alixer-alex",
@@ -51,7 +51,7 @@ export const teamMembers: TeamMember[] = [
 	{
 		name: "Arya Palanivel",
 		position: "Developer",
-		headshot: undefined,
+		headshot: "/landing/team/arya-palanivel.png",
 		websiteUrl: undefined,
 		linkedinUrl: "https://www.linkedin.com/in/arya-palanivel/",
 		githubUrl: "https://github.com/arya-palanivel",
@@ -59,7 +59,7 @@ export const teamMembers: TeamMember[] = [
 	{
 		name: "Anna Chen",
 		position: "Developer",
-		headshot: undefined,
+		headshot: "/landing/team/anna.jpeg",
 		websiteUrl: undefined,
 		linkedinUrl: "https://www.linkedin.com/in/anna-chen-uc-irvine/",
 		githubUrl: "https://github.com/aizilerts",
@@ -67,7 +67,7 @@ export const teamMembers: TeamMember[] = [
 	{
 		name: "Ethan Tran",
 		position: "Developer",
-		headshot: undefined,
+		headshot: "/landing/team/ethan-tran.png",
 		websiteUrl: undefined,
 		linkedinUrl: "https://www.linkedin.com/in/ethan-g-tran/",
 		githubUrl: "https://github.com/realethantran",
@@ -75,7 +75,7 @@ export const teamMembers: TeamMember[] = [
 	{
 		name: "Isaac Phoon",
 		position: "Developer",
-		headshot: undefined,
+		headshot: "/landing/team/isaac-phoon.jpeg",
 		websiteUrl: undefined,
 		linkedinUrl: "https://www.linkedin.com/in/isaac-phoon/",
 		githubUrl: "https://github.com/IsaacPhoon",
@@ -83,7 +83,7 @@ export const teamMembers: TeamMember[] = [
 	{
 		name: "Alex Liu",
 		position: "Winter PL 26'",
-		headshot: undefined,
+		headshot: "/landing/team/alex-liu.jpeg",
 		websiteUrl: "https://alexanderliu.com/",
 		linkedinUrl: "https://www.linkedin.com/in/alexanderliu0/",
 		githubUrl: "https://github.com/alexanderl19",
@@ -91,7 +91,7 @@ export const teamMembers: TeamMember[] = [
 	{
 		name: "Kyle Tran",
 		position: "PL 25'-26'",
-		headshot: undefined,
+		headshot: "/landing/team/kyle-tran.jpeg",
 		websiteUrl: "https://www.kylebtran.com/",
 		linkedinUrl: "https://www.linkedin.com/in/kylebtran/",
 		githubUrl: "https://github.com/kylebtran",
@@ -99,7 +99,7 @@ export const teamMembers: TeamMember[] = [
 	{
 		name: "Arya Mhaiskar",
 		position: "Developer 24'-26'",
-		headshot: undefined,
+		headshot: "/landing/team/arya-mhaiskar.jpeg",
 		websiteUrl: undefined,
 		linkedinUrl: "https://www.linkedin.com/in/arya-mhaiskar/",
 		githubUrl: "https://github.com/amhaiskar0921",
