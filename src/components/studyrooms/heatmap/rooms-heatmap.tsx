@@ -15,9 +15,11 @@ import {
 import Box from "@mui/material/Box";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { recordRecentRoom } from "@/lib/rooms/recent-rooms";
 import {
 	buildHalfHourIntervals,
 	formatISOToLocalTime,
+	getRoomFloor,
 	groupSlotsIntoIntervals,
 	mergeDateAndTime,
 } from "@/lib/rooms/utils";
@@ -25,6 +27,7 @@ import {
 	BUILDINGS,
 	formatLocation,
 	type StudyRooms,
+	stripRoomDurationSuffix,
 } from "@/lib/types/studyrooms";
 import { cn } from "@/lib/utils";
 
@@ -212,6 +215,16 @@ export const RoomsHeatmap = ({
 														component={Link}
 														target="_blank"
 														href={s.url}
+														onClick={() =>
+															recordRecentRoom({
+																id: room.id,
+																name: stripRoomDurationSuffix(room.name),
+																location: room.location,
+																capacity: room.capacity,
+																floor: getRoomFloor(room),
+																url: room.url,
+															})
+														}
 														className="h-full"
 														sx={{ flex: 1 }}
 													>

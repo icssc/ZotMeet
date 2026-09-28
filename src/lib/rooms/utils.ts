@@ -274,3 +274,55 @@ export function getCapacityRange(capacities: Capacity[]): {
 		capacityMax: hasOpenEnded ? undefined : max !== -Infinity ? max : undefined,
 	};
 }
+
+export function getFreeUntil<
+	T extends { start: string; end: string; isAvailable: boolean },
+>(slots: T[], now: Date = new Date()): Date | null {
+	const sorted = [...slots].sort(
+		(a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+	);
+	const nowMs = now.getTime();
+	const index = sorted.findIndex(
+		(s) =>
+			new Date(s.start).getTime() <= nowMs && nowMs < new Date(s.end).getTime(),
+	);
+	if (index === -1 || !sorted[index].isAvailable) return null;
+
+	let end = new Date(sorted[index].end);
+	for (let i = index + 1; i < sorted.length; i++) {
+		const slot = sorted[i];
+		if (!slot.isAvailable) break;
+		if (new Date(slot.start).getTime() !== end.getTime()) break;
+		end = new Date(slot.end);
+	}
+	return end;
+}
+
+/** "4th Floor" from API notes like "Located on the 4th Floor Drum.", if any. */
+export function getRoomFloor(room: {
+	description?: string;
+	directions?: string;
+}): string | null {
+	for (const text of [room.description, room.directions]) {
+		const match = text?.match(/\b(\d+(?:st|nd|rd|th))\s+floor\b/i);
+		if (match) return `${match[1]} Floor`;
+	}
+	return null;
+}
+
+/**
+ * The window Quick Book asks the API for: from the current half hour, so
+ * the slot covering "now" is included, up to six hours later, capped at
+ * 11 PM (the latest the libraries book).
+ */
+export function getQuickBookWindow(now: Date = new Date()) {
+	const start = new Date(now);
+	start.setMinutes(now.getMinutes() < 30 ? 0 : 30, 0, 0);
+
+	const elevenPm = new Date(now);
+	elevenPm.setHours(23, 0, 0, 0);
+
+	const rawEnd = new Date(start.getTime() + WINDOW_MS);
+	const end = rawEnd > elevenPm ? elevenPm : rawEnd;
+	return { start, end };
+}

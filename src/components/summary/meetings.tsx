@@ -215,7 +215,7 @@ export const Meetings = ({
 							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
 						</Button>
 					</Badge>
-					<Button variant="contained" size="square" href="/">
+					<Button variant="contained" size="square" href="/?create=true">
 						<Add />
 					</Button>
 				</Box>
@@ -263,7 +263,7 @@ export const Meetings = ({
 
 				<Button
 					component={Link}
-					href="/"
+					href="/?create=true"
 					variant="contained"
 					startIcon={<Add />}
 					sx={{ display: { xs: "none", md: "flex" }, flexShrink: 0 }}

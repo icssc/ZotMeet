@@ -113,7 +113,7 @@ export function GroupMemberList({
 	);
 
 	const createButton = (
-		<Link href={`/?groupId=${group.id}`}>
+		<Link href={`/?create=true&groupId=${group.id}`}>
 			<Button variant="contained" size={isMobile ? "square" : undefined}>
 				<Add />
 				<Typography className="hidden md:block">Create New Meeting</Typography>
