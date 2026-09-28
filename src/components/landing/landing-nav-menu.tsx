@@ -16,7 +16,7 @@ export function LandingNavMenu({ links }: { links: LandingNavLink[] }) {
 				aria-label="Open navigation menu"
 				aria-controls={open ? "landing-nav-menu" : undefined}
 				aria-haspopup="true"
-				aria-expanded={open ? "true" : undefined}
+				aria-expanded={open}
 				onClick={(e) => setAnchorEl(e.currentTarget)}
 				sx={{ display: { xs: "inline-flex", sm: "none" } }}
 			>

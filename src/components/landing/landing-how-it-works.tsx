@@ -19,10 +19,10 @@ const steps: Step[] = [
 		title: "Connect your calendar",
 		description: "Sign in and link your gcal to zotmeet",
 		bannerBgColor: "action.selected",
-		bannerColor: "primary.contrastText",
+		bannerColor: "text.primary",
 		bannerIcon: EditIcon,
 		bannerLabel: "Add your availability.",
-		video: "/landing/sign-in.mov",
+		video: "/landing/sign-in.mp4",
 	},
 	{
 		title: "Add your availability",

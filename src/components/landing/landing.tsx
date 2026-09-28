@@ -1,5 +1,6 @@
 import { Box, Button, Chip, Typography } from "@mui/material";
 import Image from "next/image";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import { LandingHowItWorks } from "./landing-how-it-works";
 import { LandingMeetTheTeam } from "./landing-meet-the-team";
 import { LandingNav } from "./landing-nav";
@@ -55,7 +56,7 @@ export function Landing() {
 							<Button
 								variant="contained"
 								size="large"
-								href="http://localhost:3000/auth/login?returnTo=%2F"
+								href={loginPathWithReturnTo("/")}
 							>
 								Create a Meeting
 							</Button>
@@ -73,17 +74,18 @@ export function Landing() {
 						<div className="relative h-[440px] w-[260px] overflow-hidden [mask-image:linear-gradient(to_bottom,black_60%,transparent)] md:h-auto md:w-auto md:shrink-0 md:overflow-visible 2xl:w-full 2xl:shrink md:[mask-image:none]">
 							<Image
 								src="/screenshots/hero.png"
-								alt="hero"
+								alt="ZotMeet web app showing a meeting's group availability grid"
 								width={1666}
 								height={984}
+								priority
 								sizes="(min-width: 1536px) 1100px, 1200px"
 								className="hidden h-auto w-[1200px] max-w-none rounded-xl shadow-2xl md:block 2xl:w-full"
 							/>
 							<Image
 								src="/screenshots/hero-mobile.png"
 								alt="ZotMeet on a phone showing a two-day availability grid"
-								width={800}
-								height={2000}
+								width={792}
+								height={1747}
 								priority
 								sizes="(min-width: 768px) 264px, 260px"
 								className="h-auto w-full max-w-none md:absolute md:-bottom-[8%] md:-left-[4%] md:w-[22%]"

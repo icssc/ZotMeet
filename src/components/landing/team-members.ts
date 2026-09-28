@@ -45,7 +45,7 @@ export const teamMembers: TeamMember[] = [
 		position: "Developer",
 		headshot: "/landing/team/alex-zhuang.png",
 		websiteUrl: undefined,
-		linkedinUrl: "linkedin.com/in/alex-r-zhuang-45b99a27b",
+		linkedinUrl: "https://www.linkedin.com/in/alex-r-zhuang-45b99a27b",
 		githubUrl: "https://github.com/alixer-alex",
 	},
 	{

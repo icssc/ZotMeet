@@ -9,7 +9,7 @@ const LOGO_SIZE = 40;
 const WORDMARK_OFFSET = LOGO_SIZE * 0.064;
 
 const sectionLinks: LandingNavLink[] = [
-	{ title: "Features", href: "#how-it-works" },
+	{ title: "How it Works", href: "#how-it-works" },
 	{ title: "Meet the Team", href: "#team" },
 ];
 
@@ -46,13 +46,22 @@ export function LandingNav() {
 					</Box>
 				</Box>
 
-				<div className="hidden items-center justify-center gap-2 sm:flex">
+				<Box
+					component="nav"
+					aria-label="Page sections"
+					sx={{
+						display: { xs: "none", sm: "flex" },
+						alignItems: "center",
+						justifyContent: "center",
+						gap: 1,
+					}}
+				>
 					{sectionLinks.map((link) => (
 						<Button key={link.href} href={link.href} variant="outlined">
 							{link.title}
 						</Button>
 					))}
-				</div>
+				</Box>
 
 				<div className="mr-8 flex flex-1 items-center justify-end gap-2">
 					<Button

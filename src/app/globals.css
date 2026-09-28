@@ -33,8 +33,10 @@
 
 @layer base {
 	/* Smooth-scroll the landing page's in-page nav links, and nowhere else. */
-	html:has(#landing) {
-		scroll-behavior: smooth;
+	@media (prefers-reduced-motion: no-preference) {
+		html:has(#landing) {
+			scroll-behavior: smooth;
+		}
 	}
 }
 
