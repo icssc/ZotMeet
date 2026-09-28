@@ -6,6 +6,8 @@
  * Drizzle row, which this package cannot see.
  */
 
+import type { MeetingType } from "./schema";
+
 const UPCOMING_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 
 const UUID_RE =
@@ -62,6 +64,7 @@ export type MeetingDateFields = {
 	id: string;
 	scheduled: boolean | null;
 	dates: string[] | null;
+	meetingType: MeetingType;
 };
 
 function getMeetingReferenceTime(
@@ -89,6 +92,9 @@ export function isMeetingPast(
 	scheduledDates: Record<string, number> | undefined,
 	todayMs: number,
 ): boolean {
+	// "Days of the week" meetings store 2023 `ANCHOR_DATES` and recur weekly,
+	// so their dates never mean they are over.
+	if (m.meetingType === "days") return false;
 	const referenceTime = getMeetingReferenceTime(m, scheduledDates);
 	if (referenceTime === null) return false;
 	return referenceTime < todayMs;
