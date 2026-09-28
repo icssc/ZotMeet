@@ -1,6 +1,6 @@
 import type { UserProfile } from "@zotmeet/shared";
 import { getSession } from "@/lib/api/auth";
-import { ApiError } from "@/lib/api/client";
+import { ApiError, DEV_API_TOKEN } from "@/lib/api/client";
 import {
 	deleteSessionTokenIfCurrent,
 	getSessionToken,
@@ -25,11 +25,18 @@ import {
  * `deleteSessionTokenIfCurrent`; and hence the `null` rather than a throw when
  * it declines: this call's token is gone either way, so there is no session
  * *for it* to report.
+ *
+ * With no stored token, development asks the same question of the dev token
+ * (`EXPO_PUBLIC_API_TOKEN`, see `api/client.ts`): the server answers with
+ * the guest member it stands for, so the guest is signed in from launch.
+ * There is nothing to forget when it declines — the token comes from the
+ * environment, not storage — and a sign-out only lasts until the next launch.
  */
 export async function getCurrentSession(): Promise<{
 	user: UserProfile;
 } | null> {
-	const token = await getSessionToken();
+	const storedToken = await getSessionToken();
+	const token = storedToken ?? DEV_API_TOKEN ?? null;
 	if (token === null) return null;
 
 	try {
@@ -37,7 +44,9 @@ export async function getCurrentSession(): Promise<{
 		return { user };
 	} catch (error) {
 		if (error instanceof ApiError && error.status === 401) {
-			await deleteSessionTokenIfCurrent(token);
+			if (storedToken !== null) {
+				await deleteSessionTokenIfCurrent(storedToken);
+			}
 			return null;
 		}
 		throw error;

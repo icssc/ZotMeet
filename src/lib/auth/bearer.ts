@@ -1,10 +1,14 @@
 import "server-only";
 
 import { timingSafeEqual } from "node:crypto";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { members, users } from "@/db/schema";
 import {
 	type SessionValidationResult,
 	validateSessionToken,
 } from "@/lib/auth/session";
+import { type UserProfile, userProfileProjection } from "@/lib/auth/user";
 
 /**
  * Resolves the member behind an `Authorization: Bearer <token>` header, for
@@ -19,7 +23,8 @@ import {
  *    `POST /api/auth/login/<provider>` at the end of its OAuth flow (see
  *    `NativeOAuth…` in `@zotmeet/shared`).
  *  - The dev token from `MOBILE_DEV_API_TOKEN`, which stands in for the member
- *    named by `MOBILE_DEV_HOST_MEMBER_ID`. Local development only — it is
+ *    named by `MOBILE_DEV_HOST_MEMBER_ID` — the "guest" a developer's phone
+ *    uses without going through Google. Local development only — it is
  *    ignored when `NODE_ENV` is `production`, so setting the variables on a
  *    deployed server (preview included) does not enable it.
  *
@@ -33,17 +38,8 @@ export async function getMemberIdFromBearer(
 	const token = readBearerToken(request);
 	if (!token) return null;
 
-	// The dev token is a shared credential for a single member, so a production
-	// server refuses it outright rather than relying on the variables being
-	// left unset there. Without this, one stray env var — or a token extracted
-	// from a distributed mobile bundle — is a full impersonation of that member.
-	if (process.env.NODE_ENV !== "production") {
-		const devToken = process.env.MOBILE_DEV_API_TOKEN;
-		const devMemberId = process.env.MOBILE_DEV_HOST_MEMBER_ID;
-		if (devToken && devMemberId && constantTimeEquals(token, devToken)) {
-			return devMemberId;
-		}
-	}
+	const devMemberId = devMemberIdForToken(token);
+	if (devMemberId !== null) return devMemberId;
 
 	const { user } = await validateSessionToken(token);
 	return user?.memberId ?? null;
@@ -52,8 +48,9 @@ export async function getMemberIdFromBearer(
 /**
  * The session behind a bearer token — the `/api/*` counterpart to
  * `getCurrentSession`. Real session tokens only: the dev token stands in for
- * a member but has no session row to report or revoke, so `/api/auth/*`
- * treats it as signed out.
+ * a member but has no session row to report or revoke, so `/api/auth/logout`
+ * has nothing to do for it, and `/api/auth/session` answers for it through
+ * `getDevUserFromBearer` instead.
  */
 export async function getSessionFromBearer(
 	request: Request,
@@ -61,6 +58,50 @@ export async function getSessionFromBearer(
 	const token = readBearerToken(request);
 	if (!token) return { session: null, user: null };
 	return validateSessionToken(token);
+}
+
+/**
+ * The profile of the member the dev token stands in for, when the request
+ * carries that token — so the app can show the guest as signed in (tab bar,
+ * profile screen) rather than only calling `/api/*` as them. `null` for any
+ * other token, in production, or when the member has no user row (the seed
+ * gives "Seed Admin" one).
+ */
+export async function getDevUserFromBearer(
+	request: Request,
+): Promise<UserProfile | null> {
+	const token = readBearerToken(request);
+	if (!token) return null;
+
+	const devMemberId = devMemberIdForToken(token);
+	if (devMemberId === null) return null;
+
+	const [user] = await db
+		.select(userProfileProjection)
+		.from(users)
+		.innerJoin(members, eq(users.memberId, members.id))
+		.where(eq(users.memberId, devMemberId))
+		.limit(1);
+	return user ?? null;
+}
+
+/**
+ * The member id the dev token stands in for, if `token` is it.
+ *
+ * The dev token is a shared credential for a single member, so a production
+ * server refuses it outright rather than relying on the variables being
+ * left unset there. Without this, one stray env var — or a token extracted
+ * from a distributed mobile bundle — is a full impersonation of that member.
+ */
+function devMemberIdForToken(token: string): string | null {
+	if (process.env.NODE_ENV === "production") return null;
+
+	const devToken = process.env.MOBILE_DEV_API_TOKEN;
+	const devMemberId = process.env.MOBILE_DEV_HOST_MEMBER_ID;
+	if (devToken && devMemberId && constantTimeEquals(token, devToken)) {
+		return devMemberId;
+	}
+	return null;
 }
 
 function readBearerToken(request: Request): string | null {
