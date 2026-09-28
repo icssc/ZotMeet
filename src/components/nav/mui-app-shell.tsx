@@ -27,6 +27,11 @@ export function MuiAppShell({
 	const pathname = usePathname();
 	const showBottomNav = !routeHidesBottomNav(pathname);
 
+	// Signed-out visitors on "/" get the landing page, which renders its own nav.
+	if (!user && pathname === "/") {
+		return <>{children}</>;
+	}
+
 	return (
 		<Box
 			sx={{

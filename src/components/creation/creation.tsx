@@ -14,7 +14,6 @@ import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import type { SelectMeeting } from "@/db/schema";
-import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	convertTimeToUTC,
@@ -23,7 +22,7 @@ import {
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 
-export function Creation({ user }: { user: UserProfile | null }) {
+export function Creation({ user }: { user: UserProfile }) {
 	const [isCreating, setIsCreating] = useState(false);
 
 	// Use NUQS for URL state management
@@ -109,35 +108,6 @@ export function Creation({ user }: { user: UserProfile | null }) {
 
 	const handleCreation = async () => {
 		if (isCreating) return;
-
-		// If user is not logged in, redirect to Google sign in.
-		if (!user) {
-			// Construct URL with all parameters.
-			const params = new URLSearchParams();
-			params.set("meetingName", meetingNameRef.current);
-			params.set("startTime", startTime);
-			params.set("endTime", endTime);
-			params.set(
-				"selectedDates",
-				selectedDays.map((d) => d.day.toISOString()).join(","),
-			);
-			params.set("meetingType", meetingType);
-			params.set("timezone", urlState.timezone);
-			if (urlState.groupId) {
-				params.set("groupId", urlState.groupId);
-			}
-
-			// Update URL with all parameters, then redirect.
-			const currentUrl = new URL(window.location.href);
-			currentUrl.search = params.toString();
-			window.history.replaceState({}, "", currentUrl.toString());
-
-			// Redirect to auth.
-			window.location.href = loginPathWithReturnTo(
-				`${currentUrl.pathname}${currentUrl.search}`,
-			);
-			return;
-		}
 
 		setIsCreating(true);
 

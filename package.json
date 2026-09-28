@@ -22,8 +22,6 @@
 		"pwa:icons": "node scripts/generate-pwa-assets.mjs"
 	},
 	"dependencies": {
-		"@zotmeet/shared": "workspace:*",
-		"@zotmeet/tokens": "workspace:*",
 		"@aws-sdk/client-sesv2": "^3.1039.0",
 		"@emotion/cache": "^11.14.0",
 		"@emotion/react": "^11.14.0",
@@ -48,6 +46,8 @@
 		"@radix-ui/react-switch": "^1.2.6",
 		"@radix-ui/react-tabs": "^1.1.1",
 		"@radix-ui/react-tooltip": "^1.1.3",
+		"@zotmeet/shared": "workspace:*",
+		"@zotmeet/tokens": "workspace:*",
 		"arctic": "^3.6.0",
 		"class-variance-authority": "^0.7.0",
 		"clsx": "^2.1.1",
