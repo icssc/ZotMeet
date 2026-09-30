@@ -257,12 +257,18 @@ export async function getScheduledMeetingsByMeetingIds(
 
 	const result: Record<string, ScheduledMeetingInfo> = {};
 	for (const row of rows) {
-		if (!result[row.meetingId]) {
+		const current = result[row.meetingId];
+		if (!current) {
 			result[row.meetingId] = {
 				scheduledDate: row.scheduledDate,
 				scheduledFromTime: row.scheduledFromTime,
 				scheduledToTime: row.scheduledToTime,
 			};
+		} else if (
+			current.scheduledDate.getTime() === row.scheduledDate.getTime() &&
+			current.scheduledToTime === row.scheduledFromTime
+		) {
+			current.scheduledToTime = row.scheduledToTime;
 		}
 	}
 	return result;
