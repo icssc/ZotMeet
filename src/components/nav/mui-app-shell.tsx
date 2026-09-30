@@ -57,6 +57,7 @@ export function MuiAppShell({
 				}}
 			>
 				{children}
+				<SiteFooter />
 			</Box>
 			{isMobile && showBottomNav && <MuiBottomNav user={user} />}
 		</Box>
