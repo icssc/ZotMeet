@@ -31,10 +31,6 @@ export function MuiAppShell({
 	// Signed-out visitors on "/" get the landing page, which renders its own nav.
 	if (!user && pathname === "/") {
 		return (
-			<>
-				{children}
-				<SiteFooter />
-			</>
 			<Box
 				sx={{
 					bgcolor: "background.default",
@@ -43,6 +39,7 @@ export function MuiAppShell({
 				}}
 			>
 				{children}
+				<SiteFooter />
 			</Box>
 		);
 	}
