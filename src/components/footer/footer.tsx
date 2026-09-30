@@ -73,7 +73,7 @@ export function Footer() {
 						borderRadius: 1,
 					}}
 				>
-					<Icon fontSize="small" sx={{ color: "common.white" }} />
+					<Icon fontSize="medium" sx={{ color: "common.white" }} />
 				</IconButton>
 			))}
 
