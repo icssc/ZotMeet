@@ -3,7 +3,7 @@
 import AddIcon from "@mui/icons-material/Add";
 import { Box, Button, Typography } from "@mui/material";
 import { useQueryStates } from "nuqs";
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { CreateMeetingDialog } from "@/components/creation/create-meeting-dialog";
 import { creationSearchParams } from "@/components/creation/creation";
 import { ActionItems } from "@/components/dashboard/action-items";
@@ -34,7 +34,18 @@ type DashboardProps = {
 	groupNames: Record<string, string>;
 };
 
-function greetingFor(hour: number) {
+const noopSubscribe = () => () => {};
+
+function useLocalHour() {
+	return useSyncExternalStore(
+		noopSubscribe,
+		() => new Date().getHours(),
+		() => null,
+	);
+}
+
+function greetingFor(hour: number | null) {
+	if (hour === null) return "Welcome";
 	if (hour < 12) return "Good Morning";
 	if (hour < 18) return "Good Afternoon";
 	return "Good Evening";
@@ -48,6 +59,7 @@ export function Dashboard({
 	groupNames,
 }: DashboardProps) {
 	const [, setCreationParams] = useQueryStates(creationSearchParams);
+	const hour = useLocalHour();
 
 	// Read on every render so a tab left open across midnight re-buckets.
 	const todayMs = getStartOfTodayMs();
@@ -103,14 +115,8 @@ export function Dashboard({
 						gap: 2,
 					}}
 				>
-					<Typography
-						variant="h3"
-						component="h1"
-						sx={{ fontWeight: 700 }}
-						// The greeting depends on the viewer's clock, not the server's.
-						suppressHydrationWarning
-					>
-						{greetingFor(new Date().getHours())}, {firstName}!
+					<Typography variant="h3" component="h1" sx={{ fontWeight: 700 }}>
+						{greetingFor(hour)}, {firstName}!
 					</Typography>
 					<Button
 						variant="contained"
