@@ -2,6 +2,7 @@
 
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { usePathname } from "next/navigation";
+import { SiteFooter } from "@/components/footer/site-footer";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
 import { MuiBottomNav } from "./mui-bottom-nav";
 import { MuiTopNav } from "./mui-top-nav";
@@ -29,7 +30,12 @@ export function MuiAppShell({
 
 	// Signed-out visitors on "/" get the landing page, which renders its own nav.
 	if (!user && pathname === "/") {
-		return <>{children}</>;
+		return (
+			<>
+				{children}
+				<SiteFooter />
+			</>
+		);
 	}
 
 	return (

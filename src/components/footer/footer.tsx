@@ -13,6 +13,7 @@ import {
 	useTheme,
 } from "@mui/material";
 import Image from "next/image";
+import NextLink from "next/link";
 
 const iconSocialLinks = [
 	{
@@ -121,7 +122,7 @@ export function Footer() {
 							? theme.palette.primary.main
 							: theme.palette.common.white,
 					fontWeight: 575,
-					fontSize: { xs: "3rem", md: "7rem" },
+					fontSize,
 					lineHeight: 1,
 				}}
 			>
@@ -142,6 +143,7 @@ export function Footer() {
 			{pageLinks.map(({ label, href }) => (
 				<Link
 					key={href}
+					component={NextLink}
 					href={href}
 					underline="hover"
 					sx={{ color: "secondary.contrastText", fontSize: "0.825rem" }}

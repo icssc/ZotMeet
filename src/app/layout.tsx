@@ -4,7 +4,6 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v16-appRouter";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { SiteFooter } from "@/components/footer/site-footer";
 import AppShellWrapper from "@/components/nav/app-shell-wrapper";
 import AppThemeProvider from "@/components/theme/theme-provider";
 import { SnackbarProvider } from "@/components/ui/snackbar-provider";
@@ -106,7 +105,6 @@ export default async function RootLayout({
 								<AppShellWrapper>
 									<div className="h-full rounded-tl-xl">{children}</div>
 								</AppShellWrapper>
-								<SiteFooter />
 							</SnackbarProvider>
 						</AppThemeProvider>
 					</AppRouterCacheProvider>
