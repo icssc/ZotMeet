@@ -35,6 +35,15 @@ export function MuiAppShell({
 				{children}
 				<SiteFooter />
 			</>
+			<Box
+				sx={{
+					bgcolor: "background.default",
+					color: "text.primary",
+					minHeight: "100vh",
+				}}
+			>
+				{children}
+			</Box>
 		);
 	}
 
