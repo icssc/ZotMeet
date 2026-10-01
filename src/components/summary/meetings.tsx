@@ -215,7 +215,12 @@ export const Meetings = ({
 							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
 						</Button>
 					</Badge>
-					<Button variant="contained" size="square" href="/?create=true">
+					<Button
+						component={Link}
+						variant="contained"
+						size="square"
+						href="/?create=true"
+					>
 						<Add />
 					</Button>
 				</Box>
