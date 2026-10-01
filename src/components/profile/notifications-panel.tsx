@@ -29,7 +29,8 @@ export function NotificationsPanel({
 	const isDirty =
 		prefs.meetingInvites !== savedPrefs.meetingInvites ||
 		prefs.groupInvites !== savedPrefs.groupInvites ||
-		prefs.nudges !== savedPrefs.nudges;
+		prefs.nudges !== savedPrefs.nudges ||
+		prefs.meetingScheduled !== savedPrefs.meetingScheduled;
 
 	const handleToggle = (key: keyof NotificationPrefs) => {
 		setPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
