@@ -8,12 +8,17 @@ import type { SelectScheduledMeeting } from "@/db/schema";
  * helpers below stay here: they read `SelectScheduledMeeting` rows.
  */
 export {
+	buildDashboardModel,
 	buildMeetingsListModel,
 	buildScheduledLabel,
 	buildScheduledMeetingsMeta,
+	type DashboardActionItem,
+	type DashboardActionKind,
+	type DashboardUpcomingItem,
 	filterMeetingsByQuery,
 	formatLocalDateKey,
 	formatScheduledTime,
+	formatUpcomingDate,
 	getMeetingHostDisplayName,
 	getMeetingSortTime,
 	getMeetingUpcomingPriority,
@@ -25,6 +30,7 @@ export {
 	type MeetingHostNameFields,
 	type MeetingsListFilter,
 	type MeetingWithDates,
+	type ScheduledMeetingBlock,
 } from "@zotmeet/shared";
 
 interface TimeInterval {

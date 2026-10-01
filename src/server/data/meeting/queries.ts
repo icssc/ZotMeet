@@ -21,6 +21,7 @@ import {
 	users,
 } from "@/db/schema";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
+import { getGroupNamesByIds } from "@/server/data/groups/queries";
 
 export type MeetingWithHost = SelectMeeting & {
 	hostDisplayName: string | null;
@@ -200,6 +201,9 @@ export async function getMeetings(memberId: string) {
 	return userMeetings;
 }
 
+/** One row of `getMeetings`: what the summary list and the dashboard render. */
+export type MeetingListRow = Awaited<ReturnType<typeof getMeetings>>[number];
+
 export async function getResponderCountsByMeetingIds(
 	meetingIds: string[],
 ): Promise<Record<string, number>> {
@@ -256,16 +260,65 @@ export async function getScheduledMeetingsByMeetingIds(
 		);
 
 	const result: Record<string, ScheduledMeetingInfo> = {};
+	// Day of each meeting's last merged block; it moves past the start day
+	// once the selection runs over midnight.
+	const endDates: Record<string, Date> = {};
 	for (const row of rows) {
-		if (!result[row.meetingId]) {
+		const current = result[row.meetingId];
+		if (!current) {
 			result[row.meetingId] = {
 				scheduledDate: row.scheduledDate,
 				scheduledFromTime: row.scheduledFromTime,
 				scheduledToTime: row.scheduledToTime,
 			};
+			endDates[row.meetingId] = row.scheduledDate;
+		} else if (
+			continuesBlock(endDates[row.meetingId], current.scheduledToTime, row)
+		) {
+			current.scheduledToTime = row.scheduledToTime;
+			endDates[row.meetingId] = row.scheduledDate;
 		}
 	}
 	return result;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Whether `next` starts where a block ending at `endTime` on `endDate` ends.
+ * A block ending at midnight keeps its start day with `to` "00:00:00", so it
+ * continues into the next day's "00:00:00" block. Days are the scheduler's
+ * local midnight, so the next one is 23–25h later across DST: round the gap.
+ */
+function continuesBlock(
+	endDate: Date,
+	endTime: string,
+	next: { scheduledDate: Date; scheduledFromTime: string },
+): boolean {
+	if (endTime !== next.scheduledFromTime) return false;
+	const dayGap = Math.round(
+		(next.scheduledDate.getTime() - endDate.getTime()) / DAY_MS,
+	);
+	return dayGap === (endTime === "00:00:00" ? 1 : 0);
+}
+
+/**
+ * A member's meetings plus what the meeting lists show on each: responder
+ * counts, the scheduled block and the group's name. Shared by the dashboard
+ * and `/summary`.
+ */
+export async function getMeetingsOverview(memberId: string) {
+	const meetings = await getMeetings(memberId);
+	const [meetingCounts, scheduledMeetingMap, groupNames] = await Promise.all([
+		getResponderCountsByMeetingIds(meetings.map((m) => m.id)),
+		getScheduledMeetingsByMeetingIds(
+			meetings.filter((m) => m.scheduled).map((m) => m.id),
+		),
+		getGroupNamesByIds([
+			...new Set(meetings.flatMap((m) => (m.group_id ? [m.group_id] : []))),
+		]),
+	]);
+	return { meetings, meetingCounts, scheduledMeetingMap, groupNames };
 }
 
 /**

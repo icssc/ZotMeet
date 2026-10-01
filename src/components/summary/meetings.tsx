@@ -10,7 +10,6 @@ import { MobileNotificationsDrawer } from "@/components/groups/mobile-notificati
 import { DeleteModal } from "@/components/meetings/delete-modal";
 import { FilterChip } from "@/components/ui/filter-chip";
 import MeetingCard from "@/components/ui/meeting-card";
-import type { SelectMeeting } from "@/db/schema";
 import type { NotificationItem } from "@/lib/auth/user";
 import { toMeetingCardData } from "@/lib/meeting-card/mapper";
 import {
@@ -20,13 +19,10 @@ import {
 	MEETINGS_LIST_FILTERS,
 	type MeetingsListFilter,
 } from "@/lib/meetings/utils";
+import type { MeetingListRow } from "@/server/data/meeting/queries";
 
 interface MeetingsProps {
-	meetings: (SelectMeeting & {
-		hostDisplayName: string | null;
-		needsAvailability: boolean;
-		allAvailabilityFilled: boolean;
-	})[];
+	meetings: MeetingListRow[];
 	memberId: string;
 	meetingCounts: Record<string, number>;
 	scheduledLabels?: Record<string, string>;
@@ -215,7 +211,12 @@ export const Meetings = ({
 							<Notifications sx={{ color: "text.primary", fontSize: 24 }} />
 						</Button>
 					</Badge>
-					<Button variant="contained" size="square" href="/">
+					<Button
+						component={Link}
+						variant="contained"
+						size="square"
+						href="/?create=true"
+					>
 						<Add />
 					</Button>
 				</Box>
@@ -263,7 +264,7 @@ export const Meetings = ({
 
 				<Button
 					component={Link}
-					href="/"
+					href="/?create=true"
 					variant="contained"
 					startIcon={<Add />}
 					sx={{ display: { xs: "none", md: "flex" }, flexShrink: 0 }}
