@@ -7,7 +7,10 @@ import { useMemo, useSyncExternalStore } from "react";
 import { CreateMeetingDialog } from "@/components/creation/create-meeting-dialog";
 import { creationSearchParams } from "@/components/creation/creation";
 import { ActionItems } from "@/components/dashboard/action-items";
-import { DashboardCalendar } from "@/components/dashboard/dashboard-calendar";
+import {
+	type CalendarMeeting,
+	DashboardCalendar,
+} from "@/components/dashboard/dashboard-calendar";
 import { DashboardLayout } from "@/components/dashboard/dashboard-parts";
 import {
 	ActionItemsSkeleton,
@@ -20,6 +23,7 @@ import { UpcomingMeetings } from "@/components/dashboard/upcoming-meetings";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	buildDashboardModel,
+	formatScheduledTime,
 	getStartOfTodayMs,
 	type ScheduledMeetingBlock,
 } from "@/lib/meetings/utils";
@@ -107,15 +111,24 @@ export function Dashboard({
 	);
 
 	// Scheduled dates are UTC calendar days (see `formatUpcomingDate`).
-	const meetingDays = useMemo(
-		() =>
-			new Set(
-				Object.values(scheduledMeetingMap).map((block) =>
-					block.scheduledDate.toISOString().slice(0, 10),
-				),
-			),
-		[scheduledMeetingMap],
-	);
+	const meetingDays = useMemo(() => {
+		const days = new Map<string, CalendarMeeting[]>();
+		const scheduled = meetings
+			.flatMap((meeting) => {
+				const block = scheduledMeetingMap[meeting.id];
+				return block ? [{ meeting, block }] : [];
+			})
+			.sort((a, b) =>
+				a.block.scheduledFromTime.localeCompare(b.block.scheduledFromTime),
+			);
+		for (const { meeting, block } of scheduled) {
+			const key = block.scheduledDate.toISOString().slice(0, 10);
+			const time = `${formatScheduledTime(block.scheduledFromTime)} - ${formatScheduledTime(block.scheduledToTime)}`;
+			const entry = { id: meeting.id, title: meeting.title, time };
+			days.set(key, [...(days.get(key) ?? []), entry]);
+		}
+		return days;
+	}, [meetings, scheduledMeetingMap]);
 
 	const firstName = user.displayName.split(" ")[0];
 

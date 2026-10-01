@@ -1,6 +1,6 @@
 "use client";
 
-import { Box } from "@mui/material";
+import { Box, Tooltip } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { DateCalendar } from "@mui/x-date-pickers/DateCalendar";
@@ -12,19 +12,23 @@ import {
 import { format } from "date-fns";
 import { createContext, useContext } from "react";
 
-/** `yyyy-MM-dd` keys of days that have a scheduled meeting. */
-const MeetingDaysContext = createContext<Set<string>>(new Set());
+export type CalendarMeeting = { id: string; title: string; time: string };
+
+/** Scheduled meetings by `yyyy-MM-dd` day, in start-time order. */
+const MeetingDaysContext = createContext<Map<string, CalendarMeeting[]>>(
+	new Map(),
+);
 
 function DayWithDot(props: PickersDayProps) {
 	const meetingDays = useContext(MeetingDaysContext);
-	const hasMeeting =
-		!props.outsideCurrentMonth &&
-		meetingDays.has(format(props.day, "yyyy-MM-dd"));
+	const meetings = props.outsideCurrentMonth
+		? undefined
+		: meetingDays.get(format(props.day, "yyyy-MM-dd"));
 
-	return (
+	const day = (
 		<Box sx={{ position: "relative" }}>
 			<PickersDay {...props} />
-			{hasMeeting && (
+			{meetings && (
 				<Box
 					aria-hidden
 					sx={{
@@ -42,16 +46,35 @@ function DayWithDot(props: PickersDayProps) {
 			)}
 		</Box>
 	);
+
+	if (!meetings) return day;
+	return (
+		<Tooltip
+			placement="top"
+			title={
+				<Box component="ul" sx={{ m: 0, p: 0, listStyle: "none" }}>
+					{meetings.map((m) => (
+						<li key={m.id}>
+							{m.title} · {m.time}
+						</li>
+					))}
+				</Box>
+			}
+		>
+			{day}
+		</Tooltip>
+	);
 }
 
 /**
  * Month view with today highlighted and a dot under each day that has a
- * scheduled meeting. Read-only: the dashboard has no per-day view yet.
+ * scheduled meeting; hovering the day lists them. Read-only: the dashboard
+ * has no per-day view yet.
  */
 export function DashboardCalendar({
 	meetingDays,
 }: {
-	meetingDays: Set<string>;
+	meetingDays: Map<string, CalendarMeeting[]>;
 }) {
 	return (
 		<LocalizationProvider dateAdapter={AdapterDateFns}>
