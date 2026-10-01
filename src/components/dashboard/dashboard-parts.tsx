@@ -95,7 +95,7 @@ export function MetaRow({ entries }: { entries: MetaEntry[] }) {
 							alignItems: "center",
 							gap: 0.5,
 							minWidth: 0,
-							flexShrink: i === entries.length - 1 ? 1 : 0,
+							flexShrink: 1,
 						}}
 					>
 						{Icon && (
