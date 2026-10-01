@@ -1,6 +1,11 @@
+import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { formatLocalDateKey } from "@/lib/meetings/utils";
 import { CAPACITY_RANGES, type Capacity } from "@/lib/types/studyrooms";
 import type { ZotDate } from "@/lib/zotdate";
+
+/** UCI's zone: the study-rooms API takes and returns campus wall-clock times. */
+export const CAMPUS_TIME_ZONE = "America/Los_Angeles";
 
 export const formatISOToLocalTime = (isoString: string): string => {
 	return new Date(isoString)
@@ -8,7 +13,7 @@ export const formatISOToLocalTime = (isoString: string): string => {
 			hour: "numeric",
 			minute: "2-digit",
 			hour12: true,
-			timeZone: "America/Los_Angeles",
+			timeZone: CAMPUS_TIME_ZONE,
 		})
 		.toLowerCase();
 };
@@ -311,18 +316,29 @@ export function getRoomFloor(room: {
 }
 
 /**
- * The window Quick Book asks the API for: from the current half hour, so
- * the slot covering "now" is included, up to six hours later, capped at
- * 11 PM (the latest the libraries book).
+ * The API query Quick Book sends: from the current half hour, so the slot
+ * covering "now" is included, up to six hours later, capped at 11 PM (the
+ * latest the libraries book). The API reads `dates`/`times` as campus wall
+ * clock, so the window is built in CAMPUS_TIME_ZONE, not the browser's zone.
+ * Null when it is already past 11 PM on campus.
  */
-export function getQuickBookWindow(now: Date = new Date()) {
-	const start = new Date(now);
-	start.setMinutes(now.getMinutes() < 30 ? 0 : 30, 0, 0);
+export function getQuickBookQuery(
+	now: Date = new Date(),
+): { date: string; timeRange: string } | null {
+	// A Date whose local fields read as the campus wall clock.
+	const campusNow = toZonedTime(now, CAMPUS_TIME_ZONE);
+	const start = new Date(campusNow);
+	start.setMinutes(campusNow.getMinutes() < 30 ? 0 : 30, 0, 0);
 
-	const elevenPm = new Date(now);
+	const elevenPm = new Date(campusNow);
 	elevenPm.setHours(23, 0, 0, 0);
 
 	const rawEnd = new Date(start.getTime() + WINDOW_MS);
 	const end = rawEnd > elevenPm ? elevenPm : rawEnd;
-	return { start, end };
+	if (end <= start) return null;
+
+	return {
+		date: format(start, "yyyy-MM-dd"),
+		timeRange: `${toLocalStr(start)}-${toLocalStr(end)}`,
+	};
 }

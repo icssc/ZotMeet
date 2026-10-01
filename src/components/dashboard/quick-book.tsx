@@ -3,7 +3,6 @@
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import SensorsIcon from "@mui/icons-material/Sensors";
 import { Box, Button, Skeleton, Typography } from "@mui/material";
-import { format } from "date-fns";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -19,9 +18,8 @@ import type { RecentRoom } from "@/lib/rooms/recent-rooms";
 import {
 	formatISOToLocalTime,
 	getFreeUntil,
-	getQuickBookWindow,
+	getQuickBookQuery,
 	getRoomFloor,
-	toLocalStr,
 } from "@/lib/rooms/utils";
 import { stripRoomDurationSuffix } from "@/lib/types/studyrooms";
 
@@ -42,19 +40,15 @@ function useFreeRoomsNow(): QuickBookState {
 	useEffect(() => {
 		const controller = new AbortController();
 		const now = new Date();
-		const { start, end } = getQuickBookWindow(now);
+		const query = getQuickBookQuery(now);
 
-		if (end <= start) {
+		if (!query) {
 			setState({ status: "ready", rooms: [] });
 			return;
 		}
 
 		fetchStudyRooms(
-			{
-				date: format(start, "yyyy-MM-dd"),
-				timeRange: `${toLocalStr(start)}-${toLocalStr(end)}`,
-				capacityMin: QUICK_BOOK_MIN_CAPACITY,
-			},
+			{ ...query, capacityMin: QUICK_BOOK_MIN_CAPACITY },
 			{ signal: controller.signal },
 		)
 			.then(({ data }) => {
