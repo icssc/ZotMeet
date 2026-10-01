@@ -10,7 +10,10 @@ import {
 	SectionCard,
 	SectionHeading,
 } from "@/components/dashboard/dashboard-parts";
-import { RoomCard } from "@/components/dashboard/room-card";
+import {
+	ROOM_CARD_SKELETON_HEIGHT,
+	RoomCard,
+} from "@/components/dashboard/room-card";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import type { RecentRoom } from "@/lib/rooms/recent-rooms";
 import {
@@ -137,7 +140,11 @@ export function QuickBook() {
 			{state.status === "loading" ? (
 				<RoomGrid>
 					{Array.from({ length: QUICK_BOOK_ROOMS }, (_, i) => (
-						<Skeleton key={i} variant="rounded" height={85} />
+						<Skeleton
+							key={i}
+							variant="rounded"
+							height={ROOM_CARD_SKELETON_HEIGHT}
+						/>
 					))}
 				</RoomGrid>
 			) : state.status === "error" ? (

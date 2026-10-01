@@ -45,7 +45,11 @@ export function CreateMeetingDialog({ user }: { user: UserProfile }) {
 			<IconButton
 				aria-label="Close"
 				onClick={handleClose}
-				sx={{ position: "absolute", right: 16, top: 16 }}
+				sx={{
+					position: "absolute",
+					top: (theme) => theme.spacing(2),
+					right: (theme) => theme.spacing(2),
+				}}
 			>
 				<CloseIcon />
 			</IconButton>

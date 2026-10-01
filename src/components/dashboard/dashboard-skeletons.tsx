@@ -1,5 +1,6 @@
 import { Box } from "@mui/material";
 import { SectionCard } from "@/components/dashboard/dashboard-parts";
+import { ROOM_CARD_SKELETON_HEIGHT } from "@/components/dashboard/room-card";
 import { WaveSkeleton } from "@/components/loading/page-skeletons";
 
 /**
@@ -90,7 +91,11 @@ export function QuickBookSkeleton() {
 				}}
 			>
 				{Array.from({ length: 6 }, (_, i) => (
-					<WaveSkeleton key={i} variant="rounded" height={85} />
+					<WaveSkeleton
+						key={i}
+						variant="rounded"
+						height={ROOM_CARD_SKELETON_HEIGHT}
+					/>
 				))}
 			</Box>
 		</SectionCard>
@@ -135,7 +140,11 @@ export function RecentRoomsSkeleton() {
 		>
 			<WaveSkeleton variant="text" width="60%" height={32} />
 			{Array.from({ length: 2 }, (_, i) => (
-				<WaveSkeleton key={i} variant="rounded" height={85} />
+				<WaveSkeleton
+					key={i}
+					variant="rounded"
+					height={ROOM_CARD_SKELETON_HEIGHT}
+				/>
 			))}
 		</SectionCard>
 	);

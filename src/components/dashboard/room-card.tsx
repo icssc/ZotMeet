@@ -10,6 +10,9 @@ import {
 import { type RecentRoom, recordRecentRoom } from "@/lib/rooms/recent-rooms";
 import { formatLocation } from "@/lib/types/studyrooms";
 
+/** A room card's rendered height, for the loading tiles that stand in for it. */
+export const ROOM_CARD_SKELETON_HEIGHT = 85;
+
 export function RoomCard({
 	room,
 	action,

@@ -33,7 +33,7 @@ function DayWithDot(props: PickersDayProps) {
 						bottom: 2,
 						width: 4,
 						height: 4,
-						ml: "-2px",
+						transform: "translateX(-50%)",
 						borderRadius: "50%",
 						bgcolor: "primary.main",
 						pointerEvents: "none",
