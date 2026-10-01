@@ -33,11 +33,33 @@ type DashboardProps = {
 	groupNames: Record<string, string>;
 };
 
-const noopSubscribe = () => () => {};
+/**
+ * Fires at each local top of the hour, when the greeting and "today" can
+ * change, and when the tab is shown again, since timers in background tabs
+ * and on a sleeping laptop fire late.
+ */
+function subscribeHourly(onChange: () => void) {
+	let timer: ReturnType<typeof setTimeout>;
+	const schedule = () => {
+		const nextHour = new Date();
+		nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+		timer = setTimeout(() => {
+			onChange();
+			schedule();
+		}, nextHour.getTime() - Date.now());
+	};
+	schedule();
+	document.addEventListener("visibilitychange", onChange);
+	return () => {
+		clearTimeout(timer);
+		document.removeEventListener("visibilitychange", onChange);
+	};
+}
 
+/** `null` on the server, which doesn't know the viewer's timezone. */
 function useLocalHour() {
 	return useSyncExternalStore(
-		noopSubscribe,
+		subscribeHourly,
 		() => new Date().getHours(),
 		() => null,
 	);
@@ -45,10 +67,10 @@ function useLocalHour() {
 
 /**
  * Local midnight in ms; `null` on the server, whose "today" can already be
- * tomorrow (a UTC server during a Pacific evening). Re-read on every render.
+ * tomorrow (a UTC server during a Pacific evening).
  */
 function useStartOfToday() {
-	return useSyncExternalStore(noopSubscribe, getStartOfTodayMs, () => null);
+	return useSyncExternalStore(subscribeHourly, getStartOfTodayMs, () => null);
 }
 
 function greetingFor(hour: number | null) {
