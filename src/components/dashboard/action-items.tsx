@@ -256,27 +256,18 @@ function ActionPill({ kind }: { kind: DashboardActionKind }) {
 	const color = isSchedule ? "info" : "primary";
 
 	return (
-		<Box
+		<Chip
+			icon={<Icon />}
+			label={isSchedule ? "Schedule meeting" : "Add Availability"}
+			size="small"
 			sx={(theme) => ({
-				display: { xs: "none", sm: "flex" },
-				alignItems: "center",
-				gap: 0.5,
+				display: { xs: "none", sm: "inline-flex" },
 				flexShrink: 0,
-				px: 1.25,
-				py: 0.5,
-				borderRadius: 38,
 				bgcolor: alpha(theme.palette[color].main, 0.2),
 				color: `${color}.main`,
+				"& .MuiChip-icon": { color: "inherit" },
+				"& .MuiChip-label": { typography: "caption" },
 			})}
-		>
-			<Icon sx={{ fontSize: 18, color: "inherit" }} />
-			<Typography
-				variant="caption"
-				color="inherit"
-				sx={{ lineHeight: "20px", letterSpacing: "0.14px" }}
-			>
-				{isSchedule ? "Schedule meeting" : "Add Availability"}
-			</Typography>
-		</Box>
+		/>
 	);
 }
