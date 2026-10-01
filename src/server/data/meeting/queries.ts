@@ -200,6 +200,9 @@ export async function getMeetings(memberId: string) {
 	return userMeetings;
 }
 
+/** One row of `getMeetings`: what the summary list and the dashboard render. */
+export type MeetingListRow = Awaited<ReturnType<typeof getMeetings>>[number];
+
 export async function getResponderCountsByMeetingIds(
 	meetingIds: string[],
 ): Promise<Record<string, number>> {

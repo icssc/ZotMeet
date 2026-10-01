@@ -1,3 +1,4 @@
+import { MONTHS } from "../chrono/types";
 import {
 	getStartOfTodayMs,
 	isMeetingPast,
@@ -89,21 +90,6 @@ const UPCOMING_WEEKDAYS = [
 	"THURS",
 	"FRI",
 	"SAT",
-] as const;
-
-const MONTHS = [
-	"January",
-	"February",
-	"March",
-	"April",
-	"May",
-	"June",
-	"July",
-	"August",
-	"September",
-	"October",
-	"November",
-	"December",
 ] as const;
 
 export function formatUpcomingDate(scheduledDate: Date): {

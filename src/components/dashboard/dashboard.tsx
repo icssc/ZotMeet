@@ -17,24 +17,17 @@ import {
 import { QuickBook } from "@/components/dashboard/quick-book";
 import { RecentRooms } from "@/components/dashboard/recent-rooms";
 import { UpcomingMeetings } from "@/components/dashboard/upcoming-meetings";
-import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	buildDashboardModel,
 	getStartOfTodayMs,
 	type ScheduledMeetingBlock,
 } from "@/lib/meetings/utils";
-
-/** A row of `getMeetings` — what the summary page's list receives too. */
-export type DashboardMeeting = SelectMeeting & {
-	hostDisplayName: string | null;
-	needsAvailability: boolean;
-	allAvailabilityFilled: boolean;
-};
+import type { MeetingListRow } from "@/server/data/meeting/queries";
 
 type DashboardProps = {
 	user: UserProfile;
-	meetings: DashboardMeeting[];
+	meetings: MeetingListRow[];
 	meetingCounts: Record<string, number>;
 	scheduledMeetingMap: Record<string, ScheduledMeetingBlock>;
 	groupNames: Record<string, string>;

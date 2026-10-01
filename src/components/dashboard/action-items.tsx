@@ -35,14 +35,14 @@ import type {
 	DashboardActionItem,
 	DashboardActionKind,
 } from "@/lib/meetings/utils";
-import type { DashboardMeeting } from "./dashboard";
+import type { MeetingListRow } from "@/server/data/meeting/queries";
 
 const VISIBLE_ITEMS = 5;
 
 type ViewMode = "list" | "cards";
 
 type ActionItemsProps = {
-	items: DashboardActionItem<DashboardMeeting>[];
+	items: DashboardActionItem<MeetingListRow>[];
 	memberId: string;
 	meetingCounts: Record<string, number>;
 	groupNames: Record<string, string>;
@@ -173,7 +173,7 @@ function ActionItemRow({
 	responderCount,
 	groupName,
 }: {
-	item: DashboardActionItem<DashboardMeeting>;
+	item: DashboardActionItem<MeetingListRow>;
 	memberId: string;
 	responderCount: number;
 	groupName: string | undefined;

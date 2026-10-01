@@ -15,14 +15,14 @@ import {
 	formatScheduledTime,
 	formatUpcomingDate,
 } from "@/lib/meetings/utils";
-import type { DashboardMeeting } from "./dashboard";
+import type { MeetingListRow } from "@/server/data/meeting/queries";
 
 const VISIBLE_UPCOMING = 5;
 
 export function UpcomingMeetings({
 	items,
 }: {
-	items: DashboardUpcomingItem<DashboardMeeting>[];
+	items: DashboardUpcomingItem<MeetingListRow>[];
 }) {
 	return (
 		<SectionCard
@@ -74,7 +74,7 @@ export function UpcomingMeetings({
 function UpcomingRow({
 	item: { meeting, block },
 }: {
-	item: DashboardUpcomingItem<DashboardMeeting>;
+	item: DashboardUpcomingItem<MeetingListRow>;
 }) {
 	const { weekday, month, day } = formatUpcomingDate(block.scheduledDate);
 	const time = `${formatScheduledTime(block.scheduledFromTime)} - ${formatScheduledTime(block.scheduledToTime)}`;
