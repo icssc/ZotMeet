@@ -259,6 +259,9 @@ export async function getScheduledMeetingsByMeetingIds(
 		);
 
 	const result: Record<string, ScheduledMeetingInfo> = {};
+	// Day of each meeting's last merged block; it moves past the start day
+	// once the selection runs over midnight.
+	const endDates: Record<string, Date> = {};
 	for (const row of rows) {
 		const current = result[row.meetingId];
 		if (!current) {
@@ -267,14 +270,35 @@ export async function getScheduledMeetingsByMeetingIds(
 				scheduledFromTime: row.scheduledFromTime,
 				scheduledToTime: row.scheduledToTime,
 			};
+			endDates[row.meetingId] = row.scheduledDate;
 		} else if (
-			current.scheduledDate.getTime() === row.scheduledDate.getTime() &&
-			current.scheduledToTime === row.scheduledFromTime
+			continuesBlock(endDates[row.meetingId], current.scheduledToTime, row)
 		) {
 			current.scheduledToTime = row.scheduledToTime;
+			endDates[row.meetingId] = row.scheduledDate;
 		}
 	}
 	return result;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Whether `next` starts where a block ending at `endTime` on `endDate` ends.
+ * A block ending at midnight keeps its start day with `to` "00:00:00", so it
+ * continues into the next day's "00:00:00" block. Days are the scheduler's
+ * local midnight, so the next one is 23–25h later across DST: round the gap.
+ */
+function continuesBlock(
+	endDate: Date,
+	endTime: string,
+	next: { scheduledDate: Date; scheduledFromTime: string },
+): boolean {
+	if (endTime !== next.scheduledFromTime) return false;
+	const dayGap = Math.round(
+		(next.scheduledDate.getTime() - endDate.getTime()) / DAY_MS,
+	);
+	return dayGap === (endTime === "00:00:00" ? 1 : 0);
 }
 
 /**
