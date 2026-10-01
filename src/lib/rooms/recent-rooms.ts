@@ -82,8 +82,11 @@ export function subscribeRecentRooms(listener: () => void) {
 	};
 }
 
+const isSameRoom = (a: RecentRoom, b: RecentRoom) =>
+	a.location === b.location && a.name === b.name;
+
 export function recordRecentRoom(room: RecentRoom) {
-	const next = [room, ...getRecentRooms().filter((r) => r.id !== room.id)];
+	const next = [room, ...getRecentRooms().filter((r) => !isSameRoom(r, room))];
 	writeRaw(JSON.stringify(next.slice(0, MAX_RECENT_ROOMS)));
 }
 

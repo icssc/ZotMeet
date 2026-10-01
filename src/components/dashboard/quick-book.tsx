@@ -23,6 +23,7 @@ import {
 import { stripRoomDurationSuffix } from "@/lib/types/studyrooms";
 
 const QUICK_BOOK_ROOMS = 6;
+const QUICK_BOOK_MIN_CAPACITY = 4;
 
 type FreeRoom = RecentRoom & { freeUntil: Date };
 
@@ -31,11 +32,7 @@ type QuickBookState =
 	| { status: "error" }
 	| { status: "ready"; rooms: FreeRoom[] };
 
-/**
- * Rooms free right now, longest-free first. The API lists each bookable
- * duration as its own room ("Science 483 (1 hour)", "… (2 hours)"), so rooms
- * are de-duplicated by building + base name.
- */
+// Rooms with 4 cap and  de-duplicated by building + base name.
 function useFreeRoomsNow(): QuickBookState {
 	const [state, setState] = useState<QuickBookState>({ status: "loading" });
 
@@ -53,6 +50,7 @@ function useFreeRoomsNow(): QuickBookState {
 			{
 				date: format(start, "yyyy-MM-dd"),
 				timeRange: `${toLocalStr(start)}-${toLocalStr(end)}`,
+				capacityMin: QUICK_BOOK_MIN_CAPACITY,
 			},
 			{ signal: controller.signal },
 		)
@@ -60,7 +58,7 @@ function useFreeRoomsNow(): QuickBookState {
 				const byRoom = new Map<string, FreeRoom>();
 				for (const room of data) {
 					// The API occasionally returns placeholder rooms with no name.
-					if (!room.name || !room.location || room.capacity < 1) continue;
+					if (!room.name || !room.location) continue;
 					const freeUntil = getFreeUntil(room.slots, now);
 					if (!freeUntil) continue;
 					const name = stripRoomDurationSuffix(room.name);
