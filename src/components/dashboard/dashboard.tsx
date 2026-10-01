@@ -9,6 +9,11 @@ import { creationSearchParams } from "@/components/creation/creation";
 import { ActionItems } from "@/components/dashboard/action-items";
 import { DashboardCalendar } from "@/components/dashboard/dashboard-calendar";
 import { DashboardLayout } from "@/components/dashboard/dashboard-parts";
+import {
+	ActionItemsSkeleton,
+	CalendarSkeleton,
+	UpcomingSkeleton,
+} from "@/components/dashboard/dashboard-skeletons";
 import { QuickBook } from "@/components/dashboard/quick-book";
 import { RecentRooms } from "@/components/dashboard/recent-rooms";
 import { UpcomingMeetings } from "@/components/dashboard/upcoming-meetings";
@@ -45,6 +50,14 @@ function useLocalHour() {
 	);
 }
 
+/**
+ * Local midnight in ms; `null` on the server, whose "today" can already be
+ * tomorrow (a UTC server during a Pacific evening). Re-read on every render.
+ */
+function useStartOfToday() {
+	return useSyncExternalStore(noopSubscribe, getStartOfTodayMs, () => null);
+}
+
 function greetingFor(hour: number | null) {
 	if (hour === null) return "Welcome";
 	if (hour < 12) return "Good Morning";
@@ -62,16 +75,19 @@ export function Dashboard({
 	const [, setCreationParams] = useQueryStates(creationSearchParams);
 	const hour = useLocalHour();
 
-	// Read on every render so a tab left open across midnight re-buckets.
-	const todayMs = getStartOfTodayMs();
-	const { actionItems, upcoming } = useMemo(
+	// What counts as past depends on the viewer's date, so the sections that
+	// filter on it render as skeletons until the browser takes over.
+	const todayMs = useStartOfToday();
+	const model = useMemo(
 		() =>
-			buildDashboardModel({
-				meetings,
-				memberId: user.memberId,
-				scheduledMeetingMap,
-				todayMs,
-			}),
+			todayMs === null
+				? null
+				: buildDashboardModel({
+						meetings,
+						memberId: user.memberId,
+						scheduledMeetingMap,
+						todayMs,
+					}),
 		[meetings, user.memberId, scheduledMeetingMap, todayMs],
 	);
 
@@ -118,19 +134,32 @@ export function Dashboard({
 						</Button>
 					</Box>
 
-					<ActionItems
-						items={actionItems}
-						memberId={user.memberId}
-						meetingCounts={meetingCounts}
-						groupNames={groupNames}
-					/>
+					{model ? (
+						<ActionItems
+							items={model.actionItems}
+							memberId={user.memberId}
+							meetingCounts={meetingCounts}
+							groupNames={groupNames}
+						/>
+					) : (
+						<ActionItemsSkeleton />
+					)}
 					<QuickBook />
 				</>
 			}
 			rail={
 				<>
-					<DashboardCalendar meetingDays={meetingDays} />
-					<UpcomingMeetings items={upcoming} />
+					{model ? (
+						<>
+							<DashboardCalendar meetingDays={meetingDays} />
+							<UpcomingMeetings items={model.upcoming} />
+						</>
+					) : (
+						<>
+							<CalendarSkeleton />
+							<UpcomingSkeleton />
+						</>
+					)}
 					<Box sx={{ mt: 2 }}>
 						<RecentRooms />
 					</Box>
