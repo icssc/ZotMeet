@@ -5,16 +5,20 @@
  * windows, and every read/write tolerates storage being unavailable.
  */
 
-export type RecentRoom = {
-	id: string;
+import { z } from "zod";
+
+const recentRoomSchema = z.object({
+	id: z.string(),
 	/** Room name without the booking-duration suffix, e.g. "Science 483". */
-	name: string;
+	name: z.string(),
 	/** Building as the API names it, e.g. "Science Library". */
-	location: string;
-	capacity: number;
-	floor: string | null;
-	url: string;
-};
+	location: z.string(),
+	capacity: z.number(),
+	floor: z.string().nullable(),
+	url: z.string(),
+});
+
+export type RecentRoom = z.infer<typeof recentRoomSchema>;
 
 const STORAGE_KEY = "zotmeet:recent-rooms";
 const MAX_RECENT_ROOMS = 10;
@@ -48,7 +52,14 @@ export function getRecentRooms(): RecentRoom[] {
 	cachedRaw = raw;
 	try {
 		const parsed: unknown = raw ? JSON.parse(raw) : [];
-		cachedRooms = Array.isArray(parsed) ? (parsed as RecentRoom[]) : EMPTY;
+		// Drop malformed entries (hand-edited storage, an older shape) rather
+		// than let one crash the dashboard.
+		cachedRooms = Array.isArray(parsed)
+			? parsed.flatMap((entry) => {
+					const result = recentRoomSchema.safeParse(entry);
+					return result.success ? [result.data] : [];
+				})
+			: EMPTY;
 	} catch {
 		cachedRooms = EMPTY;
 	}
