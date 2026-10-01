@@ -4,6 +4,7 @@ import {
 	AddCircleOutline,
 	CalendarMonth,
 	Groups,
+	Home,
 	Login,
 	Person,
 } from "@mui/icons-material";
@@ -30,8 +31,10 @@ import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import { logoutAction } from "@/server/actions/auth/logout/action";
 
+// "New Meeting" opens the create dialog over Home, so it is never `selected`.
 const navItems = [
-	{ title: "New Meeting", url: "/", icon: AddCircleOutline },
+	{ title: "Home", url: "/", icon: Home },
+	{ title: "New Meeting", url: "/?create=true", icon: AddCircleOutline },
 	{ title: "Summary", url: "/summary", icon: CalendarMonth },
 	{ title: "Groups", url: "/groups", icon: Groups },
 ];
