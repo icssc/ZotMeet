@@ -4,7 +4,6 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import SensorsIcon from "@mui/icons-material/Sensors";
 import { Box, Button, Skeleton, Typography } from "@mui/material";
 import { format } from "date-fns";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
