@@ -21,6 +21,7 @@ import {
 	users,
 } from "@/db/schema";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
+import { getGroupNamesByIds } from "@/server/data/groups/queries";
 
 export type MeetingWithHost = SelectMeeting & {
 	hostDisplayName: string | null;
@@ -303,17 +304,21 @@ function continuesBlock(
 
 /**
  * A member's meetings plus what the meeting lists show on each: responder
- * counts and the scheduled block. Shared by the dashboard and `/summary`.
+ * counts, the scheduled block and the group's name. Shared by the dashboard
+ * and `/summary`.
  */
 export async function getMeetingsOverview(memberId: string) {
 	const meetings = await getMeetings(memberId);
-	const [meetingCounts, scheduledMeetingMap] = await Promise.all([
+	const [meetingCounts, scheduledMeetingMap, groupNames] = await Promise.all([
 		getResponderCountsByMeetingIds(meetings.map((m) => m.id)),
 		getScheduledMeetingsByMeetingIds(
 			meetings.filter((m) => m.scheduled).map((m) => m.id),
 		),
+		getGroupNamesByIds([
+			...new Set(meetings.flatMap((m) => (m.group_id ? [m.group_id] : []))),
+		]),
 	]);
-	return { meetings, meetingCounts, scheduledMeetingMap };
+	return { meetings, meetingCounts, scheduledMeetingMap, groupNames };
 }
 
 /**
