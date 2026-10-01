@@ -90,8 +90,8 @@ export function Footer() {
 				<Image
 					src="/landing/discord-button.svg"
 					alt=""
-					width={20}
-					height={20}
+					width={24}
+					height={24}
 					style={{ filter: "brightness(0) invert(1)" }}
 				/>
 			</IconButton>

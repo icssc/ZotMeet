@@ -59,9 +59,7 @@ export function MuiAppShell({
 				sx={{
 					flex: 1,
 					overflow: "auto",
-					// added 40px for some empty space after page content
-					minHeight: "calc(100vh + 40px)",
-					paddingBottom: isMobile && showBottomNav ? 7 : 0,
+					paddingBottom: isMobile && showBottomNav ? 7 : "40px",
 				}}
 			>
 				{children}
