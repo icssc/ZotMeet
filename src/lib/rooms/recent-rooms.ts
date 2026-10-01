@@ -15,6 +15,10 @@ const recentRoomSchema = z.object({
 	location: z.string(),
 	capacity: z.number(),
 	floor: z.string().nullable(),
+	/**
+	 * The room's booking page, not the slot link that was clicked: a slot URL
+	 * pins a date/time that has passed by the time the card is reopened.
+	 */
 	url: z.string(),
 });
 
