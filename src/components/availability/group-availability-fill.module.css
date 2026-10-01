@@ -1,0 +1,9 @@
+.surface {
+	background-color: hsl(var(--primary-availability) / var(--bg-alpha));
+
+	background-color: color-mix(
+		in oklab,
+		hsl(var(--primary-availability)) var(--bg-alpha),
+		transparent
+	);
+}

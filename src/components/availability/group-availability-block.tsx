@@ -1,4 +1,3 @@
-import { alpha } from "@mui/material/styles";
 import type { BlockFill, SelectionEdges } from "@zotmeet/shared";
 import type React from "react";
 import { memo, useMemo } from "react";
@@ -8,6 +7,12 @@ import {
 } from "@/components/availability/table/availability-tab-overlay";
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import { cn } from "@/lib/utils";
+
+import styles from "./group-availability-fill.module.css";
+
+const fillMixPercent = (ratio: number) => {
+	return ratio ** 3;
+};
 
 interface GroupAvailabilityBlockProps {
 	className?: string;
@@ -19,8 +24,6 @@ interface GroupAvailabilityBlockProps {
 	onKeyDown?: React.KeyboardEventHandler<HTMLElement>;
 	onHoverCell?: (cell: GridCell) => void;
 	fill: BlockFill;
-	/** Theme primary; `fill.solid.ratio` is applied to it as alpha. */
-	primaryColor: string;
 	hasSpacerBefore?: boolean;
 	isScheduled?: boolean;
 	isScheduledTopEdge?: boolean;
@@ -52,7 +55,6 @@ export const GroupAvailabilityBlock = memo(
 		onKeyDown,
 		onHoverCell,
 		fill,
-		primaryColor,
 		hasSpacerBefore = false,
 		isScheduled = false,
 		isScheduledTopEdge = false,
@@ -117,8 +119,12 @@ export const GroupAvailabilityBlock = memo(
 					)}
 					{fill.solid && (
 						<div
-							className="absolute inset-0"
-							style={{ background: alpha(primaryColor, fill.solid.ratio) }}
+							className={cn("absolute inset-0", styles.surface)}
+							style={
+								{
+									"--bg-alpha": `${(fillMixPercent(fill.solid.ratio) * 100).toFixed(4)}%`,
+								} as React.CSSProperties
+							}
 						/>
 					)}
 				</div>
