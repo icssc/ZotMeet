@@ -100,13 +100,35 @@ export type MeetingWithDates = MeetingDateFields & {
 	hostId: string;
 };
 
+export type DashboardActionKind = "add-availability" | "schedule";
+
+/**
+ * What a meeting needs from this member, if anything. The dashboard's Action
+ * Items and the meetings list's ordering both read it, so they agree.
+ */
+export function getDashboardActionKind(
+	meeting: MeetingWithDates,
+	memberId: string,
+): DashboardActionKind | null {
+	if (meeting.needsAvailability) return "add-availability";
+	if (
+		!meeting.scheduled &&
+		meeting.allAvailabilityFilled &&
+		meeting.hostId === memberId
+	) {
+		return "schedule";
+	}
+	return null;
+}
+
 export function getMeetingUpcomingPriority(
 	m: MeetingWithDates,
 	memberId: string,
 	upcomingSet: Set<string>,
 ): number {
-	if (m.needsAvailability) return 0;
-	if (m.allAvailabilityFilled && m.hostId === memberId) return 1;
+	const kind = getDashboardActionKind(m, memberId);
+	if (kind === "add-availability") return 0;
+	if (kind === "schedule") return 1;
 	if (upcomingSet.has(m.id)) return 2;
 	if (m.scheduled) return 3;
 	return 4;

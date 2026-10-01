@@ -1,12 +1,12 @@
 import { MONTHS } from "../chrono/types";
 import {
+	type DashboardActionKind,
+	getDashboardActionKind,
 	getStartOfTodayMs,
 	isMeetingPast,
 	type MeetingWithDates,
 	type ScheduledMeetingBlock,
 } from "./utils";
-
-export type DashboardActionKind = "add-availability" | "schedule";
 
 export interface DashboardActionItem<T> {
 	meeting: T;
@@ -28,21 +28,6 @@ export interface DashboardModelInput<T extends MeetingWithDates> {
 export interface DashboardModel<T> {
 	actionItems: DashboardActionItem<T>[];
 	upcoming: DashboardUpcomingItem<T>[];
-}
-
-export function getDashboardActionKind(
-	meeting: MeetingWithDates,
-	memberId: string,
-): DashboardActionKind | null {
-	if (meeting.needsAvailability) return "add-availability";
-	if (
-		!meeting.scheduled &&
-		meeting.allAvailabilityFilled &&
-		meeting.hostId === memberId
-	) {
-		return "schedule";
-	}
-	return null;
 }
 
 export function buildDashboardModel<T extends MeetingWithDates>({

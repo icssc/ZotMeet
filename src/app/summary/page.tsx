@@ -3,11 +3,7 @@ import { Meetings } from "@/components/summary/meetings";
 import { getCurrentSession } from "@/lib/auth";
 import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import { buildScheduledMeetingsMeta } from "@/lib/meetings/utils";
-import {
-	getMeetings,
-	getResponderCountsByMeetingIds,
-	getScheduledMeetingsByMeetingIds,
-} from "@/server/data/meeting/queries";
+import { getMeetingsOverview } from "@/server/data/meeting/queries";
 import { getNotificationsByMemberId } from "@/server/data/user/queries";
 
 export default async function Page() {
@@ -21,17 +17,11 @@ export default async function Page() {
 		notFound();
 	}
 
-	const [meetings, notifications] = await Promise.all([
-		getMeetings(memberId),
-		getNotificationsByMemberId(memberId),
-	]);
-	const meetingIds = meetings.map((m) => m.id);
-	const [meetingCounts, scheduledMeetingMap] = await Promise.all([
-		getResponderCountsByMeetingIds(meetingIds),
-		getScheduledMeetingsByMeetingIds(
-			meetings.filter((m) => m.scheduled).map((m) => m.id),
-		),
-	]);
+	const [{ meetings, meetingCounts, scheduledMeetingMap }, notifications] =
+		await Promise.all([
+			getMeetingsOverview(memberId),
+			getNotificationsByMemberId(memberId),
+		]);
 
 	const { scheduledLabels, scheduledDates, upcomingMeetingIds } =
 		buildScheduledMeetingsMeta(scheduledMeetingMap);

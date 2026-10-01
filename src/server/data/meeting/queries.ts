@@ -278,6 +278,21 @@ export async function getScheduledMeetingsByMeetingIds(
 }
 
 /**
+ * A member's meetings plus what the meeting lists show on each: responder
+ * counts and the scheduled block. Shared by the dashboard and `/summary`.
+ */
+export async function getMeetingsOverview(memberId: string) {
+	const meetings = await getMeetings(memberId);
+	const [meetingCounts, scheduledMeetingMap] = await Promise.all([
+		getResponderCountsByMeetingIds(meetings.map((m) => m.id)),
+		getScheduledMeetingsByMeetingIds(
+			meetings.filter((m) => m.scheduled).map((m) => m.id),
+		),
+	]);
+	return { meetings, meetingCounts, scheduledMeetingMap };
+}
+
+/**
  * Fetch scheduled blocks for a meeting from scheduled_meetings table
  */
 export async function getScheduledTimeBlocks(meetingId: string) {
