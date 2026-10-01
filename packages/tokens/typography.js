@@ -6,7 +6,6 @@ const typeRamp = {
 	h4: { size: 34, weight: 400, lineHeight: 1.235, letterSpacing: 0.25 },
 	h5: { size: 24, weight: 500, lineHeight: 1.334, letterSpacing: 0 },
 	h6: { size: 20, weight: 600, lineHeight: 1.6, letterSpacing: 0.15 },
-	titleLarge: { size: 22, weight: 400, lineHeight: 1.273, letterSpacing: 0 },
 	subtitle1: { size: 16, weight: 500, lineHeight: 1.2, letterSpacing: 0.15 },
 	subtitle2: { size: 14, weight: 500, lineHeight: 1.2, letterSpacing: 0.1 },
 	body1: { size: 16, weight: 400, lineHeight: 1.2, letterSpacing: 0.15 },

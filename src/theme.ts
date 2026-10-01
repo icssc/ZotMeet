@@ -6,22 +6,6 @@ import { hsl } from "@zotmeet/tokens";
 import { muiTypography } from "@zotmeet/tokens/typography";
 import { figtree } from "@/fonts";
 
-// `titleLarge` comes from the shared type ramp (`packages/tokens/typography.js`).
-declare module "@mui/material/styles" {
-	interface TypographyVariants {
-		titleLarge: React.CSSProperties;
-	}
-	interface TypographyVariantsOptions {
-		titleLarge?: React.CSSProperties;
-	}
-}
-
-declare module "@mui/material/Typography" {
-	interface TypographyPropsVariantOverrides {
-		titleLarge: true;
-	}
-}
-
 export const getTheme = (mode: "light" | "dark") =>
 	createTheme({
 		typography: {
