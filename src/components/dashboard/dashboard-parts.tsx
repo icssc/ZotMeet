@@ -8,6 +8,46 @@ import {
 } from "@mui/material";
 import { type ComponentType, Fragment, type ReactNode } from "react";
 
+export function DashboardLayout({
+	main,
+	rail,
+	children,
+}: {
+	main: ReactNode;
+	rail: ReactNode;
+	children?: ReactNode;
+}) {
+	return (
+		<Box
+			sx={{
+				// 1436px of content inside the design's 38px gutters.
+				maxWidth: 1512,
+				mx: "auto",
+				px: { xs: 2, md: 4.75 },
+				pt: { xs: 3, md: 7 },
+				pb: { xs: 4, md: 8 },
+				display: "grid",
+				gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1fr) 430px" },
+				columnGap: 5.75,
+				rowGap: 4,
+				alignItems: "start",
+			}}
+		>
+			<Box
+				sx={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}
+			>
+				{main}
+			</Box>
+			<Box
+				sx={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}
+			>
+				{rail}
+			</Box>
+			{children}
+		</Box>
+	);
+}
+
 /** The white, hairline-bordered panel each dashboard section sits in. */
 export function SectionCard({ sx, ...props }: PaperProps) {
 	return (

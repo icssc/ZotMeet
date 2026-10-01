@@ -1,62 +1,132 @@
 "use client";
 
 import { Box } from "@mui/material";
+import {
+	DashboardLayout,
+	SectionCard,
+} from "@/components/dashboard/dashboard-parts";
 import { WaveSkeleton } from "@/components/loading/page-skeletons";
+
+const sectionPadding = { xs: 2, sm: 3.75 };
+
+function HeadingSkeleton({ width }: { width: number }) {
+	return <WaveSkeleton variant="text" width={width} height={48} />;
+}
+
+function RowSkeleton() {
+	return (
+		<Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+			<WaveSkeleton variant="text" width="45%" height={32} />
+			<WaveSkeleton variant="text" width="70%" />
+		</Box>
+	);
+}
 
 export default function Loading() {
 	return (
-		<div className="mx-auto my-6 flex w-full max-w-6xl flex-col gap-y-6 px-0 md:my-8 md:w-[calc(100%-2rem)] md:rounded-xl md:border md:border-gray-300 md:px-4">
-			<div className="w-full px-2 py-6 md:px-14">
-				<Box sx={{ display: { xs: "none", sm: "block" } }}>
-					<WaveSkeleton variant="text" width="52%" height={52} />
-					<WaveSkeleton variant="text" width="42%" height={24} />
-				</Box>
-				<Box sx={{ display: { xs: "block", sm: "none" }, mb: 3 }}>
-					<WaveSkeleton
-						variant="text"
-						width={210}
-						height={48}
-						sx={{ mx: "auto" }}
-					/>
-				</Box>
-
-				<Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-					<WaveSkeleton variant="rounded" width="100%" height={56} />
-
+		<DashboardLayout
+			main={
+				<>
 					<Box
 						sx={{
-							display: "grid",
-							gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-							gap: { xs: 3, md: 4 },
+							display: "flex",
+							alignItems: { xs: "stretch", sm: "center" },
+							flexDirection: { xs: "column", sm: "row" },
+							justifyContent: "space-between",
+							gap: 2,
 						}}
 					>
-						<Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-							<WaveSkeleton variant="rounded" width="100%" height={136} />
-							<WaveSkeleton variant="rounded" width="100%" height={88} />
-						</Box>
-
-						<WaveSkeleton variant="rounded" width="100%" height={330} />
+						<WaveSkeleton variant="text" width="55%" height={64} />
+						<WaveSkeleton variant="rounded" width={210} height={42} />
 					</Box>
-				</Box>
 
-				<Box
-					sx={{
-						mt: 6,
-						display: "flex",
-						justifyContent: { xs: "center", md: "flex-end" },
-					}}
-				>
-					<WaveSkeleton
-						variant="rounded"
-						width={170}
-						height={40}
+					<SectionCard
 						sx={{
-							maxWidth: { xs: "100%", md: "none" },
-							width: { xs: "100%", md: 170 },
+							p: sectionPadding,
+							display: "flex",
+							flexDirection: "column",
+							gap: 1.5,
 						}}
-					/>
-				</Box>
-			</div>
-		</div>
+					>
+						<Box
+							sx={{
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "space-between",
+							}}
+						>
+							<HeadingSkeleton width={240} />
+							<WaveSkeleton variant="rounded" width={72} height={32} />
+						</Box>
+						{Array.from({ length: 3 }, (_, i) => (
+							<RowSkeleton key={i} />
+						))}
+					</SectionCard>
+
+					<SectionCard
+						sx={{
+							p: sectionPadding,
+							display: "flex",
+							flexDirection: "column",
+							gap: 3,
+						}}
+					>
+						<Box>
+							<HeadingSkeleton width={200} />
+							<WaveSkeleton variant="text" width="50%" />
+						</Box>
+						<Box
+							sx={{
+								display: "grid",
+								gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+								columnGap: 4.5,
+								rowGap: 1.5,
+							}}
+						>
+							{Array.from({ length: 6 }, (_, i) => (
+								<WaveSkeleton key={i} variant="rounded" height={85} />
+							))}
+						</Box>
+					</SectionCard>
+				</>
+			}
+			rail={
+				<>
+					<WaveSkeleton variant="rounded" height={340} />
+
+					<SectionCard
+						sx={{
+							px: 2.5,
+							pt: 1.875,
+							pb: 3.75,
+							display: "flex",
+							flexDirection: "column",
+							gap: 2,
+						}}
+					>
+						<HeadingSkeleton width={160} />
+						{Array.from({ length: 2 }, (_, i) => (
+							<RowSkeleton key={i} />
+						))}
+					</SectionCard>
+
+					<SectionCard
+						sx={{
+							mt: 2,
+							px: 2.5,
+							py: 3.75,
+							display: "flex",
+							flexDirection: "column",
+							gap: 1.5,
+						}}
+					>
+						<WaveSkeleton variant="text" width="60%" height={32} />
+						{Array.from({ length: 2 }, (_, i) => (
+							<WaveSkeleton key={i} variant="rounded" height={85} />
+						))}
+					</SectionCard>
+				</>
+			}
+		/>
 	);
 }
