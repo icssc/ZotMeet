@@ -28,6 +28,7 @@ import {
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import { PersonalAvailabilityBlock } from "@/components/availability/table/personal-availability-block";
 import { StripeBackdrop } from "@/components/availability/table/stripe-backdrop";
+import { TornEdge } from "@/components/availability/table/torn-edge";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 export interface PersonalAvailabilityProps {
@@ -378,6 +379,13 @@ export function PersonalAvailability({
 														/>
 													);
 												})}
+												{pageDateIndex === 0 && !datePageNav?.isFirstPage ? (
+													<TornEdge height={columnHeight} side="left" />
+												) : null}
+												{pageDateIndex === lastIndex &&
+												!datePageNav?.isLastPage ? (
+													<TornEdge height={columnHeight} side="right" />
+												) : null}
 											</>
 										) : null}
 									</View>
