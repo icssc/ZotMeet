@@ -110,17 +110,28 @@ const formatSingleDate = (dateString?: string) => {
 	}).format(new Date(dateString));
 };
 
-const formatDateForMeetingType = (
-	dateString: string | undefined,
-	meetingType: MeetingType,
-) => {
-	if (!dateString) return "";
-	if (meetingType === "days") {
-		const dayIndex = new Date(dateString).getUTCDay();
-		return WEEKDAYS[dayIndex] ?? "";
+/**
+ * A "days of the week" meeting's weekdays, Sunday first, with runs of three
+ * or more collapsed: `"Mon - Wed, Fri"`. Its dates are anchor dates, read
+ * in UTC like the rest of this file.
+ */
+export function formatMeetingWeekdays(dates: readonly string[]): string {
+	const days = [...new Set(dates.map((d) => new Date(d).getUTCDay()))].sort(
+		(a, b) => a - b,
+	);
+
+	const parts: string[] = [];
+	for (let i = 0; i < days.length; ) {
+		let j = i;
+		while (j + 1 < days.length && days[j + 1] === days[j] + 1) j++;
+		const first = WEEKDAYS[days[i]];
+		const last = WEEKDAYS[days[j]];
+		if (j - i >= 2) parts.push(`${first} - ${last}`);
+		else parts.push(...days.slice(i, j + 1).map((d) => WEEKDAYS[d]));
+		i = j + 1;
 	}
-	return formatSingleDate(dateString);
-};
+	return parts.join(", ");
+}
 
 const formatTime = (time: string) => {
 	const [hour = "0", minute = "0"] = time.split(":");
@@ -175,8 +186,14 @@ export function toMeetingCardProps(
 		meetingOrganizer: getMeetingHostDisplayName({
 			hostDisplayName: meeting.hostDisplayName,
 		}),
-		dateStart: formatDateForMeetingType(firstDate, meeting.meetingType),
-		dateEnd: formatDateForMeetingType(lastDate, meeting.meetingType),
+		// A weekday list is one label; `formatMeetingCardDateLabel` shows
+		// `dateStart` alone when `dateEnd` is empty.
+		...(meeting.meetingType === "days"
+			? { dateStart: formatMeetingWeekdays(dates), dateEnd: "" }
+			: {
+					dateStart: formatSingleDate(firstDate),
+					dateEnd: formatSingleDate(lastDate),
+				}),
 		timeStart: formatTime(localFromTime),
 		timeEnd: formatTime(localToTime),
 		numResponders: options.responderCount ?? 0,
