@@ -6,6 +6,12 @@
  * Drizzle row, which this package cannot see.
  */
 
+import {
+	isAnchorDateMeeting,
+	isAnchorDateString,
+	WEEKDAYS,
+} from "../chrono/types";
+
 const UPCOMING_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 
 const UUID_RE =
@@ -64,10 +70,16 @@ export type MeetingDateFields = {
 	dates: string[] | null;
 };
 
+/**
+ * The instant a meeting is judged past against, or `null` for never past.
+ * A "days of the week" meeting recurs, and both its `dates` and any
+ * scheduled date are 2023 `ANCHOR_DATES`, so it has no such instant.
+ */
 function getMeetingReferenceTime(
 	m: MeetingDateFields,
 	scheduledDates: Record<string, number> | undefined,
 ): number | null {
+	if (isAnchorDateMeeting(m.dates ?? [])) return null;
 	if (m.scheduled) {
 		const scheduledDate = scheduledDates?.[m.id];
 		return scheduledDate === undefined ? null : scheduledDate;
@@ -223,7 +235,13 @@ export function buildScheduledLabel(
 	fromTime: string,
 	toTime: string,
 ): string {
+	const time = `${formatScheduledTime(fromTime)}-${formatScheduledTime(toTime)}`;
+	// A "days of the week" meeting is scheduled on an anchor date: name the
+	// weekday, not the 2023 date.
+	if (isAnchorDateString(scheduledDate.toISOString().split("T")[0])) {
+		return `Scheduled: ${WEEKDAYS[scheduledDate.getUTCDay()]}, ${time}`;
+	}
 	const month = scheduledDate.getUTCMonth() + 1;
 	const day = scheduledDate.getUTCDate();
-	return `Scheduled: ${month}/${day}, ${formatScheduledTime(fromTime)}-${formatScheduledTime(toTime)}`;
+	return `Scheduled: ${month}/${day}, ${time}`;
 }
