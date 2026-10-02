@@ -385,10 +385,10 @@ export function PersonalAvailabilitySidebar({
 						</AccordionDetails>
 					</Accordion>
 
+					{/*
 					<div className="mt-6">
 						<div className="flex">
 							<Typography variant="h6">Overlay Availabilities</Typography>
-							{/* Need to add Switch Functionality */}
 							<Switch className="ml-auto" size="medium" />
 						</div>
 
@@ -396,6 +396,7 @@ export function PersonalAvailabilitySidebar({
 							View all availability while inputting your own
 						</Typography>
 					</div>
+					*/}
 				</div>
 			</div>
 		</div>
