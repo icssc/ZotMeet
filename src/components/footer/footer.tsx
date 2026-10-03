@@ -65,7 +65,7 @@ function SocialLinks() {
 					rel="noopener"
 					aria-label={label}
 					color="inherit"
-					sx={{ borderRadius: 1 }}
+					sx={{ borderRadius: 1, "& .MuiSvgIcon-root": { color: "inherit" } }}
 				>
 					{icon}
 				</IconButton>
