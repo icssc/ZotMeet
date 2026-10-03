@@ -4,38 +4,44 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import RedditIcon from "@mui/icons-material/Reddit";
-import {
-	Box,
-	Button,
-	IconButton,
-	Link,
-	Typography,
-	useTheme,
-} from "@mui/material";
+import { Box, Button, IconButton, Link, Typography } from "@mui/material";
 import Image from "next/image";
 import NextLink from "next/link";
-import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
-const iconSocialLinks = [
+const socialLinks = [
 	{
-		icon: InstagramIcon,
-		href: "https://www.instagram.com/icssc.uci",
 		label: "Instagram",
+		href: "https://www.instagram.com/icssc.uci",
+		icon: <InstagramIcon />,
 	},
 	{
-		icon: GitHubIcon,
-		href: "https://github.com/icssc/ZotMeet",
 		label: "GitHub",
+		href: "https://github.com/icssc/ZotMeet",
+		icon: <GitHubIcon />,
 	},
 	{
-		icon: LinkedInIcon,
-		href: "https://www.linkedin.com/company/uci-icssc",
 		label: "LinkedIn",
+		href: "https://www.linkedin.com/company/uci-icssc",
+		icon: <LinkedInIcon />,
 	},
 	{
-		icon: RedditIcon,
-		href: "https://www.reddit.com/user/icsscprojects/",
 		label: "Reddit",
+		href: "https://www.reddit.com/user/icsscprojects/",
+		icon: <RedditIcon />,
+	},
+	{
+		label: "Discord",
+		href: "https://discord.com/invite/QenncaKuQ",
+		icon: (
+			<Image
+				src="/landing/discord-button.svg"
+				alt=""
+				width={24}
+				height={24}
+				className="brightness-0 invert"
+			/>
+		),
 	},
 ];
 
@@ -45,241 +51,145 @@ const pageLinks = [
 	{ label: "Rooms", href: "/studyrooms" },
 ];
 
-const isLanding = (pathname: string) => pathname === "/";
+const FEEDBACK_FORM_URL =
+	"https://docs.google.com/forms/d/e/1FAIpQLSc8OLzVQPfoeaGb1vfXBlVPoR1HVGIvUl4t0eNMN3pbi4er0Q/viewform";
 
-/**
- * Min-height for the content above the footer, matching the widths where the
- * footer renders, so the footer always starts below the fold.
- */
-export function aboveFooterClass(pathname: string) {
-	return isLanding(pathname) ? "min-h-screen" : "lg:min-h-screen";
-}
-
-/** Shown at every width on the landing page, large screens only elsewhere. */
-export function Footer() {
-	const pathname = usePathname();
-	const theme = useTheme();
-	const isDark = theme.palette.mode === "dark";
-
-	const iconRow = (
-		<Box
-			sx={{
-				display: "flex",
-				justifyContent: "center",
-				alignItems: "center",
-				gap: 0.5,
-				mb: 4,
-				position: "relative",
-				top: 40,
-			}}
-		>
-			{iconSocialLinks.map(({ icon: Icon, href, label }) => (
+function SocialLinks() {
+	return (
+		<div className="mt-10 flex items-center justify-center gap-1">
+			{socialLinks.map(({ label, href, icon }) => (
 				<IconButton
 					key={label}
-					component={Link}
 					href={href}
 					target="_blank"
 					rel="noopener"
 					aria-label={label}
-					sx={{
-						color: "secondary.contrastText",
-						borderRadius: 1,
-					}}
+					color="inherit"
+					sx={{ borderRadius: 1 }}
 				>
-					<Icon fontSize="medium" sx={{ color: "common.white" }} />
+					{icon}
 				</IconButton>
 			))}
-
-			<IconButton
-				component={Link}
-				href="https://discord.com/invite/QenncaKuQ"
-				target="_blank"
-				rel="noopener"
-				aria-label="Discord"
-				sx={{
-					borderRadius: 1.5,
-				}}
-			>
-				<Image
-					src="/landing/discord-button.svg"
-					alt=""
-					width={24}
-					height={24}
-					style={{ filter: "brightness(0) invert(1)" }}
-				/>
-			</IconButton>
-		</Box>
+		</div>
 	);
+}
 
-	const logoLockup = (fontSize: string, iconSize: number) => (
-		<Box
-			sx={{
-				display: "flex",
-				alignItems: "flex-end",
-				gap: 2,
-				ml: { xs: -3, md: -6 },
-				mb: { xs: -2, md: -2 },
-			}}
-		>
-			<Image
-				src="/icon.svg"
-				alt=""
-				width={iconSize}
-				height={iconSize}
-				style={{ filter: isDark ? "none" : "brightness(0) invert(1)" }}
-			/>
-			<Typography
-				sx={{
-					color: (theme) =>
-						theme.palette.mode === "dark"
-							? theme.palette.primary.main
-							: theme.palette.common.white,
-					fontWeight: 575,
-					fontSize,
-					lineHeight: 1,
-				}}
-			>
-				ZotMeet
+function PageLinks() {
+	return (
+		<div className="flex flex-col items-end gap-1">
+			<Typography variant="subtitle1" fontWeight={700}>
+				Pages
 			</Typography>
-		</Box>
+			<div className="flex flex-col items-end gap-0.5">
+				{pageLinks.map(({ label, href }) => (
+					<Link
+						key={href}
+						component={NextLink}
+						href={href}
+						variant="body2"
+						color="inherit"
+						underline="hover"
+					>
+						{label}
+					</Link>
+				))}
+			</div>
+		</div>
 	);
+}
 
-	const pagesLinks = (
-		<Box
-			sx={{
-				display: "flex",
-				flexDirection: "column",
-				alignItems: { xs: "flex-end", md: "flex-end" },
-				gap: 0.25,
-			}}
-		>
-			{pageLinks.map(({ label, href }) => (
-				<Link
-					key={href}
-					component={NextLink}
-					href={href}
-					underline="hover"
-					sx={{ color: "secondary.contrastText", fontSize: "0.825rem" }}
-				>
-					{label}
-				</Link>
-			))}
-		</Box>
-	);
-
-	const submitButton = (
+function FeedbackButton() {
+	return (
 		<Button
 			variant="contained"
 			size="small"
-			href="https://docs.google.com/forms/d/e/1FAIpQLSc8OLzVQPfoeaGb1vfXBlVPoR1HVGIvUl4t0eNMN3pbi4er0Q/viewform"
+			href={FEEDBACK_FORM_URL}
 			target="_blank"
 			rel="noopener"
-			sx={{
-				bgcolor: "common.white",
-				color: "common.black",
-				boxShadow: (theme) =>
-					isDark
-						? "0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 #000000"
-						: "0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 " +
-							theme.palette.primary.main,
-				"&:hover": {
-					boxShadow: (theme) =>
-						isDark
-							? "0 2px 0 0 rgba(0,0,0,0.15), 0 2px 0 0 "
-							: "0 2px 0 0 rgba(0,0,0,0.15), 0 2px 0 0 " +
-								theme.palette.primary.main,
-					bgcolor: "grey.100",
-				},
+			sx={(theme) => {
+				const isDark = theme.palette.mode === "dark";
+				const black = theme.palette.common.black;
+				return {
+					bgcolor: "common.white",
+					color: "common.black",
+					...(isDark && {
+						boxShadow: `0 4px 0 0 rgba(0,0,0,0.15), 0 4px 0 0 ${black}`,
+					}),
+					"&:hover": {
+						bgcolor: "grey.100",
+						...(isDark && {
+							boxShadow: `0 2px 0 0 rgba(0,0,0,0.15), 0 2px 0 0 ${black}`,
+						}),
+					},
+				};
 			}}
 		>
 			Submit Feedback
 		</Button>
 	);
+}
 
+/** Icon + wordmark, pulled into the footer's bottom-left corner. */
+function Logo({ large }: { large?: boolean }) {
+	return (
+		<div className="-mb-4 -ml-6 flex items-end gap-4 md:-ml-12">
+			<Image
+				src="/icon.svg"
+				alt=""
+				width={large ? 150 : 60}
+				height={large ? 150 : 60}
+				className="brightness-0 invert dark:filter-none"
+			/>
+			<span
+				className={cn(
+					"font-[575] leading-none dark:text-primary",
+					large ? "text-[7rem]" : "text-[3rem]",
+				)}
+			>
+				ZotMeet
+			</span>
+		</div>
+	);
+}
+
+/** Site footer. Where it shows is decided by the app shell (`mui-app-shell.tsx`). */
+export function Footer({ className }: { className?: string }) {
 	return (
 		<Box
 			component="footer"
-			position="relative"
-			className={isLanding(pathname) ? "block" : "hidden lg:block"}
-			sx={{
-				overflow: "hidden",
-				px: { xs: 3, md: 6 },
-				py: { xs: 2, md: 2 },
-				color: "secondary.contrastText",
-				background: (theme) => {
-					if (isDark) {
-						return `linear-gradient(180deg, 
-                                    ${theme.palette.background.default} 0%, 
-                                    ${theme.palette.background.paper} 20%,
-                                    ${theme.palette.background.paper} 100%)`;
-					} else {
-						return `linear-gradient(180deg, 
-                                    ${theme.palette.background.default} 0%,
-                                    ${theme.palette.primary.light} 15%,
-                                    ${theme.palette.primary.main} 90%,
-                                    ${theme.palette.primary.main} 100%)`;
-					}
-				},
+			className={cn(
+				"relative overflow-hidden px-6 py-4 text-secondary-main-foreground md:px-12",
+				className,
+			)}
+			sx={(theme) => {
+				const { background, primary } = theme.palette;
+				return {
+					background:
+						theme.palette.mode === "dark"
+							? `linear-gradient(180deg, ${background.default} 0%, ${background.paper} 20%)`
+							: `linear-gradient(180deg, ${background.default} 0%, ${primary.light} 15%, ${primary.main} 90%)`,
+				};
 			}}
 		>
-			{iconRow}
+			<SocialLinks />
 
-			{/* mobile layout*/}
-			<Box sx={{ display: { xs: "block", md: "none" } }}>
-				<Box
-					sx={{
-						display: "flex",
-						justifyContent: "space-between",
-						alignItems: "flex-start",
-						mb: 3,
-					}}
-				>
-					<Box sx={{ mt: 5 }}>{submitButton}</Box>
-					<Box
-						sx={{
-							display: "flex",
-							flexDirection: "column",
-							alignItems: "flex-end",
-							gap: 1,
-							mt: 5,
-						}}
-					>
-						<Typography variant="subtitle1" fontWeight={700}>
-							Pages
-						</Typography>
-						{pagesLinks}
-					</Box>
-				</Box>
-				{logoLockup("3rem", 60)}
-			</Box>
+			{/* Phone: button and pages side by side, logo underneath. */}
+			<div className="md:hidden">
+				<div className="mt-8 mb-6 flex items-start justify-between">
+					<FeedbackButton />
+					<PageLinks />
+				</div>
+				<Logo />
+			</div>
 
-			{/* desktop */}
-			<Box
-				sx={{
-					display: { xs: "none", md: "flex" },
-					alignItems: "flex-end",
-					justifyContent: "space-between",
-					gap: 3,
-				}}
-			>
-				<Box sx={{}}>{logoLockup("7rem", 150)}</Box>
-				<Box
-					sx={{
-						display: "flex",
-						flexDirection: "column",
-						alignItems: "flex-end",
-						gap: 1,
-						pr: 4,
-						mb: 2,
-					}}
-				>
-					<Typography variant="subtitle1" fontWeight={700}>
-						Pages
-					</Typography>
-					{pagesLinks}
-					<Box sx={{ mt: 2 }}>{submitButton}</Box>
-				</Box>
-			</Box>
+			{/* Desktop: logo on the left, pages and button stacked on the right. */}
+			<div className="hidden items-end justify-between gap-6 md:flex">
+				<Logo large />
+				<div className="mb-4 flex flex-col items-end gap-6 pr-8">
+					<PageLinks />
+					<FeedbackButton />
+				</div>
+			</div>
 		</Box>
 	);
 }

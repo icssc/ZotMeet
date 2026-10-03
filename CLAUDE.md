@@ -69,7 +69,13 @@ Constraints on `@zotmeet/shared`:
 - No test runner exists yet. If you add tests, start in `packages/shared` (pure, no DOM) and propose the runner in the PR — don't add a second runner later.
 
 ### Web (`src/`)
-- UI: **MUI 7** is the component library (`@mui/material`, `@mui/icons-material`). Style with `sx` for MUI components and Tailwind `className` for layout; both are acceptable, don't convert one to the other in passing. `src/components/ui/` holds shadcn/Radix leftovers — don't add new shadcn components.
+- UI: **MUI 7** is the component library (`@mui/material`, `@mui/icons-material`). `src/components/ui/` holds shadcn/Radix leftovers — don't add new shadcn components.
+- Styling: **prefer Tailwind `className`**; avoid `sx` where a class can do the job. Order of preference: an MUI prop (`variant`, `size`, `color="inherit"`) → `className` → `sx`. Layout wrappers are plain `<div>`s with classes, not `<Box sx={{ display: "flex" }}>`. Use `sx` only for:
+  - overriding a property the MUI component already sets (a `Button`'s background, an `IconButton`'s radius, a `Typography`'s size). MUI's styles load after Tailwind's and win ties, so a class there silently does nothing;
+  - values read from the theme that have no Tailwind token (`palette.primary.light`, gradients built from palette entries);
+  - an MUI component's states and slots (`"&:hover"`, `"& .MuiSvgIcon-root"`).
+
+  When you edit a component, move its layout `sx` to classes; don't sweep untouched files. Reference: `src/components/footer/footer.tsx`.
 - Theme: `src/theme.ts` `getTheme(mode)`; colours via `hsl()` from tokens. Dark mode is the `.dark` class.
 - Fonts: `src/fonts.ts` (`next/font/google` Figtree). Icons: `@mui/icons-material` named imports.
 - Routing: App Router, `next/navigation`, `next/link`. URL-persisted form state: `nuqs`.
@@ -118,6 +124,7 @@ Before finishing any change that touches `packages/**`: run all three typechecks
 - `next.config.mjs` `transpilePackages: ["@zotmeet/shared"]` — a new workspace package consumed by web must be added there.
 - `EXPO_PUBLIC_*` vars are inlined at bundle time; restart Expo after changing them.
 - Storage: `fromTime`/`toTime` are UTC `"HH:MM:SS"`; `dates` are ISO local-midnight instants; "days of week" meetings store `ANCHOR_DATES`. Use `convertTimeToUTC` / `convertTimeFromUTC` / `localMidnightFromIsoDate` from shared — never `new Date(iso)` for a day column.
+- Tailwind and MUI breakpoints share names but not widths: Tailwind `md`/`lg` are 768/1024px, MUI's are 900/1200px. Don't hide one element with a Tailwind class and decide a related one with `useMediaQuery(theme.breakpoints…)` and expect them to switch together (that put the footer and the mobile bottom nav on screen at the same time).
 - Biome ignores `src/components/ui/**` and `tailwind.config.ts` but **not** their mobile equivalents.
 - `ios/` is the PWABuilder Swift wrapper, not Expo. `apps/mobile/app.config.ts` reuses its bundle id `com.zotmeet` — resolve before any EAS store build.
 
