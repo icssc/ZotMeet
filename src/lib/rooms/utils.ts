@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { formatLocalDateKey } from "@/lib/meetings/utils";
 import { CAPACITY_RANGES, type Capacity } from "@/lib/types/studyrooms";
 import type { ZotDate } from "@/lib/zotdate";
@@ -341,4 +341,53 @@ export function getQuickBookQuery(
 		date: format(start, "yyyy-MM-dd"),
 		timeRange: `${toLocalStr(start)}-${toLocalStr(end)}`,
 	};
+}
+
+export type RoomFreeWindow = { start: Date; end: Date };
+
+/**
+ * Merges a room's available slots, across all of its duration variants, into
+ * contiguous free windows sorted by start. Variants overlap (they are sliding
+ * booking windows of different lengths), so slots are unioned, not summed.
+ */
+export function getRoomFreeWindows(
+	variants: { slots: { start: string; end: string; isAvailable: boolean }[] }[],
+): RoomFreeWindow[] {
+	const slots = variants
+		.flatMap((v) => v.slots)
+		.filter((s) => s.isAvailable)
+		.map((s) => ({ start: new Date(s.start), end: new Date(s.end) }))
+		.sort((a, b) => a.start.getTime() - b.start.getTime());
+
+	const windows: RoomFreeWindow[] = [];
+	for (const slot of slots) {
+		const last = windows.at(-1);
+		if (last && slot.start <= last.end) {
+			if (slot.end > last.end) last.end = slot.end;
+		} else {
+			windows.push({ ...slot });
+		}
+	}
+	return windows;
+}
+
+function formatClockInTimeZone(date: Date, timeZone: string): string {
+	const onTheHour = formatInTimeZone(date, timeZone, "m") === "0";
+	return formatInTimeZone(date, timeZone, onTheHour ? "h a" : "h:mm a");
+}
+
+/** "Mon 11 AM–1 PM, Tue 1:30 PM–3 PM", capped at `max` windows ("+2 more"). */
+export function formatRoomFreeWindows(
+	windows: RoomFreeWindow[],
+	timeZone: string,
+	max = 3,
+): string {
+	const parts = windows
+		.slice(0, max)
+		.map(
+			({ start, end }) =>
+				`${formatInTimeZone(start, timeZone, "EEE")} ${formatClockInTimeZone(start, timeZone)}\u2013${formatClockInTimeZone(end, timeZone)}`,
+		);
+	if (windows.length > max) parts.push(`+${windows.length - max} more`);
+	return parts.join(", ");
 }

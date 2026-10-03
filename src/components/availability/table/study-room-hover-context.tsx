@@ -29,7 +29,11 @@ export interface HoveredRoomCellPreview {
 }
 
 interface StudyRoomHoverContextValue {
-	setHoveredRoom: (variants: StudyRoomApiEntry[] | null) => void;
+	/** `title` labels the outline; defaults to the first variant's room name. */
+	setHoveredRoom: (
+		variants: StudyRoomApiEntry[] | null,
+		title?: string,
+	) => void;
 }
 
 const StudyRoomHoverContext = createContext<StudyRoomHoverContextValue>({
@@ -57,6 +61,7 @@ export function buildRoomCellPreview(
 	availabilityDates: ZotDate[],
 	blockCount: number,
 	timeZone: string,
+	title?: string,
 ): Map<string, HoveredRoomCellPreview> {
 	if (!filteredVariants?.length) return new Map();
 
@@ -97,7 +102,8 @@ export function buildRoomCellPreview(
 
 	if (covered.size === 0) return new Map();
 
-	const roomTitle = displayRoomName(filteredVariants[0]?.name ?? "Room");
+	const roomTitle =
+		title ?? displayRoomName(filteredVariants[0]?.name ?? "Room");
 	const previewByKey = new Map<string, HoveredRoomCellPreview>();
 
 	for (const key of covered) {
@@ -184,9 +190,10 @@ export function StudyRoomHoverProvider({
 	rawRoomsByKey,
 	selectedRoomIds,
 }: StudyRoomHoverProviderProps) {
-	const [hoveredRoomVariants, setHoveredRoomVariants] = useState<
-		StudyRoomApiEntry[] | null
-	>(null);
+	const [hoveredRoom, setHoveredRoomState] = useState<{
+		variants: StudyRoomApiEntry[];
+		title?: string;
+	} | null>(null);
 
 	const emptyPreviewMap = useMemo(
 		() => new Map<string, HoveredRoomCellPreview>(),
@@ -195,18 +202,19 @@ export function StudyRoomHoverProvider({
 
 	useEffect(() => {
 		if (!showRoomPreviews) {
-			setHoveredRoomVariants(null);
+			setHoveredRoomState(null);
 		}
 	}, [showRoomPreviews]);
 
 	const buildPreview = useCallback(
-		(variants: StudyRoomApiEntry[] | null) =>
+		(variants: StudyRoomApiEntry[] | null, title?: string) =>
 			buildRoomCellPreview(
 				filterAvailableVariants(variants),
 				fromTimeMinutes,
 				availabilityDates,
 				availabilityTimeBlocks.length,
 				timeZone,
+				title,
 			),
 		[
 			fromTimeMinutes,
@@ -218,8 +226,10 @@ export function StudyRoomHoverProvider({
 
 	const hoverCellPreviewByKey = useMemo(
 		() =>
-			showRoomPreviews ? buildPreview(hoveredRoomVariants) : emptyPreviewMap,
-		[showRoomPreviews, buildPreview, hoveredRoomVariants, emptyPreviewMap],
+			showRoomPreviews && hoveredRoom
+				? buildPreview(hoveredRoom.variants, hoveredRoom.title)
+				: emptyPreviewMap,
+		[showRoomPreviews, buildPreview, hoveredRoom, emptyPreviewMap],
 	);
 
 	const selectedCellPreviewByKey = useMemo(() => {
@@ -236,9 +246,12 @@ export function StudyRoomHoverProvider({
 		emptyPreviewMap,
 	]);
 
-	const setHoveredRoom = useCallback((variants: StudyRoomApiEntry[] | null) => {
-		setHoveredRoomVariants(variants);
-	}, []);
+	const setHoveredRoom = useCallback(
+		(variants: StudyRoomApiEntry[] | null, title?: string) => {
+			setHoveredRoomState(variants?.length ? { variants, title } : null);
+		},
+		[],
+	);
 
 	const value = useMemo(() => ({ setHoveredRoom }), [setHoveredRoom]);
 

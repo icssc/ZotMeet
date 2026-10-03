@@ -1,16 +1,33 @@
 "use client";
 
 import {
+	Alert,
 	Button,
+	Card,
+	CardActionArea,
+	CardActions,
+	CardContent,
 	Chip,
-	CircularProgress,
-	Collapse,
 	Divider,
+	LinearProgress,
+	MenuItem,
+	TextField,
 	Typography,
 } from "@mui/material";
-import { ChevronDownIcon, ChevronUpIcon, SparklesIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+	type ChangeEvent,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from "react";
 import { useStudyRoomHover } from "@/components/availability/table/study-room-hover-context";
+import {
+	formatRoomFreeWindows,
+	getRoomFreeWindows,
+	type RoomFreeWindow,
+} from "@/lib/rooms/utils";
 import type { paths } from "@/lib/types/anteater-api-types";
 import {
 	BUILDINGS,
@@ -193,6 +210,63 @@ export function groupRawRoomsByKey(
 	return map;
 }
 
+/** "ALP", "ALP or Sci Lib", "ALP, Sci Lib or PV". */
+function joinWithOr(items: string[]): string {
+	if (items.length <= 1) return items.join("");
+	return `${items.slice(0, -1).join(", ")} or ${items.at(-1)}`;
+}
+
+/** "Any room in ALP or Sci Lib", or "Any matching room" with no building filter. */
+export function formatAnyRoomLabel(buildings: Building[]): string {
+	return buildings.length > 0
+		? `Any room in ${joinWithOr(buildings.map(formatLocation))}`
+		: "Any matching room";
+}
+
+/** True when the pinned set is every room the filters currently match. */
+export function isAnyRoomSelection(
+	selectedRoomIds: string[],
+	filteredRooms: RoomResult[],
+): boolean {
+	if (filteredRooms.length < 2) return false;
+	if (selectedRoomIds.length !== filteredRooms.length) return false;
+	const selected = new Set(selectedRoomIds);
+	return filteredRooms.every((room) => selected.has(room.id));
+}
+
+/**
+ * What the grid is outlining for the pinned rooms, e.g. "any room in ALP or
+ * Sci Lib" or "ALP 2300 or Sci Lib 483". Null when nothing is pinned.
+ */
+export function formatPinnedRoomsSummary(
+	selectedRoomIds: string[],
+	filteredRooms: RoomResult[],
+	allRooms: RoomResult[],
+	buildings: Building[],
+): string | null {
+	if (selectedRoomIds.length === 0) return null;
+	if (isAnyRoomSelection(selectedRoomIds, filteredRooms)) {
+		const label = formatAnyRoomLabel(buildings);
+		return label.charAt(0).toLowerCase() + label.slice(1);
+	}
+	const byId = new Map(allRooms.map((room) => [room.id, room]));
+	const labels = selectedRoomIds.flatMap((id) => {
+		const room = byId.get(id);
+		return room ? [formatRoomChipLabel(room.location, room.label)] : [];
+	});
+	if (labels.length === 0) return null;
+	const MAX_NAMED = 2;
+	if (labels.length > MAX_NAMED + 1) {
+		const shown = labels.slice(0, MAX_NAMED).join(", ");
+		return `${shown} or ${labels.length - MAX_NAMED} more`;
+	}
+	return joinWithOr(labels);
+}
+
+function findBuilding(location: string): Building | null {
+	return BUILDINGS.find((b) => location.includes(b)) ?? null;
+}
+
 interface RoomRecommendationSettingsProps {
 	layout?: "sidebar" | "sheet";
 	onShowBestRooms?: () => void;
@@ -205,53 +279,13 @@ interface RoomRecommendationSettingsProps {
 	selectedRoomIds?: string[];
 	onSelectedRoomIdsChange?: (ids: string[]) => void;
 	onRoomSelect?: (room: RoomResult, selected: boolean) => void;
+	/** Zone the grid is drawn in; room free times are shown in it too. */
+	timeZone: string;
 }
 
-function FilterChipGroup<T extends string | number>({
-	options,
-	selected,
-	onToggle,
-	onClear,
-	getLabel,
-}: {
-	options: readonly T[];
-	selected: T[];
-	onToggle: (value: T) => void;
-	onClear: () => void;
-	getLabel?: (value: T) => string;
-}) {
-	return (
-		<div className="flex flex-col gap-2">
-			<div className="flex flex-wrap gap-2">
-				{options.map((opt) => (
-					<Chip
-						key={String(opt)}
-						label={getLabel ? getLabel(opt) : String(opt)}
-						clickable
-						variant="outlined"
-						color={selected.includes(opt) ? "primary" : "default"}
-						onClick={() => onToggle(opt)}
-						sx={{ maxWidth: "100%" }}
-					/>
-				))}
-			</div>
-			<div className="flex justify-end">
-				<Button
-					variant="text"
-					size="small"
-					onClick={onClear}
-					sx={{
-						color: "text.secondary",
-						textTransform: "none",
-						fontSize: "0.75rem",
-					}}
-				>
-					Clear Selected
-				</Button>
-			</div>
-		</div>
-	);
-}
+const ANY_VALUE = "any";
+
+const selectedCardSx = { borderColor: "text.primary" } as const;
 
 export function RoomRecommendationSettings({
 	layout = "sidebar",
@@ -265,10 +299,9 @@ export function RoomRecommendationSettings({
 	selectedRoomIds,
 	onSelectedRoomIdsChange,
 	onRoomSelect,
+	timeZone,
 }: RoomRecommendationSettingsProps) {
 	const isSheet = layout === "sheet";
-	const [isOpen, setIsOpen] = useState(isSheet);
-	const [filtersOpen, setFiltersOpen] = useState(true);
 
 	const roomResults = useMemo(() => deduplicateRooms(rawRooms), [rawRooms]);
 
@@ -282,6 +315,16 @@ export function RoomRecommendationSettings({
 		buildings: selectedBuildings,
 	} = filters;
 
+	// Search on open, and again whenever the query itself changes (capacity is
+	// sent to the API; `showBestRooms` is rebuilt when it or the group's best
+	// times change). Length and building filter the results client-side.
+	const lastSearchRef = useRef(hasSearched ? onShowBestRooms : undefined);
+	useEffect(() => {
+		if (!onShowBestRooms || lastSearchRef.current === onShowBestRooms) return;
+		lastSearchRef.current = onShowBestRooms;
+		onShowBestRooms();
+	}, [onShowBestRooms]);
+
 	const [internalSelectedRoomIds, setInternalSelectedRoomIds] = useState<
 		string[]
 	>([]);
@@ -289,6 +332,54 @@ export function RoomRecommendationSettings({
 	const effectiveSelectedRoomIds = isSelectionControlled
 		? selectedRoomIds
 		: internalSelectedRoomIds;
+
+	const setSelection = useCallback(
+		(next: string[]) => {
+			if (isSelectionControlled) {
+				onSelectedRoomIdsChange?.(next);
+			} else {
+				setInternalSelectedRoomIds(next);
+			}
+		},
+		[isSelectionControlled, onSelectedRoomIdsChange],
+	);
+
+	const filteredRooms = useMemo(
+		() => filterRoomResults(roomResults, filters),
+		[roomResults, filters],
+	);
+
+	const freeWindowsById = useMemo(() => {
+		const map = new Map<string, RoomFreeWindow[]>();
+		for (const room of filteredRooms) {
+			map.set(room.id, getRoomFreeWindows(rawRoomsByKey.get(room.id) ?? []));
+		}
+		return map;
+	}, [filteredRooms, rawRoomsByKey]);
+
+	// Rooms grouped by building (in BUILDINGS order), most free time first.
+	const roomGroups = useMemo(() => {
+		const freeMinutes = (id: string) =>
+			(freeWindowsById.get(id) ?? []).reduce(
+				(sum, w) => sum + (w.end.getTime() - w.start.getTime()),
+				0,
+			);
+		const groups = new Map<string, RoomResult[]>();
+		for (const room of filteredRooms) {
+			const key = findBuilding(room.location) ?? room.location;
+			groups.set(key, [...(groups.get(key) ?? []), room]);
+		}
+		const order = (key: string) => {
+			const index = BUILDINGS.indexOf(key as Building);
+			return index === -1 ? BUILDINGS.length : index;
+		};
+		return Array.from(groups.entries())
+			.sort(([a], [b]) => order(a) - order(b))
+			.map(([building, rooms]) => ({
+				building,
+				rooms: [...rooms].sort((a, b) => freeMinutes(b.id) - freeMinutes(a.id)),
+			}));
+	}, [filteredRooms, freeWindowsById]);
 
 	const selectedBookingUrl = useMemo(() => {
 		if (effectiveSelectedRoomIds.length !== 1) return null;
@@ -298,44 +389,32 @@ export function RoomRecommendationSettings({
 		);
 	}, [effectiveSelectedRoomIds, rawRoomsByKey, selectedLengths]);
 
-	const filteredRooms = useMemo(
-		() => filterRoomResults(roomResults, filters),
-		[roomResults, filters],
+	const anyRoomLabel = formatAnyRoomLabel(selectedBuildings);
+	const isAnyRoomSelected = isAnyRoomSelection(
+		effectiveSelectedRoomIds,
+		filteredRooms,
 	);
 
-	const roomState = useMemo(() => {
-		if (!hasSearched) return { status: "initial" as const };
-		if (!filteredRooms.length) return { status: "empty" as const };
-		return { status: "results" as const, rooms: filteredRooms };
-	}, [hasSearched, filteredRooms]);
-
-	const hasResults = roomState.status === "results";
-
-	// Collapse the filters only the first time results appear, so a later search
-	// doesn't override the user reopening them.
-	const hasAutoCollapsedFilters = useRef(false);
-	useEffect(() => {
-		if (hasResults && !hasAutoCollapsedFilters.current) {
-			hasAutoCollapsedFilters.current = true;
-			setFiltersOpen(false);
-		}
-	}, [hasResults]);
-
-	const handleToggleLength = useCallback(
-		(v: MeetingLength) => {
-			onFiltersChange({ ...filters, lengths: toggle(selectedLengths, v) });
-		},
-		[filters, selectedLengths, onFiltersChange],
-	);
-
-	const handleToggleCapacity = useCallback(
-		(v: Capacity) => {
+	const handleLengthChange = useCallback(
+		(event: ChangeEvent<HTMLInputElement>) => {
+			const { value } = event.target;
 			onFiltersChange({
 				...filters,
-				capacities: toggle(selectedCapacities, v),
+				lengths: value === ANY_VALUE ? [] : [Number(value) as MeetingLength],
 			});
 		},
-		[filters, selectedCapacities, onFiltersChange],
+		[filters, onFiltersChange],
+	);
+
+	const handleCapacityChange = useCallback(
+		(event: ChangeEvent<HTMLInputElement>) => {
+			const { value } = event.target;
+			onFiltersChange({
+				...filters,
+				capacities: value === ANY_VALUE ? [] : [value as Capacity],
+			});
+		},
+		[filters, onFiltersChange],
 	);
 
 	const handleToggleBuilding = useCallback(
@@ -350,206 +429,228 @@ export function RoomRecommendationSettings({
 
 	const handleToggleRoom = useCallback(
 		(room: RoomResult) => {
-			const next = toggle(effectiveSelectedRoomIds, room.id);
-			if (isSelectionControlled) {
-				onSelectedRoomIdsChange?.(next);
-			} else {
-				setInternalSelectedRoomIds(next);
-			}
+			// Coming from "any room", a click narrows the pin to just this room.
+			const next = isAnyRoomSelected
+				? [room.id]
+				: toggle(effectiveSelectedRoomIds, room.id);
+			setSelection(next);
 			onRoomSelect?.(room, next.includes(room.id));
 		},
-		[
-			effectiveSelectedRoomIds,
-			isSelectionControlled,
-			onSelectedRoomIdsChange,
-			onRoomSelect,
-		],
+		[effectiveSelectedRoomIds, isAnyRoomSelected, setSelection, onRoomSelect],
 	);
 
-	const handleRoomChipMouseEnter = useCallback(
+	const handleToggleAnyRoom = useCallback(() => {
+		setSelection(isAnyRoomSelected ? [] : filteredRooms.map((r) => r.id));
+	}, [filteredRooms, isAnyRoomSelected, setSelection]);
+
+	const handleRoomMouseEnter = useCallback(
 		(room: RoomResult) => {
-			const variants = rawRoomsByKey.get(room.id) ?? null;
-			setHoveredRoom(variants);
+			setHoveredRoom(rawRoomsByKey.get(room.id) ?? null);
 		},
 		[rawRoomsByKey, setHoveredRoom],
 	);
 
-	const handleRoomChipMouseLeave = useCallback(() => {
+	const handleAnyRoomMouseEnter = useCallback(() => {
+		setHoveredRoom(
+			filteredRooms.flatMap((room) => rawRoomsByKey.get(room.id) ?? []),
+			anyRoomLabel,
+		);
+	}, [anyRoomLabel, filteredRooms, rawRoomsByKey, setHoveredRoom]);
+
+	const handleRoomMouseLeave = useCallback(() => {
 		setHoveredRoom(null);
 	}, [setHoveredRoom]);
+
+	const lengthValue =
+		selectedLengths.length === 1 ? String(selectedLengths[0]) : ANY_VALUE;
+	const capacityValue =
+		selectedCapacities.length === 1 ? selectedCapacities[0] : ANY_VALUE;
 
 	const settingsContent = (
 		<div
 			className={
-				isSheet ? "flex flex-col gap-4 pb-2" : "flex flex-col gap-4 px-4 pb-5"
+				isSheet ? "flex flex-col gap-4 pb-2" : "flex flex-col gap-4 p-4"
 			}
 		>
-			<Button
-				variant="contained"
-				color="primary"
-				fullWidth
-				disabled={isLoading}
-				startIcon={
-					isLoading ? (
-						<CircularProgress size={16} color="inherit" />
-					) : (
-						<SparklesIcon size={16} />
-					)
-				}
-				onClick={onShowBestRooms}
-				sx={{ borderRadius: "8px", py: 1.25 }}
-			>
-				{isLoading ? "Loading…" : "Show Best Rooms"}
-			</Button>
+			<div className="grid grid-cols-2 gap-3">
+				<TextField
+					select
+					size="small"
+					label="Length"
+					value={lengthValue}
+					onChange={handleLengthChange}
+				>
+					<MenuItem value={ANY_VALUE}>Any length</MenuItem>
+					{MEETING_LENGTHS.map((length) => (
+						<MenuItem key={length} value={String(length)}>
+							{length} min
+						</MenuItem>
+					))}
+				</TextField>
+				<TextField
+					select
+					size="small"
+					label="Capacity"
+					value={capacityValue}
+					onChange={handleCapacityChange}
+				>
+					<MenuItem value={ANY_VALUE}>Any size</MenuItem>
+					{CAPACITIES.map((capacity) => (
+						<MenuItem key={capacity} value={capacity}>
+							{capacity}
+						</MenuItem>
+					))}
+				</TextField>
+			</div>
+
+			<div className="flex flex-col gap-2">
+				<div className="flex items-center justify-between">
+					<Typography variant="caption" color="textSecondary">
+						Buildings · pick any
+					</Typography>
+					<Button
+						variant="text"
+						size="small"
+						disabled={selectedBuildings.length === 0}
+						onClick={() => onFiltersChange({ ...filters, buildings: [] })}
+					>
+						Clear (all buildings)
+					</Button>
+				</div>
+				<div className="flex flex-wrap gap-2">
+					{BUILDINGS.map((building) => {
+						const isSelected = selectedBuildings.includes(building);
+						return (
+							<Chip
+								key={building}
+								label={formatLocation(building)}
+								clickable
+								color={isSelected ? "primary" : "default"}
+								variant={isSelected ? "filled" : "outlined"}
+								onClick={() => handleToggleBuilding(building)}
+							/>
+						);
+					})}
+				</div>
+			</div>
+
+			{isLoading && <LinearProgress />}
 
 			{errorMessage && (
-				<Typography variant="body2" color="error">
+				<Alert
+					severity="error"
+					action={
+						onShowBestRooms && (
+							<Button color="inherit" size="small" onClick={onShowBestRooms}>
+								Retry
+							</Button>
+						)
+					}
+				>
 					{errorMessage}
+				</Alert>
+			)}
+
+			{hasSearched && !isLoading && filteredRooms.length === 0 && (
+				<Typography variant="body2" color="textSecondary">
+					{rawRooms.length === 0
+						? "No available study rooms for the group's best times."
+						: "No rooms match your current filters."}
 				</Typography>
 			)}
 
-			<Divider />
-
-			<div className="flex flex-col gap-4">
-				<button
-					type="button"
-					className="flex w-full items-center justify-between text-left"
-					onClick={() => setFiltersOpen((v) => !v)}
-					aria-expanded={!hasResults || filtersOpen}
-				>
-					<Typography variant="h6">Room Filters</Typography>
-					{hasResults &&
-						(filtersOpen ? (
-							<ChevronUpIcon size={20} className="shrink-0 text-slate-400" />
-						) : (
-							<ChevronDownIcon size={20} className="shrink-0 text-slate-400" />
-						))}
-				</button>
-
-				<Collapse in={!hasResults || filtersOpen} timeout="auto">
-					<div className="flex flex-col gap-4">
-						<div className="flex flex-col gap-1">
-							<Typography variant="subtitle2" color="textSecondary">
-								Meeting Length
-							</Typography>
-							<FilterChipGroup
-								options={MEETING_LENGTHS}
-								selected={selectedLengths}
-								onToggle={handleToggleLength}
-								onClear={() => onFiltersChange({ ...filters, lengths: [] })}
-							/>
-						</div>
-
-						<div className="flex flex-col gap-1">
-							<Typography variant="subtitle2" color="textSecondary">
-								Capacity
-							</Typography>
-							<FilterChipGroup
-								options={CAPACITIES}
-								selected={selectedCapacities}
-								onToggle={handleToggleCapacity}
-								onClear={() => onFiltersChange({ ...filters, capacities: [] })}
-							/>
-						</div>
-
-						<div className="flex flex-col gap-1">
-							<Typography variant="subtitle2" color="textSecondary">
-								Buildings
-							</Typography>
-							<FilterChipGroup
-								options={BUILDINGS}
-								selected={selectedBuildings}
-								onToggle={handleToggleBuilding}
-								getLabel={formatLocation}
-								onClear={() => onFiltersChange({ ...filters, buildings: [] })}
-							/>
-						</div>
-					</div>
-				</Collapse>
-			</div>
-
-			<Divider />
-
-			<div className="flex flex-col gap-2">
-				{roomState.status === "results" && (
-					<div>
-						<div className="mb-4 flex items-center">
-							<Typography variant="h6">Room Results</Typography>
-							{selectedBookingUrl && (
-								<div className="ml-auto">
-									<Button
-										href={selectedBookingUrl}
-										variant="outlined"
-										target="_blank"
-										rel="noopener noreferrer"
-										size="small"
-									>
-										Book Room
-									</Button>
-								</div>
-							)}
-						</div>
-						<Typography variant="caption" color="textSecondary">
-							Click a chip to pin a room on the calendar. Hover to preview
-							without pinning.
-						</Typography>
-
-						{effectiveSelectedRoomIds.length > 1 && (
-							<Typography variant="caption" color="error">
-								<br />
-								You can only book one room at a time
-							</Typography>
-						)}
-					</div>
-				)}
-
-				{roomState.status === "empty" && (
-					<Typography
-						variant="caption"
-						color="textSecondary"
-						className="italic"
+			{filteredRooms.length > 0 && (
+				<>
+					<Card
+						variant="outlined"
+						sx={isAnyRoomSelected ? selectedCardSx : undefined}
 					>
-						{rawRooms.length === 0
-							? "No available study rooms for the selected times."
-							: "No rooms match your current filters."}
+						<CardActionArea
+							onClick={handleToggleAnyRoom}
+							onMouseEnter={handleAnyRoomMouseEnter}
+							onMouseLeave={handleRoomMouseLeave}
+							aria-pressed={isAnyRoomSelected}
+						>
+							<CardContent>
+								<Typography variant="subtitle1">{anyRoomLabel}</Typography>
+								<Typography variant="body2" color="textSecondary">
+									Outlines every time at least one of these{" "}
+									{filteredRooms.length} rooms is free
+								</Typography>
+							</CardContent>
+						</CardActionArea>
+					</Card>
+
+					<Typography variant="body2" color="textSecondary">
+						Hover to preview on the grid, click to pin.
 					</Typography>
-				)}
 
-				{roomState.status === "results" && (
-					<div
-						className={
-							isSheet
-								? "flex max-h-60 flex-wrap gap-2 overflow-y-auto"
-								: "flex max-h-40 flex-wrap gap-2 overflow-y-auto"
-						}
-					>
-						{roomState.rooms.map((room) => {
-							const isSelected = effectiveSelectedRoomIds.includes(room.id);
-							const label = [
-								formatRoomChipLabel(room.location, room.label),
-								room.capacity != null ? `· ${room.capacity} cap` : null,
-								room.techEnhanced ? "· Tech" : null,
-							]
-								.filter(Boolean)
-								.join(" ");
+					{roomGroups.map(({ building, rooms }) => (
+						<div key={building} className="flex flex-col gap-2">
+							<div className="flex items-center justify-between">
+								<Typography variant="overline">
+									{formatLocation(building)}
+								</Typography>
+								<Typography variant="caption" color="textSecondary">
+									{rooms.length} {rooms.length === 1 ? "room" : "rooms"}
+								</Typography>
+							</div>
+							<Divider />
+							{rooms.map((room) => {
+								const isSelected =
+									!isAnyRoomSelected &&
+									effectiveSelectedRoomIds.includes(room.id);
+								const details = [
+									room.capacity != null ? `${room.capacity} cap` : null,
+									room.techEnhanced ? "Tech" : null,
+									formatRoomFreeWindows(
+										freeWindowsById.get(room.id) ?? [],
+										timeZone,
+									) || null,
+								]
+									.filter(Boolean)
+									.join(" · ");
 
-							return (
-								<Chip
-									key={room.id}
-									label={label}
-									clickable
-									variant="outlined"
-									color={isSelected ? "primary" : "default"}
-									onClick={() => handleToggleRoom(room)}
-									onMouseEnter={() => handleRoomChipMouseEnter(room)}
-									onMouseLeave={handleRoomChipMouseLeave}
-									sx={{ maxWidth: "100%" }}
-								/>
-							);
-						})}
-					</div>
-				)}
-			</div>
+								return (
+									<Card
+										key={room.id}
+										variant="outlined"
+										sx={isSelected ? selectedCardSx : undefined}
+									>
+										<CardActionArea
+											onClick={() => handleToggleRoom(room)}
+											onMouseEnter={() => handleRoomMouseEnter(room)}
+											onMouseLeave={handleRoomMouseLeave}
+											aria-pressed={isSelected}
+										>
+											<CardContent>
+												<Typography variant="subtitle1">
+													{formatRoomChipLabel(room.location, room.label)}
+												</Typography>
+												<Typography variant="body2" color="textSecondary">
+													{details}
+												</Typography>
+											</CardContent>
+										</CardActionArea>
+										{isSelected && selectedBookingUrl && (
+											<CardActions>
+												<Button
+													href={selectedBookingUrl}
+													target="_blank"
+													rel="noopener noreferrer"
+													size="small"
+												>
+													Book room
+												</Button>
+											</CardActions>
+										)}
+									</Card>
+								);
+							})}
+						</div>
+					))}
+				</>
+			)}
 		</div>
 	);
 
@@ -559,8 +660,7 @@ export function RoomRecommendationSettings({
 				<div className="mb-4">
 					<Typography variant="h6">Room Recommendations</Typography>
 					<Typography variant="caption" color="textSecondary">
-						Auto-generate the rooms that are most compatible with the Attendee
-						Responder results.
+						Rooms free during the group's best times.
 					</Typography>
 				</div>
 				{settingsContent}
@@ -568,34 +668,5 @@ export function RoomRecommendationSettings({
 		);
 	}
 
-	return (
-		<div className="min-w-0 lg:shrink-0">
-			<div className="w-full rounded-xl border border-divider bg-paper lg:w-96">
-				<button
-					type="button"
-					className="flex w-full items-center justify-between px-4 py-3 text-left"
-					onClick={() => setIsOpen((v) => !v)}
-					aria-expanded={isOpen}
-				>
-					<div>
-						<Typography variant="h6">Room Recommendation Settings</Typography>
-						<Typography variant="caption" color="textSecondary">
-							Auto-generate the rooms that are most compatible with the Attendee
-							Responder results.
-						</Typography>
-					</div>
-					<span className="ml-2 shrink-0 text-slate-400">
-						{isOpen ? (
-							<ChevronUpIcon size={20} />
-						) : (
-							<ChevronDownIcon size={20} />
-						)}
-					</span>
-				</button>
-				<Collapse in={isOpen} timeout="auto" unmountOnExit>
-					{settingsContent}
-				</Collapse>
-			</div>
-		</div>
-	);
+	return settingsContent;
 }

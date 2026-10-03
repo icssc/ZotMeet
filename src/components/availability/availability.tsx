@@ -1,19 +1,21 @@
 "use client";
 
-import { Paper } from "@mui/material";
+import { MeetingRoomOutlined } from "@mui/icons-material";
+import { Chip, Paper } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { AvailabilityActions } from "@/components/availability/availability-actions";
+import { AvailabilitySidebarTabs } from "@/components/availability/availability-sidebar-tabs";
 import { GroupAvailability } from "@/components/availability/group-availability";
-import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import {
 	deduplicateRooms,
+	filterRoomResults,
+	formatPinnedRoomsSummary,
 	groupRawRoomsByKey,
-	RoomRecommendationSettings,
 } from "@/components/availability/room-recommendations";
 import { ScheduleMeetingSettings } from "@/components/availability/schedule-meeting-settings";
 import { AvailabilityGridJaggedEdges } from "@/components/availability/table/availability-grid-jagged-edges";
@@ -243,9 +245,26 @@ export function Availability({
 		[studyRooms],
 	);
 
-	const mobileRoomCount = useMemo(
-		() => deduplicateRooms(studyRooms).length,
+	const dedupedRooms = useMemo(
+		() => deduplicateRooms(studyRooms),
 		[studyRooms],
+	);
+	const mobileRoomCount = dedupedRooms.length;
+
+	const filteredRooms = useMemo(
+		() => filterRoomResults(dedupedRooms, roomFilters),
+		[dedupedRooms, roomFilters],
+	);
+
+	const pinnedRoomsSummary = useMemo(
+		() =>
+			formatPinnedRoomsSummary(
+				selectedRoomIds,
+				filteredRooms,
+				dedupedRooms,
+				roomFilters.buildings,
+			),
+		[selectedRoomIds, filteredRooms, dedupedRooms, roomFilters.buildings],
 	);
 
 	useEffect(() => {
@@ -477,6 +496,18 @@ export function Availability({
 								<div className="shrink-0 lg:hidden">
 									<AvailabilityActions {...actionsProps} />
 								</div>
+								{showRoomPreviews && pinnedRoomsSummary && (
+									<div className="flex justify-end">
+										<Chip
+											icon={<MeetingRoomOutlined />}
+											label={`Showing ${pinnedRoomsSummary} on the grid`}
+											color="primary"
+											variant="outlined"
+											onDelete={() => setSelectedRoomIds([])}
+											className="max-w-full"
+										/>
+									</div>
+								)}
 								<div className="relative overflow-visible">
 									<table
 										ref={availabilityGridRef}
@@ -562,22 +593,22 @@ export function Availability({
 								) : (
 									<AvailabilityActions {...actionsProps} />
 								)}
-								<Paper
-									variant="outlined"
-									className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
-								>
-									<GroupResponses {...groupResponsesProps} />
-								</Paper>
-								<RoomRecommendationSettings
-									rawRooms={studyRooms}
-									hasSearched={hasSearchedRooms}
-									filters={roomFilters}
-									onFiltersChange={setRoomFilters}
-									onShowBestRooms={handleShowBestRooms}
-									isLoading={isRoomsLoading}
-									errorMessage={studyRoomsError}
-									selectedRoomIds={selectedRoomIds}
-									onSelectedRoomIdsChange={setSelectedRoomIds}
+								<AvailabilitySidebarTabs
+									attendeeCount={members.length}
+									roomCount={hasSearchedRooms ? filteredRooms.length : null}
+									groupResponsesProps={groupResponsesProps}
+									roomProps={{
+										rawRooms: studyRooms,
+										hasSearched: hasSearchedRooms,
+										filters: roomFilters,
+										onFiltersChange: setRoomFilters,
+										onShowBestRooms: handleShowBestRooms,
+										isLoading: isRoomsLoading,
+										errorMessage: studyRoomsError,
+										selectedRoomIds,
+										onSelectedRoomIdsChange: setSelectedRoomIds,
+										timeZone: userTimezone,
+									}}
 								/>
 							</div>
 
@@ -630,6 +661,7 @@ export function Availability({
 											errorMessage={studyRoomsError}
 											selectedRoomIds={selectedRoomIds}
 											onSelectedRoomIdsChange={setSelectedRoomIds}
+											timeZone={userTimezone}
 										/>
 									</>
 								)}

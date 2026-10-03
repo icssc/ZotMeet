@@ -21,6 +21,7 @@ export interface MobileRoomRecommendationsProps {
 	errorMessage: string | null;
 	selectedRoomIds: string[];
 	onSelectedRoomIdsChange: (ids: string[]) => void;
+	timeZone: string;
 }
 
 export function MobileRoomRecommendations({
