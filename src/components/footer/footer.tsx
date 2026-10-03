@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import Image from "next/image";
 import NextLink from "next/link";
+import { usePathname } from "next/navigation";
 
 const iconSocialLinks = [
 	{
@@ -44,7 +45,19 @@ const pageLinks = [
 	{ label: "Rooms", href: "/studyrooms" },
 ];
 
+const isLanding = (pathname: string) => pathname === "/";
+
+/**
+ * Min-height for the content above the footer, matching the widths where the
+ * footer renders, so the footer always starts below the fold.
+ */
+export function aboveFooterClass(pathname: string) {
+	return isLanding(pathname) ? "min-h-screen" : "lg:min-h-screen";
+}
+
+/** Shown at every width on the landing page, large screens only elsewhere. */
 export function Footer() {
+	const pathname = usePathname();
 	const theme = useTheme();
 	const isDark = theme.palette.mode === "dark";
 
@@ -187,6 +200,7 @@ export function Footer() {
 		<Box
 			component="footer"
 			position="relative"
+			className={isLanding(pathname) ? "block" : "hidden lg:block"}
 			sx={{
 				overflow: "hidden",
 				px: { xs: 3, md: 6 },

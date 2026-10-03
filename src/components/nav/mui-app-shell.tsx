@@ -2,7 +2,7 @@
 
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { usePathname } from "next/navigation";
-import { aboveFooterClass, SiteFooter } from "@/components/footer/site-footer";
+import { aboveFooterClass, Footer } from "@/components/footer/footer";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
 import { MuiBottomNav } from "./mui-bottom-nav";
 import { MuiTopNav } from "./mui-top-nav";
@@ -39,7 +39,7 @@ export function MuiAppShell({
 				}}
 			>
 				<Box className={aboveFooterClass(pathname)}>{children}</Box>
-				<SiteFooter />
+				<Footer />
 			</Box>
 		);
 	}
@@ -66,7 +66,7 @@ export function MuiAppShell({
 				{children}
 			</Box>
 
-			<SiteFooter />
+			<Footer />
 			{isMobile && showBottomNav && <MuiBottomNav user={user} />}
 		</Box>
 	);
