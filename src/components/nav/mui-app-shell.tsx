@@ -2,6 +2,7 @@
 
 import { Box, useMediaQuery, useTheme } from "@mui/material";
 import { usePathname } from "next/navigation";
+import { Footer } from "@/components/footer/footer";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
 import { MuiBottomNav } from "./mui-bottom-nav";
 import { MuiTopNav } from "./mui-top-nav";
@@ -17,6 +18,12 @@ function routeHidesBottomNav(pathname: string) {
 	return pathname.startsWith("/availability");
 }
 
+function footerClasses(pathname: string) {
+	return pathname === "/"
+		? { footer: undefined, aboveFooter: "min-h-screen" }
+		: { footer: "hidden lg:block", aboveFooter: "lg:min-h-screen" };
+}
+
 export function MuiAppShell({
 	user,
 	notifications,
@@ -26,6 +33,7 @@ export function MuiAppShell({
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 	const pathname = usePathname();
 	const showBottomNav = !routeHidesBottomNav(pathname);
+	const footer = footerClasses(pathname);
 
 	// Signed-out visitors on "/" get the landing page, which renders its own nav.
 	if (!user && pathname === "/") {
@@ -37,7 +45,8 @@ export function MuiAppShell({
 					minHeight: "100vh",
 				}}
 			>
-				{children}
+				<Box className={footer.aboveFooter}>{children}</Box>
+				<Footer className={footer.footer} />
 			</Box>
 		);
 	}
@@ -54,14 +63,17 @@ export function MuiAppShell({
 		>
 			{!isMobile && <MuiTopNav user={user} notifications={notifications} />}
 			<Box
+				className={footer.aboveFooter}
 				sx={{
 					flex: 1,
 					overflow: "auto",
-					paddingBottom: isMobile && showBottomNav ? 7 : 0,
+					paddingBottom: isMobile && showBottomNav ? 7 : "40px",
 				}}
 			>
 				{children}
 			</Box>
+
+			<Footer className={footer.footer} />
 			{isMobile && showBottomNav && <MuiBottomNav user={user} />}
 		</Box>
 	);
