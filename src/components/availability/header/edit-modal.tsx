@@ -16,6 +16,7 @@ import type { SelectMeeting } from "@/db/schema";
 import {
 	convertTimeFromUTC,
 	convertTimeToUTC,
+	isValidStartEndTimes,
 	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
@@ -113,7 +114,7 @@ export const EditModal = ({
 			selectedDays.length > 0 &&
 			startTime &&
 			endTime &&
-			startTime < endTime &&
+			isValidStartEndTimes(startTime, endTime) &&
 			meetingName
 		);
 	}, [selectedDays.length, startTime, endTime, meetingName]);

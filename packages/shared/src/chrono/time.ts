@@ -22,6 +22,30 @@ export const getTimeFromHourMinuteString = (
 };
 
 /**
+ * Whether a start and end time form a valid meeting window. An end of 12 AM
+ * ("00:00:00") means the end of the day, so 9 AM to 12 AM is valid. Windows
+ * that run past midnight (5 PM to 9 AM) are not. Windows that start and end at
+ * the same time are not valid, since a full-day window isn't supported.
+ */
+export function isValidStartEndTimes(
+	startTime: HourMinuteString,
+	endTime: HourMinuteString,
+): boolean {
+	const startMinutes = getTimeFromHourMinuteString(startTime);
+	let endMinutes = getTimeFromHourMinuteString(endTime);
+
+	const startsAtMidnight = startMinutes === 0;
+	const endsAtMidnight = endMinutes === 0;
+	if (endsAtMidnight && startsAtMidnight) {
+		return false;
+	} else if (endsAtMidnight) {
+		endMinutes = TimeConstants.MINUTES_PER_DAY;
+	}
+
+	return startMinutes < endMinutes;
+}
+
+/**
  * Converts a time string from a specific timezone to UTC
  * @param timeString - Time string in format "HH:MM:SS" or "HH:MM"
  * @param timezone - IANA timezone string (e.g., "America/Los_Angeles")
