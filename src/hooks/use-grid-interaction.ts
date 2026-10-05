@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import type { GridCellHandlers } from "@/components/availability/table/availability-block-cell";
 import {
@@ -8,8 +8,10 @@ import {
 	useGridDragSelection,
 } from "@/hooks/use-grid-drag-selection";
 import {
+	dragPaintMode,
 	type PaintMode,
 	paintPersonalSelection,
+	personalCellState,
 } from "@/lib/availability/paint-selection";
 import { applyScheduleSelection } from "@/lib/availability/schedule-selection";
 import type {
@@ -35,6 +37,8 @@ export interface UseGridInteractionResult {
 	handlers: Omit<GridCellHandlers, "onCellHover">;
 	gridHandlers: GridCellHandlers;
 	handleMouseLeave: () => void;
+	/** The mode the in-progress personal drag paints with (erase when it started on a painted cell). */
+	activePaintMode: PaintMode;
 }
 
 function rangesEqual(
@@ -102,21 +106,37 @@ export function useGridInteraction({
 		})),
 	);
 
+	const [dragMode, setDragMode] = useState<PaintMode | null>(null);
+
+	const paintModeForStart = (start: GridCell): PaintMode => {
+		const availableDay = availabilityDates[start.zotDateIndex];
+		if (!availableDay) return paintMode;
+		return dragPaintMode(
+			paintMode,
+			personalCellState(
+				availableDay,
+				ifNeededDates[start.zotDateIndex],
+				start.blockIndex,
+			),
+		);
+	};
+
 	const groupSelectionIsLocked =
 		availabilityView === "group" && committedRange !== undefined;
 
 	const handleCommit = (
 		range: SelectionStateType,
-		{ isTap }: { isTap: boolean; start: GridCell; end: GridCell },
+		{ isTap, start }: { isTap: boolean; start: GridCell; end: GridCell },
 	) => {
 		setDraftRange(undefined);
+		setDragMode(null);
 
 		if (availabilityView === "personal") {
 			if (!userMemberId) return;
 			const next = paintPersonalSelection({
 				availabilityDates,
 				ifNeededDates,
-				mode: paintMode,
+				mode: paintModeForStart(start),
 				range,
 				memberId: userMemberId,
 				fromTimeMinutes,
@@ -169,12 +189,18 @@ export function useGridInteraction({
 			availabilityView === "personal" || availabilityView === "schedule"
 				? "immediate"
 				: "longPress",
-		onDragStart: () => {
+		onDragStart: (cell) => {
 			setHoverRange(undefined);
+			if (availabilityView === "personal") {
+				setDragMode(paintModeForStart(cell));
+			}
 		},
 		onDragUpdate: (range) => setDraftRange(range),
 		onCommit: handleCommit,
-		onCancel: () => setDraftRange(undefined),
+		onCancel: () => {
+			setDraftRange(undefined);
+			setDragMode(null);
+		},
 	});
 
 	const handleCellHover = useCallback(
@@ -219,5 +245,10 @@ export function useGridInteraction({
 		return () => window.removeEventListener("keydown", onKeyDown);
 	}, [resetSelection]);
 
-	return { handlers, gridHandlers, handleMouseLeave };
+	return {
+		handlers,
+		gridHandlers,
+		handleMouseLeave,
+		activePaintMode: dragMode ?? paintMode,
+	};
 }

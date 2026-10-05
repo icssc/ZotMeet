@@ -33,6 +33,21 @@ export function paintWillChange(
 }
 
 /**
+ * The mode a drag actually paints with, decided by the cell it starts on.
+ * Starting on a cell that already holds the selected mode (e.g. an available
+ * cell while painting "available") erases instead, so re-dragging over a
+ * painted block clears it.
+ */
+export function dragPaintMode(
+	mode: PaintMode,
+	startState: PersonalCellState,
+): PaintMode {
+	return mode !== "unavailable" && !paintWillChange(mode, startState)
+		? "unavailable"
+		: mode;
+}
+
+/**
  * The cell's saved state as a paint target, from the user's own slots.
  * Available wins over if-needed so a slot in both reads as available.
  */
