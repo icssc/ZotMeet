@@ -128,8 +128,6 @@ Scan with [Expo Go](https://expo.dev/go) (iOS: the Camera app; Android: Expo Go'
 
 If you need credentials for the `.env` file, contact the project lead ([Kyle](https://github.com/kylebtran/)).
 
-After changes to the .env file, run `pnpm run check` to update SvelteKit's auto-generated environment variable types.
-
 ### Seeding the Database (for Testing)
 
 The seed script (`src/db/seed.ts`) creates a group called **"ZotMeet Test Group"** and populates it with up to 20 randomly generated users. This is useful for testing features like availability views and group dashboards without needing real accounts.
