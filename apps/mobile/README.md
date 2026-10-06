@@ -216,7 +216,7 @@ If Expo Go says the update can't be found or you're not authorised, you're eithe
 - **Forked PRs don't get a preview** — GitHub withholds secrets from forks. A maintainer can comment `/preview` on the PR to publish one.
 - Add the **`no preview`** label to a PR to skip publishing (e.g. a docs-only change under `apps/mobile`).
 - Previews target a stock Expo Go install (the update is keyed to the Expo SDK version, not a native build), so no dev client is needed.
-- A preview talks to the **PR's staging deployment** (`https://staging-<PR>.zotmeet.com`, published by `deploy-staging.yml`), the only server running that PR's `/api/*` routes. The workflow bakes that URL in as `EXPO_PUBLIC_API_URL`; if the staging deploy is skipped (`no deploy` label) or has failed, the preview loads but every request fails.
+- A preview talks to the **PR's staging deployment** (`https://staging-<PR>.zotmeet.com`, published by `deploy-staging.yml`), the only server running that PR's `/api/*` routes. The workflow bakes that URL in as `EXPO_PUBLIC_API_URL`; if the staging deploy is skipped (`no deploy` label, or a forked PR — a maintainer runs `/deploy` as well as `/preview` there) or has failed, the preview loads but every request fails.
 - Previews carry no dev token, so a preview starts signed out. **Sign-in works from a preview**: Expo Go's callback link inside a published update is `exp://u.expo.dev/<project id>/group/<update>/--/auth/…`, and the staging server accepts that form for this project's id (§5, step 2; `EAS_PROJECT_ID` reaches the server through `deploy-staging.yml` → `sst.config.ts`). Only updates published under the org's EAS project can live at that address, so it is trusted the way `zotmeet://` is.
 
 ### CI setup (maintainers)
