@@ -35,7 +35,12 @@ env:
 
 jobs:
   deploy:
-    if: github.event_name == 'repository_dispatch' || (!contains(github.event.pull_request.labels.*.name, 'no deploy'))
+    if: >-
+      github.event_name == 'repository_dispatch' ||
+      (
+        !contains(github.event.pull_request.labels.*.name, 'no deploy') &&
+        github.event.pull_request.head.repo.full_name == github.repository
+      )
 
     runs-on: ubuntu-latest
 
