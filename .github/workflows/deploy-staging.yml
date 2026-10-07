@@ -32,6 +32,9 @@ env:
   # Lets the mobile PR preview (mobile-preview.yml) sign in against this
   # stage; same repository variable that workflow uses. See sst.config.ts.
   EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+  # A separate PostHog project for PR previews, so test traffic stays out of
+  # production analytics. Optional: unset, previews deploy with analytics off.
+  NEXT_PUBLIC_POSTHOG_KEY: ${{ vars.POSTHOG_STAGING_PROJECT_TOKEN }}
 
 jobs:
   deploy:
