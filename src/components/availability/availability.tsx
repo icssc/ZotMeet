@@ -202,17 +202,18 @@ export function Availability({
 
 	const availabilityGridRef = useRef<HTMLTableElement>(null);
 
-	const { handlers, gridHandlers, handleMouseLeave } = useGridInteraction({
-		availabilityView,
-		paintMode,
-		availabilityDates,
-		ifNeededDates,
-		setAvailabilityDates,
-		setIfNeededDates,
-		userMemberId: user?.memberId,
-		fromTimeMinutes,
-		userTimezone,
-	});
+	const { handlers, gridHandlers, handleMouseLeave, activePaintMode } =
+		useGridInteraction({
+			availabilityView,
+			paintMode,
+			availabilityDates,
+			ifNeededDates,
+			setAvailabilityDates,
+			setIfNeededDates,
+			userMemberId: user?.memberId,
+			fromTimeMinutes,
+			userTimezone,
+		});
 
 	// Room recommendations — surfaced in the group/schedule sidebar so the host
 	// can pull room suggestions for the times the group is most available.
@@ -524,7 +525,7 @@ export function Availability({
 													meetingDates={meetingData.dates}
 													userTimezone={userTimezone}
 													handlers={handlers}
-													paintMode={paintMode}
+													paintMode={activePaintMode}
 													isDirty={isDirty}
 												/>
 											)}

@@ -32,6 +32,15 @@ export function paintWillChange(
 	}
 }
 
+export function dragPaintMode(
+	mode: PaintMode,
+	startState: PersonalCellState,
+): PaintMode {
+	return mode !== "unavailable" && !paintWillChange(mode, startState)
+		? "unavailable"
+		: mode;
+}
+
 /**
  * The cell's saved state as a paint target, from the user's own slots.
  * Available wins over if-needed so a slot in both reads as available.

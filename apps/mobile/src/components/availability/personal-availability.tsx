@@ -1,8 +1,10 @@
 import {
 	type CurrentPageAvailability,
+	dragPaintMode,
 	generateCellKey,
 	getRowChrome,
 	type MeetingType,
+	type PaintMode,
 	paintPersonalSelection,
 	personalCellState,
 	rangeCoversCell,
@@ -120,7 +122,8 @@ function toRange(
 /**
  * Personal paint grid — native counterpart to the web's
  * `PersonalAvailability`. Drag (or tap) paints with the active `paintMode`
- * through shared `paintPersonalSelection`.
+ * through shared `paintPersonalSelection`; a drag that starts on a cell
+ * already in that mode erases instead (shared `dragPaintMode`).
  */
 export function PersonalAvailability({
 	availabilityTimeBlocks,
@@ -141,6 +144,9 @@ export function PersonalAvailability({
 		SelectionStateType | undefined
 	>();
 	const [columnWidth, setColumnWidth] = useState(0);
+	// The mode the current drag paints with, fixed by the cell it starts on.
+	const [dragMode, setDragMode] = useState<PaintMode | null>(null);
+	const dragModeRef = useRef<PaintMode>(paintMode);
 
 	const anchorRef = useRef<{
 		zotDateIndex: number;
@@ -151,26 +157,23 @@ export function PersonalAvailability({
 	// A pan reports many points per cell; only a change of cell is a change of
 	// range, and only that should reach React — or the thumb. Painting ticks
 	// once per cell crossed, like a picker wheel; clearing is silent.
-	const updateDraftRange = useCallback(
-		(range: SelectionStateType) => {
-			const prev = latestRangeRef.current;
-			latestRangeRef.current = range;
-			if (
-				prev &&
-				prev.earlierDateIndex === range.earlierDateIndex &&
-				prev.laterDateIndex === range.laterDateIndex &&
-				prev.earlierBlockIndex === range.earlierBlockIndex &&
-				prev.laterBlockIndex === range.laterBlockIndex
-			) {
-				return;
-			}
-			if (paintMode !== "unavailable") {
-				Haptics.selectionAsync().catch(() => {});
-			}
-			setDraftRange(range);
-		},
-		[paintMode],
-	);
+	const updateDraftRange = useCallback((range: SelectionStateType) => {
+		const prev = latestRangeRef.current;
+		latestRangeRef.current = range;
+		if (
+			prev &&
+			prev.earlierDateIndex === range.earlierDateIndex &&
+			prev.laterDateIndex === range.laterDateIndex &&
+			prev.earlierBlockIndex === range.earlierBlockIndex &&
+			prev.laterBlockIndex === range.laterBlockIndex
+		) {
+			return;
+		}
+		if (dragModeRef.current !== "unavailable") {
+			Haptics.selectionAsync().catch(() => {});
+		}
+		setDraftRange(range);
+	}, []);
 
 	const spacers = useMemo(
 		() => spacerBeforeDate(currentPageAvailability.availabilities),
@@ -246,9 +249,28 @@ export function PersonalAvailability({
 			const cell = resolveCell(x, y, false);
 			if (!cell) return;
 			anchorRef.current = cell;
+			const availableDay = availabilityDates[cell.zotDateIndex];
+			const mode = availableDay
+				? dragPaintMode(
+						paintMode,
+						personalCellState(
+							availableDay,
+							ifNeededDates[cell.zotDateIndex],
+							cell.blockIndex,
+						),
+					)
+				: paintMode;
+			dragModeRef.current = mode;
+			setDragMode(mode);
 			updateDraftRange(toRange(cell, cell));
 		},
-		[resolveCell, updateDraftRange],
+		[
+			availabilityDates,
+			ifNeededDates,
+			paintMode,
+			resolveCell,
+			updateDraftRange,
+		],
 	);
 
 	const extend = useCallback(
@@ -267,27 +289,20 @@ export function PersonalAvailability({
 		anchorRef.current = null;
 		latestRangeRef.current = undefined;
 		setDraftRange(undefined);
+		setDragMode(null);
 		if (!range) return;
 		onPaint(
 			paintPersonalSelection({
 				availabilityDates,
 				ifNeededDates,
-				mode: paintMode,
+				mode: dragModeRef.current,
 				range,
 				memberId,
 				fromTimeMinutes: fromTime,
 				timeZone,
 			}),
 		);
-	}, [
-		availabilityDates,
-		fromTime,
-		ifNeededDates,
-		memberId,
-		onPaint,
-		paintMode,
-		timeZone,
-	]);
+	}, [availabilityDates, fromTime, ifNeededDates, memberId, onPaint, timeZone]);
 
 	// The gesture is built once and reads the latest handlers through a ref:
 	// rebuilding it on every draft update would re-attach it mid-drag.
@@ -374,7 +389,7 @@ export function PersonalAvailability({
 																blockIndex,
 															)}
 															key={`${generateCellKey(zotDateIndex, blockIndex)}-${timeBlock}`}
-															paintMode={paintMode}
+															paintMode={dragMode ?? paintMode}
 														/>
 													);
 												})}

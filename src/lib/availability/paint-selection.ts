@@ -4,6 +4,7 @@
  */
 export {
 	type CellPaintTarget,
+	dragPaintMode,
 	effectiveCellTarget,
 	type ImportPreviewTarget,
 	importPreviewTargetFor,
