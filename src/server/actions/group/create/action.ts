@@ -2,12 +2,10 @@
 
 import { createGroupSchema } from "@actions/group/create/schema";
 import { createNewNotification } from "@data/user/queries";
-import { ANALYTICS_EVENTS } from "@zotmeet/shared";
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
 import { db } from "@/db";
 import { GroupRole, groupInvites, groups, usersInGroup } from "@/db/schema";
-import { captureServerEvent } from "@/lib/analytics/posthog";
 import { getCurrentSession } from "@/lib/auth";
 import { createBrandedTransactionalEmail } from "@/lib/email/templates";
 import { NOTIFICATION_TYPES } from "@/lib/notification/types";
@@ -124,11 +122,6 @@ export async function createGroup(
 				console.error(notificationError);
 			}
 		}
-
-		await captureServerEvent(user.memberId, ANALYTICS_EVENTS.groupCreated, {
-			group_id: result.id,
-			invited_member_count: toNotify.length,
-		});
 
 		revalidatePath("/summary");
 		revalidatePath("/groups");

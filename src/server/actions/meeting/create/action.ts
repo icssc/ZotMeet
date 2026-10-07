@@ -1,11 +1,10 @@
 "use server";
 
-import { ANALYTICS_EVENTS, createMeetingSchema } from "@zotmeet/shared";
+import { createMeetingSchema } from "@zotmeet/shared";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { type InsertMeeting, meetings, members, users } from "@/db/schema";
-import { captureServerEvent } from "@/lib/analytics/posthog";
 import { getCurrentSession } from "@/lib/auth";
 import { sortMeetingIsoDatesAsc } from "@/lib/availability/utils";
 import { availabilityPathWithOpenInvite } from "@/lib/meeting-open-invite";
@@ -31,20 +30,6 @@ function validateMeetingInput(
 	});
 	if (parsed.success) return null;
 	return parsed.error.issues[0]?.message ?? "Invalid meeting.";
-}
-
-function captureMeetingCreated(
-	hostMemberId: string,
-	meeting: Pick<InsertMeeting, "meetingType" | "dates" | "group_id"> & {
-		id: string;
-	},
-): Promise<void> {
-	return captureServerEvent(hostMemberId, ANALYTICS_EVENTS.meetingCreated, {
-		meeting_id: meeting.id,
-		meeting_type: meeting.meetingType === "days" ? "days" : "dates",
-		date_count: meeting.dates?.length ?? 0,
-		has_group: Boolean(meeting.group_id),
-	});
 }
 
 async function maybeAutoInviteGroupMembersForNewMeeting(args: {
@@ -181,8 +166,6 @@ export async function createMeetingFromData(
 			hostMemberId: hostId,
 		});
 
-		await captureMeetingCreated(hostId, { ...meeting, id: newMeeting.id });
-
 		return { id: newMeeting.id };
 	} catch (error) {
 		console.error("Failed to create meeting:", error);
@@ -249,8 +232,6 @@ export async function createMeeting(meetingData: InsertMeeting) {
 		groupId: group_id ?? null,
 		hostMemberId: hostId,
 	});
-
-	await captureMeetingCreated(hostId, { ...meeting, id: newMeeting.id });
 
 	redirect(availabilityPathWithOpenInvite(newMeeting.id));
 }

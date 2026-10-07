@@ -1,14 +1,10 @@
-import {
-	ANALYTICS_EVENTS,
-	NATIVE_OAUTH_CALLBACK_PARAMS,
-} from "@zotmeet/shared";
+import { NATIVE_OAUTH_CALLBACK_PARAMS } from "@zotmeet/shared";
 import type { OAuth2Tokens } from "arctic";
 import { decodeIdToken } from "arctic";
 import { eq } from "drizzle-orm";
 import type { cookies } from "next/headers";
 import { db } from "@/db";
 import { type InsertSession, members, oauthAccounts } from "@/db/schema";
-import { captureServerEvent } from "@/lib/analytics/posthog";
 import { setSessionTokenCookie } from "@/lib/auth/cookies";
 import { decodeNativeState } from "@/lib/auth/native-state";
 import { getOAuthClient } from "@/lib/auth/oauth";
@@ -65,7 +61,7 @@ async function resolveAuthenticatedUser(
 	email: string,
 	displayName: string,
 	picture: string | null,
-): Promise<{ userId: string; memberId: string; isNewUser: boolean }> {
+): Promise<{ userId: string; memberId: string }> {
 	const providerId = OAUTH_LOGIN_CONFIG[provider].oauthAccountProviderId;
 
 	const linkedAccount = await db.query.oauthAccounts.findFirst({
@@ -81,11 +77,7 @@ async function resolveAuthenticatedUser(
 		if (!userRecord) {
 			throw new Error("Linked OAuth account references missing user");
 		}
-		return {
-			userId: linkedAccount.userId,
-			memberId: userRecord.memberId,
-			isNewUser: false,
-		};
+		return { userId: linkedAccount.userId, memberId: userRecord.memberId };
 	}
 
 	const existingUser = await db.query.users.findFirst({
@@ -120,11 +112,7 @@ async function resolveAuthenticatedUser(
 				.where(eq(members.id, existingUser.memberId));
 		}
 
-		return {
-			userId: existingUser.id,
-			memberId: existingUser.memberId,
-			isNewUser: false,
-		};
+		return { userId: existingUser.id, memberId: existingUser.memberId };
 	}
 
 	const user = await createOAuthUser(
@@ -134,7 +122,7 @@ async function resolveAuthenticatedUser(
 		picture,
 		providerId,
 	);
-	return { userId: user.id, memberId: user.memberId, isNewUser: true };
+	return { userId: user.id, memberId: user.memberId };
 }
 
 function extractGoogleTokens(tokens: OAuth2Tokens): SessionTokenOptions {
@@ -278,8 +266,6 @@ export type EstablishedOAuthSession = {
 	session: InsertSession;
 	userId: string;
 	memberId: string;
-	/** This login created the account. */
-	isNewUser: boolean;
 };
 
 /**
@@ -310,7 +296,7 @@ export async function establishOAuthSession(
 			? extractGoogleTokens(tokens)
 			: extractAppleTokens(tokens);
 
-	const { userId, memberId, isNewUser } = await resolveAuthenticatedUser(
+	const { userId, memberId } = await resolveAuthenticatedUser(
 		provider,
 		oauthUserId,
 		email,
@@ -326,7 +312,7 @@ export async function establishOAuthSession(
 		oauthAccessTokenExpiresAt: sessionOptions.oauthAccessTokenExpiresAt,
 	});
 
-	return { sessionToken, session, userId, memberId, isNewUser };
+	return { sessionToken, session, userId, memberId };
 }
 
 /**
@@ -426,15 +412,11 @@ export async function handleOAuthCallback(
 		return callbackFailure("the authorization code was rejected");
 	}
 
-	const { sessionToken, session, memberId, isNewUser } =
-		await establishOAuthSession(provider, tokens);
-	await setSessionTokenCookie(sessionToken, session.expiresAt);
-
-	await captureServerEvent(
-		memberId,
-		isNewUser ? ANALYTICS_EVENTS.signedUp : ANALYTICS_EVENTS.signedIn,
-		{ provider },
+	const { sessionToken, session, memberId } = await establishOAuthSession(
+		provider,
+		tokens,
 	);
+	await setSessionTokenCookie(sessionToken, session.expiresAt);
 
 	const meetingRedirect = await maybeRedirectAfterMeetingCreation(
 		request,

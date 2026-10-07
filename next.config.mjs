@@ -4,20 +4,8 @@ const nextConfig = {
 	// Workspace packages ship TypeScript source; Next treats symlinked packages
 	// as externals unless told to compile them.
 	transpilePackages: ["@zotmeet/shared"],
-	// PostHog's API paths end in a slash; Next's redirect would break them.
-	skipTrailingSlashRedirect: true,
 	async rewrites() {
 		return [
-			// First-party proxy for PostHog (`src/instrumentation-client.ts`), so
-			// ad blockers don't drop analytics requests to *.posthog.com.
-			{
-				source: "/ingest/static/:path*",
-				destination: "https://us-assets.i.posthog.com/static/:path*",
-			},
-			{
-				source: "/ingest/:path*",
-				destination: "https://us.i.posthog.com/:path*",
-			},
 			{
 				source: "/.well-known/apple-app-site-association",
 				destination: "/apple-app-site-association",

@@ -1,10 +1,8 @@
 import "server-only";
 
 import { getExistingMeeting } from "@data/meeting/queries";
-import { ANALYTICS_EVENTS } from "@zotmeet/shared";
 import { db } from "@/db";
 import { availabilities } from "@/db/schema";
-import { captureServerEvent } from "@/lib/analytics/posthog";
 
 /**
  * A well-formed meeting id that matches no live meeting (missing or
@@ -59,12 +57,6 @@ export async function savePersonalAvailabilityForMember(args: {
 			target: [availabilities.memberId, availabilities.meetingId],
 			set: { meetingAvailabilities, ifNeededAvailabilities },
 		});
-
-	await captureServerEvent(memberId, ANALYTICS_EVENTS.availabilitySaved, {
-		meeting_id: meetingId,
-		slot_count: meetingAvailabilities.length,
-		if_needed_slot_count: ifNeededAvailabilities.length,
-	});
 
 	return { groupId: meeting.group_id };
 }
