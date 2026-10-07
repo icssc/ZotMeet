@@ -32,12 +32,6 @@ export function paintWillChange(
 	}
 }
 
-/**
- * The mode a drag actually paints with, decided by the cell it starts on.
- * Starting on a cell that already holds the selected mode (e.g. an available
- * cell while painting "available") erases instead, so re-dragging over a
- * painted block clears it.
- */
 export function dragPaintMode(
 	mode: PaintMode,
 	startState: PersonalCellState,

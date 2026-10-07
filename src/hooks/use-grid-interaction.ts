@@ -37,7 +37,6 @@ export interface UseGridInteractionResult {
 	handlers: Omit<GridCellHandlers, "onCellHover">;
 	gridHandlers: GridCellHandlers;
 	handleMouseLeave: () => void;
-	/** The mode the in-progress personal drag paints with (erase when it started on a painted cell). */
 	activePaintMode: PaintMode;
 }
 
