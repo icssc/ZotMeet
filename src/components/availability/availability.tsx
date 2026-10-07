@@ -2,6 +2,7 @@
 
 import { Paper } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { computeSplitBestTimes } from "@zotmeet/shared";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/shallow";
@@ -75,10 +76,11 @@ export function Availability({
 
 	// View + paint mode live in the store (paint mode is reset atomically in
 	// `setAvailabilityView`, so it cannot drift across view switches).
-	const { availabilityView, paintMode } = useAvailabilityStore(
+	const { availabilityView, paintMode, showBestTimes } = useAvailabilityStore(
 		useShallow((state) => ({
 			availabilityView: state.availabilityView,
 			paintMode: state.paintMode,
+			showBestTimes: state.enabled,
 		})),
 	);
 
@@ -190,6 +192,27 @@ export function Availability({
 
 	const { calendars: googleCalendars, visibleEvents: visibleCalendarEvents } =
 		useCalendarOverlays(googleCalendarEvents);
+
+	// Read by both the grid and the sidebar, so computed once here.
+	const splitBestTimes = useMemo(() => {
+		if (!showBestTimes) return null;
+		const pendingIds = new Set(pendingMembers.map((m) => m.memberId));
+		return computeSplitBestTimes({
+			availabilityDates,
+			ifNeededDates,
+			hostId: meetingData.hostId,
+			memberIds: members
+				.filter((m) => !pendingIds.has(m.memberId))
+				.map((m) => m.memberId),
+		});
+	}, [
+		showBestTimes,
+		availabilityDates,
+		ifNeededDates,
+		meetingData.hostId,
+		members,
+		pendingMembers,
+	]);
 
 	const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
 	const hasMultiplePages = lastPage > 0;
@@ -404,6 +427,7 @@ export function Availability({
 			meetingId: meetingData.id,
 			isOwner: isMeetingOwner,
 			hostId: meetingData.hostId,
+			splitBestTimes,
 		}),
 		[
 			availabilityDates,
@@ -417,6 +441,7 @@ export function Availability({
 			meetingData.id,
 			meetingData.hostId,
 			isMeetingOwner,
+			splitBestTimes,
 		],
 	);
 
@@ -510,6 +535,7 @@ export function Availability({
 													ifNeededDates={ifNeededDates}
 													currentPageAvailability={currentPageAvailability}
 													members={members}
+													splitBestTimes={splitBestTimes}
 													onMouseLeave={handleMouseLeave}
 													isScheduling={availabilityView === "schedule"}
 													timeZone={userTimezone}

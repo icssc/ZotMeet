@@ -37,6 +37,7 @@ export interface BlockFillInput {
 	showBestTimes: boolean;
 	/** From `computeMaxAvailability`; only read when `showBestTimes`. */
 	maxAvailability: number;
+	inSplitSession?: boolean;
 }
 
 /** Priority: a member filter, then a hovered member, then best-times, then everyone. */
@@ -48,6 +49,7 @@ export function calculateBlockFill({
 	numMembers,
 	showBestTimes,
 	maxAvailability,
+	inSplitSession,
 }: BlockFillInput): BlockFill {
 	if (selectedMembers.length) {
 		const selectedAvailable = selectedMembers.filter((memberId) =>
@@ -69,6 +71,12 @@ export function calculateBlockFill({
 			ifNeededBlock.includes(hoveredMember) ? 1 : 0,
 			1,
 		);
+	}
+
+	if (showBestTimes && inSplitSession !== undefined) {
+		return inSplitSession
+			? proportionalFill(block.length, ifNeededBlock.length, numMembers)
+			: EMPTY_FILL;
 	}
 
 	if (showBestTimes) {

@@ -4,6 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import {
 	calculateBlockFill,
 	computeMaxAvailability,
+	type SplitBestTimes,
 	scheduledEdgesFor,
 	selectionEdgesFor,
 } from "@zotmeet/shared";
@@ -38,6 +39,8 @@ interface GroupAvailabilityProps {
 		ifNeeded: (ZotDate | null)[];
 	};
 	members: Member[];
+	/** `null` while best times is off. */
+	splitBestTimes: SplitBestTimes | null;
 	onMouseLeave: () => void;
 	isScheduling: boolean;
 	timeZone: string;
@@ -52,6 +55,7 @@ export function GroupAvailability({
 	ifNeededDates,
 	currentPageAvailability,
 	members,
+	splitBestTimes,
 	onMouseLeave,
 	isScheduling,
 	timeZone,
@@ -72,6 +76,8 @@ export function GroupAvailability({
 		pendingAdds,
 		pendingRemovals,
 		showBestTimes,
+		selectedSplitOption,
+		hoveredSplitSession,
 	} = useAvailabilityStore(
 		useShallow((state) => ({
 			currentPage: state.currentPage,
@@ -85,6 +91,8 @@ export function GroupAvailability({
 			pendingAdds: state.pendingAdds,
 			pendingRemovals: state.pendingRemovals,
 			showBestTimes: state.enabled,
+			selectedSplitOption: state.selectedSplitOption,
+			hoveredSplitSession: state.hoveredSplitSession,
 		})),
 	);
 
@@ -134,6 +142,18 @@ export function GroupAvailability({
 				: 0,
 		[showBestTimes, numMembers, availabilityDates, ifNeededDates],
 	);
+
+	/** Slots of the selected split option (or just its hovered session); `null` when none is selected. */
+	const splitSessionTimestamps = useMemo(() => {
+		if (selectedSplitOption === null) return null;
+		const option = splitBestTimes?.options[selectedSplitOption];
+		if (!option) return null;
+		const sessions =
+			hoveredSplitSession === null
+				? option.sessions
+				: option.sessions.slice(hoveredSplitSession, hoveredSplitSession + 1);
+		return new Set(sessions.flatMap((s) => s.timestamps));
+	}, [splitBestTimes, selectedSplitOption, hoveredSplitSession]);
 
 	const timestampsByCell = useMemo(
 		() =>
@@ -215,6 +235,7 @@ export function GroupAvailability({
 									showBestTimes,
 									maxAvailability,
 									ifNeededBlock,
+									inSplitSession: splitSessionTimestamps?.has(timestamp),
 								});
 
 								const prevTimestamp =

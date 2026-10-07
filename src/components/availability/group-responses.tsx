@@ -2,6 +2,7 @@ import { removeMeetingMember } from "@actions/meeting/leave/action";
 import { NotificationsOutlined } from "@mui/icons-material";
 import { Avatar, Button, Chip, Switch, Typography } from "@mui/material";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import type { SplitBestTimes } from "@zotmeet/shared";
 import { XIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -13,6 +14,7 @@ import {
 } from "react";
 import { useShallow } from "zustand/shallow";
 import { RemoveMeetingMemberDialog } from "@/components/availability/remove-meeting-member-dialog";
+import { SplitBestTimesList } from "@/components/availability/split-best-times";
 import { MuiBottomSheet } from "@/components/ui/mui/mui-bottom-sheet";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import {
@@ -102,6 +104,8 @@ interface GroupResponsesProps {
 	meetingId: string;
 	isOwner: boolean;
 	hostId: string;
+	/** `null` while best times is off. */
+	splitBestTimes: SplitBestTimes | null;
 }
 
 function canRemoveMember(
@@ -118,6 +122,12 @@ type GroupResponsesPanelProps = {
 	blockInfoString: string;
 	showBestTimes: boolean;
 	onShowBestTimesChange: (checked: boolean) => void;
+	splitBestTimes: SplitBestTimes | null;
+	selectedSplitOption: number | null;
+	onSelectSplitOption: (index: number | null) => void;
+	onHoverSplitSession: (index: number | null) => void;
+	timezone: string;
+	doesntNeedDay: boolean;
 	respondedMembers: Member[];
 	memberStatus: ReadonlyMap<string, MemberRangeStatus>;
 	selectedMemberIds: ReadonlySet<string>;
@@ -140,6 +150,12 @@ function GroupResponsesPanel({
 	blockInfoString,
 	showBestTimes,
 	onShowBestTimesChange,
+	splitBestTimes,
+	selectedSplitOption,
+	onSelectSplitOption,
+	onHoverSplitSession,
+	timezone,
+	doesntNeedDay,
 	respondedMembers,
 	memberStatus,
 	selectedMemberIds,
@@ -217,6 +233,21 @@ function GroupResponsesPanel({
 						Best Times
 					</label>
 				</div>
+
+				{showBestTimes &&
+					splitBestTimes &&
+					splitBestTimes.options.length > 0 && (
+						<SplitBestTimesList
+							split={splitBestTimes}
+							members={respondedMembers}
+							hostId={hostId}
+							timeZone={timezone}
+							doesntNeedDay={doesntNeedDay}
+							selectedOption={selectedSplitOption}
+							onSelectOption={onSelectSplitOption}
+							onHoverSession={onHoverSplitSession}
+						/>
+					)}
 			</div>
 
 			<div className="flex flex-col py-2">
@@ -345,6 +376,7 @@ export function GroupResponses({
 	meetingId,
 	isOwner,
 	hostId,
+	splitBestTimes,
 }: GroupResponsesProps) {
 	const isLgQuery = useMediaQuery(LG_UP_MEDIA, { noSsr: true });
 	const [layoutReady, setLayoutReady] = useState(false);
@@ -442,6 +474,9 @@ export function GroupResponses({
 		hoveredMember,
 		enabled: showBestTimes,
 		setEnabled: setShowBestTimes,
+		selectedSplitOption,
+		setSelectedSplitOption,
+		setHoveredSplitSession,
 	} = useAvailabilityStore(
 		useShallow((state) => ({
 			isMobileDrawerOpen: state.isMobileDrawerOpen,
@@ -453,6 +488,9 @@ export function GroupResponses({
 			hoveredMember: state.hoveredMember,
 			enabled: state.enabled,
 			setEnabled: state.setEnabled,
+			selectedSplitOption: state.selectedSplitOption,
+			setSelectedSplitOption: state.setSelectedSplitOption,
+			setHoveredSplitSession: state.setHoveredSplitSession,
 		})),
 	);
 
@@ -574,6 +612,12 @@ export function GroupResponses({
 			blockInfoString,
 			showBestTimes,
 			onShowBestTimesChange: setShowBestTimes,
+			splitBestTimes,
+			selectedSplitOption,
+			onSelectSplitOption: setSelectedSplitOption,
+			onHoverSplitSession: setHoveredSplitSession,
+			timezone,
+			doesntNeedDay,
 			respondedMembers,
 			memberStatus,
 			selectedMemberIds,
@@ -609,6 +653,12 @@ export function GroupResponses({
 			selectedMemberIds,
 			setShowBestTimes,
 			showBestTimes,
+			splitBestTimes,
+			selectedSplitOption,
+			setSelectedSplitOption,
+			setHoveredSplitSession,
+			timezone,
+			doesntNeedDay,
 		],
 	);
 

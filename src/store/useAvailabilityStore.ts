@@ -24,6 +24,12 @@ interface AvailabilityStore {
 	// Best Times
 	enabled: boolean;
 	setEnabled: (v: boolean) => void;
+	/** Index into the split best-times options shown on the grid; `null` shows the single best slots. */
+	selectedSplitOption: number | null;
+	setSelectedSplitOption: (index: number | null) => void;
+	/** A session of the selected split option to show alone on the grid. */
+	hoveredSplitSession: number | null;
+	setHoveredSplitSession: (index: number | null) => void;
 
 	draftRange: SelectionStateType | undefined;
 	hoverRange: SelectionStateType | undefined;
@@ -100,7 +106,13 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 
 	// Best Times
 	enabled: false,
-	setEnabled: (enabled) => set({ enabled }),
+	setEnabled: (enabled) =>
+		set({ enabled, selectedSplitOption: null, hoveredSplitSession: null }),
+	selectedSplitOption: null,
+	setSelectedSplitOption: (index) =>
+		set({ selectedSplitOption: index, hoveredSplitSession: null }),
+	hoveredSplitSession: null,
+	setHoveredSplitSession: (index) => set({ hoveredSplitSession: index }),
 
 	// Selection ranges
 	draftRange: undefined,
