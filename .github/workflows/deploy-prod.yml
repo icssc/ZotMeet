@@ -30,6 +30,9 @@ env:
   # `u.expo.dev/<project id>` callback link once it knows the id. Same
   # variable the staging deploy passes for PR previews.
   EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+  # PostHog project token ("phc_…") — public by design, so a variable rather
+  # than a secret. Unset, the site deploys with analytics off.
+  NEXT_PUBLIC_POSTHOG_KEY: ${{ vars.POSTHOG_PROJECT_TOKEN }}
 
 jobs:
   deploy:

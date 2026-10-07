@@ -16,6 +16,12 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		return NextResponse.next();
 	}
 
+	// `/ingest/*` is rewritten straight to PostHog (next.config.mjs); it never
+	// reaches a handler that reads the session cookie.
+	if (request.nextUrl.pathname.startsWith("/ingest/")) {
+		return NextResponse.next();
+	}
+
 	// Prevent CSRF attacks from route handlers
 	const originHeader = request.headers.get("Origin");
 	const hostHeader = request.headers.get("Host");

@@ -7,6 +7,7 @@
  * app imports the package directly.
  */
 
+export * from "./analytics/events";
 export * from "./auth/native";
 export * from "./auth/providers";
 export * from "./auth/return-to";
