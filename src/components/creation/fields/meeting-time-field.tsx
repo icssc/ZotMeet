@@ -2,6 +2,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { type Dispatch, type SetStateAction, useMemo } from "react";
+import { timeOrHourZero } from "@/lib/time-picker";
 import type { HourMinuteString } from "@/lib/types/chrono";
 
 function hourMinuteStringToDate(time: HourMinuteString): Date {
@@ -62,7 +63,10 @@ export const MeetingTimeField = ({
 					label="START TIME"
 					value={startDate}
 					onChange={(value) => {
-						if (value) setStartTime(dateToHourMinuteString(value));
+						if (value)
+							setStartTime(
+								dateToHourMinuteString(timeOrHourZero(value, startDate)),
+							);
 					}}
 					slotProps={slotProps}
 				/>
@@ -70,7 +74,10 @@ export const MeetingTimeField = ({
 					label="END TIME"
 					value={endDate}
 					onChange={(value) => {
-						if (value) setEndTime(dateToHourMinuteString(value));
+						if (value)
+							setEndTime(
+								dateToHourMinuteString(timeOrHourZero(value, endDate)),
+							);
 					}}
 					slotProps={slotProps}
 				/>
