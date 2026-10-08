@@ -293,8 +293,8 @@ export function Sidebar({
 								textField: {
 									fullWidth: true,
 									sx: {
-										"& .MuiIconButton-edgeEnd": {
-											marginRight: 0,
+										"& .MuiInputAdornment-root": {
+											flexShrink: 0,
 										},
 									},
 								},
@@ -308,8 +308,8 @@ export function Sidebar({
 								textField: {
 									fullWidth: true,
 									sx: {
-										"& .MuiIconButton-edgeEnd": {
-											marginRight: 0,
+										"& .MuiInputAdornment-root": {
+											flexShrink: 0,
 										},
 									},
 								},
