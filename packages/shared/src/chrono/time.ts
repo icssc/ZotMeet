@@ -104,20 +104,16 @@ export const generateTimeBlocks = (
 	const timeBlocks: number[] = [];
 	let range = endTime - startTime;
 	if (endTime < startTime) {
-		range = endTime + 1440 - startTime;
+		range = endTime + TimeConstants.MINUTES_PER_DAY - startTime;
 	}
 	const minuteRange = Math.abs(range);
 	const totalBlocks = Math.floor(minuteRange / BLOCK_LENGTH);
 
-	const newTime = [];
 	for (let blockIndex = 0; blockIndex < totalBlocks; blockIndex++) {
-		if (startTime + blockIndex * BLOCK_LENGTH >= 1440) {
-			newTime.push(startTime + blockIndex * BLOCK_LENGTH);
-		} else {
-			timeBlocks.push(startTime + blockIndex * BLOCK_LENGTH);
-		}
+		timeBlocks.push(startTime + blockIndex * BLOCK_LENGTH);
 	}
-	return [...newTime, ...timeBlocks];
+
+	return timeBlocks;
 };
 
 export const getMinutesFromMidnight = (isoOrDateString: string): number => {
