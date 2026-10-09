@@ -5,6 +5,7 @@ import {
 	ActionItemsSkeleton,
 	CalendarSkeleton,
 	HeaderSkeleton,
+	LibraryTrafficSkeleton,
 	QuickBookSkeleton,
 	RecentRoomsSkeleton,
 	UpcomingSkeleton,
@@ -24,6 +25,7 @@ export default function Loading() {
 				<>
 					<CalendarSkeleton />
 					<UpcomingSkeleton />
+					<LibraryTrafficSkeleton />
 					<RecentRoomsSkeleton />
 				</>
 			}
