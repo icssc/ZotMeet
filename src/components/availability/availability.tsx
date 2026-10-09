@@ -13,9 +13,10 @@ import { PersonalAvailability } from "@/components/availability/personal-availab
 import {
 	deduplicateRooms,
 	groupRawRoomsByKey,
-	RoomRecommendationSettings,
 } from "@/components/availability/room-recommendations";
+import { RoomsPanel } from "@/components/availability/rooms/rooms-panel";
 import { ScheduleMeetingSettings } from "@/components/availability/schedule-meeting-settings";
+import { SidebarTabs } from "@/components/availability/sidebar-tabs";
 import { AvailabilityGridJaggedEdges } from "@/components/availability/table/availability-grid-jagged-edges";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
@@ -29,6 +30,8 @@ import { useGridInteraction } from "@/hooks/use-grid-interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useReturnToPath } from "@/hooks/use-return-to-path";
 import { useRoomRecommendations } from "@/hooks/use-room-recommendations";
+import { useSidebarPanel } from "@/hooks/use-sidebar-panel";
+import { useStudyRoomFlow } from "@/hooks/use-study-room-flow";
 import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import {
@@ -39,6 +42,7 @@ import {
 } from "@/lib/availability/utils";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+import { useRoomFlowStore } from "@/store/useRoomFlowStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
@@ -226,6 +230,34 @@ export function Availability({
 		hasSearched: hasSearchedRooms,
 		showBestRooms: handleShowBestRooms,
 	} = useRoomRecommendations(availabilityDates);
+
+	const respondedMembers = useMemo(() => {
+		const pendingIds = new Set(pendingMembers.map((m) => m.memberId));
+		return members.filter((m) => !pendingIds.has(m.memberId));
+	}, [members, pendingMembers]);
+
+	// "Find a study room": best times and the rooms free during each. Fetched
+	// as soon as the group view shows, so the Rooms tab can show its count.
+	const roomFlow = useStudyRoomFlow({
+		enabled: availabilityView === "group" || availabilityView === "schedule",
+		isAnchorMeeting: meetingData.meetingType === "days",
+		availabilityDates,
+		ifNeededDates,
+		respondedMembers,
+		fromTimeMinutes,
+		blockCount: availabilityTimeBlocks.length,
+		timeZone: userTimezone,
+	});
+	const [, setSidebarPanel] = useSidebarPanel();
+	const showAttendeesPanel = useCallback(
+		() => void setSidebarPanel("attendees"),
+		[setSidebarPanel],
+	);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reset per meeting
+	useEffect(() => {
+		useRoomFlowStore.getState().reset();
+	}, [meetingData.id]);
 
 	const [selectedRoomIds, setSelectedRoomIds] = useState<string[]>([]);
 	const [isMobileRoomsDrawerOpen, setIsMobileRoomsDrawerOpen] = useState(false);
@@ -563,22 +595,17 @@ export function Availability({
 								) : (
 									<AvailabilityActions {...actionsProps} />
 								)}
-								<Paper
-									variant="outlined"
-									className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
-								>
-									<GroupResponses {...groupResponsesProps} />
-								</Paper>
-								<RoomRecommendationSettings
-									rawRooms={studyRooms}
-									hasSearched={hasSearchedRooms}
-									filters={roomFilters}
-									onFiltersChange={setRoomFilters}
-									onShowBestRooms={handleShowBestRooms}
-									isLoading={isRoomsLoading}
-									errorMessage={studyRoomsError}
-									selectedRoomIds={selectedRoomIds}
-									onSelectedRoomIdsChange={setSelectedRoomIds}
+								<SidebarTabs
+									attendeeCount={respondedMembers.length}
+									roomCount={roomFlow.isUnsupported ? null : roomFlow.roomCount}
+									attendees={<GroupResponses {...groupResponsesProps} />}
+									rooms={
+										<RoomsPanel
+											flow={roomFlow}
+											timeZone={userTimezone}
+											onShowAttendees={showAttendeesPanel}
+										/>
+									}
 								/>
 							</div>
 
