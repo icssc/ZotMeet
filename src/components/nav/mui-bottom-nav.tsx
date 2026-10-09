@@ -8,29 +8,57 @@ import {
 	Person,
 } from "@mui/icons-material";
 import { BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
-import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useReturnToPath } from "@/hooks/use-return-to-path";
 import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 
+const NAV_ROOTS = ["/summary", "/groups", "/studyrooms", "/profile"] as const;
+
+function navValueFromPathname(pathname: string): string {
+	if (pathname.startsWith("/auth/login")) {
+		return "/auth/login";
+	}
+	for (const root of NAV_ROOTS) {
+		if (pathname === root || pathname.startsWith(`${root}/`)) {
+			return root;
+		}
+	}
+	return pathname;
+}
+
 export function MuiBottomNav({ user }: { user: UserProfile | null }) {
 	const pathname = usePathname();
 	const returnToPath = useReturnToPath();
-	const router = useRouter();
-
-	const handleChange = (_event: React.SyntheticEvent, newValue: string) => {
-		router.push(newValue);
-	};
+	const signInHref = loginPathWithReturnTo(returnToPath);
+	const selectedValue = navValueFromPathname(pathname);
 
 	const navItems = [
-		{ label: "Meetings", value: "/summary", icon: CalendarMonth },
-		{ label: "Groups", value: "/groups", icon: Groups },
-		{ label: "Rooms", value: "/studyrooms", icon: Apartment },
+		{
+			label: "Meetings",
+			href: "/summary",
+			value: "/summary",
+			icon: CalendarMonth,
+		},
+		{ label: "Groups", href: "/groups", value: "/groups", icon: Groups },
+		{
+			label: "Rooms",
+			href: "/studyrooms",
+			value: "/studyrooms",
+			icon: Apartment,
+		},
 		user
-			? { label: "Profile", value: "/profile", icon: Person }
+			? {
+					label: "Profile",
+					href: "/profile",
+					value: "/profile",
+					icon: Person,
+				}
 			: {
 					label: "Sign In",
-					value: loginPathWithReturnTo(returnToPath),
+					href: signInHref,
+					value: "/auth/login",
 					icon: Login,
 				},
 	];
@@ -46,12 +74,14 @@ export function MuiBottomNav({ user }: { user: UserProfile | null }) {
 			}}
 			elevation={3}
 		>
-			<BottomNavigation value={pathname} onChange={handleChange} showLabels>
+			<BottomNavigation value={selectedValue} showLabels>
 				{navItems.map((item) => {
 					const Icon = item.icon;
 					return (
 						<BottomNavigationAction
 							key={item.value}
+							LinkComponent={Link}
+							href={item.href}
 							label={item.label}
 							value={item.value}
 							icon={<Icon />}
