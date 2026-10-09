@@ -106,6 +106,28 @@ export function CalendarSkeleton() {
 	return <WaveSkeleton variant="rounded" height={340} />;
 }
 
+export function LibraryTrafficSkeleton() {
+	return (
+		<SectionCard
+			sx={{
+				px: 2.5,
+				py: 3.75,
+				display: "flex",
+				flexDirection: "column",
+				gap: 2.5,
+			}}
+		>
+			<WaveSkeleton variant="text" width={160} height={32} />
+			{Array.from({ length: 3 }, (_, i) => (
+				<Box key={i} sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+					<WaveSkeleton variant="text" width="60%" height={28} />
+					<WaveSkeleton variant="rounded" height={6} />
+				</Box>
+			))}
+		</SectionCard>
+	);
+}
+
 export function UpcomingSkeleton() {
 	return (
 		<SectionCard

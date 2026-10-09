@@ -14,6 +14,7 @@ export * from "./auth/user";
 export * from "./availability";
 export * from "./chrono/time";
 export * from "./chrono/types";
+export * from "./library-traffic/summary";
 export * from "./meetings/card";
 export * from "./meetings/dashboard";
 export * from "./meetings/list-model";
