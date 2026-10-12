@@ -114,11 +114,10 @@ function RoomRow({
 	trailing?: ReactNode;
 	className?: string;
 }) {
-	const { selectedRoomKey, selectRoom, setHoveredRoomKey } = useRoomFlowStore(
+	const { selectedRoomKey, selectRoom } = useRoomFlowStore(
 		useShallow((s) => ({
 			selectedRoomKey: s.selectedRoomKey,
 			selectRoom: s.selectRoom,
-			setHoveredRoomKey: s.setHoveredRoomKey,
 		})),
 	);
 	const { room } = fit;
@@ -138,7 +137,6 @@ function RoomRow({
 			value={room.key}
 			checked={selectedRoomKey === room.key}
 			onSelect={() => selectRoom(room.key)}
-			onPreview={(active) => setHoveredRoomKey(active ? room.key : null)}
 			className={className}
 		>
 			<div className="flex min-w-0 flex-1 flex-col">

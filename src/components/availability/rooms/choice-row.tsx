@@ -9,7 +9,6 @@ export function ChoiceRow({
 	value,
 	checked,
 	onSelect,
-	onPreview,
 	dimmed = false,
 	children,
 	className,
@@ -18,7 +17,6 @@ export function ChoiceRow({
 	value: string;
 	checked: boolean;
 	onSelect: () => void;
-	onPreview?: (active: boolean) => void;
 	dimmed?: boolean;
 	children: ReactNode;
 	className?: string;
@@ -36,8 +34,6 @@ export function ChoiceRow({
 				backgroundColor: checked ? colors.pinkSoft : undefined,
 				boxShadow: checked ? `inset 0 0 0 1px ${colors.pink}` : undefined,
 			}}
-			onMouseEnter={() => onPreview?.(true)}
-			onMouseLeave={() => onPreview?.(false)}
 		>
 			<input
 				type="radio"
@@ -46,8 +42,6 @@ export function ChoiceRow({
 				value={value}
 				checked={checked}
 				onChange={onSelect}
-				onFocus={() => onPreview?.(true)}
-				onBlur={() => onPreview?.(false)}
 			/>
 			{children}
 		</label>

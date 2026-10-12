@@ -1,11 +1,10 @@
 "use client";
 
 import { Button, Typography } from "@mui/material";
-import { formatClock, formatDayAndWindow, type RoomFit } from "@zotmeet/shared";
+import { formatClock, formatDayAndWindow } from "@zotmeet/shared";
 import { type ReactNode, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
-import type { BestTimeRooms, StudyRoomFlow } from "@/hooks/use-study-room-flow";
-import { cn } from "@/lib/utils";
+import type { StudyRoomFlow } from "@/hooks/use-study-room-flow";
 import { useRoomFlowStore } from "@/store/useRoomFlowStore";
 import { BookStep, useBookingSlot } from "./book-step";
 import { Pill } from "./choice-row";
@@ -14,16 +13,6 @@ import { RoomStep } from "./room-step";
 import { RoomsStepper } from "./rooms-stepper";
 import { TimeStep } from "./time-step";
 import { useRoomFlowColors } from "./use-room-flow-colors";
-
-export interface RoomBookingProps {
-	onConfirmBooking?: (booking: {
-		time: BestTimeRooms;
-		fit: RoomFit;
-		slotStart: number;
-	}) => void;
-	isConfirming?: boolean;
-	isConfirmed?: boolean;
-}
 
 function SummaryRow({
 	children,
@@ -58,24 +47,16 @@ function SummaryRow({
 
 /**
  * "Find a study room": Time → Room → Book, with a sticky Back / Next footer.
- * The same panel fills the sidebar's Rooms tab and the phone's bottom sheet;
- * all its state lives in `useRoomFlowStore`, so either can unmount it.
+ * All its state lives in `useRoomFlowStore`, so it survives unmounting.
  */
 export function RoomsPanel({
 	flow,
 	timeZone,
 	onShowAttendees,
-	booking = {},
-	className,
-	header,
 }: {
 	flow: StudyRoomFlow;
 	timeZone: string;
 	onShowAttendees: () => void;
-	booking?: RoomBookingProps;
-	className?: string;
-	/** Replaces the default "Find a study room" heading (the sheet has a close button). */
-	header?: ReactNode;
 }) {
 	const colors = useRoomFlowColors();
 	const { step, setStep, selectedTimeId, selectedRoomKey } = useRoomFlowStore(
@@ -124,13 +105,11 @@ export function RoomsPanel({
 	);
 
 	return (
-		<div className={cn("flex min-h-0 flex-1 flex-col", className)}>
+		<div className="flex min-h-0 flex-1 flex-col">
 			<div className="flex shrink-0 flex-col gap-3 px-4 pt-4 pb-3">
-				{header ?? (
-					<Typography variant="h6" component="h2">
-						Find a study room
-					</Typography>
-				)}
+				<Typography variant="h6" component="h2">
+					Find a study room
+				</Typography>
 				<RoomsStepper step={step} onStepClick={(next) => setStep(next)} />
 			</div>
 
@@ -159,22 +138,7 @@ export function RoomsPanel({
 								{fit.room.location}
 							</Typography>
 						</SummaryRow>
-						<BookStep
-							fit={fit}
-							timeZone={timeZone}
-							onConfirmBooking={
-								booking.onConfirmBooking && slot
-									? () =>
-											booking.onConfirmBooking?.({
-												time,
-												fit,
-												slotStart: slot.start,
-											})
-									: undefined
-							}
-							isConfirming={booking.isConfirming}
-							isConfirmed={booking.isConfirmed}
-						/>
+						<BookStep fit={fit} timeZone={timeZone} />
 					</>
 				)}
 			</div>

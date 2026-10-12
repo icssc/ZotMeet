@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { useRoomFlowColors } from "./use-room-flow-colors";
 
-/** A best time's rank: the same 22px badge in the sidebar and on the heatmap. */
+/** A best time's rank, as a 22px badge. */
 export function RankBadge({
 	rank,
 	className,

@@ -54,6 +54,25 @@ const userSearchSelect = {
 	profilePicture: members.profilePicture,
 } as const;
 
+/** Exact, case-insensitive email matches; `emails` must be lower-cased. */
+export async function searchUsersByEmails(
+	emails: string[],
+	excludeUserId: string,
+) {
+	if (emails.length === 0) return [];
+
+	return await db
+		.select(userSearchSelect)
+		.from(users)
+		.innerJoin(members, eq(users.memberId, members.id))
+		.where(
+			and(
+				ne(users.id, excludeUserId),
+				inArray(sql`lower(${users.email})`, emails),
+			),
+		);
+}
+
 /** Single query across email, username, and display name. */
 export async function searchUsersByQuery(
 	query: string,

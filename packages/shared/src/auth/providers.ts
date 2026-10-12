@@ -42,11 +42,22 @@ export const OAUTH_LOGIN_CONFIG = {
 		callbackPath: "/auth/login/google/callback",
 		icsscProvider: "google",
 		oauthAccountProviderId: OAUTH_ACCOUNT_PROVIDER.google,
+		/**
+		 * The People API scopes let the invite search find people by name:
+		 * saved contacts (`contacts.readonly`), people the user has emailed or
+		 * shared with (`contacts.other.readonly`), and their Workspace
+		 * organisation (`directory.readonly`). Sessions created before these
+		 * were added lack them until the user signs in again; the search
+		 * reports that rather than failing (`searchGooglePeople`).
+		 */
 		scopes: [
 			"openid",
 			"profile",
 			"email",
 			"https://www.googleapis.com/auth/calendar.readonly",
+			"https://www.googleapis.com/auth/contacts.readonly",
+			"https://www.googleapis.com/auth/contacts.other.readonly",
+			"https://www.googleapis.com/auth/directory.readonly",
 		],
 	},
 	apple: {

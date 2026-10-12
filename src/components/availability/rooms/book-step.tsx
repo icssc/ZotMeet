@@ -37,16 +37,9 @@ export function useBookingSlot(fit: RoomFit | null): {
 export function BookStep({
 	fit,
 	timeZone,
-	onConfirmBooking,
-	isConfirming = false,
-	isConfirmed = false,
 }: {
 	fit: RoomFit;
 	timeZone: string;
-	/** "I booked it"; hidden when the viewer can't schedule the meeting. */
-	onConfirmBooking?: () => void;
-	isConfirming?: boolean;
-	isConfirmed?: boolean;
 }) {
 	const colors = useRoomFlowColors();
 	const setSelectedSlotStart = useRoomFlowStore((s) => s.setSelectedSlotStart);
@@ -108,37 +101,6 @@ export function BookStep({
 					.
 				</Typography>
 			</div>
-
-			{onConfirmBooking && (
-				<div
-					className="flex flex-col items-start gap-2 rounded-xl border p-3"
-					style={{ borderColor: colors.divider }}
-				>
-					<Typography variant="subtitle2" component="p">
-						After booking
-					</Typography>
-					{isConfirmed ? (
-						<Typography variant="body2" role="status">
-							Saved. {fit.room.label} now shows on the meeting for everyone.
-						</Typography>
-					) : (
-						<>
-							<Typography variant="body2" color="textSecondary">
-								Come back and confirm so the room shows on the meeting for
-								everyone.
-							</Typography>
-							<Button
-								variant="outlined"
-								size="small"
-								disabled={isConfirming || !slot}
-								onClick={onConfirmBooking}
-							>
-								{isConfirming ? "Saving…" : "I booked it"}
-							</Button>
-						</>
-					)}
-				</div>
-			)}
 		</div>
 	);
 }

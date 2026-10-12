@@ -115,7 +115,6 @@ export function TimeStep({
 		includePartial,
 		showMoreTimes,
 		selectTime,
-		setHoveredTimeId,
 		setIncludePartial,
 	} = useRoomFlowStore(
 		useShallow((s) => ({
@@ -123,7 +122,6 @@ export function TimeStep({
 			includePartial: s.includePartial,
 			showMoreTimes: s.showMoreTimes,
 			selectTime: s.selectTime,
-			setHoveredTimeId: s.setHoveredTimeId,
 			setIncludePartial: s.setIncludePartial,
 		})),
 	);
@@ -165,7 +163,7 @@ export function TimeStep({
 					When should you meet?
 				</Typography>
 				<Typography variant="caption" color="textSecondary">
-					Your best times, most people first. Hover to find one on the grid.
+					Your best times, most people first.
 				</Typography>
 			</div>
 
@@ -219,7 +217,6 @@ export function TimeStep({
 							value={time.id}
 							checked={selectedTimeId === time.id}
 							onSelect={() => selectTime(time.id)}
-							onPreview={(active) => setHoveredTimeId(active ? time.id : null)}
 							dimmed={noRooms}
 						>
 							<RankBadge rank={time.rank} />

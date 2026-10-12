@@ -19,10 +19,8 @@ interface RoomFlowStore {
 	step: RoomFlowStep;
 	/** `BestTime.id`. */
 	selectedTimeId: string | null;
-	hoveredTimeId: string | null;
 	/** `Room.key`. */
 	selectedRoomKey: string | null;
-	hoveredRoomKey: string | null;
 	/** Epoch ms of the chosen start slot; null picks the first. */
 	selectedSlotStart: number | null;
 	filters: RoomFlowFilters;
@@ -33,9 +31,7 @@ interface RoomFlowStore {
 
 	setStep: (step: RoomFlowStep) => void;
 	selectTime: (id: string) => void;
-	setHoveredTimeId: (id: string | null) => void;
 	selectRoom: (key: string) => void;
-	setHoveredRoomKey: (key: string | null) => void;
 	setSelectedSlotStart: (start: number | null) => void;
 	setFilters: (filters: Partial<RoomFlowFilters>) => void;
 	setIncludePartial: (on: boolean) => void;
@@ -46,9 +42,7 @@ interface RoomFlowStore {
 const initialState = {
 	step: 0 as RoomFlowStep,
 	selectedTimeId: null,
-	hoveredTimeId: null,
 	selectedRoomKey: null,
-	hoveredRoomKey: null,
 	selectedSlotStart: null,
 	filters: NO_FILTERS,
 	includePartial: false,
@@ -71,14 +65,12 @@ export const useRoomFlowStore = create<RoomFlowStore>((set) => ({
 						filters: NO_FILTERS,
 					},
 		),
-	setHoveredTimeId: (hoveredTimeId) => set({ hoveredTimeId }),
 	selectRoom: (key) =>
 		set((state) =>
 			state.selectedRoomKey === key
 				? state
 				: { selectedRoomKey: key, selectedSlotStart: null },
 		),
-	setHoveredRoomKey: (hoveredRoomKey) => set({ hoveredRoomKey }),
 	setSelectedSlotStart: (selectedSlotStart) => set({ selectedSlotStart }),
 	setFilters: (filters) =>
 		set((state) => ({ filters: { ...state.filters, ...filters } })),
