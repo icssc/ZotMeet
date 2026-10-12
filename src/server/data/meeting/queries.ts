@@ -146,7 +146,10 @@ export async function getMeetings(memberId: string) {
 		.where(
 			and(
 				eq(availabilities.memberId, memberId),
-				sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+				or(
+					sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+					sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+				),
 			),
 		);
 
