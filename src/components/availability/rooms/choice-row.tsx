@@ -1,11 +1,36 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { createContext, type ReactNode, useContext, useId } from "react";
 import { cn } from "@/lib/utils";
 import { useRoomFlowColors } from "./use-room-flow-colors";
 
+const ChoiceGroupName = createContext("");
+
+/**
+ * A radio group of `ChoiceRow`s. Each group gets its own input `name`: the
+ * panel renders twice on phones (the hidden sidebar and the sheet), and
+ * same-named radios outside a form are one group across the whole page.
+ */
+export function ChoiceGroup({
+	label,
+	className,
+	children,
+}: {
+	label: string;
+	className?: string;
+	children: ReactNode;
+}) {
+	const name = useId();
+	return (
+		<div role="radiogroup" aria-label={label} className={className}>
+			<ChoiceGroupName.Provider value={name}>
+				{children}
+			</ChoiceGroupName.Provider>
+		</div>
+	);
+}
+
 export function ChoiceRow({
-	name,
 	value,
 	checked,
 	onSelect,
@@ -13,7 +38,6 @@ export function ChoiceRow({
 	children,
 	className,
 }: {
-	name: string;
 	value: string;
 	checked: boolean;
 	onSelect: () => void;
@@ -22,6 +46,7 @@ export function ChoiceRow({
 	className?: string;
 }) {
 	const colors = useRoomFlowColors();
+	const name = useContext(ChoiceGroupName);
 	return (
 		<label
 			className={cn(

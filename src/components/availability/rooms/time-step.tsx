@@ -5,7 +5,7 @@ import { formatBestTimeNote, formatDayAndWindow } from "@zotmeet/shared";
 import { useShallow } from "zustand/shallow";
 import type { BestTimeRooms, StudyRoomFlow } from "@/hooks/use-study-room-flow";
 import { useRoomFlowStore } from "@/store/useRoomFlowStore";
-import { ChoiceRow, Pill } from "./choice-row";
+import { ChoiceGroup, ChoiceRow, Pill } from "./choice-row";
 import { RankBadge } from "./rank-badge";
 import { useRoomFlowColors } from "./use-room-flow-colors";
 
@@ -221,11 +221,7 @@ export function TimeStep({
 				</div>
 			)}
 
-			<div
-				role="radiogroup"
-				aria-label="Best times"
-				className="flex flex-col gap-2"
-			>
+			<ChoiceGroup label="Best times" className="flex flex-col gap-2">
 				{flow.times.map((time) => {
 					const everyone = time.freeMemberIds.length === flow.memberCount;
 					const noRooms =
@@ -233,7 +229,6 @@ export function TimeStep({
 					return (
 						<ChoiceRow
 							key={time.id}
-							name="room-flow-time"
 							value={time.id}
 							checked={selectedTimeId === time.id}
 							onSelect={() => selectTime(time.id)}
@@ -257,7 +252,7 @@ export function TimeStep({
 						</ChoiceRow>
 					);
 				})}
-			</div>
+			</ChoiceGroup>
 		</div>
 	);
 }

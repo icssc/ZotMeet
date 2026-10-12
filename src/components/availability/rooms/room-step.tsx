@@ -27,7 +27,7 @@ import {
 	type RoomFlowFilters,
 	useRoomFlowStore,
 } from "@/store/useRoomFlowStore";
-import { ChoiceRow } from "./choice-row";
+import { ChoiceGroup, ChoiceRow } from "./choice-row";
 import { useRoomFlowColors } from "./use-room-flow-colors";
 
 const INITIAL_ROWS = 4;
@@ -133,7 +133,6 @@ function RoomRow({
 
 	return (
 		<ChoiceRow
-			name="room-flow-room"
 			value={room.key}
 			checked={selectedRoomKey === room.key}
 			onSelect={() => selectRoom(room.key)}
@@ -184,7 +183,7 @@ function GroupedRoomList({
 
 	return (
 		<div className="flex flex-col gap-2">
-			<div role="radiogroup" aria-label={label} className="flex flex-col gap-2">
+			<ChoiceGroup label={label} className="flex flex-col gap-2">
 				{visible.map((group) => {
 					const isOpen = expanded.has(group.key);
 					return (
@@ -222,7 +221,7 @@ function GroupedRoomList({
 						</div>
 					);
 				})}
-			</div>
+			</ChoiceGroup>
 			{groups.length > INITIAL_ROWS && (
 				<Button
 					variant="text"

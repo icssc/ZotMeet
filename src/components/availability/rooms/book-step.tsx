@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import {
 	type BookableSlot,
 	bookableSlots,
@@ -8,8 +8,9 @@ import {
 	type RoomFit,
 } from "@zotmeet/shared";
 import { useMemo } from "react";
+import { cn } from "@/lib/utils";
 import { useRoomFlowStore } from "@/store/useRoomFlowStore";
-import { useRoomFlowColors } from "./use-room-flow-colors";
+import { ChoiceGroup, ChoiceRow } from "./choice-row";
 
 /** The slots a booking can start on, and the one picked (the first by default). */
 export function useBookingSlot(fit: RoomFit | null): {
@@ -41,7 +42,6 @@ export function BookStep({
 	fit: RoomFit;
 	timeZone: string;
 }) {
-	const colors = useRoomFlowColors();
 	const setSelectedSlotStart = useRoomFlowStore((s) => s.setSelectedSlotStart);
 	const { slots, slot, freeUntil } = useBookingSlot(fit);
 
@@ -52,11 +52,7 @@ export function BookStep({
 			</Typography>
 
 			<div className="flex flex-col gap-2">
-				<Typography
-					variant="subtitle2"
-					component="p"
-					id="room-flow-start-label"
-				>
+				<Typography variant="subtitle2" component="p">
 					Start time
 				</Typography>
 				{slots.length === 0 ? (
@@ -64,35 +60,29 @@ export function BookStep({
 						The library feed has no bookable slots left for this room.
 					</Typography>
 				) : (
-					<div
-						role="radiogroup"
-						aria-labelledby="room-flow-start-label"
-						className="grid grid-cols-3 gap-2"
-					>
+					<ChoiceGroup label="Start time" className="grid grid-cols-3 gap-2">
 						{slots.map((s) => {
 							const isOn = s.start === slot?.start;
 							return (
-								<Button
+								<ChoiceRow
 									key={s.start}
-									role="radio"
-									aria-checked={isOn}
-									variant="outlined"
-									color="inherit"
-									onClick={() => setSelectedSlotStart(s.start)}
-									sx={{
-										minHeight: 40,
-										borderRadius: "16px",
-										textTransform: "none",
-										fontWeight: isOn ? 600 : 500,
-										borderColor: isOn ? colors.pink : colors.divider,
-										backgroundColor: isOn ? colors.pinkSoft : undefined,
-									}}
+									value={String(s.start)}
+									checked={isOn}
+									onSelect={() => setSelectedSlotStart(s.start)}
+									className="min-h-10 justify-center rounded-2xl px-2 py-1"
 								>
-									{formatClock(s.start, timeZone)}
-								</Button>
+									<span
+										className={cn(
+											"text-sm",
+											isOn ? "font-semibold" : "font-medium",
+										)}
+									>
+										{formatClock(s.start, timeZone)}
+									</span>
+								</ChoiceRow>
 							);
 						})}
-					</div>
+					</ChoiceGroup>
 				)}
 				<Typography variant="caption" color="textSecondary">
 					The library site opens with your start slot selected. Choose the end
