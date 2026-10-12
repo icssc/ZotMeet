@@ -1,36 +1,30 @@
 "use client";
 
-import {
-	RoomRecommendationSettings,
-	type StudyRoomApiEntry,
-} from "@/components/availability/room-recommendations";
+import { RoomsPanel } from "@/components/availability/rooms/rooms-panel";
 import { MuiBottomSheet } from "@/components/ui/mui/mui-bottom-sheet";
-import type { RoomFilters } from "@/lib/types/studyrooms";
+import type { StudyRoomFlow } from "@/hooks/use-study-room-flow";
 
-const mobileSheetPaperSx = { px: 2, py: 1 } as const;
+// The panel scrolls its own steps and pins its Back / Next footer, so the
+// sheet itself must not scroll.
+const mobileSheetPaperSx = { overflow: "hidden" } as const;
 
 export interface MobileRoomRecommendationsProps {
 	open: boolean;
 	onClose: () => void;
-	rawRooms: StudyRoomApiEntry[];
-	hasSearched: boolean;
-	filters: RoomFilters;
-	onFiltersChange: (filters: RoomFilters) => void;
-	onShowBestRooms: () => void;
-	isLoading: boolean;
-	errorMessage: string | null;
-	selectedRoomIds: string[];
-	onSelectedRoomIdsChange: (ids: string[]) => void;
+	flow: StudyRoomFlow;
+	timeZone: string;
+	onShowAttendees: () => void;
 }
 
+/** The phone's Rooms sheet: the sidebar's Rooms tab in a bottom sheet. */
 export function MobileRoomRecommendations({
 	open,
 	onClose,
-	...roomProps
+	...panelProps
 }: MobileRoomRecommendationsProps) {
 	return (
 		<MuiBottomSheet open={open} onClose={onClose} paperSx={mobileSheetPaperSx}>
-			<RoomRecommendationSettings layout="sheet" {...roomProps} />
+			<RoomsPanel {...panelProps} />
 		</MuiBottomSheet>
 	);
 }
