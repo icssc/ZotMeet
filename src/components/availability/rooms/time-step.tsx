@@ -47,7 +47,14 @@ function RoomCount({
 	);
 }
 
-export function NoRoomsPanel({ showMoreTimes }: { showMoreTimes: boolean }) {
+/** The empty state's way out; drops each option once it's in use. */
+function NoRoomsPanel({
+	includePartial,
+	showMoreTimes,
+}: {
+	includePartial: boolean;
+	showMoreTimes: boolean;
+}) {
 	const colors = useRoomFlowColors();
 	const { setIncludePartial, setShowMoreTimes } = useRoomFlowStore(
 		useShallow((s) => ({
@@ -64,17 +71,20 @@ export function NoRoomsPanel({ showMoreTimes }: { showMoreTimes: boolean }) {
 				No rooms free at your best times
 			</Typography>
 			<Typography variant="body2" color="textSecondary">
-				Every room is booked for part of each best time. Continue with partly
-				free rooms, or look at more times.
+				{includePartial
+					? "No room is free for even part of each best time. Look at more times, or browse the library."
+					: "Every room is booked for part of each best time. Continue with partly free rooms, or look at more times."}
 			</Typography>
 			<div className="flex flex-wrap items-center gap-2 pt-1">
-				<Button
-					variant="outlined"
-					size="small"
-					onClick={() => setIncludePartial(true)}
-				>
-					Include partly free rooms
-				</Button>
+				{!includePartial && (
+					<Button
+						variant="outlined"
+						size="small"
+						onClick={() => setIncludePartial(true)}
+					>
+						Include partly free rooms
+					</Button>
+				)}
 				{!showMoreTimes && (
 					<Button
 						variant="text"
@@ -153,8 +163,12 @@ export function TimeStep({
 		);
 	}
 
+	// Empty in the current mode, so turning on partly free rooms that don't
+	// exist still leaves "Show more times" on screen.
 	const isEmpty =
-		!flow.isLoading && flow.errorCount === 0 && flow.roomCount === 0;
+		!flow.isLoading &&
+		flow.errorCount === 0 &&
+		flow.times.every((time) => roomsFor(time, includePartial) === 0);
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -182,8 +196,11 @@ export function TimeStep({
 				</Alert>
 			)}
 
-			{isEmpty && !includePartial && (
-				<NoRoomsPanel showMoreTimes={showMoreTimes} />
+			{isEmpty && (
+				<NoRoomsPanel
+					includePartial={includePartial}
+					showMoreTimes={showMoreTimes}
+				/>
 			)}
 			{includePartial && (
 				<div className="flex items-center justify-between gap-2">
