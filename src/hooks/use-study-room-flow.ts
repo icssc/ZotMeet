@@ -139,9 +139,18 @@ export function useStudyRoomFlow({
 					);
 				})
 				.catch((err: unknown) => {
-					if ((err as Error)?.name === "AbortError") return;
-					console.error("Failed to fetch study rooms:", err);
 					requested.current.delete(key);
+					if ((err as Error)?.name === "AbortError") {
+						// Cancelled (Strict Mode's dev remount does this): forget the
+						// query so the fetch effect starts it again.
+						setResults((prev) => {
+							const next = new Map(prev);
+							next.delete(key);
+							return next;
+						});
+						return;
+					}
+					console.error("Failed to fetch study rooms:", err);
 					setResults((prev) => new Map(prev).set(key, { status: "error" }));
 				})
 				.finally(() => controllers.current.delete(controller));

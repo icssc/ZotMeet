@@ -47,12 +47,13 @@ function RoomCount({
 	);
 }
 
-/** The empty state's way out; drops each option once it's in use. */
+/** The empty state's way out; offers only the options that can still help. */
 function NoRoomsPanel({
-	includePartial,
+	canIncludePartial,
 	showMoreTimes,
 }: {
-	includePartial: boolean;
+	/** Partly free rooms exist and aren't shown yet. */
+	canIncludePartial: boolean;
 	showMoreTimes: boolean;
 }) {
 	const colors = useRoomFlowColors();
@@ -71,12 +72,12 @@ function NoRoomsPanel({
 				No rooms free at your best times
 			</Typography>
 			<Typography variant="body2" color="textSecondary">
-				{includePartial
-					? "No room is free for even part of each best time. Look at more times, or browse the library."
-					: "Every room is booked for part of each best time. Continue with partly free rooms, or look at more times."}
+				{canIncludePartial
+					? "Every room is booked for part of each best time. Continue with partly free rooms, or look at more times."
+					: "No room is free for any part of your best times. Look at more times, or browse the library."}
 			</Typography>
 			<div className="flex flex-wrap items-center gap-2 pt-1">
-				{!includePartial && (
+				{canIncludePartial && (
 					<Button
 						variant="outlined"
 						size="small"
@@ -198,7 +199,9 @@ export function TimeStep({
 
 			{isEmpty && (
 				<NoRoomsPanel
-					includePartial={includePartial}
+					canIncludePartial={
+						!includePartial && flow.times.some((t) => t.partial.length > 0)
+					}
 					showMoreTimes={showMoreTimes}
 				/>
 			)}

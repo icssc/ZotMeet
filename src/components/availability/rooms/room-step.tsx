@@ -272,6 +272,17 @@ export function RoomStep({
 		[includePartial, time.partial, filters, groupSize],
 	);
 
+	// Partial mode lists both kinds together, so count each.
+	const wholeCount = sortedPrimary.filter((f) => f.kind === "whole").length;
+	const partialCount = sortedPrimary.length - wholeCount;
+	const countCaption = [
+		(wholeCount > 0 || partialCount === 0) &&
+			`${wholeCount} free the whole ${formatMinutes(time.minutes)}`,
+		partialCount > 0 && `${partialCount} for part of it`,
+	]
+		.filter(Boolean)
+		.join(" · ");
+
 	const locations = useMemo(
 		() =>
 			[
@@ -291,9 +302,7 @@ export function RoomStep({
 					Which room?
 				</Typography>
 				<Typography variant="caption" color="textSecondary">
-					{includePartial
-						? `${sortedPrimary.length} free for some of it`
-						: `${sortedPrimary.length} free the whole ${formatMinutes(time.minutes)}`}
+					{countCaption}
 				</Typography>
 			</div>
 
