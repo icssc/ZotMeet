@@ -6,12 +6,7 @@ import {
 	inviteMeetingMembers,
 	updateMeetingInvitePermissions,
 } from "@actions/meeting/invite/action";
-import {
-	type GoogleOnlyInvitee,
-	type InviteeSearchResult,
-	searchInvitees,
-	warmInviteeSearch,
-} from "@actions/user/search";
+import { searchUsers } from "@actions/user/search";
 import {
 	Autocomplete,
 	Avatar,
@@ -22,7 +17,6 @@ import {
 	DialogContent,
 	DialogTitle,
 	FormControlLabel,
-	Link,
 	Switch,
 	TextField,
 	Typography,
@@ -39,7 +33,6 @@ import {
 	useTransition,
 } from "react";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
-import { OAUTH_LOGIN_CONFIG } from "@/lib/auth/providers";
 
 export type SearchUser = {
 	id: string;
@@ -53,12 +46,6 @@ function getInitials(email: string) {
 	const name = email.split("@")[0] ?? "";
 	return name.slice(0, 2).toUpperCase();
 }
-
-const EMPTY_SEARCH_RESULT: InviteeSearchResult = {
-	users: [],
-	notOnZotMeet: [],
-	googleScopesMissing: false,
-};
 
 export type MemberInviteShareLink = {
 	url: string;
@@ -84,49 +71,29 @@ type MemberSearchAutocompleteProps = {
 	onSelectMember: (user: SearchUser) => void;
 };
 
-/**
- * A ZotMeet user can be picked; someone from the searcher's Google contacts
- * or directory without a ZotMeet account is only listed, so the inviter knows
- * to send them the share link instead.
- */
-type MemberSearchOptionValue =
-	| { kind: "user"; user: SearchUser }
-	| { kind: "google"; person: GoogleOnlyInvitee };
-
-function optionKey(option: MemberSearchOptionValue) {
-	return option.kind === "user"
-		? option.user.id
-		: `google:${option.person.email}`;
-}
-
 const MemberSearchOption = memo(function MemberSearchOption({
 	option,
 	...optionProps
-}: HTMLAttributes<HTMLLIElement> & { option: MemberSearchOptionValue }) {
-	const { displayName, email, profilePicture } =
-		option.kind === "user" ? option.user : option.person;
-	const secondaryText =
-		option.kind === "google"
-			? `${email} • Not on ZotMeet yet`
-			: option.user.username
-				? `@${option.user.username} • ${email}`
-				: email;
+}: HTMLAttributes<HTMLLIElement> & { option: SearchUser }) {
+	const secondaryText = option.username
+		? `@${option.username} • ${option.email}`
+		: option.email;
 
 	return (
 		<li {...optionProps}>
 			<div className="flex w-full min-w-0 items-center gap-3">
 				<Avatar
 					className="shrink-0"
-					src={profilePicture ?? undefined}
+					src={option.profilePicture ?? undefined}
 					slotProps={{
 						img: { referrerPolicy: "no-referrer" },
 					}}
 				>
-					{getInitials(email)}
+					{getInitials(option.email)}
 				</Avatar>
 				<div className="min-w-0 flex-1 overflow-hidden">
 					<Typography color="textPrimary" variant="body2" noWrap>
-						{displayName ?? email}
+						{option.displayName}
 					</Typography>
 					<Typography color="textSecondary" variant="caption" noWrap>
 						{secondaryText}
@@ -145,13 +112,10 @@ function MemberSearchAutocomplete({
 	onSelectMember,
 }: MemberSearchAutocompleteProps) {
 	const [memberQuery, setMemberQuery] = useState("");
-	const [searchResults, setSearchResults] =
-		useState<InviteeSearchResult>(EMPTY_SEARCH_RESULT);
-	const [googleScopesMissing, setGoogleScopesMissing] = useState(false);
+	const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
 	const [isSearching, startSearchTransition] = useTransition();
 	const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 	const latestQueryRef = useRef("");
-	const warmedRef = useRef(false);
 
 	const excludeSet = useMemo(() => new Set(excludeUserIds), [excludeUserIds]);
 
@@ -159,12 +123,6 @@ function MemberSearchAutocomplete({
 		return () => {
 			if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
 		};
-	}, []);
-
-	const warmSearch = useCallback(() => {
-		if (warmedRef.current) return;
-		warmedRef.current = true;
-		void warmInviteeSearch().catch(() => {});
 	}, []);
 
 	const handleMemberSearch = useCallback(
@@ -177,106 +135,78 @@ function MemberSearchAutocomplete({
 			}
 
 			if (query.length < 2) {
-				startSearchTransition(() => setSearchResults(EMPTY_SEARCH_RESULT));
+				startSearchTransition(() => setSearchResults([]));
 				return;
 			}
 
 			searchTimeoutRef.current = setTimeout(() => {
 				void (async () => {
-					const results = await searchInvitees(query);
+					const results = await searchUsers(query);
 					if (latestQueryRef.current !== query) return;
 
 					startSearchTransition(() => {
-						setSearchResults(results);
-						setGoogleScopesMissing(results.googleScopesMissing);
+						setSearchResults(
+							results.filter(
+								(r) => !excludeSet.has(r.id) && !selectedMemberIds.has(r.id),
+							),
+						);
 					});
 				})();
 			}, searchDebounceMs);
 		},
-		[searchDebounceMs],
+		[excludeSet, searchDebounceMs, selectedMemberIds],
 	);
 
-	const options = useMemo<MemberSearchOptionValue[]>(
-		() => [
-			...searchResults.users
-				.filter(
-					(user) => !excludeSet.has(user.id) && !selectedMemberIds.has(user.id),
-				)
-				.map((user) => ({ kind: "user" as const, user })),
-			...searchResults.notOnZotMeet.map((person) => ({
-				kind: "google" as const,
-				person,
-			})),
-		],
-		[searchResults, excludeSet, selectedMemberIds],
+	const options = useMemo(
+		() => searchResults.filter((user) => !selectedMemberIds.has(user.id)),
+		[searchResults, selectedMemberIds],
 	);
-
-	const reauthHref = useMemo(() => {
-		if (!googleScopesMissing || typeof window === "undefined") return null;
-		const returnTo = `${window.location.pathname}${window.location.search}`;
-		return `${OAUTH_LOGIN_CONFIG.google.loginPath}?returnTo=${encodeURIComponent(returnTo)}`;
-	}, [googleScopesMissing]);
 
 	return (
-		<div className="flex flex-col gap-1">
-			<Autocomplete
-				options={options}
-				loading={isSearching}
-				getOptionLabel={(option) =>
-					option.kind === "user" ? option.user.email : option.person.email
+		<Autocomplete
+			options={options}
+			loading={isSearching}
+			getOptionLabel={(option) => option.email}
+			filterOptions={(x) => x}
+			inputValue={memberQuery}
+			onInputChange={(_, value, reason) => {
+				if (reason !== "reset") handleMemberSearch(value);
+			}}
+			onChange={(_, user) => {
+				if (user) {
+					onSelectMember(user);
+					setMemberQuery("");
+					setSearchResults([]);
 				}
-				getOptionDisabled={(option) => option.kind === "google"}
-				getOptionKey={optionKey}
-				filterOptions={(x) => x}
-				inputValue={memberQuery}
-				onFocus={warmSearch}
-				onInputChange={(_, value, reason) => {
-					if (reason !== "reset") handleMemberSearch(value);
-				}}
-				onChange={(_, option) => {
-					if (option?.kind === "user") {
-						onSelectMember(option.user);
-						setMemberQuery("");
-						setSearchResults(EMPTY_SEARCH_RESULT);
-					}
-				}}
-				value={null}
-				isOptionEqualToValue={(option, value) =>
-					optionKey(option) === optionKey(value)
-				}
-				noOptionsText={
-					memberQuery.length < 2
-						? "Search by name, email or username..."
-						: "No users found"
-				}
-				slotProps={{
-					popper: {
-						placement: "bottom-start",
-						modifiers: [{ name: "flip", enabled: false }],
-						sx: (theme) => ({ zIndex: theme.zIndex.modal + 1 }),
-					},
-				}}
-				renderInput={(params) => (
-					<TextField {...params} label={searchFieldLabel} size="small" />
-				)}
-				ListboxProps={{
-					style: { maxHeight: 140, overflowY: "auto" },
-				}}
-				renderOption={({ key, ...optionProps }, option) => (
-					<MemberSearchOption
-						key={key ?? optionKey(option)}
-						option={option}
-						{...optionProps}
-					/>
-				)}
-			/>
-			{reauthHref && (
-				<Typography variant="caption" color="textSecondary">
-					To search your Google contacts by name,{" "}
-					<Link href={reauthHref}>sign in with Google again</Link>.
-				</Typography>
+			}}
+			value={null}
+			isOptionEqualToValue={(option, value) => option.id === value.id}
+			noOptionsText={
+				memberQuery.length < 2
+					? "Search via Email, Display Name, Username..."
+					: "No users found"
+			}
+			slotProps={{
+				popper: {
+					placement: "bottom-start",
+					modifiers: [{ name: "flip", enabled: false }],
+					sx: (theme) => ({ zIndex: theme.zIndex.modal + 1 }),
+				},
+			}}
+			renderInput={(params) => (
+				<TextField {...params} label={searchFieldLabel} size="small" />
 			)}
-		</div>
+			ListboxProps={{
+				style: { maxHeight: 140, overflowY: "auto" },
+			}}
+			renderOption={({ key, ...optionProps }, option) => (
+				<MemberSearchOption
+					key={key ?? option.id}
+					option={option}
+					{...optionProps}
+				/>
+			)}
+		/>
 	);
 }
 
@@ -284,7 +214,7 @@ export function MemberInviteFields({
 	selectedMembers,
 	onSelectedMembersChange,
 	excludeUserIds,
-	searchDebounceMs = 250,
+	searchDebounceMs = 100,
 	searchFieldLabel = "Search users",
 	shareLink,
 }: MemberInviteFieldsProps) {
