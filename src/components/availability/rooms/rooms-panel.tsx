@@ -82,13 +82,16 @@ export function RoomsPanel({
 		[time, selectedRoomKey],
 	);
 	const { slot } = useBookingSlot(fit);
+	// Until the time's rooms load, the room step can't tell "none free" from
+	// "not fetched", and a failed lookup's Retry lives on the time step.
+	const canPickRoom = time?.status === "ready";
 
-	// New availability can remove the chosen time or room; fall back a step
-	// rather than show a step with nothing in it.
+	// New availability can remove the chosen time or room, or refetch the
+	// time's rooms; fall back a step rather than show one with nothing in it.
 	useEffect(() => {
-		if (step > 0 && !time) setStep(0);
-		else if (step > 1 && !fit && time?.status === "ready") setStep(1);
-	}, [step, time, fit, setStep]);
+		if (step > 0 && !canPickRoom) setStep(0);
+		else if (step > 1 && !fit) setStep(1);
+	}, [step, canPickRoom, fit, setStep]);
 
 	const primarySx = { color: colors.navy, borderRadius: "10px" } as const;
 
@@ -161,7 +164,7 @@ export function RoomsPanel({
 					{step === 0 && (
 						<Button
 							variant="contained"
-							disabled={!time}
+							disabled={!canPickRoom}
 							onClick={() => setStep(1)}
 							sx={primarySx}
 						>
