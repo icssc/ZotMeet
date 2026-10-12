@@ -10,10 +10,7 @@ import { GroupAvailability } from "@/components/availability/group-availability"
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
-import {
-	deduplicateRooms,
-	groupRawRoomsByKey,
-} from "@/components/availability/room-recommendations";
+import { groupRawRoomsByKey } from "@/components/availability/room-recommendations";
 import { RoomsPanel } from "@/components/availability/rooms/rooms-panel";
 import { ScheduleMeetingSettings } from "@/components/availability/schedule-meeting-settings";
 import { SidebarTabs } from "@/components/availability/sidebar-tabs";
@@ -47,7 +44,6 @@ import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availa
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
 import { MobileRoomRecommendations } from "./mobile-room-recommendations";
-import { MobileRoomWheelPicker } from "./mobile-room-wheel-picker";
 import { MobileScheduleSettings } from "./mobile-schedule-settings";
 
 const LG_UP_MEDIA = "(min-width: 1024px)";
@@ -219,17 +215,9 @@ export function Availability({
 			userTimezone,
 		});
 
-	// Room recommendations — surfaced in the group/schedule sidebar so the host
-	// can pull room suggestions for the times the group is most available.
-	const {
-		filters: roomFilters,
-		setFilters: setRoomFilters,
-		rooms: studyRooms,
-		error: studyRoomsError,
-		isLoading: isRoomsLoading,
-		hasSearched: hasSearchedRooms,
-		showBestRooms: handleShowBestRooms,
-	} = useRoomRecommendations(availabilityDates);
+	// The old room recommendations. No UI searches any more, so `studyRooms`
+	// stays empty and the heatmap previews below never draw.
+	const { rooms: studyRooms } = useRoomRecommendations(availabilityDates);
 
 	const respondedMembers = useMemo(() => {
 		const pendingIds = new Set(pendingMembers.map((m) => m.memberId));
@@ -237,7 +225,8 @@ export function Availability({
 	}, [members, pendingMembers]);
 
 	// "Find a study room": best times and the rooms free during each. Fetched
-	// as soon as the group view shows, so the Rooms tab can show its count.
+	// as soon as the group view shows, so the desktop Rooms tab and the phone's
+	// Rooms button can show a count.
 	const roomFlow = useStudyRoomFlow({
 		enabled: availabilityView === "group" || availabilityView === "schedule",
 		isAnchorMeeting: meetingData.meetingType === "days",
@@ -273,11 +262,6 @@ export function Availability({
 
 	const rawRoomsByKey = useMemo(
 		() => groupRawRoomsByKey(studyRooms),
-		[studyRooms],
-	);
-
-	const mobileRoomCount = useMemo(
-		() => deduplicateRooms(studyRooms).length,
 		[studyRooms],
 	);
 
@@ -621,17 +605,6 @@ export function Availability({
 									/>
 								) : (
 									<>
-										{hasSearchedRooms &&
-											studyRooms.length > 0 &&
-											!isMobileRoomsDrawerOpen && (
-												<MobileRoomWheelPicker
-													rawRooms={studyRooms}
-													rawRoomsByKey={rawRoomsByKey}
-													filters={roomFilters}
-													selectedRoomIds={selectedRoomIds}
-													onSelectedRoomIdsChange={setSelectedRoomIds}
-												/>
-											)}
 										<MobileGroupResponses
 											isOwner={isMeetingOwner}
 											respondedMembersCount={Math.max(
@@ -639,8 +612,9 @@ export function Availability({
 												members.length - pendingMembers.length,
 											)}
 											pendingMembersCount={pendingMembers.length}
-											roomCount={mobileRoomCount}
-											hasSearchedRooms={hasSearchedRooms}
+											roomCount={
+												roomFlow.isUnsupported ? null : roomFlow.roomCount
+											}
 											onAddAvailability={handleMobileAddAvailability}
 											onOpenAttendees={handleMobileOpenAttendees}
 											onOpenRooms={handleMobileOpenRooms}
@@ -649,15 +623,9 @@ export function Availability({
 										<MobileRoomRecommendations
 											open={isMobileRoomsDrawerOpen}
 											onClose={handleCloseMobileRooms}
-											rawRooms={studyRooms}
-											hasSearched={hasSearchedRooms}
-											filters={roomFilters}
-											onFiltersChange={setRoomFilters}
-											onShowBestRooms={handleShowBestRooms}
-											isLoading={isRoomsLoading}
-											errorMessage={studyRoomsError}
-											selectedRoomIds={selectedRoomIds}
-											onSelectedRoomIdsChange={setSelectedRoomIds}
+											flow={roomFlow}
+											timeZone={userTimezone}
+											onShowAttendees={handleMobileOpenAttendees}
 										/>
 									</>
 								)}
