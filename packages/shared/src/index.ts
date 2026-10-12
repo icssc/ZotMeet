@@ -20,3 +20,4 @@ export * from "./meetings/list-model";
 export * from "./meetings/schema";
 export * from "./meetings/utils";
 export * from "./meetings/window";
+export * from "./rooms";
