@@ -26,7 +26,6 @@ import {
 } from "@mui/material";
 import type { BadgeProps } from "@mui/material/Badge";
 import { styled } from "@mui/material/styles";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -73,16 +72,9 @@ export function MuiTopNav({ user, notifications }: MuiTopNavProps) {
 					alignItems: "center",
 				}}
 			>
-				<Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start" }}>
-					<Link href="/">
-						<Image
-							src="/zotmeet-logo.svg"
-							alt="ZotMeet logo"
-							width={40}
-							height={40}
-						/>
-					</Link>
-				</Box>
+				{/* Left spacer — the ZotMeet logo lives in the app shell's left
+				    rail (see `mui-app-shell.tsx`), so only balance the layout. */}
+				<Box sx={{ flex: 1 }} />
 
 				<Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
 					{navItems.map((item) => {
