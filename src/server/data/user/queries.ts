@@ -80,6 +80,22 @@ export async function searchUsersByQuery(
 		.limit(limit);
 }
 
+/** Exact, case-insensitive email lookup (e.g. to match Google directory hits to accounts). */
+export async function getUsersByEmails(emails: string[]) {
+	if (emails.length === 0) return [];
+
+	return await db
+		.select(userSearchSelect)
+		.from(users)
+		.innerJoin(members, eq(users.memberId, members.id))
+		.where(
+			inArray(
+				sql`lower(${users.email})`,
+				emails.map((e) => e.toLowerCase()),
+			),
+		);
+}
+
 export async function searchUsersByUsername(
 	query: string,
 	excludeUserId: string,

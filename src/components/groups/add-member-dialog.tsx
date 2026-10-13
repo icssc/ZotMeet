@@ -2,11 +2,12 @@
 
 import { inviteGroupMember } from "@actions/group/add-member/action";
 import { createGroupInvite } from "@actions/group/invite/create/action";
+import { inviteGroupMembersByEmail } from "@actions/group/invite-by-email/action";
 import {
 	inviteMeetingMembers,
 	updateMeetingInvitePermissions,
 } from "@actions/meeting/invite/action";
-import { searchUsers } from "@actions/user/search";
+import { type MemberSearchResult, searchUsers } from "@actions/user/search";
 import {
 	Autocomplete,
 	Avatar,
@@ -34,13 +35,16 @@ import {
 } from "react";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 
-export type SearchUser = {
-	id: string;
-	email: string;
-	username: string | null;
-	displayName: string | null;
-	profilePicture: string | null;
-};
+/** `hasAccount: false` entries come from the UCI directory and are invited by email. */
+export type SearchUser = MemberSearchResult;
+
+/** Splits picks into account ids (in-app invite) and emails (emailed invite). */
+export function splitSelectedMembers(members: SearchUser[]) {
+	return {
+		memberIds: members.filter((m) => m.hasAccount).map((m) => m.id),
+		inviteEmails: members.filter((m) => !m.hasAccount).map((m) => m.email),
+	};
+}
 
 function getInitials(email: string) {
 	const name = email.split("@")[0] ?? "";
@@ -75,9 +79,11 @@ const MemberSearchOption = memo(function MemberSearchOption({
 	option,
 	...optionProps
 }: HTMLAttributes<HTMLLIElement> & { option: SearchUser }) {
-	const secondaryText = option.username
-		? `@${option.username} • ${option.email}`
-		: option.email;
+	const secondaryText = !option.hasAccount
+		? `${option.email} • Not on ZotMeet yet, will get an email invite`
+		: option.username
+			? `@${option.username} • ${option.email}`
+			: option.email;
 
 	return (
 		<li {...optionProps}>
@@ -93,7 +99,7 @@ const MemberSearchOption = memo(function MemberSearchOption({
 				</Avatar>
 				<div className="min-w-0 flex-1 overflow-hidden">
 					<Typography color="textPrimary" variant="body2" noWrap>
-						{option.displayName}
+						{option.displayName ?? option.email}
 					</Typography>
 					<Typography color="textSecondary" variant="caption" noWrap>
 						{secondaryText}
@@ -244,6 +250,7 @@ export function MemberInviteFields({
 					username: user.username,
 					displayName: user.displayName,
 					profilePicture: user.profilePicture ?? null,
+					hasAccount: user.hasAccount,
 				},
 			]);
 		},
@@ -295,8 +302,13 @@ export function MemberInviteFields({
 								</Avatar>
 							}
 							label={member.email.split("@")[0]}
+							title={
+								member.hasAccount
+									? undefined
+									: `${member.email} will get an email invite`
+							}
 							onDelete={() => removeMember(member.id)}
-							variant="filled"
+							variant={member.hasAccount ? "filled" : "outlined"}
 						/>
 					))}
 				</div>
@@ -470,11 +482,14 @@ export function MemberInviteDialog(props: MemberInviteDialogProps) {
 
 		setError("");
 
+		const { memberIds, inviteEmails } = splitSelectedMembers(members);
+
 		if (purpose === "meeting" && meetingId) {
 			startTransition(async () => {
 				const result = await inviteMeetingMembers(
 					meetingId,
-					members.map((m) => m.id),
+					memberIds,
+					inviteEmails,
 				);
 
 				if (result.success) {
@@ -494,7 +509,7 @@ export function MemberInviteDialog(props: MemberInviteDialogProps) {
 				let hadError = false;
 				let firstMessage = "";
 
-				for (const user of members) {
+				for (const user of members.filter((m) => m.hasAccount)) {
 					const res = await inviteGroupMember(groupId, user.id);
 					if (!res.success) {
 						hadError = true;
@@ -503,6 +518,19 @@ export function MemberInviteDialog(props: MemberInviteDialogProps) {
 						showError(msg);
 					} else {
 						showSuccess(`Invite sent to ${user.email}`);
+					}
+				}
+
+				if (inviteEmails.length > 0) {
+					const res = await inviteGroupMembersByEmail(groupId, inviteEmails);
+					if (!res.success) {
+						hadError = true;
+						if (!firstMessage) firstMessage = res.message;
+						showError(res.message);
+					} else {
+						showSuccess(
+							`Emailed ${inviteEmails.length} invite${inviteEmails.length === 1 ? "" : "s"}`,
+						);
 					}
 				}
 

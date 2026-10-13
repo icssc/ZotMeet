@@ -16,6 +16,8 @@ export const createGroupSchema = z.object({
 		})
 		.optional(),
 	memberIds: z.array(z.string()).optional(),
+	/** UCI directory picks without a ZotMeet account; emailed an invite link. */
+	inviteEmails: z.array(z.string().email()).max(50).optional(),
 	icon: z.string().optional(),
 });
 

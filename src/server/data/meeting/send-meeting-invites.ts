@@ -7,6 +7,7 @@ import { availabilities, meetingInvites, users } from "@/db/schema";
 import { createBrandedTransactionalEmail } from "@/lib/email/templates";
 import { NOTIFICATION_TYPES } from "@/lib/notification/types";
 import { getExistingMeetingInvite } from "@/server/data/meeting/invite-queries";
+import { sendInviteEmails } from "@/server/data/user/email-invitees";
 import { createNewNotification } from "@/server/data/user/queries";
 
 export type MeetingInviteInviter = {
@@ -109,4 +110,38 @@ export async function sendMeetingInvitesToUsers(params: {
 			message: "Failed to send invites. Please try again.",
 		};
 	}
+}
+
+/**
+ * Emails the meeting link to people who don't have a ZotMeet account yet.
+ * Caller must enforce auth. Returns how many sends failed.
+ */
+export async function sendMeetingInviteEmailsToNonUsers(params: {
+	meetingId: string;
+	meetingTitle: string;
+	inviter: MeetingInviteInviter;
+	emails: string[];
+}): Promise<number> {
+	const { meetingId, meetingTitle, inviter, emails } = params;
+	if (emails.length === 0) return 0;
+
+	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+	const origin = baseUrl.replace(/\/$/, "");
+	const inviterName = inviter.displayName?.trim() || "Someone";
+
+	return sendInviteEmails(
+		emails,
+		createBrandedTransactionalEmail({
+			subject: `${inviterName} invited you to "${meetingTitle}" on ZotMeet`,
+			headline: `${inviterName} invited you to a meeting.`,
+			bodyLines: [
+				`${inviterName} has invited you to join "${meetingTitle}" on ZotMeet.`,
+				`Sign in with your UCI Google account and share your availability so ${inviterName} can schedule the meeting.`,
+			],
+			ctaLabel: "Join Meeting",
+			ctaUrl: `${origin}/availability/${meetingId}`,
+			footerLearnMoreUrl: `${origin}/`,
+			footerTopic: "meetings",
+		}),
+	);
 }

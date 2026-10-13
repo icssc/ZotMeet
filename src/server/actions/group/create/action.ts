@@ -1,6 +1,8 @@
 "use server";
 
 import { createGroupSchema } from "@actions/group/create/schema";
+import { sendGroupInviteEmailsToNonUsers } from "@data/groups/send-group-invite-emails";
+import { resolveInviteEmails } from "@data/user/email-invitees";
 import { createNewNotification } from "@data/user/queries";
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
@@ -37,7 +39,7 @@ export async function createGroup(
 		};
 	}
 
-	const { name, description, memberIds, icon } = parsed.data;
+	const { name, description, memberIds, icon, inviteEmails } = parsed.data;
 
 	try {
 		const { result, inviteToken } = await db.transaction(async (tx) => {
@@ -75,15 +77,24 @@ export async function createGroup(
 			return { result: newGroup, inviteToken: token };
 		});
 
-		const toNotify = (memberIds ?? []).filter((id) => id !== user.id);
+		const inviterName = user.displayName?.trim() || "Someone";
+		const groupName = name.trim();
+
+		// Directory picks may have signed up since they were searched; those get
+		// the normal notification, the rest an email.
+		const { userIds: invitedAccountIds, newEmails } = await resolveInviteEmails(
+			inviteEmails ?? [],
+		);
+		const toNotify = [
+			...new Set([...(memberIds ?? []), ...invitedAccountIds]),
+		].filter((id) => id !== user.id);
+
 		if (toNotify.length > 0) {
 			try {
 				const baseUrl =
 					process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 				const origin = baseUrl.replace(/\/$/, "");
 				const inviteUrl = `${origin}/invite/${inviteToken}`;
-				const inviterName = user.displayName?.trim() || "Someone";
-				const groupName = name.trim();
 
 				let notificationEmail:
 					| ReturnType<typeof createBrandedTransactionalEmail>
@@ -122,6 +133,13 @@ export async function createGroup(
 				console.error(notificationError);
 			}
 		}
+
+		await sendGroupInviteEmailsToNonUsers({
+			emails: newEmails,
+			groupName,
+			inviteToken,
+			inviterName,
+		});
 
 		revalidatePath("/summary");
 		revalidatePath("/groups");

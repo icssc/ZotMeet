@@ -13,6 +13,7 @@ import { useCallback, useRef, useState, useTransition } from "react";
 import {
 	MemberInviteFields,
 	type SearchUser,
+	splitSelectedMembers,
 } from "@/components/groups/add-member-dialog";
 import { createGroup } from "@/server/actions/group/create/action";
 
@@ -136,7 +137,7 @@ export function CreateGroupDialog({
 			const result = await createGroup({
 				name: name.trim(),
 				description: description.trim() || undefined,
-				memberIds: members.map((m) => m.id),
+				...splitSelectedMembers(members),
 				icon: iconBase64 || undefined,
 			});
 

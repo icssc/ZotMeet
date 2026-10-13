@@ -47,6 +47,8 @@ export const OAUTH_LOGIN_CONFIG = {
 			"profile",
 			"email",
 			"https://www.googleapis.com/auth/calendar.readonly",
+			// UCI directory search when adding group/meeting members.
+			"https://www.googleapis.com/auth/directory.readonly",
 		],
 	},
 	apple: {

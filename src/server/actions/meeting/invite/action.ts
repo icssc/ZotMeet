@@ -9,7 +9,11 @@ import {
 	getExistingMeeting,
 	isMemberOfMeeting,
 } from "@/server/data/meeting/queries";
-import { sendMeetingInvitesToUsers } from "@/server/data/meeting/send-meeting-invites";
+import {
+	sendMeetingInviteEmailsToNonUsers,
+	sendMeetingInvitesToUsers,
+} from "@/server/data/meeting/send-meeting-invites";
+import { resolveInviteEmails } from "@/server/data/user/email-invitees";
 
 export type MeetingInviteActionState = {
 	success: boolean;
@@ -19,9 +23,14 @@ export type MeetingInviteActionState = {
 /** @deprecated Use {@link MeetingInviteActionState} */
 export type InviteMeetingMembersState = MeetingInviteActionState;
 
+/**
+ * `inviteEmails` are UCI directory picks without a ZotMeet account; they're
+ * emailed the meeting link (or notified, if they've signed up since).
+ */
 export async function inviteMeetingMembers(
 	meetingId: string,
 	memberIds: string[],
+	inviteEmails: string[] = [],
 ): Promise<MeetingInviteActionState> {
 	const { user } = await getCurrentSession();
 	if (!user) {
@@ -52,21 +61,47 @@ export async function inviteMeetingMembers(
 		};
 	}
 
-	if (!memberIds || memberIds.length === 0) {
+	if (memberIds.length === 0 && inviteEmails.length === 0) {
 		return { success: false, message: "No members selected." };
 	}
 
-	const result = await sendMeetingInvitesToUsers({
+	if (inviteEmails.length > 50) {
+		return { success: false, message: "Too many invites at once." };
+	}
+
+	const inviter = { id: user.id, displayName: user.displayName };
+	const { userIds: invitedAccountIds, newEmails } =
+		await resolveInviteEmails(inviteEmails);
+	const inviteeUserIds = [...new Set([...memberIds, ...invitedAccountIds])];
+
+	if (inviteeUserIds.length > 0) {
+		const result = await sendMeetingInvitesToUsers({
+			meetingId,
+			meetingTitle: meeting.title,
+			inviter,
+			inviteeUserIds,
+		});
+		if (!result.success) {
+			return { success: false, message: result.message };
+		}
+	} else if (newEmails.length === 0) {
+		return { success: false, message: "No valid UCI emails selected." };
+	}
+
+	const failed = await sendMeetingInviteEmailsToNonUsers({
 		meetingId,
 		meetingTitle: meeting.title,
-		inviter: { id: user.id, displayName: user.displayName },
-		inviteeUserIds: memberIds,
+		inviter,
+		emails: newEmails,
 	});
-
-	if (result.success) {
-		return { success: true, message: "Invites sent successfully!" };
+	if (failed > 0) {
+		return {
+			success: false,
+			message: `Failed to email ${failed} invite${failed === 1 ? "" : "s"}. Please try again.`,
+		};
 	}
-	return { success: false, message: result.message };
+
+	return { success: true, message: "Invites sent successfully!" };
 }
 
 export async function updateMeetingInvitePermissions({
