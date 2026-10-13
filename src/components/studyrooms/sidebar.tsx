@@ -10,11 +10,12 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 import { RoomsHeatmapLegend } from "@/components/studyrooms/legend";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import { toLocalStr } from "@/lib/rooms/utils";
+import { timeOrHourZero } from "@/lib/time-picker";
 import {
 	BUILDINGS,
 	CAPACITY_RANGES,
@@ -63,7 +64,11 @@ export function Sidebar({
 	const [isLoading, setIsLoading] = useState(false);
 
 	const activeFilters = [
-		date && { label: `Date: ${format(date, "MMM d, yyyy")}`, key: "date" },
+		date &&
+			isValid(date) && {
+				label: `Date: ${format(date, "MMM d, yyyy")}`,
+				key: "date",
+			},
 		startTime &&
 			endTime && {
 				label: `Time: ${format(startTime, "h:mmaaa")}–${format(endTime, "h:mmaaa")}`,
@@ -191,7 +196,7 @@ export function Sidebar({
 		setError(null);
 		setFallbackNotice(null);
 
-		if (!date || !startTime || !endTime) {
+		if (!date || !isValid(date) || !startTime || !endTime) {
 			setError("Please select a date and time range.");
 			return;
 		}
@@ -288,7 +293,9 @@ export function Sidebar({
 						<TimePicker
 							label="Start Time"
 							value={startTime}
-							onChange={setStartTime}
+							onChange={(value) =>
+								setStartTime(value && timeOrHourZero(value, startTime))
+							}
 							slotProps={{
 								textField: {
 									fullWidth: true,
@@ -303,7 +310,9 @@ export function Sidebar({
 						<TimePicker
 							label="End Time"
 							value={endTime}
-							onChange={setEndTime}
+							onChange={(value) =>
+								setEndTime(value && timeOrHourZero(value, endTime))
+							}
 							slotProps={{
 								textField: {
 									fullWidth: true,
