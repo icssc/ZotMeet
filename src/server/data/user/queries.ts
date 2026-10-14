@@ -9,7 +9,7 @@ import {
 	notifications,
 	users,
 } from "@/db/schema";
-import { sendEmail } from "@/lib/email/send-email";
+import { sendEmailToEach } from "@/lib/email/send-email";
 import {
 	getNotificationPrefKey,
 	type NotificationPrefs,
@@ -160,6 +160,29 @@ export async function searchUsersByEmail(
 		.limit(limit);
 }
 
+/**
+ * Splits normalized invite emails into registered user ids and addresses with
+ * no ZotMeet account. `excludeUserId` (the inviter) is dropped from both.
+ */
+export async function partitionInviteEmails(
+	emails: string[],
+	excludeUserId: string,
+): Promise<{ userIds: string[]; unregisteredEmails: string[] }> {
+	if (emails.length === 0) return { userIds: [], unregisteredEmails: [] };
+
+	const registered = await db
+		.select({ id: users.id, email: sql<string>`lower(${users.email})` })
+		.from(users)
+		.where(inArray(sql`lower(${users.email})`, emails));
+
+	const registeredEmails = new Set(registered.map((u) => u.email));
+
+	return {
+		userIds: registered.map((u) => u.id).filter((id) => id !== excludeUserId),
+		unregisteredEmails: emails.filter((email) => !registeredEmails.has(email)),
+	};
+}
+
 export async function getNotificationsByMemberId(memberId: string) {
 	const notification = await db
 		.select({
@@ -257,21 +280,10 @@ export async function createNewNotification(
 		.returning();
 
 	if (options?.email) {
-		const payload = options.email;
-		const results = await Promise.allSettled(
-			allowedRecipients.map((recipient) =>
-				sendEmail({
-					to: recipient.email,
-					...payload,
-				}),
-			),
+		await sendEmailToEach(
+			allowedRecipients.map((recipient) => recipient.email),
+			options.email,
 		);
-
-		for (const result of results) {
-			if (result.status === "rejected") {
-				console.error("Failed to send notification email: ", result.reason);
-			}
-		}
 	}
 
 	return notificationsCreated;

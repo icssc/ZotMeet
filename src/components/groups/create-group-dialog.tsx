@@ -11,8 +11,9 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useCallback, useRef, useState, useTransition } from "react";
 import {
+	type Invitee,
 	MemberInviteFields,
-	type SearchUser,
+	splitInvitees,
 } from "@/components/groups/add-member-dialog";
 import { createGroup } from "@/server/actions/group/create/action";
 
@@ -78,7 +79,7 @@ export function CreateGroupDialog({
 }: CreateGroupDialogProps) {
 	const [name, setName] = useState("");
 	const [description, setDescription] = useState("");
-	const [members, setMembers] = useState<SearchUser[]>([]);
+	const [members, setMembers] = useState<Invitee[]>([]);
 	const [inviteLink, setInviteLink] = useState("");
 	const [inviteFieldsKey, setInviteFieldsKey] = useState(0);
 	const [isPending, startTransition] = useTransition();
@@ -133,10 +134,12 @@ export function CreateGroupDialog({
 
 		setError("");
 		startTransition(async () => {
+			const { userIds, emails } = splitInvitees(members);
 			const result = await createGroup({
 				name: name.trim(),
 				description: description.trim() || undefined,
-				memberIds: members.map((m) => m.id),
+				memberIds: userIds,
+				emails,
 				icon: iconBase64 || undefined,
 			});
 

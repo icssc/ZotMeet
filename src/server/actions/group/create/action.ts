@@ -1,12 +1,16 @@
 "use server";
 
 import { createGroupSchema } from "@actions/group/create/schema";
-import { createNewNotification } from "@data/user/queries";
+import {
+	createNewNotification,
+	partitionInviteEmails,
+} from "@data/user/queries";
 import { revalidatePath } from "next/cache";
 import type { z } from "zod";
 import { db } from "@/db";
 import { GroupRole, groupInvites, groups, usersInGroup } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { sendEmailToEach } from "@/lib/email/send-email";
 import { createBrandedTransactionalEmail } from "@/lib/email/templates";
 import { NOTIFICATION_TYPES } from "@/lib/notification/types";
 
@@ -37,7 +41,7 @@ export async function createGroup(
 		};
 	}
 
-	const { name, description, memberIds, icon } = parsed.data;
+	const { name, description, memberIds, emails, icon } = parsed.data;
 
 	try {
 		const { result, inviteToken } = await db.transaction(async (tx) => {
@@ -75,8 +79,15 @@ export async function createGroup(
 			return { result: newGroup, inviteToken: token };
 		});
 
-		const toNotify = (memberIds ?? []).filter((id) => id !== user.id);
-		if (toNotify.length > 0) {
+		const { userIds: emailUserIds, unregisteredEmails } =
+			await partitionInviteEmails(emails ?? [], user.id).catch((error) => {
+				console.error("Failed to resolve group invite emails:", error);
+				return { userIds: [], unregisteredEmails: [] };
+			});
+		const toNotify = [
+			...new Set([...(memberIds ?? []), ...emailUserIds]),
+		].filter((id) => id !== user.id);
+		if (toNotify.length > 0 || unregisteredEmails.length > 0) {
 			try {
 				const baseUrl =
 					process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
@@ -118,6 +129,10 @@ export async function createGroup(
 					user.id,
 					notificationEmail ? { email: notificationEmail } : undefined,
 				);
+
+				if (notificationEmail) {
+					await sendEmailToEach(unregisteredEmails, notificationEmail);
+				}
 			} catch (notificationError) {
 				console.error(notificationError);
 			}
