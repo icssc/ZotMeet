@@ -226,6 +226,7 @@ export async function createNewNotification(
 				meetingInvites: notificationPreferences.meetingInvites,
 				groupInvites: notificationPreferences.groupInvites,
 				nudges: notificationPreferences.nudges,
+				meetingScheduled: notificationPreferences.meetingScheduled,
 			})
 			.from(notificationPreferences)
 			.where(inArray(notificationPreferences.memberId, memberIds));

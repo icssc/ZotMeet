@@ -3,6 +3,7 @@ export const NOTIFICATION_TYPES = {
 	MEETING_INVITE: "Meeting Invite",
 	GROUP_INVITE: "Group Invite",
 	NUDGE: "Nudge",
+	MEETING_SCHEDULED: "Meeting Scheduled",
 } as const;
 
 export type PreferenceGatedNotificationType =
@@ -12,6 +13,7 @@ export type NotificationPrefs = {
 	meetingInvites: boolean;
 	groupInvites: boolean;
 	nudges: boolean;
+	meetingScheduled: boolean;
 };
 
 export type NotificationPrefKey = keyof NotificationPrefs;
@@ -20,6 +22,7 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
 	meetingInvites: true,
 	groupInvites: true,
 	nudges: true,
+	meetingScheduled: true,
 };
 
 export const NOTIFICATION_TYPE_TO_PREF_KEY: Record<
@@ -29,6 +32,7 @@ export const NOTIFICATION_TYPE_TO_PREF_KEY: Record<
 	[NOTIFICATION_TYPES.MEETING_INVITE]: "meetingInvites",
 	[NOTIFICATION_TYPES.GROUP_INVITE]: "groupInvites",
 	[NOTIFICATION_TYPES.NUDGE]: "nudges",
+	[NOTIFICATION_TYPES.MEETING_SCHEDULED]: "meetingScheduled",
 };
 
 export function getNotificationPrefKey(
@@ -50,6 +54,7 @@ export function toNotificationPrefs(
 		meetingInvites: row.meetingInvites ?? true,
 		groupInvites: row.groupInvites ?? true,
 		nudges: row.nudges ?? true,
+		meetingScheduled: row.meetingScheduled ?? true,
 	};
 }
 
@@ -74,5 +79,11 @@ export const NOTIFICATION_PREF_OPTIONS: {
 		key: "nudges",
 		label: "Nudges",
 		description: "Receive in-app and email reminders to add your availability.",
+	},
+	{
+		key: "meetingScheduled",
+		label: "Meeting Scheduled",
+		description:
+			"Receive in-app and email notifications when a meeting you responded to is scheduled.",
 	},
 ];

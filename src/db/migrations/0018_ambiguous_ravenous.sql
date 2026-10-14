@@ -1,0 +1,1 @@
+ALTER TABLE "notification_preferences" ADD COLUMN "meeting_scheduled" boolean DEFAULT true NOT NULL;
