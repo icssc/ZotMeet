@@ -25,16 +25,7 @@ import {
 import { createRng } from "./seed/rng";
 import { type Tx, wipeSeedData } from "./seed/wipe";
 
-/**
- * Dev-only seed: future groups, meetings and member availabilities, shaped by
- * CLI flags (`pnpm db:seed --help`). It writes straight through the schema, so
- * it sends no email and never calls the app's notification code (it does add
- * in-app invite notifications for a `--user` account), and it refuses to touch
- * a database that is not on this machine.
- */
-
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
-/** Connection-string params that make `pg` connect somewhere the URL host does not name. */
 const HOST_OVERRIDE_PARAMS = ["host", "hostaddr", "service"];
 const INSERT_CHUNK = 500;
 
@@ -48,8 +39,6 @@ function assertLocalDatabase(databaseUrl: string): void {
 	} catch {
 		throw new ArgError("DATABASE_URL is not a valid URL.");
 	}
-	// `?host=prod.example.com` overrides the host in front of it, so the
-	// hostname alone cannot be trusted.
 	for (const param of HOST_OVERRIDE_PARAMS) {
 		if (url.searchParams.has(param)) {
 			throw new ArgError(
@@ -96,14 +85,11 @@ async function seed(): Promise<void> {
 				.from(users)
 				.where(eq(sql`lower(${users.email})`, opts.userEmail.toLowerCase()))
 				.limit(1);
-			// Fail before anything is wiped: seeding without the account the dev
-			// asked for would leave them with data they cannot see.
 			if (!row) {
 				throw new ArgError(
 					`No user with email ${opts.userEmail}. Sign in to the app once, then re-run.`,
 				);
 			}
-			// The wipe deletes seed_ accounts, so one cannot also be the real user.
 			if (row.userId.startsWith(SEED_USER_PREFIX)) {
 				throw new ArgError(
 					`${opts.userEmail} is a seeded account; --user needs a real one.`,
@@ -117,9 +103,6 @@ async function seed(): Promise<void> {
 		const plan = await db.transaction(async (tx: Tx) => {
 			if (!opts.append) await wipeSeedData(tx);
 
-			// Ids are derived from the seed, so reusing one under `--append` would
-			// collide with the earlier run's users. Refuse rather than let the
-			// conflict-skipping inserts below quietly drop them.
 			const [clash] = await tx
 				.select({ id: users.id })
 				.from(users)
@@ -146,14 +129,10 @@ async function seed(): Promise<void> {
 				now: new Date(),
 			});
 
-			// Only the fixed admin can already exist (`--append`); the clash check
-			// above guarantees every other row is new.
-			await insertChunked(built.members, (c) =>
-				tx.insert(members).values(c).onConflictDoNothing(),
-			);
-			await insertChunked(built.users, (c) =>
-				tx.insert(users).values(c).onConflictDoNothing(),
-			);
+			await tx.insert(members).values(built.admin.member).onConflictDoNothing();
+			await tx.insert(users).values(built.admin.user).onConflictDoNothing();
+			await insertChunked(built.members, (c) => tx.insert(members).values(c));
+			await insertChunked(built.users, (c) => tx.insert(users).values(c));
 			await insertChunked(built.groups, (c) => tx.insert(groups).values(c));
 			await insertChunked(built.usersInGroup, (c) =>
 				tx.insert(usersInGroup).values(c),

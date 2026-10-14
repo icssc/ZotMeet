@@ -64,7 +64,6 @@ function seedUserId(tag: string, handle: string): string {
 	return `${SEED_USER_PREFIX}${tag}_${handle}`;
 }
 
-/** LIKE pattern for every seeded user id, or only those of one run's `tag`. */
 export function seedUserIdLike(tag?: string): string {
 	const prefix = tag === undefined ? SEED_USER_PREFIX : seedUserId(tag, "");
 	return `${escapeLikePattern(prefix)}%`;
@@ -82,6 +81,7 @@ export interface RealUser {
 }
 
 export interface SeedPlan {
+	admin: { member: InsertMember; user: InsertUser };
 	members: InsertMember[];
 	users: InsertUser[];
 	groups: InsertGroup[];
@@ -182,7 +182,6 @@ function buildResponse(rng: Rng, zotDates: ZotDate[], blockCount: number) {
 		if (wantsIfNeeded) {
 			const freeSet = new Set(free);
 			for (const block of randomBlockSet(rng, blockCount, 1)) {
-				// The two columns must stay disjoint (see savePersonalAvailability).
 				if (!freeSet.has(block)) {
 					ifNeeded.push(zotDate.getISOStringForBlock(block));
 				}
@@ -203,7 +202,6 @@ function pickState(rng: Rng, opts: SeedOptions): MeetingState {
 	return "unscheduled";
 }
 
-/** `meetings.dates` for a new meeting, earliest first. */
 function pickDates(
 	rng: Rng,
 	opts: SeedOptions,
@@ -225,7 +223,6 @@ function pickDates(
 		)
 		.sort((a, b) => a - b)
 		.map((offset) =>
-			// What a browser in the seed timezone sends as a day column.
 			fromZonedTime(
 				`${formatLocalDateKey(addDays(today, offset))}T00:00:00`,
 				SEED_TIMEZONE,
@@ -249,7 +246,25 @@ export function buildSeedPlan(args: {
 		process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
 	).replace(/\/$/, "");
 
+	const admin: Person = {
+		userId: SEED_ADMIN_USER_ID,
+		memberId: SEED_ADMIN_MEMBER_ID,
+		isReal: false,
+	};
+
 	const plan: SeedPlan = {
+		admin: {
+			member: {
+				id: admin.memberId,
+				displayName: "Seed Admin",
+				username: takenUsernames.has("seed.admin") ? null : "seed.admin",
+			},
+			user: {
+				id: admin.userId,
+				memberId: admin.memberId,
+				email: `admin@${SEED_EMAIL_DOMAIN}`,
+			},
+		},
 		members: [],
 		users: [],
 		groups: [],
@@ -265,22 +280,6 @@ export function buildSeedPlan(args: {
 			invitedNotResponded: 0,
 		},
 	};
-
-	const admin: Person = {
-		userId: SEED_ADMIN_USER_ID,
-		memberId: SEED_ADMIN_MEMBER_ID,
-		isReal: false,
-	};
-	plan.members.push({
-		id: admin.memberId,
-		displayName: "Seed Admin",
-		username: takenUsernames.has("seed.admin") ? null : "seed.admin",
-	});
-	plan.users.push({
-		id: admin.userId,
-		memberId: admin.memberId,
-		email: `admin@${SEED_EMAIL_DOMAIN}`,
-	});
 
 	const pool = buildPool(rng, opts.users, tag, takenUsernames);
 	for (const person of pool) {
@@ -355,8 +354,6 @@ export function buildSeedPlan(args: {
 					? titles[m]
 					: `${titles[m % titles.length]} ${Math.floor(m / titles.length) + 1}`;
 
-			// Same rules the API applies, so a bad flag combination fails here
-			// instead of seeding a meeting the app would have refused.
 			createMeetingSchema.parse({
 				title,
 				fromTime,
@@ -415,7 +412,6 @@ export function buildSeedPlan(args: {
 					everyone ||
 					rng.chance(person.isReal ? REAL_USER_RESPONSE_RATE : RESPONSE_RATE);
 				if (!responds) {
-					// The host has no row until they save; everyone else was invited.
 					if (person !== host) {
 						plan.availabilities.push({
 							memberId: person.memberId,
@@ -441,7 +437,7 @@ export function buildSeedPlan(args: {
 				plan.stats.responded++;
 			}
 
-			if (real && !host.isReal) {
+			if (real && !host.isReal && state !== "archived") {
 				plan.notifications.push({
 					memberId: real.memberId,
 					type: NOTIFICATION_TYPES.MEETING_INVITE,
@@ -460,8 +456,6 @@ export function buildSeedPlan(args: {
 					blocks.length,
 				);
 				const start = rng.int(0, blocks.length - duration);
-				// Mirrors the schedule UI: one row per 15-minute block, with the
-				// scheduler's local midnight and local wall-clock times.
 				for (let b = start; b < start + duration; b++) {
 					plan.scheduledMeetings.push({
 						meetingId,

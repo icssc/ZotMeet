@@ -4,19 +4,13 @@ import { MAX_POOL_USERS } from "./names";
 
 export interface SeedOptions {
 	groups: number;
-	/** Size of the fake user pool. */
 	users: number;
-	/** Fake members per group, sampled from the pool. */
 	members: number;
-	/** Meetings per group. */
 	meetings: number;
-	/** Meetings fall 1..days days from today. */
 	days: number;
 	maxDates: number;
-	/** "HH:MM" Pacific, or null to pick a preset per meeting. */
 	from: string | null;
 	to: string | null;
-	/** Per-meeting probabilities. They are mutually exclusive, in this order. */
 	archived: number;
 	scheduled: number;
 	daysOfWeek: number;
@@ -69,7 +63,6 @@ function integer(
 	max: number,
 ): number {
 	if (raw === undefined) return fallback;
-	// Digits only: `Number()` would also accept "", "1e9" and "0x10".
 	const value = /^\d+$/.test(raw) ? Number(raw) : Number.NaN;
 	if (!Number.isSafeInteger(value) || value < min || value > max) {
 		throw new ArgError(
@@ -128,7 +121,6 @@ const FLAGS = {
 } as const;
 
 function readFlags(argv: string[]) {
-	// `pnpm db:seed -- --flag` hands the script a literal leading "--".
 	const args = argv[0] === "--" ? argv.slice(1) : argv;
 	try {
 		return parseArgs({ args, options: FLAGS, strict: true }).values;
@@ -137,7 +129,6 @@ function readFlags(argv: string[]) {
 	}
 }
 
-/** Returns `"help"` when `--help` was passed; throws `ArgError` on bad input. */
 export function parseSeedArgs(argv: string[]): SeedOptions | "help" {
 	const values = readFlags(argv);
 	if (values.help) return "help";
@@ -168,7 +159,6 @@ export function parseSeedArgs(argv: string[]): SeedOptions | "help" {
 	const archived = fraction("archived", values.archived, 0.1);
 	const scheduled = fraction("scheduled", values.scheduled, 0.25);
 	const daysOfWeek = fraction("days-of-week", values["days-of-week"], 0.15);
-	// Tolerance: 0.1 + 0.2 + 0.7 is 1.0000000000000002 in floating point.
 	if (archived + scheduled + daysOfWeek > 1 + 1e-9) {
 		throw new ArgError(
 			"--archived, --scheduled and --days-of-week must add up to at most 1",
