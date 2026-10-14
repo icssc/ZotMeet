@@ -1,4 +1,4 @@
-import type { LibraryTrafficResponse } from "@zotmeet/shared";
+import { libraryTrafficResponseSchema } from "@zotmeet/shared";
 
 export async function fetchLibraryTraffic({
 	signal,
@@ -11,6 +11,11 @@ export async function fetchLibraryTraffic({
 	if (!res.ok) {
 		throw new Error(`API error: ${res.status} ${res.statusText}`);
 	}
-	const data: LibraryTrafficResponse = await res.json();
-	return data.data;
+	const parsed = libraryTrafficResponseSchema.safeParse(await res.json());
+	if (!parsed.success) {
+		throw new Error(
+			`Unexpected library traffic response: ${parsed.error.message}`,
+		);
+	}
+	return parsed.data.data;
 }

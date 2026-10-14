@@ -21,7 +21,7 @@ import {
 import { formatDistanceStrict } from "date-fns";
 import { useEffect, useId, useState } from "react";
 import { SectionCard } from "@/components/dashboard/dashboard-parts";
-import { WaveSkeleton } from "@/components/loading/page-skeletons";
+import { LibraryRowsSkeleton } from "@/components/dashboard/dashboard-skeletons";
 import { fetchLibraryTraffic } from "@/lib/library-traffic/get-library-traffic";
 
 const POLL_MS = 5 * 60 * 1000;
@@ -51,7 +51,8 @@ type TrafficState =
 	| { status: "ready"; overview: LibraryTrafficOverview };
 
 /**
- * Refetches every few minutes and whenever the tab is shown again. A failed
+ * Refetches once the last attempt is `POLL_MS` old, checked each minute and
+ * whenever the tab is shown again; a hidden tab never fetches. A failed
  * refetch keeps the last good reading, which shows its own age.
  */
 function useLibraryTraffic(): TrafficState {
@@ -59,7 +60,9 @@ function useLibraryTraffic(): TrafficState {
 
 	useEffect(() => {
 		let controller: AbortController | undefined;
+		let lastAttempt = 0;
 		const load = () => {
+			lastAttempt = Date.now();
 			controller?.abort();
 			const current = new AbortController();
 			controller = current;
@@ -78,17 +81,18 @@ function useLibraryTraffic(): TrafficState {
 					);
 				});
 		};
-		const onVisible = () => {
-			if (document.visibilityState === "visible") load();
+		const refresh = () => {
+			if (document.hidden || Date.now() - lastAttempt < POLL_MS) return;
+			load();
 		};
 
 		load();
-		const timer = setInterval(load, POLL_MS);
-		document.addEventListener("visibilitychange", onVisible);
+		const timer = setInterval(refresh, CLOCK_TICK_MS);
+		document.addEventListener("visibilitychange", refresh);
 		return () => {
 			controller?.abort();
 			clearInterval(timer);
-			document.removeEventListener("visibilitychange", onVisible);
+			document.removeEventListener("visibilitychange", refresh);
 		};
 	}, []);
 
@@ -167,11 +171,18 @@ function LocationRow({ location }: { location: LibraryTrafficLocation }) {
 	);
 }
 
-function LibraryRow({ library }: { library: LibraryTrafficSummary }) {
+function LibraryRow({
+	library,
+	now,
+}: {
+	library: LibraryTrafficSummary;
+	now: number;
+}) {
 	const [open, setOpen] = useState(false);
 	const floorsId = useId();
-	const { libraryName, percentage, level, locations } = library;
+	const { libraryName, percentage, level, locations, updatedAt } = library;
 	const expandable = locations.length > 1;
+	const stale = updatedAt !== null && !isLibraryTrafficLive(updatedAt, now);
 
 	const header = (
 		<div className="flex w-full items-center gap-3">
@@ -188,7 +199,8 @@ function LibraryRow({ library }: { library: LibraryTrafficSummary }) {
 			)}
 			<Typography
 				variant="body1"
-				sx={{ fontWeight: 600, minWidth: 40, textAlign: "right" }}
+				className="min-w-10 text-right"
+				sx={{ fontWeight: 600 }}
 			>
 				{formatPercentage(percentage)}
 			</Typography>
@@ -225,6 +237,11 @@ function LibraryRow({ library }: { library: LibraryTrafficSummary }) {
 				level={level}
 				label={`${libraryName} occupancy`}
 			/>
+			{stale && (
+				<Typography variant="caption" color="text.secondary">
+					Updated {formatUpdated(updatedAt, now)}
+				</Typography>
+			)}
 			{expandable && (
 				<Collapse in={open} id={floorsId}>
 					<ul className="m-0 flex list-none flex-col gap-3 p-0 pt-2 pl-3">
@@ -235,19 +252,6 @@ function LibraryRow({ library }: { library: LibraryTrafficSummary }) {
 				</Collapse>
 			)}
 		</li>
-	);
-}
-
-function LibraryRowsSkeleton() {
-	return (
-		<div className="flex flex-col gap-5">
-			{Array.from({ length: 3 }, (_, i) => (
-				<div key={i} className="flex flex-col gap-2">
-					<WaveSkeleton variant="text" width="60%" height={28} />
-					<WaveSkeleton variant="rounded" height={6} />
-				</div>
-			))}
-		</div>
 	);
 }
 
@@ -300,7 +304,11 @@ export function LibraryTraffic() {
 				) : (
 					<ul className="m-0 flex list-none flex-col gap-5 p-0">
 						{overview.libraries.map((library) => (
-							<LibraryRow key={library.libraryName} library={library} />
+							<LibraryRow
+								key={library.libraryName}
+								library={library}
+								now={now}
+							/>
 						))}
 					</ul>
 				))}

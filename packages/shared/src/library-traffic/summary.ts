@@ -3,23 +3,7 @@
  * from per-floor readings into one figure per library.
  */
 
-/** One floor or section, as the API returns it. */
-export type LibraryTrafficLocation = {
-	id: number;
-	libraryName: string;
-	locationName: string;
-	/** People currently detected. */
-	trafficCount: number;
-	/** Fraction of stated capacity: 0 to 1, or above 1 when over-occupied. */
-	trafficPercentage: number | null;
-	/** ISO 8601 time of the reading. */
-	timestamp: string | null;
-};
-
-export type LibraryTrafficResponse = {
-	ok: true;
-	data: LibraryTrafficLocation[];
-};
+import type { LibraryTrafficLocation } from "./schema";
 
 export type TrafficLevel = "quiet" | "moderate" | "busy";
 
@@ -30,12 +14,17 @@ export type LibraryTrafficSummary = {
 	level: TrafficLevel | null;
 	/** Its floors and sections, in floor order. */
 	locations: LibraryTrafficLocation[];
+	/** Newest reading among its locations. */
+	updatedAt: Date | null;
 };
 
 export type LibraryTrafficOverview = {
 	/** Busiest first. */
 	libraries: LibraryTrafficSummary[];
-	/** Newest reading across every location. */
+	/**
+	 * The oldest library's `updatedAt`, so the overview is only as fresh as
+	 * its stalest library. Libraries with no dated reading are left out.
+	 */
 	updatedAt: Date | null;
 };
 
@@ -51,25 +40,36 @@ export function getTrafficLevel(percentage: number): TrafficLevel {
 	return "quiet";
 }
 
+function median(values: number[]) {
+	const sorted = [...values].sort((a, b) => a - b);
+	const mid = sorted.length >> 1;
+	return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
 /**
  * Library occupancy weighted by each location's capacity, so a packed study
  * room doesn't outweigh a half-empty reading room. The API reports no
- * capacity, so it is estimated as `count / percentage`; locations at 0% give
- * no estimate and are left out (an empty location adds nobody anyway).
+ * capacity, so it is estimated as `count / percentage`. A location at 0% gives
+ * no estimate, but its seats still count: it borrows the median capacity of
+ * the library's other locations and adds nobody.
  */
 function getLibraryPercentage(locations: LibraryTrafficLocation[]) {
 	let people = 0;
-	let capacity = 0;
-	let reported = false;
+	let empty = 0;
+	const capacities: number[] = [];
 	for (const { trafficCount, trafficPercentage } of locations) {
 		if (trafficPercentage === null) continue;
-		reported = true;
-		if (trafficPercentage <= 0) continue;
-		people += trafficCount;
-		capacity += trafficCount / trafficPercentage;
+		if (trafficPercentage === 0) {
+			empty++;
+		} else if (trafficCount > 0) {
+			people += trafficCount;
+			capacities.push(trafficCount / trafficPercentage);
+		}
 	}
-	if (!reported) return null;
-	return capacity > 0 ? people / capacity : 0;
+	if (capacities.length === 0) return empty > 0 ? 0 : null;
+	const capacity =
+		capacities.reduce((sum, c) => sum + c, 0) + empty * median(capacities);
+	return people / capacity;
 }
 
 function latestTimestamp(locations: LibraryTrafficLocation[]) {
@@ -82,7 +82,15 @@ function latestTimestamp(locations: LibraryTrafficLocation[]) {
 	return latest === null ? null : new Date(latest);
 }
 
+/** Basement first, then numbered floors, then anything unnumbered. */
+function floorRank(locationName: string) {
+	if (/^(basement|lower level)\b/i.test(locationName)) return 0;
+	const floor = /^(\d+)(?:st|nd|rd|th)?\s+floor\b/i.exec(locationName);
+	return floor ? Number(floor[1]) : Number.POSITIVE_INFINITY;
+}
+
 const byFloor = (a: LibraryTrafficLocation, b: LibraryTrafficLocation) =>
+	floorRank(a.locationName) - floorRank(b.locationName) ||
 	a.locationName.localeCompare(b.locationName, "en", { numeric: true });
 
 export function summarizeLibraryTraffic(
@@ -90,10 +98,9 @@ export function summarizeLibraryTraffic(
 ): LibraryTrafficOverview {
 	const byLibrary = new Map<string, LibraryTrafficLocation[]>();
 	for (const row of rows) {
-		byLibrary.set(row.libraryName, [
-			...(byLibrary.get(row.libraryName) ?? []),
-			row,
-		]);
+		const locations = byLibrary.get(row.libraryName);
+		if (locations) locations.push(row);
+		else byLibrary.set(row.libraryName, [row]);
 	}
 
 	const libraries = [...byLibrary].map(
@@ -104,6 +111,7 @@ export function summarizeLibraryTraffic(
 				percentage,
 				level: percentage === null ? null : getTrafficLevel(percentage),
 				locations: [...locations].sort(byFloor),
+				updatedAt: latestTimestamp(locations),
 			};
 		},
 	);
@@ -113,7 +121,13 @@ export function summarizeLibraryTraffic(
 			a.libraryName.localeCompare(b.libraryName),
 	);
 
-	return { libraries, updatedAt: latestTimestamp(rows) };
+	let oldest: Date | null = null;
+	for (const { updatedAt } of libraries) {
+		if (updatedAt && (oldest === null || updatedAt < oldest))
+			oldest = updatedAt;
+	}
+
+	return { libraries, updatedAt: oldest };
 }
 
 export function isLibraryTrafficLive(updatedAt: Date | null, nowMs: number) {
