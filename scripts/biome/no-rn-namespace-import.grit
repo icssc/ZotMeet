@@ -1,0 +1,4 @@
+`import * as $ns from $source` where {
+	$source <: r"[\"']react-native[\"']",
+	register_diagnostic(span=$ns, message="Import named members from react-native. A namespace import reaches Animated past the noRestrictedImports ban; use react-native-reanimated.")
+}

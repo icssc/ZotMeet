@@ -1,0 +1,4 @@
+`require($source)` where {
+	$source <: r"[\"'](?:react|react-[^\"'/]*|zustand)(?:/[^\"']*)?[\"']",
+	register_diagnostic(span=$source, message="No React or zustand in packages/.")
+}

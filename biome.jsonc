@@ -20,6 +20,11 @@
 		},
 		"rules": {
 			"recommended": true,
+			// React rules not in "recommended". Both had zero hits on main when added.
+			"correctness": {
+				"useHookAtTopLevel": "error",
+				"noNestedComponentDefinitions": "error"
+			},
 			"suspicious": {
 				"noUnknownAtRules": {
 					"level": "error",
@@ -72,5 +77,164 @@
 				"organizeImports": "on"
 			}
 		}
-	}
+	},
+	// Package boundaries from CLAUDE.md / .claude/rules, enforced so neither
+	// Claude Code nor reviewers have to catch them by hand. A later override
+	// replaces a rule's options, so overrides don't overlap except where that
+	// is the point (shared test files). noRestrictedImports only sees ESM
+	// imports; the GritQL plugins in scripts/biome/ cover what it misses.
+	"overrides": [
+		{
+			"includes": ["apps/mobile/**"],
+			"plugins": ["./scripts/biome/no-rn-namespace-import.grit"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react-native": {
+										"importNames": ["Animated"],
+										"message": "Mobile uses react-native-reanimated for all animation."
+									},
+									"@react-native-async-storage/async-storage": "Session state lives in useAuthStore + expo-secure-store, never AsyncStorage."
+								},
+								"patterns": [
+									{
+										"group": ["@mui/*", "@mui/**"],
+										"message": "No MUI on mobile. Use the primitives in apps/mobile/src/components/ui."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["packages/shared/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": [
+											"*",
+											"**",
+											"!date-fns",
+											"!date-fns/**",
+											"!date-fns-tz",
+											"!date-fns-tz/**",
+											"!zod",
+											"!zod/**",
+											"!./**",
+											"!../**"
+										],
+										// An allowlist: everything else (React, Drizzle, node:*,
+										// other workspace packages) is blocked.
+										"message": "@zotmeet/shared is pure TS: only date-fns, date-fns-tz and zod. Keep the React/platform part in the app."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			// Tests run on Node, so they may also use its test runner.
+			"includes": ["packages/shared/**/*.test.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": [
+											"*",
+											"**",
+											"!date-fns",
+											"!date-fns/**",
+											"!date-fns-tz",
+											"!date-fns-tz/**",
+											"!zod",
+											"!zod/**",
+											"!node:test",
+											"!node:assert",
+											"!node:assert/**",
+											"!./**",
+											"!../**"
+										],
+										"message": "@zotmeet/shared tests use only node:test, node:assert and the package's own dependencies."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["packages/tokens/**"],
+			"plugins": ["./scripts/biome/no-react-require.grit"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": [
+											"react",
+											"react-*",
+											"react/**",
+											"zustand",
+											"zustand/**"
+										],
+										"message": "No React or zustand in packages/."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react-hook-form": "Web forms use plain useState (team decision).",
+									"swr": "No client-side fetch layer on web; use server components + server actions.",
+									"@tanstack/react-query": "No client-side fetch layer on web; use server components + server actions."
+								},
+								"patterns": [
+									{
+										"group": [
+											"**/apps/mobile/**",
+											"@zotmeet/mobile",
+											"@zotmeet/mobile/**"
+										],
+										"message": "Web never imports from apps/mobile."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	]
 }

@@ -1,5 +1,13 @@
 ## Description
 
+## How it works
+
+<!-- The call path through the new code (e.g. screen → hook → lib/api/x.ts → src/app/api/x/route.ts → @actions/x), the existing code it plugs into, and why new code went where it did. `/pr-prep` in Claude Code drafts this. -->
+
+## Start reviewing at
+
+<!-- The 2–3 files that carry the real logic, and why. -->
+
 ## Recording/Screenshots
 
 ### Before

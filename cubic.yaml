@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://cubic.dev/schema/cubic-repository-config.schema.json
+#
+# Cubic review config. The custom rules point at the same files Claude Code
+# loads (.claude/rules/*.md and AGENTS.md), so the bot that writes code and the
+# bot that reviews it read one set of rules. Edit the rule files, not this list.
+
+version: 1
+
+reviews:
+  enabled: true
+  sensitivity: medium
+  incremental_commits: true
+  check_drafts: false
+  resolve_threads_when_addressed: true
+
+  custom_instructions: |
+    ZotMeet is a pnpm monorepo: Next.js web app (src/), Expo app (apps/mobile/),
+    and pure-TS packages (packages/shared, packages/tokens). AGENTS.md at the
+    repo root describes where code belongs.
+
+    Lint, formatting and all three typechecks run in CI (the "PR checks"
+    workflow) and Biome blocks the package-boundary imports. Don't comment on
+    formatting, import order, Tailwind class order, or anything a type error
+    would catch.
+
+    Decisions that are intentional here — do not flag them:
+    - Same-named files in web and mobile (lib/utils.ts, lib/auth/*,
+      lib/meetings/delete-leave-action.ts, components/** pairs) are separate on
+      purpose. Don't suggest merging or sharing them.
+    - Tests live only in packages/shared (Node's built-in runner, run in CI).
+      Ask for tests when a PR changes logic there; elsewhere suggest a test
+      plan in prose instead. Don't suggest adding a second runner.
+    - Web forms use plain useState; react-hook-form is installed but unused.
+    - No client-side data fetching library on web (server components + server
+      actions instead).
+    - src/components/ui/ holds shadcn leftovers excluded from lint.
+
+    Prioritise: bugs, timezone/date-storage mistakes (fromTime/toTime are UTC
+    "HH:MM:SS"; day columns use localMidnightFromIsoDate, never new Date(iso)),
+    auth/token handling, API routes that reimplement server logic, and code in
+    the wrong package. Group repeated instances of one issue into one comment.
+
+  ignore:
+    files:
+      - pnpm-lock.yaml
+      - src/db/migrations/**
+      - ios/**
+      - public/**
+
+  custom_rules:
+    - name: Code placement and package boundaries
+      description: >-
+        Flag new code that lands in the wrong package per the "Where new code
+        goes" order, logic that duplicates something already in the other app or
+        @zotmeet/shared, API routes that reimplement server logic instead of
+        calling an @actions/@data function, and anything on the "Don't, without
+        asking a maintainer" list.
+      file_paths:
+        - AGENTS.md
+    - name: React standards
+      description: >-
+        Flag violations of the React standards: state mirrored with useEffect,
+        effects used for event handling, zustand reads without a selector,
+        components over ~250 lines or doing two jobs, index keys on dynamic
+        lists, missing pending/error state on async actions.
+      file_paths:
+        - .claude/rules/react.md
+      include:
+        - "src/**/*.tsx"
+        - "src/hooks/**"
+        - "src/store/**"
+        - "apps/mobile/src/**"
+    - name: Web styling and data conventions
+      description: >-
+        Flag sx used for layout where a Tailwind class works, mixed Tailwind/MUI
+        breakpoints for related elements, "use client" on a larger component
+        than needed, and hex/HSL/px literals instead of tokens.
+      file_paths:
+        - .claude/rules/web.md
+      include:
+        - src/**
+      exclude:
+        - src/components/ui/**
+    - name: Mobile conventions
+      description: >-
+        Flag StyleSheet/inline style where a NativeWind class works, raw colour
+        values instead of tokens or colorsFor(), screens calling apiFetch
+        directly, request bodies sent without the shared zod schema, and the
+        auth token read outside useAuthStore or logged.
+      file_paths:
+        - .claude/rules/mobile.md
+      include:
+        - apps/mobile/**
+    - name: Shared package purity
+      description: >-
+        Flag Drizzle row types instead of structural Pick types, APIs Hermes
+        lacks, new dependencies, and moved logic whose old web module no longer
+        re-exports it.
+      file_paths:
+        - .claude/rules/packages.md
+      include:
+        - packages/**
+
+pr_descriptions:
+  generate: false

@@ -154,6 +154,32 @@ packages/shared/src/
 
 - **Rule:** if you write a date/time helper in mobile, it almost certainly belongs in `packages/shared` with a web re-export, not in `apps/mobile/src/lib/date.ts` (that file is only for the native calendar picker's grid maths).
 
+### Where does new code go?
+
+The decision rules in the root `AGENTS.md` ("Where new code goes"), as a diagram. Apply top to bottom; stop at the first match. The colour/radius/type check comes before the "pure logic" check on purpose: a token is also pure logic, and it must not end up in `@zotmeet/shared`.
+
+```mermaid
+flowchart TD
+    A([New code]) --> B{Touches DB, next/*, server-only,<br/>SES, googleapis, cookies,<br/>or secret env vars?}
+    B -- yes --> W[web: src/server/** or src/lib/**]
+    W --> W2{Mobile needs it?}
+    W2 -- yes --> API[add route in src/app/api/<br/>types + schema in packages/shared<br/>client fn in apps/mobile/src/lib/api/]
+    W2 -- no --> WO[web-only: no API route needed]
+    B -- no --> C{A colour, radius<br/>or type size?}
+    C -- yes --> T[packages/tokens]
+    C -- no --> D{Pure logic both apps<br/>could use?}
+    D -- yes --> E{Is it a React hook?}
+    E -- yes --> H[pure part → packages/shared/src/#lt;domain#gt;/<br/>useMemo/useCallback wrapper stays per app]
+    E -- no --> S[packages/shared/src/#lt;domain#gt;/]
+    H --> S2
+    S --> S2[mobile imports @zotmeet/shared<br/>web re-exports from its old module path]
+    D -- no --> P[platform-specific: keep it in that app<br/>src/ or apps/mobile/src/]
+    P --> P2[mirror the other app's path, e.g. both have<br/>components/availability/table/availability-block.tsx]
+    P2 --> P3[header comment: which file it mirrors<br/>and how it deviates]
+```
+
+Why the same-named pairs stay separate: `lib/utils.ts` (`cn`; mobile's extends tailwind-merge with the custom type ramp), `lib/auth/*` (server half vs device half of one protocol), `lib/meetings/delete-leave-action.ts` (icon component vs icon name), `nativeRedirectUriOptions` (reads `process.env` vs `expo-constants`). The personal-edit lifecycle and the month-grid maths were audited and found *not equivalent*, so they need a design call before either is shared.
+
 ---
 
 ## 5. Backend: mobile calls the web app's API
