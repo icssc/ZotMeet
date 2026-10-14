@@ -114,7 +114,7 @@ Scan with [Expo Go](https://expo.dev/go) (iOS: the Camera app; Android: Expo Go'
 | `pnpm db:generate` | Generate new migrations from schema changes |
 | `pnpm db:migrate` | Apply pending migrations |
 | `pnpm db:studio` | Open Drizzle Studio to browse your database |
-| `pnpm db:seed` | Seed the database with a group and up to 20 random test users |
+| `pnpm db:seed` | Seed future groups, meetings and availabilities for testing (`--help` lists the flags) |
 
 ### Committing Changes
 
@@ -130,21 +130,31 @@ If you need credentials for the `.env` file, contact the project lead ([Kyle](ht
 
 ### Seeding the Database (for Testing)
 
-The seed script (`src/db/seed.ts`) creates a group called **"ZotMeet Test Group"** and populates it with up to 20 randomly generated users. This is useful for testing features like availability views and group dashboards without needing real accounts.
-
-To seed:
+The seed script (`src/db/seed.ts`, helpers in `src/db/seed/`) fills your **local** database with fake users, groups, future-dated meetings and random availabilities, so you can exercise the dashboard, group pages and availability grid without real accounts. It writes straight to the database, so it sends no email, and it refuses to run against anything but `localhost` (including connection strings that use `?host=` to point elsewhere).
 
 ```bash
-pnpm db:seed
+pnpm db:seed                                  # 3 groups, 4 meetings each
+pnpm db:seed --groups 5 --meetings 3          # shape the data
+pnpm db:seed --user you@example.com           # see it from your own account
+pnpm db:seed --help                           # every flag
 ```
 
-The script can be run multiple times — each run adds up to 20 more randomly generated members to the group, so you can keep running it to grow the group as needed.
+| Flag | Default | Meaning |
+|------|---------|---------|
+| `--groups N` / `--meetings N` | 3 / 4 | groups, and meetings per group |
+| `--users N` / `--members N` | 20 / 8 | fake user pool, and members per group |
+| `--days N` / `--max-dates N` | 14 / 4 | meetings fall 1..N days ahead; max dates per meeting |
+| `--from HH:MM` / `--to HH:MM` | random preset | meeting window (Pacific time) |
+| `--archived F` / `--scheduled F` / `--days-of-week F` | 0.1 / 0.25 / 0.15 | per-meeting probability of each state; the rest are unscheduled |
+| `--user EMAIL` | none | add this account to every group, host some meetings, invite it to the rest |
+| `--seed N` | random | reproduce a run; the seed is printed each time |
+| `--append` | off | keep earlier seeded data instead of wiping it first |
 
-**Important:** The script cannot access your session, so it has no way of knowing your user ID. After seeding, you must manually add yourself to the group:
-
-1. Open Drizzle Studio: `pnpm db:studio`
-2. Find your id (google) in the `users` table.
-3. Insert a row into `usersInGroup` with your ID and the seeded group's ID.
+- **Re-runs are clean.** Seeded rows are tagged with a `seed_` user id prefix, and each run deletes the previous seed's rows before creating new ones. Real accounts and everything outside the seeded groups are never touched. With `--user`, the wipe does remove your account's membership, responses and hosted meetings *inside the seeded groups*, plus the invite notifications the seed sent you.
+- **`--user` needs an existing account.** Sign in to the app once first; the script finds you by email (case-insensitive) and stops before changing anything if it can't. Without it, the data exists but your account has no connection to it, so it won't appear when you're signed in.
+- **`--append` needs a fresh `--seed`.** User ids are derived from the seed, so reusing one is refused instead of silently skipping users.
+- **Reproducible per day.** The same `--seed` gives the same content on the same calendar day. Meeting dates count forward from today, and row ids and invite tokens are always random.
+- All times are `America/Los_Angeles`. Scheduled blocks follow the schedule UI, which uses the browser's clock, so they only line up exactly if your machine is also on Pacific time.
 
 ## Progressive Web App / iOS App Store
 
