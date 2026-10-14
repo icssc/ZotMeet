@@ -7,7 +7,6 @@ import {
 	updateMeetingInvitePermissions,
 } from "@actions/meeting/invite/action";
 import { searchUsers } from "@actions/user/search";
-import { MailOutline } from "@mui/icons-material";
 import {
 	Autocomplete,
 	Avatar,
@@ -127,29 +126,6 @@ const MemberSearchOption = memo(function MemberSearchOption({
 	);
 });
 
-const EmailInviteOption = memo(function EmailInviteOption({
-	email,
-	...optionProps
-}: HTMLAttributes<HTMLLIElement> & { email: string }) {
-	return (
-		<li {...optionProps}>
-			<div className="flex w-full min-w-0 items-center gap-3">
-				<Avatar className="shrink-0">
-					<MailOutline />
-				</Avatar>
-				<div className="min-w-0 flex-1 overflow-hidden">
-					<Typography color="textPrimary" variant="body2" noWrap>
-						Invite {email}
-					</Typography>
-					<Typography color="textSecondary" variant="caption" noWrap>
-						They'll get an email invite
-					</Typography>
-				</div>
-			</div>
-		</li>
-	);
-});
-
 function MemberSearchAutocomplete({
 	selectedKeys,
 	excludeUserIds,
@@ -158,6 +134,7 @@ function MemberSearchAutocomplete({
 	onSelectMember,
 }: MemberSearchAutocompleteProps) {
 	const [memberQuery, setMemberQuery] = useState("");
+	const [open, setOpen] = useState(false);
 	const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
 	const [isSearching, startSearchTransition] = useTransition();
 	const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -217,6 +194,10 @@ function MemberSearchAutocomplete({
 
 	return (
 		<Autocomplete
+			open={open && options.length > 0}
+			onOpen={() => setOpen(true)}
+			onClose={() => setOpen(false)}
+			forcePopupIcon={false}
 			options={options}
 			loading={isSearching}
 			autoHighlight
@@ -237,11 +218,6 @@ function MemberSearchAutocomplete({
 			isOptionEqualToValue={(option, value) =>
 				inviteeKey(option) === inviteeKey(value)
 			}
-			noOptionsText={
-				memberQuery.length < 2
-					? "Search via Email, Display Name, Username..."
-					: "No users found. Enter a full email to invite them."
-			}
 			slotProps={{
 				popper: {
 					placement: "bottom-start",
@@ -250,7 +226,12 @@ function MemberSearchAutocomplete({
 				},
 			}}
 			renderInput={(params) => (
-				<TextField {...params} label={searchFieldLabel} size="small" />
+				<TextField
+					{...params}
+					label={searchFieldLabel}
+					placeholder="Name, username, or email"
+					size="small"
+				/>
 			)}
 			ListboxProps={{
 				style: { maxHeight: 140, overflowY: "auto" },
@@ -263,9 +244,15 @@ function MemberSearchAutocomplete({
 						{...optionProps}
 					/>
 				) : (
-					<EmailInviteOption
+					<MemberSearchOption
 						key={key ?? emailKey(option.email)}
-						email={option.email}
+						option={{
+							id: emailKey(option.email),
+							email: option.email,
+							username: null,
+							displayName: option.email,
+							profilePicture: null,
+						}}
 						{...optionProps}
 					/>
 				)
@@ -365,11 +352,7 @@ export function MemberInviteFields({
 						) : (
 							<Chip
 								key={key}
-								avatar={
-									<Avatar>
-										<MailOutline fontSize="inherit" />
-									</Avatar>
-								}
+								avatar={<Avatar>{getInitials(member.email)}</Avatar>}
 								label={member.email}
 								onDelete={() => removeMember(key)}
 								variant="filled"
