@@ -30,3 +30,18 @@ export async function sendEmail({ to, subject, text, html }: SendEmailInput) {
 		}),
 	);
 }
+
+export async function sendEmailToEach(
+	addresses: string[],
+	email: Omit<SendEmailInput, "to">,
+) {
+	const results = await Promise.allSettled(
+		addresses.map((to) => sendEmail({ to, ...email })),
+	);
+
+	for (const result of results) {
+		if (result.status === "rejected") {
+			console.error("Failed to send notification email: ", result.reason);
+		}
+	}
+}

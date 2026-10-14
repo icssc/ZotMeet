@@ -1,12 +1,13 @@
 "use client";
 
-import { inviteGroupMember } from "@actions/group/add-member/action";
 import { createGroupInvite } from "@actions/group/invite/create/action";
+import { inviteGroupMembers } from "@actions/group/invite-members/action";
 import {
 	inviteMeetingMembers,
 	updateMeetingInvitePermissions,
 } from "@actions/meeting/invite/action";
 import { searchUsers } from "@actions/user/search";
+import { MailOutline } from "@mui/icons-material";
 import {
 	Autocomplete,
 	Avatar,
@@ -21,6 +22,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
+import { parseInviteEmail } from "@zotmeet/shared";
 import { Check, Copy } from "lucide-react";
 import {
 	type HTMLAttributes,
@@ -42,6 +44,27 @@ export type SearchUser = {
 	profilePicture: string | null;
 };
 
+/** Someone picked to invite: a ZotMeet user from search, or a typed email. */
+export type Invitee =
+	| ({ kind: "user" } & SearchUser)
+	| { kind: "email"; email: string };
+
+function emailKey(email: string) {
+	return `email:${email.toLowerCase()}`;
+}
+
+function inviteeKey(invitee: Invitee) {
+	return invitee.kind === "user" ? invitee.id : emailKey(invitee.email);
+}
+
+/** What the invite actions take: user ids from search, plus typed emails. */
+export function splitInvitees(invitees: Invitee[]) {
+	return {
+		userIds: invitees.flatMap((i) => (i.kind === "user" ? [i.id] : [])),
+		emails: invitees.flatMap((i) => (i.kind === "email" ? [i.email] : [])),
+	};
+}
+
 function getInitials(email: string) {
 	const name = email.split("@")[0] ?? "";
 	return name.slice(0, 2).toUpperCase();
@@ -54,8 +77,8 @@ export type MemberInviteShareLink = {
 };
 
 type MemberInviteFieldsProps = {
-	selectedMembers: SearchUser[];
-	onSelectedMembersChange: (members: SearchUser[]) => void;
+	selectedMembers: Invitee[];
+	onSelectedMembersChange: (members: Invitee[]) => void;
 	/** User IDs to hide from search (e.g. existing group members). */
 	excludeUserIds: string[];
 	searchDebounceMs?: number;
@@ -64,11 +87,11 @@ type MemberInviteFieldsProps = {
 };
 
 type MemberSearchAutocompleteProps = {
-	selectedMemberIds: Set<string>;
+	selectedKeys: Set<string>;
 	excludeUserIds: string[];
 	searchDebounceMs: number;
 	searchFieldLabel: string;
-	onSelectMember: (user: SearchUser) => void;
+	onSelectMember: (invitee: Invitee) => void;
 };
 
 const MemberSearchOption = memo(function MemberSearchOption({
@@ -104,8 +127,31 @@ const MemberSearchOption = memo(function MemberSearchOption({
 	);
 });
 
+const EmailInviteOption = memo(function EmailInviteOption({
+	email,
+	...optionProps
+}: HTMLAttributes<HTMLLIElement> & { email: string }) {
+	return (
+		<li {...optionProps}>
+			<div className="flex w-full min-w-0 items-center gap-3">
+				<Avatar className="shrink-0">
+					<MailOutline />
+				</Avatar>
+				<div className="min-w-0 flex-1 overflow-hidden">
+					<Typography color="textPrimary" variant="body2" noWrap>
+						Invite {email}
+					</Typography>
+					<Typography color="textSecondary" variant="caption" noWrap>
+						They'll get an email invite
+					</Typography>
+				</div>
+			</div>
+		</li>
+	);
+});
+
 function MemberSearchAutocomplete({
-	selectedMemberIds,
+	selectedKeys,
 	excludeUserIds,
 	searchDebounceMs,
 	searchFieldLabel,
@@ -144,47 +190,57 @@ function MemberSearchAutocomplete({
 					const results = await searchUsers(query);
 					if (latestQueryRef.current !== query) return;
 
-					startSearchTransition(() => {
-						setSearchResults(
-							results.filter(
-								(r) => !excludeSet.has(r.id) && !selectedMemberIds.has(r.id),
-							),
-						);
-					});
+					startSearchTransition(() => setSearchResults(results));
 				})();
 			}, searchDebounceMs);
 		},
-		[excludeSet, searchDebounceMs, selectedMemberIds],
+		[searchDebounceMs],
 	);
 
-	const options = useMemo(
-		() => searchResults.filter((user) => !selectedMemberIds.has(user.id)),
-		[searchResults, selectedMemberIds],
-	);
+	// A full email offers an email invite first, unless search already found
+	// (or the user already picked) the account behind it.
+	const options = useMemo<Invitee[]>(() => {
+		const users: Invitee[] = searchResults
+			.filter((user) => !excludeSet.has(user.id) && !selectedKeys.has(user.id))
+			.map((user) => ({ kind: "user", ...user }));
+
+		const typedEmail = parseInviteEmail(memberQuery);
+		if (
+			!typedEmail ||
+			selectedKeys.has(emailKey(typedEmail)) ||
+			searchResults.some((user) => user.email.toLowerCase() === typedEmail)
+		) {
+			return users;
+		}
+		return [{ kind: "email", email: typedEmail }, ...users];
+	}, [searchResults, excludeSet, selectedKeys, memberQuery]);
 
 	return (
 		<Autocomplete
 			options={options}
 			loading={isSearching}
+			autoHighlight
 			getOptionLabel={(option) => option.email}
 			filterOptions={(x) => x}
 			inputValue={memberQuery}
 			onInputChange={(_, value, reason) => {
 				if (reason !== "reset") handleMemberSearch(value);
 			}}
-			onChange={(_, user) => {
-				if (user) {
-					onSelectMember(user);
+			onChange={(_, invitee) => {
+				if (invitee) {
+					onSelectMember(invitee);
 					setMemberQuery("");
 					setSearchResults([]);
 				}
 			}}
 			value={null}
-			isOptionEqualToValue={(option, value) => option.id === value.id}
+			isOptionEqualToValue={(option, value) =>
+				inviteeKey(option) === inviteeKey(value)
+			}
 			noOptionsText={
 				memberQuery.length < 2
 					? "Search via Email, Display Name, Username..."
-					: "No users found"
+					: "No users found. Enter a full email to invite them."
 			}
 			slotProps={{
 				popper: {
@@ -199,13 +255,21 @@ function MemberSearchAutocomplete({
 			ListboxProps={{
 				style: { maxHeight: 140, overflowY: "auto" },
 			}}
-			renderOption={({ key, ...optionProps }, option) => (
-				<MemberSearchOption
-					key={key ?? option.id}
-					option={option}
-					{...optionProps}
-				/>
-			)}
+			renderOption={({ key, ...optionProps }, option) =>
+				option.kind === "user" ? (
+					<MemberSearchOption
+						key={key ?? option.id}
+						option={option}
+						{...optionProps}
+					/>
+				) : (
+					<EmailInviteOption
+						key={key ?? emailKey(option.email)}
+						email={option.email}
+						{...optionProps}
+					/>
+				)
+			}
 		/>
 	);
 }
@@ -228,31 +292,29 @@ export function MemberInviteFields({
 		};
 	}, []);
 
-	const selectedMemberIds = useMemo(
-		() => new Set(selectedMembers.map((m) => m.id)),
+	const selectedKeys = useMemo(
+		() =>
+			new Set(
+				selectedMembers.flatMap((m) =>
+					m.kind === "user" ? [m.id, emailKey(m.email)] : [emailKey(m.email)],
+				),
+			),
 		[selectedMembers],
 	);
 
 	const addMember = useCallback(
-		(user: SearchUser) => {
-			if (selectedMembers.some((m) => m.id === user.id)) return;
-			onSelectedMembersChange([
-				...selectedMembers,
-				{
-					id: user.id,
-					email: user.email,
-					username: user.username,
-					displayName: user.displayName,
-					profilePicture: user.profilePicture ?? null,
-				},
-			]);
+		(invitee: Invitee) => {
+			if (selectedKeys.has(inviteeKey(invitee))) return;
+			onSelectedMembersChange([...selectedMembers, invitee]);
 		},
-		[selectedMembers, onSelectedMembersChange],
+		[selectedKeys, selectedMembers, onSelectedMembersChange],
 	);
 
 	const removeMember = useCallback(
-		(userId: string) => {
-			onSelectedMembersChange(selectedMembers.filter((m) => m.id !== userId));
+		(key: string) => {
+			onSelectedMembersChange(
+				selectedMembers.filter((m) => inviteeKey(m) !== key),
+			);
 		},
 		[selectedMembers, onSelectedMembersChange],
 	);
@@ -272,7 +334,7 @@ export function MemberInviteFields({
 	return (
 		<div className="flex flex-col gap-5 pt-1">
 			<MemberSearchAutocomplete
-				selectedMemberIds={selectedMemberIds}
+				selectedKeys={selectedKeys}
 				excludeUserIds={excludeUserIds}
 				searchDebounceMs={searchDebounceMs}
 				searchFieldLabel={searchFieldLabel}
@@ -281,24 +343,39 @@ export function MemberInviteFields({
 
 			{selectedMembers.length > 0 && (
 				<div className="flex flex-wrap gap-2">
-					{selectedMembers.map((member) => (
-						<Chip
-							key={member.id}
-							avatar={
-								<Avatar
-									src={member.profilePicture ?? undefined}
-									slotProps={{
-										img: { referrerPolicy: "no-referrer" },
-									}}
-								>
-									{getInitials(member.email)}
-								</Avatar>
-							}
-							label={member.email.split("@")[0]}
-							onDelete={() => removeMember(member.id)}
-							variant="filled"
-						/>
-					))}
+					{selectedMembers.map((member) => {
+						const key = inviteeKey(member);
+						return member.kind === "user" ? (
+							<Chip
+								key={key}
+								avatar={
+									<Avatar
+										src={member.profilePicture ?? undefined}
+										slotProps={{
+											img: { referrerPolicy: "no-referrer" },
+										}}
+									>
+										{getInitials(member.email)}
+									</Avatar>
+								}
+								label={member.email.split("@")[0]}
+								onDelete={() => removeMember(key)}
+								variant="filled"
+							/>
+						) : (
+							<Chip
+								key={key}
+								avatar={
+									<Avatar>
+										<MailOutline fontSize="inherit" />
+									</Avatar>
+								}
+								label={member.email}
+								onDelete={() => removeMember(key)}
+								variant="filled"
+							/>
+						);
+					})}
 				</div>
 			)}
 
@@ -368,7 +445,7 @@ export function MemberInviteDialog(props: MemberInviteDialogProps) {
 	const canLoadInviteLink =
 		purpose === "group" ? props.canLoadInviteLink : false;
 
-	const [members, setMembers] = useState<SearchUser[]>([]);
+	const [members, setMembers] = useState<Invitee[]>([]);
 	const [isUpdatingPermissions, setIsUpdatingPermissions] = useState(false);
 	const [meetingLink, setMeetingLink] = useState("");
 	const [groupInviteLink, setGroupInviteLink] = useState("");
@@ -469,13 +546,11 @@ export function MemberInviteDialog(props: MemberInviteDialogProps) {
 		}
 
 		setError("");
+		const { userIds, emails } = splitInvitees(members);
 
 		if (purpose === "meeting" && meetingId) {
 			startTransition(async () => {
-				const result = await inviteMeetingMembers(
-					meetingId,
-					members.map((m) => m.id),
-				);
+				const result = await inviteMeetingMembers(meetingId, userIds, emails);
 
 				if (result.success) {
 					showSuccess(result.message);
@@ -491,26 +566,15 @@ export function MemberInviteDialog(props: MemberInviteDialogProps) {
 
 		if (purpose === "group" && groupId) {
 			startTransition(async () => {
-				let hadError = false;
-				let firstMessage = "";
+				const result = await inviteGroupMembers(groupId, userIds, emails);
 
-				for (const user of members) {
-					const res = await inviteGroupMember(groupId, user.id);
-					if (!res.success) {
-						hadError = true;
-						const msg = `Failed to invite ${user.email}: ${res.message}`;
-						if (!firstMessage) firstMessage = msg;
-						showError(msg);
-					} else {
-						showSuccess(`Invite sent to ${user.email}`);
-					}
-				}
-
-				if (!hadError) {
+				if (result.success) {
+					showSuccess(result.message);
 					resetForm();
 					onOpenChange(false);
 				} else {
-					setError(firstMessage);
+					setError(result.message);
+					showError(result.message);
 				}
 			});
 		}

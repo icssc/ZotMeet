@@ -1,7 +1,9 @@
 "use server";
 
+import { inviteEmailsSchema } from "@zotmeet/shared";
 import { revalidatePath } from "next/cache";
 import { getCurrentSession } from "@/lib/auth";
+import { sendEmailToEach } from "@/lib/email/send-email";
 import { createBrandedTransactionalEmail } from "@/lib/email/templates";
 import { NOTIFICATION_TYPES } from "@/lib/notification/types";
 import { getOrCreateActiveGroupInviteToken } from "@/server/data/groups/invite-queries";
@@ -10,7 +12,10 @@ import {
 	getUsersInGroup,
 	isGroupAdmin,
 } from "@/server/data/groups/queries";
-import { createNewNotification } from "@/server/data/user/queries";
+import {
+	createNewNotification,
+	partitionInviteEmails,
+} from "@/server/data/user/queries";
 
 export type InviteGroupMembersState = {
 	success: boolean;
@@ -20,6 +25,7 @@ export type InviteGroupMembersState = {
 export async function inviteGroupMembers(
 	groupId: string,
 	memberUserIds: string[],
+	emails: string[] = [],
 ): Promise<InviteGroupMembersState> {
 	const { user } = await getCurrentSession();
 	if (!user) {
@@ -41,18 +47,29 @@ export async function inviteGroupMembers(
 		return { success: false, message: "Group not found." };
 	}
 
-	if (!memberUserIds || memberUserIds.length === 0) {
+	const parsedEmails = inviteEmailsSchema.safeParse(emails);
+	if (!parsedEmails.success) {
+		return {
+			success: false,
+			message: parsedEmails.error.issues[0]?.message ?? "Invalid email.",
+		};
+	}
+
+	if (memberUserIds.length === 0 && parsedEmails.data.length === 0) {
 		return { success: false, message: "No members selected." };
 	}
+
+	const { userIds: emailUserIds, unregisteredEmails } =
+		await partitionInviteEmails(parsedEmails.data, user.id);
 
 	const currentMembers = await getUsersInGroup(groupId);
 	const memberIdSet = new Set(currentMembers.map((m) => m.userId));
 
-	const targetIds = memberUserIds.filter(
+	const targetIds = [...new Set([...memberUserIds, ...emailUserIds])].filter(
 		(id) => id !== user.id && !memberIdSet.has(id),
 	);
 
-	if (targetIds.length === 0) {
+	if (targetIds.length === 0 && unregisteredEmails.length === 0) {
 		return {
 			success: false,
 			message:
@@ -72,6 +89,19 @@ export async function inviteGroupMembers(
 		const inviterName = user.displayName?.trim() || "Someone";
 		const groupName = group.name.trim();
 
+		const email = createBrandedTransactionalEmail({
+			subject: `You're invited to join "${groupName}" on ZotMeet`,
+			headline: `${inviterName} invited you to a group.`,
+			bodyLines: [
+				`${inviterName} has invited you to join the ZotMeet group "${groupName}".`,
+				`Accept the invite to collaborate on meetings with the group. You can leave the group whenever you want.`,
+			],
+			ctaLabel: "Join Group",
+			ctaUrl: inviteUrl,
+			footerLearnMoreUrl: `${origin}/`,
+			footerTopic: "groups",
+		});
+
 		await createNewNotification(
 			targetIds,
 			groupName,
@@ -80,21 +110,10 @@ export async function inviteGroupMembers(
 			inviteToken,
 			groupId,
 			user.id,
-			{
-				email: createBrandedTransactionalEmail({
-					subject: `You're invited to join "${groupName}" on ZotMeet`,
-					headline: `${inviterName} invited you to a group.`,
-					bodyLines: [
-						`${inviterName} has invited you to join the ZotMeet group "${groupName}".`,
-						`Accept the invite to collaborate on meetings with the group. You can leave the group whenever you want.`,
-					],
-					ctaLabel: "Join Group",
-					ctaUrl: inviteUrl,
-					footerLearnMoreUrl: `${origin}/`,
-					footerTopic: "groups",
-				}),
-			},
+			{ email },
 		);
+
+		await sendEmailToEach(unregisteredEmails, email);
 
 		revalidatePath(`/groups/${groupId}`);
 		revalidatePath("/summary");

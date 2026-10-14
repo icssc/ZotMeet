@@ -1,5 +1,6 @@
 "use server";
 
+import { inviteEmailsSchema } from "@zotmeet/shared";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
@@ -10,6 +11,7 @@ import {
 	isMemberOfMeeting,
 } from "@/server/data/meeting/queries";
 import { sendMeetingInvitesToUsers } from "@/server/data/meeting/send-meeting-invites";
+import { partitionInviteEmails } from "@/server/data/user/queries";
 
 export type MeetingInviteActionState = {
 	success: boolean;
@@ -22,6 +24,7 @@ export type InviteMeetingMembersState = MeetingInviteActionState;
 export async function inviteMeetingMembers(
 	meetingId: string,
 	memberIds: string[],
+	emails: string[] = [],
 ): Promise<MeetingInviteActionState> {
 	const { user } = await getCurrentSession();
 	if (!user) {
@@ -52,7 +55,21 @@ export async function inviteMeetingMembers(
 		};
 	}
 
-	if (!memberIds || memberIds.length === 0) {
+	const parsedEmails = inviteEmailsSchema.safeParse(emails);
+	if (!parsedEmails.success) {
+		return {
+			success: false,
+			message: parsedEmails.error.issues[0]?.message ?? "Invalid email.",
+		};
+	}
+
+	const { userIds, unregisteredEmails } = await partitionInviteEmails(
+		parsedEmails.data,
+		user.id,
+	);
+	const inviteeUserIds = [...memberIds, ...userIds];
+
+	if (inviteeUserIds.length === 0 && unregisteredEmails.length === 0) {
 		return { success: false, message: "No members selected." };
 	}
 
@@ -60,7 +77,8 @@ export async function inviteMeetingMembers(
 		meetingId,
 		meetingTitle: meeting.title,
 		inviter: { id: user.id, displayName: user.displayName },
-		inviteeUserIds: memberIds,
+		inviteeUserIds,
+		unregisteredEmails,
 	});
 
 	if (result.success) {

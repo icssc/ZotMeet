@@ -1,3 +1,4 @@
+import { inviteEmailsSchema } from "@zotmeet/shared";
 import { z } from "zod";
 
 export const createGroupSchema = z.object({
@@ -16,6 +17,8 @@ export const createGroupSchema = z.object({
 		})
 		.optional(),
 	memberIds: z.array(z.string()).optional(),
+	/** Typed addresses; may or may not belong to a ZotMeet account. */
+	emails: inviteEmailsSchema.optional(),
 	icon: z.string().optional(),
 });
 
