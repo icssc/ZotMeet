@@ -1,6 +1,7 @@
 import { differenceInCalendarDays } from "date-fns";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { BLOCK_LENGTH } from "../chrono/time";
+import { TimeConstants } from "../chrono/types";
 import type { ZotDate } from "./zotdate";
 
 /**
@@ -64,8 +65,19 @@ export const spacerBeforeDate = (
 };
 
 /**
+ * Moves a `yyyy-MM-dd` calendar date by whole days. Done in UTC, to avoid
+ * daylight saving time issues.
+ */
+export function shiftCalendarDate(dateStr: string, days: number): string {
+	const calendarDate = new Date(`${dateStr}T00:00:00.000Z`);
+	calendarDate.setUTCDate(calendarDate.getUTCDate() + days);
+	return calendarDate.toISOString().slice(0, 10);
+}
+
+/**
  * The one encoding of a grid slot: the instant at `totalMinutes` past midnight
- * on `day`, read in `timeZone` (or the process zone when absent). Both
+ * on `day`, read in `timeZone` (or the process zone when absent).
+ * `totalMinutes` of a day or more rolls into the following day. Both
  * `ZotDate#getISOStringForBlock` and `getTimestampFromBlockIndex` come here,
  * so saved availability and rendered cells can never disagree.
  */
@@ -74,15 +86,22 @@ export function isoStringForSlot(
 	totalMinutes: number,
 	timeZone?: string,
 ): string {
-	const hours = Math.floor(totalMinutes / 60);
-	const minutes = totalMinutes % 60;
+	const dayOffset = Math.floor(totalMinutes / TimeConstants.MINUTES_PER_DAY);
+	const minutesInDay = totalMinutes % TimeConstants.MINUTES_PER_DAY;
+
+	const hours = Math.floor(minutesInDay / 60);
+	const minutes = minutesInDay % 60;
 	if (timeZone) {
-		const datePart = formatInTimeZone(day, timeZone, "yyyy-MM-dd");
+		const datePart = shiftCalendarDate(
+			formatInTimeZone(day, timeZone, "yyyy-MM-dd"),
+			dayOffset,
+		);
 		const pad = (n: number) => n.toString().padStart(2, "0");
 		const localDateTime = `${datePart}T${pad(hours)}:${pad(minutes)}:00`;
 		return fromZonedTime(localDateTime, timeZone).toISOString();
 	}
 	const date = new Date(day);
+	date.setDate(date.getDate() + dayOffset);
 	date.setHours(hours, minutes, 0, 0);
 	return date.toISOString();
 }
