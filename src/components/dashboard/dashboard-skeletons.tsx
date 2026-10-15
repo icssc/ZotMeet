@@ -106,6 +106,29 @@ export function CalendarSkeleton() {
 	return <WaveSkeleton variant="rounded" height={340} />;
 }
 
+/** The library rows alone; the card shows these while its data loads. */
+export function LibraryRowsSkeleton() {
+	return (
+		<div className="flex flex-col gap-5">
+			{Array.from({ length: 3 }, (_, i) => (
+				<div key={i} className="flex flex-col gap-2">
+					<WaveSkeleton variant="text" width="60%" height={28} />
+					<WaveSkeleton variant="rounded" height={6} />
+				</div>
+			))}
+		</div>
+	);
+}
+
+export function LibraryTrafficSkeleton() {
+	return (
+		<SectionCard className="flex flex-col gap-6 px-5 py-[30px]">
+			<WaveSkeleton variant="text" width={160} height={32} />
+			<LibraryRowsSkeleton />
+		</SectionCard>
+	);
+}
+
 export function UpcomingSkeleton() {
 	return (
 		<SectionCard
