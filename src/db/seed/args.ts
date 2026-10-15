@@ -28,9 +28,10 @@ Counts
   --users N         fake user pool size                           (default 20, at least --members)
   --members N       fake members per group, sampled from the pool (default 8)
   --meetings N      meetings per group                            (default 4)
+                    groups x meetings x (members + 2) is capped at 100,000 rows
 
 Meeting shape
-  --days N          meetings fall 1..N days from today            (default 14)
+  --days N          "dates" meetings fall 1..N days from today    (default 14)
   --max-dates N     max dates on a "dates" meeting                (default 4)
   --from HH:MM      meeting window start, Pacific time            (default: random preset)
   --to HH:MM        meeting window end, Pacific time              (default: random preset)
@@ -39,21 +40,29 @@ Meeting states (probabilities 0-1, applied per meeting in this order)
   --archived F      archived                                      (default 0.1)
   --scheduled F     already scheduled, upcoming                   (default 0.25)
   --days-of-week F  "days of the week" (recurring) meetings       (default 0.15)
+                    these ignore --days and --max-dates and use fixed 2023
+                    weekday dates
                     anything left over is an unscheduled "dates" meeting
 
 Other
   --user EMAIL      add this real, already signed-up user to every group,
-                    host some meetings and invite them to the rest
+                    host some meetings and get invite notifications for the
+                    other non-archived ones
   --seed N          reproduce a previous run (the seed is printed each run)
   --append          keep earlier seeded data instead of wiping it first
                     (use a seed you have not used before)
   --help            show this message
 
 All times are America/Los_Angeles. Only localhost databases are accepted.
-The same --seed gives the same content on the same calendar day; meeting dates
-are counted forward from today, and ids and invite tokens are always random.`;
+The same --seed and flags give the same groups, meetings and answers on the
+same calendar day; meeting dates are counted forward from today. Timestamps
+like created_at follow the clock, group, meeting and member ids and invite
+tokens are random, and seeded user ids come from the seed (the Seed Admin's ids
+are fixed).`;
 
 export class ArgError extends Error {}
+
+const MAX_AVAILABILITY_ROWS = 100_000;
 
 function integer(
 	flag: string,
@@ -78,7 +87,7 @@ function fraction(
 	fallback: number,
 ): number {
 	if (raw === undefined) return fallback;
-	const value = Number(raw);
+	const value = /^(\d+\.?\d*|\.\d+)$/.test(raw) ? Number(raw) : Number.NaN;
 	if (!Number.isFinite(value) || value < 0 || value > 1) {
 		throw new ArgError(`--${flag} must be between 0 and 1 (got "${raw}")`);
 	}
@@ -147,6 +156,15 @@ export function parseSeedArgs(argv: string[]): SeedOptions | "help" {
 		);
 	}
 
+	const groups = integer("groups", values.groups, 3, 1, 200);
+	const meetings = integer("meetings", values.meetings, 4, 0, 200);
+	const availabilityRows = groups * meetings * (members + 2);
+	if (availabilityRows > MAX_AVAILABILITY_ROWS) {
+		throw new ArgError(
+			`--groups x --meetings x --members would create about ${availabilityRows.toLocaleString("en-US")} availability rows; the limit is ${MAX_AVAILABILITY_ROWS.toLocaleString("en-US")}. Lower one of them.`,
+		);
+	}
+
 	const from = time("from", values.from);
 	const to = time("to", values.to);
 	if ((from === null) !== (to === null)) {
@@ -166,10 +184,10 @@ export function parseSeedArgs(argv: string[]): SeedOptions | "help" {
 	}
 
 	return {
-		groups: integer("groups", values.groups, 3, 1, 200),
+		groups,
 		users,
 		members,
-		meetings: integer("meetings", values.meetings, 4, 0, 200),
+		meetings,
 		days: integer("days", values.days, 14, 1, 365),
 		maxDates: integer("max-dates", values["max-dates"], 4, 1, 31),
 		from,

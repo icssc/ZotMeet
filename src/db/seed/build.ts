@@ -140,7 +140,9 @@ function buildPool(
 		.slice(0, count)
 		.map(({ handle, displayName }) => {
 			let username = handle;
-			if (taken.has(username)) username = `${handle}.${tag}`;
+			for (let attempt = 0; taken.has(username); attempt++) {
+				username = `${handle}.${tag}${attempt === 0 ? "" : attempt}`;
+			}
 			taken.add(username);
 			return {
 				userId: seedUserId(tag, handle),
