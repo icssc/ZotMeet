@@ -18,6 +18,7 @@ import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	convertTimeToUTC,
+	isValidStartEndTimes,
 	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
 import type { HourMinuteString } from "@/lib/types/chrono";
@@ -160,7 +161,7 @@ export function Creation({ user }: { user: UserProfile }) {
 			selectedDays.length > 0 &&
 			startTime &&
 			endTime &&
-			startTime < endTime &&
+			isValidStartEndTimes(startTime, endTime) &&
 			hasMeetingName
 		);
 	}, [selectedDays.length, startTime, endTime, hasMeetingName]);

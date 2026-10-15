@@ -1,6 +1,7 @@
 import {
 	ANCHOR_DATES,
 	convertTimeToUTC,
+	isValidStartEndTimes,
 	sortMeetingIsoDatesAsc,
 } from "@zotmeet/shared";
 import { useRouter } from "expo-router";
@@ -47,7 +48,12 @@ export function CreateMeetingForm() {
 	const [submitError, setSubmitError] = useState<string | null>(null);
 
 	const endsBeforeItStarts =
-		!!startTime && !!endTime && endTime.getTime() <= startTime.getTime();
+		!!startTime &&
+		!!endTime &&
+		!isValidStartEndTimes(
+			dateToHourMinuteString(startTime),
+			dateToHourMinuteString(endTime),
+		);
 
 	// Same gate as the web form's `hasValidInputs` in
 	// `src/components/creation/creation.tsx`.
