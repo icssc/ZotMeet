@@ -1,8 +1,8 @@
 "use client";
 
-import { useTheme } from "@mui/material/styles";
 import {
 	calculateBlockFill,
+	computeAvailabilityExtent,
 	computeMaxAvailability,
 	scheduledEdgesFor,
 	selectionEdgesFor,
@@ -57,9 +57,6 @@ export function GroupAvailability({
 	timeZone,
 	handlers,
 }: GroupAvailabilityProps) {
-	const theme = useTheme();
-	const primaryColor = theme.palette.primary.main;
-
 	const {
 		currentPage,
 		itemsPerPage,
@@ -126,6 +123,11 @@ export function GroupAvailability({
 			scheduledBlockCount: displayScheduleTimestamps.size,
 		};
 	}, [displayScheduleTimestamps]);
+
+	const availabilityExtent = useMemo(
+		() => computeAvailabilityExtent(availabilityDates, selectedMembers),
+		[availabilityDates, selectedMembers],
+	);
 
 	const maxAvailability = useMemo(
 		() =>
@@ -214,6 +216,7 @@ export function GroupAvailability({
 									numMembers,
 									showBestTimes,
 									maxAvailability,
+									availabilityExtent,
 									ifNeededBlock,
 								});
 
@@ -294,7 +297,6 @@ export function GroupAvailability({
 												onKeyDown={handlers.onKeyDown}
 												onHoverCell={handlers.onCellHover}
 												fill={fill}
-												primaryColor={primaryColor}
 												isScheduled={blockIsScheduled}
 												isScheduledTopEdge={isTopEdge}
 												isScheduledBottomEdge={isBottomEdge}

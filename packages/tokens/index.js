@@ -27,6 +27,8 @@ const light = {
 	"popover-foreground": "222.2 84% 4.9%",
 	primary: "344.4 84.5% 67.1%",
 	"primary-foreground": "0 0% 100%",
+	// primary lightness -20% in oklab
+	"primary-availability": "339 69.8% 39.6%",
 	paper: "0 0% 100%",
 	"paper-foreground": "222.2 84% 4.9%",
 	secondary: "210 40% 96.1%",
@@ -103,6 +105,8 @@ const dark = {
 	"popover-foreground": "210 40% 98%",
 	primary: "344.4 84.5% 67.1%",
 	"primary-foreground": "0 0% 100%",
+	// primary lightness +20% in oklab
+	"primary-availability": "346 495% 94.1%",
 	paper: "0 1% 16%",
 	"paper-foreground": "210 40% 98%",
 	secondary: "217.2 32.6% 17.5%",

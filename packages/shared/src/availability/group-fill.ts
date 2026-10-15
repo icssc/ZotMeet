@@ -2,10 +2,12 @@ import { rangeCoversCell, type SelectionStateType } from "./types";
 import type { ZotDate } from "./zotdate";
 
 /**
- * Group-view cell fill. Colour-agnostic: `solid.ratio` is the share of the
- * denominator that is available (the web maps it through MUI's `alpha`, native
- * through the primary token's opacity) and `stripes.opacity` the share that is
- * if-needed, shown by letting the stripe backdrop through the paper base.
+ * Group-view cell fill. Colour-agnostic. `solid.ratio` scales this slot's
+ * available headcount from the quietest painted slot (0) to the busiest (1).
+ * When every painted slot shares one headcount the ratio is 1, and a hovered
+ * member is 1 or the solid layer is absent. `stripes.opacity` is the if-needed
+ * count divided by the denominator — the member filter, the hovered member, or
+ * everyone — shown by letting the stripe backdrop through the paper base.
  */
 export type BlockFill = {
 	solid: { ratio: number } | null;
@@ -26,6 +28,59 @@ export function proportionalFill(
 	};
 }
 
+/** Available-headcount range across the slots being compared. */
+export interface AvailabilityExtent {
+	min: number;
+	max: number;
+}
+
+export const EMPTY_EXTENT: AvailabilityExtent = { min: 0, max: 0 };
+
+function availableCount(
+	block: readonly string[],
+	selectedMembers: readonly string[],
+): number {
+	if (!selectedMembers.length) return block.length;
+	let count = 0;
+	for (const memberId of selectedMembers) {
+		if (block.includes(memberId)) count++;
+	}
+	return count;
+}
+
+/**
+ * Min and max number of people available in any slot. Empty slots are ignored,
+ * so the scale runs from the quietest painted cell to the busiest, not from
+ * zero to the group size. A member filter counts only those members.
+ */
+export function computeAvailabilityExtent(
+	availabilityDates: readonly ZotDate[],
+	selectedMembers: readonly string[] = [],
+): AvailabilityExtent {
+	let min = Number.POSITIVE_INFINITY;
+	let max = 0;
+	for (const day of availabilityDates) {
+		for (const block of Object.values(day?.groupAvailability ?? {})) {
+			const count = availableCount(block, selectedMembers);
+			if (count <= 0) continue;
+			min = Math.min(min, count);
+			max = Math.max(max, count);
+		}
+	}
+	if (min === Number.POSITIVE_INFINITY) return EMPTY_EXTENT;
+	return { min, max };
+}
+
+/** 0 at the quietest slot, 1 at the busiest. A single headcount fills fully. */
+export function scaleAvailability(
+	count: number,
+	extent: AvailabilityExtent,
+): number {
+	if (count <= 0 || extent.max <= 0) return 0;
+	if (extent.max === extent.min) return 1;
+	return (count - extent.min) / (extent.max - extent.min);
+}
+
 export interface BlockFillInput {
 	/** Member ids available in this slot. */
 	block: readonly string[];
@@ -37,9 +92,22 @@ export interface BlockFillInput {
 	showBestTimes: boolean;
 	/** From `computeMaxAvailability`; only read when `showBestTimes`. */
 	maxAvailability: number;
+	/** From `computeAvailabilityExtent`. */
+	availabilityExtent: AvailabilityExtent;
 }
 
 /** Priority: a member filter, then a hovered member, then best-times, then everyone. */
+function fillWithScaledAvailability(
+	available: number,
+	ifNeeded: number,
+	denominator: number,
+	extent: AvailabilityExtent,
+): BlockFill {
+	const fill = proportionalFill(available, ifNeeded, denominator);
+	if (!fill.solid) return fill;
+	return { ...fill, solid: { ratio: scaleAvailability(available, extent) } };
+}
+
 export function calculateBlockFill({
 	block,
 	ifNeededBlock,
@@ -48,18 +116,18 @@ export function calculateBlockFill({
 	numMembers,
 	showBestTimes,
 	maxAvailability,
+	availabilityExtent,
 }: BlockFillInput): BlockFill {
 	if (selectedMembers.length) {
-		const selectedAvailable = selectedMembers.filter((memberId) =>
-			block.includes(memberId),
-		).length;
+		const selectedAvailable = availableCount(block, selectedMembers);
 		const selectedIfNeeded = selectedMembers.filter((memberId) =>
 			ifNeededBlock.includes(memberId),
 		).length;
-		return proportionalFill(
+		return fillWithScaledAvailability(
 			selectedAvailable,
 			selectedIfNeeded,
 			selectedMembers.length,
+			availabilityExtent,
 		);
 	}
 
@@ -74,13 +142,23 @@ export function calculateBlockFill({
 	if (showBestTimes) {
 		const combined = block.length + ifNeededBlock.length;
 		if (combined === maxAvailability && maxAvailability > 0) {
-			return proportionalFill(block.length, ifNeededBlock.length, numMembers);
+			return fillWithScaledAvailability(
+				block.length,
+				ifNeededBlock.length,
+				numMembers,
+				availabilityExtent,
+			);
 		}
 		return EMPTY_FILL;
 	}
 
 	if (numMembers) {
-		return proportionalFill(block.length, ifNeededBlock.length, numMembers);
+		return fillWithScaledAvailability(
+			block.length,
+			ifNeededBlock.length,
+			numMembers,
+			availabilityExtent,
+		);
 	}
 
 	return EMPTY_FILL;
