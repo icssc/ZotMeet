@@ -161,7 +161,7 @@ export function parseSeedArgs(argv: string[]): SeedOptions | "help" {
 	const availabilityRows = groups * meetings * (members + 2);
 	if (availabilityRows > MAX_AVAILABILITY_ROWS) {
 		throw new ArgError(
-			`--groups x --meetings x --members would create about ${availabilityRows.toLocaleString("en-US")} availability rows; the limit is ${MAX_AVAILABILITY_ROWS.toLocaleString("en-US")}. Lower one of them.`,
+			`--groups x --meetings x (--members + 2) would create about ${availabilityRows.toLocaleString("en-US")} availability rows; the limit is ${MAX_AVAILABILITY_ROWS.toLocaleString("en-US")}. Lower one of them.`,
 		);
 	}
 
