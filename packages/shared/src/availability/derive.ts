@@ -140,6 +140,81 @@ export function deriveInitialAvailability(args: {
 		.sort((a, b) => a.day.getTime() - b.day.getTime());
 }
 
+/**
+ * Rebuilds `ZotDate`s for another time zone.
+ */
+export function deriveAvailabilityForTimezone(args: {
+	timezone: string;
+	meetingDates: readonly string[];
+	userId: string | null;
+	availabilityDates: readonly ZotDate[];
+	ifNeededDates: readonly ZotDate[];
+	availabilityTimeBlocks: readonly number[];
+}): { availabilityDates: ZotDate[]; ifNeededDates: ZotDate[] } {
+	const {
+		timezone,
+		meetingDates,
+		userId,
+		availabilityDates,
+		ifNeededDates,
+		availabilityTimeBlocks,
+	} = args;
+
+	const timesByMember = new Map<
+		string,
+		{ available: string[]; ifNeeded: string[] }
+	>();
+
+	const buildTimesByMember = (
+		columns: readonly ZotDate[],
+		list: "available" | "ifNeeded",
+	) => {
+		for (const column of columns) {
+			for (const [time, memberIds] of Object.entries(
+				column.groupAvailability,
+			)) {
+				for (const memberId of memberIds) {
+					let times = timesByMember.get(memberId);
+					if (times === undefined) {
+						times = { available: [], ifNeeded: [] };
+						timesByMember.set(memberId, times);
+					}
+					times[list].push(time);
+				}
+			}
+		}
+	};
+	buildTimesByMember(availabilityDates, "available");
+	buildTimesByMember(ifNeededDates, "ifNeeded");
+
+	const allAvailabilities = Array.from(timesByMember, ([memberId, times]) => ({
+		memberId,
+		displayName: "",
+		profilePicture: null,
+		meetingAvailabilities: times.available,
+		ifNeededAvailabilities: times.ifNeeded,
+	}));
+
+	return {
+		availabilityDates: deriveInitialAvailability({
+			timezone,
+			meetingDates,
+			userId,
+			allAvailabilities,
+			availabilityTimeBlocks,
+			mode: "availabilities",
+		}),
+		ifNeededDates: deriveInitialAvailability({
+			timezone,
+			meetingDates,
+			userId,
+			allAvailabilities,
+			availabilityTimeBlocks,
+			mode: "if-needed",
+		}),
+	};
+}
+
 /** Same day layout as `deriveInitialAvailability`, without member data. */
 export function buildZotDateRowsForMeetingDays(
 	meetingDates: readonly string[],

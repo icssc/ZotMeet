@@ -137,10 +137,11 @@ export const formatTimeWithHoursAndMins = (time: string): string => {
 	return `${hour}:${minutes.toString().padStart(2, "0")} ${ampm}`;
 };
 
-export const formatDateToUSNumeric = (date: Date) =>
+export const formatDateToUSNumeric = (date: Date, timeZone?: string) =>
 	date.toLocaleDateString("en-US", {
 		month: "numeric",
 		day: "numeric",
+		timeZone,
 	});
 
 /**

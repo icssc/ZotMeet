@@ -2,17 +2,20 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { generateTimeBlocks } from "../chrono/time";
+import { deriveMeetingWindow } from "../meetings/window";
 import {
 	buildZotDateRowsForMeetingDays,
+	deriveAvailabilityForTimezone,
 	deriveInitialAvailability,
 } from "./derive";
 import { isoStringForSlot } from "./grid";
+import type { MemberMeetingAvailability } from "./types";
 
 const pacificTimeZone = "America/Los_Angeles";
 const tokyoTimeZone = "Asia/Tokyo";
+const newYorkTimeZone = "America/New_York";
 
 describe("deriveInitialAvailability", () => {
-	const timeZone = "America/New_York";
 	// 9 PM - 12:30 AM
 	const timeBlocks = generateTimeBlocks(1260, 30);
 	// 12 AM, Oct 12 and 13, New York
@@ -22,7 +25,7 @@ describe("deriveInitialAvailability", () => {
 	function derive(
 		meetingDates: string[],
 		saved: string[],
-		zone = timeZone,
+		zone = newYorkTimeZone,
 		blocks = timeBlocks,
 	) {
 		return deriveInitialAvailability({
@@ -75,9 +78,9 @@ describe("deriveInitialAvailability", () => {
 		const slotsFor = (date: string) =>
 			timeBlocks.map((minutes) =>
 				isoStringForSlot(
-					fromZonedTime(`${date}T00:00:00`, timeZone),
+					fromZonedTime(`${date}T00:00:00`, newYorkTimeZone),
 					minutes,
-					timeZone,
+					newYorkTimeZone,
 				),
 			);
 
@@ -192,6 +195,130 @@ describe("buildZotDateRowsForMeetingDays", () => {
 		assert.equal(
 			formatInTimeZone(days[0].day, tokyoTimeZone, "yyyy-MM-dd"),
 			"2026-10-27",
+		);
+	});
+});
+
+describe("deriveAvailabilityForTimezone", () => {
+	// 9 AM - 5 PM, Oct 26 and 27, Pacific
+	const meeting = {
+		dates: ["2026-10-26T07:00:00.000Z", "2026-10-27T07:00:00.000Z"], // 12 AM, Oct 26 and 27, Pacific
+		fromTime: "16:00:00",
+		toTime: "00:00:00",
+	};
+	const member1Avail = [
+		"2026-10-26T20:00:00.000Z", // 1 PM, Oct 26, Pacific
+		"2026-10-27T20:00:00.000Z", // 1 PM, Oct 27, Pacific
+	];
+	const member2Avail = [
+		"2026-10-26T20:00:00.000Z", // 1 PM, Oct 26, Pacific
+		"2026-10-27T22:00:00.000Z", // 3 PM, Oct 27, Pacific
+	];
+	const member1IfNeeded = ["2026-10-26T17:00:00.000Z"]; // 10 AM, Oct 26, Pacific
+	const member2IfNeeded = ["2026-10-27T23:00:00.000Z"]; // 4 PM, Oct 27, Pacific
+	const member1 = {
+		memberId: "member1",
+		displayName: "Member1",
+		profilePicture: null,
+		meetingAvailabilities: member1Avail,
+		ifNeededAvailabilities: member1IfNeeded,
+	};
+	const member2 = {
+		memberId: "member2",
+		displayName: "Member2",
+		profilePicture: null,
+		meetingAvailabilities: member2Avail,
+		ifNeededAvailabilities: member2IfNeeded,
+	};
+	function buildColumns(
+		zone: string,
+		members: readonly MemberMeetingAvailability[],
+		userId: string | null,
+	) {
+		const { availabilityTimeBlocks } = deriveMeetingWindow(meeting, zone);
+
+		return {
+			availabilityDates: deriveInitialAvailability({
+				timezone: zone,
+				meetingDates: meeting.dates,
+				userId,
+				allAvailabilities: members,
+				availabilityTimeBlocks,
+				mode: "availabilities",
+			}),
+			ifNeededDates: deriveInitialAvailability({
+				timezone: zone,
+				meetingDates: meeting.dates,
+				userId,
+				allAvailabilities: members,
+				availabilityTimeBlocks,
+				mode: "if-needed",
+			}),
+		};
+	}
+
+	function rebuild(cols: ReturnType<typeof buildColumns>, zone: string) {
+		return deriveAvailabilityForTimezone({
+			availabilityDates: cols.availabilityDates,
+			ifNeededDates: cols.ifNeededDates,
+			userId: member1.memberId,
+			timezone: zone,
+			meetingDates: meeting.dates,
+			availabilityTimeBlocks: deriveMeetingWindow(meeting, zone)
+				.availabilityTimeBlocks,
+		});
+	}
+
+	it("gives the same columns as loading the page in the new zone", () => {
+		const pacificCols = buildColumns(
+			pacificTimeZone,
+			[member1, member2],
+			"member1",
+		);
+
+		const rebuiltTokyoCols = rebuild(pacificCols, tokyoTimeZone);
+
+		assert.deepEqual(
+			rebuiltTokyoCols,
+			buildColumns(tokyoTimeZone, [member1, member2], "member1"),
+		);
+	});
+
+	it("gets the original columns back after switching zones and back", () => {
+		const pacificCols = buildColumns(
+			pacificTimeZone,
+			[member1, member2],
+			"member1",
+		);
+
+		const tokyoCols = rebuild(pacificCols, tokyoTimeZone);
+
+		const backToPacificCols = rebuild(tokyoCols, pacificTimeZone);
+
+		assert.deepEqual(backToPacificCols, pacificCols);
+	});
+
+	it("includes a time that is only in the given columns", () => {
+		const extraTime = "2026-10-26T21:00:00.000Z"; // 2 PM, Oct 26, Pacific
+		const pacificCols = buildColumns(
+			pacificTimeZone,
+			[member1, member2],
+			"member1",
+		);
+
+		pacificCols.availabilityDates[0].availability.push(extraTime);
+		pacificCols.availabilityDates[0].groupAvailability[extraTime] = ["member1"];
+
+		const member1WithExtra = {
+			...member1,
+			meetingAvailabilities: [...member1Avail, extraTime],
+		};
+
+		const rebuiltTokyoCols = rebuild(pacificCols, tokyoTimeZone);
+
+		assert.deepEqual(
+			rebuiltTokyoCols,
+			buildColumns(tokyoTimeZone, [member1WithExtra, member2], "member1"),
 		);
 	});
 });
