@@ -1,9 +1,42 @@
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { getTimeFromHourMinuteString } from "../chrono/time";
-import { type HourMinuteString, TimeConstants } from "../chrono/types";
+import {
+	type HourMinuteString,
+	isAnchorDateString,
+	TimeConstants,
+} from "../chrono/types";
 import { shiftCalendarDate } from "./grid";
 import type { MemberMeetingAvailability } from "./types";
 import { ZotDate } from "./zotdate";
+
+/**
+ * The column date, on the viewer's clock, for a stored meeting date (the
+ * creator's midnight). The meeting starts within the 24 hours after that
+ * midnight, so it is the stored date read in timezone or the day after,
+ * the start minutes decide which.
+ */
+function columnDateForMeetingDay(
+	creatorMeetingDate: string,
+	startMinutes: number,
+	timezone: string,
+): string {
+	// "Days of the week" meetings keep their weekday in every zone.
+	const utcDate = creatorMeetingDate.split("T")[0];
+	if (isAnchorDateString(utcDate)) return utcDate;
+
+	const [localDate, localTime] = formatInTimeZone(
+		new Date(creatorMeetingDate),
+		timezone,
+		"yyyy-MM-dd HH:mm:ss",
+	).split(" ");
+	const localMinutes = getTimeFromHourMinuteString(
+		localTime as HourMinuteString,
+	);
+
+	return startMinutes >= localMinutes
+		? localDate
+		: shiftCalendarDate(localDate, 1);
+}
 
 /**
  * Turns saved responses into the grid's model: one `ZotDate` per meeting
@@ -37,7 +70,7 @@ export function deriveInitialAvailability(args: {
 	// Slots before this time of day belong to the previous day's column.
 	const minutesPastMidnight = latestMinutes - TimeConstants.MINUTES_PER_DAY;
 
-	const columnDateFor = (timestamp: string): string => {
+	const columnDateForSlot = (timestamp: string): string => {
 		const [dateStr, time] = formatInTimeZone(
 			new Date(timestamp),
 			timezone,
@@ -61,7 +94,7 @@ export function deriveInitialAvailability(args: {
 	const availabilitiesByDate = new Map<string, string[]>();
 	if (userAvailability) {
 		getTimestamps(userAvailability).forEach((timeStr) => {
-			const dateStr = columnDateFor(timeStr);
+			const dateStr = columnDateForSlot(timeStr);
 			if (!availabilitiesByDate.has(dateStr)) {
 				availabilitiesByDate.set(dateStr, []);
 			}
@@ -72,7 +105,7 @@ export function deriveInitialAvailability(args: {
 	const timestampsByDate = new Map<string, Map<string, string[]>>();
 	for (const member of allAvailabilities) {
 		for (const timestamp of getTimestamps(member)) {
-			const dateStr = columnDateFor(timestamp);
+			const dateStr = columnDateForSlot(timestamp);
 			let dateMap = timestampsByDate.get(dateStr);
 			if (dateMap === undefined) {
 				dateMap = new Map();
@@ -86,17 +119,21 @@ export function deriveInitialAvailability(args: {
 	}
 
 	return meetingDates
-		.map((meetingDate) => {
-			const dateStr = meetingDate.split("T")[0];
-			const date = fromZonedTime(`${dateStr}T00:00:00`, timezone);
+		.map((creatorMeetingDate) => {
+			const columnDate = columnDateForMeetingDay(
+				creatorMeetingDate,
+				earliestMinutes,
+				timezone,
+			);
+			const columnDayStart = fromZonedTime(`${columnDate}T00:00:00`, timezone);
 
 			return new ZotDate(
-				date,
+				columnDayStart,
 				earliestMinutes,
 				latestMinutes,
 				false,
-				availabilitiesByDate.get(dateStr) || [],
-				Object.fromEntries(timestampsByDate.get(dateStr) || new Map()),
+				availabilitiesByDate.get(columnDate) || [],
+				Object.fromEntries(timestampsByDate.get(columnDate) || new Map()),
 				timezone,
 			);
 		})
@@ -107,23 +144,23 @@ export function deriveInitialAvailability(args: {
 export function buildZotDateRowsForMeetingDays(
 	meetingDates: readonly string[],
 	availabilityTimeBlocks: readonly number[],
-	timeZone?: string,
+	timeZone: string,
 ): ZotDate[] {
 	return meetingDates
-		.map((meetingDate) => {
-			const dateStr = meetingDate.split("T")[0];
-			const [year, month, day] = dateStr.split("-").map(Number);
-			const date = timeZone
-				? fromZonedTime(`${dateStr}T00:00:00`, timeZone)
-				: new Date(year, month - 1, day);
-
+		.map((creatorMeetingDate) => {
 			const earliestMinutes = availabilityTimeBlocks[0] ?? 480;
 			const latestMinutes =
 				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] ?? 1035) +
 				15;
+			const columnDate = columnDateForMeetingDay(
+				creatorMeetingDate,
+				earliestMinutes,
+				timeZone,
+			);
+			const columnDayStart = fromZonedTime(`${columnDate}T00:00:00`, timeZone);
 
 			return new ZotDate(
-				date,
+				columnDayStart,
 				earliestMinutes,
 				latestMinutes,
 				false,
