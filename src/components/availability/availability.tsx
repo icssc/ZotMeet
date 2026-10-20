@@ -582,7 +582,7 @@ export function Availability({
 								/>
 							</div>
 
-							<div className="block sm:hidden">
+							<div className="block lg:hidden">
 								{availabilityView === "schedule" ? (
 									<MobileScheduleSettings
 										respondedMembersCount={Math.max(
@@ -654,7 +654,7 @@ export function Availability({
 
 					{(availabilityView === "personal" ||
 						availabilityView === "schedule") && (
-						<div className="block sm:hidden">
+						<div className="block lg:hidden">
 							<MobilePersonalAvailabilitySidebar
 								revertPersonalDraft={revertPersonalDraft}
 								exitToGroupView={exitToGroupView}
