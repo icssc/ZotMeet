@@ -79,7 +79,6 @@ export function getRoomBookingUrl(
  * Availability is intentionally NOT computed here — the context's
  * buildUnavailableKeys handles that directly from the raw slots, correctly
  * OR-merging overlapping sliding-window slots across all variants.
- * this function is suspicious
  */
 export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 	type Entry = RoomResult & { availableCount: number };
