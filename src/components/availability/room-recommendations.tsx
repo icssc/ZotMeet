@@ -79,6 +79,7 @@ export function getRoomBookingUrl(
  * Availability is intentionally NOT computed here — the context's
  * buildUnavailableKeys handles that directly from the raw slots, correctly
  * OR-merging overlapping sliding-window slots across all variants.
+ * this function is suspicious
  */
 export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 	type Entry = RoomResult & { availableCount: number };
@@ -88,7 +89,8 @@ export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 		const key = dedupeKey(room.name, room.location);
 		const baseName = stripRoomDurationSuffix(room.name);
 		const availableCount = room.slots.filter((s) => s.isAvailable).length;
-		const duration = parseRoomDuration(room.name);
+		const longest = longestAvailableRunMinutes(room.slots);
+		const roomDurations = MEETING_LENGTHS.filter((l) => l <= longest);
 
 		const existing = seen.get(key);
 
@@ -100,14 +102,13 @@ export function deduplicateRooms(rooms: StudyRoomApiEntry[]): RoomResult[] {
 				capacity: room.capacity,
 				description: room.description ?? null,
 				techEnhanced: room.techEnhanced,
-				durations: duration ? [duration] : [],
+				durations: roomDurations,
 				availableCount,
 			});
 			continue;
 		}
 
-		const mergedDurations = new Set(existing.durations);
-		if (duration) mergedDurations.add(duration);
+		const mergedDurations = new Set([...existing.durations, ...roomDurations]);
 
 		if (availableCount > existing.availableCount) {
 			seen.set(key, {
@@ -171,7 +172,30 @@ export function filterRoomResults(
 		return true;
 	});
 }
+function longestAvailableRunMinutes(slots: StudyRoomApiEntry["slots"]): number {
+	const sorted = [...slots].sort(
+		(a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+	);
+	let best = 0;
+	let run = 0;
+	let prevEnd: number | null = null;
 
+	for (const s of sorted) {
+		const start = new Date(s.start).getTime();
+		const end = new Date(s.end).getTime();
+		if (!s.isAvailable) {
+			run = 0;
+			prevEnd = null;
+			continue;
+		}
+		// Only extend the run if this slot starts exactly where the last ended
+		run =
+			prevEnd !== null && start === prevEnd ? run + (end - start) : end - start;
+		prevEnd = end;
+		best = Math.max(best, run);
+	}
+	return best / 60000; // minutes
+}
 /**
  * Groups raw API entries by dedup key so the hover handler passes all duration
  * variants of a room to the context at once, enabling correct OR-merge of
@@ -270,7 +294,9 @@ export function RoomRecommendationSettings({
 	const [isOpen, setIsOpen] = useState(isSheet);
 	const [filtersOpen, setFiltersOpen] = useState(true);
 
-	const roomResults = useMemo(() => deduplicateRooms(rawRooms), [rawRooms]);
+	const roomResults = useMemo(() => {
+		return deduplicateRooms(rawRooms);
+	}, [rawRooms]);
 
 	const rawRoomsByKey = useMemo(() => groupRawRoomsByKey(rawRooms), [rawRooms]);
 
