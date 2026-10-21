@@ -293,8 +293,8 @@ export function Sidebar({
 								textField: {
 									fullWidth: true,
 									sx: {
-										"& .MuiIconButton-edgeEnd": {
-											marginRight: 0,
+										"& .MuiInputAdornment-root": {
+											flexShrink: 0,
 										},
 									},
 								},
@@ -308,8 +308,8 @@ export function Sidebar({
 								textField: {
 									fullWidth: true,
 									sx: {
-										"& .MuiIconButton-edgeEnd": {
-											marginRight: 0,
+										"& .MuiInputAdornment-root": {
+											flexShrink: 0,
 										},
 									},
 								},
@@ -321,12 +321,14 @@ export function Sidebar({
 						freeSolo
 						options={BUILDINGS}
 						value={location}
-						getOptionLabel={(opt) =>
-							typeof opt === "string" ? formatLocation(opt) : opt
-						}
+						getOptionLabel={(opt) => (typeof opt === "string" ? opt : opt)}
 						onChange={(_, val) => setLocation(val)}
 						onInputChange={(_, val, reason) => {
 							if (reason !== "reset") setLocation(val || null);
+						}}
+						// Limit the height of the dropdown list, so it doesnt move up
+						slotProps={{
+							listbox: { sx: { maxHeight: 240, overflow: "auto" } },
 						}}
 						renderInput={(params) => (
 							<TextField {...params} label="Location" fullWidth />

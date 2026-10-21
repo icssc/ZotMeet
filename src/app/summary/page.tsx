@@ -2,15 +2,8 @@ import { notFound, redirect } from "next/navigation";
 import { Meetings } from "@/components/summary/meetings";
 import { getCurrentSession } from "@/lib/auth";
 import { loginPathWithReturnTo } from "@/lib/auth/return-to";
-import {
-	buildScheduledLabel,
-	getUpcomingMeetingIds,
-} from "@/lib/meetings/utils";
-import {
-	getMeetings,
-	getResponderCountsByMeetingIds,
-	getScheduledMeetingsByMeetingIds,
-} from "@/server/data/meeting/queries";
+import { buildScheduledMeetingsMeta } from "@/lib/meetings/utils";
+import { getMeetingsOverview } from "@/server/data/meeting/queries";
 import { getNotificationsByMemberId } from "@/server/data/user/queries";
 
 export default async function Page() {
@@ -24,30 +17,14 @@ export default async function Page() {
 		notFound();
 	}
 
-	const [meetings, notifications] = await Promise.all([
-		getMeetings(memberId),
-		getNotificationsByMemberId(memberId),
-	]);
-	const meetingIds = meetings.map((m) => m.id);
-	const [meetingCounts, scheduledMeetingMap] = await Promise.all([
-		getResponderCountsByMeetingIds(meetingIds),
-		getScheduledMeetingsByMeetingIds(
-			meetings.filter((m) => m.scheduled).map((m) => m.id),
-		),
-	]);
+	const [{ meetings, meetingCounts, scheduledMeetingMap }, notifications] =
+		await Promise.all([
+			getMeetingsOverview(memberId),
+			getNotificationsByMemberId(memberId),
+		]);
 
-	const scheduledLabels: Record<string, string> = {};
-	const scheduledDates: Record<string, number> = {};
-	for (const [id, sm] of Object.entries(scheduledMeetingMap)) {
-		scheduledLabels[id] = buildScheduledLabel(
-			sm.scheduledDate,
-			sm.scheduledFromTime,
-			sm.scheduledToTime,
-		);
-		scheduledDates[id] = sm.scheduledDate.getTime();
-	}
-
-	const upcomingMeetingIds = getUpcomingMeetingIds(scheduledMeetingMap);
+	const { scheduledLabels, scheduledDates, upcomingMeetingIds } =
+		buildScheduledMeetingsMeta(scheduledMeetingMap);
 
 	return (
 		<div className="px-4 py-8 sm:px-8">

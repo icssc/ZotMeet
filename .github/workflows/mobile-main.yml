@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
+---
+name: Mobile main update
+
+# Publishes the `main` branch of the Expo app as an EAS Update on the `main`
+# channel, so the QR code in the root README always opens what is merged.
+# The PR previews (mobile-preview.yml) cover unmerged work; this covers
+# everything after it lands.
+on:
+  push:
+    branches:
+      - main
+    # Same filter as the PR previews: web-only commits change nothing in the
+    # mobile bundle, so republishing for them would only burn EAS quota.
+    paths:
+      - "apps/mobile/**"
+      - "packages/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/mobile-main.yml"
+  # Lets a maintainer (re)publish by hand — e.g. after an Expo SDK bump, when
+  # the runtime version in the README's QR code changes and the channel has
+  # no update for the new runtime until this runs.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One group for both triggers, deliberately: a push and a manual dispatch
+# both publish the tip of main to the same channel, so whichever run is
+# cancelled, the survivor publishes the same or a newer commit. Separate
+# groups would let two runs publish concurrently, and EAS serves whichever
+# finishes last — an older commit could then end up on the channel.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+  EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+  # `EXPO_PUBLIC_*` values are inlined into the bundle when `eas update`
+  # exports it. Main is what production is deployed from (deploy-prod.yml),
+  # so it is the one server guaranteed to run this commit's `/api/*` routes.
+  EXPO_PUBLIC_API_URL: https://zotmeet.com
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-and-pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # A missing secret otherwise surfaces deep inside the publish step as an
+      # opaque auth failure. Fail here instead, naming what to add and where.
+      - name: Check the Expo credentials are configured
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::EXPO_TOKEN is not set. Add a robot token owned by the ethanchaos-team org (https://expo.dev/settings/access-tokens) as a repository secret. See apps/mobile/README.md."
+            exit 1
+          fi
+          if [ -z "$EAS_PROJECT_ID" ]; then
+            echo "::error::EAS_PROJECT_ID is not set. Add it as a repository *variable* under Settings > Secrets and variables > Actions. See apps/mobile/README.md."
+            exit 1
+          fi
+
+      # `--channel` rather than `--branch`: the README's QR code opens the
+      # update by *channel* name (`exp://u.expo.dev/<project>?channel-name=main`),
+      # and `--channel` is the form that creates the channel and links it to
+      # the branch of the same name on first run. `--branch` alone would only
+      # create the branch, leaving the QR code pointing at nothing.
+      #
+      # `--environment` is mandatory whenever eas runs without a TTY. The
+      # message is built only from the commit SHA — never the commit subject,
+      # which is free text once it is interpolated into a run command.
+      - name: Publish the main update
+        working-directory: apps/mobile
+        run: >-
+          pnpm exec eas update
+          --channel main
+          --environment production
+          --message "main @ ${{ github.sha }}"
+          --non-interactive

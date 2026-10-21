@@ -46,7 +46,7 @@ export default function manifest(): MetadataRoute.Manifest {
 			name: "Create a meeting",
 			short_name: "New meeting",
 			description: "Start scheduling a new meeting",
-			url: "/",
+			url: "/?create=true",
 			icons: shortcutIcon,
 		},
 		{

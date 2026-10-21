@@ -1,6 +1,11 @@
+import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { formatLocalDateKey } from "@/lib/meetings/utils";
 import { CAPACITY_RANGES, type Capacity } from "@/lib/types/studyrooms";
 import type { ZotDate } from "@/lib/zotdate";
+
+/** UCI's zone: the study-rooms API takes and returns campus wall-clock times. */
+export const CAMPUS_TIME_ZONE = "America/Los_Angeles";
 
 export const formatISOToLocalTime = (isoString: string): string => {
 	return new Date(isoString)
@@ -8,7 +13,7 @@ export const formatISOToLocalTime = (isoString: string): string => {
 			hour: "numeric",
 			minute: "2-digit",
 			hour12: true,
-			timeZone: "America/Los_Angeles",
+			timeZone: CAMPUS_TIME_ZONE,
 		})
 		.toLowerCase();
 };
@@ -272,5 +277,68 @@ export function getCapacityRange(capacities: Capacity[]): {
 	return {
 		capacityMin: min !== Infinity ? min : undefined,
 		capacityMax: hasOpenEnded ? undefined : max !== -Infinity ? max : undefined,
+	};
+}
+
+export function getFreeUntil<
+	T extends { start: string; end: string; isAvailable: boolean },
+>(slots: T[], now: Date = new Date()): Date | null {
+	const sorted = [...slots].sort(
+		(a, b) => new Date(a.start).getTime() - new Date(b.start).getTime(),
+	);
+	const nowMs = now.getTime();
+	const index = sorted.findIndex(
+		(s) =>
+			new Date(s.start).getTime() <= nowMs && nowMs < new Date(s.end).getTime(),
+	);
+	if (index === -1 || !sorted[index].isAvailable) return null;
+
+	let end = new Date(sorted[index].end);
+	for (let i = index + 1; i < sorted.length; i++) {
+		const slot = sorted[i];
+		if (!slot.isAvailable) break;
+		if (new Date(slot.start).getTime() !== end.getTime()) break;
+		end = new Date(slot.end);
+	}
+	return end;
+}
+
+/** "4th Floor" from API notes like "Located on the 4th Floor Drum.", if any. */
+export function getRoomFloor(room: {
+	description?: string;
+	directions?: string;
+}): string | null {
+	for (const text of [room.description, room.directions]) {
+		const match = text?.match(/\b(\d+(?:st|nd|rd|th))\s+floor\b/i);
+		if (match) return `${match[1]} Floor`;
+	}
+	return null;
+}
+
+/**
+ * The API query Quick Book sends: from the current half hour, so the slot
+ * covering "now" is included, up to six hours later, capped at 11 PM (the
+ * latest the libraries book). The API reads `dates`/`times` as campus wall
+ * clock, so the window is built in CAMPUS_TIME_ZONE, not the browser's zone.
+ * Null when it is already past 11 PM on campus.
+ */
+export function getQuickBookQuery(
+	now: Date = new Date(),
+): { date: string; timeRange: string } | null {
+	// A Date whose local fields read as the campus wall clock.
+	const campusNow = toZonedTime(now, CAMPUS_TIME_ZONE);
+	const start = new Date(campusNow);
+	start.setMinutes(campusNow.getMinutes() < 30 ? 0 : 30, 0, 0);
+
+	const elevenPm = new Date(campusNow);
+	elevenPm.setHours(23, 0, 0, 0);
+
+	const rawEnd = new Date(start.getTime() + WINDOW_MS);
+	const end = rawEnd > elevenPm ? elevenPm : rawEnd;
+	if (end <= start) return null;
+
+	return {
+		date: format(start, "yyyy-MM-dd"),
+		timeRange: `${toLocalStr(start)}-${toLocalStr(end)}`,
 	};
 }

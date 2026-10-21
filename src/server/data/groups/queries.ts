@@ -54,6 +54,19 @@ export async function getGroupsByUserId(
 		);
 }
 
+export async function getGroupNamesByIds(
+	groupIds: string[],
+): Promise<Record<string, string>> {
+	if (groupIds.length === 0) return {};
+
+	const rows = await db
+		.select({ id: groups.id, name: groups.name })
+		.from(groups)
+		.where(inArray(groups.id, groupIds));
+
+	return Object.fromEntries(rows.map((row) => [row.id, row.name]));
+}
+
 export async function getUsersInGroup(groupId: string) {
 	return await db
 		.select({

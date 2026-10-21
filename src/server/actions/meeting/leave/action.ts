@@ -2,48 +2,18 @@
 
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { availabilities, meetings, type SelectMeeting } from "@/db/schema";
+import { availabilities, type SelectMeeting } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import {
+	fetchActiveMeeting,
+	leaveMeetingForMember,
+	type MeetingMemberActionResult,
+} from "@/server/data/meeting/member-actions";
 
-export type MeetingMemberActionResult =
-	| { success: true; error?: undefined }
-	| { success: false; error: string };
-
-/** @deprecated Use {@link MeetingMemberActionResult} */
-export type LeaveMeetingResult = MeetingMemberActionResult;
-
-type ActiveMeeting = {
-	hostId: string;
-	archived: boolean;
-};
-
-async function fetchActiveMeeting(
-	meetingId: string,
-): Promise<
-	{ ok: true; meeting: ActiveMeeting } | { ok: false; error: string }
-> {
-	const [meeting] = await db
-		.select({
-			hostId: meetings.hostId,
-			archived: meetings.archived,
-		})
-		.from(meetings)
-		.where(eq(meetings.id, meetingId))
-		.limit(1);
-
-	if (!meeting) {
-		return { ok: false, error: "Meeting not found." };
-	}
-
-	if (meeting.archived) {
-		return {
-			ok: false,
-			error: "This meeting is no longer available.",
-		};
-	}
-
-	return { ok: true, meeting };
-}
+// No type re-exports here: in a "use server" module Turbopack registers every
+// export as a server action, so `export type { … }` becomes a runtime
+// `registerServerReference(<undefined>)` that breaks the whole actions chunk.
+// Import `MeetingMemberActionResult` from `@/server/data/meeting/member-actions`.
 
 export async function leaveMeeting(
 	meetingData: SelectMeeting,
@@ -57,29 +27,7 @@ export async function leaveMeeting(
 		};
 	}
 
-	const result = await fetchActiveMeeting(meetingData.id);
-	if (!result.ok) {
-		return { success: false, error: result.error };
-	}
-
-	if (result.meeting.hostId === user.memberId) {
-		return {
-			success: false,
-			error:
-				"Meeting owners cannot leave their own meeting. Delete it instead.",
-		};
-	}
-
-	await db
-		.delete(availabilities)
-		.where(
-			and(
-				eq(availabilities.meetingId, meetingData.id),
-				eq(availabilities.memberId, user.memberId),
-			),
-		);
-
-	return { success: true };
+	return leaveMeetingForMember(meetingData.id, user.memberId);
 }
 
 export async function removeMeetingMember(

@@ -11,6 +11,7 @@ import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import {
+	deduplicateRooms,
 	groupRawRoomsByKey,
 	RoomRecommendationSettings,
 } from "@/components/availability/room-recommendations";
@@ -32,19 +33,17 @@ import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	clearPersonalGridSlots,
-	convertTimeFromUTC,
-	generateTimeBlocks,
+	deriveMeetingWindow,
 	getPageEdgeVariant,
-	getTimeFromHourMinuteString,
 	mergeImportedPersonalGridSlots,
-	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
-import type { HourMinuteString } from "@/lib/types/chrono";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
+import { MobileRoomRecommendations } from "./mobile-room-recommendations";
+import { MobileRoomWheelPicker } from "./mobile-room-wheel-picker";
 import { MobileScheduleSettings } from "./mobile-schedule-settings";
 
 const LG_UP_MEDIA = "(min-width: 1024px)";
@@ -143,30 +142,19 @@ export function Availability({
 		Intl.DateTimeFormat().resolvedOptions().timeZone,
 	);
 	const [changeableTimezone, setChangeableTimezone] = useState(true);
-	const referenceDate = useMemo(
-		() => sortMeetingIsoDatesAsc(meetingData.dates)[0] ?? meetingData.dates[0],
-		[meetingData.dates],
-	);
-
-	const fromTimeLocal = useMemo(
-		() => convertTimeFromUTC(meetingData.fromTime, userTimezone, referenceDate),
-		[meetingData.fromTime, userTimezone, referenceDate],
-	);
-	const toTimeLocal = useMemo(
-		() => convertTimeFromUTC(meetingData.toTime, userTimezone, referenceDate),
-		[meetingData.toTime, userTimezone, referenceDate],
-	);
-	const fromTimeMinutes = useMemo(
-		() => getTimeFromHourMinuteString(fromTimeLocal as HourMinuteString),
-		[fromTimeLocal],
-	);
-	const toTimeMinutes = useMemo(
-		() => getTimeFromHourMinuteString(toTimeLocal as HourMinuteString),
-		[toTimeLocal],
-	);
-	const availabilityTimeBlocks = useMemo(
-		() => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
-		[fromTimeMinutes, toTimeMinutes],
+	// The grid's time axis in the viewer's zone — the same derivation the Expo
+	// app runs, from `@zotmeet/shared`.
+	const { fromTimeMinutes, availabilityTimeBlocks } = useMemo(
+		() =>
+			deriveMeetingWindow(
+				{
+					dates: meetingData.dates,
+					fromTime: meetingData.fromTime,
+					toTime: meetingData.toTime,
+				},
+				userTimezone,
+			),
+		[meetingData.dates, meetingData.fromTime, meetingData.toTime, userTimezone],
 	);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: trigger on meeting/tz change
@@ -214,17 +202,18 @@ export function Availability({
 
 	const availabilityGridRef = useRef<HTMLTableElement>(null);
 
-	const { handlers, gridHandlers, handleMouseLeave } = useGridInteraction({
-		availabilityView,
-		paintMode,
-		availabilityDates,
-		ifNeededDates,
-		setAvailabilityDates,
-		setIfNeededDates,
-		userMemberId: user?.memberId,
-		fromTimeMinutes,
-		userTimezone,
-	});
+	const { handlers, gridHandlers, handleMouseLeave, activePaintMode } =
+		useGridInteraction({
+			availabilityView,
+			paintMode,
+			availabilityDates,
+			ifNeededDates,
+			setAvailabilityDates,
+			setIfNeededDates,
+			userMemberId: user?.memberId,
+			fromTimeMinutes,
+			userTimezone,
+		});
 
 	// Room recommendations — surfaced in the group/schedule sidebar so the host
 	// can pull room suggestions for the times the group is most available.
@@ -239,6 +228,7 @@ export function Availability({
 	} = useRoomRecommendations(availabilityDates);
 
 	const [selectedRoomIds, setSelectedRoomIds] = useState<string[]>([]);
+	const [isMobileRoomsDrawerOpen, setIsMobileRoomsDrawerOpen] = useState(false);
 
 	const showRoomPreviews =
 		availabilityView === "group" || availabilityView === "schedule";
@@ -253,6 +243,17 @@ export function Availability({
 		() => groupRawRoomsByKey(studyRooms),
 		[studyRooms],
 	);
+
+	const mobileRoomCount = useMemo(
+		() => deduplicateRooms(studyRooms).length,
+		[studyRooms],
+	);
+
+	useEffect(() => {
+		if (availabilityView !== "group") {
+			setIsMobileRoomsDrawerOpen(false);
+		}
+	}, [availabilityView]);
 
 	const handleImportSlotsFromMeeting = useCallback(
 		({
@@ -430,12 +431,22 @@ export function Availability({
 	}, [router, returnToPath, setAvailabilityView, user]);
 
 	const handleMobileOpenAttendees = useCallback(() => {
+		setIsMobileRoomsDrawerOpen(false);
 		setIsMobileDrawerOpen(true);
 	}, [setIsMobileDrawerOpen]);
 
 	const handleMobileSchedule = useCallback(() => {
 		setAvailabilityView("schedule");
 	}, [setAvailabilityView]);
+
+	const handleMobileOpenRooms = useCallback(() => {
+		setIsMobileDrawerOpen(false);
+		setIsMobileRoomsDrawerOpen(true);
+	}, [setIsMobileDrawerOpen]);
+
+	const handleCloseMobileRooms = useCallback(() => {
+		setIsMobileRoomsDrawerOpen(false);
+	}, []);
 
 	return (
 		<StudyRoomHoverProvider
@@ -514,7 +525,7 @@ export function Availability({
 													meetingDates={meetingData.dates}
 													userTimezone={userTimezone}
 													handlers={handlers}
-													paintMode={paintMode}
+													paintMode={activePaintMode}
 													isDirty={isDirty}
 												/>
 											)}
@@ -582,17 +593,46 @@ export function Availability({
 										onOpenAttendees={handleMobileOpenAttendees}
 									/>
 								) : (
-									<MobileGroupResponses
-										isOwner={isMeetingOwner}
-										respondedMembersCount={Math.max(
-											0,
-											members.length - pendingMembers.length,
-										)}
-										pendingMembersCount={pendingMembers.length}
-										onAddAvailability={handleMobileAddAvailability}
-										onOpenAttendees={handleMobileOpenAttendees}
-										onSchedule={handleMobileSchedule}
-									/>
+									<>
+										{hasSearchedRooms &&
+											studyRooms.length > 0 &&
+											!isMobileRoomsDrawerOpen && (
+												<MobileRoomWheelPicker
+													rawRooms={studyRooms}
+													rawRoomsByKey={rawRoomsByKey}
+													filters={roomFilters}
+													selectedRoomIds={selectedRoomIds}
+													onSelectedRoomIdsChange={setSelectedRoomIds}
+												/>
+											)}
+										<MobileGroupResponses
+											isOwner={isMeetingOwner}
+											respondedMembersCount={Math.max(
+												0,
+												members.length - pendingMembers.length,
+											)}
+											pendingMembersCount={pendingMembers.length}
+											roomCount={mobileRoomCount}
+											hasSearchedRooms={hasSearchedRooms}
+											onAddAvailability={handleMobileAddAvailability}
+											onOpenAttendees={handleMobileOpenAttendees}
+											onOpenRooms={handleMobileOpenRooms}
+											onSchedule={handleMobileSchedule}
+										/>
+										<MobileRoomRecommendations
+											open={isMobileRoomsDrawerOpen}
+											onClose={handleCloseMobileRooms}
+											rawRooms={studyRooms}
+											hasSearched={hasSearchedRooms}
+											filters={roomFilters}
+											onFiltersChange={setRoomFilters}
+											onShowBestRooms={handleShowBestRooms}
+											isLoading={isRoomsLoading}
+											errorMessage={studyRoomsError}
+											selectedRoomIds={selectedRoomIds}
+											onSelectedRoomIdsChange={setSelectedRoomIds}
+										/>
+									</>
 								)}
 							</div>
 						</div>

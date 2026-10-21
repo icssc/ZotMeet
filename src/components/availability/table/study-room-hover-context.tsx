@@ -1,5 +1,6 @@
 "use client";
 
+import type { SelectionEdges } from "@zotmeet/shared";
 import {
 	createContext,
 	useCallback,
@@ -8,7 +9,6 @@ import {
 	useMemo,
 	useState,
 } from "react";
-import type { SelectionEdges } from "@/components/availability/group-availability";
 import type { StudyRoomApiEntry } from "@/components/availability/room-recommendations";
 import {
 	BLOCK_LENGTH,

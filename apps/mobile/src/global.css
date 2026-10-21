@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Colour tokens are emitted by the Tailwind plugin in `tailwind.config.js`
+ * from `packages/tokens`, the same file the web app's Tailwind config reads.
+ * That shared source is what keeps `bg-primary` the same colour in both apps —
+ * add or change a colour there, not here.
+ */
+@layer base {
+	:root {
+		--radius: 0.3rem;
+	}
+}

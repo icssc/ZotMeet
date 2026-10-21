@@ -6,6 +6,16 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 		return NextResponse.next();
 	}
 
+	// `/api/*` is the Expo app's surface. Its handlers authenticate only via
+	// `Authorization: Bearer` (see `src/lib/auth/bearer.ts`) and never read
+	// cookies, so the Origin check below — a defence against cookie-carrying
+	// cross-site requests — does not apply. Native `fetch` sends no Origin at
+	// all, and a CORS preflight `OPTIONS` carries no Authorization header, so
+	// the exemption has to be by path rather than by header.
+	if (request.nextUrl.pathname.startsWith("/api/")) {
+		return NextResponse.next();
+	}
+
 	// Prevent CSRF attacks from route handlers
 	const originHeader = request.headers.get("Origin");
 	const hostHeader = request.headers.get("Host");

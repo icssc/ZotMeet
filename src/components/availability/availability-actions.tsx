@@ -1,11 +1,7 @@
 "use client";
 
 import { getGoogleCalendarPrefilledLink } from "@actions/availability/google/calendar/action";
-import {
-	Create,
-	GroupAddOutlined,
-	InsertInvitationRounded,
-} from "@mui/icons-material";
+import { Create, Event, GroupAddOutlined } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Button } from "@mui/material";
 import { useRouter } from "next/navigation";
@@ -78,7 +74,6 @@ export function AvailabilityActions({
 				<div className="hidden flex-row flex-wrap justify-end gap-2 sm:flex">
 					<Button
 						variant="outlined"
-						color="inherit"
 						size="small"
 						onClick={
 							availabilityView === "personal"
@@ -166,11 +161,11 @@ export function AvailabilityActions({
 							</span>
 						</Button>
 					</div>
-					<div className="hidden sm:block">
+					<div className="hidden sm:flex sm:flex-col sm:gap-2">
 						{isOwner && (
 							<Button
 								variant="outlined"
-								startIcon={<InsertInvitationRounded />}
+								startIcon={<Event />}
 								className="w-full"
 								sx={{ py: 0.75 }}
 								onClick={() => setAvailabilityView("schedule")}

@@ -21,7 +21,7 @@ export function ScheduledTabOverlay({
 		<>
 			<div
 				aria-hidden="true"
-				className="pointer-events-none absolute inset-0 z-[5] w-[87%] rounded-r-xl bg-[#1F2A44] shadow-2xl shadow-inner"
+				className="pointer-events-none absolute inset-0 z-[5] w-[87%] rounded-r-xl bg-secondary-main shadow-2xl shadow-inner"
 				style={{ height: `${blockCount * 100}%` }}
 			/>
 			{(title || timeRange) && (

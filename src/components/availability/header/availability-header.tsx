@@ -13,13 +13,13 @@ import { MoreVerticalIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { EditModal } from "@/components/availability/header/edit-modal";
+import { DateRange } from "@/components/groups/date-range";
 import { DeleteModal } from "@/components/meetings/delete-modal";
 import { CopyToClipboardButton } from "@/components/tools/copy-clipboard-button";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	convertTimeFromUTC,
-	formatDateToUSNumeric,
 	formatTimeWithHoursAndMins,
 	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
@@ -59,11 +59,6 @@ export function AvailabilityHeader({
 
 	const firstMeetingDate =
 		sortedMeetingDates.at(0) ?? meetingData.dates.at(0) ?? "";
-	const lastMeetingDate =
-		sortedMeetingDates.at(-1) ?? meetingData.dates.at(-1) ?? firstMeetingDate;
-
-	const formattedStartDate = formatDateToUSNumeric(new Date(firstMeetingDate));
-	const formattedEndDate = formatDateToUSNumeric(new Date(lastMeetingDate));
 
 	const displayTimezone =
 		meetingData.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -117,7 +112,10 @@ export function AvailabilityHeader({
 							<div className="flex items-center gap-2">
 								<CalendarMonth fontSize="small" />
 								<Typography color="textSecondary" className="whitespace-nowrap">
-									{formattedStartDate} - {formattedEndDate}
+									<DateRange
+										dates={meetingData.dates}
+										meetingType={meetingData.meetingType}
+									/>
 								</Typography>
 							</div>
 

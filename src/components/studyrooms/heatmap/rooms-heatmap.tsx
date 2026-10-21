@@ -14,10 +14,12 @@ import {
 } from "@mui/material";
 import Box from "@mui/material/Box";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import { recordRecentRoom } from "@/lib/rooms/recent-rooms";
 import {
 	buildHalfHourIntervals,
 	formatISOToLocalTime,
+	getRoomFloor,
 	groupSlotsIntoIntervals,
 	mergeDateAndTime,
 } from "@/lib/rooms/utils";
@@ -25,6 +27,7 @@ import {
 	BUILDINGS,
 	formatLocation,
 	type StudyRooms,
+	stripRoomDurationSuffix,
 } from "@/lib/types/studyrooms";
 import { cn } from "@/lib/utils";
 
@@ -66,21 +69,6 @@ export const RoomsHeatmap = ({
 		() => mergeDateAndTime(searchDate, startTime),
 		[searchDate, startTime],
 	);
-	const scrollRef = useRef<HTMLDivElement>(null);
-
-	useEffect(() => {
-		const el = scrollRef.current;
-		if (!el) return;
-		const handler = (e: WheelEvent) => {
-			const useHorizontalDelta = Math.abs(e.deltaX) >= Math.abs(e.deltaY);
-			const delta = useHorizontalDelta ? e.deltaX : -e.deltaY;
-			if (delta === 0) return;
-			el.scrollLeft += delta;
-			e.preventDefault();
-		};
-		el.addEventListener("wheel", handler, { passive: false });
-		return () => el.removeEventListener("wheel", handler);
-	}, []);
 
 	const sortedRooms = useMemo(() => {
 		const copy = rooms.filter((r) => r.name);
@@ -129,10 +117,7 @@ export const RoomsHeatmap = ({
 					</Select>
 				</FormControl>
 			</Stack>
-			<Box
-				sx={{ overflowX: "auto", overflowY: "hidden", position: "relative" }}
-				ref={scrollRef}
-			>
+			<div className="relative overflow-x-auto overflow-y-hidden">
 				<Table
 					size="small"
 					sx={{
@@ -186,7 +171,7 @@ export const RoomsHeatmap = ({
 											backgroundColor: theme.palette.background.paper,
 										})}
 									>
-										<p className="">{formatLocation(room.location)}</p>
+										<p className="">{room.location}</p>
 										<div className="flex items-center gap-2 text-xs">
 											<p className="text-xs">{room.name?.slice(0, 20)}</p>
 											<p>{room.capacity ? `•  Cap: ${room.capacity}` : null}</p>
@@ -212,6 +197,16 @@ export const RoomsHeatmap = ({
 														component={Link}
 														target="_blank"
 														href={s.url}
+														onClick={() =>
+															recordRecentRoom({
+																id: room.id,
+																name: stripRoomDurationSuffix(room.name),
+																location: room.location,
+																capacity: room.capacity,
+																floor: getRoomFloor(room),
+																url: room.url,
+															})
+														}
 														className="h-full"
 														sx={{ flex: 1 }}
 													>
@@ -236,7 +231,7 @@ export const RoomsHeatmap = ({
 						})}
 					</TableBody>
 				</Table>
-			</Box>
+			</div>
 		</Box>
 	);
 };

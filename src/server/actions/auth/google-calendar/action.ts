@@ -8,5 +8,5 @@ export async function needsGoogleCalendarConnect(): Promise<boolean> {
 	if (session === null) {
 		return false;
 	}
-	return session.googleRefreshToken === null;
+	return session.googleAccessToken === null;
 }
