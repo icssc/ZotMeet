@@ -241,12 +241,17 @@ export const Meetings = ({
 							input: {
 								startAdornment: (
 									<SearchIcon
-										sx={{ fontSize: 20, color: "text.disabled", mr: 0.5 }}
+										sx={{ fontSize: 24, color: "action.active", mr: 1.25 }}
 									/>
 								),
 							},
 						}}
-						sx={{ minWidth: 200 }}
+						sx={{
+							width: { xs: "100%", sm: 363 },
+							"& .MuiOutlinedInput-notchedOutline": {
+								borderColor: "divider",
+							},
+						}}
 					/>
 
 					<Box sx={{ display: "flex", gap: 0.75 }}>

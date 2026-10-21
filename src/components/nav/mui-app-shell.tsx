@@ -26,23 +26,10 @@ function footerClasses(pathname: string) {
 		: { footer: "hidden lg:block", aboveFooter: "lg:min-h-screen" };
 }
 
-/** Width of the gray gutter on the top and right of the white panel (in px). */
 const GUTTER_SIZE = 16;
-
-/** Width of the vertical rail that holds the logo on desktop (in px). */
 const LOGO_RAIL_WIDTH = 72;
-
-/** Height of the MUI AppBar toolbar on desktop (in px). */
 const TOOLBAR_HEIGHT = 64;
-
-/** Rendered size of the ZotMeet logo in the left rail (in px). */
 const LOGO_SIZE = 40;
-
-/**
- * Top padding on the logo rail so the logo's vertical center lines up with
- * the top nav bar inside the white panel. Equal to the top gutter plus half
- * of the leftover space in the toolbar above/below the logo.
- */
 const LOGO_RAIL_TOP_PADDING = GUTTER_SIZE + (TOOLBAR_HEIGHT - LOGO_SIZE) / 2;
 
 export function MuiAppShell({
@@ -72,8 +59,6 @@ export function MuiAppShell({
 		);
 	}
 
-	// Mobile layout: no gutter / rail — the app surface fills the viewport and
-	// each page renders its own in-page header.
 	if (isMobile) {
 		return (
 			<Box
@@ -102,10 +87,6 @@ export function MuiAppShell({
 		);
 	}
 
-	// Desktop layout: a left logo rail sits in the gray gutter, and the main
-	// content lives inside a white panel with rounded top corners — matching
-	// the Figma dashboard spec. The Footer continues to span the full page
-	// below the panel so its own gradient still reaches both edges.
 	return (
 		<Box
 			sx={{
@@ -116,9 +97,6 @@ export function MuiAppShell({
 			}}
 		>
 			<Box sx={{ display: "flex", flex: 1, minHeight: 0 }}>
-				{/* Left rail with the ZotMeet logo, sitting in the gray gutter.
-				    The top padding aligns the logo's center with the nav bar
-				    inside the white panel. */}
 				<Box
 					sx={{
 						width: LOGO_RAIL_WIDTH,
@@ -139,9 +117,6 @@ export function MuiAppShell({
 					</Link>
 				</Box>
 
-				{/* Right side: top + right gutters + white panel with rounded top
-				    corners, so the panel has symmetric margins against the body
-				    gradient. */}
 				<Box
 					sx={{
 						flex: 1,
@@ -155,9 +130,6 @@ export function MuiAppShell({
 					<Box
 						className={footer.aboveFooter}
 						sx={{
-							// `background.paper` is pure white in this theme, while
-							// `background.default` is gray — we want the whole panel
-							// (nav + content) to read as one continuous white card.
 							bgcolor: "background.paper",
 							flex: 1,
 							display: "flex",

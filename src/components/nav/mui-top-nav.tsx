@@ -72,8 +72,6 @@ export function MuiTopNav({ user, notifications }: MuiTopNavProps) {
 					alignItems: "center",
 				}}
 			>
-				{/* Left spacer — the ZotMeet logo lives in the app shell's left
-				    rail (see `mui-app-shell.tsx`), so only balance the layout. */}
 				<Box sx={{ flex: 1 }} />
 
 				<Box sx={{ flex: 1, display: "flex", justifyContent: "center" }}>
