@@ -313,6 +313,14 @@ export async function getGroupMeetingsWithStats(
 	const meetingIds = groupMeetings.map((m) => m.id);
 	const hostIds = Array.from(new Set(groupMeetings.map((m) => m.hostId)));
 
+	// A row with no actual availability (e.g. someone opened the page without
+	// submitting) doesn't count as a response — matches
+	// `getResponderCountsByMeetingIds`.
+	const hasNonEmptyAvailability = or(
+		sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+		sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+	);
+
 	// Fetch everything in bulk
 	const [responseCounts, userResponses, scheduledBlocks, hosts, extraInvitees] =
 		await Promise.all([
@@ -326,11 +334,7 @@ export async function getGroupMeetingsWithStats(
 				.where(
 					and(
 						inArray(availabilities.meetingId, meetingIds),
-						or(
-							// Add protection for rows with no availability
-							sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
-							sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
-						),
+						hasNonEmptyAvailability,
 					),
 				)
 				.groupBy(availabilities.meetingId),
@@ -343,6 +347,7 @@ export async function getGroupMeetingsWithStats(
 					and(
 						eq(availabilities.memberId, currentMemberId),
 						inArray(availabilities.meetingId, meetingIds),
+						hasNonEmptyAvailability,
 					),
 				),
 
@@ -384,16 +389,31 @@ export async function getGroupMeetingsWithStats(
 		responseCounts.map((r) => [r.meetingId, r.respondedCount]),
 	);
 	const userRespondedSet = new Set(userResponses.map((r) => r.meetingId));
-	const scheduledMap = new Map(
-		scheduledBlocks.map((s) => [
-			s.meetingId,
-			{
-				scheduledDate: s.scheduledDate,
-				scheduledFromTime: s.scheduledFromTime,
-				scheduledToTime: s.scheduledToTime,
-			},
-		]),
-	);
+
+	// A meeting can be scheduled as several time blocks (e.g. 15-minute
+	// rows); merge them into the earliest start and latest end instead of
+	// keeping whichever block happened to come last.
+	const scheduledMap = new Map<
+		string,
+		{ scheduledDate: Date; scheduledFromTime: string; scheduledToTime: string }
+	>();
+	for (const block of scheduledBlocks) {
+		const existing = scheduledMap.get(block.meetingId);
+		scheduledMap.set(block.meetingId, {
+			scheduledDate:
+				!existing || block.scheduledDate < existing.scheduledDate
+					? block.scheduledDate
+					: existing.scheduledDate,
+			scheduledFromTime:
+				!existing || block.scheduledFromTime < existing.scheduledFromTime
+					? block.scheduledFromTime
+					: existing.scheduledFromTime,
+			scheduledToTime:
+				!existing || block.scheduledToTime > existing.scheduledToTime
+					? block.scheduledToTime
+					: existing.scheduledToTime,
+		});
+	}
 	const hostMap = new Map(hosts.map((h) => [h.id, h.displayName]));
 	const extraInviteeMap = new Map(
 		extraInvitees.map((r) => [r.meetingId, r.extraCount]),
