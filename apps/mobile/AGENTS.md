@@ -4,7 +4,7 @@ Repo-wide rules are in [../../AGENTS.md](../../AGENTS.md). The component catalog
 
 ## Mirror the web
 
-- **Same route paths, folder names, file names and component names** as `src/`. To build a screen, open the web version first and copy how it's split into components.
+- **Same URLs and same component folders, file names and component names** as `src/`. Route files follow each router's conventions (web `availability/[slug]/page.tsx` → mobile `availability/[slug].tsx`). To build a screen, open the web version first and copy how it's split into components.
 - **Start each file with a comment** naming its web counterpart and anything that differs.
 
 ## Components: our MUI look-alikes
@@ -17,7 +17,7 @@ MUI doesn't run on React Native. `src/components/ui/*` rebuilds the pieces we ne
 <IconButton size="small"><Icon name="more-vert" /></IconButton>
 ```
 
-- Check `components/ui/` (and the web's) before building a new primitive. Keep the MUI prop names.
+- Check `src/components/ui/` (and the web's `src/components/ui/`) before building a new primitive. Keep the MUI prop names.
 - These primitives are built on RN core, `@rn-primitives` (dialog, tabs, portal) and `class-variance-authority`.
 - **Banned (enforced by Biome):** `@mui/*`, `next/*` and server-only packages.
 

@@ -21,7 +21,7 @@ When you edit a component, move its layout `sx` into classes. Don't sweep throug
 
 ## Server vs client
 
-- **Pages are server components.** They call `getCurrentSession()`, load data from `@data/*`, and pass props down (see `src/app/summary/page.tsx`).
+- **Pages are server components by default.** They call `getCurrentSession()`, load data from `@data/*`, and pass props down (see `src/app/summary/page.tsx`). A page that is all interaction can be a client page (`src/app/studyrooms/page.tsx`).
 - **`"use client"` goes on the smallest leaf** that needs state, effects or browser APIs.
 - **Mutations** use server actions at `@actions/<entity>/<verb>/action.ts`, each a thin wrapper around a `src/server/data/*` function (see [../AGENTS.md](../AGENTS.md#shared-backend-across-mobile--web-apps)).
 - **Never write `export type { X }` in a `"use server"` file.** It breaks every server action at runtime, and neither tsc nor Biome catches it.

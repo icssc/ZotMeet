@@ -73,12 +73,12 @@ Every business rule has **one** implementation, in `src/server/`. Web reaches it
 
 **To expose something to mobile:**
 
-1. Find the function in `src/server/`. If it reads the cookie session, split it: put the logic in `xForMember(data, memberId)`, then call that from both the action and the route (e.g. `archiveMeetingForMember`).
+1. Find the function in `src/server/`. If it reads the cookie session, split it: put the logic in `xForMember(data, memberId)`, then call that from both the action and the route. New ones go in `src/server/data/` (e.g. `archiveMeetingForMember`). `createMeetingFromData` still lives in its action file; that's legacy, not the pattern.
 2. Add `src/app/api/<path>/route.ts`: `getMemberIdFromBearer` → validate with the shared zod schema → call the function → `NextResponse.json<ResponseType>(…)`. Copy `src/app/api/meetings/[id]/archive/route.ts`.
 3. Put the request/response types and schema in `packages/shared/src/<domain>/schema.ts`.
 4. Add the client function in `apps/mobile/src/lib/api/<domain>.ts`.
 
-**Never** put business logic in a route, in the body of a server action, or on the device. **Never** delete server code because "mobile doesn't use it". The web UI is being phased out, but the server stays (API, auth callbacks, invite/SEO pages).
+**Never** put business logic in a route, in a server action's own body, or on the device. **Never** delete server code because "mobile doesn't use it". The web UI is being phased out, but the server stays (API, auth callbacks, invite/SEO pages).
 
 ---
 

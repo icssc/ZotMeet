@@ -10,7 +10,7 @@ Folders are by domain: `auth/`, `availability/`, `chrono/`, `meetings/`, `librar
 
 ## Rules
 
-- **Dependencies:** `date-fns`, `date-fns-tz` and `zod` only. Adding one is a team decision. Biome blocks React, React Native, zustand, `next/*`, Drizzle, `expo-*`, MUI and `@/` imports.
+- **Dependencies:** `date-fns`, `date-fns-tz` and `zod` only. Adding one is a team decision. Biome blocks React, React Native, zustand, `next/*`, `server-only`, Drizzle, `expo-*`, MUI and `@/` imports.
 - **Types are structural.** Use a `Pick<…>` of the fields you read, never a Drizzle row type. When web has a Drizzle-derived twin, pin the two together with a type assertion (pattern: `src/lib/types/availability.ts`).
 - **Must run the same on Node, browser and Hermes.** That rules out `Intl` features Hermes lacks, `AbortSignal.any` and `crypto.subtle`.
 - **TypeScript 5.9 and 6.0** must both accept it.

@@ -6,7 +6,7 @@ Repo-wide rules are in [../../AGENTS.md](../../AGENTS.md). How the tokens are us
 |---|---|---|
 | `index.js` | Colour tokens (light/dark HSL channels), MUI ink colours, brand hex | Both Tailwind configs, `src/theme.ts`, manifest, icon script, `app.config.ts` |
 | `tailwind.js` | Tailwind colour + radius wiring. `nativeInkColors` is **mobile only**, and the web config must not spread it. | Both Tailwind configs |
-| `typography.js` | Type ramp (h1–h6, body1/2, caption, overline, button) | `muiTypography()` → `src/theme.ts`; `tailwindFontSize()` → Expo config |
+| `typography.js` | Type ramp (h1–h6, subtitle1/2, body1/2, caption, overline) | `muiTypography()` → `src/theme.ts`; `tailwindFontSize()` → Expo config |
 
 ## Rules
 
