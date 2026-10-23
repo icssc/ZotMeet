@@ -55,6 +55,97 @@
 			"!sst.config.ts"
 		]
 	},
+	// Import boundaries from AGENTS.md, enforced. Each override owns one area.
+	"overrides": [
+		{
+			"includes": ["packages/shared/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": [
+											"react",
+											"react-*",
+											"react-native",
+											"react-native-*",
+											"zustand",
+											"next",
+											"next/**",
+											"server-only",
+											"drizzle-orm",
+											"drizzle-orm/**",
+											"expo",
+											"expo-*",
+											"@mui/**",
+											"@/**"
+										],
+										"message": "@zotmeet/shared is pure TS: date-fns, date-fns-tz and zod only. See packages/shared/AGENTS.md."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["apps/mobile/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react-native": {
+										"importNames": ["Animated"],
+										"message": "Use react-native-reanimated (via @/lib/animated when it takes a className)."
+									},
+									"@react-native-async-storage/async-storage": "Session state lives in expo-secure-store via useAuthStore."
+								},
+								"patterns": [
+									{
+										"group": [
+											"@mui/**",
+											"next",
+											"next/**",
+											"server-only",
+											"drizzle-orm",
+											"drizzle-orm/**"
+										],
+										"message": "Mobile has no MUI and no server code. Use components/ui/* and lib/api/*. See apps/mobile/AGENTS.md."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["src/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react-hook-form": "Forms use plain useState. See AGENTS.md → Ask first.",
+									"swr": "Web data goes through server components and server actions. See AGENTS.md → Ask first.",
+									"@tanstack/react-query": "Web data goes through server components and server actions. See AGENTS.md → Ask first."
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	],
 	"html": {
 		"formatter": {
 			"selfCloseVoidElements": "always"
