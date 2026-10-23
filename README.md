@@ -114,7 +114,7 @@ Scan with [Expo Go](https://expo.dev/go) (iOS: the Camera app; Android: Expo Go'
 | `pnpm db:generate` | Generate new migrations from schema changes |
 | `pnpm db:migrate` | Apply pending migrations |
 | `pnpm db:studio` | Open Drizzle Studio to browse your database |
-| `pnpm db:seed` | Seed the database with a group and up to 20 random test users |
+| `pnpm db:seed --user you@example.com` | Seed future groups, meetings and availabilities for testing, attached to your account |
 
 ### Committing Changes
 
@@ -130,21 +130,16 @@ If you need credentials for the `.env` file, contact the project lead ([Kyle](ht
 
 ### Seeding the Database (for Testing)
 
-The seed script (`src/db/seed.ts`) creates a group called **"ZotMeet Test Group"** and populates it with up to 20 randomly generated users. This is useful for testing features like availability views and group dashboards without needing real accounts.
-
-To seed:
+The seed script (`src/db/seed.ts`, helpers in `src/db/seed/`) fills your **local** database with fake users, groups, future-dated meetings and random availabilities, so you can exercise the dashboard, group pages and availability grid without real accounts. It writes straight to the database, so it sends no email, and it refuses to run against anything but `localhost` (including connection strings that use `?host=` to point elsewhere).
 
 ```bash
-pnpm db:seed
+pnpm db:seed --user you@example.com
 ```
 
-The script can be run multiple times — each run adds up to 20 more randomly generated members to the group, so you can keep running it to grow the group as needed.
+`--user` is required and must be an account that already exists, so sign in to the app once first. The script finds you by email (case-insensitive) and stops before changing anything if it can't. You join 3 seeded groups (admin of the first), host some of the meetings, and get "Meeting Invite" notifications for the other non-archived ones. The meetings are a mix of unscheduled, scheduled, days-of-the-week and archived, with a mix of answered and unanswered responses.
 
-**Important:** The script cannot access your session, so it has no way of knowing your user ID. After seeding, you must manually add yourself to the group:
-
-1. Open Drizzle Studio: `pnpm db:studio`
-2. Find your id (google) in the `users` table.
-3. Insert a row into `usersInGroup` with your ID and the seeded group's ID.
+- **Re-runs are clean.** Seeded rows are tagged with a `seed_` user id prefix, and each run first deletes all earlier seeded data before creating new rows. Real accounts and everything outside the seeded groups are never touched. Your account's membership, responses and hosted meetings *inside the seeded groups* are removed with them, plus the invite notifications the seed sent you.
+- All times are `America/Los_Angeles`. Scheduled blocks follow the schedule UI, which uses the browser's clock, so they only line up exactly if your machine is also on Pacific time.
 
 ## Progressive Web App / iOS App Store
 
