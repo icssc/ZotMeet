@@ -1,6 +1,8 @@
 "use client";
 
 import { Box, useMediaQuery, useTheme } from "@mui/material";
+import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Footer } from "@/components/footer/footer";
 import type { NotificationItem, UserProfile } from "@/lib/auth/user";
@@ -23,6 +25,12 @@ function footerClasses(pathname: string) {
 		? { footer: undefined, aboveFooter: "min-h-screen" }
 		: { footer: "hidden lg:block", aboveFooter: "lg:min-h-screen" };
 }
+
+const GUTTER_SIZE = 16;
+const LOGO_RAIL_WIDTH = 72;
+const TOOLBAR_HEIGHT = 64;
+const LOGO_SIZE = 40;
+const LOGO_RAIL_TOP_PADDING = GUTTER_SIZE + (TOOLBAR_HEIGHT - LOGO_SIZE) / 2;
 
 export function MuiAppShell({
 	user,
@@ -51,30 +59,101 @@ export function MuiAppShell({
 		);
 	}
 
+	if (isMobile) {
+		return (
+			<Box
+				sx={{
+					bgcolor: "background.default",
+					color: "text.primary",
+					display: "flex",
+					flexDirection: "column",
+					minHeight: "100vh",
+				}}
+			>
+				<Box
+					className={footer.aboveFooter}
+					sx={{
+						flex: 1,
+						overflow: "auto",
+						paddingBottom: showBottomNav ? 7 : "40px",
+					}}
+				>
+					{children}
+				</Box>
+
+				<Footer className={footer.footer} />
+				{showBottomNav && <MuiBottomNav user={user} />}
+			</Box>
+		);
+	}
+
 	return (
 		<Box
 			sx={{
-				bgcolor: "background.default",
 				color: "text.primary",
 				display: "flex",
 				flexDirection: "column",
 				minHeight: "100vh",
 			}}
 		>
-			{!isMobile && <MuiTopNav user={user} notifications={notifications} />}
-			<Box
-				className={footer.aboveFooter}
-				sx={{
-					flex: 1,
-					overflow: "auto",
-					paddingBottom: isMobile && showBottomNav ? 7 : "40px",
-				}}
-			>
-				{children}
+			<Box sx={{ display: "flex", flex: 1, minHeight: 0 }}>
+				<Box
+					sx={{
+						width: LOGO_RAIL_WIDTH,
+						flexShrink: 0,
+						display: "flex",
+						justifyContent: "center",
+						alignItems: "flex-start",
+						pt: `${LOGO_RAIL_TOP_PADDING}px`,
+					}}
+				>
+					<Link href="/" aria-label="ZotMeet home">
+						<Image
+							src="/zotmeet-logo.svg"
+							alt="ZotMeet logo"
+							width={LOGO_SIZE}
+							height={LOGO_SIZE}
+						/>
+					</Link>
+				</Box>
+
+				<Box
+					sx={{
+						flex: 1,
+						minWidth: 0,
+						display: "flex",
+						flexDirection: "column",
+						pt: `${GUTTER_SIZE}px`,
+						pr: `${GUTTER_SIZE}px`,
+					}}
+				>
+					<Box
+						className={footer.aboveFooter}
+						sx={{
+							bgcolor: "background.paper",
+							flex: 1,
+							display: "flex",
+							flexDirection: "column",
+							borderTopLeftRadius: 12,
+							borderTopRightRadius: 12,
+							overflow: "hidden",
+						}}
+					>
+						<MuiTopNav user={user} notifications={notifications} />
+						<Box
+							sx={{
+								flex: 1,
+								overflow: "auto",
+								paddingBottom: "40px",
+							}}
+						>
+							{children}
+						</Box>
+					</Box>
+				</Box>
 			</Box>
 
 			<Footer className={footer.footer} />
-			{isMobile && showBottomNav && <MuiBottomNav user={user} />}
 		</Box>
 	);
 }
