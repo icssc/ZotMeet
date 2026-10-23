@@ -1,13 +1,16 @@
 "use client";
 
+import { nudgePendingMembers } from "@actions/meeting/nudge/action";
 import { Add, ArrowBack, People, Settings, Share } from "@mui/icons-material";
 import {
 	Avatar,
+	Box,
 	Button,
 	Dialog,
 	DialogContent,
 	DialogTitle,
 	IconButton,
+	MenuItem,
 	Tab,
 	Tabs,
 	Typography,
@@ -15,14 +18,96 @@ import {
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FilterChip } from "@/components/ui/filter-chip";
+import MeetingCard from "@/components/ui/meeting-card";
 import type { SelectGroup } from "@/db/schema";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { toMeetingCardProps } from "@/lib/meeting-card/mapper";
+import { buildScheduledLabel } from "@/lib/meetings/utils";
 import type { MeetingWithStats } from "@/server/data/groups/queries";
+import { useSnackbar } from "../ui/snackbar-provider";
 import { AddMemberDialog } from "./add-member-dialog";
 import { GroupSettingsForm } from "./group-settings-form";
-import { MeetingRow } from "./meeting-row";
 import { MembersList } from "./members-list";
 import type { GroupMember } from "./types";
+
+const cardGridSx = {
+	display: { xs: "flex", sm: "grid" } as const,
+	flexDirection: "column" as const,
+	gridTemplateColumns: { sm: "repeat(2, 1fr)", lg: "repeat(3, 1fr)" },
+	gap: { xs: 1.5, sm: 2 },
+};
+
+function GroupMeetingCard({
+	meeting,
+	currentMemberId,
+	status,
+}: {
+	meeting: MeetingWithStats;
+	currentMemberId: string;
+	status: "actionRequired" | "upcoming" | null;
+}) {
+	const [isNudging, setIsNudging] = useState(false);
+	const { showSuccess, showError } = useSnackbar();
+	const isOwner = meeting.hostId === currentMemberId;
+
+	const scheduledLabel =
+		meeting.scheduledDate &&
+		meeting.scheduledFromTime &&
+		meeting.scheduledToTime
+			? buildScheduledLabel(
+					meeting.scheduledDate,
+					meeting.scheduledFromTime,
+					meeting.scheduledToTime,
+				)
+			: undefined;
+
+	const cardProps = toMeetingCardProps(
+		{ ...meeting, hostDisplayName: meeting.hostName },
+		{ responderCount: meeting.respondedCount, scheduledLabel },
+	);
+
+	const nudgeItem = isOwner
+		? (close: () => void) => (
+				<MenuItem
+					disabled={isNudging}
+					onClick={async (e) => {
+						e.stopPropagation();
+						close();
+						setIsNudging(true);
+						try {
+							const result = await nudgePendingMembers(meeting.id);
+							if (result.success) showSuccess(result.message);
+							else showError(result.message);
+						} catch {
+							showError("Failed to send nudge. Please try again.");
+						} finally {
+							setIsNudging(false);
+						}
+					}}
+				>
+					<People sx={{ mr: 1, fontSize: 16 }} />
+					Nudge Members
+				</MenuItem>
+			)
+		: undefined;
+
+	return (
+		<MeetingCard
+			{...cardProps}
+			scheduled={Boolean(meeting.scheduledDate)}
+			isOwner={isOwner}
+			totalMembers={meeting.totalMembers}
+			needsAvailability={status === "actionRequired"}
+			allAvailabilityFilled={meeting.respondedCount >= meeting.totalMembers}
+			isUpcoming={status === "upcoming"}
+			isPast={Boolean(
+				meeting.scheduledDate &&
+					meeting.scheduledDate < new Date(new Date().setHours(0, 0, 0, 0)),
+			)}
+			extraMenuItems={nudgeItem}
+		/>
+	);
+}
 
 interface GroupMemberListProps {
 	group: SelectGroup;
@@ -49,34 +134,47 @@ export function GroupMemberList({
 		"all" | "created" | "upcoming"
 	>("all");
 
-	const {
-		meetingsPendingAvailability,
-		meetingsPendingAvailabilityMap,
-		allMeetings,
-	} = useMemo(() => {
-		const getSortDate = (meeting: MeetingWithStats) =>
-			meeting.scheduledDate
-				? new Date(meeting.scheduledDate)
-				: new Date(meeting.dates[0]);
+	const { allMeetingsSorted, upcomingSet } = useMemo(() => {
+		const startOfToday = new Date();
+		startOfToday.setHours(0, 0, 0, 0);
+		const windowEnd = startOfToday.getTime() + 3 * 24 * 60 * 60 * 1000;
 
-		const meetingsPendingAvailability = meetings
-			.filter((meeting) => !meeting.userHasResponded)
-			.sort((a, b) => getSortDate(a).getTime() - getSortDate(b).getTime());
-
-		const meetingsPendingAvailabilityMap = new Set(
-			meetingsPendingAvailability.map((m) => m.id),
+		const upcomingSet = new Set(
+			meetings
+				.filter((m) => {
+					if (!m.scheduledDate) return false;
+					const t = m.scheduledDate.getTime();
+					return t >= startOfToday.getTime() && t <= windowEnd;
+				})
+				.map((m) => m.id),
 		);
 
-		const allMeetings = [...meetings].sort(
-			(a, b) => getSortDate(a).getTime() - getSortDate(b).getTime(),
-		);
-
-		return {
-			meetingsPendingAvailability,
-			meetingsPendingAvailabilityMap,
-			allMeetings,
+		const getPriority = (m: MeetingWithStats) => {
+			if (!m.userHasResponded && !m.scheduledDate) return 0;
+			if (
+				m.respondedCount >= m.totalMembers &&
+				m.hostId === currentMemberId &&
+				!m.scheduledDate
+			)
+				return 1;
+			if (upcomingSet.has(m.id)) return 2;
+			if (m.scheduledDate) return 3;
+			return 4;
 		};
-	}, [meetings]);
+
+		const getSortDate = (m: MeetingWithStats) =>
+			m.scheduledDate
+				? m.scheduledDate.getTime()
+				: new Date(m.dates[0]).getTime();
+
+		const allMeetingsSorted = [...meetings].sort((a, b) => {
+			const pDiff = getPriority(a) - getPriority(b);
+			if (pDiff !== 0) return pDiff;
+			return getSortDate(a) - getSortDate(b);
+		});
+
+		return { allMeetingsSorted, upcomingSet };
+	}, [meetings, currentMemberId]);
 
 	const counts = {
 		all: meetings.length,
@@ -86,7 +184,7 @@ export function GroupMemberList({
 		).length,
 	};
 
-	const displayedMeetings = allMeetings.filter((meeting) => {
+	const displayedMeetings = allMeetingsSorted.filter((meeting) => {
 		if (activeFilter === "created") return meeting.hostId === currentMemberId;
 		if (activeFilter === "upcoming") {
 			return (
@@ -261,49 +359,24 @@ export function GroupMemberList({
 			{tab === 0 && (
 				<div className="mt-6">
 					{meetings.length > 0 ? (
-						<div>
-							<div className="mt-8">
-								<p className="mb-2 font-bold text-[#969696] text-xs uppercase tracking-wide">
-									Action Required ({meetingsPendingAvailability.length})
-								</p>
-								{meetingsPendingAvailability.map((meeting) => (
-									<div
-										key={meeting.id}
-										className="mb-3 rounded-xl border border-gray-300"
-									>
-										<MeetingRow
-											meeting={meeting}
-											currentMemberId={currentMemberId}
-											status="actionRequired"
-										/>
-									</div>
-								))}
-							</div>
-							<div className="mt-8">
-								<p className="mb-5 font-bold text-[#969696] text-xs uppercase tracking-wide">
-									All ({displayedMeetings.length})
-								</p>
-								{displayedMeetings.map((meeting) => (
-									<div
-										key={meeting.id}
-										className="mb-3 rounded-xl border border-gray-300"
-									>
-										<MeetingRow
-											meeting={meeting}
-											currentMemberId={currentMemberId}
-											status={
-												meetingsPendingAvailabilityMap.has(meeting.id)
-													? "actionRequired"
-													: meeting.scheduledDate &&
-															new Date(meeting.scheduledDate) > new Date()
-														? "upcoming"
-														: null
-											}
-										/>
-									</div>
-								))}
-							</div>
-						</div>
+						<Box sx={cardGridSx}>
+							{displayedMeetings.map((meeting) => (
+								<GroupMeetingCard
+									key={meeting.id}
+									meeting={meeting}
+									currentMemberId={currentMemberId}
+									status={
+										meeting.scheduledDate
+											? upcomingSet.has(meeting.id)
+												? "upcoming"
+												: null
+											: !meeting.userHasResponded
+												? "actionRequired"
+												: null
+									}
+								/>
+							))}
+						</Box>
 					) : (
 						<div className="flex items-center justify-center py-32">
 							<p className="text-gray-500 text-lg italic">No meetings yet!</p>
