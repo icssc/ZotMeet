@@ -114,7 +114,7 @@ Scan with [Expo Go](https://expo.dev/go) (iOS: the Camera app; Android: Expo Go'
 | `pnpm db:generate` | Generate new migrations from schema changes |
 | `pnpm db:migrate` | Apply pending migrations |
 | `pnpm db:studio` | Open Drizzle Studio to browse your database |
-| `pnpm db:seed` | Seed future groups, meetings and availabilities for testing (`--help` lists the flags) |
+| `pnpm db:seed --user you@example.com` | Seed future groups, meetings and availabilities for testing, attached to your account |
 
 ### Committing Changes
 
@@ -133,28 +133,12 @@ If you need credentials for the `.env` file, contact the project lead ([Kyle](ht
 The seed script (`src/db/seed.ts`, helpers in `src/db/seed/`) fills your **local** database with fake users, groups, future-dated meetings and random availabilities, so you can exercise the dashboard, group pages and availability grid without real accounts. It writes straight to the database, so it sends no email, and it refuses to run against anything but `localhost` (including connection strings that use `?host=` to point elsewhere).
 
 ```bash
-pnpm db:seed                                  # 3 groups, 4 meetings each
-pnpm db:seed --groups 5 --meetings 3          # shape the data
-pnpm db:seed --user you@example.com           # see it from your own account
-pnpm db:seed --help                           # every flag
+pnpm db:seed --user you@example.com
 ```
 
-| Flag | Default | Meaning |
-|------|---------|---------|
-| `--groups N` / `--meetings N` | 3 / 4 | groups, and meetings per group |
-| `--users N` / `--members N` | 20 / 8 | fake user pool, and members per group |
-| `--days N` / `--max-dates N` | 14 / 4 | normal meetings fall 1..N days ahead, with up to `--max-dates` dates each; days-of-the-week meetings ignore both and use the app's fixed 2023 weekday dates |
-| `--from HH:MM` / `--to HH:MM` | random preset | meeting window (Pacific time) |
-| `--archived F` / `--scheduled F` / `--days-of-week F` | 0.1 / 0.25 / 0.15 | per-meeting probability of each state; the rest are unscheduled |
-| `--user EMAIL` | none | add this account to every group, host some meetings, and send it invite notifications for the other non-archived ones |
-| `--seed N` | random | reproduce a run; the seed is printed each time |
-| `--append` | off | keep earlier seeded data instead of wiping it first |
+`--user` is required and must be an account that already exists, so sign in to the app once first. The script finds you by email (case-insensitive) and stops before changing anything if it can't. You join 3 seeded groups (admin of the first), host some of the meetings, and get "Meeting Invite" notifications for the other non-archived ones. The meetings are a mix of unscheduled, scheduled, days-of-the-week and archived, with a mix of answered and unanswered responses.
 
-- **Re-runs are clean by default.** Seeded rows are tagged with a `seed_` user id prefix, and a normal run first deletes all earlier seeded data (from every earlier run, including appended ones) before creating new rows. With `--append` nothing is deleted. Real accounts and everything outside the seeded groups are never touched. With `--user`, the wipe does remove your account's membership, responses and hosted meetings *inside the seeded groups*, plus the invite notifications the seed sent you.
-- **`--user` needs an existing account.** Sign in to the app once first; the script finds you by email (case-insensitive) and stops before changing anything if it can't. Without it, the data exists but your account has no connection to it, so it won't appear when you're signed in.
-- **Size limit.** `--groups` x `--meetings` x (`--members` + 2) is capped at 100,000 availability rows, so a huge combination fails fast with a message instead of running out of memory.
-- **`--append` needs a fresh `--seed`.** User ids are derived from the seed, so reusing one is refused instead of silently skipping users.
-- **Reproducible per day.** The same `--seed` and flags give the same groups, members, meetings, times and availability answers on the same calendar day. Meeting dates count forward from today, and timestamps like `created_at` and `sent_at` follow the clock, so they differ between runs. Group, meeting and member ids and invite tokens are random, but seeded user ids are built from the seed (`seed_<seed in base 36>_<name>`) and the Seed Admin's ids are fixed.
+- **Re-runs are clean.** Seeded rows are tagged with a `seed_` user id prefix, and each run first deletes all earlier seeded data before creating new rows. Real accounts and everything outside the seeded groups are never touched. Your account's membership, responses and hosted meetings *inside the seeded groups* are removed with them, plus the invite notifications the seed sent you.
 - All times are `America/Los_Angeles`. Scheduled blocks follow the schedule UI, which uses the browser's clock, so they only line up exactly if your machine is also on Pacific time.
 
 ## Progressive Web App / iOS App Store

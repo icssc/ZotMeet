@@ -25,11 +25,8 @@ import type {
 	usersInGroup,
 } from "../schema";
 import { GroupRole } from "../schema";
-import type { SeedOptions } from "./args";
 import {
-	FIRST_NAMES,
 	GROUP_TEMPLATES,
-	LAST_NAMES,
 	MEETING_LOCATIONS,
 	MEETING_TITLES,
 	NAME_POOL,
@@ -44,6 +41,14 @@ const SEED_ADMIN_USER_ID = `${SEED_USER_PREFIX}admin`;
 const SEED_ADMIN_MEMBER_ID = "00000000-0000-0000-0000-000000000000";
 const SEED_EMAIL_DOMAIN = "seed.zotmeet.dev";
 
+const GROUPS = 3;
+const MEMBERS_PER_GROUP = 8;
+const MEETINGS_PER_GROUP = 4;
+const DAYS_AHEAD = 14;
+const MAX_DATES = 4;
+const ARCHIVED_RATE = 0.1;
+const SCHEDULED_RATE = 0.25;
+const DAYS_OF_WEEK_RATE = 0.15;
 const RESPONSE_RATE = 0.7;
 const REAL_USER_RESPONSE_RATE = 0.5;
 const EVERYONE_RESPONDS_RATE = 0.25;
@@ -64,9 +69,8 @@ function seedUserId(tag: string, handle: string): string {
 	return `${SEED_USER_PREFIX}${tag}_${handle}`;
 }
 
-export function seedUserIdLike(tag?: string): string {
-	const prefix = tag === undefined ? SEED_USER_PREFIX : seedUserId(tag, "");
-	return `${escapeLikePattern(prefix)}%`;
+export function seedUserIdLike(): string {
+	return `${escapeLikePattern(SEED_USER_PREFIX)}%`;
 }
 
 export type MeetingState =
@@ -116,43 +120,26 @@ function minutesToHms(minutes: number): string {
 }
 
 function buildPool(
-	rng: Rng,
-	count: number,
 	tag: string,
 	takenUsernames: ReadonlySet<string>,
 ): PoolPerson[] {
 	const taken = new Set(takenUsernames);
-	const extra = count - NAME_POOL.length;
-	const generated =
-		extra > 0
-			? rng.sample(
-					FIRST_NAMES.flatMap((first) =>
-						LAST_NAMES.map((last) => ({
-							handle: `${first}.${last}`.toLowerCase(),
-							displayName: `${first} ${last}`,
-						})),
-					),
-					extra,
-				)
-			: [];
 
-	return [...NAME_POOL, ...generated]
-		.slice(0, count)
-		.map(({ handle, displayName }) => {
-			let username = handle;
-			for (let attempt = 0; taken.has(username); attempt++) {
-				username = `${handle}.${tag}${attempt === 0 ? "" : attempt}`;
-			}
-			taken.add(username);
-			return {
-				userId: seedUserId(tag, handle),
-				memberId: crypto.randomUUID(),
-				isReal: false,
-				displayName,
-				username,
-				email: `${handle}.${tag}@${SEED_EMAIL_DOMAIN}`,
-			};
-		});
+	return NAME_POOL.map(({ handle, displayName }) => {
+		let username = handle;
+		for (let attempt = 0; taken.has(username); attempt++) {
+			username = `${handle}.${tag}${attempt === 0 ? "" : attempt}`;
+		}
+		taken.add(username);
+		return {
+			userId: seedUserId(tag, handle),
+			memberId: crypto.randomUUID(),
+			isReal: false,
+			displayName,
+			username,
+			email: `${handle}.${tag}@${SEED_EMAIL_DOMAIN}`,
+		};
+	});
 }
 
 function randomBlockSet(rng: Rng, blockCount: number, maxRanges: number) {
@@ -194,22 +181,17 @@ function buildResponse(rng: Rng, zotDates: ZotDate[], blockCount: number) {
 	return { available, ifNeeded };
 }
 
-function pickState(rng: Rng, opts: SeedOptions): MeetingState {
+function pickState(rng: Rng): MeetingState {
 	const roll = rng.next();
-	if (roll < opts.archived) return "archived";
-	if (roll < opts.archived + opts.scheduled) return "scheduled";
-	if (roll < opts.archived + opts.scheduled + opts.daysOfWeek) {
+	if (roll < ARCHIVED_RATE) return "archived";
+	if (roll < ARCHIVED_RATE + SCHEDULED_RATE) return "scheduled";
+	if (roll < ARCHIVED_RATE + SCHEDULED_RATE + DAYS_OF_WEEK_RATE) {
 		return "days-of-week";
 	}
 	return "unscheduled";
 }
 
-function pickDates(
-	rng: Rng,
-	opts: SeedOptions,
-	state: MeetingState,
-	today: Date,
-): string[] {
+function pickDates(rng: Rng, state: MeetingState, today: Date): string[] {
 	if (state === "days-of-week") {
 		return rng
 			.sample([0, 1, 2, 3, 4, 5, 6], rng.int(2, 5))
@@ -217,11 +199,10 @@ function pickDates(
 			.map((weekday) => ANCHOR_DATES[weekday].toISOString());
 	}
 
-	const count = Math.min(rng.int(1, opts.maxDates), opts.days);
 	return rng
 		.sample(
-			Array.from({ length: opts.days }, (_, i) => i + 1),
-			count,
+			Array.from({ length: DAYS_AHEAD }, (_, i) => i + 1),
+			rng.int(1, MAX_DATES),
 		)
 		.sort((a, b) => a - b)
 		.map((offset) =>
@@ -233,14 +214,14 @@ function pickDates(
 }
 
 export function buildSeedPlan(args: {
-	opts: SeedOptions;
+	seed: number;
 	rng: Rng;
-	realUser: RealUser | null;
+	realUser: RealUser;
 	takenUsernames: ReadonlySet<string>;
 	now: Date;
 }): SeedPlan {
-	const { opts, rng, realUser, takenUsernames, now } = args;
-	const tag = seedTag(opts.seed);
+	const { seed, rng, realUser, takenUsernames, now } = args;
+	const tag = seedTag(seed);
 	const today = localMidnightFromIsoDate(
 		formatInTimeZone(now, SEED_TIMEZONE, "yyyy-MM-dd"),
 	);
@@ -283,7 +264,7 @@ export function buildSeedPlan(args: {
 		},
 	};
 
-	const pool = buildPool(rng, opts.users, tag, takenUsernames);
+	const pool = buildPool(tag, takenUsernames);
 	for (const person of pool) {
 		plan.members.push({
 			id: person.memberId,
@@ -298,11 +279,11 @@ export function buildSeedPlan(args: {
 		});
 	}
 
-	const real: Person | null = realUser ? { ...realUser, isReal: true } : null;
+	const real: Person = { ...realUser, isReal: true };
 
 	const titles = rng.shuffle(MEETING_TITLES);
 
-	for (let g = 0; g < opts.groups; g++) {
+	for (let g = 0; g < GROUPS; g++) {
 		const template = GROUP_TEMPLATES[g % GROUP_TEMPLATES.length];
 		const round = Math.floor(g / GROUP_TEMPLATES.length);
 		const groupId = crypto.randomUUID();
@@ -317,8 +298,8 @@ export function buildSeedPlan(args: {
 
 		const groupMembers: Person[] = [
 			admin,
-			...rng.sample(pool, opts.members),
-			...(real ? [real] : []),
+			...rng.sample(pool, MEMBERS_PER_GROUP),
+			real,
 		];
 		for (const person of groupMembers) {
 			plan.usersInGroup.push({
@@ -331,15 +312,12 @@ export function buildSeedPlan(args: {
 			});
 		}
 
-		for (let m = 0; m < opts.meetings; m++) {
-			const state = pickState(rng, opts);
+		for (let m = 0; m < MEETINGS_PER_GROUP; m++) {
+			const state = pickState(rng);
 			plan.stats.states[state]++;
 
-			const dates = pickDates(rng, opts, state, today);
-			const [windowFrom, windowTo] =
-				opts.from !== null && opts.to !== null
-					? [opts.from, opts.to]
-					: rng.pick(WINDOW_PRESETS);
+			const dates = pickDates(rng, state, today);
+			const [windowFrom, windowTo] = rng.pick(WINDOW_PRESETS);
 			const fromTime = convertTimeToUTC(
 				`${windowFrom}:00`,
 				SEED_TIMEZONE,
@@ -365,8 +343,9 @@ export function buildSeedPlan(args: {
 				meetingType,
 			});
 
-			const host =
-				real && rng.chance(REAL_USER_HOST_RATE) ? real : rng.pick(groupMembers);
+			const host = rng.chance(REAL_USER_HOST_RATE)
+				? real
+				: rng.pick(groupMembers);
 			const meetingId = crypto.randomUUID();
 			plan.meetings.push({
 				id: meetingId,
@@ -439,7 +418,7 @@ export function buildSeedPlan(args: {
 				plan.stats.responded++;
 			}
 
-			if (real && !host.isReal && state !== "archived") {
+			if (!host.isReal && state !== "archived") {
 				plan.notifications.push({
 					memberId: real.memberId,
 					type: NOTIFICATION_TYPES.MEETING_INVITE,

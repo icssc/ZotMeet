@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { eq, isNotNull, like, sql } from "drizzle-orm";
+import { eq, isNotNull, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import {
@@ -14,14 +14,7 @@ import {
 	usersInGroup,
 } from "./schema";
 import { ArgError, parseSeedArgs, USAGE } from "./seed/args";
-import {
-	buildSeedPlan,
-	type RealUser,
-	SEED_TIMEZONE,
-	SEED_USER_PREFIX,
-	seedTag,
-	seedUserIdLike,
-} from "./seed/build";
+import { buildSeedPlan, SEED_TIMEZONE, SEED_USER_PREFIX } from "./seed/build";
 import { createRng } from "./seed/rng";
 import { type Tx, wipeSeedData } from "./seed/wipe";
 
@@ -64,11 +57,12 @@ async function insertChunked<T>(
 }
 
 async function seed(): Promise<void> {
-	const opts = parseSeedArgs(process.argv.slice(2));
-	if (opts === "help") {
+	const args = parseSeedArgs(process.argv.slice(2));
+	if (args === "help") {
 		console.log(USAGE);
 		return;
 	}
+	const { userEmail } = args;
 
 	const databaseUrl = process.env.DATABASE_URL;
 	if (!databaseUrl) throw new ArgError("Missing DATABASE_URL env var.");
@@ -78,41 +72,27 @@ async function seed(): Promise<void> {
 	const db = drizzle(pool);
 
 	try {
-		let realUser: RealUser | null = null;
-		if (opts.userEmail) {
-			const [row] = await db
-				.select({ userId: users.id, memberId: users.memberId })
-				.from(users)
-				.where(eq(sql`lower(${users.email})`, opts.userEmail.toLowerCase()))
-				.limit(1);
-			if (!row) {
-				throw new ArgError(
-					`No user with email ${opts.userEmail}. Sign in to the app once, then re-run.`,
-				);
-			}
-			if (row.userId.startsWith(SEED_USER_PREFIX)) {
-				throw new ArgError(
-					`${opts.userEmail} is a seeded account; --user needs a real one.`,
-				);
-			}
-			realUser = row;
+		const [realUser] = await db
+			.select({ userId: users.id, memberId: users.memberId })
+			.from(users)
+			.where(eq(sql`lower(${users.email})`, userEmail.toLowerCase()))
+			.limit(1);
+		if (!realUser) {
+			throw new ArgError(
+				`No user with email ${userEmail}. Sign in to the app once, then re-run.`,
+			);
+		}
+		if (realUser.userId.startsWith(SEED_USER_PREFIX)) {
+			throw new ArgError(
+				`${userEmail} is a seeded account; --user needs a real one.`,
+			);
 		}
 
-		const rng = createRng(opts.seed);
+		const seed = Math.floor(Math.random() * 2 ** 31);
+		const rng = createRng(seed);
 
 		const plan = await db.transaction(async (tx: Tx) => {
-			if (!opts.append) await wipeSeedData(tx);
-
-			const [clash] = await tx
-				.select({ id: users.id })
-				.from(users)
-				.where(like(users.id, seedUserIdLike(seedTag(opts.seed))))
-				.limit(1);
-			if (clash) {
-				throw new ArgError(
-					`Seed ${opts.seed} was already used here. Pass a different --seed with --append.`,
-				);
-			}
+			await wipeSeedData(tx);
 
 			const taken = await tx
 				.select({ username: members.username })
@@ -120,7 +100,7 @@ async function seed(): Promise<void> {
 				.where(isNotNull(members.username));
 
 			const built = buildSeedPlan({
-				opts,
+				seed,
 				rng,
 				realUser,
 				takenUsernames: new Set(
@@ -157,14 +137,11 @@ async function seed(): Promise<void> {
 		const { states } = plan.stats;
 		console.log(
 			[
-				`Seeded (seed ${opts.seed}, ${SEED_TIMEZONE}${opts.append ? ", appended" : ""}):`,
+				`Seeded (${SEED_TIMEZONE}):`,
 				`  ${plan.groups.length} groups, ${plan.members.length} fake members`,
 				`  ${plan.meetings.length} meetings: ${states.unscheduled} unscheduled, ${states.scheduled} scheduled, ${states["days-of-week"]} days-of-week, ${states.archived} archived`,
 				`  ${plan.stats.responded} responses, ${plan.stats.invitedNotResponded} invited but not responded`,
-				realUser
-					? `  attached ${opts.userEmail}: ${plan.notifications.length} invite notifications`
-					: "  no --user given: sign-in accounts will not see this data",
-				`Re-run with --seed ${opts.seed} to reproduce this data.`,
+				`  attached ${userEmail}: ${plan.notifications.length} invite notifications`,
 			].join("\n"),
 		);
 	} finally {

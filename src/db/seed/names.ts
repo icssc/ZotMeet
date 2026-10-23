@@ -21,55 +21,6 @@ export const NAME_POOL = [
 	{ handle: "zotgrad", displayName: "Zot Grad" },
 ];
 
-export const FIRST_NAMES = [
-	"Avery",
-	"Blake",
-	"Casey",
-	"Devon",
-	"Emery",
-	"Finley",
-	"Gray",
-	"Harper",
-	"Indigo",
-	"Jordan",
-	"Kai",
-	"Logan",
-	"Morgan",
-	"Noel",
-	"Oakley",
-	"Parker",
-	"Quinn",
-	"Riley",
-	"Sage",
-	"Taylor",
-];
-
-export const LAST_NAMES = [
-	"Alvarez",
-	"Bui",
-	"Chen",
-	"Dao",
-	"Espinoza",
-	"Farah",
-	"Garcia",
-	"Huang",
-	"Ito",
-	"Jain",
-	"Kim",
-	"Le",
-	"Nguyen",
-	"Ortiz",
-	"Patel",
-	"Rojas",
-	"Singh",
-	"Tran",
-	"Vu",
-	"Wong",
-];
-
-export const MAX_POOL_USERS =
-	NAME_POOL.length + FIRST_NAMES.length * LAST_NAMES.length;
-
 export const GROUP_TEMPLATES = [
 	{ name: "ICSSC Core Team", description: "Weekly syncs for the council." },
 	{ name: "CS 161 Study Group", description: "Problem sets and exam prep." },
