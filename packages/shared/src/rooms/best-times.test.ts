@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { isoStringForSlot } from "../availability/grid";
 import { ZotDate } from "../availability/zotdate";
 import {
 	computeBestTimes,
@@ -148,6 +149,29 @@ describe("computeBestTimes", () => {
 				[3, 120],
 			],
 		);
+	});
+
+	it("ends where the grid does across a DST change", () => {
+		const tz = "America/Los_Angeles";
+		// Midnight–4am wall clock: 5 real hours when clocks fall back, 3 when
+		// they spring forward. The best time must end at 4am either way.
+		for (const midnight of ["2026-11-01T07:00:00Z", "2026-03-08T08:00:00Z"]) {
+			const day = new Date(midnight);
+			const group: Record<string, string[]> = {};
+			for (let r = 0; r < 16; r++) {
+				group[isoStringForSlot(day, r * 15, tz)] = ["a"];
+			}
+			const [best] = computeBestTimes({
+				availabilityDates: [new ZotDate(day, 0, 1440, false, [], group, tz)],
+				ifNeededDates: [],
+				memberIds: ["a"],
+				fromTimeMinutes: 0,
+				blockCount: 16,
+				timeZone: tz,
+			});
+			assert.equal(best.start, day.getTime());
+			assert.equal(best.end, Date.parse(isoStringForSlot(day, 240, tz)));
+		}
 	});
 
 	it("caps the list at the limit", () => {

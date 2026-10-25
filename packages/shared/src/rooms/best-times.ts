@@ -101,6 +101,10 @@ export function computeBestTimes({
 				next++;
 			}
 			const start = new Date(first.timestamp).getTime();
+			// Rows are wall clock, so on a DST night `rows * 15m` drifts an hour
+			// from where the grid ends; measure from the last row's own instant.
+			const end =
+				new Date(column[next - 1].timestamp).getTime() + BLOCK_LENGTH * 60_000;
 			const rows = next - b;
 			const minutes = rows * BLOCK_LENGTH;
 			stretches.push({
@@ -109,7 +113,7 @@ export function computeBestTimes({
 				startBlock: b,
 				blockCount: rows,
 				start,
-				end: start + minutes * 60_000,
+				end,
 				minutes,
 				freeMemberIds: first.free,
 				missingMemberIds: memberIds.filter((id) => !first.free.includes(id)),
