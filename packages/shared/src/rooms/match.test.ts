@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
 	bookableSlots,
+	bookingUrlFor,
 	classifyRooms,
 	countRoomsFreeForAnyBestTime,
 	filterRoomFits,
@@ -176,7 +177,25 @@ describe("bookableSlots", () => {
 			slots.map((s) => new Date(s.start).toISOString().slice(11, 16)),
 			["20:00", "20:30", "21:00", "21:30"],
 		);
-		assert.match(slots[0].url, /date=2026-10-13T20:00/);
+		assert.match(bookingUrlFor(slots[0], 30), /date=2026-10-13T20:00/);
+	});
+
+	it("links the shortest booking length that covers the request", () => {
+		const [r] = normalizeRooms([
+			room("Science 471 (2 hours)", [[at(19), at(23)]]),
+			room("Science 471 (30 minutes)", [[at(19), at(23)]]),
+			room("Science 471 (1 hour)", [[at(19), at(23)]]),
+		]);
+		const [slot] = bookableSlots(r, stretch);
+		assert.deepEqual(
+			slot.options.map((o) => o.minutes),
+			[30, 60, 120],
+		);
+		assert.match(bookingUrlFor(slot, 30), /\(30 minutes\)/);
+		assert.match(bookingUrlFor(slot, 45), /\(1 hour\)/);
+		assert.match(bookingUrlFor(slot, 120), /\(2 hours\)/);
+		// Nothing is long enough: the longest is the closest.
+		assert.match(bookingUrlFor(slot, 180), /\(2 hours\)/);
 	});
 
 	it("supports 15-minute rooms", () => {
