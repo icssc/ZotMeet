@@ -2,6 +2,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import {
 	formatLocation,
 	formatRoomChipLabel,
+	parseRoomDurationMinutes,
 	stripRoomDurationSuffix,
 } from "./names";
 
@@ -28,8 +29,16 @@ export interface TimeWindow {
 	end: number;
 }
 
-export interface BookableSlot extends TimeWindow {
+/** One booking-length variant's link; each variant is its own LibCal space. */
+export interface BookingOption {
+	/** From the "(2 hours)" name suffix; null when the room has no fixed length. */
+	minutes: number | null;
 	url: string;
+}
+
+export interface BookableSlot extends TimeWindow {
+	/** Every variant free at this start, shortest first, null-length last. */
+	options: BookingOption[];
 }
 
 /** One physical room: its booking-length variants merged, blank entries dropped. */
@@ -99,22 +108,47 @@ export function normalizeRooms(raw: readonly StudyRoomLike[]): Room[] {
 			byKey.set(key, bucket);
 		}
 
+		const minutes = parseRoomDurationMinutes(entry.name);
 		for (const slot of entry.slots) {
 			if (!slot.isAvailable) continue;
 			const start = new Date(slot.start).getTime();
 			const end = new Date(slot.end).getTime();
+			const option = { minutes, url: slot.url };
 			const existing = bucket.slotByStart.get(start);
-			// Keep the longest slot for a start; any variant's link books it.
-			if (!existing || end > existing.end) {
-				bucket.slotByStart.set(start, { start, end, url: slot.url });
+			// One slot per start, as long as its longest variant; each variant's
+			// link books only its own length, so all of them are kept.
+			if (!existing) {
+				bucket.slotByStart.set(start, { start, end, options: [option] });
+			} else {
+				existing.end = Math.max(existing.end, end);
+				existing.options.push(option);
 			}
 		}
 	}
 
 	return [...byKey.values()].map(({ room, slotByStart }) => {
 		const slots = [...slotByStart.values()].sort((a, b) => a.start - b.start);
+		for (const slot of slots) slot.options.sort(compareOptionLength);
 		return { ...room, slots, freeWindows: mergeWindows(slots) };
 	});
+}
+
+function compareOptionLength(a: BookingOption, b: BookingOption): number {
+	if (a.minutes === b.minutes) return 0;
+	if (a.minutes == null) return 1;
+	if (b.minutes == null) return -1;
+	return a.minutes - b.minutes;
+}
+
+/**
+ * The link for a booking of `minutes`: the shortest variant that covers it,
+ * so nobody holds a room (or spends their daily hours) longer than needed.
+ * Falls back to the longest variant when none is long enough.
+ */
+export function bookingUrlFor(slot: BookableSlot, minutes: number): string {
+	const { options } = slot;
+	const fit = options.find((o) => o.minutes == null || o.minutes >= minutes);
+	return (fit ?? options[options.length - 1]).url;
 }
 
 export function mergeWindows(windows: readonly TimeWindow[]): TimeWindow[] {
