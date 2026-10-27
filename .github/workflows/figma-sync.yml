@@ -1,0 +1,30 @@
+name: Figma design sync
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'   # every ~15 minutes
+  issues:
+    types: [opened, edited]  # instant preview when someone pastes a Figma link
+  workflow_dispatch:         # "Run workflow" button for manual testing
+
+permissions:
+  contents: write  # store preview images on the design-previews branch
+  issues: write    # add labels and the preview comment
+
+concurrency:
+  group: figma-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Sync Figma status and previews
+        run: node .github/scripts/figma-sync.mjs
+        env:
+          FIGMA_TOKEN: ${{ secrets.FIGMA_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
