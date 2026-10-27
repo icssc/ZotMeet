@@ -11,6 +11,7 @@ import {
 	MenuItem,
 	Typography,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import {
 	filterRoomFits,
 	formatLocation,
@@ -54,7 +55,6 @@ function FilterChip<T extends string | number>({
 	getOptionLabel: (value: T) => string;
 	onChange: (value: T | null) => void;
 }) {
-	const colors = useRoomFlowColors();
 	const [anchor, setAnchor] = useState<HTMLElement | null>(null);
 	const isOn = value != null;
 	return (
@@ -73,8 +73,12 @@ function FilterChip<T extends string | number>({
 				sx={
 					isOn
 						? {
-								backgroundColor: colors.pinkSoft,
-								borderColor: colors.pink,
+								backgroundColor: (theme) =>
+									alpha(
+										theme.palette.primary.main,
+										theme.palette.mode === "dark" ? 0.2 : 0.15,
+									),
+								borderColor: "primary.main",
 								fontWeight: 600,
 							}
 						: undefined

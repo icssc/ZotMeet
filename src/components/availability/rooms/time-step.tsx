@@ -64,10 +64,7 @@ function NoRoomsPanel({
 		})),
 	);
 	return (
-		<div
-			className="flex flex-col gap-2 rounded-xl p-4"
-			style={{ backgroundColor: colors.pinkSoft }}
-		>
+		<div className="flex flex-col gap-2 rounded-xl bg-primary/15 p-4 dark:bg-primary/20">
 			<Typography variant="subtitle2" component="p">
 				No rooms free at your best times
 			</Typography>

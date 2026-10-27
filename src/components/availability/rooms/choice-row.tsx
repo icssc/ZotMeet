@@ -52,13 +52,11 @@ export function ChoiceRow({
 			className={cn(
 				"relative flex min-h-11 cursor-pointer items-center gap-3 rounded-[10px] border px-3 py-2 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2",
 				dimmed && !checked && "opacity-60",
+				checked &&
+					"border-primary bg-primary/15 ring-1 ring-primary ring-inset dark:bg-primary/20",
 				className,
 			)}
-			style={{
-				borderColor: checked ? colors.pink : colors.divider,
-				backgroundColor: checked ? colors.pinkSoft : undefined,
-				boxShadow: checked ? `inset 0 0 0 1px ${colors.pink}` : undefined,
-			}}
+			style={checked ? undefined : { borderColor: colors.divider }}
 		>
 			<input
 				type="radio"
@@ -78,10 +76,13 @@ export function Pill({ on, children }: { on: boolean; children: ReactNode }) {
 	const colors = useRoomFlowColors();
 	return (
 		<span
-			className="inline-flex shrink-0 items-center rounded-2xl px-2 py-0.5 font-semibold text-xs"
+			className={cn(
+				"inline-flex shrink-0 items-center rounded-2xl px-2 py-0.5 font-semibold text-xs",
+				on && "bg-primary text-secondary-main",
+			)}
 			style={
 				on
-					? { backgroundColor: colors.pink, color: colors.navy }
+					? undefined
 					: {
 							boxShadow: `inset 0 0 0 1px ${colors.divider}`,
 							color: colors.textSecondary,

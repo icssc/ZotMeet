@@ -93,7 +93,7 @@ export function RoomsPanel({
 		else if (step > 1 && !fit) setStep(1);
 	}, [step, canPickRoom, fit, setStep]);
 
-	const primarySx = { color: colors.navy, borderRadius: "10px" } as const;
+	const primarySx = { color: "secondary.main", borderRadius: "10px" } as const;
 
 	const timeSummary = time && (
 		<SummaryRow label="time" onChange={() => setStep(0)}>

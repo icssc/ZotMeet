@@ -1,16 +1,12 @@
 "use client";
 
 import { Fragment } from "react";
+import { cn } from "@/lib/utils";
 import type { RoomFlowStep } from "@/store/useRoomFlowStore";
 import { useRoomFlowColors } from "./use-room-flow-colors";
 
 const STEPS = ["Time", "Room", "Book"] as const;
 
-/**
- * 1 Time → 2 Room → 3 Book. Active is pink with a navy number, done is soft
- * pink and clickable to go back, upcoming is outlined and muted. Hand-rolled
- * rather than MUI `Stepper`, whose connector and icon slots fight this shape.
- */
 export function RoomsStepper({
 	step,
 	onStepClick,
@@ -27,20 +23,18 @@ export function RoomsStepper({
 					index < step ? "done" : index === step ? "active" : "upcoming";
 				const circle = (
 					<span
-						className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border font-semibold text-xs"
+						className={cn(
+							"inline-flex size-6 shrink-0 items-center justify-center rounded-full border font-semibold text-xs",
+							state === "active" &&
+								"border-primary bg-primary text-primary-foreground",
+							state === "done" &&
+								"border-transparent bg-primary/15 dark:bg-primary/20",
+						)}
 						style={
 							state === "active"
-								? {
-										backgroundColor: colors.pink,
-										borderColor: colors.pink,
-										color: colors.navy,
-									}
+								? undefined
 								: state === "done"
-									? {
-											backgroundColor: colors.pinkSoft,
-											borderColor: "transparent",
-											color: colors.pinkText,
-										}
+									? { color: colors.pinkText }
 									: {
 											borderColor: colors.divider,
 											color: colors.textSecondary,
