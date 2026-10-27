@@ -118,7 +118,11 @@ async function findPreviewComment(issueNumber) {
 		const batch = await gh(
 			`/repos/${OWNER}/${REPO}/issues/${issueNumber}/comments?per_page=100&page=${page}`,
 		);
-		const hit = batch.find((c) => c.body?.includes(MARKER));
+		// Only trust our own comment; anyone else could paste the marker.
+		const hit = batch.find(
+			(c) =>
+				c.user?.login === "github-actions[bot]" && c.body?.includes(MARKER),
+		);
 		if (hit) return hit;
 		if (batch.length < 100) return null;
 	}
@@ -176,7 +180,17 @@ async function syncLabel(issue, ready) {
 	}
 }
 
-function renderComment({ issue, doc, status, lastModified, img, url }) {
+// `stateModified` is what gets stored in the hidden marker. It can lag behind
+// `lastModified` when a render failed, so the next run retries it.
+function renderComment({
+	issue,
+	doc,
+	status,
+	lastModified,
+	stateModified,
+	img,
+	url,
+}) {
 	const imgUrl =
 		`https://github.com/${OWNER}/${REPO}/blob/${PREVIEW_BRANCH}/previews/issue-${issue.number}.png` +
 		`?raw=true&v=${(img || "").slice(0, 8)}`;
@@ -184,7 +198,7 @@ function renderComment({ issue, doc, status, lastModified, img, url }) {
 		timeZone: TIME_ZONE,
 	});
 	return [
-		`${MARKER} lastModified=${lastModified} status=${status} img=${img || ""} -->`,
+		`${MARKER} lastModified=${stateModified} status=${status} img=${img || ""} -->`,
 		`### 🎨 ${doc.name}`,
 		img
 			? `![Design preview](${imgUrl})`
@@ -199,7 +213,7 @@ function renderComment({ issue, doc, status, lastModified, img, url }) {
 
 // ---------- Sync logic ----------
 
-async function syncIssue(item, doc, lastModified, renderUrl) {
+async function syncIssue(item, doc, lastModified, renderRequested, renderUrl) {
 	const { issue } = item;
 	if (!doc) {
 		console.warn(
@@ -212,6 +226,7 @@ async function syncIssue(item, doc, lastModified, renderUrl) {
 	await syncLabel(issue, status === "READY_FOR_DEV" || status === "COMPLETED");
 
 	let img = item.state.img || "";
+	let stateModified = lastModified;
 	if (renderUrl) {
 		const res = await fetch(renderUrl);
 		if (!res.ok) throw new Error(`Downloading render failed: ${res.status}`);
@@ -222,11 +237,18 @@ async function syncIssue(item, doc, lastModified, renderUrl) {
 			buf,
 			`Update design preview for #${issue.number}`,
 		);
+	} else if (renderRequested) {
+		// Figma returns null for frames it couldn't render. Keep the old
+		// lastModified so the next run asks again instead of skipping this frame.
+		console.warn(
+			`#${issue.number}: Figma returned no render for ${item.nodeId}; will retry next run.`,
+		);
+		stateModified = item.state.lastModified || "";
 	}
 
 	const unchanged =
 		item.state.status === status &&
-		item.state.lastModified === lastModified &&
+		item.state.lastModified === stateModified &&
 		(item.state.img || "") === img;
 	if (unchanged) return;
 
@@ -236,6 +258,7 @@ async function syncIssue(item, doc, lastModified, renderUrl) {
 			doc,
 			status,
 			lastModified,
+			stateModified,
 			img,
 			url: item.url,
 		}),
@@ -292,6 +315,7 @@ async function syncFile(fileKey, items) {
 				item,
 				data.nodes?.[item.nodeId]?.document,
 				lastModified,
+				toRender.includes(item.nodeId),
 				imageUrls[item.nodeId],
 			);
 		} catch (err) {
