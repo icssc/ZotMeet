@@ -161,8 +161,6 @@ export function TimeStep({
 		);
 	}
 
-	// Empty in the current mode, so turning on partly free rooms that don't
-	// exist still leaves "Show more times" on screen.
 	const isEmpty =
 		!flow.isLoading &&
 		flow.errorCount === 0 &&
@@ -172,10 +170,10 @@ export function TimeStep({
 		<div className="flex flex-col gap-3">
 			<div>
 				<Typography variant="h6" component="h3">
-					When should you meet?
+					When will you meet?
 				</Typography>
 				<Typography variant="caption" color="textSecondary">
-					Your best times, most people first.
+					Select the time that works best for your meeting.
 				</Typography>
 			</div>
 
