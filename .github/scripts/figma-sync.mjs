@@ -213,16 +213,37 @@ function renderComment({
 
 // ---------- Sync logic ----------
 
-async function syncIssue(item, doc, lastModified, renderRequested, renderUrl) {
+// Ready for dev is often set on a parent section rather than the frame itself,
+// so each frame inherits the nearest ancestor's status unless it has its own.
+function findNodesWithStatus(root, ids) {
+	const wanted = new Set(ids);
+	const found = {};
+	const walk = (node, inherited) => {
+		const status = node.devStatus?.type || inherited;
+		if (wanted.has(node.id))
+			found[node.id] = { doc: node, status: status || "NONE" };
+		for (const child of node.children || []) walk(child, status);
+	};
+	if (root) walk(root, null);
+	return found;
+}
+
+async function syncIssue(
+	item,
+	match,
+	lastModified,
+	renderRequested,
+	renderUrl,
+) {
 	const { issue } = item;
-	if (!doc) {
+	if (!match) {
 		console.warn(
 			`#${issue.number}: frame ${item.nodeId} not found (deleted, or the token's account can't see it).`,
 		);
 		return;
 	}
 
-	const status = doc.devStatus?.type || "NONE";
+	const { doc, status } = match;
 	await syncLabel(issue, status === "READY_FOR_DEV" || status === "COMPLETED");
 
 	let img = item.state.img || "";
@@ -281,10 +302,13 @@ async function syncIssue(item, doc, lastModified, renderRequested, renderUrl) {
 
 async function syncFile(fileKey, items) {
 	const ids = [...new Set(items.map((i) => i.nodeId))];
+	// With ?ids=, the file endpoint returns the path from the document root down
+	// to each node, so parent sections (and their devStatus) are included.
 	const data = await figma(
-		`/v1/files/${fileKey}/nodes?ids=${encodeURIComponent(ids.join(","))}&depth=1`,
+		`/v1/files/${fileKey}?ids=${encodeURIComponent(ids.join(","))}`,
 	);
 	const { lastModified } = data;
+	const matches = findNodesWithStatus(data.document, ids);
 
 	for (const item of items) {
 		item.comment = await findPreviewComment(item.issue.number);
@@ -313,7 +337,7 @@ async function syncFile(fileKey, items) {
 		try {
 			await syncIssue(
 				item,
-				data.nodes?.[item.nodeId]?.document,
+				matches[item.nodeId],
 				lastModified,
 				toRender.includes(item.nodeId),
 				imageUrls[item.nodeId],
