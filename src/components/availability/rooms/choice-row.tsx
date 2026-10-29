@@ -6,11 +6,8 @@ import { useRoomFlowColors } from "./use-room-flow-colors";
 
 const ChoiceGroupName = createContext("");
 
-/**
- * A radio group of `ChoiceRow`s. Each group gets its own input `name`: the
- * panel renders twice on phones (the hidden sidebar and the sheet), and
- * same-named radios outside a form are one group across the whole page.
- */
+export const useChoiceGroupName = () => useContext(ChoiceGroupName);
+
 export function ChoiceGroup({
 	label,
 	className,
@@ -71,7 +68,6 @@ export function ChoiceRow({
 	);
 }
 
-/** Small rounded pill, e.g. "4/4 free"; pink when `on`. */
 export function Pill({ on, children }: { on: boolean; children: ReactNode }) {
 	const colors = useRoomFlowColors();
 	return (

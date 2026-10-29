@@ -58,7 +58,6 @@ export function RoomsPanel({
 	timeZone: string;
 	onShowAttendees: () => void;
 }) {
-	const colors = useRoomFlowColors();
 	const { step, setStep, selectedTimeId, selectedRoomKey } = useRoomFlowStore(
 		useShallow((s) => ({
 			step: s.step,
@@ -143,10 +142,7 @@ export function RoomsPanel({
 				)}
 			</div>
 
-			<div
-				className="flex shrink-0 items-center gap-2 border-t px-4 py-3"
-				style={{ borderColor: colors.divider }}
-			>
+			<div className="flex shrink-0 items-center gap-2 px-4 py-3">
 				{step > 0 && (
 					<Button
 						variant="outlined"
@@ -158,16 +154,6 @@ export function RoomsPanel({
 					</Button>
 				)}
 				<div className="ml-auto min-w-0">
-					{step === 0 && (
-						<Button
-							variant="contained"
-							disabled={!canPickRoom}
-							onClick={() => setStep(1)}
-							sx={primarySx}
-						>
-							Next: pick a room
-						</Button>
-					)}
 					{step === 1 && (
 						<Button
 							variant="contained"

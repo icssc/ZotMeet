@@ -352,6 +352,16 @@ export function formatDayAndWindow(
 	return `${formatInTimeZone(window.start, timeZone, "EEE, MMM d")} · ${formatWindow(window, timeZone)}`;
 }
 
+export function formatShortDayAndWindow(
+	window: TimeWindow,
+	timeZone: string,
+): string {
+	const day = formatInTimeZone(window.start, timeZone, "EEE. M/d");
+	const start = formatInTimeZone(window.start, timeZone, "h:mmaaa");
+	const end = formatInTimeZone(window.end, timeZone, "h:mmaaa");
+	return `${day}, ${start}-${end}`;
+}
+
 /** "1:00 PM". */
 export function formatClock(ms: number, timeZone: string): string {
 	return formatInTimeZone(ms, timeZone, "h:mm a");
