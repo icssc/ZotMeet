@@ -1,15 +1,18 @@
 "use client";
 
+import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import DesktopWindowsOutlinedIcon from "@mui/icons-material/DesktopWindowsOutlined";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import PersonIcon from "@mui/icons-material/Person";
 import PlaceIcon from "@mui/icons-material/Place";
+import RemoveIcon from "@mui/icons-material/Remove";
 import {
 	Button,
 	Chip,
 	Collapse,
+	IconButton,
 	Menu,
 	MenuItem,
 	Typography,
@@ -39,12 +42,88 @@ import { StepCard } from "./step-card";
 import { useRoomFlowColors } from "./use-room-flow-colors";
 
 const INITIAL_ROWS = 4;
-const SEAT_OPTIONS = [2, 4, 6, 8] as const;
 const MINUTE_OPTIONS = [30, 60, 90, 120] as const;
 
 /** "30m", "1h", "1.5h", "2h": the Free for menu's lengths. */
 function formatFreeFor(minutes: number) {
 	return minutes < 60 ? `${minutes}m` : `${minutes / 60}h`;
+}
+
+/**
+ * "Seats" as a −/+ stepper in a chip-height pill. Unset, it shows the attendee
+ * count faded and filters nothing; the first press sets a minimum, × clears it.
+ */
+function SeatsStepper({
+	value,
+	attendees,
+	max,
+	onChange,
+}: {
+	value: number | null;
+	attendees: number;
+	/** The roomiest room; past it nothing would match. */
+	max: number;
+	onChange: (value: number | null) => void;
+}) {
+	const colors = useRoomFlowColors();
+	const isOn = value != null;
+	const shown = value ?? attendees;
+	// MUI sets IconButton's padding, so a class can't shrink it to fit the pill.
+	const buttonSx = { p: "2px", color: "inherit" } as const;
+
+	return (
+		<Typography
+			variant="body2"
+			component="span"
+			role="group"
+			aria-label="Minimum seats"
+			className={cn(
+				"inline-flex h-6 items-center rounded-2xl border px-px",
+				isOn && "border-primary bg-primary/15 dark:bg-primary/20",
+			)}
+			style={isOn ? undefined : { borderColor: colors.divider }}
+		>
+			<IconButton
+				size="small"
+				aria-label="Fewer seats"
+				disabled={shown <= 1}
+				onClick={() => onChange(Math.max(1, shown - 1))}
+				sx={buttonSx}
+			>
+				<RemoveIcon sx={{ fontSize: 16 }} />
+			</IconButton>
+			<span
+				className={cn(
+					"flex min-w-16 items-center justify-center gap-1 px-1 tabular-nums",
+					isOn && "font-semibold",
+				)}
+				style={isOn ? undefined : { color: colors.textSecondary }}
+				aria-live="polite"
+			>
+				<PersonIcon sx={{ fontSize: 16 }} />
+				{shown} {shown === 1 ? "seat" : "seats"}
+			</span>
+			<IconButton
+				size="small"
+				aria-label="More seats"
+				disabled={shown >= max}
+				onClick={() => onChange(Math.min(max, shown + 1))}
+				sx={buttonSx}
+			>
+				<AddIcon sx={{ fontSize: 16 }} />
+			</IconButton>
+			{isOn && (
+				<IconButton
+					size="small"
+					aria-label="Clear seats"
+					onClick={() => onChange(null)}
+					sx={buttonSx}
+				>
+					<CloseIcon sx={{ fontSize: 16 }} />
+				</IconButton>
+			)}
+		</Typography>
+	);
 }
 
 function FilterChip<T extends string | number>({
@@ -299,6 +378,15 @@ export function RoomStep({
 		[time.whole, time.partial],
 	);
 
+	const maxSeats = useMemo(
+		() =>
+			Math.max(
+				1,
+				...[...time.whole, ...time.partial].map((f) => f.room.capacity ?? 0),
+			),
+		[time.whole, time.partial],
+	);
+
 	const set = (patch: Partial<RoomFlowFilters>) => setFilters(patch);
 
 	return (
@@ -313,12 +401,10 @@ export function RoomStep({
 			</div>
 
 			<div className="flex flex-wrap gap-2">
-				<FilterChip
-					label="Seats"
+				<SeatsStepper
 					value={filters.minSeats}
-					options={SEAT_OPTIONS}
-					getOptionLabel={(n) => `${n}+ seats`}
-					activeLabel={(n) => `${n}+ seats`}
+					attendees={Math.max(1, groupSize)}
+					max={maxSeats}
 					onChange={(minSeats) => set({ minSeats })}
 				/>
 				<FilterChip
