@@ -74,7 +74,11 @@ export function MuiTopNav({ user, notifications }: MuiTopNavProps) {
 				}}
 			>
 				<Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start" }}>
-					<Link href="/">
+					<Link
+						href="/"
+						aria-label="ZotMeet home"
+						style={{ display: "inline-flex" }}
+					>
 						<Image
 							src="/zotmeet-logo.svg"
 							alt="ZotMeet logo"
