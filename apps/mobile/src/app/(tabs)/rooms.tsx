@@ -1,19 +1,18 @@
-import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import Legend from "@/components/studyrooms/legend";
+import { Card } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
 
-/**
- * Route: `/rooms`. Placeholder for the web app's `/studyrooms`. Shown in the
- * tab bar only while signed out, where it takes Availability's slot.
- */
+const availabilityColor = "#86efac";
+const notAvailableColor = "#fca5a5";
+
 export default function RoomsScreen() {
 	return (
-		<Screen title="Rooms" subtitle="Route: /rooms">
+		<Screen title="Rooms">
 			<Card>
-				<CardTitle>Nothing here yet</CardTitle>
-				<CardDescription>
-					Study room search is future work; this tab mirrors the web's Rooms
-					entry for signed-out visitors.
-				</CardDescription>
+				<Legend
+					availabilityColor={availabilityColor}
+					notAvailableColor={notAvailableColor}
+				/>
 			</Card>
 		</Screen>
 	);
