@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { Card, CardDescription } from "@/components/ui/card";
+import { Card, CardDescription, CardTitle } from "@/components/ui/card";
 import { Typography } from "@/components/ui/typography";
 import { darken } from "@/lib/color";
 
@@ -14,7 +14,7 @@ export default function RoomsHeatmapLegend({
 }: RoomsHeatmapLegendProps) {
 	return (
 		<Card className="items-center gap-2">
-			<CardDescription>Rooms Availability Legend</CardDescription>
+			<CardTitle>Rooms Availability Legend</CardTitle>
 			<View className="flex-row items-center gap-4">
 				<View className="flex-row items-center gap-2">
 					<View
