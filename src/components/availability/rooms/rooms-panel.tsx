@@ -1,16 +1,21 @@
 "use client";
 
 import { Button, Typography } from "@mui/material";
-import { formatClock, formatDayAndWindow } from "@zotmeet/shared";
+import {
+	formatClock,
+	formatDayAndWindow,
+	formatShortDayAndWindow,
+} from "@zotmeet/shared";
 import { type ReactNode, useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
-import type { StudyRoomFlow } from "@/hooks/use-study-room-flow";
+import type { BestTimeRooms, StudyRoomFlow } from "@/hooks/use-study-room-flow";
 import { useRoomFlowStore } from "@/store/useRoomFlowStore";
 import { BookStep, useBookingSlot } from "./book-step";
 import { Pill } from "./choice-row";
 import { RankBadge } from "./rank-badge";
 import { RoomStep } from "./room-step";
 import { RoomsStepper } from "./rooms-stepper";
+import { AvailableCount, StepCard } from "./step-card";
 import { TimeStep } from "./time-step";
 import { useRoomFlowColors } from "./use-room-flow-colors";
 
@@ -42,6 +47,28 @@ function SummaryRow({
 				Change
 			</Button>
 		</div>
+	);
+}
+
+/** The chosen time on the room step; mirrors the selected `TimeCard`. */
+function SelectedTimeCard({
+	time,
+	timeZone,
+	memberCount,
+	onBack,
+}: {
+	time: BestTimeRooms;
+	timeZone: string;
+	memberCount: number;
+	onBack: () => void;
+}) {
+	return (
+		<StepCard direction="back" title="Select Time" onAction={onBack}>
+			<Typography variant="body1" component="span" className="truncate">
+				{formatShortDayAndWindow(time, timeZone)}
+			</Typography>
+			<AvailableCount free={time.freeMemberIds.length} total={memberCount} />
+		</StepCard>
 	);
 }
 
@@ -122,7 +149,12 @@ export function RoomsPanel({
 				)}
 				{step === 1 && time && (
 					<>
-						{timeSummary}
+						<SelectedTimeCard
+							time={time}
+							timeZone={timeZone}
+							memberCount={flow.memberCount}
+							onBack={() => setStep(0)}
+						/>
 						<RoomStep time={time} timeZone={timeZone} />
 					</>
 				)}

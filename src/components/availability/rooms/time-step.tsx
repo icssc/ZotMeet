@@ -2,9 +2,7 @@
 
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ApartmentIcon from "@mui/icons-material/Apartment";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CancelIcon from "@mui/icons-material/Cancel";
-import PeopleIcon from "@mui/icons-material/People";
 import { Alert, Button, Chip, Skeleton, Typography } from "@mui/material";
 import { formatMinutes, formatShortDayAndWindow } from "@zotmeet/shared";
 import { useShallow } from "zustand/shallow";
@@ -12,6 +10,7 @@ import type { BestTimeRooms, StudyRoomFlow } from "@/hooks/use-study-room-flow";
 import { cn } from "@/lib/utils";
 import { useRoomFlowStore } from "@/store/useRoomFlowStore";
 import { ChoiceGroup, useChoiceGroupName } from "./choice-row";
+import { AvailableCount, StepCard } from "./step-card";
 import { useRoomFlowColors } from "./use-room-flow-colors";
 
 export const UCI_LIBRARIES_URL = "https://spaces.lib.uci.edu/";
@@ -75,90 +74,60 @@ function TimeCard({
 	onSelect: () => void;
 	onNext: () => void;
 }) {
-	const colors = useRoomFlowColors();
 	const name = useChoiceGroupName();
 
 	return (
-		<div className="relative flex">
-			<button
-				type="button"
-				onClick={onNext}
-				disabled={time.status !== "ready"}
-				className={cn(
-					"absolute inset-y-0 right-0 flex w-32 flex-col items-start justify-center rounded-[10px] bg-primary pr-3 pl-10 text-left text-primary-foreground transition-[visibility] duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60",
-					!checked && "invisible",
-				)}
+		<StepCard
+			direction="next"
+			title="Choose the Room"
+			onAction={onNext}
+			actionDisabled={time.status !== "ready"}
+			showAction={checked}
+			as="label"
+			className="cursor-pointer has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2"
+		>
+			<input
+				type="radio"
+				className="sr-only"
+				name={name}
+				value={time.id}
+				checked={checked}
+				onChange={onSelect}
+			/>
+			<Typography
+				variant="body1"
+				component="span"
+				className={cn(checked && "truncate")}
 			>
-				<span className="font-semibold text-xs">Next:</span>
-				<span className="font-semibold text-sm leading-tight">
-					Choose the Room
-				</span>
-				<span className="mt-1 flex justify-center self-stretch">
-					<ArrowForwardIcon
-						fontSize="small"
-						sx={{ color: "primary.contrastText" }}
-					/>
-				</span>
-			</button>
-			<label
-				className={cn(
-					"relative z-10 flex min-w-0 flex-1 cursor-pointer flex-col gap-1.5 rounded-[10px] border bg-paper px-4 py-3 transition-[margin] duration-200 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2",
-					checked && "mr-24",
-				)}
-				style={{ borderColor: colors.divider }}
-			>
-				<input
-					type="radio"
-					className="sr-only"
-					name={name}
-					value={time.id}
-					checked={checked}
-					onChange={onSelect}
-				/>
+				{formatShortDayAndWindow(time, timeZone)}
+			</Typography>
+			{time.missingNames.length > 0 && (
 				<Typography
-					variant="body1"
-					component="span"
-					className={cn(checked && "truncate")}
+					variant="caption"
+					color="textSecondary"
+					className="flex min-w-0 items-center gap-1.5"
 				>
-					{formatShortDayAndWindow(time, timeZone)}
+					<CancelIcon fontSize="small" className="shrink-0" />
+					<span className={cn(checked && "truncate")}>
+						{time.missingNames.join(", ")}
+					</span>
 				</Typography>
-				{time.missingNames.length > 0 && (
+			)}
+			<div className="flex items-center gap-3">
+				<AvailableCount free={time.freeMemberIds.length} total={memberCount} />
+				{!checked && (
 					<Typography
 						variant="caption"
 						color="textSecondary"
-						className="flex min-w-0 items-center gap-1.5"
+						className="flex shrink-0 items-center gap-1.5"
 					>
-						<CancelIcon fontSize="small" className="shrink-0" />
-						<span className={cn(checked && "truncate")}>
-							{time.missingNames.join(", ")}
-						</span>
+						<AccessTimeIcon fontSize="small" />
+						{formatMinutes(time.minutes)}
 					</Typography>
 				)}
-				<div className="flex items-center gap-3">
-					<Typography
-						variant="caption"
-						color="textSecondary"
-						className="flex min-w-0 items-center gap-1.5"
-					>
-						<PeopleIcon fontSize="small" className="shrink-0" />
-						<span className="truncate">
-							{time.freeMemberIds.length}/{memberCount} Available
-						</span>
-					</Typography>
-					{!checked && (
-						<Typography
-							variant="caption"
-							color="textSecondary"
-							className="flex shrink-0 items-center gap-1.5"
-						>
-							<AccessTimeIcon fontSize="small" />
-							{formatMinutes(time.minutes)}
-						</Typography>
-					)}
-					<RoomCount time={time} includePartial={includePartial} />
-				</div>
-			</label>
-		</div>
+				<RoomCount time={time} includePartial={includePartial} />
+			</div>
+		</StepCard>
 	);
 }
 
