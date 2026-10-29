@@ -95,7 +95,7 @@ That starts the Expo bundler. From the terminal, press `i` (iOS Simulator), `a` 
 -->
 <a href="https://expo.dev/accounts/ethanchaos-team/projects/zotmeet/updates">
   <img
-    src="https://qr.expo.dev/eas-update?appScheme=exp&projectId=7280fa26-1305-4465-b2a7-8b6b8665b3e6&channel=main&runtimeVersion=exposdk%3A57.0.0"
+    src="https://qr.expo.dev/eas-update?appScheme=exp&projectId=7280fa26-1305-4465-b2a7-8b6b8665b3e6&channel=main&runtimeVersion=exposdk%3A58.0.0"
     alt="QR code: open the main branch of the ZotMeet mobile app in Expo Go"
     width="200"
   />
