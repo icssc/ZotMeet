@@ -1,5 +1,6 @@
 "use client";
 
+import CheckIcon from "@mui/icons-material/Check";
 import { Fragment } from "react";
 import { cn } from "@/lib/utils";
 import type { RoomFlowStep } from "@/store/useRoomFlowStore";
@@ -25,23 +26,19 @@ export function RoomsStepper({
 					<span
 						className={cn(
 							"inline-flex size-6 shrink-0 items-center justify-center rounded-full border font-semibold text-xs",
-							state === "active" &&
+							state !== "upcoming" &&
 								"border-primary bg-primary text-primary-foreground",
-							state === "done" &&
-								"border-transparent bg-primary/15 dark:bg-primary/20",
 						)}
 						style={
-							state === "active"
-								? undefined
-								: state === "done"
-									? { color: colors.pinkText }
-									: {
-											borderColor: colors.divider,
-											color: colors.textSecondary,
-										}
+							state === "upcoming"
+								? {
+										borderColor: colors.divider,
+										color: colors.textSecondary,
+									}
+								: undefined
 						}
 					>
-						{index + 1}
+						{state === "done" ? <CheckIcon fontSize="inherit" /> : index + 1}
 					</span>
 				);
 				const text = (
