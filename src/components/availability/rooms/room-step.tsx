@@ -1,8 +1,11 @@
 "use client";
 
 import CloseIcon from "@mui/icons-material/Close";
+import DesktopWindowsOutlinedIcon from "@mui/icons-material/DesktopWindowsOutlined";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import PersonIcon from "@mui/icons-material/Person";
+import PlaceIcon from "@mui/icons-material/Place";
 import {
 	Button,
 	Chip,
@@ -18,17 +21,21 @@ import {
 	formatMinutes,
 	formatWindow,
 	groupSimilarRooms,
+	type Room,
 	type RoomFit,
+	type RoomFitGroup,
 	sortRoomFits,
 } from "@zotmeet/shared";
-import { type MouseEvent, type ReactNode, useMemo, useState } from "react";
+import { type MouseEvent, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import type { BestTimeRooms } from "@/hooks/use-study-room-flow";
+import { cn } from "@/lib/utils";
 import {
 	type RoomFlowFilters,
 	useRoomFlowStore,
 } from "@/store/useRoomFlowStore";
-import { ChoiceGroup, ChoiceRow } from "./choice-row";
+import { ChoiceGroup, useChoiceGroupName } from "./choice-row";
+import { StepCard } from "./step-card";
 import { useRoomFlowColors } from "./use-room-flow-colors";
 
 const INITIAL_ROWS = 4;
@@ -106,62 +113,112 @@ function FilterChip<T extends string | number>({
 	);
 }
 
-/** One room as a radio row: "Sci Lib 471", "Science Library · 4 seats · Tech". */
-function RoomRow({
-	fit,
+/** "2111" from "Gateway 2111": the building is already the card's title. */
+function roomNumber(room: Room) {
+	const prefix = `${room.building} `;
+	return room.label.startsWith(prefix)
+		? room.label.slice(prefix.length)
+		: room.label;
+}
+
+/**
+ * Near-identical rooms as one card: building, seats and tech, then a chip per
+ * room. The checked card's "Next:" panel moves on to booking.
+ */
+function RoomGroupCard({
+	group,
 	timeZone,
-	trailing,
-	className,
 }: {
-	fit: RoomFit;
+	group: RoomFitGroup;
 	timeZone: string;
-	trailing?: ReactNode;
-	className?: string;
 }) {
-	const { selectedRoomKey, selectRoom } = useRoomFlowStore(
+	const name = useChoiceGroupName();
+	const { selectedRoomKey, selectRoom, setStep } = useRoomFlowStore(
 		useShallow((s) => ({
 			selectedRoomKey: s.selectedRoomKey,
 			selectRoom: s.selectRoom,
+			setStep: s.setStep,
 		})),
 	);
-	const { room } = fit;
-	const details = [
-		room.location,
-		room.capacity != null
-			? `${room.capacity} ${room.capacity === 1 ? "seat" : "seats"}`
-			: null,
-		room.techEnhanced ? "Tech" : null,
-	]
-		.filter(Boolean)
-		.join(" · ");
+	const fits = [group.lead, ...group.similar];
+	const checked = fits.some((f) => f.room.key === selectedRoomKey);
+	const { room, kind, window, minutes } = group.lead;
 
 	return (
-		<ChoiceRow
-			value={room.key}
-			checked={selectedRoomKey === room.key}
-			onSelect={() => selectRoom(room.key)}
-			className={className}
+		<StepCard
+			direction="next"
+			title="Book the Room"
+			onAction={() => setStep(2)}
+			showAction={checked}
+			as="label"
+			className="cursor-pointer has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2"
 		>
-			<div className="flex min-w-0 flex-1 flex-col">
-				<Typography variant="body2" sx={{ fontWeight: 600 }}>
-					{room.label}
-				</Typography>
-				<Typography variant="caption" color="textSecondary">
-					{details}
-				</Typography>
-				{fit.kind === "partial" && (
-					<Typography variant="caption" color="textSecondary">
-						Free {formatWindow(fit.window, timeZone)} ·{" "}
-						{formatMinutes(fit.minutes)}
-					</Typography>
+			<input
+				type="radio"
+				className="sr-only"
+				name={name}
+				value={group.key}
+				checked={checked}
+				onChange={() => selectRoom(group.lead.room.key)}
+			/>
+			<Typography
+				variant="body1"
+				component="span"
+				className={cn(checked && "truncate")}
+			>
+				{room.location}
+			</Typography>
+			<Typography
+				variant="body2"
+				color="textSecondary"
+				component="span"
+				className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
+			>
+				{room.capacity != null && (
+					<span className="flex items-center gap-1.5">
+						<PersonIcon fontSize="small" />
+						{room.capacity} {room.capacity === 1 ? "seat" : "seats"}
+					</span>
 				)}
-			</div>
-			{trailing}
-		</ChoiceRow>
+				{room.techEnhanced && (
+					<span className="flex items-center gap-1.5">
+						<DesktopWindowsOutlinedIcon fontSize="small" />
+						Tech Enhanced
+					</span>
+				)}
+			</Typography>
+			{kind === "partial" && (
+				<Typography variant="caption" color="textSecondary">
+					Free {formatWindow(window, timeZone)} · {formatMinutes(minutes)}
+				</Typography>
+			)}
+			<span className="flex flex-wrap gap-2 pt-1">
+				{fits.map((fit) => {
+					const isActive = fit.room.key === selectedRoomKey;
+					return (
+						<Chip
+							key={fit.room.key}
+							icon={<PlaceIcon />}
+							label={roomNumber(fit.room)}
+							size="small"
+							color={isActive ? "primary" : "default"}
+							variant={isActive ? "filled" : "outlined"}
+							aria-label={fit.room.label}
+							aria-pressed={isActive}
+							onClick={(e) => {
+								// Inside the card's label: don't let it re-pick the lead.
+								e.preventDefault();
+								selectRoom(fit.room.key);
+							}}
+						/>
+					);
+				})}
+			</span>
+		</StepCard>
 	);
 }
 
-/** A list of rooms with near-identical ones folded under "+N similar". */
+/** Room cards, near-identical rooms sharing one card. */
 function GroupedRoomList({
 	fits,
 	timeZone,
@@ -173,58 +230,15 @@ function GroupedRoomList({
 }) {
 	const colors = useRoomFlowColors();
 	const [showAll, setShowAll] = useState(false);
-	const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
 	const groups = useMemo(() => groupSimilarRooms(fits), [fits]);
 	const visible = showAll ? groups : groups.slice(0, INITIAL_ROWS);
-
-	const toggle = (key: string) =>
-		setExpanded((prev) => {
-			const next = new Set(prev);
-			if (next.has(key)) next.delete(key);
-			else next.add(key);
-			return next;
-		});
 
 	return (
 		<div className="flex flex-col gap-2">
 			<ChoiceGroup label={label} className="flex flex-col gap-2">
-				{visible.map((group) => {
-					const isOpen = expanded.has(group.key);
-					return (
-						<div key={group.key} className="flex flex-col gap-2">
-							<RoomRow
-								fit={group.lead}
-								timeZone={timeZone}
-								trailing={
-									group.similar.length > 0 && (
-										<Chip
-											size="small"
-											variant="outlined"
-											label={`+${group.similar.length} similar`}
-											icon={isOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-											aria-expanded={isOpen}
-											onClick={(e) => {
-												// Inside the row's label: don't select the room too.
-												e.preventDefault();
-												e.stopPropagation();
-												toggle(group.key);
-											}}
-										/>
-									)
-								}
-							/>
-							{isOpen &&
-								group.similar.map((fit) => (
-									<RoomRow
-										key={fit.room.key}
-										fit={fit}
-										timeZone={timeZone}
-										className="ml-4"
-									/>
-								))}
-						</div>
-					);
-				})}
+				{visible.map((group) => (
+					<RoomGroupCard key={group.key} group={group} timeZone={timeZone} />
+				))}
 			</ChoiceGroup>
 			{groups.length > INITIAL_ROWS && (
 				<Button
