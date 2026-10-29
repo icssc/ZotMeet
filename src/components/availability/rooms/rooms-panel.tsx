@@ -1,56 +1,19 @@
 "use client";
 
-import { Button, Typography } from "@mui/material";
-import {
-	formatClock,
-	formatDayAndWindow,
-	formatShortDayAndWindow,
-} from "@zotmeet/shared";
-import { type ReactNode, useEffect, useMemo } from "react";
+import PlaceIcon from "@mui/icons-material/Place";
+import { Chip, Typography } from "@mui/material";
+import { formatShortDayAndWindow, type RoomFit } from "@zotmeet/shared";
+import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import type { BestTimeRooms, StudyRoomFlow } from "@/hooks/use-study-room-flow";
 import { useRoomFlowStore } from "@/store/useRoomFlowStore";
-import { BookStep, useBookingSlot } from "./book-step";
-import { Pill } from "./choice-row";
-import { RankBadge } from "./rank-badge";
-import { RoomStep } from "./room-step";
+import { BookStep } from "./book-step";
+import { RoomDetails, RoomStep, roomNumber } from "./room-step";
 import { RoomsStepper } from "./rooms-stepper";
 import { AvailableCount, StepCard } from "./step-card";
 import { TimeStep } from "./time-step";
-import { useRoomFlowColors } from "./use-room-flow-colors";
 
-function SummaryRow({
-	children,
-	onChange,
-	label,
-}: {
-	children: ReactNode;
-	onChange: () => void;
-	label: string;
-}) {
-	const colors = useRoomFlowColors();
-	return (
-		<div
-			className="flex min-h-11 items-center gap-2 rounded-[10px] border px-3 py-1.5"
-			style={{ borderColor: colors.divider }}
-		>
-			<div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
-				{children}
-			</div>
-			<Button
-				variant="text"
-				size="small"
-				onClick={onChange}
-				aria-label={`Change ${label}`}
-				sx={{ color: colors.pinkText, minWidth: 0 }}
-			>
-				Change
-			</Button>
-		</div>
-	);
-}
-
-/** The chosen time on the room step; mirrors the selected `TimeCard`. */
+/** The chosen time on the room and book steps; mirrors the selected `TimeCard`. */
 function SelectedTimeCard({
 	time,
 	timeZone,
@@ -68,6 +31,33 @@ function SelectedTimeCard({
 				{formatShortDayAndWindow(time, timeZone)}
 			</Typography>
 			<AvailableCount free={time.freeMemberIds.length} total={memberCount} />
+		</StepCard>
+	);
+}
+
+/** The chosen room on the book step; mirrors its `RoomGroupCard`. */
+function SelectedRoomCard({
+	fit,
+	onBack,
+}: {
+	fit: RoomFit;
+	onBack: () => void;
+}) {
+	const { room } = fit;
+	return (
+		<StepCard direction="back" title="Select Room" onAction={onBack}>
+			<Typography variant="body1" component="span" className="truncate">
+				{room.location}
+			</Typography>
+			<RoomDetails room={room} />
+			<span className="flex pt-1">
+				<Chip
+					icon={<PlaceIcon />}
+					label={roomNumber(room)}
+					variant="outlined"
+					aria-label={room.label}
+				/>
+			</span>
 		</StepCard>
 	);
 }
@@ -107,7 +97,6 @@ export function RoomsPanel({
 				: null,
 		[time, selectedRoomKey],
 	);
-	const { slot } = useBookingSlot(fit);
 	// Until the time's rooms load, the room step can't tell "none free" from
 	// "not fetched", and a failed lookup's Retry lives on the time step.
 	const canPickRoom = time?.status === "ready";
@@ -118,20 +107,6 @@ export function RoomsPanel({
 		if (step > 0 && !canPickRoom) setStep(0);
 		else if (step > 1 && !fit) setStep(1);
 	}, [step, canPickRoom, fit, setStep]);
-
-	const primarySx = { color: "secondary.main", borderRadius: "10px" } as const;
-
-	const timeSummary = time && (
-		<SummaryRow label="time" onChange={() => setStep(0)}>
-			<RankBadge rank={time.rank} />
-			<Typography variant="body2" sx={{ fontWeight: 600 }}>
-				{formatDayAndWindow(time, timeZone)}
-			</Typography>
-			<Pill on={time.freeMemberIds.length === flow.memberCount}>
-				{time.freeMemberIds.length}/{flow.memberCount} free
-			</Pill>
-		</SummaryRow>
-	);
 
 	return (
 		<div className="flex min-h-0 flex-1 flex-col">
@@ -160,15 +135,13 @@ export function RoomsPanel({
 				)}
 				{step === 2 && time && fit && (
 					<>
-						{timeSummary}
-						<SummaryRow label="room" onChange={() => setStep(1)}>
-							<Typography variant="body2" sx={{ fontWeight: 600 }}>
-								{fit.room.label}
-							</Typography>
-							<Typography variant="caption" color="textSecondary">
-								{fit.room.location}
-							</Typography>
-						</SummaryRow>
+						<SelectedTimeCard
+							time={time}
+							timeZone={timeZone}
+							memberCount={flow.memberCount}
+							onBack={() => setStep(0)}
+						/>
+						<SelectedRoomCard fit={fit} onBack={() => setStep(1)} />
 						<BookStep fit={fit} timeZone={timeZone} />
 					</>
 				)}

@@ -1,40 +1,18 @@
 "use client";
 
-import { Typography } from "@mui/material";
+import { Chip, Typography } from "@mui/material";
 import {
-	type BookableSlot,
-	bookableSlots,
+	bookingUrlFor,
 	formatClock,
 	type RoomFit,
+	slotsNearStart,
 } from "@zotmeet/shared";
 import { useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { useShallow } from "zustand/shallow";
 import { useRoomFlowStore } from "@/store/useRoomFlowStore";
-import { ChoiceGroup, ChoiceRow } from "./choice-row";
+import { useRoomFlowColors } from "./use-room-flow-colors";
 
-/** The slots a booking can start on, and the one picked (the first by default). */
-export function useBookingSlot(fit: RoomFit | null): {
-	slots: BookableSlot[];
-	slot: BookableSlot | null;
-	/** When the room stops being free after the picked slot. */
-	freeUntil: number | null;
-} {
-	const selectedSlotStart = useRoomFlowStore((s) => s.selectedSlotStart);
-	return useMemo(() => {
-		if (!fit) return { slots: [], slot: null, freeUntil: null };
-		const slots = bookableSlots(fit.room, fit.window);
-		const slot =
-			slots.find((s) => s.start === selectedSlotStart) ?? slots[0] ?? null;
-		const freeUntil = slot
-			? (fit.room.freeWindows.find(
-					(w) => w.start <= slot.start && slot.start < w.end,
-				)?.end ?? null)
-			: null;
-		return { slots, slot, freeUntil };
-	}, [fit, selectedSlotStart]);
-}
-
-/** Step 3: pick a start slot; the footer opens the library's page for it. */
+/** Step 3: start times near the best time; each opens the library with it selected. */
 export function BookStep({
 	fit,
 	timeZone,
@@ -42,54 +20,70 @@ export function BookStep({
 	fit: RoomFit;
 	timeZone: string;
 }) {
-	const setSelectedSlotStart = useRoomFlowStore((s) => s.setSelectedSlotStart);
-	const { slots, slot, freeUntil } = useBookingSlot(fit);
+	const colors = useRoomFlowColors();
+	const { selectedSlotStart, setSelectedSlotStart } = useRoomFlowStore(
+		useShallow((s) => ({
+			selectedSlotStart: s.selectedSlotStart,
+			setSelectedSlotStart: s.setSelectedSlotStart,
+		})),
+	);
+	const { window: stretch } = fit;
+	const slots = useMemo(
+		() => slotsNearStart(fit.room, stretch.start),
+		[fit.room, stretch.start],
+	);
+	// The last one opened, else the first at or after the best time's start.
+	const highlighted =
+		selectedSlotStart ??
+		(slots.find((s) => s.start >= stretch.start) ?? slots[0])?.start;
 
 	return (
-		<div className="flex flex-col gap-3">
-			<Typography variant="h6" component="h3">
-				Book it on UCI Libraries
-			</Typography>
+		<div className="flex flex-col gap-3 pt-4">
+			<div className="flex flex-col">
+				<Typography variant="h6" component="h3">
+					When will you book?
+				</Typography>
+				<Typography variant="caption" color="textSecondary">
+					The library site opens with your start slot selected. The max hours
+					you can book will vary per room.
+				</Typography>
+			</div>
 
-			<div className="flex flex-col gap-2">
-				<Typography variant="subtitle2" component="p">
-					Start time
+			<div
+				className="flex flex-col gap-3 rounded-[10px] border p-4"
+				style={{ borderColor: colors.divider }}
+			>
+				<Typography variant="subtitle1" component="p">
+					Start Time
 				</Typography>
 				{slots.length === 0 ? (
 					<Typography variant="body2" color="textSecondary">
-						The library feed has no bookable slots left for this room.
+						No bookable start times near this time for this room.
 					</Typography>
 				) : (
-					<ChoiceGroup label="Start time" className="grid grid-cols-3 gap-2">
+					<div className="flex flex-wrap gap-2">
 						{slots.map((s) => {
-							const isOn = s.start === slot?.start;
+							const isOn = s.start === highlighted;
 							return (
-								<ChoiceRow
+								<Chip
 									key={s.start}
-									value={String(s.start)}
-									checked={isOn}
-									onSelect={() => setSelectedSlotStart(s.start)}
-									className="min-h-10 justify-center rounded-2xl px-2 py-1"
-								>
-									<span
-										className={cn(
-											"text-sm",
-											isOn ? "font-semibold" : "font-medium",
-										)}
-									>
-										{formatClock(s.start, timeZone)}
-									</span>
-								</ChoiceRow>
+									component="a"
+									href={bookingUrlFor(
+										s,
+										Math.max(0, (stretch.end - s.start) / 60_000),
+									)}
+									target="_blank"
+									rel="noopener noreferrer"
+									clickable
+									label={formatClock(s.start, timeZone)}
+									aria-label={`Book from ${formatClock(s.start, timeZone)} on UCI Libraries (opens in a new tab)`}
+									color={isOn ? "primary" : "default"}
+									onClick={() => setSelectedSlotStart(s.start)}
+								/>
 							);
 						})}
-					</ChoiceGroup>
+					</div>
 				)}
-				<Typography variant="caption" color="textSecondary">
-					The library site opens with your start slot selected. Choose the end
-					time there
-					{freeUntil ? ` (free until ${formatClock(freeUntil, timeZone)})` : ""}
-					.
-				</Typography>
 			</div>
 		</div>
 	);

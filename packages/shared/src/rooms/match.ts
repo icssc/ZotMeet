@@ -76,6 +76,11 @@ export const MIN_PARTIAL_MINUTES = 30;
 export const CAMPUS_TIME_ZONE = "America/Los_Angeles";
 
 const QUERY_ROUNDING_MS = 30 * 60_000;
+export const EARLY_BOOKING_MINUTES = 60;
+
+function campusDate(ms: number): string {
+	return formatInTimeZone(ms, CAMPUS_TIME_ZONE, "yyyy-MM-dd");
+}
 
 export function normalizeRooms(raw: readonly StudyRoomLike[]): Room[] {
 	const byKey = new Map<
@@ -294,6 +299,23 @@ export function bookableSlots(room: Room, window: TimeWindow): BookableSlot[] {
 	return room.slots.filter((s) => s.start < window.end && s.end > window.start);
 }
 
+/**
+ * Slots starting from `before` minutes ahead of `start` to `after` minutes past
+ * it, in the room's own increments: the start times worth offering for a booking.
+ */
+export function slotsNearStart(
+	room: Room,
+	start: number,
+	{
+		before = EARLY_BOOKING_MINUTES,
+		after = 60,
+	}: { before?: number; after?: number } = {},
+): BookableSlot[] {
+	const from = start - before * 60_000;
+	const to = start + after * 60_000;
+	return room.slots.filter((s) => s.start >= from && s.start <= to);
+}
+
 export function countRoomsFreeForAnyBestTime(
 	roomsByStretch: ReadonlyMap<string, readonly Room[]>,
 	stretches: readonly (TimeWindow & { id: string })[],
@@ -317,16 +339,20 @@ function formatCampusClock(ms: number): string {
 /**
  * The API query for a best time, in campus wall clock and widened to the
  * half hour: a 1:15 start still needs the 1:00–1:30 slot to count as free.
+ * It also reaches `EARLY_BOOKING_MINUTES` back, within the same campus day,
+ * so the book step can offer early starts.
  */
 export function studyRoomQueryFor(stretch: TimeWindow): {
 	date: string;
 	timeRange: string;
 } {
-	const start =
+	const rounded =
 		Math.floor(stretch.start / QUERY_ROUNDING_MS) * QUERY_ROUNDING_MS;
+	const early = rounded - EARLY_BOOKING_MINUTES * 60_000;
+	const start = campusDate(early) === campusDate(rounded) ? early : rounded;
 	const end = Math.ceil(stretch.end / QUERY_ROUNDING_MS) * QUERY_ROUNDING_MS;
 	return {
-		date: formatInTimeZone(start, CAMPUS_TIME_ZONE, "yyyy-MM-dd"),
+		date: campusDate(start),
 		timeRange: `${formatCampusClock(start)}-${formatCampusClock(end)}`,
 	};
 }

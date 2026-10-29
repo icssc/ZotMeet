@@ -193,11 +193,36 @@ function FilterChip<T extends string | number>({
 }
 
 /** "2111" from "Gateway 2111": the building is already the card's title. */
-function roomNumber(room: Room) {
+export function roomNumber(room: Room) {
 	const prefix = `${room.building} `;
 	return room.label.startsWith(prefix)
 		? room.label.slice(prefix.length)
 		: room.label;
+}
+
+/** "👤 3 seats  🖥 Tech Enhanced", under a room card's building name. */
+export function RoomDetails({ room }: { room: Room }) {
+	return (
+		<Typography
+			variant="body2"
+			color="textSecondary"
+			component="span"
+			className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
+		>
+			{room.capacity != null && (
+				<span className="flex items-center gap-1.5">
+					<PersonIcon fontSize="small" />
+					{room.capacity} {room.capacity === 1 ? "seat" : "seats"}
+				</span>
+			)}
+			{room.techEnhanced && (
+				<span className="flex items-center gap-1.5">
+					<DesktopWindowsOutlinedIcon fontSize="small" />
+					Tech Enhanced
+				</span>
+			)}
+		</Typography>
+	);
 }
 
 /**
@@ -247,25 +272,7 @@ function RoomGroupCard({
 			>
 				{room.location}
 			</Typography>
-			<Typography
-				variant="body2"
-				color="textSecondary"
-				component="span"
-				className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
-			>
-				{room.capacity != null && (
-					<span className="flex items-center gap-1.5">
-						<PersonIcon fontSize="small" />
-						{room.capacity} {room.capacity === 1 ? "seat" : "seats"}
-					</span>
-				)}
-				{room.techEnhanced && (
-					<span className="flex items-center gap-1.5">
-						<DesktopWindowsOutlinedIcon fontSize="small" />
-						Tech Enhanced
-					</span>
-				)}
-			</Typography>
+			<RoomDetails room={room} />
 			{kind === "partial" && (
 				<Typography variant="caption" color="textSecondary">
 					Free {formatWindow(window, timeZone)} · {formatMinutes(minutes)}
