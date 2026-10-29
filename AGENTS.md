@@ -25,8 +25,8 @@ Also read the guide for the area you're working in:
 
 | | Web (`src/`) | Mobile (`apps/mobile/`) |
 |---|---|---|
-| Framework | Next.js 16 (App Router, server components) | Expo SDK 57, React Native 0.86 |
-| React | 19.2 | 19.2 |
+| Framework | Next.js 16 (App Router, server components) | Expo SDK 58, React Native 0.88 |
+| React | 19.2 | 19.3 |
 | Components | **MUI 7** | **Custom `components/ui/*`**, a copy of MUI's API (see [design system](docs/design-system.md)) |
 | Styling | Tailwind 3.4 + MUI theme | NativeWind 4 (Tailwind 3.4 syntax) |
 | Icons | `@mui/icons-material` | Material Icons via `<Icon name="…" />` |
