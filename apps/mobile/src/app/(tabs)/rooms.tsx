@@ -1,4 +1,5 @@
-import Legend from "@/components/studyrooms/legend";
+import { ScrollView, View } from "react-native";
+import SearchBar from "@/components/studyrooms/searchbar";
 import { Card } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
 
@@ -8,12 +9,8 @@ const notAvailableColor = "#fca5a5";
 export default function RoomsScreen() {
 	return (
 		<Screen title="Rooms">
-			<Card>
-				<Legend
-					availabilityColor={availabilityColor}
-					notAvailableColor={notAvailableColor}
-				/>
-			</Card>
+			<ScrollView className="flex-1">{/* heatmap, legend, etc. */}</ScrollView>
+			<SearchBar />
 		</Screen>
 	);
 }
