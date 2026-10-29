@@ -173,49 +173,6 @@ export function RoomsPanel({
 					</>
 				)}
 			</div>
-
-			<div className="flex shrink-0 items-center gap-2 px-4 py-3">
-				{step > 0 && (
-					<Button
-						variant="outlined"
-						color="inherit"
-						onClick={() => setStep((step - 1) as 0 | 1)}
-						sx={{ borderRadius: "10px" }}
-					>
-						Back
-					</Button>
-				)}
-				<div className="ml-auto min-w-0">
-					{step === 1 && (
-						<Button
-							variant="contained"
-							disabled={!fit}
-							onClick={() => setStep(2)}
-							sx={primarySx}
-						>
-							<span className="truncate">
-								{fit ? `Next: book ${fit.room.label}` : "Next: book"}
-							</span>
-						</Button>
-					)}
-					{step === 2 && (
-						<Button
-							variant="contained"
-							disabled={!slot}
-							href={slot?.url ?? ""}
-							target="_blank"
-							rel="noopener noreferrer"
-							sx={primarySx}
-						>
-							<span className="truncate">
-								{slot
-									? `Book ${formatClock(slot.start, timeZone)} on UCI Libraries ↗`
-									: "Book on UCI Libraries ↗"}
-							</span>
-						</Button>
-					)}
-				</div>
-			</div>
 		</div>
 	);
 }
