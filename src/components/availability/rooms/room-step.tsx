@@ -275,17 +275,6 @@ export function RoomStep({
 		[includePartial, time.partial, filters, groupSize],
 	);
 
-	// Partial mode lists both kinds together, so count each.
-	const wholeCount = sortedPrimary.filter((f) => f.kind === "whole").length;
-	const partialCount = sortedPrimary.length - wholeCount;
-	const countCaption = [
-		(wholeCount > 0 || partialCount === 0) &&
-			`${wholeCount} free the whole ${formatMinutes(time.minutes)}`,
-		partialCount > 0 && `${partialCount} for part of it`,
-	]
-		.filter(Boolean)
-		.join(" · ");
-
 	const locations = useMemo(
 		() =>
 			[
@@ -300,12 +289,12 @@ export function RoomStep({
 
 	return (
 		<div className="flex flex-col gap-3">
-			<div className="flex items-baseline justify-between gap-2">
+			<div className="flex flex-col">
 				<Typography variant="h6" component="h3">
-					Which room?
+					Where will you meet?
 				</Typography>
 				<Typography variant="caption" color="textSecondary">
-					{countCaption}
+					Select the room that works best for your meeting
 				</Typography>
 			</div>
 
