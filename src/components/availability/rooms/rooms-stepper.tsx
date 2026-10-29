@@ -38,7 +38,11 @@ export function RoomsStepper({
 								: undefined
 						}
 					>
-						{state === "done" ? <CheckIcon fontSize="inherit" /> : index + 1}
+						{state === "done" ? (
+							<CheckIcon fontSize="inherit" sx={{ color: "inherit" }} />
+						) : (
+							index + 1
+						)}
 					</span>
 				);
 				const text = (

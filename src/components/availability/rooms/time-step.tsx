@@ -79,7 +79,7 @@ function TimeCard({
 	return (
 		<StepCard
 			direction="next"
-			title="Choose the Room"
+			title="Choose a Room"
 			onAction={onNext}
 			actionDisabled={time.status !== "ready"}
 			showAction={checked}
