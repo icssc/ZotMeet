@@ -101,9 +101,11 @@ export function Calendar({
 	selectedKeys,
 	onSelectRange,
 	minDate,
+	mode,
 }: {
 	month: Date;
 	onMonthChange: (next: Date) => void;
+	mode?: "multiple" | "single";
 	/** `YYYY-MM-DD` keys of the currently selected days. */
 	selectedKeys: string[];
 	/**
@@ -242,7 +244,9 @@ export function Calendar({
 	// runOnJS: these callbacks touch React state and refs, so they belong on the
 	// JS thread rather than the UI thread.
 	const sweep = Gesture.Pan()
+		.enabled(mode === "multiple")
 		.runOnJS(true)
+
 		// Claim the gesture on horizontal intent and give it up on vertical
 		// intent, matching the web calendar's dx/dy check.
 		.activeOffsetX([-8, 8])
