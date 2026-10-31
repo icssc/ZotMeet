@@ -1,7 +1,7 @@
 // Mirrors src/components/studyrooms/search-bar.tsx.
 
 import { useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import Legend from "@/components/studyrooms/legend";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,32 +20,44 @@ export default function SearchBar() {
 		console.log("Searching for:", text);
 	};
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-	const [startTime, setStartTime] = useState<Date | null>(null);
-	const [endTime, setEndTime] = useState<Date | null>(null);
+	const [startTime, setStartTime] = useState<Date | null>(
+		new Date(0, 0, 0, 9, 0, 0),
+	);
+	const [endTime, setEndTime] = useState<Date | null>(
+		new Date(0, 0, 0, 17, 0, 0),
+	);
 
 	const [draftDate, setDraftDate] = useState<Date | null>(null);
 
 	return (
-		<Card className="box-shadow-md mx-6 flex-row items-center gap-1 rounded-xl p-2">
+		<Card className="flex-row items-center justify-between gap-4 rounded-xl py-4 pr-0 pl-4 shadow-md">
 			<Input
-				containerClassName="flex-[4]"
+				containerClassName="flex-1 w-auto"
+				className="py-0"
+				style={{
+					fontSize: 18,
+					lineHeight: 22,
+					textAlignVertical: "center",
+					includeFontPadding: false,
+				}}
 				placeholder="Search Rooms"
-				startAdornment={<Icon name="search" />}
+				startAdornment={<Icon name="search" size={28} />}
 				onSubmitEditing={(e) => handleSearch(e.nativeEvent.text)}
 				autoCapitalize="none"
 				autoCorrect={false}
 				returnKeyType="search"
 			/>
-			<IconButton
+			<Pressable
 				accessibilityLabel="Open search filters"
+				accessibilityRole="button"
 				onPress={() => setIsDrawerOpen(true)}
-				className="flex-1 flex-col items-center justify-center"
+				className="shrink-0 items-center justify-center px-2 py-1 active:opacity-60"
 			>
-				<Icon name="filter-list" size={25} />
-				<Text className="text-[10px]" numberOfLines={1}>
+				<Icon name="filter-list" size={24} className="text-action-active" />
+				<Text className="text-[10px] text-foreground" numberOfLines={1}>
 					Filter & Sort
 				</Text>
-			</IconButton>
+			</Pressable>
 			<Drawer open={isDrawerOpen} onClose={() => setIsDrawerOpen(false)}>
 				<Legend
 					availabilityColor={availabilityColor}
@@ -102,7 +114,7 @@ export default function SearchBar() {
 							}}
 						/>
 					</View>
-					<Text className="text-md text-muted-foreground">Buildings</Text>
+					<Text className="text-muted-foreground">Buildings</Text>
 					<View className="flex-row gap-2 pt-2">
 						<Pill label="Building A" onPress={() => {}} />
 					</View>
