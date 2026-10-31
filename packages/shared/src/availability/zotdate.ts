@@ -4,7 +4,7 @@
  * from `@/lib/zotdate` and keeps the DOM-only calendar helper there.
  */
 import { formatInTimeZone } from "date-fns-tz";
-import { CalendarConstants } from "../chrono/types";
+import { CalendarConstants, TimeConstants } from "../chrono/types";
 import { isoStringForSlot } from "./grid";
 
 export class ZotDate {
@@ -91,6 +91,12 @@ export class ZotDate {
 			const date = new Date(ISOString);
 			minutesFromMidnight = date.getHours() * 60 + date.getMinutes();
 		}
+
+		// Times before earliestTime are after midnight
+		if (minutesFromMidnight < this.earliestTime) {
+			minutesFromMidnight += TimeConstants.MINUTES_PER_DAY;
+		}
+
 		return Math.floor(
 			(minutesFromMidnight - this.earliestTime) / this.blockLength,
 		);
@@ -350,7 +356,8 @@ export class ZotDate {
 
 	/**
 	 * Returns a formatted time string given the number of minutes past midnight
-	 * @param minutesFromMidnight number of minutes from midnight
+	 * @param minutesFromMidnight number of minutes from midnight, values of a day
+	 * or more wrap around
 	 * @returns a "HH:MM AM|PM" formatted string
 	 */
 	static toTimeBlockString(
@@ -359,7 +366,8 @@ export class ZotDate {
 	): string {
 		let isAM = true;
 
-		let hour = Math.floor(minutesFromMidnight / 60);
+		const minutesInDay = minutesFromMidnight % TimeConstants.MINUTES_PER_DAY;
+		let hour = Math.floor(minutesInDay / 60);
 
 		if (hour === 0) {
 			hour = 12;
@@ -371,9 +379,7 @@ export class ZotDate {
 			}
 		}
 
-		const formattedMinutes = (minutesFromMidnight % 60)
-			.toString()
-			.padStart(2, "0");
+		const formattedMinutes = (minutesInDay % 60).toString().padStart(2, "0");
 
 		return `${hour}${abbreviated ? "" : `:${formattedMinutes}`} ${isAM ? "AM" : "PM"}`;
 	}

@@ -57,12 +57,17 @@ export function AvailabilityTableHeader({
 							>
 								{dateHeader?.day.toLocaleDateString("en-US", {
 									weekday: "short",
+									timeZone: dateHeader?.ianaTimeZone,
 								})}
 							</Typography>
 
 							{meetingType === "dates" && (
 								<Typography>
-									{dateHeader?.day && formatDateToUSNumeric(dateHeader.day)}
+									{dateHeader?.day &&
+										formatDateToUSNumeric(
+											dateHeader.day,
+											dateHeader.ianaTimeZone,
+										)}
 								</Typography>
 							)}
 						</div>

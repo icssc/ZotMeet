@@ -2,6 +2,7 @@
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
 import {
+	deriveAvailabilityForTimezone,
 	deriveInitialAvailability,
 	sliceCurrentPageAvailability,
 } from "@zotmeet/shared";
@@ -91,6 +92,27 @@ export function useAvailabilityData({
 			mode: "if-needed",
 		}),
 	);
+
+	const [prevTimezone, setPrevTimezone] = useState(userTimezone);
+
+	// Rebuild during render since the Edit button resets the timezone before the edit snapshot
+	if (userTimezone !== prevTimezone) {
+		setPrevTimezone(userTimezone);
+		const {
+			availabilityDates: availabilityDatesForTimezone,
+			ifNeededDates: ifNeededDatesForTimezone,
+		} = deriveAvailabilityForTimezone({
+			timezone: userTimezone,
+			meetingDates: meetingData.dates,
+			userId: user?.memberId ?? null,
+			availabilityDates,
+			ifNeededDates,
+			availabilityTimeBlocks,
+		});
+
+		setAvailabilityDates(availabilityDatesForTimezone);
+		setIfNeededDates(ifNeededDatesForTimezone);
+	}
 
 	const memberIds = useMemo(
 		() => allAvailabilities.map((a) => a.memberId),
