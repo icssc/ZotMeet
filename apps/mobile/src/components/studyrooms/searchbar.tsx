@@ -3,15 +3,16 @@
 import { useState } from "react";
 import { View } from "react-native";
 import Legend from "@/components/studyrooms/legend";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Drawer } from "@/components/ui/drawer";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
+import { Pill } from "@/components/ui/pill";
 import { Text } from "@/components/ui/text";
 import { TimeField } from "@/components/ui/time-field";
 import { Icon } from "@/lib/icons";
-import { DatePicker } from "../ui/date-picker";
-
 export default function SearchBar() {
 	const availabilityColor = "#86efac";
 	const notAvailableColor = "#fca5a5";
@@ -59,16 +60,51 @@ export default function SearchBar() {
 						room for you.
 					</Text>
 					<View className="mt-4">
-						<DatePicker value={draftDate} onChange={setDraftDate} />
+						<DatePicker
+							label="Date"
+							value={draftDate}
+							onChange={setDraftDate}
+						/>
+					</View>
+					<View className="w-full flex-row justify-end">
+						<Button
+							color="inherit"
+							label="Clear Selected"
+							onPress={() => setDraftDate(null)}
+						/>
 					</View>
 
-					<View className="mt-4 flex-row items-center gap-2">
+					<View className="mt-4 flex-row items-center gap-7">
 						<View className="flex-1">
-							<TimeField placeholder="Start time" onChange={setStartTime} />
+							<TimeField
+								label="Start time"
+								placeholder="9:00 AM"
+								value={startTime}
+								onChange={setStartTime}
+							/>
 						</View>
 						<View className="flex-1">
-							<TimeField placeholder="End time" onChange={setEndTime} />
+							<TimeField
+								label="End time"
+								placeholder="5:00 PM"
+								value={endTime}
+								onChange={setEndTime}
+							/>
 						</View>
+					</View>
+					<View className="w-full flex-row justify-end">
+						<Button
+							color="inherit"
+							label="Clear Selected"
+							onPress={() => {
+								setStartTime(new Date(0, 0, 0, 9, 0, 0));
+								setEndTime(new Date(0, 0, 0, 17, 0, 0));
+							}}
+						/>
+					</View>
+					<Text className="text-md text-muted-foreground">Buildings</Text>
+					<View className="flex-row gap-2 pt-2">
+						<Pill label="Building A" onPress={() => {}} />
 					</View>
 				</View>
 			</Drawer>
