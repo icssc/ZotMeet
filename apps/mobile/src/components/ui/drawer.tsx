@@ -1,6 +1,7 @@
 // Mirrors MUI <Drawer anchor="bottom"> from src/app/studyrooms/page.tsx.
 // Native: @rn-primitives/dialog anchored to the bottom, same portal as ui/dialog.
 import * as DialogPrimitive from "@rn-primitives/dialog";
+import { View } from "react-native";
 import {
 	FadeIn,
 	FadeOut,
@@ -43,8 +44,10 @@ export function Drawer({ open, onClose, className, children }: DrawerProps) {
 							entering={SlideInDown.duration(250)}
 							exiting={SlideOutDown.duration(200)}
 						>
-							<SheetGrabber />
-							{children}
+							<View className="pt-3">
+								<SheetGrabber />
+								{children}
+							</View>
 						</Animated.View>
 					</DialogPrimitive.Content>
 				</DialogPrimitive.Overlay>
