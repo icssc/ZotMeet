@@ -142,6 +142,7 @@ export function Input({
  */
 export function FieldButton({
 	value,
+	label,
 	placeholder,
 	onPress,
 	startAdornment,
@@ -153,6 +154,7 @@ export function FieldButton({
 }: {
 	/** Formatted value, or undefined to show the placeholder. */
 	value?: string;
+	label?: string;
 	placeholder: string;
 	onPress: () => void;
 	startAdornment?: React.ReactNode;
@@ -190,6 +192,12 @@ export function FieldButton({
 					{value ?? placeholder}
 				</Text>
 			</FieldShell>
+			<View
+				className="absolute -top-3 left-2.5 bg-background px-1"
+				pointerEvents="none"
+			>
+				<Text className={cn("text-helper")}>{label}</Text>
+			</View>
 		</Pressable>
 	);
 }

@@ -1,11 +1,11 @@
-// Native counterpart to MUI's <DatePicker> (field + calendar).
-// Native: the calendar expands inline instead of opening a popover.
 import { formatLocalDateKey, MONTHS } from "@zotmeet/shared";
 import { useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Calendar } from "@/components/ui/calendar";
-import { FieldButton } from "@/components/ui/input";
+import { FieldShell } from "@/components/ui/input";
+import { Text } from "@/components/ui/text";
 import { Icon } from "@/lib/icons";
+import { cn } from "@/lib/utils";
 
 function fromKey(key: string): Date {
 	// Local midnight; new Date("YYYY-MM-DD") would parse as UTC.
@@ -20,11 +20,13 @@ function formatDisplay(date: Date): string {
 export function DatePicker({
 	value,
 	onChange,
-	placeholder = "Date",
+	label = "Date",
+	placeholder = "MM/DD/YYYY",
 	minDate,
 }: {
 	value: Date | null;
 	onChange: (next: Date) => void;
+	label?: string;
 	placeholder?: string;
 	minDate?: Date;
 }) {
@@ -33,22 +35,56 @@ export function DatePicker({
 
 	return (
 		<View className="w-full gap-2">
-			<FieldButton
-				endAdornment={
-					<Icon name="calendar-today" className="text-action-active" />
-				}
+			<Pressable
+				accessibilityLabel={label}
+				accessibilityRole="button"
+				accessibilityState={{ expanded: open }}
+				accessibilityValue={value ? { text: formatDisplay(value) } : undefined}
 				onPress={() => setOpen((o) => !o)}
-				placeholder={placeholder}
-				value={value ? formatDisplay(value) : undefined}
-			/>
+			>
+				<FieldShell
+					endAdornment={
+						<Icon name="calendar-today" className="text-action-active" />
+					}
+					focused={open}
+				>
+					<Text
+						className={cn(
+							"flex-1 text-field",
+							value ? "text-foreground" : "text-muted-foreground",
+						)}
+						numberOfLines={1}
+					>
+						{value ? formatDisplay(value) : placeholder}
+					</Text>
+
+					{/* Floating label: sits on the top border, and its background
+					    masks the outline behind it to create the notch. */}
+					<View
+						className="absolute -top-3 left-2.5 bg-background px-1"
+						pointerEvents="none"
+					>
+						<Text
+							className={cn(
+								"text-helper",
+								open ? "text-primary" : "text-muted-foreground",
+							)}
+						>
+							{label}
+						</Text>
+					</View>
+				</FieldShell>
+			</Pressable>
+
 			{open ? (
 				<View className="items-center">
 					<Calendar
 						minDate={minDate}
-						mode="single"
 						month={month}
 						onMonthChange={setMonth}
-						onSelectRange={(keys) => {
+						onSelectRange={(keys, additive) => {
+							// Ignore a drag that started on the already-selected day.
+							if (!additive || keys.length === 0) return;
 							onChange(fromKey(keys[0]));
 							setOpen(false);
 						}}
