@@ -2,7 +2,12 @@
 
 import PlaceIcon from "@mui/icons-material/Place";
 import { Chip, Typography } from "@mui/material";
-import { formatShortDayAndWindow, type RoomFit } from "@zotmeet/shared";
+import {
+	formatMinutes,
+	formatShortDayAndWindow,
+	formatWindow,
+	type RoomFit,
+} from "@zotmeet/shared";
 import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import type { BestTimeRooms, StudyRoomFlow } from "@/hooks/use-study-room-flow";
@@ -38,18 +43,25 @@ function SelectedTimeCard({
 /** The chosen room on the book step; mirrors its `RoomGroupCard`. */
 function SelectedRoomCard({
 	fit,
+	timeZone,
 	onBack,
 }: {
 	fit: RoomFit;
+	timeZone: string;
 	onBack: () => void;
 }) {
-	const { room } = fit;
+	const { room, kind, window, minutes } = fit;
 	return (
 		<StepCard direction="back" title="Select Room" onAction={onBack}>
 			<Typography variant="body1" component="span" className="truncate">
 				{room.location}
 			</Typography>
 			<RoomDetails room={room} />
+			{kind === "partial" && (
+				<Typography variant="caption" color="textSecondary">
+					Free {formatWindow(window, timeZone)} · {formatMinutes(minutes)}
+				</Typography>
+			)}
 			<span className="flex pt-1">
 				<Chip
 					icon={<PlaceIcon />}
@@ -141,7 +153,11 @@ export function RoomsPanel({
 							memberCount={flow.memberCount}
 							onBack={() => setStep(0)}
 						/>
-						<SelectedRoomCard fit={fit} onBack={() => setStep(1)} />
+						<SelectedRoomCard
+							fit={fit}
+							timeZone={timeZone}
+							onBack={() => setStep(1)}
+						/>
 						<BookStep fit={fit} timeZone={timeZone} />
 					</>
 				)}

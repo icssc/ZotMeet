@@ -1,4 +1,4 @@
-import { formatInTimeZone } from "date-fns-tz";
+import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import {
 	formatLocation,
 	formatRoomChipLabel,
@@ -294,11 +294,6 @@ export function filterRoomFits(
 	);
 }
 
-/** Slots a booking can start on: available, overlapping the window, by start. */
-export function bookableSlots(room: Room, window: TimeWindow): BookableSlot[] {
-	return room.slots.filter((s) => s.start < window.end && s.end > window.start);
-}
-
 /**
  * Slots starting from `before` minutes ahead of `start` to `after` minutes past
  * it, in the room's own increments: the start times worth offering for a booking.
@@ -348,8 +343,14 @@ export function studyRoomQueryFor(stretch: TimeWindow): {
 } {
 	const rounded =
 		Math.floor(stretch.start / QUERY_ROUNDING_MS) * QUERY_ROUNDING_MS;
+	// The query covers one campus day, so a lookback past midnight stops at
+	// midnight rather than losing the early slots that day does have.
 	const early = rounded - EARLY_BOOKING_MINUTES * 60_000;
-	const start = campusDate(early) === campusDate(rounded) ? early : rounded;
+	const day = campusDate(rounded);
+	const start =
+		campusDate(early) === day
+			? early
+			: fromZonedTime(`${day}T00:00:00`, CAMPUS_TIME_ZONE).getTime();
 	const end = Math.ceil(stretch.end / QUERY_ROUNDING_MS) * QUERY_ROUNDING_MS;
 	return {
 		date: campusDate(start),

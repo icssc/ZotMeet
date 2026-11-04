@@ -33,9 +33,10 @@ export function BookStep({
 		[fit.room, stretch.start],
 	);
 	// The last one opened, else the first at or after the best time's start.
-	const highlighted =
-		selectedSlotStart ??
-		(slots.find((s) => s.start >= stretch.start) ?? slots[0])?.start;
+	// A refresh can drop the last one opened from `slots`; fall back then too.
+	const highlighted = slots.some((s) => s.start === selectedSlotStart)
+		? selectedSlotStart
+		: (slots.find((s) => s.start >= stretch.start) ?? slots[0])?.start;
 
 	return (
 		<div className="flex flex-col gap-3 pt-4">
