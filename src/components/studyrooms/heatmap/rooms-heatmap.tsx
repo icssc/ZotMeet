@@ -184,13 +184,10 @@ export const RoomsHeatmap = ({
 									{buckets.map((bucket) => (
 										<TableCell
 											key={bucket.intervalLabel}
-											className="border border-gray-300"
-											sx={{
-												padding: 0,
-												height: "1px",
-											}}
+											className="relative border border-gray-300"
+											sx={{ padding: 0 }}
 										>
-											<div className="flex h-full">
+											<div className="absolute inset-0 flex">
 												{bucket.slots.map((s) => (
 													<ButtonBase
 														key={s.start}
@@ -207,7 +204,6 @@ export const RoomsHeatmap = ({
 																url: room.url,
 															})
 														}
-														className="h-full"
 														sx={{ flex: 1 }}
 													>
 														<Tooltip
