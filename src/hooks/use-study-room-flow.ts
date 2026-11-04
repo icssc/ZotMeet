@@ -168,8 +168,13 @@ export function useStudyRoomFlow({
 	}, [enabled, queries, results, fetchQuery]);
 
 	const retry = useCallback(() => {
+		// Several best times can share a query; fetch each once, or the
+		// duplicates race to write the same result.
+		const retried = new Set<string>();
 		for (const { key, query } of queries) {
-			if (results.get(key)?.status === "error") fetchQuery(key, query);
+			if (retried.has(key) || results.get(key)?.status !== "error") continue;
+			retried.add(key);
+			fetchQuery(key, query);
 		}
 	}, [queries, results, fetchQuery]);
 
@@ -200,13 +205,15 @@ export function useStudyRoomFlow({
 	const isLoading = times.some((t) => t.status === "loading");
 	const errorCount = times.filter((t) => t.status === "error").length;
 
+	// No count while any lookup is unsettled: a failed one's rooms are
+	// unknown, and counting without them would understate the total.
 	const roomCount = useMemo(() => {
-		if (isLoading) return null;
+		if (isLoading || errorCount > 0) return null;
 		return countRoomsFreeForAnyBestTime(
 			new Map(times.map((t) => [t.id, t.rooms])),
 			times,
 		);
-	}, [isLoading, times]);
+	}, [isLoading, errorCount, times]);
 
 	return {
 		times,
