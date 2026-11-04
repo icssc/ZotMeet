@@ -22,6 +22,17 @@ export function formatWindow(window: TimeWindow, timeZone: string): string {
 	return `${start}–${end}`;
 }
 
+/** "Tue. 10/13, 1:00pm-3:00pm": a time card's title. */
+export function formatShortDayAndWindow(
+	window: TimeWindow,
+	timeZone: string,
+): string {
+	const day = formatInTimeZone(window.start, timeZone, "EEE. M/d");
+	const start = formatInTimeZone(window.start, timeZone, "h:mmaaa");
+	const end = formatInTimeZone(window.end, timeZone, "h:mmaaa");
+	return `${day}, ${start}-${end}`;
+}
+
 /** "1:00 PM". */
 export function formatClock(ms: number, timeZone: string): string {
 	return formatInTimeZone(ms, timeZone, "h:mm a");
