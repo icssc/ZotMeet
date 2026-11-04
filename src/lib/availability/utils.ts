@@ -27,6 +27,7 @@ export {
 	getTimeFromHourMinuteString,
 	getTimestampFromBlockIndex,
 	isoStringForSlot,
+	isValidStartEndTimes,
 	type RowChrome,
 	sortMeetingIsoDatesAsc,
 	spacerBeforeDate,
