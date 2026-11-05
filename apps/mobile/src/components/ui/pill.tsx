@@ -12,7 +12,7 @@ const pillVariants = cva(
 				medium: "px-3 py-1",
 			},
 			selected: {
-				true: "border-primary bg-primary",
+				true: "border-primary bg-[#FF87A64D]",
 				false: "border-input-outlined bg-transparent",
 			},
 		},
@@ -24,7 +24,7 @@ const pillTextVariants = cva("font-figtree-medium", {
 	variants: {
 		size: { small: "text-helper", medium: "text-body2" },
 		selected: {
-			true: "text-primary-foreground",
+			true: "text-secondary-foreground",
 			false: "text-foreground",
 		},
 	},
