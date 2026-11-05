@@ -58,7 +58,6 @@ export default function SearchBar({
 	const closeDrawer = () => {
 		setIsDrawerOpen(false);
 		setActiveTime(null);
-		setToggle([]);
 	};
 	return (
 		<Card className="flex-row items-center justify-between gap-4 rounded-xl py-4 pr-0 pl-4 shadow-md">

@@ -40,7 +40,10 @@ export function DatePicker({
 				accessibilityRole="button"
 				accessibilityState={{ expanded: open }}
 				accessibilityValue={value ? { text: formatDisplay(value) } : undefined}
-				onPress={() => setOpen((o) => !o)}
+				onPress={() => {
+					if (!open) setMonth(value ?? new Date());
+					setOpen((o) => !o);
+				}}
 			>
 				<FieldShell
 					endAdornment={
