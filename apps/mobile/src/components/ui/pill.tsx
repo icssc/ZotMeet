@@ -12,7 +12,7 @@ const pillVariants = cva(
 				medium: "px-3 py-1",
 			},
 			selected: {
-				true: "border-primary bg-[#FF87A64D]",
+				true: "border-primary bg-primary/30",
 				false: "border-input-outlined bg-transparent",
 			},
 		},
