@@ -4,10 +4,6 @@ import { useShallow } from "zustand/shallow";
 import { useRoomFlowStore } from "@/store/useRoomFlowStore";
 import { RoomsStepper } from "./rooms-stepper";
 
-/**
- * "Find a study room": Time → Room → Book. All its state lives in
- * `useRoomFlowStore`, so it survives unmounting.
- */
 export function RoomsPanel() {
 	const { step, setStep } = useRoomFlowStore(
 		useShallow((s) => ({ step: s.step, setStep: s.setStep })),

@@ -1,10 +1,10 @@
 "use client";
 
 import CheckIcon from "@mui/icons-material/Check";
+import Box from "@mui/material/Box";
 import { Fragment } from "react";
 import { cn } from "@/lib/utils";
 import type { RoomFlowStep } from "@/store/useRoomFlowStore";
-import { useRoomFlowColors } from "./use-room-flow-colors";
 
 const STEPS = ["Time", "Room", "Book"] as const;
 
@@ -15,26 +15,22 @@ export function RoomsStepper({
 	step: RoomFlowStep;
 	onStepClick: (step: RoomFlowStep) => void;
 }) {
-	const colors = useRoomFlowColors();
-
 	return (
 		<ol className="flex items-center gap-2" aria-label="Steps">
 			{STEPS.map((label, index) => {
 				const state =
 					index < step ? "done" : index === step ? "active" : "upcoming";
 				const circle = (
-					<span
+					<Box
+						component="span"
 						className={cn(
 							"inline-flex size-6 shrink-0 items-center justify-center rounded-full border font-semibold text-xs",
 							state !== "upcoming" &&
 								"border-primary bg-primary text-primary-foreground",
 						)}
-						style={
+						sx={
 							state === "upcoming"
-								? {
-										borderColor: colors.divider,
-										color: colors.textSecondary,
-									}
+								? { borderColor: "divider", color: "text.secondary" }
 								: undefined
 						}
 					>
@@ -43,26 +39,26 @@ export function RoomsStepper({
 						) : (
 							index + 1
 						)}
-					</span>
+					</Box>
 				);
 				const text = (
-					<span
+					<Box
+						component="span"
 						className="font-medium text-sm"
-						style={
-							state === "upcoming" ? { color: colors.textSecondary } : undefined
-						}
+						sx={state === "upcoming" ? { color: "text.secondary" } : undefined}
 					>
 						{label}
-					</span>
+					</Box>
 				);
 
 				return (
 					<Fragment key={label}>
 						{index > 0 && (
-							<li
+							<Box
+								component="li"
 								aria-hidden="true"
 								className="h-px min-w-3 flex-1"
-								style={{ backgroundColor: colors.divider }}
+								sx={{ bgcolor: "divider" }}
 							/>
 						)}
 						<li
