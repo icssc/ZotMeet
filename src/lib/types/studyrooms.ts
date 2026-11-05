@@ -1,5 +1,3 @@
-import { type Building, parseRoomDurationMinutes } from "@zotmeet/shared";
-import { z } from "zod";
 import type { paths } from "@/lib/types/anteater-api-types";
 
 // Room naming lives in `@zotmeet/shared`; re-exported so imports stay put.
@@ -20,24 +18,6 @@ export type StudyRoomsByFilters =
 export type StudyRooms =
 	paths["/v2/rest/studyRooms"]["get"]["responses"]["200"]["content"]["application/json"];
 
-export const MEETING_LENGTHS = [30, 60, 90, 120] as const;
-export type MeetingLength = (typeof MEETING_LENGTHS)[number];
-export const MeetingLengthSchema = z.union(
-	MEETING_LENGTHS.map((m) => z.literal(m)) as [
-		z.ZodLiteral<30>,
-		z.ZodLiteral<60>,
-		z.ZodLiteral<90>,
-		z.ZodLiteral<120>,
-	],
-);
-
-export function parseRoomDuration(name: string): MeetingLength | null {
-	const minutes = parseRoomDurationMinutes(name);
-	if (minutes == null) return null;
-	const parsed = MeetingLengthSchema.safeParse(minutes);
-	return parsed.success ? parsed.data : null;
-}
-
 // Structured capacity ranges so consumers never have to parse the label string.
 // `max` is omitted for the open-ended bucket ("13+").
 export const CAPACITY_RANGES = [
@@ -49,18 +29,3 @@ export const CAPACITY_RANGES = [
 	{ label: "13+", min: 13 },
 ] as const;
 export type Capacity = (typeof CAPACITY_RANGES)[number]["label"];
-export const CAPACITIES: readonly Capacity[] = CAPACITY_RANGES.map(
-	(r) => r.label,
-);
-
-export type RoomFilters = {
-	capacities: Capacity[];
-	buildings: Building[];
-	lengths: MeetingLength[];
-};
-
-export const DEFAULT_ROOM_FILTERS: RoomFilters = {
-	capacities: ["3-4"],
-	buildings: [],
-	lengths: [60],
-};

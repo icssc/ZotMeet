@@ -2,10 +2,7 @@ import { alpha } from "@mui/material/styles";
 import type { BlockFill, SelectionEdges } from "@zotmeet/shared";
 import type React from "react";
 import { memo, useMemo } from "react";
-import {
-	AvailabilityTabOverlay,
-	useAvailabilityTabOverlay,
-} from "@/components/availability/table/availability-tab-overlay";
+import { AvailabilityTabOverlay } from "@/components/availability/table/availability-tab-overlay";
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import { cn } from "@/lib/utils";
 
@@ -74,9 +71,6 @@ export const GroupAvailabilityBlock = memo(
 					}
 				: null;
 
-		const { roomTab, scheduledTab: resolvedScheduledTab } =
-			useAvailabilityTabOverlay(dateIndex, blockIndex, scheduledTab);
-
 		const onMouseEnter = useMemo(
 			() =>
 				onHoverCell
@@ -122,10 +116,7 @@ export const GroupAvailabilityBlock = memo(
 						/>
 					)}
 				</div>
-				<AvailabilityTabOverlay
-					scheduledTab={resolvedScheduledTab}
-					roomTab={roomTab}
-				/>
+				<AvailabilityTabOverlay tab={scheduledTab} />
 				{selectionEdges && (
 					<div
 						aria-hidden="true"
