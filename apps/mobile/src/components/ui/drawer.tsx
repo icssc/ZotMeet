@@ -1,16 +1,27 @@
-// Mirrors MUI <Drawer anchor="bottom"> from src/app/studyrooms/page.tsx.
-// Native: @rn-primitives/dialog anchored to the bottom, same portal as ui/dialog.
 import * as DialogPrimitive from "@rn-primitives/dialog";
-import { View } from "react-native";
+import { useEffect } from "react";
+import { useWindowDimensions, View } from "react-native";
+import {
+	Gesture,
+	GestureDetector,
+	ScrollView,
+} from "react-native-gesture-handler";
 import {
 	FadeIn,
 	FadeOut,
+	runOnJS,
 	SlideInDown,
 	SlideOutDown,
+	useAnimatedStyle,
+	useSharedValue,
+	withSpring,
 } from "react-native-reanimated";
 import { SheetGrabber } from "@/components/ui/sheet-grabber";
-import { Animated } from "@/lib/animated"; // check whether it's a default or named export
+import { Animated } from "@/lib/animated";
 import { cn } from "@/lib/utils";
+
+const DISMISS_DISTANCE = 120;
+const DISMISS_VELOCITY = 800;
 
 type DrawerProps = {
 	open: boolean;
@@ -20,6 +31,30 @@ type DrawerProps = {
 };
 
 export function Drawer({ open, onClose, className, children }: DrawerProps) {
+	const translateY = useSharedValue(0);
+	const { height } = useWindowDimensions();
+
+	// Start each opening from rest, since the value is left wherever a swipe ended.
+	useEffect(() => {
+		if (open) translateY.value = 0;
+	}, [open, translateY]);
+
+	const pan = Gesture.Pan()
+		.onUpdate((e) => {
+			translateY.value = Math.max(0, e.translationY);
+		})
+		.onEnd((e) => {
+			if (e.translationY > DISMISS_DISTANCE || e.velocityY > DISMISS_VELOCITY) {
+				runOnJS(onClose)();
+			} else {
+				translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
+			}
+		});
+
+	const sheetStyle = useAnimatedStyle(() => ({
+		transform: [{ translateY: translateY.value }],
+	}));
+
 	return (
 		<DialogPrimitive.Root
 			open={open}
@@ -37,17 +72,33 @@ export function Drawer({ open, onClose, className, children }: DrawerProps) {
 					/>
 					<DialogPrimitive.Content asChild>
 						<Animated.View
-							className={cn(
-								"w-full rounded-t-xl border border-border bg-background px-4 pb-8",
-								className,
-							)}
+							className="w-full"
 							entering={SlideInDown.duration(250)}
 							exiting={SlideOutDown.duration(200)}
 						>
-							<View className="pt-3">
-								<SheetGrabber />
-								{children}
-							</View>
+							<Animated.View
+								className={cn(
+									"w-full rounded-t-xl border border-border bg-background px-4",
+									className,
+								)}
+								style={sheetStyle}
+							>
+								<GestureDetector gesture={pan}>
+									<View className="items-center pt-3 pb-2">
+										<SheetGrabber />
+									</View>
+								</GestureDetector>
+
+								<ScrollView
+									bounces={false}
+									contentContainerStyle={{ paddingBottom: 32, flexGrow: 1 }}
+									keyboardShouldPersistTaps="handled"
+									showsVerticalScrollIndicator={false}
+									style={{ maxHeight: height * 0.8 }}
+								>
+									{children}
+								</ScrollView>
+							</Animated.View>
 						</Animated.View>
 					</DialogPrimitive.Content>
 				</DialogPrimitive.Overlay>
