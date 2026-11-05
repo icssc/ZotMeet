@@ -55,6 +55,11 @@ export default function SearchBar({
 			prev.includes(b) ? prev.filter((x) => x !== b) : [...prev, b],
 		);
 
+	const closeDrawer = () => {
+		setIsDrawerOpen(false);
+		setActiveTime(null);
+		setToggle([]);
+	};
 	return (
 		<Card className="flex-row items-center justify-between gap-4 rounded-xl py-4 pr-0 pl-4 shadow-md">
 			<Input
@@ -85,7 +90,7 @@ export default function SearchBar({
 				</Text>
 			</Pressable>
 			<View className="bg-background p-1">
-				<Drawer open={isDrawerOpen} onClose={() => setIsDrawerOpen(false)}>
+				<Drawer open={isDrawerOpen} onClose={() => closeDrawer()}>
 					<Legend
 						availabilityColor={availabilityColor}
 						notAvailableColor={notAvailableColor}
