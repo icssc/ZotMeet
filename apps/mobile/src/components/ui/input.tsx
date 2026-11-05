@@ -191,13 +191,13 @@ export function FieldButton({
 				>
 					{value ?? placeholder}
 				</Text>
+				<View
+					className="absolute -top-3 left-2.5 bg-background px-1"
+					pointerEvents="none"
+				>
+					<Text className={cn("text-helper")}>{label}</Text>
+				</View>
 			</FieldShell>
-			<View
-				className="absolute -top-3 left-2.5 bg-background px-1"
-				pointerEvents="none"
-			>
-				<Text className={cn("text-helper")}>{label}</Text>
-			</View>
 		</Pressable>
 	);
 }

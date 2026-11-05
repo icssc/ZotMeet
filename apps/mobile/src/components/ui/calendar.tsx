@@ -244,7 +244,7 @@ export function Calendar({
 	// runOnJS: these callbacks touch React state and refs, so they belong on the
 	// JS thread rather than the UI thread.
 	const sweep = Gesture.Pan()
-		.enabled(mode === "multiple")
+		.enabled(mode !== "single")
 		.runOnJS(true)
 
 		// Claim the gesture on horizontal intent and give it up on vertical
