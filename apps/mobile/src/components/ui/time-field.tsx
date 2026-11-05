@@ -8,6 +8,7 @@ import { FieldButton } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Icon } from "@/lib/icons";
 import { colorsFor } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 /** "9:00 AM" — the format the wireframes show on the meeting summary. */
 export function formatTime(date: Date): string {
@@ -35,6 +36,7 @@ function timeToday(hours: number, minutes: number): Date {
  */
 export function TimeField({
 	value,
+	label,
 	onChange,
 	placeholder,
 	minuteInterval = 5,
@@ -42,9 +44,10 @@ export function TimeField({
 	disabled = false,
 	className,
 }: {
-	value?: Date;
+	value: Date | null;
 	onChange: (next: Date) => void;
 	placeholder: string;
+	label?: string;
 	/** Wheel step for minutes. 5 matches how meeting times are picked. */
 	minuteInterval?: 1 | 5 | 10 | 15 | 30;
 	invalid?: boolean;
@@ -70,6 +73,7 @@ export function TimeField({
 
 	const field = (
 		<FieldButton
+			label={label}
 			accessibilityLabel={placeholder}
 			className={className}
 			disabled={disabled}
