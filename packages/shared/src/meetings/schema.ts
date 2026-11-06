@@ -52,6 +52,7 @@ export const createMeetingSchema = z.object({
 		.refine(isUnique, "Dates must be unique"),
 	meetingType: z.enum(MEETING_TYPES).default("dates"),
 	description: z.string().max(500).optional(),
+	groupId: z.string().uuid().optional(),
 });
 
 /** What a client sends: `meetingType` may be omitted. */

@@ -83,6 +83,10 @@ const nativeInkColors = {
 	divider: "hsl(var(--divider))",
 	"card-muted-foreground": "hsl(var(--card-muted-foreground))",
 	"card-gradient": "hsl(var(--card-gradient))",
+	"error-main": "hsl(var(--error-main))",
+	"error-tint": "hsl(var(--error-tint))",
+	"success-main": "hsl(var(--success-main))",
+	"success-tint": "hsl(var(--success-tint))",
 };
 
 /** `--radius` is set to `0.3rem` in each app's global stylesheet. */
