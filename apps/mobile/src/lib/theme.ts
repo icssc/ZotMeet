@@ -16,6 +16,7 @@ export const themeColors = {
 		border: hsl("border"),
 		textDisabled: hsl("text-disabled"),
 		destructive: hsl("destructive"),
+		cardGradient: hsl("card-gradient"),
 	},
 	dark: {
 		primary: hsl("primary", "dark"),
@@ -25,6 +26,7 @@ export const themeColors = {
 		border: hsl("border", "dark"),
 		textDisabled: hsl("text-disabled", "dark"),
 		destructive: hsl("destructive", "dark"),
+		cardGradient: hsl("card-gradient", "dark"),
 	},
 } as const;
 
