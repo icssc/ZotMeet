@@ -1,10 +1,12 @@
 import type { GroupListItem } from "@zotmeet/shared";
-import { useState } from "react";
+import { useRouter } from "expo-router";
+import { type ComponentRef, useRef, useState } from "react";
 import { Image, Pressable, View } from "react-native";
 import { GroupCard } from "@/components/groups/group-card";
 import { FilterChip } from "@/components/ui/filter-chip";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
+import { Menu, MenuItem } from "@/components/ui/menu";
 import { Screen } from "@/components/ui/screen";
 import { Typography } from "@/components/ui/typography";
 import { Icon } from "@/lib/icons";
@@ -33,6 +35,9 @@ export function GroupsPage({
 	const [search, setSearch] = useState("");
 	const [activeFilter, setActiveFilter] = useState<GroupsFilter>("all");
 	const [showAllActionRequired, setShowAllActionRequired] = useState(false);
+	const [menuOpen, setMenuOpen] = useState(false);
+	const addButtonRef = useRef<ComponentRef<typeof View>>(null);
+	const router = useRouter();
 
 	const actionRequired = groups.filter((group) => group.needsAvailability);
 	const rest = groups.filter((group) => !group.needsAvailability);
@@ -55,13 +60,31 @@ export function GroupsPage({
 					>
 						<Icon name="notifications" />
 					</IconButton>
-					<IconButton
-						variant="contained"
-						size="medium"
-						accessibilityLabel="Create or join a group"
+					<View ref={addButtonRef} collapsable={false}>
+						<IconButton
+							variant="contained"
+							size="medium"
+							accessibilityLabel="Create or join a group"
+							onPress={() => setMenuOpen(true)}
+						>
+							<Icon name="add" size={20} />
+						</IconButton>
+					</View>
+					<Menu
+						anchorRef={addButtonRef}
+						open={menuOpen}
+						onClose={() => setMenuOpen(false)}
 					>
-						<Icon name="add" size={20} />
-					</IconButton>
+						<MenuItem
+							label="Create A Group"
+							icon="add"
+							color="primary"
+							onPress={() => {
+								setMenuOpen(false);
+								router.push("/create-group");
+							}}
+						/>
+					</Menu>
 				</View>
 			}
 		>

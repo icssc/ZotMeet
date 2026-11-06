@@ -24,7 +24,11 @@ type FieldState = {
 	invalid?: boolean;
 	disabled?: boolean;
 	size?: FieldSize;
+	rows?: number;
 };
+
+const MULTILINE_ROW_HEIGHT = 24;
+const MULTILINE_PADDING = 32;
 
 export function FieldShell({
 	children,
@@ -32,6 +36,7 @@ export function FieldShell({
 	invalid = false,
 	disabled = false,
 	size = "medium",
+	rows,
 	className,
 	startAdornment,
 	endAdornment,
@@ -44,7 +49,8 @@ export function FieldShell({
 	return (
 		<View
 			className={cn(
-				"flex-row items-center rounded-control border px-[14px]",
+				"flex-row rounded-control border px-[14px]",
+				rows ? "items-start py-4" : "items-center",
 				// Border carries the state; the fill stays the page colour so the
 				// field reads the same on white and on the dark ground.
 				invalid
@@ -56,7 +62,11 @@ export function FieldShell({
 				disabled && "opacity-50",
 				className,
 			)}
-			style={{ height: FIELD_HEIGHTS[size] }}
+			style={
+				rows
+					? { minHeight: rows * MULTILINE_ROW_HEIGHT + MULTILINE_PADDING }
+					: { height: FIELD_HEIGHTS[size] }
+			}
 		>
 			{startAdornment ? <View className="pr-2">{startAdornment}</View> : null}
 			{children}
@@ -75,6 +85,10 @@ type InputProps = TextInputProps & {
 	helperText?: string;
 	containerClassName?: string;
 	size?: FieldSize;
+	/** MUI's outlined label, drawn in a notch on the top border. */
+	label?: string;
+	/** MUI's `multiline rows`: a text area this many lines tall. */
+	rows?: number;
 };
 
 export function Input({
@@ -85,6 +99,8 @@ export function Input({
 	invalid = false,
 	helperText,
 	size,
+	label,
+	rows,
 	editable = true,
 	onFocus,
 	onBlur,
@@ -105,15 +121,20 @@ export function Input({
 				focused={focused}
 				invalid={invalid}
 				size={size}
+				rows={rows}
 				startAdornment={startAdornment}
 			>
 				<TextInput
 					className={cn(
 						// `font-figtree` is explicit: TextInput is not our `Text`, so it
 						// inherits neither the family nor the foreground colour.
-						"h-full flex-1 font-figtree text-field text-foreground",
+						"flex-1 font-figtree text-field text-foreground",
+						!rows && "h-full",
 						className,
 					)}
+					multiline={rows !== undefined}
+					numberOfLines={rows}
+					textAlignVertical={rows ? "top" : undefined}
 					editable={editable}
 					onBlur={(e) => {
 						setFocused(false);
@@ -128,6 +149,21 @@ export function Input({
 					{...props}
 				/>
 			</FieldShell>
+			{label ? (
+				<Text
+					pointerEvents="none"
+					className={cn(
+						"absolute -top-2.5 left-2.5 bg-paper px-1 text-caption",
+						invalid
+							? "text-destructive"
+							: focused
+								? "text-primary"
+								: "text-muted-foreground",
+					)}
+				>
+					{label}
+				</Text>
+			) : null}
 
 			{helperText ? (
 				<Text
