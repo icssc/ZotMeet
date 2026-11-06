@@ -1,3 +1,5 @@
+import type { MeetingType } from "../meetings/schema";
+
 export type GroupListMember = {
 	userId: string;
 	displayName: string;
@@ -18,4 +20,31 @@ export type GroupListItem = {
 
 export type GroupsListResponse = {
 	groups: GroupListItem[];
+};
+
+export type GroupMeetingItem = {
+	id: string;
+	title: string;
+	hostId: string;
+	hostName: string;
+	meetingType: MeetingType;
+	dates: string[];
+	scheduledDate: string | null;
+	totalMembers: number;
+	respondedCount: number;
+	userHasResponded: boolean;
+};
+
+export type GroupDetailResponse = {
+	group: {
+		id: string;
+		name: string;
+		description: string | null;
+		icon: string | null;
+	};
+	memberId: string;
+	memberCount: number;
+	isAdmin: boolean;
+	isCreator: boolean;
+	meetings: GroupMeetingItem[];
 };

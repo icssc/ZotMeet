@@ -76,6 +76,10 @@ const light = {
 	divider: "0 0% 88%",
 	"card-muted-foreground": "215.6 15.4% 34.3%",
 	"card-gradient": "0 100% 92.5%",
+	"error-main": "0 65.1% 50.6%",
+	"error-tint": "0 80% 96.1%",
+	"success-main": "123 46.3% 33.5%",
+	"success-tint": "120 38.5% 94.9%",
 
 	/*
 	 * MUI palette entries the meeting cards paint their banners with. Unlike the
@@ -144,6 +148,10 @@ const dark = {
 	divider: "0 0% 26%",
 	"card-muted-foreground": "215 20.2% 65.1%",
 	"card-gradient": "0 30% 22%",
+	"error-main": "0 72.2% 66.1%",
+	"error-tint": "0 30% 18%",
+	"success-main": "122 38.5% 57.1%",
+	"success-tint": "120 25% 16%",
 
 	"secondary-main": "222.2 37.4% 19.4%",
 	"secondary-main-foreground": "0 0% 100%",

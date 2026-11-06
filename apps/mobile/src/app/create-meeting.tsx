@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from "expo-router";
 import { Platform, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CreateMeetingForm } from "@/components/meetings/create-meeting";
@@ -12,6 +13,7 @@ import { CreateMeetingForm } from "@/components/meetings/create-meeting";
  */
 export default function CreateMeetingScreen() {
 	const insets = useSafeAreaInsets();
+	const { groupId } = useLocalSearchParams<{ groupId?: string }>();
 
 	// iOS insets the modal card below the status bar already, so adding the top
 	// inset there just opens a gap above the heading. Android's modal covers the
@@ -26,7 +28,7 @@ export default function CreateMeetingScreen() {
 				keyboardShouldPersistTaps="handled"
 				showsVerticalScrollIndicator={false}
 			>
-				<CreateMeetingForm />
+				<CreateMeetingForm groupId={groupId} />
 			</ScrollView>
 		</View>
 	);

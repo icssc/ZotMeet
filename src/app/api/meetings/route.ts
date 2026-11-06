@@ -113,8 +113,16 @@ export async function POST(request: NextRequest) {
 		);
 	}
 
-	const { title, fromTime, toTime, timezone, dates, meetingType, description } =
-		parsed.data;
+	const {
+		title,
+		fromTime,
+		toTime,
+		timezone,
+		dates,
+		meetingType,
+		description,
+		groupId,
+	} = parsed.data;
 
 	const result = await createMeetingFromData(
 		{
@@ -125,7 +133,7 @@ export async function POST(request: NextRequest) {
 			dates,
 			meetingType,
 			description: description ?? "",
-			group_id: null,
+			group_id: groupId ?? null,
 		},
 		memberId,
 	);
