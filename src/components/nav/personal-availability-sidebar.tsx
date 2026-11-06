@@ -5,7 +5,7 @@ import {
 	getImportableMeetings,
 	getUserAvailabilityForMeeting,
 } from "@actions/availability/copy/action";
-import { Close } from "@mui/icons-material";
+import { Check, Close } from "@mui/icons-material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import {
 	Accordion,
@@ -14,6 +14,8 @@ import {
 	Box,
 	Button,
 	Checkbox,
+	Divider,
+	Fab,
 	FormControlLabel,
 	IconButton,
 	Stack,
@@ -92,6 +94,8 @@ export interface PersonalAvailabilitySidebarProps {
 	googleCalendars: GoogleCalendarInfo[];
 	layout?: PersonalAvailabilitySidebarLayout;
 	onRequestClose?: () => void;
+	onCancel?: () => void;
+	onSave?: () => void;
 }
 
 export function PersonalAvailabilitySidebar({
@@ -104,6 +108,8 @@ export function PersonalAvailabilitySidebar({
 	googleCalendars,
 	layout,
 	onRequestClose,
+	onCancel,
+	onSave,
 }: PersonalAvailabilitySidebarProps) {
 	const pathname = usePathname();
 	const [showGoogleConnect, setShowGoogleConnect] = useState(false);
@@ -214,7 +220,7 @@ export function PersonalAvailabilitySidebar({
 			className={
 				layout === "sheet"
 					? "relative flex min-h-0 min-w-0 flex-1 flex-col p-4 pt-12"
-					: "fixed h-96 w-full px-4 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:flex lg:h-full lg:min-h-0 lg:w-full lg:flex-1 lg:shrink-0 lg:flex-col lg:overflow-y-auto lg:px-4"
+					: "fixed h-96 w-full px-7 py-3 transition-transform duration-500 ease-in-out sm:right-0 sm:left-auto sm:w-96 lg:relative lg:flex lg:h-full lg:min-h-0 lg:w-full lg:flex-1 lg:shrink-0 lg:flex-col lg:overflow-y-auto lg:overflow-x-hidden lg:px-7 lg:py-3"
 			}
 		>
 			{layout === "sheet" && onRequestClose ? (
@@ -233,13 +239,58 @@ export function PersonalAvailabilitySidebar({
 				}
 			>
 				<div className={layout === "sheet" ? "hidden" : undefined}>
-					<Typography variant="h6">Add Availability</Typography>
-					<Typography variant="caption" color="textSecondary">
-						Drag over the calendar to add your availability
+					{onCancel || onSave ? (
+						<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+							{onCancel && (
+								<Fab
+									size="small"
+									aria-label="Cancel"
+									onClick={onCancel}
+									sx={{
+										bgcolor: "background.paper",
+										boxShadow: "none",
+										flexShrink: 0,
+										width: 36,
+										height: 34,
+									}}
+								>
+									<Close />
+								</Fab>
+							)}
+							<Typography variant="h6" sx={{ flex: 1, textAlign: "center" }}>
+								Add Availability
+							</Typography>
+							{onSave && (
+								<Button
+									size="square"
+									variant="contained"
+									aria-label="Save"
+									onClick={onSave}
+									sx={{ minWidth: 0, width: 36, height: 34 }}
+								>
+									<Check sx={{ fontSize: 18 }} />
+								</Button>
+							)}
+						</Box>
+					) : (
+						<Typography variant="h6">Add Availability</Typography>
+					)}
+					<Typography
+						variant="caption"
+						color="textSecondary"
+						sx={{
+							display: "block",
+							mt: 1.5,
+							textAlign: onCancel || onSave ? "center" : undefined,
+						}}
+					>
+						Drag over the calendar to add your availability.
 					</Typography>
 				</div>
 
-				<div className={layout !== "sheet" ? "mt-6" : undefined}>
+				{layout !== "sheet" && <Divider sx={{ mx: "-28px", my: 1.5 }} />}
+
+				<div>
 					<Typography variant="h6">Availability Settings</Typography>
 					<Typography variant="caption" color="textSecondary">
 						Click to switch between availability states

@@ -323,27 +323,6 @@ export function Availability({
 		resetSelection,
 	]);
 
-	const personalSidebarProps = useMemo(
-		() => ({
-			meetingId: meetingData.id,
-			userTimezone,
-			importGridIsoSet,
-			canImport: Boolean(user?.memberId),
-			onImportSlots: handleImportSlotsFromMeeting,
-			onClearAvailability: handleClearAvailability,
-			googleCalendars,
-		}),
-		[
-			meetingData.id,
-			userTimezone,
-			importGridIsoSet,
-			user?.memberId,
-			handleImportSlotsFromMeeting,
-			handleClearAvailability,
-			googleCalendars,
-		],
-	);
-
 	const handleOpenInviteDialog = useCallback(
 		() => setIsInviteDialogOpen(true),
 		[],
@@ -368,6 +347,37 @@ export function Availability({
 		setChangeableTimezone,
 		isMeetingDeletionPending,
 	});
+
+	const handlePersonalSaveClick = useCallback(() => {
+		handlePersonalSave().catch((error) => {
+			console.error("Save failed", error);
+		});
+	}, [handlePersonalSave]);
+
+	const personalSidebarProps = useMemo(
+		() => ({
+			meetingId: meetingData.id,
+			userTimezone,
+			importGridIsoSet,
+			canImport: Boolean(user?.memberId),
+			onImportSlots: handleImportSlotsFromMeeting,
+			onClearAvailability: handleClearAvailability,
+			googleCalendars,
+			onCancel: handlePersonalCancel,
+			onSave: handlePersonalSaveClick,
+		}),
+		[
+			meetingData.id,
+			userTimezone,
+			importGridIsoSet,
+			user?.memberId,
+			handleImportSlotsFromMeeting,
+			handleClearAvailability,
+			googleCalendars,
+			handlePersonalCancel,
+			handlePersonalSaveClick,
+		],
+	);
 
 	const runScheduleSaveForMobile = useCallback(
 		() => handleScheduleSave({ skipExitToGroup: true }),
@@ -639,11 +649,11 @@ export function Availability({
 					)}
 
 					{availabilityView === "personal" && (
-						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-							<AvailabilityActions {...actionsProps} />
+						<div className="mt-4 hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
 							<Paper
 								variant="outlined"
 								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+								sx={{ p: 0 }}
 							>
 								{isLgUp ? (
 									<PersonalAvailabilitySidebar {...personalSidebarProps} />
