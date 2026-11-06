@@ -289,6 +289,20 @@ export async function getGroupsWithDetails(
 	return groupsWithDetails;
 }
 
+export async function listGroupsForMember(
+	memberId: string,
+): Promise<GroupWithDetails[]> {
+	const [user] = await db
+		.select({ id: users.id })
+		.from(users)
+		.where(eq(users.memberId, memberId))
+		.limit(1);
+
+	if (!user) return [];
+
+	return getGroupsWithDetails(user.id, memberId);
+}
+
 export type MeetingWithStats = SelectMeeting & {
 	hostName: string;
 	scheduledDate: Date | null;
