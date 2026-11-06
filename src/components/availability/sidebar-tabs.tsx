@@ -23,11 +23,6 @@ const tabsSx = {
 	},
 } as const;
 
-/**
- * The meeting sidebar's one card: ATTENDEES · n | ROOMS · m. Both panels stay
- * mounted (only hidden), so the attendee panel's local state and the room
- * flow survive switching.
- */
 export function SidebarTabs({
 	attendeeCount,
 	roomCount,

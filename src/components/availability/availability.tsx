@@ -35,7 +35,6 @@ import {
 } from "@/lib/availability/utils";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
-import { useRoomFlowStore } from "@/store/useRoomFlowStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
@@ -211,29 +210,18 @@ export function Availability({
 			userTimezone,
 		});
 
-	const respondedMembers = useMemo(() => {
-		const pendingIds = new Set(pendingMembers.map((m) => m.memberId));
-		return members.filter((m) => !pendingIds.has(m.memberId));
-	}, [members, pendingMembers]);
-
-	// "Find a study room": best times and the rooms free during each. Fetched
-	// as soon as the group view shows, so the desktop Rooms tab and the phone's
-	// Rooms button can show a count.
 	const roomFlow = useStudyRoomFlow({
+		meetingId: meetingData.id,
 		enabled: availabilityView === "group" || availabilityView === "schedule",
 		isAnchorMeeting: meetingData.meetingType === "days",
 		availabilityDates,
 		ifNeededDates,
-		respondedMembers,
+		members,
+		pendingMembers,
 		fromTimeMinutes,
 		blockCount: availabilityTimeBlocks.length,
 		timeZone: userTimezone,
 	});
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: reset per meeting
-	useEffect(() => {
-		useRoomFlowStore.getState().reset();
-	}, [meetingData.id]);
 
 	const [isMobileRoomsDrawerOpen, setIsMobileRoomsDrawerOpen] = useState(false);
 
@@ -542,8 +530,11 @@ export function Availability({
 								<AvailabilityActions {...actionsProps} />
 							)}
 							<SidebarTabs
-								attendeeCount={respondedMembers.length}
-								roomCount={roomFlow.isUnsupported ? null : roomFlow.roomCount}
+								attendeeCount={Math.max(
+									0,
+									members.length - pendingMembers.length,
+								)}
+								roomCount={roomFlow.roomCount}
 								attendees={<GroupResponses {...groupResponsesProps} />}
 								rooms={<RoomsPanel />}
 							/>
@@ -568,9 +559,7 @@ export function Availability({
 											members.length - pendingMembers.length,
 										)}
 										pendingMembersCount={pendingMembers.length}
-										roomCount={
-											roomFlow.isUnsupported ? null : roomFlow.roomCount
-										}
+										roomCount={roomFlow.roomCount}
 										onAddAvailability={handleMobileAddAvailability}
 										onOpenAttendees={handleMobileOpenAttendees}
 										onOpenRooms={handleMobileOpenRooms}
