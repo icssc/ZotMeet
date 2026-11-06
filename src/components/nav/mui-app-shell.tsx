@@ -18,6 +18,13 @@ function routeHidesBottomNav(pathname: string) {
 	return pathname.startsWith("/availability");
 }
 
+/** Routes that build their own panels on the gray background instead of one big white panel. */
+function routeSkipsEncapsulationPanel(pathname: string) {
+	return (
+		pathname.startsWith("/availability") || pathname.startsWith("/studyrooms")
+	);
+}
+
 function footerClasses(pathname: string) {
 	return pathname === "/"
 		? { footer: undefined, aboveFooter: "min-h-screen" }
@@ -35,6 +42,7 @@ export function MuiAppShell({
 	const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 	const pathname = usePathname();
 	const showBottomNav = !routeHidesBottomNav(pathname);
+	const skipEncapsulationPanel = routeSkipsEncapsulationPanel(pathname);
 	const footer = footerClasses(pathname);
 
 	// Signed-out visitors on "/" get the landing page, which renders its own nav.
@@ -91,6 +99,8 @@ export function MuiAppShell({
 				minHeight: "100vh",
 			}}
 		>
+			<MuiTopNav user={user} notifications={notifications} />
+
 			<Box
 				sx={{
 					flex: 1,
@@ -98,34 +108,43 @@ export function MuiAppShell({
 					minHeight: 0,
 					display: "flex",
 					flexDirection: "column",
-					pt: `${GUTTER_SIZE}px`,
 					pl: `${GUTTER_SIZE}px`,
 					pr: `${GUTTER_SIZE}px`,
 				}}
 			>
-				<Box
-					className={footer.aboveFooter}
-					sx={{
-						bgcolor: "background.paper",
-						flex: 1,
-						display: "flex",
-						flexDirection: "column",
-						borderTopLeftRadius: 12,
-						borderTopRightRadius: 12,
-						overflow: "hidden",
-					}}
-				>
-					<MuiTopNav user={user} notifications={notifications} />
+				{skipEncapsulationPanel ? (
 					<Box
-						sx={{
-							flex: 1,
-							overflow: "auto",
-							paddingBottom: "40px",
-						}}
+						className={footer.aboveFooter}
+						sx={{ flex: 1, overflow: "auto", paddingBottom: "40px" }}
 					>
 						{children}
 					</Box>
-				</Box>
+				) : (
+					<Box
+						className={footer.aboveFooter}
+						sx={{
+							bgcolor: "background.paper",
+							flex: 1,
+							display: "flex",
+							flexDirection: "column",
+							borderTopLeftRadius: 12,
+							borderTopRightRadius: 12,
+							borderBottomLeftRadius: 12,
+							borderBottomRightRadius: 12,
+							overflow: "hidden",
+						}}
+					>
+						<Box
+							sx={{
+								flex: 1,
+								overflow: "auto",
+								paddingBottom: "40px",
+							}}
+						>
+							{children}
+						</Box>
+					</Box>
+				)}
 			</Box>
 
 			<Footer className={footer.footer} />

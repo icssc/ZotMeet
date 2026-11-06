@@ -60,17 +60,20 @@ export function MuiTopNav({ user, notifications }: MuiTopNavProps) {
 	return (
 		<AppBar
 			position="sticky"
+			elevation={0}
 			sx={{
-				backgroundColor: "background.paper",
+				backgroundColor: "background.default",
+				backgroundImage: "none",
 				color: "text.primary",
-				boxShadow:
-					"0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+				boxShadow: "none",
 			}}
 		>
 			<Toolbar
 				sx={{
 					display: "flex",
 					alignItems: "center",
+					px: 4,
+					py: 1,
 				}}
 			>
 				<Box sx={{ flex: 1, display: "flex", justifyContent: "flex-start" }}>
@@ -99,8 +102,8 @@ export function MuiTopNav({ user, notifications }: MuiTopNavProps) {
 								href={item.url}
 								sx={{
 									color: "text.primary",
-									fontWeight: isActive ? 700 : 400,
-									fontSize: "20px",
+									fontWeight: isActive ? 600 : 400,
+									fontSize: "22px",
 									borderRadius: 0,
 									borderBottom: "2px solid transparent",
 									"&:hover": {
