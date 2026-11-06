@@ -230,7 +230,14 @@ export const Meetings = ({
 					mb: 2,
 				}}
 			>
-				<Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+				<Box
+					sx={{
+						display: "flex",
+						flexDirection: "column",
+						gap: 1.5,
+						width: { xs: "100%", sm: "auto" },
+					}}
+				>
 					<TextField
 						aria-label="Search meetings"
 						placeholder="Search"
@@ -241,12 +248,17 @@ export const Meetings = ({
 							input: {
 								startAdornment: (
 									<SearchIcon
-										sx={{ fontSize: 20, color: "text.disabled", mr: 0.5 }}
+										sx={{ fontSize: 24, color: "action.active", mr: 1.25 }}
 									/>
 								),
 							},
 						}}
-						sx={{ minWidth: 200 }}
+						sx={{
+							width: { xs: "100%", sm: 363 },
+							"& .MuiOutlinedInput-notchedOutline": {
+								borderColor: "divider",
+							},
+						}}
 					/>
 
 					<Box sx={{ display: "flex", gap: 0.75 }}>

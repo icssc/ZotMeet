@@ -103,7 +103,7 @@ export default async function RootLayout({
 						<AppThemeProvider initialMode={initialMode}>
 							<SnackbarProvider>
 								<AppShellWrapper>
-									<div className="h-full rounded-tl-xl">{children}</div>
+									<div className="h-full">{children}</div>
 								</AppShellWrapper>
 							</SnackbarProvider>
 						</AppThemeProvider>
