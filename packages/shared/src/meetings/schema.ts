@@ -154,6 +154,7 @@ export type MeetingListItem = {
 export const saveAvailabilitySchema = z.object({
 	meetingAvailabilityTimes: z.array(z.string().datetime()),
 	ifNeededAvailabilityTimes: z.array(z.string().datetime()),
+	timezone: z.string().min(1).max(100).optional(),
 });
 
 export type SaveAvailabilityInput = z.infer<typeof saveAvailabilitySchema>;

@@ -29,6 +29,7 @@ export async function savePersonalAvailabilityForMember(args: {
 	memberId: string;
 	meetingAvailabilityTimes: readonly string[];
 	ifNeededAvailabilityTimes: readonly string[];
+	timezone?: string;
 }): Promise<{ groupId: string | null }> {
 	const { meetingId, memberId, meetingAvailabilityTimes } = args;
 	const ifNeededAvailabilities = [...args.ifNeededAvailabilityTimes];
@@ -45,6 +46,10 @@ export async function savePersonalAvailabilityForMember(args: {
 		(t) => !ifNeededSet.has(t),
 	);
 
+	// Debug metadata, written alongside the slots on every save.
+	const timezone = args.timezone ?? null;
+	const updatedAt = new Date();
+
 	await db
 		.insert(availabilities)
 		.values({
@@ -52,10 +57,17 @@ export async function savePersonalAvailabilityForMember(args: {
 			meetingId,
 			meetingAvailabilities,
 			ifNeededAvailabilities,
+			timezone,
+			updatedAt,
 		})
 		.onConflictDoUpdate({
 			target: [availabilities.memberId, availabilities.meetingId],
-			set: { meetingAvailabilities, ifNeededAvailabilities },
+			set: {
+				meetingAvailabilities,
+				ifNeededAvailabilities,
+				timezone,
+				updatedAt,
+			},
 		});
 
 	return { groupId: meeting.group_id };

@@ -8,10 +8,12 @@ export async function savePersonalAvailability({
 	meetingId,
 	meetingAvailabilityTimes,
 	ifNeededAvailabilityTimes,
+	timezone,
 }: {
 	meetingId: string;
 	meetingAvailabilityTimes: string[];
 	ifNeededAvailabilityTimes: string[];
+	timezone?: string;
 }) {
 	try {
 		const { user } = await getCurrentSession();
@@ -25,6 +27,7 @@ export async function savePersonalAvailability({
 			memberId: user.memberId,
 			meetingAvailabilityTimes,
 			ifNeededAvailabilityTimes,
+			timezone,
 		});
 
 		if (groupId) {
