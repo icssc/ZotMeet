@@ -1,5 +1,6 @@
 "use server";
 
+import { saveAvailabilitySchema } from "@zotmeet/shared";
 import { revalidatePath } from "next/cache";
 import { getCurrentSession } from "@/lib/auth";
 import { savePersonalAvailabilityForMember } from "@/server/data/availability/save";
@@ -22,12 +23,15 @@ export async function savePersonalAvailability({
 			throw new Error("User not found");
 		}
 
+		const parsedTimezone =
+			saveAvailabilitySchema.shape.timezone.safeParse(timezone);
+
 		const { groupId } = await savePersonalAvailabilityForMember({
 			meetingId,
 			memberId: user.memberId,
 			meetingAvailabilityTimes,
 			ifNeededAvailabilityTimes,
-			timezone,
+			timezone: parsedTimezone.success ? parsedTimezone.data : undefined,
 		});
 
 		if (groupId) {
