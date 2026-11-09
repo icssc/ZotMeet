@@ -33,7 +33,7 @@ import {
 type DatePickerMode = "specific" | "weekly";
 type LocationChoice = "recommend" | "known";
 
-export function CreateMeetingForm() {
+export function CreateMeetingForm({ groupId }: { groupId?: string } = {}) {
 	const router = useRouter();
 	const [name, setName] = useState("");
 	const [startTime, setStartTime] = useState<Date | undefined>();
@@ -137,6 +137,7 @@ export function CreateMeetingForm() {
 				dates,
 				meetingType: mode === "specific" ? "dates" : "days",
 				description: "",
+				groupId,
 			});
 			// `replace` swaps this modal for the meeting screen, so backing out of
 			// the meeting returns to the Meetings list rather than the form.

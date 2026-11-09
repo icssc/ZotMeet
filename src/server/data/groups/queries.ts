@@ -303,6 +303,54 @@ export async function listGroupsForMember(
 	return getGroupsWithDetails(user.id, memberId);
 }
 
+export type GroupDetailForMember =
+	| {
+			status: "ok";
+			group: SelectGroup;
+			memberCount: number;
+			isAdmin: boolean;
+			isCreator: boolean;
+			meetings: MeetingWithStats[];
+	  }
+	| { status: "not-found" }
+	| { status: "forbidden" };
+
+export async function getGroupDetailForMember(
+	groupId: string,
+	memberId: string,
+): Promise<GroupDetailForMember> {
+	const group = await getExistingGroup(groupId).catch(() => null);
+	if (!group) return { status: "not-found" };
+
+	const [user] = await db
+		.select({ id: users.id })
+		.from(users)
+		.where(eq(users.memberId, memberId))
+		.limit(1);
+	if (!user || !(await isUserInGroup({ userId: user.id, groupId }))) {
+		return { status: "forbidden" };
+	}
+
+	const [groupMembers, isAdmin] = await Promise.all([
+		getUsersInGroup(groupId),
+		isGroupAdmin({ userId: user.id, groupId }),
+	]);
+	const meetings = await getGroupMeetingsWithStats(
+		groupId,
+		groupMembers.length,
+		memberId,
+	);
+
+	return {
+		status: "ok",
+		group,
+		memberCount: groupMembers.length,
+		isAdmin,
+		isCreator: group.createdBy === user.id,
+		meetings,
+	};
+}
+
 export type MeetingWithStats = SelectMeeting & {
 	hostName: string;
 	scheduledDate: Date | null;
