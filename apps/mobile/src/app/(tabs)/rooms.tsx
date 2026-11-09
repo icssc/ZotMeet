@@ -1,8 +1,8 @@
+import { fetchStudyRoomsShared } from "@zotmeet/shared/src/studyrooms/get-rooms";
 import { ScrollView, View } from "react-native";
 import SearchBar from "@/components/studyrooms/searchbar";
 import { Card } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
-
 export const BUILDINGS = [
 	"Anteater Learning Pavilion",
 	"Science Library",
@@ -14,7 +14,7 @@ export const BUILDINGS = [
 export default function RoomsScreen() {
 	return (
 		<Screen title="Rooms">
-			<ScrollView className="flex-1">{/* heatmap, legend, etc. */}</ScrollView>
+			<ScrollView className="flex-1"></ScrollView>
 			<SearchBar buildings={BUILDINGS} />
 		</Screen>
 	);
