@@ -1,21 +1,17 @@
 "use server";
 
-import { saveAvailabilitySchema } from "@zotmeet/shared";
+import {
+	type SaveAvailabilityInput,
+	saveAvailabilitySchema,
+} from "@zotmeet/shared";
 import { revalidatePath } from "next/cache";
 import { getCurrentSession } from "@/lib/auth";
 import { savePersonalAvailabilityForMember } from "@/server/data/availability/save";
 
 export async function savePersonalAvailability({
 	meetingId,
-	meetingAvailabilityTimes,
-	ifNeededAvailabilityTimes,
-	timezone,
-}: {
-	meetingId: string;
-	meetingAvailabilityTimes: string[];
-	ifNeededAvailabilityTimes: string[];
-	timezone?: string;
-}) {
+	...input
+}: { meetingId: string } & SaveAvailabilityInput) {
 	try {
 		const { user } = await getCurrentSession();
 
@@ -23,15 +19,15 @@ export async function savePersonalAvailability({
 			throw new Error("User not found");
 		}
 
-		const parsedTimezone =
-			saveAvailabilitySchema.shape.timezone.safeParse(timezone);
+		const parsed = saveAvailabilitySchema.safeParse(input);
+		if (!parsed.success) {
+			throw new Error("Invalid payload");
+		}
 
 		const { groupId } = await savePersonalAvailabilityForMember({
 			meetingId,
 			memberId: user.memberId,
-			meetingAvailabilityTimes,
-			ifNeededAvailabilityTimes,
-			timezone: parsedTimezone.success ? parsedTimezone.data : undefined,
+			...parsed.data,
 		});
 
 		if (groupId) {
