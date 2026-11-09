@@ -23,6 +23,12 @@ function isValidIanaTimeZone(timeZone: string): boolean {
 	}
 }
 
+const timeZoneSchema = z
+	.string()
+	.min(1)
+	.max(100)
+	.refine(isValidIanaTimeZone, "Expected an IANA timezone");
+
 function isUnique(values: readonly string[]): boolean {
 	return new Set(values).size === values.length;
 }
@@ -37,10 +43,7 @@ export const createMeetingSchema = z.object({
 		.string()
 		.regex(HOUR_MINUTE_SECOND_REGEX, "Expected a time in HH:MM:SS"),
 	/** IANA zone the times were entered in, e.g. "America/Los_Angeles". */
-	timezone: z
-		.string()
-		.min(1)
-		.refine(isValidIanaTimeZone, "Expected an IANA timezone"),
+	timezone: timeZoneSchema,
 	/**
 	 * ISO instants from `Date#toISOString()` — real dates for a "dates"
 	 * meeting, `ANCHOR_DATES` for a "days" meeting. `datetime()` accepts the
@@ -154,7 +157,7 @@ export type MeetingListItem = {
 export const saveAvailabilitySchema = z.object({
 	meetingAvailabilityTimes: z.array(z.string().datetime()),
 	ifNeededAvailabilityTimes: z.array(z.string().datetime()),
-	timezone: z.string().min(1).max(100).optional(),
+	timezone: timeZoneSchema.optional(),
 });
 
 export type SaveAvailabilityInput = z.infer<typeof saveAvailabilitySchema>;
