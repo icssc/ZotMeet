@@ -4,18 +4,16 @@ import { cn } from "@/lib/utils";
 
 /**
  * Native counterpart to the web app's `FilterChip`: a flat toggle showing a
- * label and a count, filled with the MUI secondary navy when active and the
+ * label, filled with the MUI secondary navy when active and the
  * `action.hover` wash when not. The web sizes it up at `sm`; this is the
  * `xs` size, which is the only one a phone shows.
  */
 export function FilterChip({
 	label,
-	count,
 	active,
 	onPress,
 }: {
 	label: string;
-	count: number;
 	active: boolean;
 	onPress: () => void;
 }) {
@@ -35,7 +33,7 @@ export function FilterChip({
 					active ? "text-secondary-main-foreground" : "text-foreground",
 				)}
 			>
-				{label} {count}
+				{label}
 			</Text>
 		</Pressable>
 	);
