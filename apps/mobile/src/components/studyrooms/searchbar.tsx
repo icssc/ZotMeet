@@ -24,8 +24,10 @@ export function formatTime(date: Date): string {
 }
 export default function SearchBar({
 	buildings,
+	onChangeText,
 }: {
 	buildings: readonly string[];
+	onChangeText?: (text: string) => void;
 }) {
 	const availabilityColor = "#86efac";
 	const notAvailableColor = "#fca5a5";
@@ -72,7 +74,7 @@ export default function SearchBar({
 				}}
 				placeholder="Search Rooms"
 				startAdornment={<Icon name="search" size={28} />}
-				onSubmitEditing={(e) => handleSearch(e.nativeEvent.text)}
+				onChangeText={onChangeText}
 				autoCapitalize="none"
 				autoCorrect={false}
 				returnKeyType="search"
