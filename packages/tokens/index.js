@@ -143,7 +143,7 @@ const dark = {
 	"action-hover": "0 0% 18%" /* rgba(255,255,255,0.08) on #1C1B1B */,
 	divider: "0 0% 26%",
 	"card-muted-foreground": "215 20.2% 65.1%",
-	"card-gradient": "0 30% 22%",
+	"card-gradient": "344 30% 22%",
 
 	"secondary-main": "222.2 37.4% 19.4%",
 	"secondary-main-foreground": "0 0% 100%",
