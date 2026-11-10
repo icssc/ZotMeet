@@ -1,8 +1,3 @@
-// Web counterpart: src/components/studyrooms/heatmap/rooms-heatmap.tsx
-// Differences: RN Views instead of MUI Table; room column is pinned outside the
-// horizontal ScrollView (instead of position: sticky); tapping a slot opens its
-// booking URL via Linking (no tooltip); sort is three Buttons instead of a Select;
-// recordRecentRoom is left out until mobile has recents.
 import type { StudyRooms } from "@zotmeet/shared";
 import { useMemo, useState } from "react";
 import { Linking, Pressable, ScrollView, View } from "react-native";
@@ -98,18 +93,6 @@ export const RoomsHeatmap = ({
 
 	return (
 		<View className="w-full">
-			<View className="flex-row items-center gap-2 px-4 py-2">
-				{(["default", "capacity", "availability"] as const).map((key) => (
-					<Button
-						key={key}
-						size="small"
-						variant={sortBy === key ? "contained" : "outlined"}
-						label={key[0].toUpperCase() + key.slice(1)}
-						onPress={() => setSortBy(key)}
-					/>
-				))}
-			</View>
-
 			<View className="flex-row">
 				<View style={{ width: NAME_W }} className="bg-background">
 					<View style={{ height: HEADER_H }} className="justify-center px-2">

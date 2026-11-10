@@ -1,6 +1,3 @@
-// Web counterpart: src/lib/rooms/utils.ts
-// TEMPORARY STAND-INS: replace with web's implementations (or move both to
-// @zotmeet/shared) so mobile and web bucket slots identically.
 import type { StudyRooms } from "@zotmeet/shared";
 
 type Slot = StudyRooms["data"][number]["slots"][number];
