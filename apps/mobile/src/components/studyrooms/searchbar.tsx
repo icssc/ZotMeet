@@ -90,7 +90,7 @@ export default function SearchBar({
 					Filter & Sort
 				</Text>
 			</Pressable>
-			<View className="bg-background p-1">
+			<View className="p-1">
 				<Drawer open={isDrawerOpen} onClose={() => closeDrawer()}>
 					<Legend
 						availabilityColor={availabilityColor}
