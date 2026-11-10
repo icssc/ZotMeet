@@ -1,5 +1,5 @@
 import type { StudyRooms, StudyRoomsByFilters } from "@/lib/types/studyrooms";
-
+//unused??
 export async function getStudyRooms(dates: string, times: string) {
 	const query: StudyRoomsByFilters = { dates, times };
 	const params = new URLSearchParams(
