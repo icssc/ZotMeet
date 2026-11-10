@@ -2,12 +2,6 @@ import { RefreshControl, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/text";
 
-/**
- * Shared page chrome: safe-area padding, a title block, and a scrolling body.
- * Roughly the native equivalent of the web app's `px-4 py-8 sm:px-8` wrapper.
- * Pass `scroll={false}` when the screen manages its own scrolling and pins
- * something (e.g. a search bar) to the bottom.
- */
 export function Screen({
 	title,
 	subtitle,

@@ -1,7 +1,3 @@
-// Web counterpart: src/app/.../rooms/page.tsx
-// Differences: SearchBar replaces web's MobileIsland + Drawer; no filter sheet yet;
-// search is not debounced (useMemo instead of web's ref/timer/startTransition).
-
 import type { StudyRooms } from "@zotmeet/shared";
 import { fetchStudyRoomsShared } from "@zotmeet/shared/src/studyrooms/get-rooms";
 import { useEffect, useMemo, useState } from "react";
@@ -58,8 +54,6 @@ export function getDefaultWindow() {
 	return { start, end };
 }
 
-// ASSUMPTION: formats below. Copy whatever web's Sidebar passes to
-// fetchStudyRoomsShared for `date` and `timeRange`.
 const pad = (n: number) => String(n).padStart(2, "0");
 const toDateParam = (d: Date) =>
 	`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
