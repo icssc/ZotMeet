@@ -107,36 +107,38 @@ export default function RoomsScreen() {
 	const insets = useSafeAreaInsets();
 	return (
 		<Screen title="Rooms" scroll={false}>
-			<KeyboardAvoidingView
+			<ScrollView
 				className="flex-1"
-				behavior={Platform.OS === "ios" ? "padding" : undefined}
+				contentContainerClassName="pb-28" // room so the last rows scroll above the bar
+				keyboardShouldPersistTaps="handled"
+				keyboardDismissMode="on-drag"
 			>
-				<ScrollView
-					className="flex-1"
-					keyboardShouldPersistTaps="handled"
-					keyboardDismissMode="on-drag"
-				>
-					{filteredRooms === null ? (
-						<Text className="p-4 text-muted-foreground">
-							Loading available rooms...
-						</Text>
-					) : error ? (
-						<Text className="p-4 text-destructive">{error}</Text>
-					) : filteredRooms.length === 0 ? (
-						<Text className="p-4 text-muted-foreground">
-							No rooms match your search. Try different dates or filters.
-						</Text>
-					) : (
-						<RoomsHeatmap
-							rooms={filteredRooms}
-							searchDate={defaultDate}
-							startTime={defaultStart}
-							endTime={defaultEnd}
-						/>
-					)}
-				</ScrollView>
+				{filteredRooms === null ? (
+					<Text className="p-4 text-muted-foreground">
+						Loading available rooms...
+					</Text>
+				) : error ? (
+					<Text className="p-4 text-destructive">{error}</Text>
+				) : filteredRooms.length === 0 ? (
+					<Text className="p-4 text-muted-foreground">
+						No rooms match your search. Try different dates or filters.
+					</Text>
+				) : (
+					<RoomsHeatmap
+						rooms={filteredRooms}
+						searchDate={defaultDate}
+						startTime={defaultStart}
+						endTime={defaultEnd}
+					/>
+				)}
+			</ScrollView>
 
-				<View className="px-4 pt-2 pb-2">
+			<KeyboardAvoidingView
+				pointerEvents="box-none"
+				behavior={Platform.OS === "ios" ? "padding" : undefined}
+				className="absolute inset-x-0 bottom-0"
+			>
+				<View className="px-4 pb-6" pointerEvents="box-none">
 					<SearchBar buildings={BUILDINGS} onChangeText={setQuery} />
 				</View>
 			</KeyboardAvoidingView>
