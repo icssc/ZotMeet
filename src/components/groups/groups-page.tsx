@@ -142,16 +142,16 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 						input: {
 							startAdornment: (
 								<SearchIcon
-									sx={{ fontSize: 20, color: "text.disabled", mr: 0.5 }}
+									sx={{ fontSize: 24, color: "action.active", mr: 1.25 }}
 								/>
 							),
 						},
 					}}
 					sx={{
-						width: { xs: "100%", sm: "auto" },
-						flex: { xs: "none", sm: "1 1 0%" },
-						minWidth: { sm: 0 },
-						maxWidth: { sm: 460 },
+						width: { xs: "100%", sm: 363 },
+						"& .MuiOutlinedInput-notchedOutline": {
+							borderColor: "divider",
+						},
 					}}
 				/>
 
@@ -184,7 +184,7 @@ export function GroupsPage({ groups, notifications }: GroupsPageProps) {
 				</Box>
 			</Box>
 
-			<Box sx={{ mt: 2, display: "flex", gap: 0.5 }}>
+			<Box sx={{ mt: 1.5, display: "flex", gap: 0.5 }}>
 				<FilterChip
 					label="All"
 					count={counts.all}
