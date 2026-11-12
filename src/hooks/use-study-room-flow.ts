@@ -26,15 +26,11 @@ export interface BestTimeRooms extends BestTime {
 
 export interface StudyRoomFlow {
 	times: BestTimeRooms[];
-	/** Days-of-week meetings have no calendar date to book a room on. */
 	isUnsupported: boolean;
 	isLoading: boolean;
-	/** How many best-time lookups failed. */
 	errorCount: number;
 	retry: () => void;
-	/** The tab's "ROOMS · m"; null while any lookup is loading. */
 	roomCount: number | null;
-	/** Total the "x/y free" pill counts: members who have responded. */
 	memberCount: number;
 }
 
@@ -50,30 +46,41 @@ function queryKey({ date, timeRange }: { date: string; timeRange: string }) {
 	return `${date}|${timeRange}`;
 }
 
-/**
- * Best times plus the study rooms free during each. One API call per best
- * time, cached by query for the page's life, so saving availability or
- * toggling "Show more times" only fetches the windows it hasn't seen.
- */
 export function useStudyRoomFlow({
+	meetingId,
 	enabled,
 	isAnchorMeeting,
 	availabilityDates,
 	ifNeededDates,
-	respondedMembers,
+	members,
+	pendingMembers,
 	fromTimeMinutes,
 	blockCount,
 	timeZone,
 }: {
+	meetingId: string;
 	enabled: boolean;
 	isAnchorMeeting: boolean;
 	availabilityDates: ZotDate[];
 	ifNeededDates: ZotDate[];
-	respondedMembers: Member[];
+	members: Member[];
+	pendingMembers: Member[];
 	fromTimeMinutes: number;
 	blockCount: number;
 	timeZone: string;
 }): StudyRoomFlow {
+	const resetForMeetingId = useRef<string | null>(null);
+	useEffect(() => {
+		if (resetForMeetingId.current === meetingId) return;
+		resetForMeetingId.current = meetingId;
+		useRoomFlowStore.getState().reset();
+	}, [meetingId]);
+
+	const respondedMembers = useMemo(() => {
+		const pendingIds = new Set(pendingMembers.map((m) => m.memberId));
+		return members.filter((m) => !pendingIds.has(m.memberId));
+	}, [members, pendingMembers]);
+
 	const showMoreTimes = useRoomFlowStore((state) => state.showMoreTimes);
 	const [results, setResults] = useState<ReadonlyMap<string, QueryResult>>(
 		() => new Map(),
@@ -208,12 +215,12 @@ export function useStudyRoomFlow({
 	// No count while any lookup is unsettled: a failed one's rooms are
 	// unknown, and counting without them would understate the total.
 	const roomCount = useMemo(() => {
-		if (isLoading || errorCount > 0) return null;
+		if (isAnchorMeeting || isLoading || errorCount > 0) return null;
 		return countRoomsFreeForAnyBestTime(
 			new Map(times.map((t) => [t.id, t.rooms])),
 			times,
 		);
-	}, [isLoading, errorCount, times]);
+	}, [isAnchorMeeting, isLoading, errorCount, times]);
 
 	return {
 		times,
