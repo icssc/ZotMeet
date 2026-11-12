@@ -15,7 +15,10 @@ import {
 	INSUFFICIENT_SCOPE_REASON,
 } from "@/lib/google-calendar/snapshot";
 
-const RECONNECT_GOOGLE_ERRORS = new Set<string>(["No OAuth refresh token"]);
+const RECONNECT_GOOGLE_ERRORS = new Set<string>([
+	"No OAuth refresh token",
+	"OAuth grant rejected",
+]);
 
 const CALENDAR_REASON_MESSAGES: Record<string, string> = {
 	non_contiguous_schedule:

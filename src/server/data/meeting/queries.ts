@@ -170,6 +170,13 @@ export async function getMeetings(memberId: string) {
 	return userMeetings;
 }
 
+export function hasAnyAvailabilitySlot() {
+	return or(
+		sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+		sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+	);
+}
+
 export async function getResponderCountsByMeetingIds(
 	meetingIds: string[],
 ): Promise<Record<string, number>> {
@@ -186,10 +193,7 @@ export async function getResponderCountsByMeetingIds(
 		.where(
 			and(
 				inArray(availabilities.meetingId, meetingIds),
-				or(
-					sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
-					sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
-				),
+				hasAnyAvailabilitySlot(),
 			),
 		)
 

@@ -4,8 +4,9 @@ import { createHash } from "node:crypto";
 import {
 	getExistingMeeting,
 	getScheduledTimeBlocks,
+	hasAnyAvailabilitySlot,
 } from "@data/meeting/queries";
-import { and, desc, eq, inArray, notInArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, notInArray } from "drizzle-orm";
 import {
 	type Auth,
 	type calendar_v3,
@@ -481,13 +482,7 @@ export async function syncMeetingToAllMemberCalendars(
 			.select({ memberId: availabilities.memberId })
 			.from(availabilities)
 			.where(
-				and(
-					eq(availabilities.meetingId, meetingId),
-					or(
-						sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
-						sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
-					),
-				),
+				and(eq(availabilities.meetingId, meetingId), hasAnyAvailabilitySlot()),
 			)
 	).map((row) => row.memberId);
 

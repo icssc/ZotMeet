@@ -11,6 +11,7 @@ export type ValidateOAuthAccessTokenError =
 	| "Not authenticated"
 	| "No OAuth refresh token"
 	| "No valid session"
+	| "OAuth grant rejected"
 	| "Failed to refresh OAuth token";
 
 export type OAuthTokenResult =
@@ -47,6 +48,10 @@ async function refreshGoogleAccessTokenForSession(
 				client_id: process.env.OIDC_CLIENT_ID!,
 			}),
 		});
+
+		if (response.status === 400 || response.status === 401) {
+			return { accessToken: null, error: "OAuth grant rejected" };
+		}
 
 		if (!response.ok) {
 			throw new Error("Token refresh failed");

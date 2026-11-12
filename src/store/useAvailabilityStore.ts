@@ -175,7 +175,7 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 
 	replaceEntireSelection: (timestamps: string[]) => {
 		set((state) => {
-			if (state.scheduleEditsLocked) return {};
+			if (state.scheduleEditsLocked) return state;
 			const newSelection = new Set(timestamps);
 			const pendingRemovals = new Set<string>();
 			const pendingAdds = new Set<string>();

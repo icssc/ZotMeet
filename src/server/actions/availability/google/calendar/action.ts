@@ -1,7 +1,10 @@
 "use server";
 
-import { getExistingMeeting } from "@data/meeting/queries";
-import { and, eq, or, sql } from "drizzle-orm";
+import {
+	getExistingMeeting,
+	hasAnyAvailabilitySlot,
+} from "@data/meeting/queries";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
@@ -118,10 +121,7 @@ export async function addMeetingToMyGoogleCalendar({
 				and(
 					eq(availabilities.meetingId, meetingId),
 					eq(availabilities.memberId, user.memberId),
-					or(
-						sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
-						sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
-					),
+					hasAnyAvailabilitySlot(),
 				),
 			)
 			.limit(1);
