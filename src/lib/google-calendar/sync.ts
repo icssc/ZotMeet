@@ -5,7 +5,7 @@ import {
 	getExistingMeeting,
 	getScheduledTimeBlocks,
 } from "@data/meeting/queries";
-import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, notInArray, or, sql } from "drizzle-orm";
 import {
 	type Auth,
 	type calendar_v3,
@@ -495,6 +495,36 @@ export async function syncMeetingToAllMemberCalendars(
 		new Set([...respondingMemberIds, meeting.hostId]),
 	);
 
+	const staleRows = await db
+		.select({ memberId: meetingGoogleCalendarEvents.memberId })
+		.from(meetingGoogleCalendarEvents)
+		.where(
+			and(
+				eq(meetingGoogleCalendarEvents.meetingId, meetingId),
+				notInArray(meetingGoogleCalendarEvents.memberId, syncMemberIds),
+			),
+		);
+
+	const staleRemovals = await runBounded(
+		staleRows,
+		FANOUT_CONCURRENCY,
+		async (row) => {
+			const result = await unsyncMeetingFromMemberCalendar({
+				meetingId,
+				memberId: row.memberId,
+			});
+			if (result.status !== "failed") return null;
+			return {
+				status: "failed" as const,
+				memberId: row.memberId,
+				reason: result.reason ?? "google_delete_failed",
+			};
+		},
+	);
+	const staleFailures = staleRemovals.filter(
+		(entry): entry is NonNullable<typeof entry> => entry !== null,
+	);
+
 	const sessionRows = await db
 		.select({ memberId: users.memberId, session: sessions })
 		.from(users)
@@ -555,7 +585,7 @@ export async function syncMeetingToAllMemberCalendars(
 		},
 	);
 
-	return tallyOutcome(entries);
+	return tallyOutcome([...entries, ...staleFailures]);
 }
 
 export async function unsyncMeetingFromMemberCalendar({

@@ -15,10 +15,7 @@ import {
 	INSUFFICIENT_SCOPE_REASON,
 } from "@/lib/google-calendar/snapshot";
 
-const RECONNECT_GOOGLE_ERRORS = new Set([
-	"No OAuth refresh token",
-	"Failed to refresh OAuth token",
-]);
+const RECONNECT_GOOGLE_ERRORS = new Set<string>(["No OAuth refresh token"]);
 
 const CALENDAR_REASON_MESSAGES: Record<string, string> = {
 	non_contiguous_schedule:
@@ -99,6 +96,12 @@ export function AddToCalendarButton({
 					if (RECONNECT_GOOGLE_ERRORS.has(response.error)) {
 						showError("Connect Google to add events to your calendar.");
 						router.push(oauthLoginPath("google", pathname));
+						return;
+					}
+					if (response.error === "Failed to refresh OAuth token") {
+						showError(
+							"Could not refresh your Google connection. Please try again in a moment.",
+						);
 						return;
 					}
 					showError(`Could not sync to Google Calendar: ${response.error}.`);

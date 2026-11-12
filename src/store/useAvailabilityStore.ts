@@ -47,6 +47,7 @@ interface AvailabilityStore {
 	hasHydratedScheduledTimes: boolean;
 	pendingAdds: Set<string>;
 	pendingRemovals: Set<string>;
+	scheduleEditsLocked: boolean;
 	replaceEntireSelection: (timestamps: string[]) => void;
 	commitPendingTimes: () => void;
 	clearPendingTimes: () => void;
@@ -170,9 +171,11 @@ export const useAvailabilityStore = create<AvailabilityStore>((set, get) => ({
 	hasHydratedScheduledTimes: false,
 	pendingAdds: new Set<string>(),
 	pendingRemovals: new Set<string>(),
+	scheduleEditsLocked: false,
 
 	replaceEntireSelection: (timestamps: string[]) => {
 		set((state) => {
+			if (state.scheduleEditsLocked) return {};
 			const newSelection = new Set(timestamps);
 			const pendingRemovals = new Set<string>();
 			const pendingAdds = new Set<string>();

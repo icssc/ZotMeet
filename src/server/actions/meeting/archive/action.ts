@@ -28,7 +28,11 @@ export async function archiveMeeting(
 	let storedMeeting: Awaited<ReturnType<typeof getExistingMeeting>>;
 	try {
 		storedMeeting = await getExistingMeeting(meetingId);
-	} catch {
+	} catch (error) {
+		console.error("archiveMeeting: failed to load meeting", {
+			meetingId,
+			error,
+		});
 		return { error: "Meeting not found." };
 	}
 

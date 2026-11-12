@@ -1,7 +1,7 @@
 "use server";
 
 import { getExistingMeeting } from "@data/meeting/queries";
-import { and, eq } from "drizzle-orm";
+import { and, eq, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
@@ -102,7 +102,11 @@ export async function addMeetingToMyGoogleCalendar({
 	let meeting: Awaited<ReturnType<typeof getExistingMeeting>>;
 	try {
 		meeting = await getExistingMeeting(meetingId);
-	} catch {
+	} catch (error) {
+		console.error("addMeetingToMyGoogleCalendar: failed to load meeting", {
+			meetingId,
+			error,
+		});
 		return { success: false, error: "Meeting not found" };
 	}
 
@@ -114,6 +118,10 @@ export async function addMeetingToMyGoogleCalendar({
 				and(
 					eq(availabilities.meetingId, meetingId),
 					eq(availabilities.memberId, user.memberId),
+					or(
+						sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+						sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+					),
 				),
 			)
 			.limit(1);

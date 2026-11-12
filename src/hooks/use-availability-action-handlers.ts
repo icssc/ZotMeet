@@ -120,6 +120,7 @@ export function useAvailabilityActionHandlers({
 		async (opts?: { skipExitToGroup?: boolean }): Promise<boolean> => {
 			if (isMeetingDeletionPending || isScheduleSavingRef.current) return false;
 			isScheduleSavingRef.current = true;
+			useAvailabilityStore.setState({ scheduleEditsLocked: true });
 			setIsScheduleSaving(true);
 			try {
 				const { pendingAdds, pendingRemovals } =
@@ -181,6 +182,7 @@ export function useAvailabilityActionHandlers({
 				return false;
 			} finally {
 				isScheduleSavingRef.current = false;
+				useAvailabilityStore.setState({ scheduleEditsLocked: false });
 				setIsScheduleSaving(false);
 			}
 		},

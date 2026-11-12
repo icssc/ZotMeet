@@ -22,20 +22,6 @@ export type CommitMeetingScheduleBlock = {
 	scheduledToTime: string;
 };
 
-/**
- * Atomic schedule commit for the host. Applies only the host's changes
- * (`removals`, then `additions`) to `scheduled_meetings` in a single
- * transaction, so a stale client cannot overwrite blocks it never touched.
- * It then sets `meetings.scheduled` from the remaining block count and
- * reconciles the stored schedule against every eligible member's primary
- * Google Calendar:
- *   - blocks remain   → fan-out add/update via `syncMeetingToAllMemberCalendars`
- *   - none remain     → fan-out delete via `unsyncMeetingFromAllMemberCalendars`
- *     so previously-synced events don't linger when the host unschedules.
- *
- * Fan-out runs *after* the DB transaction commits so a partial Google API
- * failure cannot roll back the local schedule.
- */
 export async function commitMeetingSchedule({
 	meetingId,
 	additions,
