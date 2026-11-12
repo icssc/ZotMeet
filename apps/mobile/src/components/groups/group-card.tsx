@@ -40,7 +40,7 @@ export function GroupCard({
 					pointerEvents="none"
 					className="absolute inset-0"
 					style={{
-						experimental_backgroundImage: `linear-gradient(to right, transparent 44.7%, ${colors.cardGradient})`,
+						experimental_backgroundImage: `linear-gradient(to right, ${colors.card} 44.7%, ${colors.cardGradient})`,
 					}}
 				/>
 			) : null}
