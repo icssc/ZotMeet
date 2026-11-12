@@ -1,5 +1,11 @@
-import type { GroupListItem } from "@zotmeet/shared";
-import { useState } from "react";
+import {
+	buildGroupsListModel,
+	GROUPS_LIST_FILTER_LABELS,
+	GROUPS_LIST_FILTERS,
+	type GroupListItem,
+	type GroupsListFilter,
+} from "@zotmeet/shared";
+import { useMemo, useState } from "react";
 import { Image, Pressable, View } from "react-native";
 import { GroupCard } from "@/components/groups/group-card";
 import { FilterChip } from "@/components/ui/filter-chip";
@@ -10,14 +16,6 @@ import { Typography } from "@/components/ui/typography";
 import { Icon } from "@/lib/icons";
 
 /** Native counterpart to the web app's `GroupsPage` (`src/components/groups/`). */
-
-type GroupsFilter = "all" | "created" | "upcoming";
-
-const FILTERS: { value: GroupsFilter; label: string }[] = [
-	{ value: "all", label: "All" },
-	{ value: "created", label: "By You" },
-	{ value: "upcoming", label: "Upcoming" },
-];
 
 const INITIAL_ACTION_REQUIRED_COUNT = 2;
 
@@ -31,11 +29,13 @@ export function GroupsPage({
 	refreshing?: boolean;
 }) {
 	const [search, setSearch] = useState("");
-	const [activeFilter, setActiveFilter] = useState<GroupsFilter>("all");
+	const [activeFilter, setActiveFilter] = useState<GroupsListFilter>("all");
 	const [showAllActionRequired, setShowAllActionRequired] = useState(false);
 
-	const actionRequired = groups.filter((group) => group.needsAvailability);
-	const rest = groups.filter((group) => !group.needsAvailability);
+	const { actionRequired, rest, isEmpty, isFilteredEmpty } = useMemo(
+		() => buildGroupsListModel({ groups, search, filter: activeFilter }),
+		[groups, search, activeFilter],
+	);
 
 	const visibleActionRequired = showAllActionRequired
 		? actionRequired
@@ -80,19 +80,25 @@ export function GroupsPage({
 					}
 				/>
 				<View className="flex-row gap-1.5">
-					{FILTERS.map((filter) => (
+					{GROUPS_LIST_FILTERS.map((filter) => (
 						<FilterChip
-							key={filter.value}
-							label={filter.label}
-							active={activeFilter === filter.value}
-							onPress={() => setActiveFilter(filter.value)}
+							key={filter}
+							label={GROUPS_LIST_FILTER_LABELS[filter]}
+							active={activeFilter === filter}
+							onPress={() => setActiveFilter(filter)}
 						/>
 					))}
 				</View>
 			</View>
 
-			{groups.length === 0 ? (
-				<EmptyState />
+			{isEmpty || isFilteredEmpty ? (
+				<EmptyState
+					message={
+						isEmpty
+							? "Create your first group to start scheduling meetings."
+							: "No groups found!"
+					}
+				/>
 			) : (
 				<>
 					{actionRequired.length > 0 ? (
@@ -146,7 +152,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 	);
 }
 
-function EmptyState() {
+function EmptyState({ message }: { message: string }) {
 	return (
 		<View className="items-center gap-3 py-24">
 			<Image
@@ -161,7 +167,7 @@ function EmptyState() {
 				align="center"
 				className="max-w-xs pt-2 font-figtree-italic"
 			>
-				Create your first group to start scheduling meetings.
+				{message}
 			</Typography>
 		</View>
 	);

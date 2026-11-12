@@ -19,8 +19,8 @@ export function Avatar({
 	className?: string;
 	children?: React.ReactNode;
 }) {
-	const [failed, setFailed] = useState(false);
-	const showImage = Boolean(src) && !failed;
+	const [failedSrc, setFailedSrc] = useState<string | null>(null);
+	const showImage = Boolean(src) && src !== failedSrc;
 
 	return (
 		<View
@@ -37,7 +37,7 @@ export function Avatar({
 			{showImage ? (
 				<Image
 					source={{ uri: src ?? undefined }}
-					onError={() => setFailed(true)}
+					onError={() => setFailedSrc(src ?? null)}
 					style={{ width: size, height: size }}
 					resizeMode="cover"
 				/>

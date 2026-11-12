@@ -5,7 +5,7 @@ import { ApiError } from "@/lib/api/client";
 import { getGroups } from "@/lib/api/groups";
 import { useAuthStore } from "@/store/useAuthStore";
 
-/** Loads the Groups tab through `GET /api/groups`; same refetch rules as `useMeetings`. */
+/** Loads the Groups tab through `GET /api/groups`, like `useMeetings`, but a failed quiet refetch keeps the loaded list. */
 
 export type GroupsState =
 	| { status: "loading" }
@@ -42,11 +42,17 @@ export function useGroups(): GroupsState & {
 			if (error instanceof ApiError && error.status === 401) {
 				setState({ status: "unauthorized" });
 			} else {
-				setState({
-					status: "error",
-					error:
-						error instanceof Error ? error.message : "Failed to load groups.",
-				});
+				setState((prev) =>
+					quiet && prev.status === "ready"
+						? prev
+						: {
+								status: "error",
+								error:
+									error instanceof Error
+										? error.message
+										: "Failed to load groups.",
+							},
+				);
 			}
 		} finally {
 			if (isCurrent()) setRefreshing(false);
