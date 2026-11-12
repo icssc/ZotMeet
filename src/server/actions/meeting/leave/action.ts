@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { availabilities, meetings, type SelectMeeting } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { validateGoogleAccessToken } from "@/lib/auth/google";
-import { removeMeetingGoogleCalendarEvent } from "@/server/actions/availability/google/calendar/action";
+import { removeMeetingGoogleCalendarEvent } from "@/lib/google-calendar/sync";
 
 export type MeetingMemberActionResult =
 	| { success: true; error?: undefined }

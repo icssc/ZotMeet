@@ -9,7 +9,7 @@ import {
 	type FanOutOutcome,
 	syncMeetingToAllMemberCalendars,
 	unsyncMeetingFromAllMemberCalendars,
-} from "@/server/actions/availability/google/calendar/action";
+} from "@/lib/google-calendar/sync";
 import { getExistingMeeting } from "@/server/data/meeting/queries";
 
 export type CommitMeetingScheduleResult =

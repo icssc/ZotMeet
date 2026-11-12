@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import { Availability } from "@/components/availability/availability";
 import { getCurrentSession } from "@/lib/auth";
+import { computeMergedScheduledInterval } from "@/lib/google-calendar/sync";
 import {
 	OPEN_INVITE_AFTER_CREATE_PARAM,
 	OPEN_INVITE_AFTER_CREATE_VALUE,
 } from "@/lib/meeting-open-invite";
-import { loadMergedScheduledInterval } from "@/server/actions/availability/google/calendar/action";
 import {
 	getAllMemberAvailability,
 	getExistingMeeting,
@@ -69,18 +69,21 @@ export default async function Page(props: PageProps) {
 	const [
 		allAvailabilities,
 		scheduledBlocks,
-		mergedScheduledInterval,
 		googleCalendarLinkSnapshot,
 		rawSearch,
 	] = await Promise.all([
 		getAllMemberAvailability({ meetingId: meetingData.id }),
 		getScheduledTimeBlocks(meetingData.id),
-		loadMergedScheduledInterval(meetingData.id),
 		session.user
 			? getMeetingGoogleCalendarSnapshot(meetingData.id, session.user.memberId)
 			: Promise.resolve(null),
 		props.searchParams,
 	]);
+
+	const mergedScheduledInterval = computeMergedScheduledInterval(
+		scheduledBlocks,
+		meetingData.timezone,
+	);
 
 	const openInviteRaw = rawSearch[OPEN_INVITE_AFTER_CREATE_PARAM];
 	const openInviteFlag = Array.isArray(openInviteRaw)

@@ -7,7 +7,7 @@ import { getCurrentSession } from "@/lib/auth";
 import {
 	type FanOutOutcome,
 	unsyncMeetingFromAllMemberCalendars,
-} from "@/server/actions/availability/google/calendar/action";
+} from "@/lib/google-calendar/sync";
 
 export type ArchiveMeetingResult =
 	| { success: true; calendarOutcome: FanOutOutcome; error?: undefined }

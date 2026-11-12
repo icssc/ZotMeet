@@ -4,12 +4,16 @@ import { addMeetingToMyGoogleCalendar } from "@actions/availability/google/calen
 import { Cached, Check } from "@mui/icons-material";
 import GoogleIcon from "@mui/icons-material/Google";
 import { Button } from "@mui/material";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { MeetingGoogleCalendarSnapshot } from "@/db/schema";
+import { oauthLoginPath } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
-import { deriveAddToCalendarLabelState } from "@/lib/google-calendar/snapshot";
+import {
+	deriveAddToCalendarLabelState,
+	INSUFFICIENT_SCOPE_REASON,
+} from "@/lib/google-calendar/snapshot";
 
 type AddToCalendarButtonProps = {
 	meetingId: string;
@@ -27,6 +31,7 @@ export function AddToCalendarButton({
 	className,
 }: AddToCalendarButtonProps) {
 	const router = useRouter();
+	const pathname = usePathname();
 	const { showSuccess, showError } = useSnackbar();
 	const [isPending, startTransition] = useTransition();
 
@@ -62,7 +67,7 @@ export function AddToCalendarButton({
 
 	const handleClick = () => {
 		if (!user) {
-			router.push("/auth/login/google");
+			router.push(oauthLoginPath("google", pathname));
 			return;
 		}
 
@@ -78,6 +83,14 @@ export function AddToCalendarButton({
 				if (result.status === "synced") {
 					showSuccess("Synced to your Google Calendar.");
 					router.refresh();
+				} else if (
+					result.status === "skipped" &&
+					result.reason === INSUFFICIENT_SCOPE_REASON
+				) {
+					showError(
+						"Reconnect Google to allow adding events to your calendar.",
+					);
+					router.push(oauthLoginPath("google", pathname));
 				} else if (result.status === "skipped") {
 					showError(`Skipped: ${result.reason}.`);
 				} else {

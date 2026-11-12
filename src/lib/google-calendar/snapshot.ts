@@ -1,4 +1,5 @@
 import type { MeetingGoogleCalendarSnapshot } from "@/db/schema";
+export const INSUFFICIENT_SCOPE_REASON = "insufficient_scope";
 
 export function snapshotsMatch(
 	a: MeetingGoogleCalendarSnapshot,
