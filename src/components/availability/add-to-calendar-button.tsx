@@ -15,6 +15,27 @@ import {
 	INSUFFICIENT_SCOPE_REASON,
 } from "@/lib/google-calendar/snapshot";
 
+const RECONNECT_GOOGLE_ERRORS = new Set([
+	"No OAuth refresh token",
+	"Failed to refresh OAuth token",
+]);
+
+const CALENDAR_REASON_MESSAGES: Record<string, string> = {
+	non_contiguous_schedule:
+		"This meeting has separate time blocks, so it can't be added as a single event.",
+	no_access_token: "Reconnect Google to add events to your calendar.",
+};
+
+function reasonMessage(status: "skipped" | "failed", reason: string): string {
+	console.error("Add to calendar did not sync", { status, reason });
+	return (
+		CALENDAR_REASON_MESSAGES[reason] ??
+		(status === "skipped"
+			? "Could not add this meeting to your Google Calendar."
+			: "Could not sync to Google Calendar. Please try again.")
+	);
+}
+
 type AddToCalendarButtonProps = {
 	meetingId: string;
 	user: UserProfile | null;
@@ -75,6 +96,11 @@ export function AddToCalendarButton({
 			try {
 				const response = await addMeetingToMyGoogleCalendar({ meetingId });
 				if (!response.success) {
+					if (RECONNECT_GOOGLE_ERRORS.has(response.error)) {
+						showError("Connect Google to add events to your calendar.");
+						router.push(oauthLoginPath("google", pathname));
+						return;
+					}
 					showError(`Could not sync to Google Calendar: ${response.error}.`);
 					return;
 				}
@@ -92,9 +118,9 @@ export function AddToCalendarButton({
 					);
 					router.push(oauthLoginPath("google", pathname));
 				} else if (result.status === "skipped") {
-					showError(`Skipped: ${result.reason}.`);
+					showError(reasonMessage(result.status, result.reason));
 				} else {
-					showError(`Sync failed: ${result.reason}.`);
+					showError(reasonMessage(result.status, result.reason));
 				}
 			} catch (error) {
 				console.error("AddToCalendarButton error", error);

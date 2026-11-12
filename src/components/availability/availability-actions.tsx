@@ -25,6 +25,7 @@ export interface AvailabilityActionsProps {
 	handlePersonalSave: () => Promise<void>;
 	handleScheduleCancel: () => void;
 	handleScheduleSave: () => Promise<boolean>;
+	isScheduleSaving?: boolean;
 	isScheduled: boolean;
 	setChangeableTimezone: (can: boolean) => void;
 	setTimezone: (timezone: string) => void;
@@ -41,6 +42,7 @@ export function AvailabilityActions({
 	handlePersonalSave,
 	handleScheduleCancel,
 	handleScheduleSave,
+	isScheduleSaving = false,
 	isScheduled,
 	setChangeableTimezone,
 	setTimezone,
@@ -117,6 +119,7 @@ export function AvailabilityActions({
 						variant="outlined"
 						color="inherit"
 						size="small"
+						disabled={availabilityView === "schedule" && isScheduleSaving}
 						onClick={
 							availabilityView === "personal"
 								? handlePersonalCancel
@@ -129,7 +132,10 @@ export function AvailabilityActions({
 						variant="contained"
 						size="small"
 						type="submit"
-						disabled={isMeetingDeletionPending}
+						disabled={
+							isMeetingDeletionPending ||
+							(availabilityView === "schedule" && isScheduleSaving)
+						}
 						onClick={handleSaveClick}
 					>
 						Save

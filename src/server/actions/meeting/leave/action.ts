@@ -5,10 +5,13 @@ import { db } from "@/db";
 import { availabilities, meetings, type SelectMeeting } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { validateGoogleAccessToken } from "@/lib/auth/google";
-import { removeMeetingGoogleCalendarEvent } from "@/lib/google-calendar/sync";
+import {
+	removeMeetingGoogleCalendarEvent,
+	unsyncMeetingFromMemberCalendar,
+} from "@/lib/google-calendar/sync";
 
 export type MeetingMemberActionResult =
-	| { success: true; error?: undefined }
+	| { success: true; calendarCleanupFailed?: boolean; error?: undefined }
 	| { success: false; error: string };
 
 /** @deprecated Use {@link MeetingMemberActionResult} */
@@ -81,23 +84,26 @@ export async function leaveMeeting(
 			),
 		);
 
+	let calendarCleanupFailed = false;
 	try {
 		const tokenResult = await validateGoogleAccessToken();
 		if (tokenResult.accessToken) {
-			await removeMeetingGoogleCalendarEvent({
+			const removal = await removeMeetingGoogleCalendarEvent({
 				meetingId: meetingData.id,
 				memberId: user.memberId,
 				accessToken: tokenResult.accessToken,
 			});
+			calendarCleanupFailed = removal.status === "failed";
 		}
 	} catch (error) {
 		console.error(
 			"Failed to remove Google Calendar event on leaveMeeting:",
 			error,
 		);
+		calendarCleanupFailed = true;
 	}
 
-	return { success: true };
+	return { success: true, calendarCleanupFailed };
 }
 
 export async function removeMeetingMember(
@@ -145,5 +151,20 @@ export async function removeMeetingMember(
 			),
 		);
 
-	return { success: true };
+	let calendarCleanupFailed = false;
+	try {
+		const removal = await unsyncMeetingFromMemberCalendar({
+			meetingId,
+			memberId: targetMemberId,
+		});
+		calendarCleanupFailed = removal.status === "failed";
+	} catch (error) {
+		console.error(
+			"Failed to remove Google Calendar event on removeMeetingMember:",
+			error,
+		);
+		calendarCleanupFailed = true;
+	}
+
+	return { success: true, calendarCleanupFailed };
 }

@@ -8,6 +8,7 @@ import {
 	type FanOutOutcome,
 	unsyncMeetingFromAllMemberCalendars,
 } from "@/lib/google-calendar/sync";
+import { getExistingMeeting } from "@/server/data/meeting/queries";
 
 export type ArchiveMeetingResult =
 	| { success: true; calendarOutcome: FanOutOutcome; error?: undefined }
@@ -24,7 +25,14 @@ export async function archiveMeeting(
 		return { error: "You must be logged in to delete a meeting." };
 	}
 
-	if (meetingData.hostId !== user.memberId) {
+	let storedMeeting: Awaited<ReturnType<typeof getExistingMeeting>>;
+	try {
+		storedMeeting = await getExistingMeeting(meetingId);
+	} catch {
+		return { error: "Meeting not found." };
+	}
+
+	if (storedMeeting.hostId !== user.memberId) {
 		return {
 			error: "Only meeting owner has permission to delete this meeting.",
 		};

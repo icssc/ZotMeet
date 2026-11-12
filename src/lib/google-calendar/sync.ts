@@ -5,7 +5,7 @@ import {
 	getExistingMeeting,
 	getScheduledTimeBlocks,
 } from "@data/meeting/queries";
-import { and, eq, gt, inArray, isNotNull } from "drizzle-orm";
+import { and, desc, eq, inArray, or, sql } from "drizzle-orm";
 import {
 	type Auth,
 	type calendar_v3,
@@ -16,13 +16,17 @@ import {
 	availabilities,
 	type MeetingGoogleCalendarSnapshot,
 	meetingGoogleCalendarEvents,
-	members,
 	type SelectMeeting,
 	type SelectScheduledMeeting,
 	sessions,
 	users,
 } from "@/db/schema";
-import { getGoogleAccessTokenForUser } from "@/lib/auth/google";
+import {
+	getGoogleAccessTokenForUser,
+	getGoogleAccessTokenFromSessions,
+	SESSION_FALLBACK_LIMIT,
+	usableGoogleSessionCondition,
+} from "@/lib/auth/google";
 import { INSUFFICIENT_SCOPE_REASON } from "@/lib/google-calendar/snapshot";
 import {
 	formatDateInTimezone,
@@ -476,42 +480,55 @@ export async function syncMeetingToAllMemberCalendars(
 		await db
 			.select({ memberId: availabilities.memberId })
 			.from(availabilities)
-			.where(eq(availabilities.meetingId, meetingId))
+			.where(
+				and(
+					eq(availabilities.meetingId, meetingId),
+					or(
+						sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+						sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+					),
+				),
+			)
 	).map((row) => row.memberId);
 
 	const syncMemberIds = Array.from(
 		new Set([...respondingMemberIds, meeting.hostId]),
 	);
 
-	const eligibleRows = await db
-		.selectDistinct({
-			memberId: members.id,
-			userId: users.id,
-		})
-		.from(members)
-		.innerJoin(users, eq(users.memberId, members.id))
+	const sessionRows = await db
+		.select({ memberId: users.memberId, session: sessions })
+		.from(users)
 		.innerJoin(
 			sessions,
-			and(
-				eq(sessions.userId, users.id),
-				gt(sessions.expiresAt, new Date()),
-				isNotNull(sessions.oidcRefreshToken),
-			),
+			and(eq(sessions.userId, users.id), usableGoogleSessionCondition()),
 		)
-		.where(inArray(members.id, syncMemberIds));
+		.where(inArray(users.memberId, syncMemberIds))
+		.orderBy(desc(sessions.expiresAt));
 
-	const seen = new Set<string>();
-	const eligible = eligibleRows.filter((row) => {
-		if (seen.has(row.memberId)) return false;
-		seen.add(row.memberId);
-		return true;
-	});
+	const sessionsByMember = new Map<
+		string,
+		Array<typeof sessions.$inferSelect>
+	>();
+	for (const row of sessionRows) {
+		if (!row.memberId) continue;
+		const candidates = sessionsByMember.get(row.memberId) ?? [];
+		if (candidates.length < SESSION_FALLBACK_LIMIT) {
+			candidates.push(row.session);
+		}
+		sessionsByMember.set(row.memberId, candidates);
+	}
+	const eligible = Array.from(sessionsByMember, ([memberId, candidates]) => ({
+		memberId,
+		candidates,
+	}));
 
 	const entries = await runBounded(
 		eligible,
 		FANOUT_CONCURRENCY,
 		async (row) => {
-			const tokenResult = await getGoogleAccessTokenForUser(row.userId);
+			const tokenResult = await getGoogleAccessTokenFromSessions(
+				row.candidates,
+			);
 			if (tokenResult.error || !tokenResult.accessToken) {
 				return {
 					status: "skipped" as const,
@@ -539,6 +556,44 @@ export async function syncMeetingToAllMemberCalendars(
 	);
 
 	return tallyOutcome(entries);
+}
+
+export async function unsyncMeetingFromMemberCalendar({
+	meetingId,
+	memberId,
+}: {
+	meetingId: string;
+	memberId: string;
+}): Promise<{ status: "removed" | "no_row" | "failed"; reason?: string }> {
+	const [row] = await db
+		.select({ userId: users.id })
+		.from(meetingGoogleCalendarEvents)
+		.innerJoin(users, eq(users.memberId, meetingGoogleCalendarEvents.memberId))
+		.where(
+			and(
+				eq(meetingGoogleCalendarEvents.meetingId, meetingId),
+				eq(meetingGoogleCalendarEvents.memberId, memberId),
+			),
+		)
+		.limit(1);
+
+	if (!row) {
+		return { status: "no_row" };
+	}
+
+	const tokenResult = await getGoogleAccessTokenForUser(row.userId);
+	if (tokenResult.error || !tokenResult.accessToken) {
+		return {
+			status: "failed",
+			reason: tokenResult.error ?? "no_access_token",
+		};
+	}
+
+	return removeMeetingGoogleCalendarEvent({
+		meetingId,
+		memberId,
+		accessToken: tokenResult.accessToken,
+	});
 }
 
 export async function unsyncMeetingFromAllMemberCalendars(

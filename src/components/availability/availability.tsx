@@ -352,6 +352,7 @@ export function Availability({
 		runPersonalSave,
 		handleScheduleCancel,
 		handleScheduleSave,
+		isScheduleSaving,
 		isScheduled,
 	} = useAvailabilityActionHandlers({
 		meetingData,
@@ -376,6 +377,7 @@ export function Availability({
 		handlePersonalSave,
 		handleScheduleCancel,
 		handleScheduleSave,
+		isScheduleSaving,
 		isScheduled,
 		setChangeableTimezone,
 		setTimezone: setUserTimezone,
@@ -543,6 +545,7 @@ export function Availability({
 										handleScheduleCancel={handleScheduleCancel}
 										handleScheduleSave={handleScheduleSave}
 										isMeetingDeletionPending={isMeetingDeletionPending}
+										isScheduleSaving={isScheduleSaving}
 									/>
 								) : (
 									<AvailabilityActions {...actionsProps} />
@@ -616,7 +619,9 @@ export function Availability({
 								isPersonalSaveDisabled={!user || isMeetingDeletionPending}
 								handleScheduleCancel={handleScheduleCancel}
 								runScheduleSave={runScheduleSaveForMobile}
-								isScheduleSaveDisabled={isMeetingDeletionPending}
+								isScheduleSaveDisabled={
+									isMeetingDeletionPending || isScheduleSaving
+								}
 								personalSidebarProps={personalSidebarProps}
 							/>
 						</div>

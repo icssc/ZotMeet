@@ -81,7 +81,13 @@ export const DeleteModal = ({
 					showError(result.error ?? "Something went wrong.");
 					return;
 				}
-				showSuccess(`You left "${meetingData.title}".`);
+				if (result.calendarCleanupFailed) {
+					showWarning(
+						`You left "${meetingData.title}", but we could not remove the event from your Google Calendar. You may need to delete it manually.`,
+					);
+				} else {
+					showSuccess(`You left "${meetingData.title}".`);
+				}
 			}
 
 			handleOpenChange(false);

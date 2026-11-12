@@ -2,7 +2,7 @@
 
 import { savePersonalAvailability } from "@actions/availability/save/action";
 import { commitMeetingSchedule } from "@actions/meeting/schedule/action";
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
@@ -31,7 +31,9 @@ export function useAvailabilityActionHandlers({
 	setChangeableTimezone,
 	isMeetingDeletionPending = false,
 }: UseAvailabilityActionHandlersParams) {
-	const { showError, showSuccess } = useSnackbar();
+	const { showError, showSuccess, showWarning } = useSnackbar();
+	const isScheduleSavingRef = useRef(false);
+	const [isScheduleSaving, setIsScheduleSaving] = useState(false);
 
 	const {
 		setHasAvailability,
@@ -109,22 +111,21 @@ export function useAvailabilityActionHandlers({
 	}, [runPersonalSave, exitToGroupView]);
 
 	const handleScheduleCancel = useCallback(() => {
+		if (isScheduleSavingRef.current) return;
 		clearPendingTimes();
 		setAvailabilityView("group");
 	}, [clearPendingTimes, setAvailabilityView]);
 
 	const handleScheduleSave = useCallback(
 		async (opts?: { skipExitToGroup?: boolean }): Promise<boolean> => {
-			if (isMeetingDeletionPending) return false;
+			if (isMeetingDeletionPending || isScheduleSavingRef.current) return false;
+			isScheduleSavingRef.current = true;
+			setIsScheduleSaving(true);
 			try {
-				const { scheduledTimes, pendingAdds, pendingRemovals } =
+				const { pendingAdds, pendingRemovals } =
 					useAvailabilityStore.getState();
 
-				const finalTimestamps = new Set<string>(scheduledTimes);
-				for (const ts of pendingRemovals) finalTimestamps.delete(ts);
-				for (const ts of pendingAdds) finalTimestamps.add(ts);
-
-				const blocks = Array.from(finalTimestamps).map((timestamp) => {
+				const toBlock = (timestamp: string) => {
 					const date = new Date(timestamp);
 					const scheduledDate = new Date(
 						date.getFullYear(),
@@ -136,11 +137,12 @@ export function useAvailabilityActionHandlers({
 						.toTimeString()
 						.slice(0, 8);
 					return { scheduledDate, scheduledFromTime, scheduledToTime };
-				});
+				};
 
 				const response = await commitMeetingSchedule({
 					meetingId: meetingData.id,
-					blocks,
+					additions: Array.from(pendingAdds).map(toBlock),
+					removals: Array.from(pendingRemovals).map(toBlock),
 				});
 
 				if (!response.success) {
@@ -153,10 +155,20 @@ export function useAvailabilityActionHandlers({
 				}
 
 				const { synced, skipped, failed } = response.outcome;
-				if (blocks.length > 0 && synced + skipped + failed > 0) {
-					showSuccess(
-						`Scheduled. ${synced} added to calendars, ${skipped} skipped, ${failed} failed.`,
+				if (response.remainingBlocks === 0 && failed > 0) {
+					showWarning(
+						`Schedule cleared, but the event could not be removed from ${failed} member calendar(s). They may need to delete it manually.`,
 					);
+				} else if (
+					response.remainingBlocks > 0 &&
+					synced + skipped + failed > 0
+				) {
+					const message = `Scheduled. ${synced} added to calendars, ${skipped} skipped, ${failed} failed.`;
+					if (failed > 0) {
+						showWarning(message);
+					} else {
+						showSuccess(message);
+					}
 				}
 
 				if (!opts?.skipExitToGroup) {
@@ -167,6 +179,9 @@ export function useAvailabilityActionHandlers({
 				console.error("Failed to save meeting blocks", error);
 				showError("Failed to save meeting schedule. Please try again.");
 				return false;
+			} finally {
+				isScheduleSavingRef.current = false;
+				setIsScheduleSaving(false);
 			}
 		},
 		[
@@ -174,6 +189,7 @@ export function useAvailabilityActionHandlers({
 			meetingData.id,
 			showError,
 			showSuccess,
+			showWarning,
 			commitPendingTimes,
 			setAvailabilityView,
 		],
@@ -187,6 +203,7 @@ export function useAvailabilityActionHandlers({
 		runPersonalSave,
 		handleScheduleCancel,
 		handleScheduleSave,
+		isScheduleSaving,
 		isScheduled,
 	};
 }

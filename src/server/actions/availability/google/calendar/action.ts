@@ -1,6 +1,9 @@
 "use server";
 
 import { getExistingMeeting } from "@data/meeting/queries";
+import { and, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { validateGoogleAccessToken } from "@/lib/auth/google";
 import {
@@ -101,6 +104,27 @@ export async function addMeetingToMyGoogleCalendar({
 		meeting = await getExistingMeeting(meetingId);
 	} catch {
 		return { success: false, error: "Meeting not found" };
+	}
+
+	if (meeting.hostId !== user.memberId) {
+		const [response] = await db
+			.select({ memberId: availabilities.memberId })
+			.from(availabilities)
+			.where(
+				and(
+					eq(availabilities.meetingId, meetingId),
+					eq(availabilities.memberId, user.memberId),
+				),
+			)
+			.limit(1);
+
+		if (!response) {
+			return {
+				success: false,
+				error:
+					"You must respond to this meeting before adding it to your calendar",
+			};
+		}
 	}
 
 	const interval = await loadMergedScheduledIntervalFor(meeting);

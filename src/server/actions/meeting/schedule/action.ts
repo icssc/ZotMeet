@@ -1,6 +1,6 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { meetings, scheduledMeetings } from "@/db/schema";
@@ -13,7 +13,7 @@ import {
 import { getExistingMeeting } from "@/server/data/meeting/queries";
 
 export type CommitMeetingScheduleResult =
-	| { success: true; outcome: FanOutOutcome }
+	| { success: true; outcome: FanOutOutcome; remainingBlocks: number }
 	| { success: false; error: string };
 
 export type CommitMeetingScheduleBlock = {
@@ -23,12 +23,14 @@ export type CommitMeetingScheduleBlock = {
 };
 
 /**
- * Atomic schedule commit for the host. Wipes and rewrites
- * `scheduled_meetings` for the meeting in a single transaction, flips the
- * `meetings.scheduled` flag, then reconciles the final schedule against
- * every eligible member's primary Google Calendar:
- *   - blocks present  → fan-out add/update via `syncMeetingToAllMemberCalendars`
- *   - blocks empty    → fan-out delete via `unsyncMeetingFromAllMemberCalendars`
+ * Atomic schedule commit for the host. Applies only the host's changes
+ * (`removals`, then `additions`) to `scheduled_meetings` in a single
+ * transaction, so a stale client cannot overwrite blocks it never touched.
+ * It then sets `meetings.scheduled` from the remaining block count and
+ * reconciles the stored schedule against every eligible member's primary
+ * Google Calendar:
+ *   - blocks remain   → fan-out add/update via `syncMeetingToAllMemberCalendars`
+ *   - none remain     → fan-out delete via `unsyncMeetingFromAllMemberCalendars`
  *     so previously-synced events don't linger when the host unschedules.
  *
  * Fan-out runs *after* the DB transaction commits so a partial Google API
@@ -36,10 +38,12 @@ export type CommitMeetingScheduleBlock = {
  */
 export async function commitMeetingSchedule({
 	meetingId,
-	blocks,
+	additions,
+	removals,
 }: {
 	meetingId: string;
-	blocks: CommitMeetingScheduleBlock[];
+	additions: CommitMeetingScheduleBlock[];
+	removals: CommitMeetingScheduleBlock[];
 }): Promise<CommitMeetingScheduleResult> {
 	try {
 		const { user } = await getCurrentSession();
@@ -58,14 +62,26 @@ export async function commitMeetingSchedule({
 			};
 		}
 
-		await db.transaction(async (tx) => {
-			await tx
-				.delete(scheduledMeetings)
-				.where(eq(scheduledMeetings.meetingId, meetingId));
+		const matchesBlock = (b: CommitMeetingScheduleBlock) =>
+			and(
+				eq(scheduledMeetings.meetingId, meetingId),
+				eq(scheduledMeetings.scheduledDate, b.scheduledDate),
+				eq(scheduledMeetings.scheduledFromTime, b.scheduledFromTime),
+				eq(scheduledMeetings.scheduledToTime, b.scheduledToTime),
+			);
 
-			if (blocks.length > 0) {
+		const remainingBlocks = await db.transaction(async (tx) => {
+			await tx.execute(
+				sql`select pg_advisory_xact_lock(hashtext(${meetingId}))`,
+			);
+
+			for (const b of [...removals, ...additions]) {
+				await tx.delete(scheduledMeetings).where(matchesBlock(b));
+			}
+
+			if (additions.length > 0) {
 				await tx.insert(scheduledMeetings).values(
-					blocks.map((b) => ({
+					additions.map((b) => ({
 						meetingId,
 						scheduledDate: b.scheduledDate,
 						scheduledFromTime: b.scheduledFromTime,
@@ -74,16 +90,23 @@ export async function commitMeetingSchedule({
 				);
 			}
 
+			const [{ count: remaining }] = await tx
+				.select({ count: sql<number>`count(*)::int` })
+				.from(scheduledMeetings)
+				.where(eq(scheduledMeetings.meetingId, meetingId));
+
 			await tx
 				.update(meetings)
-				.set({ scheduled: blocks.length > 0 })
+				.set({ scheduled: remaining > 0 })
 				.where(eq(meetings.id, meetingId));
+
+			return remaining;
 		});
 
 		let outcome: FanOutOutcome;
 		try {
 			outcome =
-				blocks.length > 0
+				remainingBlocks > 0
 					? await syncMeetingToAllMemberCalendars(meetingId)
 					: await unsyncMeetingFromAllMemberCalendars(meetingId);
 		} catch (error) {
@@ -101,7 +124,7 @@ export async function commitMeetingSchedule({
 
 		revalidatePath(`/availability/${meetingId}`);
 
-		return { success: true, outcome };
+		return { success: true, outcome, remainingBlocks };
 	} catch (error) {
 		console.error("Error committing meeting schedule:", error);
 		return { success: false, error: "Failed to commit meeting schedule." };
