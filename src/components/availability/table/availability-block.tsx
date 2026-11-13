@@ -1,8 +1,7 @@
 import {
-	type CellPaintTarget,
 	type ImportPreviewTarget,
 	type PaintMode,
-	paintWillChange,
+	personalCellLayers,
 } from "@/lib/availability/paint-selection";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +13,10 @@ interface AvailabilityBlockProps {
 	importPreviewType?: ImportPreviewTarget;
 }
 
+/**
+ * Draws the layer stack `personalCellLayers` decides on; the native grid
+ * draws the same stack with `View`s.
+ */
 export function AvailabilityBlock({
 	isAvailable,
 	isIfNeeded,
@@ -21,47 +24,36 @@ export function AvailabilityBlock({
 	paintMode,
 	importPreviewType = null,
 }: AvailabilityBlockProps) {
-	const state = { isAvailable, isIfNeeded };
-
-	const draftTarget: CellPaintTarget | null =
-		isInDraftRange && paintWillChange(paintMode, state) ? paintMode : null;
-	const importTarget: CellPaintTarget | null =
-		!draftTarget &&
-		importPreviewType &&
-		paintWillChange(importPreviewType, state)
-			? importPreviewType
-			: null;
-
-	const previewTarget: CellPaintTarget | null = draftTarget ?? importTarget;
-
-	const previewWillBeNonIfNeeded =
-		previewTarget !== null && previewTarget !== "if-needed";
-	const renderPaperBase = !isIfNeeded || previewWillBeNonIfNeeded;
+	const layers = personalCellLayers(
+		{ isAvailable, isIfNeeded },
+		{ isInDraftRange, paintMode },
+		importPreviewType,
+	);
 
 	return (
 		<div className="pointer-events-none relative block h-full w-full py-2">
-			{renderPaperBase && (
+			{layers.paperBase && (
 				<div
 					className={cn(
 						"absolute inset-0 bg-paper",
-						previewTarget === "if-needed" && "opacity-60",
+						layers.paperBase.opacity < 1 && "opacity-60",
 					)}
 				/>
 			)}
 
-			{isAvailable && (
+			{layers.available && (
 				<div
 					className={cn(
 						"absolute inset-0 bg-primary",
-						previewTarget && previewTarget !== "available" && "opacity-40",
+						layers.available.opacity < 1 && "opacity-40",
 					)}
 				/>
 			)}
 
-			{previewTarget === "available" && !isAvailable && (
+			{layers.previewAvailable && (
 				<div className="absolute inset-0 bg-primary/40" />
 			)}
-			{draftTarget === "unavailable" && (isAvailable || isIfNeeded) && (
+			{layers.previewUnpaint && (
 				<div className="absolute inset-0 bg-paper/60" />
 			)}
 		</div>

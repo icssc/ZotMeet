@@ -1,7 +1,11 @@
 "use client";
 
 import { fetchGoogleCalendarEvents } from "@actions/availability/google/calendar/action";
-import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import {
+	deriveInitialAvailability,
+	sliceCurrentPageAvailability,
+} from "@zotmeet/shared";
+import { formatInTimeZone } from "date-fns-tz";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useEditState } from "@/hooks/use-edit-state";
@@ -21,98 +25,8 @@ import {
 	convertAnchorDatesToCurrentWeek,
 	isAnchorDateMeeting,
 } from "@/lib/types/chrono";
-import { ZotDate } from "@/lib/zotdate";
+import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
-
-type DeriveMode = "availabilities" | "if-needed";
-
-/**
- * Initialises a `ZotDate[]` grid from the server-side availability data for
- * either the "available" or "if-needed" dimension. Pulled out of the hook so
- * `useState` initialisers can call it lazily without closing over stale args.
- */
-function deriveInitialAvailability(args: {
-	timezone: string;
-	meetingDates: string[];
-	userId: string | null;
-	allAvailabilties: MemberMeetingAvailability[];
-	availabilityTimeBlocks: number[];
-	mode: DeriveMode;
-}): ZotDate[] {
-	const {
-		meetingDates,
-		userId,
-		allAvailabilties,
-		availabilityTimeBlocks,
-		mode,
-		timezone,
-	} = args;
-
-	const getTimestamps = (member: MemberMeetingAvailability) =>
-		mode === "availabilities"
-			? member.meetingAvailabilities
-			: member.ifNeededAvailabilities;
-
-	const userAvailability =
-		allAvailabilties.find((a) => a.memberId === userId) ?? null;
-
-	const availabilitiesByDate = new Map<string, string[]>();
-	if (userAvailability) {
-		getTimestamps(userAvailability).forEach((timeStr) => {
-			const dateStr = formatInTimeZone(
-				new Date(timeStr),
-				timezone,
-				"yyyy-MM-dd",
-			);
-			if (!availabilitiesByDate.has(dateStr)) {
-				availabilitiesByDate.set(dateStr, []);
-			}
-			availabilitiesByDate.get(dateStr)?.push(timeStr);
-		});
-	}
-
-	const timestampsByDate = new Map<string, Map<string, string[]>>();
-	for (const member of allAvailabilties) {
-		for (const timestamp of getTimestamps(member)) {
-			const dateStr = formatInTimeZone(
-				new Date(timestamp),
-				timezone,
-				"yyyy-MM-dd",
-			);
-			let dateMap = timestampsByDate.get(dateStr);
-			if (dateMap === undefined) {
-				dateMap = new Map();
-				timestampsByDate.set(dateStr, dateMap);
-			}
-			if (!dateMap.has(timestamp)) {
-				dateMap.set(timestamp, []);
-			}
-			dateMap.get(timestamp)?.push(member.memberId);
-		}
-	}
-
-	return meetingDates
-		.map((meetingDate) => {
-			const dateStr = meetingDate.split("T")[0];
-			const date = fromZonedTime(`${dateStr}T00:00:00`, timezone);
-
-			const earliestMinutes = availabilityTimeBlocks[0] || 480;
-			const latestMinutes =
-				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] || 1035) +
-				15;
-
-			return new ZotDate(
-				date,
-				earliestMinutes,
-				latestMinutes,
-				false,
-				availabilitiesByDate.get(dateStr) || [],
-				Object.fromEntries(timestampsByDate.get(dateStr) || new Map()),
-				timezone,
-			);
-		})
-		.sort((a, b) => a.day.getTime() - b.day.getTime());
-}
 
 interface UseAvailabilityDataArgs {
 	meetingData: SelectMeeting;
@@ -161,7 +75,7 @@ export function useAvailabilityData({
 			timezone: userTimezone,
 			meetingDates: meetingData.dates,
 			userId: user?.memberId ?? null,
-			allAvailabilties: allAvailabilities,
+			allAvailabilities,
 			availabilityTimeBlocks,
 			mode: "availabilities",
 		}),
@@ -172,7 +86,7 @@ export function useAvailabilityData({
 			timezone: userTimezone,
 			meetingDates: meetingData.dates,
 			userId: user?.memberId ?? null,
-			allAvailabilties: allAvailabilities,
+			allAvailabilities,
 			availabilityTimeBlocks,
 			mode: "if-needed",
 		}),
@@ -305,46 +219,16 @@ export function useAvailabilityData({
 		[allAvailabilities],
 	);
 
-	const lastPage = Math.floor((availabilityDates.length - 1) / itemsPerPage);
-	const numPaddingDates =
-		availabilityDates.length % itemsPerPage === 0
-			? 0
-			: itemsPerPage - (availabilityDates.length % itemsPerPage);
-	const datesToOffset = currentPage * itemsPerPage;
-
-	const currentPageAvailability = useMemo(() => {
-		const pageAvailability = {
-			availabilities: availabilityDates.slice(
-				datesToOffset,
-				datesToOffset + itemsPerPage,
+	const currentPageAvailability = useMemo(
+		() =>
+			sliceCurrentPageAvailability(
+				availabilityDates,
+				ifNeededDates,
+				currentPage,
+				itemsPerPage,
 			),
-			ifNeeded: ifNeededDates.slice(
-				datesToOffset,
-				datesToOffset + itemsPerPage,
-			),
-		};
-
-		if (currentPage === lastPage) {
-			const padding: (ZotDate | null)[] = Array.from(
-				{ length: numPaddingDates },
-				() => null,
-			);
-			return {
-				availabilities: [...pageAvailability.availabilities, ...padding],
-				ifNeeded: [...pageAvailability.ifNeeded, ...padding],
-			};
-		}
-
-		return pageAvailability;
-	}, [
-		availabilityDates,
-		ifNeededDates,
-		datesToOffset,
-		itemsPerPage,
-		currentPage,
-		lastPage,
-		numPaddingDates,
-	]);
+		[availabilityDates, ifNeededDates, currentPage, itemsPerPage],
+	);
 
 	const doesntNeedDay = useMemo(() => {
 		for (let i = 1; i < availabilityTimeBlocks.length; i++) {

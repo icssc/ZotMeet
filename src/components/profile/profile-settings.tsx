@@ -13,6 +13,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useRef, useState, useTransition } from "react";
 import { ProfileContent } from "@/app/profile/profile-content";
+import { DeleteAccountSection } from "@/components/profile/delete-account-section";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { UserProfile } from "@/lib/auth/user";
 import {
@@ -225,6 +226,10 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
 						{isPending ? "Saving..." : "Save Changes"}
 					</Button>
 				</Stack>
+
+				<Divider />
+
+				<DeleteAccountSection userEmail={user.email} />
 			</Stack>
 		</Stack>
 	);

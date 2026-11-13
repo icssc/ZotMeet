@@ -59,7 +59,6 @@ async function refreshGoogleAccessTokenForSession(
 
 		const data = (await response.json()) as {
 			google_access_token?: string;
-			google_refresh_token?: string;
 			google_token_expiry?: number;
 		};
 

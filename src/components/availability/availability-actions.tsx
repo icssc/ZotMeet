@@ -1,17 +1,10 @@
 "use client";
 
-import { updateMeetingInvitePermissions } from "@actions/meeting/invite/action";
-import {
-	Create,
-	GroupAddOutlined,
-	InsertInvitationRounded,
-} from "@mui/icons-material";
-import { Button, FormControlLabel, Switch } from "@mui/material";
+import { Create, Event, GroupAddOutlined } from "@mui/icons-material";
+import { Button } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import { AddToCalendarButton } from "@/components/availability/add-to-calendar-button";
-import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { MeetingGoogleCalendarSnapshot, SelectMeeting } from "@/db/schema";
 import { useReturnToPath } from "@/hooks/use-return-to-path";
 import { loginPathWithReturnTo } from "@/lib/auth/return-to";
@@ -21,6 +14,7 @@ import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 export interface AvailabilityActionsProps {
 	meetingData: SelectMeeting;
 	user: UserProfile | null;
+	membersCanInvite: boolean;
 	handlePersonalCancel: () => void;
 	handlePersonalSave: () => Promise<void>;
 	handleScheduleCancel: () => void;
@@ -38,6 +32,7 @@ export interface AvailabilityActionsProps {
 export function AvailabilityActions({
 	meetingData,
 	user,
+	membersCanInvite,
 	handlePersonalCancel,
 	handlePersonalSave,
 	handleScheduleCancel,
@@ -53,11 +48,6 @@ export function AvailabilityActions({
 }: AvailabilityActionsProps) {
 	const router = useRouter();
 	const returnToPath = useReturnToPath();
-	const { showSuccess, showError } = useSnackbar();
-	const [membersCanInvite, setMembersCanInvite] = useState(
-		meetingData.membersCanInvite,
-	);
-	const [isUpdatingPermissions, setIsUpdatingPermissions] = useState(false);
 
 	const { hasAvailability, availabilityView, setAvailabilityView } =
 		useAvailabilityStore(
@@ -70,38 +60,6 @@ export function AvailabilityActions({
 
 	const isOwner = !!user && meetingData.hostId === user.memberId;
 	const canShowInviteButton = isOwner || membersCanInvite;
-
-	useEffect(() => {
-		setMembersCanInvite(meetingData.membersCanInvite);
-	}, [meetingData.membersCanInvite]);
-
-	const handleMembersCanInviteChange = useCallback(
-		async (checked: boolean) => {
-			setIsUpdatingPermissions(true);
-			setMembersCanInvite(checked);
-
-			try {
-				const result = await updateMeetingInvitePermissions({
-					meetingId: meetingData.id,
-					membersCanInvite: checked,
-				});
-
-				if (!result.success) {
-					setMembersCanInvite(!checked);
-					showError(result.message);
-				} else {
-					showSuccess(result.message);
-				}
-			} catch (error) {
-				console.error(error);
-				setMembersCanInvite(!checked);
-				showError("Failed to update invite permissions.");
-			} finally {
-				setIsUpdatingPermissions(false);
-			}
-		},
-		[meetingData.id, showError, showSuccess],
-	);
 
 	const handleSaveClick = () => {
 		const action =
@@ -117,7 +75,6 @@ export function AvailabilityActions({
 				<div className="hidden flex-row flex-wrap justify-end gap-2 sm:flex">
 					<Button
 						variant="outlined"
-						color="inherit"
 						size="small"
 						disabled={availabilityView === "schedule" && isScheduleSaving}
 						onClick={
@@ -143,22 +100,6 @@ export function AvailabilityActions({
 				</div>
 			) : (
 				<div className="flex flex-col gap-2">
-					{isOwner && (
-						<div className="hidden items-center justify-between rounded-md border p-2 sm:flex">
-							<FormControlLabel
-								control={
-									<Switch
-										checked={membersCanInvite}
-										disabled={isUpdatingPermissions}
-										onChange={(e) => {
-											void handleMembersCanInviteChange(e.target.checked);
-										}}
-									/>
-								}
-								label="Allow members to invite others"
-							/>
-						</div>
-					)}
 					{isScheduled && (
 						<div className="hidden flex-col sm:flex">
 							<AddToCalendarButton
@@ -190,11 +131,11 @@ export function AvailabilityActions({
 							</span>
 						</Button>
 					</div>
-					<div className="hidden sm:block">
+					<div className="hidden sm:flex sm:flex-col sm:gap-2">
 						{isOwner && (
 							<Button
 								variant="outlined"
-								startIcon={<InsertInvitationRounded />}
+								startIcon={<Event />}
 								className="w-full"
 								sx={{ py: 0.75 }}
 								onClick={() => setAvailabilityView("schedule")}

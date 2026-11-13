@@ -1,123 +1,159 @@
-import { randomUUID } from "crypto";
 import "dotenv/config";
+import { eq, isNotNull, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { GroupRole, groups, members, users, usersInGroup } from "./schema";
+import {
+	availabilities,
+	groups,
+	meetingInvites,
+	meetings,
+	members,
+	notifications,
+	scheduledMeetings,
+	users,
+	usersInGroup,
+} from "./schema";
+import { ArgError, parseSeedArgs, USAGE } from "./seed/args";
+import { buildSeedPlan, SEED_TIMEZONE, SEED_USER_PREFIX } from "./seed/build";
+import { createRng } from "./seed/rng";
+import { type Tx, wipeSeedData } from "./seed/wipe";
 
-if (!process.env.DATABASE_URL) {
-	throw new Error("Missing DATABASE_URL env var.");
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+const HOST_OVERRIDE_PARAMS = ["host", "hostaddr", "service"];
+const INSERT_CHUNK = 500;
+
+function assertLocalDatabase(databaseUrl: string): void {
+	if (process.env.NODE_ENV === "production") {
+		throw new ArgError("Refusing to seed with NODE_ENV=production.");
+	}
+	let url: URL;
+	try {
+		url = new URL(databaseUrl);
+	} catch {
+		throw new ArgError("DATABASE_URL is not a valid URL.");
+	}
+	for (const param of HOST_OVERRIDE_PARAMS) {
+		if (url.searchParams.has(param)) {
+			throw new ArgError(
+				`Refusing to seed: DATABASE_URL has a "${param}" parameter that can redirect the connection.`,
+			);
+		}
+	}
+	const host = url.hostname.toLowerCase();
+	if (!LOCAL_HOSTS.has(host)) {
+		throw new ArgError(
+			`Refusing to seed "${host}": DATABASE_URL must point at localhost.`,
+		);
+	}
 }
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const db = drizzle(pool);
-
-const BATCH_SIZE = 15;
-
-const SEED_GROUP_ID = "00000000-0000-0000-0000-000000000099";
-const SEED_ADMIN_MEMBER_ID = "00000000-0000-0000-0000-000000000000";
-const SEED_ADMIN_USER_ID = "seed_admin";
-
-const NAME_POOL = [
-	{ handle: "zotninja", displayName: "Zot Ninja" },
-	{ handle: "panteater", displayName: "Peter Anteater" },
-	{ handle: "zotking", displayName: "Zot King" },
-	{ handle: "aldrichpark", displayName: "Aldrich Park" },
-	{ handle: "ringroad", displayName: "Ring Road" },
-	{ handle: "merage", displayName: "Dean Merage" },
-	{ handle: "bren", displayName: "Bren Events" },
-	{ handle: "petr", displayName: "PETR Advisor" },
-	{ handle: "crammerr", displayName: "Last-Minute Larry" },
-	{ handle: "studybuddy", displayName: "Study Buddy" },
-	{ handle: "zotbot", displayName: "ZotBot" },
-	{ handle: "icssc", displayName: "ICSSC Council" },
-	{ handle: "anteaterfan", displayName: "Anteater Fan" },
-	{ handle: "steveair", displayName: "Steve Airpods" },
-	{ handle: "mesacourtdj", displayName: "Mesa Court DJ" },
-	{ handle: "parkingpass", displayName: "Parking Pass" },
-	{ handle: "finalszn", displayName: "Final Szn" },
-	{ handle: "middleearth", displayName: "Middle Earth RA" },
-	{ handle: "cramlab", displayName: "Science Library" },
-	{ handle: "zotgrad", displayName: "Zot Grad" },
-];
+async function insertChunked<T>(
+	rows: T[],
+	insert: (chunk: T[]) => Promise<unknown>,
+): Promise<void> {
+	for (let i = 0; i < rows.length; i += INSERT_CHUNK) {
+		await insert(rows.slice(i, i + INSERT_CHUNK));
+	}
+}
 
 async function seed(): Promise<void> {
-	await db
-		.insert(members)
-		.values({ id: SEED_ADMIN_MEMBER_ID, displayName: "Seed Admin" })
-		.onConflictDoNothing();
+	const args = parseSeedArgs(process.argv.slice(2));
+	if (args === "help") {
+		console.log(USAGE);
+		return;
+	}
+	const { userEmail } = args;
 
-	await db
-		.insert(users)
-		.values({
-			id: SEED_ADMIN_USER_ID,
-			memberId: SEED_ADMIN_MEMBER_ID,
-			email: "admin@zotmeet.dev",
-		})
-		.onConflictDoNothing();
+	const databaseUrl = process.env.DATABASE_URL;
+	if (!databaseUrl) throw new ArgError("Missing DATABASE_URL env var.");
+	assertLocalDatabase(databaseUrl);
 
-	await db
-		.insert(groups)
-		.values({
-			id: SEED_GROUP_ID,
-			name: "ZotMeet Dev Team",
-			description:
-				"Dummy group for testing large group sizes and UI overflow states.",
-			createdBy: SEED_ADMIN_USER_ID,
-			createdAt: new Date(),
-			archived: false,
-		})
-		.onConflictDoNothing();
+	const pool = new Pool({ connectionString: databaseUrl });
+	const db = drizzle(pool);
 
-	await db
-		.insert(usersInGroup)
-		.values({
-			userId: SEED_ADMIN_USER_ID,
-			groupId: SEED_GROUP_ID,
-			role: GroupRole.ADMIN,
-		})
-		.onConflictDoNothing();
+	try {
+		const [realUser] = await db
+			.select({ userId: users.id, memberId: users.memberId })
+			.from(users)
+			.where(eq(sql`lower(${users.email})`, userEmail.toLowerCase()))
+			.limit(1);
+		if (!realUser) {
+			throw new ArgError(
+				`No user with email ${userEmail}. Sign in to the app once, then re-run.`,
+			);
+		}
+		if (realUser.userId.startsWith(SEED_USER_PREFIX)) {
+			throw new ArgError(
+				`${userEmail} is a seeded account; --user needs a real one.`,
+			);
+		}
 
-	const suffix = Math.random().toString(16).slice(2, 6);
-	const batch = NAME_POOL.slice(0, BATCH_SIZE).map(
-		({ handle, displayName }) => ({
-			memberId: randomUUID(),
-			userId: `seed_${handle}_${suffix}`,
-			displayName,
-			handle,
-		}),
-	);
+		const seed = Math.floor(Math.random() * 2 ** 31);
+		const rng = createRng(seed);
 
-	await db.transaction(async (tx) => {
-		await tx.insert(members).values(
-			batch.map(({ memberId, displayName }) => ({
-				id: memberId,
-				displayName,
-			})),
+		const plan = await db.transaction(async (tx: Tx) => {
+			await wipeSeedData(tx);
+
+			const taken = await tx
+				.select({ username: members.username })
+				.from(members)
+				.where(isNotNull(members.username));
+
+			const built = buildSeedPlan({
+				seed,
+				rng,
+				realUser,
+				takenUsernames: new Set(
+					taken.flatMap((r) => (r.username === null ? [] : [r.username])),
+				),
+				now: new Date(),
+			});
+
+			await tx.insert(members).values(built.admin.member).onConflictDoNothing();
+			await tx.insert(users).values(built.admin.user).onConflictDoNothing();
+			await insertChunked(built.members, (c) => tx.insert(members).values(c));
+			await insertChunked(built.users, (c) => tx.insert(users).values(c));
+			await insertChunked(built.groups, (c) => tx.insert(groups).values(c));
+			await insertChunked(built.usersInGroup, (c) =>
+				tx.insert(usersInGroup).values(c),
+			);
+			await insertChunked(built.meetings, (c) => tx.insert(meetings).values(c));
+			await insertChunked(built.meetingInvites, (c) =>
+				tx.insert(meetingInvites).values(c),
+			);
+			await insertChunked(built.availabilities, (c) =>
+				tx.insert(availabilities).values(c),
+			);
+			await insertChunked(built.scheduledMeetings, (c) =>
+				tx.insert(scheduledMeetings).values(c),
+			);
+			await insertChunked(built.notifications, (c) =>
+				tx.insert(notifications).values(c),
+			);
+
+			return built;
+		});
+
+		const { states } = plan.stats;
+		console.log(
+			[
+				`Seeded (${SEED_TIMEZONE}):`,
+				`  ${plan.groups.length} groups, ${plan.members.length} fake members`,
+				`  ${plan.meetings.length} meetings: ${states.unscheduled} unscheduled, ${states.scheduled} scheduled, ${states["days-of-week"]} days-of-week, ${states.archived} archived`,
+				`  ${plan.stats.responded} responses, ${plan.stats.invitedNotResponded} invited but not responded`,
+				`  attached ${userEmail}: ${plan.notifications.length} invite notifications`,
+			].join("\n"),
 		);
-
-		await tx.insert(users).values(
-			batch.map(({ userId, memberId, handle }) => ({
-				id: userId,
-				memberId,
-				email: `${handle}_${suffix}@zotmeet.dev`,
-			})),
-		);
-
-		await tx.insert(usersInGroup).values(
-			batch.map(({ userId }) => ({
-				userId,
-				groupId: SEED_GROUP_ID,
-				role: GroupRole.MEMBER,
-			})),
-		);
-	});
-
-	console.log(`${BATCH_SIZE} users added (batch: _${suffix})`);
+	} finally {
+		await pool.end();
+	}
 }
 
-seed()
-	.catch((error: unknown) => {
+seed().catch((error: unknown) => {
+	if (error instanceof ArgError) {
+		console.error(`${error.message}\nRun with --help for usage.`);
+	} else {
 		console.error("Seed failed:", error);
-		process.exit(1);
-	})
-	.finally(() => pool.end());
+	}
+	process.exit(1);
+});

@@ -1,79 +1,25 @@
 "use server";
 
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { meetings, type SelectMeeting } from "@/db/schema";
+import type { SelectMeeting } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import {
-	type FanOutOutcome,
-	unsyncMeetingFromAllMemberCalendars,
-} from "@/lib/google-calendar/sync";
-import { getExistingMeeting } from "@/server/data/meeting/queries";
+	archiveMeetingForMember,
+	type MeetingMemberActionResult,
+} from "@/server/data/meeting/member-actions";
 
-export type ArchiveMeetingResult =
-	| { success: true; calendarOutcome: FanOutOutcome; error?: undefined }
-	| { success?: undefined; error: string };
+export type ArchiveMeetingResult = MeetingMemberActionResult;
 
 export async function archiveMeeting(
 	meetingData: SelectMeeting,
 ): Promise<ArchiveMeetingResult> {
-	const meetingId = meetingData.id;
-
 	const { user } = await getCurrentSession();
 
 	if (!user) {
-		return { error: "You must be logged in to delete a meeting." };
-	}
-
-	let storedMeeting: Awaited<ReturnType<typeof getExistingMeeting>>;
-	try {
-		storedMeeting = await getExistingMeeting(meetingId);
-	} catch (error) {
-		console.error("archiveMeeting: failed to load meeting", {
-			meetingId,
-			error,
-		});
-		return { error: "Meeting not found." };
-	}
-
-	if (storedMeeting.hostId !== user.memberId) {
 		return {
-			error: "Only meeting owner has permission to delete this meeting.",
+			success: false,
+			error: "You must be logged in to delete a meeting.",
 		};
 	}
 
-	await db
-		.update(meetings)
-		.set({ archived: true })
-		.where(eq(meetings.id, meetingId));
-
-	let calendarOutcome: FanOutOutcome;
-	try {
-		calendarOutcome = await unsyncMeetingFromAllMemberCalendars(meetingId);
-		if (calendarOutcome.failed > 0) {
-			console.warn("archiveMeeting: partial Google Calendar unsync", {
-				meetingId,
-				synced: calendarOutcome.synced,
-				skipped: calendarOutcome.skipped,
-				failed: calendarOutcome.failed,
-				errors: calendarOutcome.errors,
-			});
-		}
-	} catch (error) {
-		console.error(
-			"Failed to unsync Google Calendar events on archiveMeeting:",
-			{
-				meetingId,
-				error,
-			},
-		);
-		calendarOutcome = {
-			synced: 0,
-			skipped: 0,
-			failed: 1,
-			errors: [{ memberId: "*", reason: "unsync_threw" }],
-		};
-	}
-
-	return { success: true, calendarOutcome };
+	return archiveMeetingForMember(meetingData.id, user.memberId);
 }

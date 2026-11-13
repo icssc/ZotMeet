@@ -26,17 +26,8 @@ function SignInButtonStack({ returnTo }: { returnTo?: string | null }) {
 				}}
 			>
 				<GoogleButton returnTo={returnTo} />
-				<Typography variant="caption" color="textSecondary">
-					Auto import your Google Calendar
-				</Typography>
-			</Paper>
-			<Typography variant="caption" color="textSecondary">
-				or
-			</Typography>
-
-			<div className="w-full">
 				<AppleButton returnTo={returnTo} />
-			</div>
+			</Paper>
 		</div>
 	);
 }

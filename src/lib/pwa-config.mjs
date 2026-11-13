@@ -12,10 +12,12 @@
  * TypeScript runner, while TS files still get types via JSDoc + `allowJs`.
  */
 
+import { brand } from "@zotmeet/tokens";
+
 export const APP_NAME = "ZotMeet";
 
 export const APP_DESCRIPTION =
-	"ZotMeet is a simple, clean, and efficient meeting scheduling app for UCI students and groups.";
+	"Schedule Meetings, Book UCI Rooms, and Time Sync with ZotMeet";
 
 /**
  * Canonical public origin for metadata, sitemap, and store manifests.
@@ -69,9 +71,14 @@ export function absolutePwaUrl(pathname) {
 	return `${base}${path}`;
 }
 
-export const BRAND_BACKGROUND_HEX = "#FFFFFF";
-export const BRAND_ACCENT_HEX = "#F26489";
-export const BRAND_DARK_BG_HEX = "#0F172A";
+/*
+ * Brand colours live in `packages/tokens` with the rest of the palette, so
+ * the Expo app's `app.config.ts` reads the same three values. Re-exported
+ * under the names the manifest, layout and icon script already use.
+ */
+export const BRAND_BACKGROUND_HEX = brand.background;
+export const BRAND_ACCENT_HEX = brand.accent;
+export const BRAND_DARK_BG_HEX = brand.darkBackground;
 
 /** Sizes (px) rendered with `purpose: "any"`. */
 export const ANY_ICON_SIZES = /** @type {const} */ ([

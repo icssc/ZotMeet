@@ -159,11 +159,7 @@ export const EditModal = ({
 				</Button>
 
 				<div className="flex gap-2">
-					<Button
-						variant="outlined"
-						color="inherit"
-						onClick={() => handleOpenChange(false)}
-					>
+					<Button variant="outlined" onClick={() => handleOpenChange(false)}>
 						Cancel
 					</Button>
 					<Button

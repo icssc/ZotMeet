@@ -18,6 +18,7 @@ export interface UseAvailabilityActionHandlersParams {
 	onCancel: () => void;
 	onSave: () => void;
 	setChangeableTimezone: (can: boolean) => void;
+	userTimezone: string;
 	isMeetingDeletionPending?: boolean;
 }
 
@@ -29,6 +30,7 @@ export function useAvailabilityActionHandlers({
 	onCancel,
 	onSave,
 	setChangeableTimezone,
+	userTimezone,
 	isMeetingDeletionPending = false,
 }: UseAvailabilityActionHandlersParams) {
 	const { showError, showSuccess, showWarning } = useSnackbar();
@@ -85,6 +87,7 @@ export function useAvailabilityActionHandlers({
 			ifNeededAvailabilityTimes: ifNeededDates.flatMap(
 				(date) => date.availability,
 			),
+			timezone: userTimezone,
 		});
 		if (response.status === 200) {
 			setHasAvailability(true);
@@ -99,6 +102,7 @@ export function useAvailabilityActionHandlers({
 		meetingData.id,
 		availabilityDates,
 		ifNeededDates,
+		userTimezone,
 		setChangeableTimezone,
 		setHasAvailability,
 		onSave,

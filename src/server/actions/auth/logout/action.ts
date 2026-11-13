@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth";
 import { deleteSessionTokenCookie } from "@/lib/auth/cookies";
+import { getOidcLogoutUrl } from "@/lib/auth/oidc-logout";
 import { invalidateSession } from "@/lib/auth/session";
 
 export async function logoutAction() {
@@ -19,11 +20,5 @@ export async function logoutAction() {
 
 	revalidatePath("/", "layout");
 
-	const logoutUrl = new URL(`${process.env.OIDC_ISSUER_URL}/logout`);
-	logoutUrl.searchParams.set(
-		"post_logout_redirect_uri",
-		process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
-	);
-
-	redirect(logoutUrl.toString());
+	redirect(getOidcLogoutUrl("/"));
 }

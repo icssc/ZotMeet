@@ -1,5 +1,6 @@
 "use client";
 
+import type { SelectionEdges } from "@zotmeet/shared";
 import {
 	createContext,
 	useCallback,
@@ -8,7 +9,6 @@ import {
 	useMemo,
 	useState,
 } from "react";
-import type { SelectionEdges } from "@/components/availability/group-availability";
 import type { StudyRoomApiEntry } from "@/components/availability/room-recommendations";
 import {
 	BLOCK_LENGTH,
@@ -16,6 +16,7 @@ import {
 	generateCellKey,
 	getTimestampFromBlockIndex,
 } from "@/lib/availability/utils";
+import { stripRoomDurationSuffix } from "@/lib/types/studyrooms";
 import type { ZotDate } from "@/lib/zotdate";
 
 export interface HoveredRoomCellPreview {
@@ -36,7 +37,7 @@ const StudyRoomHoverContext = createContext<StudyRoomHoverContextValue>({
 });
 
 function displayRoomName(name: string): string {
-	return name.replace(/\s*\(\d+\s*hours?\)/i, "").trim() || name;
+	return stripRoomDurationSuffix(name) || name;
 }
 
 function filterAvailableVariants(

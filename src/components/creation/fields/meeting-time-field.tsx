@@ -48,8 +48,8 @@ export const MeetingTimeField = ({
 			fullWidth: true,
 			size: "medium" as const,
 			sx: {
-				"& .MuiIconButton-edgeEnd": {
-					marginRight: 0,
+				"& .MuiInputAdornment-root": {
+					flexShrink: 0,
 				},
 			},
 		},

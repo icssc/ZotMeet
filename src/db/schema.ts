@@ -408,6 +408,8 @@ export const availabilities = pgTable(
 			.$type<string[]>()
 			.notNull()
 			.default([]),
+		timezone: text("timezone"),
+		updatedAt: timestamp("updated_at", { mode: "date" }),
 	},
 	(table) => ({
 		pk: primaryKey({ columns: [table.memberId, table.meetingId] }),

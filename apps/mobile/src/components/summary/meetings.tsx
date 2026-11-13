@@ -1,0 +1,231 @@
+import {
+	buildMeetingsListModel,
+	buildScheduledMeetingsMeta,
+	getStartOfTodayMs,
+	MEETINGS_LIST_FILTER_LABELS,
+	MEETINGS_LIST_FILTERS,
+	type MeetingListItem,
+	type MeetingsListFilter,
+	type ScheduledMeetingBlock,
+	toMeetingCardData,
+} from "@zotmeet/shared";
+import { useRouter } from "expo-router";
+import { useMemo, useState } from "react";
+import { Image, View } from "react-native";
+import { DeleteModal } from "@/components/meetings/delete-modal";
+import { FilterChip } from "@/components/ui/filter-chip";
+import { IconButton } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { MeetingCard } from "@/components/ui/meeting-card";
+import { Screen } from "@/components/ui/screen";
+import { Typography } from "@/components/ui/typography";
+import { Icon } from "@/lib/icons";
+
+interface MeetingsProps {
+	meetings: MeetingListItem[];
+	memberId: string;
+	/** Refetches the list after a card is deleted or left. */
+	onChanged: () => void;
+	/** Pull-to-refresh. */
+	onRefresh: () => void;
+	refreshing: boolean;
+}
+
+type DeleteTarget = {
+	meeting: MeetingListItem;
+	isOwner: boolean;
+};
+
+/**
+ * Native counterpart to the web app's `Meetings` (`src/components/summary/`):
+ * the mobile header, the search field, the three filter chips, and the
+ * sorted cards — same filters, same sort order, same empty state, through
+ * the same helpers from `@zotmeet/shared`.
+ *
+ * The web page pre-computes the scheduled labels, dates and the "upcoming"
+ * set on the server from the scheduled-block rows; `GET /api/meetings`
+ * returns those rows flattened onto each meeting (`scheduledAt`), and the
+ * same derivation runs here, on the device's clock. Not carried over: the
+ * notifications drawer behind the bell, which is its own feature (the bell
+ * is drawn, unwired), and the wide-screen "Create A Meeting" button, which
+ * a phone never shows.
+ */
+export function Meetings({
+	meetings,
+	memberId,
+	onChanged,
+	onRefresh,
+	refreshing,
+}: MeetingsProps) {
+	const router = useRouter();
+	const [search, setSearch] = useState("");
+	const [activeFilter, setActiveFilter] =
+		useState<MeetingsListFilter>("upcoming");
+	const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
+	const [isDeletionPending, setIsDeletionPending] = useState(false);
+
+	// What `app/summary/page.tsx` derives on the server from
+	// `getScheduledMeetingsByMeetingIds`; `GET /api/meetings` flattens the
+	// same blocks onto each meeting, so it is rebuilt here on the device.
+	const { scheduledLabels, scheduledDates, upcomingSet } = useMemo(() => {
+		const scheduledMap: Record<string, ScheduledMeetingBlock> = {};
+		for (const m of meetings) {
+			if (!m.scheduledAt) continue;
+			scheduledMap[m.id] = {
+				scheduledDate: new Date(m.scheduledAt.date),
+				scheduledFromTime: m.scheduledAt.fromTime,
+				scheduledToTime: m.scheduledAt.toTime,
+			};
+		}
+		const meta = buildScheduledMeetingsMeta(scheduledMap);
+		return { ...meta, upcomingSet: new Set(meta.upcomingMeetingIds) };
+	}, [meetings]);
+
+	// Counts, filter, search and sort — the same model the web builds.
+	// Read on every render, not defaulted inside the memo, so a list that stays
+	// mounted across midnight re-buckets on its next render.
+	const todayMs = getStartOfTodayMs();
+	const { counts, meetings: displayMeetings } = useMemo(
+		() =>
+			buildMeetingsListModel({
+				meetings,
+				memberId,
+				filter: activeFilter,
+				search,
+				scheduledDates,
+				upcomingSet,
+				todayMs,
+			}),
+		[
+			meetings,
+			memberId,
+			activeFilter,
+			search,
+			scheduledDates,
+			upcomingSet,
+			todayMs,
+		],
+	);
+
+	const renderMeetings = () => {
+		if (displayMeetings.length === 0) {
+			return (
+				<View className="items-center gap-3 py-24">
+					<Image
+						source={require("@/assets/images/mascot.png")}
+						accessibilityLabel="mascot"
+						style={{ width: 111, height: 111 }}
+						resizeMode="contain"
+					/>
+					<Typography
+						variant="h6"
+						color="textSecondary"
+						align="center"
+						className="max-w-xs pt-2 font-figtree-italic"
+					>
+						{search.trim()
+							? "No meetings match your search."
+							: "Create your first meeting to start collaborating with your team."}
+					</Typography>
+				</View>
+			);
+		}
+
+		return (
+			<View className="gap-3">
+				{displayMeetings.map((meeting) => {
+					const { meeting: _meeting, ...cardProps } = toMeetingCardData(
+						meeting,
+						memberId,
+						{
+							responderCount: meeting.responderCount,
+							scheduledLabel: scheduledLabels[meeting.id],
+						},
+					);
+					return (
+						<MeetingCard
+							key={meeting.id}
+							{...cardProps}
+							needsAvailability={meeting.needsAvailability}
+							allAvailabilityFilled={meeting.allAvailabilityFilled}
+							isUpcoming={upcomingSet.has(meeting.id)}
+							isPast={activeFilter === "past"}
+							onDeleteLeave={() =>
+								setDeleteTarget({ meeting, isOwner: cardProps.isOwner })
+							}
+						/>
+					);
+				})}
+			</View>
+		);
+	};
+
+	return (
+		<Screen
+			title="Meetings"
+			onRefresh={onRefresh}
+			refreshing={refreshing}
+			actions={
+				<View className="flex-row gap-4">
+					<IconButton
+						variant="outlined"
+						size="medium"
+						accessibilityLabel="Notifications"
+					>
+						<Icon name="notifications-none" />
+					</IconButton>
+					<IconButton
+						variant="contained"
+						size="medium"
+						onPress={() => router.push("/create-meeting")}
+						accessibilityLabel="Create meeting"
+					>
+						<Icon name="add" size={20} />
+					</IconButton>
+				</View>
+			}
+		>
+			<View className="gap-3">
+				<Input
+					accessibilityLabel="Search meetings"
+					placeholder="Search"
+					value={search}
+					onChangeText={setSearch}
+					autoCapitalize="none"
+					autoCorrect={false}
+					returnKeyType="search"
+					startAdornment={
+						<Icon name="search" size={20} className="text-text-disabled" />
+					}
+				/>
+				<View className="flex-row gap-1.5">
+					{MEETINGS_LIST_FILTERS.map((f) => (
+						<FilterChip
+							key={f}
+							label={MEETINGS_LIST_FILTER_LABELS[f]}
+							count={counts[f]}
+							active={activeFilter === f}
+							onPress={() => setActiveFilter(f)}
+						/>
+					))}
+				</View>
+			</View>
+
+			{renderMeetings()}
+
+			{deleteTarget ? (
+				<DeleteModal
+					meetingData={deleteTarget.meeting}
+					isOpen
+					handleOpenChange={(open) => {
+						if (!open) setDeleteTarget(null);
+					}}
+					isOwner={deleteTarget.isOwner}
+					isDeletionPending={isDeletionPending}
+					onDeletionPendingChange={setIsDeletionPending}
+					onDone={onChanged}
+				/>
+			) : null}
+		</Screen>
+	);
+}

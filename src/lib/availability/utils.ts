@@ -1,132 +1,36 @@
-import { differenceInCalendarDays } from "date-fns";
-import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
-import { type HourMinuteString, TimeConstants } from "@/lib/types/chrono";
+import { formatInTimeZone } from "date-fns-tz";
 import { ZotDate } from "@/lib/zotdate";
 
-export const getTimeFromHourMinuteString = (
-	hourMinuteString: HourMinuteString,
-): number => {
-	const [hours, minutes, _seconds] = hourMinuteString.split(":");
-	return Number(hours) * TimeConstants.MINUTES_PER_HOUR + Number(minutes);
-};
-
-/**
- * Converts a time string from a specific timezone to UTC
- * @param timeString - Time string in format "HH:MM:SS" or "HH:MM"
- * @param timezone - IANA timezone string (e.g., "America/Los_Angeles")
- * @param referenceDate - A date string to use as reference (e.g., "2025-11-13T00:00:00.000Z")
- * @returns Time string in UTC format "HH:MM:SS"
+/*
+ * The pure time and grid helpers moved to `@zotmeet/shared` so the Expo app
+ * can use them; they are re-exported here to keep this module's import path
+ * stable. What stays below is the import/merge bookkeeping only the web needs.
  */
-export const convertTimeToUTC = (
-	timeString: string,
-	timezone: string,
-	referenceDate: string,
-): string => {
-	// Parse the time string
-	const [hours, minutes, seconds = "00"] = timeString.split(":");
-
-	// Get just the date part (YYYY-MM-DD) from the ISO string
-	const datePart = referenceDate.substring(0, 10);
-
-	// Create a date string in the local timezone
-	const localDateTimeString = `${datePart}T${hours}:${minutes}:${seconds}`;
-
-	// Convert from the specified timezone to UTC
-	const utcDate = fromZonedTime(localDateTimeString, timezone);
-
-	// Format as HH:MM:SS in UTC
-	const utcHours = utcDate.getUTCHours().toString().padStart(2, "0");
-	const utcMinutes = utcDate.getUTCMinutes().toString().padStart(2, "0");
-	const utcSeconds = utcDate.getUTCSeconds().toString().padStart(2, "0");
-
-	return `${utcHours}:${utcMinutes}:${utcSeconds}`;
-};
-
-/**
- * Converts a UTC time string to a specific timezone
- * @param utcTimeString - Time string in UTC format "HH:MM:SS" or "HH:MM"
- * @param timezone - IANA timezone string (e.g., "America/Los_Angeles")
- * @param referenceDate - A date string to use as reference (e.g., "2025-11-13T00:00:00.000Z")
- * @returns Time string in the target timezone format "HH:MM:SS"
- */
-export const convertTimeFromUTC = (
-	utcTimeString: string,
-	timezone: string,
-	referenceDate: string,
-): string => {
-	// Parse the UTC time string
-	const [hours, minutes, seconds = "00"] = utcTimeString.split(":");
-
-	// Get just the date part (YYYY-MM-DD) from the ISO string
-	const datePart = referenceDate.substring(0, 10);
-
-	// Create a UTC date
-	const utcDate = new Date(`${datePart}T${hours}:${minutes}:${seconds}Z`);
-
-	return formatInTimeZone(utcDate, timezone, "HH:mm:ss");
-};
-
-/** Meeting `dates` must be chronological for display and time conversion; selection order may differ. */
-export function sortMeetingIsoDatesAsc(dates: readonly string[]): string[] {
-	return [...dates].sort(
-		(a, b) => new Date(a).getTime() - new Date(b).getTime(),
-	);
-}
-
-export const BLOCK_LENGTH: number = 15;
-
-export const generateTimeBlocks = (
-	startTime: number,
-	endTime: number,
-): number[] => {
-	const timeBlocks: number[] = [];
-	var range = endTime - startTime;
-	if (endTime < startTime) {
-		range = endTime + 1440 - startTime;
-	}
-	const minuteRange = Math.abs(range);
-	const totalBlocks = Math.floor(minuteRange / BLOCK_LENGTH);
-
-	const newTime = [];
-	for (let blockIndex = 0; blockIndex < totalBlocks; blockIndex++) {
-		if (startTime + blockIndex * BLOCK_LENGTH >= 1440) {
-			newTime.push(startTime + blockIndex * BLOCK_LENGTH);
-		} else {
-			timeBlocks.push(startTime + blockIndex * BLOCK_LENGTH);
-		}
-	}
-	return [...newTime, ...timeBlocks];
-};
-
-export const generateDateKey = ({
-	selectedDate,
-	timeBlock,
-	pageDateIndex,
-}: {
-	selectedDate: ZotDate | null;
-	timeBlock: number;
-	pageDateIndex: number;
-}) => {
-	return selectedDate
-		? `date-${selectedDate.valueOf()}-${timeBlock}-${pageDateIndex}`
-		: `padding-${pageDateIndex}-${timeBlock}`;
-};
-
-export const getMinutesFromMidnight = (isoOrDateString: string): number => {
-	const date = new Date(isoOrDateString);
-	return date.getHours() * 60 + date.getMinutes();
-};
-
-export const getDatePart = (isoOrDateString: string): string => {
-	return isoOrDateString.substring(0, 10);
-};
-
-export function generateCellKey(
-	zotDateIndex: number,
-	blockIndex: number,
-): string {
-	return `${zotDateIndex}_${blockIndex}`;
-}
+export {
+	BLOCK_LENGTH,
+	buildMeetingGridIsoSet,
+	buildTimestampsByCell,
+	buildZotDateRowsForMeetingDays,
+	clearPersonalGridSlots,
+	convertTimeFromUTC,
+	convertTimeToUTC,
+	deriveMeetingWindow,
+	formatDateToUSNumeric,
+	formatScheduledTimeRange,
+	formatTimeWithHoursAndMins,
+	generateCellKey,
+	generateDateKey,
+	generateTimeBlocks,
+	getDatePart,
+	getMinutesFromMidnight,
+	getRowChrome,
+	getTimeFromHourMinuteString,
+	getTimestampFromBlockIndex,
+	isoStringForSlot,
+	type RowChrome,
+	sortMeetingIsoDatesAsc,
+	spacerBeforeDate,
+} from "@zotmeet/shared";
 
 export type PageEdgeVariant = "none" | "first" | "middle" | "last";
 
@@ -140,24 +44,6 @@ export function getPageEdgeVariant(
 	if (isLastPage) return "last";
 	return "middle";
 }
-
-export const spacerBeforeDate = (
-	currentPageAvailability: (ZotDate | null)[],
-): boolean[] => {
-	return currentPageAvailability.map((date, index, arr) => {
-		if (index === 0) return false;
-
-		const prev = arr[index - 1];
-		if (!date || !prev) return false;
-
-		const prevDate = prev.day;
-		const currentDate = date.day;
-
-		return (
-			differenceInCalendarDays(new Date(currentDate), new Date(prevDate)) > 1
-		);
-	});
-};
 
 function computeSpillover(
 	currentPageAvailability: (ZotDate | null)[],
@@ -212,126 +98,6 @@ export function cloneDates(
 	const spillover = computeSpillover(currentPageAvailability, doesntNeedDay);
 	if (spillover) newDates.push(spillover.day);
 	return newDates;
-}
-
-export const formatTimeWithHoursAndMins = (time: string): string => {
-	const [hourStr] = time.split(":");
-	let hour = parseInt(hourStr, 10);
-	const minutes = parseInt(time.split(":")[1], 10);
-	const ampm = hour >= 12 ? "PM" : "AM";
-	hour = hour % 12 || 12;
-	if (minutes === 0) {
-		return `${hour} ${ampm}`;
-	}
-	return `${hour}:${minutes.toString().padStart(2, "0")} ${ampm}`;
-};
-
-export const formatDateToUSNumeric = (date: Date) =>
-	date.toLocaleDateString("en-US", {
-		month: "numeric",
-		day: "numeric",
-	});
-
-export function formatScheduledTimeRange(timestamps: string[]): string {
-	if (timestamps.length === 0) return "";
-	const sorted = [...timestamps].sort();
-	const start = new Date(sorted[0]);
-	const last = new Date(sorted[sorted.length - 1]);
-	last.setMinutes(last.getMinutes() + 15);
-
-	const fmt = (d: Date) => {
-		const h = d.getHours();
-		const m = d.getMinutes();
-		const ampm = h >= 12 ? "PM" : "AM";
-		const hour = h % 12 || 12;
-		return m === 0
-			? `${hour}${ampm}`
-			: `${hour}:${String(m).padStart(2, "0")}${ampm}`;
-	};
-	return `${fmt(start)} - ${fmt(last)}`;
-}
-
-/** ISO string for the start of a 15-minute slot; matches ZotDate / drag-save encoding. */
-export function getTimestampFromBlockIndex(
-	blockIndex: number,
-	zotDateIndex: number,
-	fromTimeMinutes: number,
-	availabilityDates: ZotDate[],
-	timeZone?: string,
-): string {
-	const totalMinutes = fromTimeMinutes + blockIndex * BLOCK_LENGTH;
-
-	const selectedDate = availabilityDates.at(zotDateIndex);
-	if (!selectedDate) return "";
-
-	if (timeZone) {
-		const datePart = formatInTimeZone(selectedDate.day, timeZone, "yyyy-MM-dd");
-		const hours = Math.floor(totalMinutes / 60);
-		const minutes = totalMinutes % 60;
-		const localTime = `${datePart}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00`;
-		return fromZonedTime(localTime, timeZone).toISOString();
-	}
-
-	const hours = Math.floor(totalMinutes / 60);
-	const minutes = totalMinutes % 60;
-	const date = new Date(selectedDate.day);
-	date.setHours(hours, minutes, 0, 0);
-
-	return date.toISOString();
-}
-
-/** Same day layout as `deriveInitialAvailability` in use-availability-data, without member data. */
-export function buildZotDateRowsForMeetingDays(
-	meetingDates: string[],
-	availabilityTimeBlocks: number[],
-	timeZone?: string,
-): ZotDate[] {
-	return meetingDates
-		.map((meetingDate) => {
-			const dateStr = meetingDate.split("T")[0];
-			const [year, month, day] = dateStr.split("-").map(Number);
-			const date = timeZone
-				? fromZonedTime(`${dateStr}T00:00:00`, timeZone)
-				: new Date(year, month - 1, day);
-
-			const earliestMinutes = availabilityTimeBlocks[0] ?? 480;
-			const latestMinutes =
-				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] ?? 1035) +
-				15;
-
-			return new ZotDate(
-				date,
-				earliestMinutes,
-				latestMinutes,
-				false,
-				[],
-				{},
-				timeZone,
-			);
-		})
-		.sort((a, b) => a.day.getTime() - b.day.getTime());
-}
-
-export function buildMeetingGridIsoSet(
-	availabilityDates: ZotDate[],
-	fromTimeMinutes: number,
-	blockCount: number,
-	timeZone?: string,
-): Set<string> {
-	const set = new Set<string>();
-	for (let d = 0; d < availabilityDates.length; d++) {
-		for (let b = 0; b < blockCount; b++) {
-			const iso = getTimestampFromBlockIndex(
-				b,
-				d,
-				fromTimeMinutes,
-				availabilityDates,
-				timeZone,
-			);
-			if (iso) set.add(iso);
-		}
-	}
-	return set;
 }
 
 export function filterTimestampsToMeetingGrid(
@@ -472,31 +238,4 @@ export function pruneGroupAvailabilityByMemberIds(
 		cloned.groupAvailability = newGroupAvail;
 		return cloned;
 	});
-}
-
-/** Clears personal available/if-needed slots */
-export function clearPersonalGridSlots(
-	availabilityDates: readonly ZotDate[],
-	ifNeededDates: readonly ZotDate[],
-	memberId: string,
-): { availabilityDates: ZotDate[]; ifNeededDates: ZotDate[] } {
-	const clearDates = (dates: readonly ZotDate[]) =>
-		dates.map((date) => {
-			const clonedDate = date.clone();
-			clonedDate.availability = [];
-			clonedDate.groupAvailability = Object.fromEntries(
-				Object.entries(clonedDate.groupAvailability).map(
-					([timestamp, members]) => [
-						timestamp,
-						members.filter((id) => id !== memberId),
-					],
-				),
-			);
-			return clonedDate;
-		});
-
-	return {
-		availabilityDates: clearDates(availabilityDates),
-		ifNeededDates: clearDates(ifNeededDates),
-	};
 }

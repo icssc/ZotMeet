@@ -41,7 +41,6 @@ export function ScheduleMeetingSettings({
 			<div className="flex flex-col gap-12 px-6">
 				<Button
 					variant="outlined"
-					color="inherit"
 					fullWidth
 					startIcon={<AutorenewRounded sx={{ fontSize: 18 }} />}
 					onClick={() => replaceEntireSelection([])}
@@ -51,7 +50,6 @@ export function ScheduleMeetingSettings({
 				<div className="flex justify-end gap-2">
 					<Button
 						variant="outlined"
-						color="inherit"
 						size="small"
 						disabled={isScheduleSaving}
 						onClick={handleScheduleCancel}

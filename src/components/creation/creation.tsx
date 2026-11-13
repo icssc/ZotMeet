@@ -1,9 +1,10 @@
 "use client";
 
 import { createMeeting } from "@actions/meeting/create/action";
-import { Button, Paper } from "@mui/material";
+import { Button, DialogActions, DialogContent } from "@mui/material";
 import {
 	parseAsArrayOf,
+	parseAsBoolean,
 	parseAsString,
 	parseAsStringEnum,
 	useQueryStates,
@@ -14,7 +15,6 @@ import { Calendar } from "@/components/creation/calendar/calendar";
 import { MeetingNameField } from "@/components/creation/fields/meeting-name-field";
 import { MeetingTimeField } from "@/components/creation/fields/meeting-time-field";
 import type { SelectMeeting } from "@/db/schema";
-import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	convertTimeToUTC,
@@ -23,20 +23,29 @@ import {
 import type { HourMinuteString } from "@/lib/types/chrono";
 import { ZotDate } from "@/lib/zotdate";
 
-export function Creation({ user }: { user: UserProfile | null }) {
+/**
+ * The creation form's URL state. `create` opens the dialog (links elsewhere
+ * point at `/?create=true`, optionally with `groupId`); closing it clears
+ * every key so a cancelled draft doesn't linger in the URL.
+ */
+export const creationSearchParams = {
+	create: parseAsBoolean.withDefault(false),
+	meetingName: parseAsString.withDefault(""),
+	startTime: parseAsString.withDefault("09:00:00"),
+	endTime: parseAsString.withDefault("17:00:00"),
+	meetingLocation: parseAsString.withDefault(""),
+	selectedDates: parseAsArrayOf(parseAsString).withDefault([]),
+	meetingType: parseAsStringEnum(["dates", "days"]).withDefault("dates"),
+	timezone: parseAsString.withDefault("America/Los_Angeles"),
+	groupId: parseAsString.withDefault(""),
+};
+
+/** The meeting form, rendered as the body and actions of `CreateMeetingDialog`. */
+export function Creation({ user }: { user: UserProfile }) {
 	const [isCreating, setIsCreating] = useState(false);
 
 	// Use NUQS for URL state management
-	const [urlState, setUrlState] = useQueryStates({
-		meetingName: parseAsString.withDefault(""),
-		startTime: parseAsString.withDefault("09:00:00"),
-		endTime: parseAsString.withDefault("17:00:00"),
-		meetingLocation: parseAsString.withDefault(""),
-		selectedDates: parseAsArrayOf(parseAsString).withDefault([]),
-		meetingType: parseAsStringEnum(["dates", "days"]).withDefault("dates"),
-		timezone: parseAsString.withDefault("America/Los_Angeles"),
-		groupId: parseAsString.withDefault(""),
-	});
+	const [urlState, setUrlState] = useQueryStates(creationSearchParams);
 
 	// Convert selected dates from ISO strings to ZotDate objects.
 	const selectedDays: ZotDate[] = useMemo(() => {
@@ -110,35 +119,6 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	const handleCreation = async () => {
 		if (isCreating) return;
 
-		// If user is not logged in, redirect to Google sign in.
-		if (!user) {
-			// Construct URL with all parameters.
-			const params = new URLSearchParams();
-			params.set("meetingName", meetingNameRef.current);
-			params.set("startTime", startTime);
-			params.set("endTime", endTime);
-			params.set(
-				"selectedDates",
-				selectedDays.map((d) => d.day.toISOString()).join(","),
-			);
-			params.set("meetingType", meetingType);
-			params.set("timezone", urlState.timezone);
-			if (urlState.groupId) {
-				params.set("groupId", urlState.groupId);
-			}
-
-			// Update URL with all parameters, then redirect.
-			const currentUrl = new URL(window.location.href);
-			currentUrl.search = params.toString();
-			window.history.replaceState({}, "", currentUrl.toString());
-
-			// Redirect to auth.
-			window.location.href = loginPathWithReturnTo(
-				`${currentUrl.pathname}${currentUrl.search}`,
-			);
-			return;
-		}
-
 		setIsCreating(true);
 
 		const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -186,24 +166,9 @@ export function Creation({ user }: { user: UserProfile | null }) {
 	}, [selectedDays.length, startTime, endTime, hasMeetingName]);
 
 	return (
-		<Paper
-			variant="outlined"
-			className="mx-auto my-6 flex w-full max-w-6xl flex-col gap-y-6 px-0 md:my-8 md:w-[calc(100%-2rem)] md:px-4"
-		>
-			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
-			<div className="w-full px-2 py-6 md:px-14">
-				<h2 className="hidden font-medium text-2xl sm:block md:text-3xl">
-					Plan your next meeting with ZotMeet
-				</h2>
-				<h2 className="mb-10 flex justify-center text-3xl sm:hidden">
-					Create Meeting
-				</h2>
-
-				<h3 className="hidden font-light text-gray-400 text-sm sm:mb-12 sm:block md:text-sm">
-					FIND THE PERFECT TIME AND PLACE FOR YOUR MEETING.
-				</h3>
-
-				<div className="flex w-full flex-col gap-6">
+		<>
+			<DialogContent>
+				<div className="flex w-full flex-col gap-6 pt-1">
 					<MeetingNameField
 						initialValue={urlState.meetingName}
 						onBlur={flushMeetingName}
@@ -233,20 +198,18 @@ export function Creation({ user }: { user: UserProfile | null }) {
 						/>
 					</div>
 				</div>
-				<div className="mt-10 flex justify-center md:justify-end">
-					<Button
-						variant="contained"
-						type="button"
-						sx={{ width: { xs: "100%", md: "auto" } }}
-						disabled={!hasValidInputs || isCreating}
-						onClick={handleCreation}
-					>
-						{isCreating ? "Creating..." : "Create Meeting"}
-					</Button>
-				</div>
-			</div>
-
-			<div className="px-2 pt-2 md:pt-2 md:pl-[40px]"></div>
-		</Paper>
+			</DialogContent>
+			<DialogActions sx={{ px: 3, pb: 3 }}>
+				<Button
+					variant="contained"
+					type="button"
+					sx={{ width: { xs: "100%", md: "auto" } }}
+					disabled={!hasValidInputs || isCreating}
+					onClick={handleCreation}
+				>
+					{isCreating ? "Creating..." : "Create Meeting"}
+				</Button>
+			</DialogActions>
+		</>
 	);
 }

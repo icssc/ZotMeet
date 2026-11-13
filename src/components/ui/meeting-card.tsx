@@ -16,13 +16,19 @@ import {
 	Typography,
 } from "@mui/material";
 import Link from "next/link";
-import { type ElementType, useId, useState } from "react";
-import type { MeetingCardViewModel } from "@/lib/meeting-card/mapper";
+import { type ElementType, type ReactNode, useId, useState } from "react";
+import {
+	formatMeetingCardDateLabel,
+	type MeetingCardViewModel,
+	meetingCardVariant,
+} from "@/lib/meeting-card/mapper";
 import { getDeleteLeaveAction } from "@/lib/meetings/delete-leave-action";
 
 interface MeetingCardProps extends MeetingCardViewModel {
 	isOwner: boolean;
 	onDeleteLeave?: () => void;
+	extraMenuItems?: (close: () => void) => ReactNode;
+	totalMembers?: number;
 	needsAvailability?: boolean;
 	allAvailabilityFilled?: boolean;
 	isUpcoming?: boolean;
@@ -76,6 +82,8 @@ const MeetingCard = ({
 	meetingLink,
 	isOwner,
 	onDeleteLeave,
+	extraMenuItems,
+	totalMembers,
 	needsAvailability = false,
 	allAvailabilityFilled = false,
 	isUpcoming = false,
@@ -84,10 +92,7 @@ const MeetingCard = ({
 	const menuId = useId();
 	const { label: actionLabel, Icon, menuColor } = getDeleteLeaveAction(isOwner);
 
-	const dateLabel =
-		dateStart && dateEnd && dateStart !== dateEnd
-			? `${dateStart} - ${dateEnd}`
-			: dateStart;
+	const dateLabel = formatMeetingCardDateLabel(dateStart, dateEnd);
 
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 	const open = Boolean(anchorEl);
@@ -97,17 +102,14 @@ const MeetingCard = ({
 		onDeleteLeave?.();
 	};
 
-	const variant = isPast
-		? "default"
-		: needsAvailability
-			? "action-required"
-			: !scheduled && allAvailabilityFilled && isOwner
-				? "schedule-alert"
-				: scheduled && isUpcoming
-					? "upcoming"
-					: scheduled
-						? "scheduled"
-						: "default";
+	const variant = meetingCardVariant({
+		isPast,
+		needsAvailability,
+		scheduled,
+		allAvailabilityFilled,
+		isOwner,
+		isUpcoming,
+	});
 
 	const cardContent = (
 		<CardContent
@@ -140,7 +142,7 @@ const MeetingCard = ({
 						{meetingOrganizer}
 					</Typography>
 				</Box>
-				{onDeleteLeave && (
+				{(onDeleteLeave || extraMenuItems) && (
 					<>
 						<IconButton
 							size="small"
@@ -169,15 +171,18 @@ const MeetingCard = ({
 								paper: { sx: { minWidth: 180 } },
 							}}
 						>
-							<MenuItem
-								onClick={handleOpenDeleteLeave}
-								sx={{ color: menuColor }}
-							>
-								<ListItemIcon sx={{ color: "inherit", minWidth: 36 }}>
-									<Icon fontSize="small" />
-								</ListItemIcon>
-								{actionLabel}
-							</MenuItem>
+							{onDeleteLeave && (
+								<MenuItem
+									onClick={handleOpenDeleteLeave}
+									sx={{ color: menuColor }}
+								>
+									<ListItemIcon sx={{ color: "inherit", minWidth: 36 }}>
+										<Icon fontSize="small" />
+									</ListItemIcon>
+									{actionLabel}
+								</MenuItem>
+							)}
+							{extraMenuItems?.(() => setAnchorEl(null))}
 						</Menu>
 					</>
 				)}
@@ -186,7 +191,14 @@ const MeetingCard = ({
 			<Box sx={metaGridSx}>
 				<MetaItem icon={DateRangeIcon} label={dateLabel} />
 				<MetaItem icon={AccessTimeIcon} label={`${timeStart} - ${timeEnd}`} />
-				<MetaItem icon={GroupIcon} label={`${numResponders} Responders`} />
+				<MetaItem
+					icon={GroupIcon}
+					label={
+						totalMembers !== undefined
+							? `${numResponders}/${totalMembers} Responders`
+							: `${numResponders} Responders`
+					}
+				/>
 				{location && <MetaItem icon={FmdGoodIcon} label={location} />}
 			</Box>
 		</CardContent>
