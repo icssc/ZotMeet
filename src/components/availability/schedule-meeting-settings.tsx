@@ -9,12 +9,14 @@ interface ScheduleMeetingSettingsProps {
 	handleScheduleCancel: () => void;
 	handleScheduleSave: () => Promise<boolean>;
 	isMeetingDeletionPending?: boolean;
+	isScheduleSaving?: boolean;
 }
 
 export function ScheduleMeetingSettings({
 	handleScheduleCancel,
 	handleScheduleSave,
 	isMeetingDeletionPending = false,
+	isScheduleSaving = false,
 }: ScheduleMeetingSettingsProps) {
 	const { replaceEntireSelection } = useAvailabilityStore(
 		useShallow((state) => ({
@@ -49,6 +51,7 @@ export function ScheduleMeetingSettings({
 					<Button
 						variant="outlined"
 						size="small"
+						disabled={isScheduleSaving}
 						onClick={handleScheduleCancel}
 					>
 						Cancel
@@ -56,7 +59,7 @@ export function ScheduleMeetingSettings({
 					<Button
 						variant="contained"
 						size="small"
-						disabled={isMeetingDeletionPending}
+						disabled={isMeetingDeletionPending || isScheduleSaving}
 						onClick={() => {
 							handleScheduleSave().catch(console.error);
 						}}

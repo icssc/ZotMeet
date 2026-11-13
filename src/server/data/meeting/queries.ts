@@ -14,6 +14,8 @@ import {
 import { db } from "@/db";
 import {
 	availabilities,
+	type MeetingGoogleCalendarSnapshot,
+	meetingGoogleCalendarEvents,
 	meetings,
 	members,
 	type SelectMeeting,
@@ -207,6 +209,13 @@ export async function getMeetings(memberId: string) {
 /** One row of `getMeetings`: what the summary list and the dashboard render. */
 export type MeetingListRow = Awaited<ReturnType<typeof getMeetings>>[number];
 
+export function hasAnyAvailabilitySlot() {
+	return or(
+		sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+		sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+	);
+}
+
 export async function getResponderCountsByMeetingIds(
 	meetingIds: string[],
 ): Promise<Record<string, number>> {
@@ -223,10 +232,7 @@ export async function getResponderCountsByMeetingIds(
 		.where(
 			and(
 				inArray(availabilities.meetingId, meetingIds),
-				or(
-					sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
-					sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
-				),
+				hasAnyAvailabilitySlot(),
 			),
 		)
 
@@ -368,6 +374,26 @@ export async function getMeetingsWithMemberAvailabilityExcluding({
 			),
 		)
 		.orderBy(desc(meetings.createdAt));
+}
+
+export async function getMeetingGoogleCalendarSnapshot(
+	meetingId: string,
+	memberId: string,
+): Promise<MeetingGoogleCalendarSnapshot | null> {
+	const rows = await db
+		.select({
+			lastSyncedSnapshot: meetingGoogleCalendarEvents.lastSyncedSnapshot,
+		})
+		.from(meetingGoogleCalendarEvents)
+		.where(
+			and(
+				eq(meetingGoogleCalendarEvents.meetingId, meetingId),
+				eq(meetingGoogleCalendarEvents.memberId, memberId),
+			),
+		)
+		.limit(1);
+
+	return rows[0]?.lastSyncedSnapshot ?? null;
 }
 
 /** Availability rows for one member across many meetings (e.g. import/copy flows). */

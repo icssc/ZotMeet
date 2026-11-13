@@ -7,9 +7,11 @@ import {
 	type MeetingMemberActionResult,
 } from "@/server/data/meeting/member-actions";
 
+export type ArchiveMeetingResult = MeetingMemberActionResult;
+
 export async function archiveMeeting(
 	meetingData: SelectMeeting,
-): Promise<MeetingMemberActionResult> {
+): Promise<ArchiveMeetingResult> {
 	const { user } = await getCurrentSession();
 
 	if (!user) {

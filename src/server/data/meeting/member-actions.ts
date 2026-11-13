@@ -3,6 +3,11 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { availabilities, meetings } from "@/db/schema";
+import {
+	type FanOutOutcome,
+	unsyncMeetingFromAllMemberCalendars,
+	unsyncMeetingFromMemberCalendar,
+} from "@/lib/google-calendar/sync";
 
 /**
  * The authorised core of leaving and archiving a meeting, shared by the
@@ -15,7 +20,12 @@ import { availabilities, meetings } from "@/db/schema";
  */
 
 export type MeetingMemberActionResult =
-	| { success: true; error?: undefined }
+	| {
+			success: true;
+			calendarOutcome?: FanOutOutcome;
+			calendarCleanupFailed?: boolean;
+			error?: undefined;
+	  }
 	| { success: false; error: string };
 
 type ActiveMeeting = {
@@ -78,7 +88,24 @@ export async function leaveMeetingForMember(
 			),
 		);
 
-	return { success: true };
+	// Uses the member's stored tokens, not the caller's session, so it works for
+	// the web action and the bearer-token API route alike.
+	let calendarCleanupFailed = false;
+	try {
+		const removal = await unsyncMeetingFromMemberCalendar({
+			meetingId,
+			memberId,
+		});
+		calendarCleanupFailed = removal.status === "failed";
+	} catch (error) {
+		console.error("Failed to remove Google Calendar event on leaveMeeting:", {
+			meetingId,
+			error,
+		});
+		calendarCleanupFailed = true;
+	}
+
+	return { success: true, calendarCleanupFailed };
 }
 
 /** Archives ("deletes") a meeting on behalf of `memberId`, who must be its host. */
@@ -108,5 +135,34 @@ export async function archiveMeetingForMember(
 		.set({ archived: true })
 		.where(eq(meetings.id, meetingId));
 
-	return { success: true };
+	// Remove the meeting's events from every member's Google Calendar. This uses
+	// each member's stored tokens, not the caller's session, so it behaves the
+	// same for the web action and the bearer-token API route. The meeting is
+	// already archived, so a failure is reported, not thrown.
+	let calendarOutcome: FanOutOutcome;
+	try {
+		calendarOutcome = await unsyncMeetingFromAllMemberCalendars(meetingId);
+		if (calendarOutcome.failed > 0) {
+			console.warn("archiveMeetingForMember: partial Google Calendar unsync", {
+				meetingId,
+				synced: calendarOutcome.synced,
+				skipped: calendarOutcome.skipped,
+				failed: calendarOutcome.failed,
+				errors: calendarOutcome.errors,
+			});
+		}
+	} catch (error) {
+		console.error(
+			"Failed to unsync Google Calendar events on archiveMeeting:",
+			{ meetingId, error },
+		);
+		calendarOutcome = {
+			synced: 0,
+			skipped: 0,
+			failed: 1,
+			errors: [{ memberId: "*", reason: "unsync_threw" }],
+		};
+	}
+
+	return { success: true, calendarOutcome };
 }

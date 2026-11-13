@@ -36,5 +36,11 @@ export async function POST(
 	}
 
 	const result = await archiveMeetingForMember(id, memberId);
-	return NextResponse.json<MeetingMemberActionResponse>(result);
+	// Send only the wire shape: `calendarOutcome` is web-only and its `errors`
+	// carry member ids.
+	return NextResponse.json<MeetingMemberActionResponse>(
+		result.success
+			? { success: true }
+			: { success: false, error: result.error },
+	);
 }

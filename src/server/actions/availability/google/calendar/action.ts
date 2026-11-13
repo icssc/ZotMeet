@@ -1,9 +1,20 @@
 "use server";
 
-import { getScheduledTimeBlocks } from "@data/meeting/queries";
-import { google as googleClient } from "googleapis";
+import {
+	getExistingMeeting,
+	hasAnyAvailabilitySlot,
+} from "@data/meeting/queries";
+import { and, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { availabilities } from "@/db/schema";
+import { getCurrentSession } from "@/lib/auth";
 import { validateGoogleAccessToken } from "@/lib/auth/google";
-import { mergeContiguousTimeBlocks } from "@/lib/meetings/utils";
+import {
+	addOrUpdateMeetingGoogleCalendarEvent,
+	buildCalendarClient,
+	type CalendarWorkerResult,
+	loadMergedScheduledIntervalFor,
+} from "@/lib/google-calendar/sync";
 import type { GoogleCalendarEvent } from "@/lib/types/availability";
 
 export async function fetchGoogleCalendarEvents(
@@ -20,10 +31,7 @@ export async function fetchGoogleCalendarEvents(
 		throw new Error(error ?? "Could not retrieve OAuth access token");
 	}
 
-	const auth = new googleClient.auth.OAuth2();
-	auth.setCredentials({ access_token: accessToken });
-
-	const calendar = googleClient.calendar({ version: "v3", auth });
+	const calendar = buildCalendarClient(accessToken);
 
 	try {
 		const calendarListRes = await calendar.calendarList.list();
@@ -73,71 +81,74 @@ export async function fetchGoogleCalendarEvents(
 	}
 }
 
-// helper for adding to google calendar
-function combineDateAndTime(date: Date, time: string): string {
-	const [hours, minutes, seconds = "00"] = time.split(":");
-
-	const yyyy = date.getFullYear();
-	const mm = String(date.getMonth() + 1).padStart(2, "0"); // 1-indexed months for gcal
-	const dd = String(date.getDate()).padStart(2, "0");
-
-	const hh = String(hours).padStart(2, "0");
-	const min = String(minutes).padStart(2, "0");
-	const ss = String(seconds).padStart(2, "0");
-
-	return `${yyyy}${mm}${dd}T${hh}${min}${ss}`;
-}
-
-export async function getGoogleCalendarPrefilledLink({
+export async function addMeetingToMyGoogleCalendar({
 	meetingId,
-	meetingTitle,
-	meetingDescription,
-	meetingLocation,
-	timezone,
 }: {
 	meetingId: string;
-	meetingTitle: string;
-	meetingDescription: string | null;
-	meetingLocation: string | null;
-	timezone: string;
-}) {
-	const blocks = await getScheduledTimeBlocks(meetingId);
+}): Promise<
+	| { success: true; result: CalendarWorkerResult }
+	| { success: false; error: string }
+> {
+	const { user } = await getCurrentSession();
+	if (!user) {
+		return { success: false, error: "Not authenticated" };
+	}
 
-	if (!blocks.length) {
+	const tokenResult = await validateGoogleAccessToken();
+	if (tokenResult.error || !tokenResult.accessToken) {
 		return {
 			success: false,
-			link: null,
+			error: tokenResult.error ?? "Could not obtain Google access token",
 		};
 	}
 
-	// merge all 15-min blocks into 1 contiguous interval
-	const mergedInterval = mergeContiguousTimeBlocks(blocks);
-	if (!mergedInterval) {
+	let meeting: Awaited<ReturnType<typeof getExistingMeeting>>;
+	try {
+		meeting = await getExistingMeeting(meetingId);
+	} catch (error) {
+		console.error("addMeetingToMyGoogleCalendar: failed to load meeting", {
+			meetingId,
+			error,
+		});
+		return { success: false, error: "Meeting not found" };
+	}
+
+	if (meeting.hostId !== user.memberId) {
+		const [response] = await db
+			.select({ memberId: availabilities.memberId })
+			.from(availabilities)
+			.where(
+				and(
+					eq(availabilities.meetingId, meetingId),
+					eq(availabilities.memberId, user.memberId),
+					hasAnyAvailabilitySlot(),
+				),
+			)
+			.limit(1);
+
+		if (!response) {
+			return {
+				success: false,
+				error:
+					"You must respond to this meeting before adding it to your calendar",
+			};
+		}
+	}
+
+	const interval = await loadMergedScheduledIntervalFor(meeting);
+	if (!interval) {
 		return {
-			success: false,
-			link: null,
+			success: true,
+			result: { status: "failed", reason: "non_contiguous_schedule" },
 		};
 	}
 
-	// all blocks are now on the same date
-	const date = blocks[0].scheduledDate;
-
-	const start = combineDateAndTime(date, mergedInterval.from);
-	const end = combineDateAndTime(date, mergedInterval.to);
-
-	const params = new URLSearchParams({
-		action: "TEMPLATE",
-		text: meetingTitle,
-		dates: `${start}/${end}`,
-		details: meetingDescription ?? "Meeting scheduled via ZotMeet.",
-		location: meetingLocation ?? "",
-		ctz: timezone,
+	const result = await addOrUpdateMeetingGoogleCalendarEvent({
+		meeting,
+		interval,
+		memberId: user.memberId,
+		accessToken: tokenResult.accessToken,
 	});
 
-	const link = `https://calendar.google.com/calendar/render?${params.toString()}`;
-
-	return {
-		success: true,
-		link,
-	};
+	return { success: true, result };
 }

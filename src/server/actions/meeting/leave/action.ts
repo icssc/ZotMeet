@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { availabilities, type SelectMeeting } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { unsyncMeetingFromMemberCalendar } from "@/lib/google-calendar/sync";
 import {
 	fetchActiveMeeting,
 	leaveMeetingForMember,
@@ -75,5 +76,20 @@ export async function removeMeetingMember(
 			),
 		);
 
-	return { success: true };
+	let calendarCleanupFailed = false;
+	try {
+		const removal = await unsyncMeetingFromMemberCalendar({
+			meetingId,
+			memberId: targetMemberId,
+		});
+		calendarCleanupFailed = removal.status === "failed";
+	} catch (error) {
+		console.error(
+			"Failed to remove Google Calendar event on removeMeetingMember:",
+			error,
+		);
+		calendarCleanupFailed = true;
+	}
+
+	return { success: true, calendarCleanupFailed };
 }

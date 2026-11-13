@@ -1,24 +1,26 @@
 // biome-ignore-all lint: fix notnull later
 
+import { and, desc, eq, gt, isNotNull } from "drizzle-orm";
+import { db } from "@/db";
+import type { InsertSession } from "@/db/schema";
+import { sessions } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
 import { updateSessionGoogleTokens } from "@/lib/auth/session";
 
 export type ValidateOAuthAccessTokenError =
 	| "Not authenticated"
 	| "No OAuth refresh token"
+	| "No valid session"
+	| "OAuth grant rejected"
 	| "Failed to refresh OAuth token";
 
 export type OAuthTokenResult =
 	| { accessToken: string; error: null }
 	| { accessToken: null; error: ValidateOAuthAccessTokenError };
 
-export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
-	const { session } = await getCurrentSession();
-
-	if (session === null) {
-		return { accessToken: null, error: "Not authenticated" };
-	}
-
+async function refreshGoogleAccessTokenForSession(
+	session: InsertSession,
+): Promise<OAuthTokenResult> {
 	if (!session.oidcRefreshToken) {
 		return { accessToken: null, error: "No OAuth refresh token" };
 	}
@@ -26,7 +28,8 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
 	const now = Date.now();
 	if (
 		session.googleAccessToken &&
-		session.googleAccessTokenExpiresAt!.getTime() > now
+		session.googleAccessTokenExpiresAt &&
+		session.googleAccessTokenExpiresAt.getTime() > now
 	) {
 		return { accessToken: session.googleAccessToken, error: null };
 	}
@@ -45,6 +48,10 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
 				client_id: process.env.OIDC_CLIENT_ID!,
 			}),
 		});
+
+		if (response.status === 400 || response.status === 401) {
+			return { accessToken: null, error: "OAuth grant rejected" };
+		}
 
 		if (!response.ok) {
 			throw new Error("Token refresh failed");
@@ -65,13 +72,63 @@ export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
 			throw new Error("No Google access token in refresh response");
 		}
 
-		await updateSessionGoogleTokens(session.id, {
-			oauthAccessToken: googleAccessToken,
-			oauthAccessTokenExpiresAt: googleTokenExpiry,
+		await updateSessionGoogleTokens(session.id!, {
+			googleAccessToken,
+			googleAccessTokenExpiresAt: googleTokenExpiry,
 		});
 
 		return { accessToken: googleAccessToken, error: null };
 	} catch {
 		return { accessToken: null, error: "Failed to refresh OAuth token" };
 	}
+}
+
+export async function validateGoogleAccessToken(): Promise<OAuthTokenResult> {
+	const { session } = await getCurrentSession();
+
+	if (session === null) {
+		return { accessToken: null, error: "Not authenticated" };
+	}
+
+	return refreshGoogleAccessTokenForSession(session);
+}
+
+export const SESSION_FALLBACK_LIMIT = 5;
+
+export function usableGoogleSessionCondition() {
+	return and(
+		gt(sessions.expiresAt, new Date()),
+		isNotNull(sessions.oidcRefreshToken),
+	);
+}
+
+export async function getGoogleAccessTokenForUser(
+	userId: string,
+): Promise<OAuthTokenResult> {
+	const candidates = await db
+		.select()
+		.from(sessions)
+		.where(and(eq(sessions.userId, userId), usableGoogleSessionCondition()))
+		.orderBy(desc(sessions.expiresAt))
+		.limit(SESSION_FALLBACK_LIMIT);
+
+	return getGoogleAccessTokenFromSessions(candidates);
+}
+
+export async function getGoogleAccessTokenFromSessions(
+	candidates: InsertSession[],
+): Promise<OAuthTokenResult> {
+	if (candidates.length === 0) {
+		return { accessToken: null, error: "No valid session" };
+	}
+
+	let lastError: ValidateOAuthAccessTokenError = "No valid session";
+	for (const candidate of candidates) {
+		const result = await refreshGoogleAccessTokenForSession(candidate);
+		if (!result.error) {
+			return result;
+		}
+		lastError = result.error;
+	}
+	return { accessToken: null, error: lastError };
 }

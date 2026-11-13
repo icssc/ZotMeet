@@ -134,6 +134,20 @@
       "when": 1794177494490,
       "tag": "0018_even_captain_britain",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794263894490,
+      "tag": "0019_google_calendar_events",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794595143806,
+      "tag": "0020_force_reauth_calendar_scope",
+      "breakpoints": true
     }
   ]
 }

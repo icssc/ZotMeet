@@ -34,5 +34,10 @@ export async function POST(
 	}
 
 	const result = await leaveMeetingForMember(id, memberId);
-	return NextResponse.json<MeetingMemberActionResponse>(result);
+	// Send only the wire shape; `calendarCleanupFailed` is web-only.
+	return NextResponse.json<MeetingMemberActionResponse>(
+		result.success
+			? { success: true }
+			: { success: false, error: result.error },
+	);
 }

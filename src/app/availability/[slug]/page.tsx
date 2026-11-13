@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Availability } from "@/components/availability/availability";
 import { getCurrentSession } from "@/lib/auth";
+import { computeMergedScheduledInterval } from "@/lib/google-calendar/sync";
 import {
 	OPEN_INVITE_AFTER_CREATE_PARAM,
 	OPEN_INVITE_AFTER_CREATE_VALUE,
@@ -10,6 +11,7 @@ import { APP_DESCRIPTION, APP_NAME } from "@/lib/pwa-config.mjs";
 import {
 	getAllMemberAvailability,
 	getExistingMeeting,
+	getMeetingGoogleCalendarSnapshot,
 	getScheduledTimeBlocks,
 } from "@/server/data/meeting/queries";
 
@@ -88,13 +90,27 @@ export default async function Page(props: PageProps) {
 		notFound();
 	}
 
-	const allAvailabilities = await getAllMemberAvailability({
-		meetingId: meetingData.id,
-	});
-
-	const scheduledBlocks = await getScheduledTimeBlocks(meetingData.id);
 	const session = await getCurrentSession();
-	const rawSearch = await props.searchParams;
+
+	const [
+		allAvailabilities,
+		scheduledBlocks,
+		googleCalendarLinkSnapshot,
+		rawSearch,
+	] = await Promise.all([
+		getAllMemberAvailability({ meetingId: meetingData.id }),
+		getScheduledTimeBlocks(meetingData.id),
+		session.user
+			? getMeetingGoogleCalendarSnapshot(meetingData.id, session.user.memberId)
+			: Promise.resolve(null),
+		props.searchParams,
+	]);
+
+	const mergedScheduledInterval = computeMergedScheduledInterval(
+		scheduledBlocks,
+		meetingData.timezone,
+	);
+
 	const openInviteRaw = rawSearch[OPEN_INVITE_AFTER_CREATE_PARAM];
 	const openInviteFlag = Array.isArray(openInviteRaw)
 		? openInviteRaw[0]
@@ -112,6 +128,8 @@ export default async function Page(props: PageProps) {
 				allAvailabilities={allAvailabilities}
 				user={session.user}
 				scheduledBlocks={scheduledBlocks}
+				mergedScheduledInterval={mergedScheduledInterval}
+				googleCalendarLinkSnapshot={googleCalendarLinkSnapshot}
 				autoOpenInviteDialog={autoOpenInviteDialog}
 				inviteQueryInUrl={inviteQueryInUrl}
 			/>

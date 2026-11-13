@@ -355,7 +355,7 @@ export function GroupResponses({
 	const isLg = layoutReady ? isLgQuery : true;
 
 	const router = useRouter();
-	const { showSuccess, showError } = useSnackbar();
+	const { showSuccess, showError, showWarning } = useSnackbar();
 	const [isNudging, setIsNudging] = useState(false);
 	const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
 	const [isRemoving, setIsRemoving] = useState(false);
@@ -537,9 +537,15 @@ export function GroupResponses({
 				if (hoveredMember === removedId) {
 					setHoveredMember(null);
 				}
-				showSuccess(
-					`${memberToRemove.displayName} has been removed from the meeting.`,
-				);
+				if (result.calendarCleanupFailed) {
+					showWarning(
+						`${memberToRemove.displayName} has been removed from the meeting, but their Google Calendar event could not be removed.`,
+					);
+				} else {
+					showSuccess(
+						`${memberToRemove.displayName} has been removed from the meeting.`,
+					);
+				}
 				setMemberToRemove(null);
 				router.refresh();
 			} else {
@@ -560,6 +566,7 @@ export function GroupResponses({
 		setSelectedMember,
 		showError,
 		showSuccess,
+		showWarning,
 	]);
 
 	const selectedMemberIds = useMemo(
