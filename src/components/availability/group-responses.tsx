@@ -60,7 +60,11 @@ function formatRangeLabel(range: SelectionStateType, dates: ZotDate[]): string {
 	if (!startDay || !endDay) return "Select a cell to view";
 
 	const fmtDay = (d: Date) =>
-		d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+		d.toLocaleDateString("en-US", {
+			month: "short",
+			day: "numeric",
+			timeZone: startDay.ianaTimeZone,
+		});
 
 	const earliestMinutes = startDay.earliestTime;
 	const blockLength = startDay.blockLength;
