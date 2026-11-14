@@ -11,14 +11,15 @@ import {
 	spacerBeforeDate,
 	type ZotDate,
 } from "@zotmeet/shared";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FlatList, type LayoutChangeEvent, View } from "react-native";
 import {
-	FlatList,
-	type LayoutChangeEvent,
-	type NativeScrollEvent,
-	type NativeSyntheticEvent,
-	View,
-} from "react-native";
+	runOnJS,
+	type SharedValue,
+	useAnimatedScrollHandler,
+	useAnimatedStyle,
+	useSharedValue,
+} from "react-native-reanimated";
 import { AvailabilityBlock } from "@/components/availability/table/availability-block";
 import {
 	type AvailabilityDatePageNav,
@@ -32,6 +33,8 @@ import {
 } from "@/components/availability/table/availability-table-metrics";
 import { AvailabilityTimeTicks } from "@/components/availability/table/availability-time-ticks";
 import { StripeBackdrop } from "@/components/availability/table/stripe-backdrop";
+import { TornEdge } from "@/components/availability/table/torn-edge";
+import { Animated } from "@/lib/animated";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 export interface GroupAvailabilityProps {
@@ -57,6 +60,12 @@ export interface GroupAvailabilityProps {
  * next page the way Google Calendar's day view does; the tick column stays
  * put. The store's `currentPage` remains the source of truth — the arrows
  * change it and the pager follows, and a settled swipe writes it back.
+ *
+ * Whether a page is the first or last is decided from its own index, not
+ * from the store's `isFirstPage`/`isLastPage`: the pager pre-renders the
+ * neighbouring pages, and flags read from the store would show page 1's
+ * arrows and tears on page 2 until the swipe settled, then re-render every
+ * cell of every page when it did.
  *
  * Every cell's fill is the shared `calculateBlockFill`, fed exactly what the
  * web feeds it; only the drawing differs. The web's member filter, hover, and
@@ -112,6 +121,8 @@ export function GroupAvailability({
 		setPageWidth(event.nativeEvent.layout.width);
 
 	const listRef = useRef<FlatList<CurrentPageAvailability>>(null);
+	// The pager's live offset, for fading the torn edges out mid-swipe.
+	const scrollX = useSharedValue(currentPage * pageWidth);
 	// The page the pager is showing (or scrolling to), so an arrow press
 	// scrolls and a swipe that already landed there does not scroll again.
 	const settledPageRef = useRef(currentPage);
@@ -140,9 +151,8 @@ export function GroupAvailability({
 	// swipe through `onMomentumScrollEnd`; react-native-web never emits that
 	// event, so `onScroll` is watched too and only whole-page offsets count.
 	const syncPageFromOffset = useCallback(
-		(event: NativeSyntheticEvent<NativeScrollEvent>) => {
+		(offset: number) => {
 			if (pageWidth === 0) return;
-			const offset = event.nativeEvent.contentOffset.x;
 			const page = Math.round(offset / pageWidth);
 			if (Math.abs(offset - page * pageWidth) > 1) return;
 			if (pendingScrollRef.current !== null) {
@@ -162,6 +172,29 @@ export function GroupAvailability({
 		pendingScrollRef.current = null;
 	}, []);
 
+	const scrollHandler = useAnimatedScrollHandler(
+		{
+			onScroll: (event) => {
+				scrollX.value = event.contentOffset.x;
+				runOnJS(syncPageFromOffset)(event.contentOffset.x);
+			},
+			onMomentumEnd: (event) => {
+				runOnJS(syncPageFromOffset)(event.contentOffset.x);
+			},
+			onBeginDrag: () => {
+				runOnJS(onScrollBeginDrag)();
+			},
+		},
+		[syncPageFromOffset, onScrollBeginDrag],
+	);
+
+	// Only the handlers are shared with every page; the first/last flags are
+	// each page's own (see above), so this stays stable across a swipe.
+	const pageNavActions = useMemo(
+		() => ({ onPrev: datePageNav?.onPrev, onNext: datePageNav?.onNext }),
+		[datePageNav?.onPrev, datePageNav?.onNext],
+	);
+
 	const getItemLayout = useCallback(
 		(_: unknown, index: number) => ({
 			length: pageWidth,
@@ -177,25 +210,26 @@ export function GroupAvailability({
 
 			<View className="flex-1" onLayout={onPagerLayout}>
 				{pageWidth > 0 ? (
-					<FlatList
+					<Animated.FlatList
 						data={pages}
 						getItemLayout={getItemLayout}
 						horizontal
 						initialScrollIndex={currentPage}
 						keyExtractor={(_, page) => String(page)}
-						onMomentumScrollEnd={syncPageFromOffset}
-						onScroll={syncPageFromOffset}
-						onScrollBeginDrag={onScrollBeginDrag}
+						onScroll={scrollHandler}
 						pagingEnabled
 						ref={listRef}
 						renderItem={({ item, index }) => (
 							<GroupAvailabilityPage
 								availabilityTimeBlocks={availabilityTimeBlocks}
-								datePageNav={datePageNav}
+								isFirstPage={index === 0}
+								isLastPage={index === pages.length - 1}
 								meetingType={meetingType}
 								numMembers={members.length}
 								page={index}
 								pageAvailability={item}
+								pageNavActions={pageNavActions}
+								scrollX={scrollX}
 								timestampsByCell={timestampsByCell}
 								width={pageWidth}
 							/>
@@ -212,27 +246,50 @@ export function GroupAvailability({
 
 interface GroupAvailabilityPageProps {
 	availabilityTimeBlocks: number[];
-	datePageNav?: AvailabilityDatePageNav;
+	isFirstPage: boolean;
+	isLastPage: boolean;
 	meetingType: MeetingType;
 	numMembers: number;
 	page: number;
 	pageAvailability: CurrentPageAvailability;
+	pageNavActions: Pick<AvailabilityDatePageNav, "onPrev" | "onNext">;
+	scrollX: SharedValue<number>;
 	timestampsByCell: Map<string, string>;
 	width: number;
 }
 
-/** One pager page: `itemsPerPage` day columns, each under its own header. */
-function GroupAvailabilityPage({
+/**
+ * One pager page: `itemsPerPage` day columns, each under its own header.
+ * Memoised so a settled swipe (which writes `currentPage` to the store) does
+ * not re-render the pages' cells — nothing they draw depends on it.
+ */
+const GroupAvailabilityPage = memo(function GroupAvailabilityPage({
 	availabilityTimeBlocks,
-	datePageNav,
+	isFirstPage,
+	isLastPage,
 	meetingType,
 	numMembers,
 	page,
 	pageAvailability,
+	pageNavActions,
+	scrollX,
 	timestampsByCell,
 	width,
 }: GroupAvailabilityPageProps) {
 	const itemsPerPage = useAvailabilityStore((s) => s.itemsPerPage);
+
+	const datePageNav = useMemo<AvailabilityDatePageNav>(
+		() => ({ ...pageNavActions, isFirstPage, isLastPage }),
+		[pageNavActions, isFirstPage, isLastPage],
+	);
+
+	// Mid-swipe, two pages' tears would meet in a zipper down the seam; fade
+	// them out over the first fifth of the drag and back in as the page
+	// settles, so the hint is only there when the page is at rest.
+	const tornEdgeStyle = useAnimatedStyle(() => ({
+		opacity:
+			1 - Math.min(1, Math.abs(scrollX.value - page * width) / (width * 0.2)),
+	}));
 
 	const spacers = spacerBeforeDate(pageAvailability.availabilities);
 	const lastIndex = pageAvailability.availabilities.length - 1;
@@ -313,6 +370,20 @@ function GroupAvailabilityPage({
 											/>
 										);
 									})}
+									{pageDateIndex === 0 && !isFirstPage ? (
+										<TornEdge
+											height={columnHeight}
+											side="left"
+											style={tornEdgeStyle}
+										/>
+									) : null}
+									{pageDateIndex === lastIndex && !isLastPage ? (
+										<TornEdge
+											height={columnHeight}
+											side="right"
+											style={tornEdgeStyle}
+										/>
+									) : null}
 								</>
 							)}
 						</View>
@@ -321,4 +392,4 @@ function GroupAvailabilityPage({
 			})}
 		</View>
 	);
-}
+});
