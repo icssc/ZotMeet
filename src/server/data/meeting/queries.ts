@@ -254,10 +254,11 @@ export async function getScheduledTimeBlocks(meetingId: string) {
 }
 
 /**
- * Returns auth user IDs for all members with an availability row for the meeting,
- * excluding the host. Used to send notifications when a meeting is scheduled.
+ * Returns auth user IDs for all meeting participants (members with an
+ * availability row, i.e. invited or joined, whether or not they've responded),
+ * excluding the host.
  */
-export async function getMeetingResponderUserIds(
+export async function getMeetingParticipantUserIds(
 	meetingId: string,
 	hostMemberId: string,
 ): Promise<string[]> {

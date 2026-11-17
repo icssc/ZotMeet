@@ -84,6 +84,6 @@ export const NOTIFICATION_PREF_OPTIONS: {
 		key: "meetingScheduled",
 		label: "Meeting Scheduled",
 		description:
-			"Receive in-app and email notifications when a meeting you responded to is scheduled.",
+			"Receive in-app and email notifications when a meeting you're part of is scheduled.",
 	},
 ];
