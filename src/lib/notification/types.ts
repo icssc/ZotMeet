@@ -70,6 +70,12 @@ export const NOTIFICATION_PREF_OPTIONS: {
 			"Receive in-app and email notifications when you're invited to a meeting.",
 	},
 	{
+		key: "meetingScheduled",
+		label: "Meeting Scheduled",
+		description:
+			"Receive in-app and email notifications when a meeting you're part of is scheduled.",
+	},
+	{
 		key: "groupInvites",
 		label: "Group Invites",
 		description:
@@ -79,11 +85,5 @@ export const NOTIFICATION_PREF_OPTIONS: {
 		key: "nudges",
 		label: "Nudges",
 		description: "Receive in-app and email reminders to add your availability.",
-	},
-	{
-		key: "meetingScheduled",
-		label: "Meeting Scheduled",
-		description:
-			"Receive in-app and email notifications when a meeting you're part of is scheduled.",
 	},
 ];
