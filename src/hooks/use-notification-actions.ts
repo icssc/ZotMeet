@@ -21,15 +21,13 @@ export function useNotificationActions(notifications: NotificationItem[]) {
 		},
 	) {
 		await options.beforeOpen?.();
-		if (
-			notif.type === NOTIFICATION_TYPES.MEETING_INVITE ||
-			notif.type === NOTIFICATION_TYPES.NUDGE
-		) {
-			options.onClose();
-			router.push(notif.redirect ?? "");
-		} else {
+		// Group invites need an accept/decline dialog; every other type just follows its link.
+		if (notif.type === NOTIFICATION_TYPES.GROUP_INVITE) {
 			setActiveNotification(notif);
 			setShowGroupInvite(true);
+		} else {
+			options.onClose();
+			router.push(notif.redirect ?? "");
 		}
 	}
 
