@@ -2,23 +2,18 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
-	// Only extend cookie expiration on GET requests since we can be sure
-	// a new session wasn't set when handling the request.
 	if (request.method === "GET") {
-		const response = NextResponse.next();
-		const token = request.cookies.get("session")?.value ?? null;
+		return NextResponse.next();
+	}
 
-		if (token !== null) {
-			response.cookies.set("session", token, {
-				path: "/",
-				maxAge: 60 * 60 * 24 * 30,
-				sameSite: "lax",
-				httpOnly: true,
-				// TODO: check for deployment
-				secure: process.env.NODE_ENV === "production",
-			});
-		}
-		return response;
+	// `/api/*` is the Expo app's surface. Its handlers authenticate only via
+	// `Authorization: Bearer` (see `src/lib/auth/bearer.ts`) and never read
+	// cookies, so the Origin check below — a defence against cookie-carrying
+	// cross-site requests — does not apply. Native `fetch` sends no Origin at
+	// all, and a CORS preflight `OPTIONS` carries no Authorization header, so
+	// the exemption has to be by path rather than by header.
+	if (request.nextUrl.pathname.startsWith("/api/")) {
+		return NextResponse.next();
 	}
 
 	// Prevent CSRF attacks from route handlers

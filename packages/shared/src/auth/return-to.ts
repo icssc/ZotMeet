@@ -1,0 +1,53 @@
+import type { OAuthLoginProvider } from "./providers";
+
+/** Validates and normalizes a post-auth redirect target (path + query only). */
+export function safeReturnTo(value: string | null | undefined): string | null {
+	if (!value) {
+		return null;
+	}
+
+	if (value.startsWith("http://") || value.startsWith("https://")) {
+		try {
+			const url = new URL(value);
+			return safeReturnTo(`${url.pathname}${url.search}`);
+		} catch {
+			return null;
+		}
+	}
+
+	// Browsers read `/\evil.com` as `//evil.com`, so a backslash anywhere in
+	// the path is treated the same as a protocol-relative URL.
+	if (
+		!value.startsWith("/") ||
+		value.startsWith("//") ||
+		value.includes("\\")
+	) {
+		return null;
+	}
+
+	if (value.startsWith("/auth/login")) {
+		return null;
+	}
+
+	return value;
+}
+
+export function loginPathWithReturnTo(returnTo?: string | null): string {
+	const safe = safeReturnTo(returnTo);
+	if (!safe) {
+		return "/auth/login";
+	}
+	return `/auth/login?returnTo=${encodeURIComponent(safe)}`;
+}
+
+export function oauthLoginPath(
+	provider: OAuthLoginProvider,
+	returnTo?: string | null,
+): string {
+	const safe = safeReturnTo(returnTo);
+	const base = `/auth/login/${provider}`;
+	if (!safe) {
+		return base;
+	}
+	return `${base}?returnTo=${encodeURIComponent(safe)}`;
+}

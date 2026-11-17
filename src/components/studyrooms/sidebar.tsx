@@ -18,6 +18,7 @@ import { toLocalStr } from "@/lib/rooms/utils";
 import {
 	BUILDINGS,
 	CAPACITY_RANGES,
+	formatLocation,
 	type StudyRooms,
 } from "@/lib/types/studyrooms";
 
@@ -68,7 +69,10 @@ export function Sidebar({
 				label: `Time: ${format(startTime, "h:mmaaa")}–${format(endTime, "h:mmaaa")}`,
 				key: "time",
 			},
-		location && { label: `Location: ${location}`, key: "location" },
+		location && {
+			label: `Location: ${formatLocation(location)}`,
+			key: "location",
+		},
 		(capacityMin || capacityMax) && {
 			label: `Capacity: ${capacityMin || "any"}–${capacityMax || "any"}`,
 			key: "capacity",
@@ -289,8 +293,8 @@ export function Sidebar({
 								textField: {
 									fullWidth: true,
 									sx: {
-										"& .MuiIconButton-edgeEnd": {
-											marginRight: 0,
+										"& .MuiInputAdornment-root": {
+											flexShrink: 0,
 										},
 									},
 								},
@@ -304,8 +308,8 @@ export function Sidebar({
 								textField: {
 									fullWidth: true,
 									sx: {
-										"& .MuiIconButton-edgeEnd": {
-											marginRight: 0,
+										"& .MuiInputAdornment-root": {
+											flexShrink: 0,
 										},
 									},
 								},
@@ -317,9 +321,14 @@ export function Sidebar({
 						freeSolo
 						options={BUILDINGS}
 						value={location}
+						getOptionLabel={(opt) => (typeof opt === "string" ? opt : opt)}
 						onChange={(_, val) => setLocation(val)}
 						onInputChange={(_, val, reason) => {
 							if (reason !== "reset") setLocation(val || null);
+						}}
+						// Limit the height of the dropdown list, so it doesnt move up
+						slotProps={{
+							listbox: { sx: { maxHeight: 240, overflow: "auto" } },
 						}}
 						renderInput={(params) => (
 							<TextField {...params} label="Location" fullWidth />

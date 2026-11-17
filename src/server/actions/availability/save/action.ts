@@ -1,20 +1,17 @@
 "use server";
 
-import { getExistingMeeting } from "@data/meeting/queries";
+import {
+	type SaveAvailabilityInput,
+	saveAvailabilitySchema,
+} from "@zotmeet/shared";
 import { revalidatePath } from "next/cache";
-import { db } from "@/db";
-import { availabilities } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { savePersonalAvailabilityForMember } from "@/server/data/availability/save";
 
 export async function savePersonalAvailability({
 	meetingId,
-	meetingAvailabilityTimes,
-	ifNeededAvailabilityTimes,
-}: {
-	meetingId: string;
-	meetingAvailabilityTimes: string[];
-	ifNeededAvailabilityTimes: string[];
-}) {
+	...input
+}: { meetingId: string } & SaveAvailabilityInput) {
 	try {
 		const { user } = await getCurrentSession();
 
@@ -22,35 +19,17 @@ export async function savePersonalAvailability({
 			throw new Error("User not found");
 		}
 
-		const memberId = user.memberId;
-
-		const meeting = await getExistingMeeting(meetingId);
-		if (!meeting) {
-			throw new Error("Meeting not found");
+		const parsed = saveAvailabilitySchema.safeParse(input);
+		if (!parsed.success) {
+			throw new Error("Invalid payload");
 		}
 
-		const ifNeededSet = new Set(ifNeededAvailabilityTimes);
-		const meetingAvailabilities = meetingAvailabilityTimes.filter(
-			(t) => !ifNeededSet.has(t),
-		);
+		const { groupId } = await savePersonalAvailabilityForMember({
+			meetingId,
+			memberId: user.memberId,
+			...parsed.data,
+		});
 
-		await db
-			.insert(availabilities)
-			.values({
-				memberId,
-				meetingId,
-				meetingAvailabilities,
-				ifNeededAvailabilities: ifNeededAvailabilityTimes,
-			})
-			.onConflictDoUpdate({
-				target: [availabilities.memberId, availabilities.meetingId],
-				set: {
-					meetingAvailabilities,
-					ifNeededAvailabilities: ifNeededAvailabilityTimes,
-				},
-			});
-
-		const groupId = meeting.group_id;
 		if (groupId) {
 			revalidatePath(`/groups/${groupId}`);
 		}

@@ -1,17 +1,13 @@
-import { Typography } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
+import type { BlockFill, SelectionEdges } from "@zotmeet/shared";
 import type React from "react";
 import { memo, useMemo } from "react";
-import type { SelectionEdges } from "@/components/availability/group-availability";
+import {
+	AvailabilityTabOverlay,
+	useAvailabilityTabOverlay,
+} from "@/components/availability/table/availability-tab-overlay";
 import type { GridCell } from "@/hooks/use-grid-drag-selection";
 import { cn } from "@/lib/utils";
-
-export type BlockFill = {
-	solid: { color: string } | null;
-	stripes: { opacity: number } | null;
-};
-
-export const EMPTY_FILL: BlockFill = { solid: null, stripes: null };
 
 interface GroupAvailabilityBlockProps {
 	className?: string;
@@ -23,6 +19,8 @@ interface GroupAvailabilityBlockProps {
 	onKeyDown?: React.KeyboardEventHandler<HTMLElement>;
 	onHoverCell?: (cell: GridCell) => void;
 	fill: BlockFill;
+	/** Theme primary; `fill.solid.ratio` is applied to it as alpha. */
+	primaryColor: string;
 	hasSpacerBefore?: boolean;
 	isScheduled?: boolean;
 	isScheduledTopEdge?: boolean;
@@ -31,6 +29,7 @@ interface GroupAvailabilityBlockProps {
 	scheduledTimeRange?: string;
 	scheduledBlockCount?: number;
 	selectionEdges?: SelectionEdges | null;
+	isScheduling?: boolean;
 	dateIndex: number;
 	blockIndex: number;
 }
@@ -53,19 +52,30 @@ export const GroupAvailabilityBlock = memo(
 		onKeyDown,
 		onHoverCell,
 		fill,
+		primaryColor,
 		hasSpacerBefore = false,
 		isScheduled = false,
 		isScheduledTopEdge = false,
-		isScheduledBottomEdge = false,
+		isScheduledBottomEdge: _isScheduledBottomEdge = false,
 		scheduledMeetingTitle,
 		scheduledTimeRange,
 		scheduledBlockCount = 1,
 		selectionEdges = null,
+		isScheduling = false,
 		dateIndex,
 		blockIndex,
 	}: GroupAvailabilityBlockProps) => {
-		const theme = useTheme();
-		const dashColor = theme.palette.secondary.main;
+		const scheduledTab =
+			isScheduled && isScheduledTopEdge
+				? {
+						title: scheduledMeetingTitle,
+						timeRange: scheduledTimeRange,
+						blockCount: scheduledBlockCount,
+					}
+				: null;
+
+		const { roomTab, scheduledTab: resolvedScheduledTab } =
+			useAvailabilityTabOverlay(dateIndex, blockIndex, scheduledTab);
 
 		const onMouseEnter = useMemo(
 			() =>
@@ -79,9 +89,8 @@ export const GroupAvailabilityBlock = memo(
 				type="button"
 				tabIndex={0}
 				className={cn(
-					"relative h-full w-full select-none border-gray-medium border-r-[1px] [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [touch-action:pan-x_pan-y]",
+					"relative isolate h-full w-full select-none border-gray-medium border-r-[1px] [-webkit-tap-highlight-color:transparent] [-webkit-touch-callout:none] [touch-action:pan-x_pan-y]",
 					hasSpacerBefore && "border-l-[1px] border-l-gray-medium",
-					isScheduledTopEdge && "z-[1]",
 					tableCellStyles,
 					className,
 				)}
@@ -95,7 +104,7 @@ export const GroupAvailabilityBlock = memo(
 				data-block-index={blockIndex}
 			>
 				<div
-					className="pointer-events-none relative block h-full w-full py-2"
+					className="pointer-events-none relative z-0 block h-full w-full py-2"
 					data-date-index={dateIndex}
 					data-block-index={blockIndex}
 				>
@@ -109,15 +118,19 @@ export const GroupAvailabilityBlock = memo(
 					{fill.solid && (
 						<div
 							className="absolute inset-0"
-							style={{ background: fill.solid.color }}
+							style={{ background: alpha(primaryColor, fill.solid.ratio) }}
 						/>
 					)}
 				</div>
+				<AvailabilityTabOverlay
+					scheduledTab={resolvedScheduledTab}
+					roomTab={roomTab}
+				/>
 				{selectionEdges && (
 					<div
 						aria-hidden="true"
 						className={cn(
-							"pointer-events-none absolute inset-0 border-slate-medium border-dashed",
+							"pointer-events-none absolute inset-0 z-30 border-slate-medium border-dashed",
 							selectionEdges.top && SELECTION_EDGE_WIDTH.top,
 							selectionEdges.bottom && SELECTION_EDGE_WIDTH.bottom,
 							selectionEdges.left && SELECTION_EDGE_WIDTH.left,
@@ -125,53 +138,6 @@ export const GroupAvailabilityBlock = memo(
 						)}
 					/>
 				)}
-				{isScheduled && isScheduledTopEdge && (
-					<div
-						aria-hidden="true"
-						className="pointer-events-none absolute inset-0 w-[87%] rounded-r-xl bg-[#1F2A44] shadow-2xl shadow-inner"
-						style={{ height: `${scheduledBlockCount * 100}%` }}
-					/>
-				)}
-				{isScheduledTopEdge &&
-					(scheduledMeetingTitle || scheduledTimeRange) && (
-						<div
-							aria-hidden="true"
-							className="pointer-events-none absolute inset-x-0 top-0 z-[10] flex w-[87%] flex-col overflow-hidden p-1.5"
-							style={{ height: `calc(${scheduledBlockCount} * 100%)` }}
-						>
-							{scheduledMeetingTitle && (
-								<Typography
-									variant="body1"
-									sx={{
-										display: "-webkit-box",
-										WebkitLineClamp: 3,
-										WebkitBoxOrient: "vertical",
-										overflow: "hidden",
-										lineHeight: 1.2,
-										letterSpacing: "0.15px",
-										color: theme.palette.common.white,
-									}}
-								>
-									{scheduledMeetingTitle}
-								</Typography>
-							)}
-							{scheduledTimeRange && (
-								<Typography
-									variant="caption"
-									noWrap
-									sx={{
-										fontWeight: 500,
-										lineHeight: 1,
-										letterSpacing: "0.4px",
-										color: theme.palette.common.white,
-										margin: 1,
-									}}
-								>
-									{scheduledTimeRange}
-								</Typography>
-							)}
-						</div>
-					)}
 			</button>
 		);
 	},

@@ -1,9 +1,9 @@
 import { ArrowBack } from "@mui/icons-material";
-import { IconButton } from "@mui/material";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { GroupSettingsForm } from "@/components/groups/group-settings-form";
 import { getCurrentSession } from "@/lib/auth";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import {
 	getExistingGroup,
 	isGroupAdmin,
@@ -26,7 +26,7 @@ export default async function GroupSettingsPage(props: PageProps) {
 
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/auth/login/google");
+		redirect(loginPathWithReturnTo(`/groups/${id}/settings`));
 	}
 
 	const group = await getExistingGroup(id).catch(() => null);

@@ -1,5 +1,6 @@
 "use server";
 
+import { createMeetingSchema } from "@zotmeet/shared";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
@@ -9,6 +10,27 @@ import { sortMeetingIsoDatesAsc } from "@/lib/availability/utils";
 import { availabilityPathWithOpenInvite } from "@/lib/meeting-open-invite";
 import { getUsersInGroup, isUserInGroup } from "@/server/data/groups/queries";
 import { sendMeetingInvitesToUsers } from "@/server/data/meeting/send-meeting-invites";
+
+/**
+ * The same rules `POST /api/meetings` applies, so a meeting is validated
+ * identically whichever client created it. Returns the first problem as a
+ * user-facing message, matching this file's `{ error }` convention.
+ */
+function validateMeetingInput(
+	meetingData: Omit<InsertMeeting, "hostId">,
+): string | null {
+	const parsed = createMeetingSchema.safeParse({
+		title: meetingData.title,
+		fromTime: meetingData.fromTime,
+		toTime: meetingData.toTime,
+		timezone: meetingData.timezone,
+		dates: meetingData.dates,
+		meetingType: meetingData.meetingType ?? undefined,
+		description: meetingData.description ?? undefined,
+	});
+	if (parsed.success) return null;
+	return parsed.error.issues[0]?.message ?? "Invalid meeting.";
+}
 
 async function maybeAutoInviteGroupMembersForNewMeeting(args: {
 	meetingId: string;
@@ -89,11 +111,13 @@ export async function createMeetingFromData(
 		group_id,
 	} = meetingData;
 
-	if (!dates?.length || new Set(dates).size !== dates.length) {
-		return { error: "Invalid meeting dates or times." };
+	const validationError = validateMeetingInput(meetingData);
+	if (validationError) {
+		return { error: validationError };
 	}
 
-	const normalizedDates = sortMeetingIsoDatesAsc(dates);
+	// `dates` is optional on the insert type; validation has already required it.
+	const normalizedDates = sortMeetingIsoDatesAsc(dates ?? []);
 
 	if (group_id) {
 		const [hostRow] = await db
@@ -177,11 +201,13 @@ export async function createMeeting(meetingData: InsertMeeting) {
 		}
 	}
 
-	if (!dates?.length || new Set(dates).size !== dates.length) {
-		return { error: "Invalid meeting dates or times." };
+	const validationError = validateMeetingInput(meetingData);
+	if (validationError) {
+		return { error: validationError };
 	}
 
-	const normalizedDates = sortMeetingIsoDatesAsc(dates);
+	// `dates` is optional on the insert type; validation has already required it.
+	const normalizedDates = sortMeetingIsoDatesAsc(dates ?? []);
 
 	const meeting: InsertMeeting = {
 		title,

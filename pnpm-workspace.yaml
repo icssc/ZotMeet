@@ -1,1 +1,5 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
 minimumReleaseAge: 1440

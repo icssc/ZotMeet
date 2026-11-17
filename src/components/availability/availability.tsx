@@ -10,11 +10,16 @@ import { GroupAvailability } from "@/components/availability/group-availability"
 import { GroupResponses } from "@/components/availability/group-responses";
 import { AvailabilityHeader } from "@/components/availability/header/availability-header";
 import { PersonalAvailability } from "@/components/availability/personal-availability";
-import { RoomRecommendationSettings } from "@/components/availability/room-recommendations";
-import { AvailabilityGridJaggedEdges } from "@/components/availability/table/availability-grid-jagged-edges";
+import {
+	deduplicateRooms,
+	groupRawRoomsByKey,
+	RoomRecommendationSettings,
+} from "@/components/availability/room-recommendations";
 import { ScheduleMeetingSettings } from "@/components/availability/schedule-meeting-settings";
+import { AvailabilityGridJaggedEdges } from "@/components/availability/table/availability-grid-jagged-edges";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
+import { StudyRoomHoverProvider } from "@/components/availability/table/study-room-hover-context";
 import { InviteMembersDialog } from "@/components/groups/add-member-dialog";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useAvailabilityActionHandlers } from "@/hooks/use-availability-action-handlers";
@@ -22,23 +27,23 @@ import { useAvailabilityData } from "@/hooks/use-availability-data";
 import { useCalendarOverlays } from "@/hooks/use-calendar-overlays";
 import { useGridInteraction } from "@/hooks/use-grid-interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useReturnToPath } from "@/hooks/use-return-to-path";
 import { useRoomRecommendations } from "@/hooks/use-room-recommendations";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import {
 	clearPersonalGridSlots,
-	convertTimeFromUTC,
-	generateTimeBlocks,
+	deriveMeetingWindow,
 	getPageEdgeVariant,
-	getTimeFromHourMinuteString,
 	mergeImportedPersonalGridSlots,
-	sortMeetingIsoDatesAsc,
 } from "@/lib/availability/utils";
 import type { MemberMeetingAvailability } from "@/lib/types/availability";
-import type { HourMinuteString } from "@/lib/types/chrono";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 import { MobilePersonalAvailabilitySidebar } from "../nav/mobile-personal-availability";
 import { PersonalAvailabilitySidebar } from "../nav/personal-availability-sidebar";
 import { MobileGroupResponses } from "./mobile-group-responses";
+import { MobileRoomRecommendations } from "./mobile-room-recommendations";
+import { MobileRoomWheelPicker } from "./mobile-room-wheel-picker";
 import { MobileScheduleSettings } from "./mobile-schedule-settings";
 
 const LG_UP_MEDIA = "(min-width: 1024px)";
@@ -59,6 +64,12 @@ export function Availability({
 	inviteQueryInUrl?: boolean;
 }) {
 	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
+	// Lifted here (rather than owned by the dialog) so the toggle can update
+	// optimistically and be shared with AvailabilityActions; synced to the
+	// server value below whenever meetingData refreshes.
+	const [membersCanInvite, setMembersCanInvite] = useState(
+		meetingData.membersCanInvite,
+	);
 	const [isMeetingDeletionPending, setIsMeetingDeletionPending] =
 		useState(false);
 
@@ -108,6 +119,7 @@ export function Availability({
 	);
 
 	const router = useRouter();
+	const returnToPath = useReturnToPath();
 
 	const isMobile = useIsMobile();
 	const isLgUp = useMediaQuery(LG_UP_MEDIA, { noSsr: true });
@@ -121,34 +133,28 @@ export function Availability({
 		}
 	}, [autoOpenInviteDialog]);
 
+	// Re-sync local optimistic state when the server-provided value changes.
+	useEffect(() => {
+		setMembersCanInvite(meetingData.membersCanInvite);
+	}, [meetingData.membersCanInvite]);
+
 	const [userTimezone, setUserTimezone] = useState(
 		Intl.DateTimeFormat().resolvedOptions().timeZone,
 	);
 	const [changeableTimezone, setChangeableTimezone] = useState(true);
-	const referenceDate = useMemo(
-		() => sortMeetingIsoDatesAsc(meetingData.dates)[0] ?? meetingData.dates[0],
-		[meetingData.dates],
-	);
-
-	const fromTimeLocal = useMemo(
-		() => convertTimeFromUTC(meetingData.fromTime, userTimezone, referenceDate),
-		[meetingData.fromTime, userTimezone, referenceDate],
-	);
-	const toTimeLocal = useMemo(
-		() => convertTimeFromUTC(meetingData.toTime, userTimezone, referenceDate),
-		[meetingData.toTime, userTimezone, referenceDate],
-	);
-	const fromTimeMinutes = useMemo(
-		() => getTimeFromHourMinuteString(fromTimeLocal as HourMinuteString),
-		[fromTimeLocal],
-	);
-	const toTimeMinutes = useMemo(
-		() => getTimeFromHourMinuteString(toTimeLocal as HourMinuteString),
-		[toTimeLocal],
-	);
-	const availabilityTimeBlocks = useMemo(
-		() => generateTimeBlocks(fromTimeMinutes, toTimeMinutes),
-		[fromTimeMinutes, toTimeMinutes],
+	// The grid's time axis in the viewer's zone — the same derivation the Expo
+	// app runs, from `@zotmeet/shared`.
+	const { fromTimeMinutes, availabilityTimeBlocks } = useMemo(
+		() =>
+			deriveMeetingWindow(
+				{
+					dates: meetingData.dates,
+					fromTime: meetingData.fromTime,
+					toTime: meetingData.toTime,
+				},
+				userTimezone,
+			),
+		[meetingData.dates, meetingData.fromTime, meetingData.toTime, userTimezone],
 	);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: trigger on meeting/tz change
@@ -196,17 +202,18 @@ export function Availability({
 
 	const availabilityGridRef = useRef<HTMLTableElement>(null);
 
-	const { handlers, gridHandlers, handleMouseLeave } = useGridInteraction({
-		availabilityView,
-		paintMode,
-		availabilityDates,
-		ifNeededDates,
-		setAvailabilityDates,
-		setIfNeededDates,
-		userMemberId: user?.memberId,
-		fromTimeMinutes,
-		userTimezone,
-	});
+	const { handlers, gridHandlers, handleMouseLeave, activePaintMode } =
+		useGridInteraction({
+			availabilityView,
+			paintMode,
+			availabilityDates,
+			ifNeededDates,
+			setAvailabilityDates,
+			setIfNeededDates,
+			userMemberId: user?.memberId,
+			fromTimeMinutes,
+			userTimezone,
+		});
 
 	// Room recommendations — surfaced in the group/schedule sidebar so the host
 	// can pull room suggestions for the times the group is most available.
@@ -216,8 +223,37 @@ export function Availability({
 		rooms: studyRooms,
 		error: studyRoomsError,
 		isLoading: isRoomsLoading,
+		hasSearched: hasSearchedRooms,
 		showBestRooms: handleShowBestRooms,
 	} = useRoomRecommendations(availabilityDates);
+
+	const [selectedRoomIds, setSelectedRoomIds] = useState<string[]>([]);
+	const [isMobileRoomsDrawerOpen, setIsMobileRoomsDrawerOpen] = useState(false);
+
+	const showRoomPreviews =
+		availabilityView === "group" || availabilityView === "schedule";
+
+	useEffect(() => {
+		if (!showRoomPreviews && selectedRoomIds.length > 0) {
+			setSelectedRoomIds([]);
+		}
+	}, [showRoomPreviews, selectedRoomIds.length]);
+
+	const rawRoomsByKey = useMemo(
+		() => groupRawRoomsByKey(studyRooms),
+		[studyRooms],
+	);
+
+	const mobileRoomCount = useMemo(
+		() => deduplicateRooms(studyRooms).length,
+		[studyRooms],
+	);
+
+	useEffect(() => {
+		if (availabilityView !== "group") {
+			setIsMobileRoomsDrawerOpen(false);
+		}
+	}, [availabilityView]);
 
 	const handleImportSlotsFromMeeting = useCallback(
 		({
@@ -330,6 +366,7 @@ export function Availability({
 		onCancel: handleCancelEditing,
 		onSave: confirmSave,
 		setChangeableTimezone,
+		userTimezone,
 		isMeetingDeletionPending,
 	});
 
@@ -341,6 +378,7 @@ export function Availability({
 	const actionsProps = {
 		meetingData,
 		user,
+		membersCanInvite,
 		handlePersonalCancel,
 		handlePersonalSave,
 		handleScheduleCancel,
@@ -385,15 +423,16 @@ export function Availability({
 
 	const handleMobileAddAvailability = useCallback(() => {
 		if (!user) {
-			router.push("/auth/login/google");
+			router.push(loginPathWithReturnTo(returnToPath));
 			return;
 		}
 		setChangeableTimezone(false);
 		setUserTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
 		setAvailabilityView("personal");
-	}, [router, setAvailabilityView, user]);
+	}, [router, returnToPath, setAvailabilityView, user]);
 
 	const handleMobileOpenAttendees = useCallback(() => {
+		setIsMobileRoomsDrawerOpen(false);
 		setIsMobileDrawerOpen(true);
 	}, [setIsMobileDrawerOpen]);
 
@@ -401,188 +440,245 @@ export function Availability({
 		setAvailabilityView("schedule");
 	}, [setAvailabilityView]);
 
+	const handleMobileOpenRooms = useCallback(() => {
+		setIsMobileDrawerOpen(false);
+		setIsMobileRoomsDrawerOpen(true);
+	}, [setIsMobileDrawerOpen]);
+
+	const handleCloseMobileRooms = useCallback(() => {
+		setIsMobileRoomsDrawerOpen(false);
+	}, []);
+
 	return (
-		<div className="flex min-h-[80vh] flex-col gap-6">
-			<AvailabilityHeader
-				meetingData={meetingData}
-				user={user}
-				inviteQueryInUrl={inviteQueryInUrl}
-				isMeetingDeletionPending={isMeetingDeletionPending}
-				onMeetingDeletionPendingChange={setIsMeetingDeletionPending}
-			/>
+		<StudyRoomHoverProvider
+			showRoomPreviews={showRoomPreviews}
+			fromTimeMinutes={fromTimeMinutes}
+			availabilityDates={availabilityDates}
+			availabilityTimeBlocks={availabilityTimeBlocks}
+			timeZone={userTimezone}
+			rawRoomsByKey={rawRoomsByKey}
+			selectedRoomIds={selectedRoomIds}
+		>
+			<div className="flex min-h-[80vh] flex-col">
+				<div className="flex min-h-0 w-full min-w-0 flex-1 flex-row items-stretch justify-start">
+					<div className="flex min-h-0 min-w-0 flex-1 flex-col gap-6 lg:mr-4">
+						<AvailabilityHeader
+							meetingData={meetingData}
+							user={user}
+							inviteQueryInUrl={inviteQueryInUrl}
+							isMeetingDeletionPending={isMeetingDeletionPending}
+							onMeetingDeletionPendingChange={setIsMeetingDeletionPending}
+						/>
 
-			<div className="flex min-h-0 w-full min-w-0 flex-1 flex-row items-stretch justify-start">
-				<Paper
-					component="div"
-					variant="outlined"
-					className="flex min-h-0 min-w-0 flex-1 flex-col self-stretch overflow-y-auto [touch-action:pan-y] lg:mr-4 lg:overflow-y-auto lg:overflow-x-hidden lg:pr-14 lg:[touch-action:auto]"
-				>
-					<div className="flex flex-1 flex-col gap-4">
-						<div className="shrink-0 lg:hidden">
-							<AvailabilityActions {...actionsProps} />
-						</div>
-						<div className="relative overflow-visible">
-							<table
-								ref={availabilityGridRef}
-								data-availability-grid=""
-								className="w-full table-fixed"
-							>
-								<AvailabilityTableHeader
-									currentPageAvailability={currentPageAvailability}
-									meetingType={meetingData.meetingType}
-									doesntNeedDay={doesntNeedDay}
-									datePageNav={{
-										onPrev: prevPage,
-										onNext: () => nextPage(availabilityDates.length),
-										isFirstPage,
-										isLastPage,
-									}}
-								/>
-
-								<tbody
-									className="bg-stripes-primary"
-									onMouseLeave={handleMouseLeave}
-								>
-									{availabilityView === "group" ||
-									availabilityView === "schedule" ? (
-										<GroupAvailability
-											meetingTitle={meetingData.title}
-											availabilityTimeBlocks={availabilityTimeBlocks}
-											fromTime={fromTimeMinutes}
-											availabilityDates={availabilityDates}
-											ifNeededDates={ifNeededDates}
+						<Paper
+							component="div"
+							variant="outlined"
+							className="flex min-h-0 min-w-0 flex-1 flex-col self-stretch overflow-y-auto [touch-action:pan-y] lg:overflow-y-auto lg:overflow-x-hidden lg:pr-14 lg:[touch-action:auto]"
+						>
+							<div className="flex flex-1 flex-col gap-4">
+								<div className="shrink-0 lg:hidden">
+									<AvailabilityActions {...actionsProps} />
+								</div>
+								<div className="relative overflow-visible">
+									<table
+										ref={availabilityGridRef}
+										data-availability-grid=""
+										className="w-full table-fixed"
+									>
+										<AvailabilityTableHeader
 											currentPageAvailability={currentPageAvailability}
-											members={members}
-											onMouseLeave={handleMouseLeave}
-											isScheduling={availabilityView === "schedule"}
-											timeZone={userTimezone}
-											handlers={gridHandlers}
+											meetingType={meetingData.meetingType}
+											doesntNeedDay={doesntNeedDay}
+											datePageNav={{
+												onPrev: prevPage,
+												onNext: () => nextPage(availabilityDates.length),
+												isFirstPage,
+												isLastPage,
+											}}
 										/>
-									) : (
-										<PersonalAvailability
-											availabilityTimeBlocks={availabilityTimeBlocks}
-											fromTimeMinutes={fromTimeMinutes}
-											availabilityDates={availabilityDates}
-											currentPageAvailability={currentPageAvailability}
-											googleCalendarEvents={visibleCalendarEvents}
-											meetingDates={meetingData.dates}
-											userTimezone={userTimezone}
-											handlers={handlers}
-											paintMode={paintMode}
-											isDirty={isDirty}
+
+										<tbody
+											className="bg-stripes-primary"
+											onMouseLeave={handleMouseLeave}
+										>
+											{availabilityView === "group" ||
+											availabilityView === "schedule" ? (
+												<GroupAvailability
+													meetingTitle={meetingData.title}
+													availabilityTimeBlocks={availabilityTimeBlocks}
+													fromTime={fromTimeMinutes}
+													availabilityDates={availabilityDates}
+													ifNeededDates={ifNeededDates}
+													currentPageAvailability={currentPageAvailability}
+													members={members}
+													onMouseLeave={handleMouseLeave}
+													isScheduling={availabilityView === "schedule"}
+													timeZone={userTimezone}
+													handlers={gridHandlers}
+												/>
+											) : (
+												<PersonalAvailability
+													availabilityTimeBlocks={availabilityTimeBlocks}
+													fromTimeMinutes={fromTimeMinutes}
+													availabilityDates={availabilityDates}
+													currentPageAvailability={currentPageAvailability}
+													googleCalendarEvents={visibleCalendarEvents}
+													meetingDates={meetingData.dates}
+													userTimezone={userTimezone}
+													handlers={handlers}
+													paintMode={activePaintMode}
+													isDirty={isDirty}
+												/>
+											)}
+										</tbody>
+									</table>
+									{pageEdgeVariant !== "none" && (
+										<AvailabilityGridJaggedEdges
+											variant={pageEdgeVariant}
+											tableRef={availabilityGridRef}
 										/>
 									)}
-								</tbody>
-							</table>
-							{pageEdgeVariant !== "none" && (
-								<AvailabilityGridJaggedEdges
-									variant={pageEdgeVariant}
-									tableRef={availabilityGridRef}
-								/>
-							)}
-						</div>
+								</div>
 
-						<div className="ml-10 flex flex-row items-center justify-between gap-4 md:ml-16">
-							<TimeZoneDropdown
-								timeZone={userTimezone}
-								changeTimeZone={setUserTimezone}
-								changeableTimezone={changeableTimezone}
-							/>
-						</div>
+								<div className="ml-10 flex flex-row items-center justify-between gap-4 md:ml-16">
+									<TimeZoneDropdown
+										timeZone={userTimezone}
+										changeTimeZone={setUserTimezone}
+										changeableTimezone={changeableTimezone}
+									/>
+								</div>
+							</div>
+						</Paper>
 					</div>
-				</Paper>
 
-				{(availabilityView === "group" || availabilityView === "schedule") && (
-					<div>
-						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-							{availabilityView === "schedule" ? (
-								<ScheduleMeetingSettings
-									handleScheduleCancel={handleScheduleCancel}
-									handleScheduleSave={handleScheduleSave}
-									isMeetingDeletionPending={isMeetingDeletionPending}
+					{(availabilityView === "group" ||
+						availabilityView === "schedule") && (
+						<div>
+							<div className="mt-4 hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+								{availabilityView === "schedule" ? (
+									<ScheduleMeetingSettings
+										handleScheduleCancel={handleScheduleCancel}
+										handleScheduleSave={handleScheduleSave}
+										isMeetingDeletionPending={isMeetingDeletionPending}
+									/>
+								) : (
+									<AvailabilityActions {...actionsProps} />
+								)}
+								<Paper
+									variant="outlined"
+									className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+								>
+									<GroupResponses {...groupResponsesProps} />
+								</Paper>
+								<RoomRecommendationSettings
+									rawRooms={studyRooms}
+									hasSearched={hasSearchedRooms}
+									filters={roomFilters}
+									onFiltersChange={setRoomFilters}
+									onShowBestRooms={handleShowBestRooms}
+									isLoading={isRoomsLoading}
+									errorMessage={studyRoomsError}
+									selectedRoomIds={selectedRoomIds}
+									onSelectedRoomIdsChange={setSelectedRoomIds}
 								/>
-							) : (
-								<AvailabilityActions {...actionsProps} />
-							)}
+							</div>
+
+							<div className="block sm:hidden">
+								{availabilityView === "schedule" ? (
+									<MobileScheduleSettings
+										respondedMembersCount={Math.max(
+											0,
+											members.length - pendingMembers.length,
+										)}
+										totalMembersCount={members.length}
+										onOpenAttendees={handleMobileOpenAttendees}
+									/>
+								) : (
+									<>
+										{hasSearchedRooms &&
+											studyRooms.length > 0 &&
+											!isMobileRoomsDrawerOpen && (
+												<MobileRoomWheelPicker
+													rawRooms={studyRooms}
+													rawRoomsByKey={rawRoomsByKey}
+													filters={roomFilters}
+													selectedRoomIds={selectedRoomIds}
+													onSelectedRoomIdsChange={setSelectedRoomIds}
+												/>
+											)}
+										<MobileGroupResponses
+											isOwner={isMeetingOwner}
+											respondedMembersCount={Math.max(
+												0,
+												members.length - pendingMembers.length,
+											)}
+											pendingMembersCount={pendingMembers.length}
+											roomCount={mobileRoomCount}
+											hasSearchedRooms={hasSearchedRooms}
+											onAddAvailability={handleMobileAddAvailability}
+											onOpenAttendees={handleMobileOpenAttendees}
+											onOpenRooms={handleMobileOpenRooms}
+											onSchedule={handleMobileSchedule}
+										/>
+										<MobileRoomRecommendations
+											open={isMobileRoomsDrawerOpen}
+											onClose={handleCloseMobileRooms}
+											rawRooms={studyRooms}
+											hasSearched={hasSearchedRooms}
+											filters={roomFilters}
+											onFiltersChange={setRoomFilters}
+											onShowBestRooms={handleShowBestRooms}
+											isLoading={isRoomsLoading}
+											errorMessage={studyRoomsError}
+											selectedRoomIds={selectedRoomIds}
+											onSelectedRoomIdsChange={setSelectedRoomIds}
+										/>
+									</>
+								)}
+							</div>
+						</div>
+					)}
+
+					{availabilityView === "personal" && (
+						<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+							<AvailabilityActions {...actionsProps} />
 							<Paper
 								variant="outlined"
 								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
 							>
-								<GroupResponses {...groupResponsesProps} />
+								{isLgUp ? (
+									<PersonalAvailabilitySidebar {...personalSidebarProps} />
+								) : null}
 							</Paper>
-							<RoomRecommendationSettings
-								rawRooms={studyRooms}
-								filters={roomFilters}
-								onFiltersChange={setRoomFilters}
-								onShowBestRooms={handleShowBestRooms}
-								isLoading={isRoomsLoading}
-								errorMessage={studyRoomsError}
+						</div>
+					)}
+
+					{(availabilityView === "personal" ||
+						availabilityView === "schedule") && (
+						<div className="block sm:hidden">
+							<MobilePersonalAvailabilitySidebar
+								revertPersonalDraft={revertPersonalDraft}
+								exitToGroupView={exitToGroupView}
+								runPersonalSave={runPersonalSave}
+								isPersonalSaveDisabled={!user || isMeetingDeletionPending}
+								handleScheduleCancel={handleScheduleCancel}
+								runScheduleSave={runScheduleSaveForMobile}
+								isScheduleSaveDisabled={isMeetingDeletionPending}
+								personalSidebarProps={personalSidebarProps}
 							/>
 						</div>
+					)}
+				</div>
 
-						<div className="block sm:hidden">
-							{availabilityView === "schedule" ? (
-								<MobileScheduleSettings
-									respondedMembersCount={Math.max(
-										0,
-										members.length - pendingMembers.length,
-									)}
-									totalMembersCount={members.length}
-									onOpenAttendees={handleMobileOpenAttendees}
-								/>
-							) : (
-								<MobileGroupResponses
-									isOwner={isMeetingOwner}
-									respondedMembersCount={Math.max(
-										0,
-										members.length - pendingMembers.length,
-									)}
-									pendingMembersCount={pendingMembers.length}
-									onAddAvailability={handleMobileAddAvailability}
-									onOpenAttendees={handleMobileOpenAttendees}
-									onSchedule={handleMobileSchedule}
-								/>
-							)}
-						</div>
-					</div>
-				)}
-
-				{availabilityView === "personal" && (
-					<div className="hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
-						<AvailabilityActions {...actionsProps} />
-						<Paper
-							variant="outlined"
-							className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
-						>
-							{isLgUp ? (
-								<PersonalAvailabilitySidebar {...personalSidebarProps} />
-							) : null}
-						</Paper>
-					</div>
-				)}
-
-				{(availabilityView === "personal" ||
-					availabilityView === "schedule") && (
-					<div className="block sm:hidden">
-						<MobilePersonalAvailabilitySidebar
-							revertPersonalDraft={revertPersonalDraft}
-							exitToGroupView={exitToGroupView}
-							runPersonalSave={runPersonalSave}
-							isPersonalSaveDisabled={!user || isMeetingDeletionPending}
-							handleScheduleCancel={handleScheduleCancel}
-							runScheduleSave={runScheduleSaveForMobile}
-							isScheduleSaveDisabled={isMeetingDeletionPending}
-							personalSidebarProps={personalSidebarProps}
-						/>
-					</div>
-				)}
+				<InviteMembersDialog
+					open={isInviteDialogOpen}
+					onOpenChange={setIsInviteDialogOpen}
+					meetingId={meetingData.id}
+					isOwner={isMeetingOwner}
+					membersCanInvite={membersCanInvite}
+					onMembersCanInviteChange={setMembersCanInvite}
+				/>
 			</div>
-
-			<InviteMembersDialog
-				open={isInviteDialogOpen}
-				onOpenChange={setIsInviteDialogOpen}
-				meetingId={meetingData.id}
-			/>
-		</div>
+		</StudyRoomHoverProvider>
 	);
 }

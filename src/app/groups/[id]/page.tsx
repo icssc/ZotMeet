@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { GroupMemberList } from "@/components/groups/group-member-list";
 import { getCurrentSession } from "@/lib/auth";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import {
 	getExistingGroup,
 	getGroupMeetingsWithStats,
@@ -25,7 +26,7 @@ export default async function Page(props: PageProps) {
 
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/auth/login/google");
+		redirect(loginPathWithReturnTo(`/groups/${id}`));
 	}
 
 	const group = await getExistingGroup(id).catch(() => null);

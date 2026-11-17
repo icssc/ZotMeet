@@ -1,5 +1,5 @@
 {
-  "id": "7ee31a76-0866-49b1-b6fd-1ea00bab39b9",
+  "id": "742975d9-8b3f-4a5d-ba10-bfecdca1397c",
   "prevId": "994d6447-5510-4538-867f-4b641182950b",
   "version": "7",
   "dialect": "postgresql",
@@ -40,6 +40,18 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'[]'::jsonb"
+        },
+        "timezone": {
+          "name": "timezone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -745,13 +757,6 @@
         },
         "nudges": {
           "name": "nudges",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": true
-        },
-        "meeting_scheduled": {
-          "name": "meeting_scheduled",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,

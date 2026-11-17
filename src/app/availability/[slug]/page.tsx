@@ -5,6 +5,8 @@ import {
 	OPEN_INVITE_AFTER_CREATE_PARAM,
 	OPEN_INVITE_AFTER_CREATE_VALUE,
 } from "@/lib/meeting-open-invite";
+import { getMeetingHostDisplayName } from "@/lib/meetings/utils";
+import { APP_DESCRIPTION, APP_NAME } from "@/lib/pwa-config.mjs";
 import {
 	getAllMemberAvailability,
 	getExistingMeeting,
@@ -34,10 +36,34 @@ export async function generateMetadata(props: PageProps) {
 		notFound();
 	}
 
+	const hostName = getMeetingHostDisplayName({
+		hostDisplayName: meetingData.hostDisplayName,
+		hostUsername: meetingData.hostUsername,
+		hostGoogleName: meetingData.hostGoogleName,
+		hostEmail: meetingData.hostEmail,
+	});
+	const shareTitle = `${hostName} is requesting your availability for ${meetingData.title}`;
+
 	return {
 		title: {
 			default: "View Meeting Availability",
 			absolute: `Availability for ${meetingData.title}`,
+		},
+		openGraph: {
+			title: shareTitle,
+			description: APP_DESCRIPTION,
+			url: `/availability/${slug}`,
+			type: "website",
+			siteName: APP_NAME,
+			images: [
+				{ url: "/icons/icon-512.png", width: 512, height: 512, alt: APP_NAME },
+			],
+		},
+		twitter: {
+			card: "summary",
+			title: shareTitle,
+			description: APP_DESCRIPTION,
+			images: ["/icons/icon-512.png"],
 		},
 		description: `Specify Meeting Availability for ${meetingData.title}`,
 	};

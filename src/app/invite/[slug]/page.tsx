@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { AcceptGroupInvite } from "@/components/groups/accept-group-invite";
 import type { SelectGroupInvite } from "@/db/schema";
 import { getCurrentSession } from "@/lib/auth";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import { getExistingInvite } from "@/server/data/groups/invite-queries";
 import { getExistingGroup, isUserInGroup } from "@/server/data/groups/queries";
 
@@ -17,7 +18,7 @@ export default async function Page(props: PageProps) {
 
 	const session = await getCurrentSession();
 	if (!session?.user) {
-		redirect("/auth/login/google");
+		redirect(loginPathWithReturnTo(`/invite/${slug}`));
 	}
 
 	let invite: SelectGroupInvite;

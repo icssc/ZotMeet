@@ -9,10 +9,13 @@ import {
 } from "@mui/icons-material";
 import { BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
 import { usePathname, useRouter } from "next/navigation";
+import { useReturnToPath } from "@/hooks/use-return-to-path";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 
 export function MuiBottomNav({ user }: { user: UserProfile | null }) {
 	const pathname = usePathname();
+	const returnToPath = useReturnToPath();
 	const router = useRouter();
 
 	const handleChange = (_event: React.SyntheticEvent, newValue: string) => {
@@ -25,7 +28,11 @@ export function MuiBottomNav({ user }: { user: UserProfile | null }) {
 		{ label: "Rooms", value: "/studyrooms", icon: Apartment },
 		user
 			? { label: "Profile", value: "/profile", icon: Person }
-			: { label: "Sign In", value: "/auth/login/google", icon: Login },
+			: {
+					label: "Sign In",
+					value: loginPathWithReturnTo(returnToPath),
+					icon: Login,
+				},
 	];
 
 	return (

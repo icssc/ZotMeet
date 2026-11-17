@@ -1,4 +1,5 @@
 import { getNotificationsByMemberId } from "@data/user/queries";
+import { PostHogIdentify } from "@/components/analytics/posthog-identify";
 import { getCurrentSession } from "@/lib/auth";
 import { MuiAppShell } from "./mui-app-shell";
 
@@ -14,8 +15,11 @@ export default async function AppShellWrapper({
 		? await getNotificationsByMemberId(user.memberId)
 		: [];
 	return (
-		<MuiAppShell user={user} notifications={notifications}>
-			{children}
-		</MuiAppShell>
+		<>
+			<PostHogIdentify memberId={user?.memberId ?? null} />
+			<MuiAppShell user={user} notifications={notifications}>
+				{children}
+			</MuiAppShell>
+		</>
 	);
 }

@@ -1,6 +1,11 @@
+import type { UserProfile } from "@zotmeet/shared";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { members, oauthAccounts, users } from "@/db/schema";
+
+// The shape itself is shared with the Expo app; the projection that produces
+// it from Drizzle stays here.
+export type { UserProfile } from "@zotmeet/shared";
 
 // Projection of user table for db queries to limit what is returned
 export async function generateUsername(displayName: string): Promise<string> {
@@ -41,17 +46,6 @@ export const userProfileProjection = {
 	profilePicture: members.profilePicture,
 };
 
-export type UserProfile = {
-	id: string;
-	email: string;
-	memberId: string;
-	displayName: string;
-	googleName: string | null;
-	username: string | null;
-	year: string | null;
-	school: string | null;
-	profilePicture: string | null;
-};
 export type NotificationItem = {
 	id: string;
 	createdAt: Date | null;
@@ -71,20 +65,21 @@ export type NotificationItem = {
 //     displayName: string;
 // };
 
-export async function createGoogleUser(
-	googleUserId: string,
+export async function createOAuthUser(
+	oauthUserId: string,
 	email: string,
-	username: string,
+	displayName: string,
 	picture: string | null,
+	providerId: "oidc" | "apple",
 ): Promise<UserProfile> {
-	const generatedUsername = await generateUsername(username);
+	const generatedUsername = await generateUsername(displayName);
 
-	const newGoogleUser = await db.transaction(async (tx) => {
+	const newUser = await db.transaction(async (tx) => {
 		const [newMember] = await tx
 			.insert(members)
 			.values({
-				displayName: username,
-				googleName: username,
+				displayName,
+				googleName: providerId === "oidc" ? displayName : null,
 				username: generatedUsername,
 				profilePicture: picture,
 			})
@@ -92,35 +87,26 @@ export async function createGoogleUser(
 				id: members.id,
 			});
 		await tx.insert(users).values({
-			id: googleUserId,
+			id: oauthUserId,
 			memberId: newMember.id,
-			email: email,
+			email,
 			createdAt: new Date(),
 		});
-		const [newGoogleMember] = await tx
-			.insert(oauthAccounts)
-			.values({
-				userId: googleUserId,
-				providerId: "oidc",
-				providerUserId: googleUserId,
-			})
-			.returning({
-				memberId: oauthAccounts.providerUserId,
-			});
+		await tx.insert(oauthAccounts).values({
+			userId: oauthUserId,
+			providerId,
+			providerUserId: oauthUserId,
+		});
 
-		return newGoogleMember;
+		return newMember;
 	});
 
-	if (newGoogleUser === null) {
-		throw new Error("Unexpected error");
-	}
-
 	return {
-		id: googleUserId,
-		email: email,
-		memberId: newGoogleUser.memberId,
-		displayName: username,
-		googleName: username,
+		id: oauthUserId,
+		email,
+		memberId: newUser.id,
+		displayName,
+		googleName: providerId === "oidc" ? displayName : null,
 		username: generatedUsername,
 		year: null,
 		school: null,

@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useRef } from "react";
 import { CalendarBodyDayCell } from "@/components/creation/calendar/calendar-body-day-cell";
-import { ZotDate } from "@/lib/zotdate";
+import { extractZotDateFromElement, type ZotDate } from "@/lib/zotdate";
 
 interface CalendarBodyDayProps {
 	calendarDay: ZotDate;
@@ -90,7 +90,7 @@ export function CalendarBodyDay({
 
 			const touchingDay = element.getAttribute("data-day");
 			if (touchingDay) {
-				const day = ZotDate.extractDayFromElement(element);
+				const day = extractZotDateFromElement(element);
 				if (day) {
 					setEndDaySelection(day);
 				}

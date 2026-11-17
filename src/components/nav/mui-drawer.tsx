@@ -4,6 +4,7 @@ import {
 	AddCircleOutline,
 	CalendarMonth,
 	Groups,
+	Home,
 	Login,
 	Person,
 } from "@mui/icons-material";
@@ -25,11 +26,15 @@ import {
 	MuiSidebarSeparator,
 	useMuiSidebar,
 } from "@/components/ui/mui/sidebar";
+import { useReturnToPath } from "@/hooks/use-return-to-path";
+import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
 import { logoutAction } from "@/server/actions/auth/logout/action";
 
+// "New Meeting" opens the create dialog over Home, so it is never `selected`.
 const navItems = [
-	{ title: "New Meeting", url: "/", icon: AddCircleOutline },
+	{ title: "Home", url: "/", icon: Home },
+	{ title: "New Meeting", url: "/?create=true", icon: AddCircleOutline },
 	{ title: "Summary", url: "/summary", icon: CalendarMonth },
 	{ title: "Groups", url: "/groups", icon: Groups },
 ];
@@ -121,13 +126,14 @@ function NavMain() {
 
 function NavUser({ user }: { user: UserProfile | null }) {
 	const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+	const returnToPath = useReturnToPath();
 
 	if (!user) {
 		return (
 			<MuiSidebarMenuItem>
 				<MuiSidebarMenuButton
 					component="a"
-					href="/auth/login/google"
+					href={loginPathWithReturnTo(returnToPath)}
 					tooltip="Sign In"
 				>
 					<MuiSidebarMenuIcon>
