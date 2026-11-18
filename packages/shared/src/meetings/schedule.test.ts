@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-	firstVideoLink,
 	SCHEDULE_MESSAGE_MAX,
 	saveMeetingScheduleSchema,
 	splitMessageLinks,
@@ -48,20 +47,6 @@ describe("splitMessageLinks", () => {
 			text(" "),
 			link("https://b.com"),
 		]);
-	});
-});
-
-describe("firstVideoLink", () => {
-	it("skips non-video links and finds Zoom subdomains", () => {
-		assert.equal(
-			firstVideoLink([
-				link("https://example.com/agenda"),
-				text(" and "),
-				link("https://uci.zoom.us/j/123"),
-			]),
-			"https://uci.zoom.us/j/123",
-		);
-		assert.equal(firstVideoLink([link("https://notzoom.us.evil.com")]), null);
 	});
 });
 

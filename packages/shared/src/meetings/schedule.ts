@@ -88,19 +88,3 @@ export function splitMessageLinks(text: string): MessageSegment[] {
 	if (pendingText) segments.push({ kind: "text", value: pendingText });
 	return segments;
 }
-
-const VIDEO_HOSTS =
-	/^(meet\.google\.com|([a-z0-9-]+\.)?zoom\.us|teams\.microsoft\.com)$/i;
-
-/**
- * The first link that points at a video call (Meet, Zoom, Teams). Parsed with a
- * regex rather than `new URL()` because Hermes' `URL` lacks `hostname`.
- */
-export function firstVideoLink(segments: MessageSegment[]): string | null {
-	for (const segment of segments) {
-		if (segment.kind !== "link") continue;
-		const host = /^https?:\/\/([^/?#:]+)/i.exec(segment.value)?.[1];
-		if (host && VIDEO_HOSTS.test(host)) return segment.value;
-	}
-	return null;
-}

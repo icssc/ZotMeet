@@ -64,7 +64,7 @@ export async function sendMeetingScheduledNotification({
 				note: message
 					? { label: `Message from ${hostName}`, text: message }
 					: undefined,
-				ctaLabel: "View Meeting",
+				ctaLabel: "View ZotMeet",
 				ctaUrl: meetingUrl,
 				secondaryCta: calendarUrl
 					? { label: "Add to Google Calendar", url: calendarUrl }

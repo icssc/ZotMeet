@@ -13,11 +13,7 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import {
-	firstVideoLink,
-	SCHEDULE_MESSAGE_MAX,
-	splitMessageLinks,
-} from "@zotmeet/shared";
+import { SCHEDULE_MESSAGE_MAX, splitMessageLinks } from "@zotmeet/shared";
 import { format } from "date-fns";
 import { useState } from "react";
 
@@ -46,7 +42,6 @@ export function ScheduleConfirmDialog({
 	const [message, setMessage] = useState("");
 	const [isSaving, setIsSaving] = useState(false);
 	const links = splitMessageLinks(message).filter((s) => s.kind === "link");
-	const videoLink = firstVideoLink(links);
 	const memberWord = recipientCount === 1 ? "member" : "members";
 
 	const handleConfirm = async () => {
@@ -125,11 +120,6 @@ export function ScheduleConfirmDialog({
 									>
 										{segment.value.replace(/^https?:\/\//, "")}
 									</Link>
-									{segment.value === videoLink && (
-										<Typography variant="caption" color="text.secondary">
-											Video call
-										</Typography>
-									)}
 								</div>
 							))}
 						</div>
