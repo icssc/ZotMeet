@@ -374,21 +374,15 @@ export function Availability({
 	});
 
 	const [isScheduleConfirmOpen, setIsScheduleConfirmOpen] = useState(false);
-
-	/**
-	 * Every Save button in schedule mode goes through here. A save that will
-	 * email members (first time scheduling) opens the confirm dialog instead.
-	 * Resolves `false` while the dialog is open: nothing is saved yet.
-	 */
 	const requestScheduleSave = useCallback(
 		async (opts?: { skipExitToGroup?: boolean }): Promise<boolean> => {
-			// TODO(human): G3a — if `willNotifyOnSchedule`, open the dialog
-			// (`setIsScheduleConfirmOpen(true)`) and return false. Otherwise save
-			// right away like before: `return handleScheduleSave(opts)`.
-			// Don't forget the dependency array below.
+			if (willNotifyOnSchedule) {
+				setIsScheduleConfirmOpen(true);
+				return false;
+			}
 			return handleScheduleSave(opts);
 		},
-		[handleScheduleSave],
+		[handleScheduleSave, willNotifyOnSchedule],
 	);
 
 	const confirmScheduleSave = useCallback(
