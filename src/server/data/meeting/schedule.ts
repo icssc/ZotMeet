@@ -32,15 +32,24 @@ export async function saveMeetingScheduleForMember(
 	}
 
 	const flipped = await db.transaction(async (tx) => {
-		for (const block of removals) {
+		if (removals.length > 0) {
 			await tx
 				.delete(scheduledMeetings)
 				.where(
 					and(
 						eq(scheduledMeetings.meetingId, meetingId),
-						eq(scheduledMeetings.scheduledDate, block.scheduledDate),
-						eq(scheduledMeetings.scheduledFromTime, block.scheduledFromTime),
-						eq(scheduledMeetings.scheduledToTime, block.scheduledToTime),
+						or(
+							...removals.map((block) =>
+								and(
+									eq(scheduledMeetings.scheduledDate, block.scheduledDate),
+									eq(
+										scheduledMeetings.scheduledFromTime,
+										block.scheduledFromTime,
+									),
+									eq(scheduledMeetings.scheduledToTime, block.scheduledToTime),
+								),
+							),
+						),
 					),
 				);
 		}
