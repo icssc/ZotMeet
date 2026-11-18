@@ -390,11 +390,9 @@ export function Availability({
 		[handleScheduleSave],
 	);
 
-	// TODO(human): G3b — how many people get the email? It must match
-	// `getMeetingParticipantUserIds` in src/server/data/meeting/queries.ts, so
-	// read that query first: which rows does it count, and who does it skip?
-	// Then derive it from `members` and `meetingData.hostId` (no useEffect).
-	const scheduleRecipientCount = 0;
+	const scheduleRecipientCount = members.filter(
+		(member) => meetingData.hostId !== member.memberId,
+	).length;
 
 	const runScheduleSaveForMobile = useCallback(
 		() => requestScheduleSave({ skipExitToGroup: true }),
