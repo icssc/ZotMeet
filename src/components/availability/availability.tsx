@@ -22,6 +22,7 @@ import { AvailabilityTableHeader } from "@/components/availability/table/availab
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import { StudyRoomHoverProvider } from "@/components/availability/table/study-room-hover-context";
 import { InviteMembersDialog } from "@/components/groups/add-member-dialog";
+import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useAvailabilityActionHandlers } from "@/hooks/use-availability-action-handlers";
 import { useAvailabilityData } from "@/hooks/use-availability-data";
@@ -64,6 +65,7 @@ export function Availability({
 	autoOpenInviteDialog?: boolean;
 	inviteQueryInUrl?: boolean;
 }) {
+	const { showSuccess } = useSnackbar();
 	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 	// Lifted here (rather than owned by the dialog) so the toggle can update
 	// optimistically and be shared with AvailabilityActions; synced to the
@@ -385,14 +387,26 @@ export function Availability({
 		[handleScheduleSave, willNotifyOnSchedule],
 	);
 
-	const confirmScheduleSave = useCallback(
-		(message: string) => handleScheduleSave({ message }),
-		[handleScheduleSave],
-	);
-
 	const scheduleRecipientCount = members.filter(
 		(member) => meetingData.hostId !== member.memberId,
 	).length;
+
+	// displays if queued properly, not delivered.
+	const confirmScheduleSave = useCallback(
+		async (message: string) => {
+			const ok = await handleScheduleSave({ message });
+			if (ok && scheduleRecipientCount > 0) {
+				const memberWord = scheduleRecipientCount === 1 ? "member" : "members";
+				showSuccess(
+					`Meeting scheduled. ${scheduleRecipientCount} ${memberWord} will be emailed.`,
+				);
+			} else if (ok) {
+				showSuccess("Meeting scheduled.");
+			}
+			return ok;
+		},
+		[handleScheduleSave, scheduleRecipientCount, showSuccess],
+	);
 
 	const runScheduleSaveForMobile = useCallback(
 		() => requestScheduleSave({ skipExitToGroup: true }),
