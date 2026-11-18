@@ -1,9 +1,8 @@
 "use server";
 
-import { getScheduledTimeBlocks } from "@data/meeting/queries";
+import { buildGoogleCalendarLink } from "@data/meeting/google-calendar-link";
 import { google as googleClient } from "googleapis";
 import { validateGoogleAccessToken } from "@/lib/auth/google";
-import { mergeContiguousTimeBlocks } from "@/lib/meetings/utils";
 import type { GoogleCalendarEvent } from "@/lib/types/availability";
 
 export async function fetchGoogleCalendarEvents(
@@ -73,21 +72,6 @@ export async function fetchGoogleCalendarEvents(
 	}
 }
 
-// helper for adding to google calendar
-function combineDateAndTime(date: Date, time: string): string {
-	const [hours, minutes, seconds = "00"] = time.split(":");
-
-	const yyyy = date.getFullYear();
-	const mm = String(date.getMonth() + 1).padStart(2, "0"); // 1-indexed months for gcal
-	const dd = String(date.getDate()).padStart(2, "0");
-
-	const hh = String(hours).padStart(2, "0");
-	const min = String(minutes).padStart(2, "0");
-	const ss = String(seconds).padStart(2, "0");
-
-	return `${yyyy}${mm}${dd}T${hh}${min}${ss}`;
-}
-
 export async function getGoogleCalendarPrefilledLink({
 	meetingId,
 	meetingTitle,
@@ -101,43 +85,12 @@ export async function getGoogleCalendarPrefilledLink({
 	meetingLocation: string | null;
 	timezone: string;
 }) {
-	const blocks = await getScheduledTimeBlocks(meetingId);
-
-	if (!blocks.length) {
-		return {
-			success: false,
-			link: null,
-		};
-	}
-
-	// merge all 15-min blocks into 1 contiguous interval
-	const mergedInterval = mergeContiguousTimeBlocks(blocks);
-	if (!mergedInterval) {
-		return {
-			success: false,
-			link: null,
-		};
-	}
-
-	// all blocks are now on the same date
-	const date = blocks[0].scheduledDate;
-
-	const start = combineDateAndTime(date, mergedInterval.from);
-	const end = combineDateAndTime(date, mergedInterval.to);
-
-	const params = new URLSearchParams({
-		action: "TEMPLATE",
-		text: meetingTitle,
-		dates: `${start}/${end}`,
-		details: meetingDescription ?? "Meeting scheduled via ZotMeet.",
-		location: meetingLocation ?? "",
-		ctz: timezone,
+	const link = await buildGoogleCalendarLink({
+		id: meetingId,
+		title: meetingTitle,
+		description: meetingDescription,
+		location: meetingLocation,
+		timezone,
 	});
-
-	const link = `https://calendar.google.com/calendar/render?${params.toString()}`;
-
-	return {
-		success: true,
-		link,
-	};
+	return { success: link !== null, link };
 }

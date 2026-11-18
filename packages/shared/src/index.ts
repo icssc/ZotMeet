@@ -19,6 +19,7 @@ export * from "./library-traffic/summary";
 export * from "./meetings/card";
 export * from "./meetings/dashboard";
 export * from "./meetings/list-model";
+export * from "./meetings/schedule";
 export * from "./meetings/schema";
 export * from "./meetings/utils";
 export * from "./meetings/window";

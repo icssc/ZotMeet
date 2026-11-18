@@ -15,6 +15,7 @@ import {
 	groupRawRoomsByKey,
 	RoomRecommendationSettings,
 } from "@/components/availability/room-recommendations";
+import { ScheduleConfirmDialog } from "@/components/availability/schedule-confirm-dialog";
 import { ScheduleMeetingSettings } from "@/components/availability/schedule-meeting-settings";
 import { AvailabilityGridJaggedEdges } from "@/components/availability/table/availability-grid-jagged-edges";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
@@ -358,11 +359,13 @@ export function Availability({
 		handleScheduleCancel,
 		handleScheduleSave,
 		isScheduled,
+		scheduleConfirmDialogProps,
 	} = useAvailabilityActionHandlers({
 		meetingData,
 		user,
 		availabilityDates,
 		ifNeededDates,
+		members,
 		onCancel: handleCancelEditing,
 		onSave: confirmSave,
 		setChangeableTimezone,
@@ -669,6 +672,10 @@ export function Availability({
 						</div>
 					)}
 				</div>
+
+				{scheduleConfirmDialogProps && (
+					<ScheduleConfirmDialog {...scheduleConfirmDialogProps} />
+				)}
 
 				<InviteMembersDialog
 					open={isInviteDialogOpen}
