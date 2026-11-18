@@ -137,21 +137,33 @@ export function useAvailabilityActionHandlers({
 		setAvailabilityView("group");
 	}, [clearPendingTimes, setAvailabilityView]);
 
-	const pendingAdds = useAvailabilityStore((s) => s.pendingAdds);
+	const { scheduledTimes, pendingAdds, pendingRemovals } = useAvailabilityStore(
+		useShallow((s) => ({
+			scheduledTimes: s.scheduledTimes,
+			pendingAdds: s.pendingAdds,
+			pendingRemovals: s.pendingRemovals,
+		})),
+	);
 
-	// The first save that adds blocks to an unscheduled meeting emails everyone,
-	// so callers show the confirm dialog first.
-	const willNotifyOnSchedule = !isScheduled && pendingAdds.size > 0;
+	const finalScheduledTimes = useMemo(() => {
+		const final = new Set(scheduledTimes);
+		for (const ts of pendingRemovals) final.delete(ts);
+		for (const ts of pendingAdds) final.add(ts);
+		return final;
+	}, [scheduledTimes, pendingAdds, pendingRemovals]);
+	const hasPendingChanges = pendingAdds.size > 0 || pendingRemovals.size > 0;
+	const willNotifyOnSchedule =
+		hasPendingChanges && finalScheduledTimes.size > 0;
+	const isReschedule = isScheduled;
 
-	/** Span of the pending blocks, for the confirm dialog's summary line. */
 	const pendingScheduleWindow = useMemo(() => {
-		if (pendingAdds.size === 0) return null;
-		const times = [...pendingAdds].map((ts) => new Date(ts).getTime());
+		if (finalScheduledTimes.size === 0) return null;
+		const times = [...finalScheduledTimes].map((ts) => new Date(ts).getTime());
 		return {
 			start: new Date(Math.min(...times)),
 			end: new Date(Math.max(...times) + BLOCK_MS),
 		};
-	}, [pendingAdds]);
+	}, [finalScheduledTimes]);
 
 	const handleScheduleSave = useCallback(
 		async (opts?: {
@@ -205,6 +217,7 @@ export function useAvailabilityActionHandlers({
 		handleScheduleSave,
 		isScheduled,
 		willNotifyOnSchedule,
+		isReschedule,
 		pendingScheduleWindow,
 	};
 }

@@ -12,9 +12,9 @@ import { getExistingMeeting } from "@/server/data/meeting/queries";
 import { sendMeetingScheduledNotification } from "@/server/data/meeting/send-meeting-scheduled-notification";
 
 /**
- * Saves every added and removed 15-minute block in one transaction, then (if
- * this save took the meeting from unscheduled to scheduled) emails the
- * participants once, with the host's optional message.
+ * Saves every added and removed 15-minute block in one transaction, then
+ * emails the participants once, with the host's optional message: a
+ * "scheduled" email the first time, a "rescheduled" one when the time changes.
  *
  * Batched on purpose: when each block was its own request, the email fired on
  * the first block, before the rest were saved, so its time could be wrong.
@@ -31,7 +31,9 @@ export async function saveMeetingScheduleForMember(
 		return { error: "Only the host can schedule this meeting." };
 	}
 
-	const flipped = await db.transaction(async (tx) => {
+	const changed = adds.length > 0 || removals.length > 0;
+
+	const { flipped, hasBlocks } = await db.transaction(async (tx) => {
 		if (removals.length > 0) {
 			await tx
 				.delete(scheduledMeetings)
@@ -71,7 +73,7 @@ export async function saveMeetingScheduleForMember(
 				.update(meetings)
 				.set({ scheduled: false })
 				.where(eq(meetings.id, meetingId));
-			return false;
+			return { flipped: false, hasBlocks: false };
 		}
 
 		// Returns a row only if this call flipped it (`scheduled` is nullable,
@@ -86,10 +88,18 @@ export async function saveMeetingScheduleForMember(
 				),
 			)
 			.returning({ id: meetings.id });
-		return Boolean(row);
+		return { flipped: Boolean(row), hasBlocks: true };
 	});
 
-	if (flipped) {
+	// First schedule → "scheduled" email. Changing the time of an already
+	// scheduled meeting → "rescheduled" email. Clearing every block sends nothing.
+	const kind = flipped
+		? "scheduled"
+		: changed && hasBlocks
+			? "rescheduled"
+			: null;
+
+	if (kind) {
 		const [hostUser] = await db
 			.select({ id: users.id })
 			.from(users)
@@ -104,11 +114,12 @@ export async function saveMeetingScheduleForMember(
 					displayName: meeting.hostDisplayName,
 				},
 				message,
+				kind,
 			}).catch((err) =>
 				console.error("Failed to send meeting scheduled notifications:", err),
 			),
 		);
 	}
 
-	return { success: true, notified: flipped };
+	return { success: true, notified: kind !== null };
 }

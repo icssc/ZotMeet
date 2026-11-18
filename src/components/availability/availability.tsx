@@ -362,6 +362,7 @@ export function Availability({
 		handleScheduleSave,
 		isScheduled,
 		willNotifyOnSchedule,
+		isReschedule,
 		pendingScheduleWindow,
 	} = useAvailabilityActionHandlers({
 		meetingData,
@@ -395,17 +396,18 @@ export function Availability({
 	const confirmScheduleSave = useCallback(
 		async (message: string) => {
 			const ok = await handleScheduleSave({ message });
+			const done = isReschedule ? "Meeting rescheduled." : "Meeting scheduled.";
 			if (ok && scheduleRecipientCount > 0) {
 				const memberWord = scheduleRecipientCount === 1 ? "member" : "members";
 				showSuccess(
-					`Meeting scheduled. ${scheduleRecipientCount} ${memberWord} will be emailed.`,
+					`${done} ${scheduleRecipientCount} ${memberWord} will be emailed.`,
 				);
 			} else if (ok) {
-				showSuccess("Meeting scheduled.");
+				showSuccess(done);
 			}
 			return ok;
 		},
-		[handleScheduleSave, scheduleRecipientCount, showSuccess],
+		[handleScheduleSave, isReschedule, scheduleRecipientCount, showSuccess],
 	);
 
 	const runScheduleSaveForMobile = useCallback(
@@ -713,6 +715,7 @@ export function Availability({
 						open={isScheduleConfirmOpen}
 						onClose={() => setIsScheduleConfirmOpen(false)}
 						onConfirm={confirmScheduleSave}
+						isReschedule={isReschedule}
 						meetingTitle={meetingData.title}
 						start={pendingScheduleWindow.start}
 						end={pendingScheduleWindow.end}

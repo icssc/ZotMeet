@@ -30,6 +30,7 @@ interface ScheduleConfirmDialogProps {
 	start: Date;
 	end: Date;
 	recipientCount: number;
+	isReschedule?: boolean;
 }
 
 export function ScheduleConfirmDialog({
@@ -40,6 +41,7 @@ export function ScheduleConfirmDialog({
 	start,
 	end,
 	recipientCount,
+	isReschedule = false,
 }: ScheduleConfirmDialogProps) {
 	const [message, setMessage] = useState("");
 	const [isSaving, setIsSaving] = useState(false);
@@ -65,7 +67,7 @@ export function ScheduleConfirmDialog({
 			slotProps={{ transition: { onExited: () => setMessage("") } }}
 		>
 			<DialogTitle className="flex items-center justify-between">
-				Schedule this meeting?
+				{isReschedule ? "Reschedule this meeting?" : "Schedule this meeting?"}
 				<IconButton aria-label="Close" onClick={onClose} disabled={isSaving}>
 					<Close />
 				</IconButton>
@@ -146,7 +148,7 @@ export function ScheduleConfirmDialog({
 					}}
 					disabled={isSaving}
 				>
-					Schedule & notify
+					{isReschedule ? "Reschedule & notify" : "Schedule & notify"}
 				</Button>
 			</DialogActions>
 		</Dialog>
