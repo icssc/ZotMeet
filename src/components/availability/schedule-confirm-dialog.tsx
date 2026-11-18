@@ -32,11 +32,6 @@ interface ScheduleConfirmDialogProps {
 	recipientCount: number;
 }
 
-/**
- * Shown when the host's Save will schedule the meeting for the first time
- * (and so email everyone). Lets the host attach an optional message; links in
- * it become clickable in the email.
- */
 export function ScheduleConfirmDialog({
 	open,
 	onClose,
@@ -48,7 +43,6 @@ export function ScheduleConfirmDialog({
 }: ScheduleConfirmDialogProps) {
 	const [message, setMessage] = useState("");
 	const [isSaving, setIsSaving] = useState(false);
-
 	const links = splitMessageLinks(message).filter((s) => s.kind === "link");
 	const videoLink = firstVideoLink(links);
 	const memberWord = recipientCount === 1 ? "member" : "members";
@@ -89,7 +83,7 @@ export function ScheduleConfirmDialog({
 							{recipientCount} {memberWord} will get an email
 						</Typography>
 						<Typography variant="body2">
-							It includes the time, your message and Add to Google Calendar.
+							Includes the message, date, and time
 						</Typography>
 						<Typography variant="caption" color="text.secondary">
 							Members who turned off scheduled-meeting notifications won't be
