@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
 	SCHEDULE_MESSAGE_MAX,
 	saveMeetingScheduleSchema,
+	scheduleNotificationKind,
 	splitMessageLinks,
 } from "./schedule";
 
@@ -74,5 +75,29 @@ describe("saveMeetingScheduleSchema", () => {
 			saveMeetingScheduleSchema.safeParse({ ...base, message: long }).success,
 			false,
 		);
+	});
+});
+
+describe("scheduleNotificationKind", () => {
+	const kind = (
+		wasScheduled: boolean,
+		hasChanges: boolean,
+		hasBlocksAfter: boolean,
+	) => scheduleNotificationKind({ wasScheduled, hasChanges, hasBlocksAfter });
+
+	it("sends nothing when nothing changed", () => {
+		assert.equal(kind(true, false, true), null);
+	});
+
+	it("sends nothing when every block was cleared", () => {
+		assert.equal(kind(true, true, false), null);
+	});
+
+	it("sends 'scheduled' the first time", () => {
+		assert.equal(kind(false, true, true), "scheduled");
+	});
+
+	it("sends 'rescheduled' when an already scheduled meeting moves", () => {
+		assert.equal(kind(true, true, true), "rescheduled");
 	});
 });

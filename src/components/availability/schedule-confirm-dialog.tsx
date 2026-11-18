@@ -13,11 +13,15 @@ import {
 	TextField,
 	Typography,
 } from "@mui/material";
-import { SCHEDULE_MESSAGE_MAX, splitMessageLinks } from "@zotmeet/shared";
+import {
+	SCHEDULE_MESSAGE_MAX,
+	type ScheduleNotificationKind,
+	splitMessageLinks,
+} from "@zotmeet/shared";
 import { format } from "date-fns";
 import { useState } from "react";
 
-interface ScheduleConfirmDialogProps {
+export interface ScheduleConfirmDialogProps {
 	open: boolean;
 	onClose: () => void;
 	/** Saves the schedule with the message; resolves `true` on success. */
@@ -26,7 +30,8 @@ interface ScheduleConfirmDialogProps {
 	start: Date;
 	end: Date;
 	recipientCount: number;
-	isReschedule?: boolean;
+	/** Which email confirming sends; drives the title and button wording. */
+	kind: ScheduleNotificationKind;
 }
 
 export function ScheduleConfirmDialog({
@@ -37,7 +42,7 @@ export function ScheduleConfirmDialog({
 	start,
 	end,
 	recipientCount,
-	isReschedule = false,
+	kind,
 }: ScheduleConfirmDialogProps) {
 	const [message, setMessage] = useState("");
 	const [isSaving, setIsSaving] = useState(false);
@@ -62,7 +67,9 @@ export function ScheduleConfirmDialog({
 			slotProps={{ transition: { onExited: () => setMessage("") } }}
 		>
 			<DialogTitle className="flex items-center justify-between">
-				{isReschedule ? "Reschedule this meeting?" : "Schedule this meeting?"}
+				{kind === "rescheduled"
+					? "Reschedule this meeting?"
+					: "Schedule this meeting?"}
 				<IconButton aria-label="Close" onClick={onClose} disabled={isSaving}>
 					<Close />
 				</IconButton>
@@ -138,7 +145,7 @@ export function ScheduleConfirmDialog({
 					}}
 					disabled={isSaving}
 				>
-					{isReschedule ? "Reschedule & notify" : "Schedule & notify"}
+					{kind === "rescheduled" ? "Reschedule & notify" : "Schedule & notify"}
 				</Button>
 			</DialogActions>
 		</Dialog>

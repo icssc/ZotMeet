@@ -22,7 +22,6 @@ import { AvailabilityTableHeader } from "@/components/availability/table/availab
 import { TimeZoneDropdown } from "@/components/availability/table/availability-timezone";
 import { StudyRoomHoverProvider } from "@/components/availability/table/study-room-hover-context";
 import { InviteMembersDialog } from "@/components/groups/add-member-dialog";
-import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting, SelectScheduledMeeting } from "@/db/schema";
 import { useAvailabilityActionHandlers } from "@/hooks/use-availability-action-handlers";
 import { useAvailabilityData } from "@/hooks/use-availability-data";
@@ -65,7 +64,6 @@ export function Availability({
 	autoOpenInviteDialog?: boolean;
 	inviteQueryInUrl?: boolean;
 }) {
-	const { showSuccess } = useSnackbar();
 	const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
 	// Lifted here (rather than owned by the dialog) so the toggle can update
 	// optimistically and be shared with AvailabilityActions; synced to the
@@ -361,14 +359,13 @@ export function Availability({
 		handleScheduleCancel,
 		handleScheduleSave,
 		isScheduled,
-		willNotifyOnSchedule,
-		isReschedule,
-		pendingScheduleWindow,
+		scheduleConfirmDialogProps,
 	} = useAvailabilityActionHandlers({
 		meetingData,
 		user,
 		availabilityDates,
 		ifNeededDates,
+		members,
 		onCancel: handleCancelEditing,
 		onSave: confirmSave,
 		setChangeableTimezone,
@@ -376,43 +373,9 @@ export function Availability({
 		isMeetingDeletionPending,
 	});
 
-	const [isScheduleConfirmOpen, setIsScheduleConfirmOpen] = useState(false);
-	const requestScheduleSave = useCallback(
-		async (opts?: { skipExitToGroup?: boolean }): Promise<boolean> => {
-			if (willNotifyOnSchedule) {
-				setIsScheduleConfirmOpen(true);
-				return false;
-			}
-			return handleScheduleSave(opts);
-		},
-		[handleScheduleSave, willNotifyOnSchedule],
-	);
-
-	const scheduleRecipientCount = members.filter(
-		(member) => meetingData.hostId !== member.memberId,
-	).length;
-
-	// displays if queued properly, not delivered.
-	const confirmScheduleSave = useCallback(
-		async (message: string) => {
-			const ok = await handleScheduleSave({ message });
-			const done = isReschedule ? "Meeting rescheduled." : "Meeting scheduled.";
-			if (ok && scheduleRecipientCount > 0) {
-				const memberWord = scheduleRecipientCount === 1 ? "member" : "members";
-				showSuccess(
-					`${done} ${scheduleRecipientCount} ${memberWord} will be emailed.`,
-				);
-			} else if (ok) {
-				showSuccess(done);
-			}
-			return ok;
-		},
-		[handleScheduleSave, isReschedule, scheduleRecipientCount, showSuccess],
-	);
-
 	const runScheduleSaveForMobile = useCallback(
-		() => requestScheduleSave({ skipExitToGroup: true }),
-		[requestScheduleSave],
+		() => handleScheduleSave({ skipExitToGroup: true }),
+		[handleScheduleSave],
 	);
 
 	const actionsProps = {
@@ -422,7 +385,7 @@ export function Availability({
 		handlePersonalCancel,
 		handlePersonalSave,
 		handleScheduleCancel,
-		handleScheduleSave: requestScheduleSave,
+		handleScheduleSave,
 		isScheduled,
 		setChangeableTimezone,
 		setTimezone: setUserTimezone,
@@ -598,7 +561,7 @@ export function Availability({
 								{availabilityView === "schedule" ? (
 									<ScheduleMeetingSettings
 										handleScheduleCancel={handleScheduleCancel}
-										handleScheduleSave={requestScheduleSave}
+										handleScheduleSave={handleScheduleSave}
 										isMeetingDeletionPending={isMeetingDeletionPending}
 									/>
 								) : (
@@ -710,17 +673,8 @@ export function Availability({
 					)}
 				</div>
 
-				{pendingScheduleWindow && (
-					<ScheduleConfirmDialog
-						open={isScheduleConfirmOpen}
-						onClose={() => setIsScheduleConfirmOpen(false)}
-						onConfirm={confirmScheduleSave}
-						isReschedule={isReschedule}
-						meetingTitle={meetingData.title}
-						start={pendingScheduleWindow.start}
-						end={pendingScheduleWindow.end}
-						recipientCount={scheduleRecipientCount}
-					/>
+				{scheduleConfirmDialogProps && (
+					<ScheduleConfirmDialog {...scheduleConfirmDialogProps} />
 				)}
 
 				<InviteMembersDialog

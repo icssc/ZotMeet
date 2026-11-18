@@ -45,12 +45,11 @@ function safeWebUrl(url: string): string {
 	return u.href;
 }
 
-function isSafeWebUrl(url: string): boolean {
+function toSafeWebUrl(url: string): string | null {
 	try {
-		safeWebUrl(url);
-		return true;
+		return safeWebUrl(url);
 	} catch {
-		return false;
+		return null;
 	}
 }
 
@@ -59,10 +58,9 @@ function linkifyToHtml(text: string): string {
 	return splitMessageLinks(text)
 		.map((segment) => {
 			const escaped = escapeHtml(segment.value);
-			if (segment.kind !== "link" || !isSafeWebUrl(segment.value)) {
-				return escaped;
-			}
-			return `<a href="${escapeHtml(safeWebUrl(segment.value))}" style="color:${LINK_PINK};text-decoration:underline;word-break:break-all;">${escaped}</a>`;
+			const href = segment.kind === "link" ? toSafeWebUrl(segment.value) : null;
+			if (!href) return escaped;
+			return `<a href="${escapeHtml(href)}" style="color:${LINK_PINK};text-decoration:underline;word-break:break-all;">${escaped}</a>`;
 		})
 		.join("");
 }
@@ -135,19 +133,21 @@ export function createBrandedTransactionalEmail(
             </tr>`
 		: "";
 
-	const verifiedSecondaryUrl = input.secondaryCta
-		? safeWebUrl(input.secondaryCta.url)
+	const secondaryCta = input.secondaryCta
+		? {
+				label: input.secondaryCta.label,
+				url: safeWebUrl(input.secondaryCta.url),
+			}
 		: null;
-	const secondaryCtaHtml =
-		input.secondaryCta && verifiedSecondaryUrl
-			? `<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:12px auto 0;">
+	const secondaryCtaHtml = secondaryCta
+		? `<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:12px auto 0;">
                   <tr>
                     <td bgcolor="${FEEDBACK_BUTTON_BG}" style="border-radius:10px;mso-line-height-rule:exactly;">
-                      <a href="${escapeHtml(verifiedSecondaryUrl)}" style="display:inline-block;padding:12px 28px;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;">${escapeHtml(input.secondaryCta.label)}</a>
+                      <a href="${escapeHtml(secondaryCta.url)}" style="display:inline-block;padding:12px 28px;font-family:Helvetica,Arial,sans-serif;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:10px;">${escapeHtml(secondaryCta.label)}</a>
                     </td>
                   </tr>
                 </table>`
-			: "";
+		: "";
 
 	const textBody = [
 		input.headline,
@@ -156,9 +156,7 @@ export function createBrandedTransactionalEmail(
 		...(input.note ? ["", `${input.note.label}:`, input.note.text] : []),
 		"",
 		`${input.ctaLabel}: ${verifiedCtaUrl}`,
-		...(input.secondaryCta && verifiedSecondaryUrl
-			? [`${input.secondaryCta.label}: ${verifiedSecondaryUrl}`]
-			: []),
+		...(secondaryCta ? [`${secondaryCta.label}: ${secondaryCta.url}`] : []),
 		"",
 		`Learn more about ZotMeet ${topicWord}: ${verifiedFooterUrl}`,
 		"",

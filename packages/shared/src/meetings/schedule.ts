@@ -44,8 +44,23 @@ export type SaveMeetingScheduleData = z.output<
 	typeof saveMeetingScheduleSchema
 >;
 
+export type ScheduleNotificationKind = "scheduled" | "rescheduled";
+
+export function scheduleNotificationKind({
+	wasScheduled,
+	hasChanges,
+	hasBlocksAfter,
+}: {
+	wasScheduled: boolean;
+	hasChanges: boolean;
+	hasBlocksAfter: boolean;
+}): ScheduleNotificationKind | null {
+	if (!hasChanges || !hasBlocksAfter) return null;
+	return wasScheduled ? "rescheduled" : "scheduled";
+}
+
 export type SaveMeetingScheduleResponse =
-	| { success: true; notified: boolean }
+	| { success: true; kind: ScheduleNotificationKind | null }
 	| { error: string };
 
 export type MessageSegment = { kind: "text" | "link"; value: string };

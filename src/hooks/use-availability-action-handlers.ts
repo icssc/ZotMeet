@@ -2,12 +2,18 @@
 
 import { savePersonalAvailability } from "@actions/availability/save/action";
 import { saveMeetingSchedule } from "@actions/meeting/schedule/action";
-import type { ScheduleBlock } from "@zotmeet/shared";
-import { useCallback, useMemo } from "react";
+import {
+	type ScheduleBlock,
+	type ScheduleNotificationKind,
+	scheduleNotificationKind,
+} from "@zotmeet/shared";
+import { useCallback, useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
+import type { ScheduleConfirmDialogProps } from "@/components/availability/schedule-confirm-dialog";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
+import type { Member } from "@/lib/types/availability";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
@@ -35,6 +41,8 @@ export interface UseAvailabilityActionHandlersParams {
 	user: UserProfile | null;
 	availabilityDates: ZotDate[];
 	ifNeededDates: ZotDate[];
+	/** Everyone attached to the meeting; used for the confirm dialog's email count. */
+	members: Member[];
 	onCancel: () => void;
 	onSave: () => void;
 	setChangeableTimezone: (can: boolean) => void;
@@ -47,13 +55,14 @@ export function useAvailabilityActionHandlers({
 	user,
 	availabilityDates,
 	ifNeededDates,
+	members,
 	onCancel,
 	onSave,
 	setChangeableTimezone,
 	userTimezone,
 	isMeetingDeletionPending = false,
 }: UseAvailabilityActionHandlersParams) {
-	const { showError } = useSnackbar();
+	const { showError, showSuccess } = useSnackbar();
 
 	const {
 		setHasAvailability,
@@ -151,11 +160,14 @@ export function useAvailabilityActionHandlers({
 		for (const ts of pendingAdds) final.add(ts);
 		return final;
 	}, [scheduledTimes, pendingAdds, pendingRemovals]);
-	const hasPendingChanges = pendingAdds.size > 0 || pendingRemovals.size > 0;
-	const willNotifyOnSchedule =
-		hasPendingChanges && finalScheduledTimes.size > 0;
-	const isReschedule = isScheduled;
 
+	const pendingKind = scheduleNotificationKind({
+		wasScheduled: isScheduled,
+		hasChanges: pendingAdds.size > 0 || pendingRemovals.size > 0,
+		hasBlocksAfter: finalScheduledTimes.size > 0,
+	});
+
+	/** Span of the meeting after this save, for the confirm dialog's summary. */
 	const pendingScheduleWindow = useMemo(() => {
 		if (finalScheduledTimes.size === 0) return null;
 		const times = [...finalScheduledTimes].map((ts) => new Date(ts).getTime());
@@ -165,16 +177,29 @@ export function useAvailabilityActionHandlers({
 		};
 	}, [finalScheduledTimes]);
 
-	const handleScheduleSave = useCallback(
+	// Mirrors `getMeetingParticipantUserIds` (src/server/data/meeting/queries.ts):
+	// every attached member except the host. Change the two together.
+	const recipientCount = members.filter(
+		(member) => member.memberId !== meetingData.hostId,
+	).length;
+
+	const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+	const [confirmKind, setConfirmKind] =
+		useState<ScheduleNotificationKind>("scheduled");
+
+	const saveSchedule = useCallback(
 		async (opts?: {
 			skipExitToGroup?: boolean;
 			message?: string;
-		}): Promise<boolean> => {
-			if (isMeetingDeletionPending) return false;
+		}): Promise<
+			{ saved: true; kind: ScheduleNotificationKind | null } | { saved: false }
+		> => {
+			if (isMeetingDeletionPending) return { saved: false };
 			try {
 				const { pendingAdds, pendingRemovals } =
 					useAvailabilityStore.getState();
 
+				let kind: ScheduleNotificationKind | null = null;
 				if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
 					const result = await saveMeetingSchedule({
 						meetingId: meetingData.id,
@@ -184,18 +209,19 @@ export function useAvailabilityActionHandlers({
 					});
 					if ("error" in result) {
 						showError(result.error);
-						return false;
+						return { saved: false };
 					}
+					kind = result.kind;
 					commitPendingTimes();
 				}
 				if (!opts?.skipExitToGroup) {
 					setAvailabilityView("group");
 				}
-				return true;
+				return { saved: true, kind };
 			} catch (error) {
 				console.error("Failed to save meeting blocks", error);
 				showError("Failed to save meeting schedule. Please try again.");
-				return false;
+				return { saved: false };
 			}
 		},
 		[
@@ -207,6 +233,58 @@ export function useAvailabilityActionHandlers({
 		],
 	);
 
+	/**
+	 * What every schedule-mode Save button calls. A save that will email
+	 * members opens the confirm dialog instead and resolves `false`: nothing
+	 * is saved until the host confirms.
+	 */
+	const handleScheduleSave = useCallback(
+		async (opts?: { skipExitToGroup?: boolean }): Promise<boolean> => {
+			if (pendingKind) {
+				setConfirmKind(pendingKind);
+				setIsConfirmOpen(true);
+				return false;
+			}
+			return (await saveSchedule(opts)).saved;
+		},
+		[pendingKind, saveSchedule],
+	);
+
+	const confirmScheduleSave = useCallback(
+		async (message: string) => {
+			const outcome = await saveSchedule({ message });
+			if (!outcome.saved) return false;
+			if (outcome.kind) {
+				const done =
+					outcome.kind === "rescheduled"
+						? "Meeting rescheduled."
+						: "Meeting scheduled.";
+				const memberWord = recipientCount === 1 ? "member" : "members";
+				showSuccess(
+					recipientCount > 0
+						? `${done} ${recipientCount} ${memberWord} will be emailed.`
+						: done,
+				);
+			}
+			return true;
+		},
+		[saveSchedule, recipientCount, showSuccess],
+	);
+
+	const scheduleConfirmDialogProps: ScheduleConfirmDialogProps | null =
+		pendingScheduleWindow
+			? {
+					open: isConfirmOpen,
+					onClose: () => setIsConfirmOpen(false),
+					onConfirm: confirmScheduleSave,
+					kind: confirmKind,
+					meetingTitle: meetingData.title,
+					start: pendingScheduleWindow.start,
+					end: pendingScheduleWindow.end,
+					recipientCount,
+				}
+			: null;
+
 	return {
 		handlePersonalCancel,
 		handlePersonalSave,
@@ -216,8 +294,6 @@ export function useAvailabilityActionHandlers({
 		handleScheduleCancel,
 		handleScheduleSave,
 		isScheduled,
-		willNotifyOnSchedule,
-		isReschedule,
-		pendingScheduleWindow,
+		scheduleConfirmDialogProps,
 	};
 }

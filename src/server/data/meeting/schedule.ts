@@ -1,8 +1,9 @@
 import "server-only";
 
-import type {
-	SaveMeetingScheduleData,
-	SaveMeetingScheduleResponse,
+import {
+	type SaveMeetingScheduleData,
+	type SaveMeetingScheduleResponse,
+	scheduleNotificationKind,
 } from "@zotmeet/shared";
 import { and, eq, isNull, or } from "drizzle-orm";
 import { after } from "next/server";
@@ -91,13 +92,11 @@ export async function saveMeetingScheduleForMember(
 		return { flipped: Boolean(row), hasBlocks: true };
 	});
 
-	// First schedule → "scheduled" email. Changing the time of an already
-	// scheduled meeting → "rescheduled" email. Clearing every block sends nothing.
-	const kind = flipped
-		? "scheduled"
-		: changed && hasBlocks
-			? "rescheduled"
-			: null;
+	const kind = scheduleNotificationKind({
+		wasScheduled: !flipped,
+		hasChanges: changed,
+		hasBlocksAfter: hasBlocks,
+	});
 
 	if (kind) {
 		const [hostUser] = await db
@@ -121,5 +120,5 @@ export async function saveMeetingScheduleForMember(
 		);
 	}
 
-	return { success: true, notified: kind !== null };
+	return { success: true, kind };
 }

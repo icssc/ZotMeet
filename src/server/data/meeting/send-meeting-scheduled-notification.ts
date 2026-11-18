@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { ScheduleNotificationKind } from "@zotmeet/shared";
 import type { SelectMeeting } from "@/db/schema";
 import { createBrandedTransactionalEmail } from "@/lib/email/templates";
 import { NOTIFICATION_TYPES } from "@/lib/notification/types";
@@ -16,7 +17,7 @@ export async function sendMeetingScheduledNotification({
 	meeting,
 	host,
 	message,
-	kind = "scheduled",
+	kind,
 }: {
 	meeting: Pick<
 		SelectMeeting,
@@ -24,8 +25,7 @@ export async function sendMeetingScheduledNotification({
 	>;
 	host: { id: string; displayName: string | null };
 	message?: string;
-	/** "rescheduled" when an already-scheduled meeting's time changed. */
-	kind?: "scheduled" | "rescheduled";
+	kind: ScheduleNotificationKind;
 }) {
 	const participantUserIds = await getMeetingParticipantUserIds(
 		meeting.id,
@@ -37,7 +37,6 @@ export async function sendMeetingScheduledNotification({
 	const origin = baseUrl.replace(/\/$/, "");
 	const meetingUrl = `${origin}/availability/${meeting.id}`;
 	const hostName = host.displayName?.trim() || "The meeting host";
-	const verb = kind === "rescheduled" ? "rescheduled" : "scheduled";
 	const calendarUrl = await buildGoogleCalendarLink(meeting).catch((error) => {
 		console.error("failed to generate calendar link", error);
 		return null;
@@ -46,15 +45,15 @@ export async function sendMeetingScheduledNotification({
 	await createNewNotification(
 		participantUserIds,
 		meeting.title,
-		`"${meeting.title}" has been ${verb}. Click to view the details.`,
+		`"${meeting.title}" has been ${kind}. Click to view the details.`,
 		NOTIFICATION_TYPES.MEETING_SCHEDULED,
 		meetingUrl,
 		null,
 		host.id,
 		{
 			email: createBrandedTransactionalEmail({
-				subject: `"${meeting.title}" has been ${verb} on ZotMeet`,
-				headline: `${hostName} has ${verb} "${meeting.title}".`,
+				subject: `"${meeting.title}" has been ${kind} on ZotMeet`,
+				headline: `${hostName} has ${kind} "${meeting.title}".`,
 				bodyLines: [
 					kind === "rescheduled"
 						? `Heads up! ${hostName} has moved "${meeting.title}" to a new time.`
