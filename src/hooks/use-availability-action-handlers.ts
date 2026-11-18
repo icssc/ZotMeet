@@ -1,17 +1,34 @@
 "use client";
 
 import { savePersonalAvailability } from "@actions/availability/save/action";
-import {
-	deleteScheduledTimeBlock,
-	saveScheduledTimeBlock,
-} from "@actions/meeting/schedule/action";
-import { useCallback } from "react";
+import { saveMeetingSchedule } from "@actions/meeting/schedule/action";
+import type { ScheduleBlock } from "@zotmeet/shared";
+import { useCallback, useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { useSnackbar } from "@/components/ui/snackbar-provider";
 import type { SelectMeeting } from "@/db/schema";
 import type { UserProfile } from "@/lib/auth/user";
 import type { ZotDate } from "@/lib/zotdate";
 import { useAvailabilityStore } from "@/store/useAvailabilityStore";
+
+/** One scheduled block is 15 minutes. */
+const BLOCK_MS = 15 * 60 * 1000;
+
+/** A pending-grid timestamp → the row shape `scheduled_meetings` stores (local time). */
+function toBlock(timestamp: string): ScheduleBlock {
+	const date = new Date(timestamp);
+	return {
+		scheduledDate: new Date(
+			date.getFullYear(),
+			date.getMonth(),
+			date.getDate(),
+		),
+		scheduledFromTime: date.toTimeString().slice(0, 8),
+		scheduledToTime: new Date(date.getTime() + BLOCK_MS)
+			.toTimeString()
+			.slice(0, 8),
+	};
+}
 
 export interface UseAvailabilityActionHandlersParams {
 	meetingData: SelectMeeting;
@@ -120,64 +137,43 @@ export function useAvailabilityActionHandlers({
 		setAvailabilityView("group");
 	}, [clearPendingTimes, setAvailabilityView]);
 
+	const pendingAdds = useAvailabilityStore((s) => s.pendingAdds);
+
+	// The first save that adds blocks to an unscheduled meeting emails everyone,
+	// so callers show the confirm dialog first.
+	const willNotifyOnSchedule = !isScheduled && pendingAdds.size > 0;
+
+	/** Span of the pending blocks, for the confirm dialog's summary line. */
+	const pendingScheduleWindow = useMemo(() => {
+		if (pendingAdds.size === 0) return null;
+		const times = [...pendingAdds].map((ts) => new Date(ts).getTime());
+		return {
+			start: new Date(Math.min(...times)),
+			end: new Date(Math.max(...times) + BLOCK_MS),
+		};
+	}, [pendingAdds]);
+
 	const handleScheduleSave = useCallback(
-		async (opts?: { skipExitToGroup?: boolean }): Promise<boolean> => {
+		async (opts?: {
+			skipExitToGroup?: boolean;
+			message?: string;
+		}): Promise<boolean> => {
 			if (isMeetingDeletionPending) return false;
 			try {
 				const { pendingAdds, pendingRemovals } =
 					useAvailabilityStore.getState();
 
-				for (const timestamp of pendingRemovals) {
-					const date = new Date(timestamp);
-					const scheduledDate = new Date(
-						date.getFullYear(),
-						date.getMonth(),
-						date.getDate(),
-					);
-					const scheduledFromTime = date.toTimeString().slice(0, 8);
-					const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-						.toTimeString()
-						.slice(0, 8);
-
-					const removalResult = await deleteScheduledTimeBlock({
-						meetingId: meetingData.id,
-						scheduledDate,
-						scheduledFromTime,
-						scheduledToTime,
-					});
-					if ("error" in removalResult) {
-						showError(
-							removalResult.error ?? "Failed to delete scheduled meeting.",
-						);
-						return false;
-					}
-				}
-
-				for (const timestamp of pendingAdds) {
-					const date = new Date(timestamp);
-					const scheduledDate = new Date(
-						date.getFullYear(),
-						date.getMonth(),
-						date.getDate(),
-					);
-					const scheduledFromTime = date.toTimeString().slice(0, 8);
-					const scheduledToTime = new Date(date.getTime() + 15 * 60 * 1000)
-						.toTimeString()
-						.slice(0, 8);
-
-					const saveResult = await saveScheduledTimeBlock({
-						meetingId: meetingData.id,
-						scheduledDate,
-						scheduledFromTime,
-						scheduledToTime,
-					});
-					if ("error" in saveResult) {
-						showError(saveResult.error ?? "Failed to save scheduled meeting.");
-						return false;
-					}
-				}
-
 				if (pendingAdds.size > 0 || pendingRemovals.size > 0) {
+					const result = await saveMeetingSchedule({
+						meetingId: meetingData.id,
+						adds: [...pendingAdds].map(toBlock),
+						removals: [...pendingRemovals].map(toBlock),
+						message: opts?.message,
+					});
+					if ("error" in result) {
+						showError(result.error);
+						return false;
+					}
 					commitPendingTimes();
 				}
 				if (!opts?.skipExitToGroup) {
@@ -208,5 +204,7 @@ export function useAvailabilityActionHandlers({
 		handleScheduleCancel,
 		handleScheduleSave,
 		isScheduled,
+		willNotifyOnSchedule,
+		pendingScheduleWindow,
 	};
 }

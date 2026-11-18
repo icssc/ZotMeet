@@ -15,6 +15,7 @@ import {
 	groupRawRoomsByKey,
 	RoomRecommendationSettings,
 } from "@/components/availability/room-recommendations";
+import { ScheduleConfirmDialog } from "@/components/availability/schedule-confirm-dialog";
 import { ScheduleMeetingSettings } from "@/components/availability/schedule-meeting-settings";
 import { AvailabilityGridJaggedEdges } from "@/components/availability/table/availability-grid-jagged-edges";
 import { AvailabilityTableHeader } from "@/components/availability/table/availability-table-header";
@@ -358,6 +359,8 @@ export function Availability({
 		handleScheduleCancel,
 		handleScheduleSave,
 		isScheduled,
+		willNotifyOnSchedule,
+		pendingScheduleWindow,
 	} = useAvailabilityActionHandlers({
 		meetingData,
 		user,
@@ -370,9 +373,38 @@ export function Availability({
 		isMeetingDeletionPending,
 	});
 
-	const runScheduleSaveForMobile = useCallback(
-		() => handleScheduleSave({ skipExitToGroup: true }),
+	const [isScheduleConfirmOpen, setIsScheduleConfirmOpen] = useState(false);
+
+	/**
+	 * Every Save button in schedule mode goes through here. A save that will
+	 * email members (first time scheduling) opens the confirm dialog instead.
+	 * Resolves `false` while the dialog is open: nothing is saved yet.
+	 */
+	const requestScheduleSave = useCallback(
+		async (opts?: { skipExitToGroup?: boolean }): Promise<boolean> => {
+			// TODO(human): G3a — if `willNotifyOnSchedule`, open the dialog
+			// (`setIsScheduleConfirmOpen(true)`) and return false. Otherwise save
+			// right away like before: `return handleScheduleSave(opts)`.
+			// Don't forget the dependency array below.
+			return handleScheduleSave(opts);
+		},
 		[handleScheduleSave],
+	);
+
+	const confirmScheduleSave = useCallback(
+		(message: string) => handleScheduleSave({ message }),
+		[handleScheduleSave],
+	);
+
+	// TODO(human): G3b — how many people get the email? It must match
+	// `getMeetingParticipantUserIds` in src/server/data/meeting/queries.ts, so
+	// read that query first: which rows does it count, and who does it skip?
+	// Then derive it from `members` and `meetingData.hostId` (no useEffect).
+	const scheduleRecipientCount = 0;
+
+	const runScheduleSaveForMobile = useCallback(
+		() => requestScheduleSave({ skipExitToGroup: true }),
+		[requestScheduleSave],
 	);
 
 	const actionsProps = {
@@ -382,7 +414,7 @@ export function Availability({
 		handlePersonalCancel,
 		handlePersonalSave,
 		handleScheduleCancel,
-		handleScheduleSave,
+		handleScheduleSave: requestScheduleSave,
 		isScheduled,
 		setChangeableTimezone,
 		setTimezone: setUserTimezone,
@@ -558,7 +590,7 @@ export function Availability({
 								{availabilityView === "schedule" ? (
 									<ScheduleMeetingSettings
 										handleScheduleCancel={handleScheduleCancel}
-										handleScheduleSave={handleScheduleSave}
+										handleScheduleSave={requestScheduleSave}
 										isMeetingDeletionPending={isMeetingDeletionPending}
 									/>
 								) : (
@@ -669,6 +701,18 @@ export function Availability({
 						</div>
 					)}
 				</div>
+
+				{pendingScheduleWindow && (
+					<ScheduleConfirmDialog
+						open={isScheduleConfirmOpen}
+						onClose={() => setIsScheduleConfirmOpen(false)}
+						onConfirm={confirmScheduleSave}
+						meetingTitle={meetingData.title}
+						start={pendingScheduleWindow.start}
+						end={pendingScheduleWindow.end}
+						recipientCount={scheduleRecipientCount}
+					/>
+				)}
 
 				<InviteMembersDialog
 					open={isInviteDialogOpen}

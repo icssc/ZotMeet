@@ -3,19 +3,26 @@ import "server-only";
 import type { SelectMeeting } from "@/db/schema";
 import { createBrandedTransactionalEmail } from "@/lib/email/templates";
 import { NOTIFICATION_TYPES } from "@/lib/notification/types";
+import { buildGoogleCalendarLink } from "@/server/data/meeting/google-calendar-link";
 import { getMeetingParticipantUserIds } from "@/server/data/meeting/queries";
 import { createNewNotification } from "@/server/data/user/queries";
 
 /**
  * Notifies every meeting participant (except the host) that the meeting has
- * been scheduled. Caller must enforce auth (host only).
+ * been scheduled. The email carries the host's optional `message` and an
+ * "Add to Google Calendar" button. Caller must enforce auth (host only).
  */
 export async function sendMeetingScheduledNotification({
 	meeting,
 	host,
+	message,
 }: {
-	meeting: SelectMeeting;
+	meeting: Pick<
+		SelectMeeting,
+		"id" | "title" | "description" | "location" | "timezone" | "hostId"
+	>;
 	host: { id: string; displayName: string | null };
+	message?: string;
 }) {
 	const participantUserIds = await getMeetingParticipantUserIds(
 		meeting.id,
@@ -27,6 +34,7 @@ export async function sendMeetingScheduledNotification({
 	const origin = baseUrl.replace(/\/$/, "");
 	const meetingUrl = `${origin}/availability/${meeting.id}`;
 	const hostName = host.displayName?.trim() || "The meeting host";
+	const calendarUrl = await buildGoogleCalendarLink(meeting);
 
 	await createNewNotification(
 		participantUserIds,
@@ -44,8 +52,14 @@ export async function sendMeetingScheduledNotification({
 					`Great news! ${hostName} has finalized the time for "${meeting.title}".`,
 					`Open ZotMeet to view the scheduled time and add it to your calendar.`,
 				],
+				note: message
+					? { label: `Message from ${hostName}`, text: message }
+					: undefined,
 				ctaLabel: "View Meeting",
 				ctaUrl: meetingUrl,
+				secondaryCta: calendarUrl
+					? { label: "Add to Google Calendar", url: calendarUrl }
+					: undefined,
 				footerLearnMoreUrl: `${origin}/`,
 				footerTopic: "meetings",
 			}),
