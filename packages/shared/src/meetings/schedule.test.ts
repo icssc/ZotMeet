@@ -35,9 +35,20 @@ describe("splitMessageLinks", () => {
 		]);
 	});
 
-	// TODO(human): G2 — write these two cases, then turn `it.todo` into `it`.
-	it.todo("handles a link at the very end of the string");
-	it.todo("handles two links back-to-back separated by one space");
+	it("handles a link at the very end of the string", () => {
+		assert.deepEqual(splitMessageLinks("see https://a.com"), [
+			text("see "),
+			link("https://a.com"),
+		]);
+	});
+
+	it("handles two links back-to-back separated by one space", () => {
+		assert.deepEqual(splitMessageLinks("https://a.com https://b.com"), [
+			link("https://a.com"),
+			text(" "),
+			link("https://b.com"),
+		]);
+	});
 });
 
 describe("firstVideoLink", () => {
