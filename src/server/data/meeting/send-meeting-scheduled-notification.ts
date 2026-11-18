@@ -34,7 +34,10 @@ export async function sendMeetingScheduledNotification({
 	const origin = baseUrl.replace(/\/$/, "");
 	const meetingUrl = `${origin}/availability/${meeting.id}`;
 	const hostName = host.displayName?.trim() || "The meeting host";
-	const calendarUrl = await buildGoogleCalendarLink(meeting);
+	const calendarUrl = await buildGoogleCalendarLink(meeting).catch((error) => {
+		console.error("failed to generate calendar link", error);
+		return null;
+	});
 
 	await createNewNotification(
 		participantUserIds,

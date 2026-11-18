@@ -61,17 +61,32 @@ export type MessageSegment = { kind: "text" | "link"; value: string };
  *      { kind: "text", value: "." }]
  */
 export function splitMessageLinks(text: string): MessageSegment[] {
-	// TODO(human): G1 — replace this stub so the tests in schedule.test.ts pass.
-	// Hints:
-	//   1. A regex like /https?:\/\/\S+/g plus `text.matchAll(regex)` gives each
-	//      match and its `.index`.
-	//   2. Keep a `cursor` (where the last match ended). The text between the
-	//      cursor and `match.index` is a "text" segment.
-	//   3. Peel trailing . , ) ! ? off the matched link (a while-loop or a
-	//      /[.,)!?]+$/ regex) and give them back to the following text.
-	//   4. Don't emit empty "text" segments. Whatever is left after the last
-	//      match is the final "text" segment.
-	return text ? [{ kind: "text", value: text }] : [];
+	const segments: MessageSegment[] = [];
+	let pendingText = "";
+	let cursor = 0;
+
+	for (const match of text.matchAll(/https?:\/\/\S+/g)) {
+		const start = match.index ?? 0;
+		const trailing = /[.,)!?]+$/.exec(match[0])?.[0] ?? "";
+		const link = match[0].slice(0, match[0].length - trailing.length);
+
+		pendingText += text.slice(cursor, start);
+		cursor = start + match[0].length;
+
+		// "https://." peels down to just the scheme: not a real link.
+		if (/^https?:\/\/$/.test(link)) {
+			pendingText += match[0];
+			continue;
+		}
+
+		if (pendingText) segments.push({ kind: "text", value: pendingText });
+		segments.push({ kind: "link", value: link });
+		pendingText = trailing;
+	}
+
+	pendingText += text.slice(cursor);
+	if (pendingText) segments.push({ kind: "text", value: pendingText });
+	return segments;
 }
 
 const VIDEO_HOSTS =
