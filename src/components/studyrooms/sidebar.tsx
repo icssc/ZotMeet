@@ -10,7 +10,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 import { RoomsHeatmapLegend } from "@/components/studyrooms/legend";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
@@ -19,6 +19,7 @@ import {
 	BUILDINGS,
 	CAPACITY_RANGES,
 	formatLocation,
+	matchBuilding,
 	type StudyRooms,
 } from "@/lib/types/studyrooms";
 
@@ -63,9 +64,15 @@ export function Sidebar({
 	const [isLoading, setIsLoading] = useState(false);
 
 	const activeFilters = [
-		date && { label: `Date: ${format(date, "MMM d, yyyy")}`, key: "date" },
+		date &&
+			isValid(date) && {
+				label: `Date: ${format(date, "MMM d, yyyy")}`,
+				key: "date",
+			},
 		startTime &&
-			endTime && {
+			endTime &&
+			isValid(startTime) &&
+			isValid(endTime) && {
 				label: `Time: ${format(startTime, "h:mmaaa")}–${format(endTime, "h:mmaaa")}`,
 				key: "time",
 			},
@@ -191,7 +198,14 @@ export function Sidebar({
 		setError(null);
 		setFallbackNotice(null);
 
-		if (!date || !startTime || !endTime) {
+		if (
+			!date ||
+			!startTime ||
+			!endTime ||
+			!isValid(date) ||
+			!isValid(startTime) ||
+			!isValid(endTime)
+		) {
 			setError("Please select a date and time range.");
 			return;
 		}
@@ -217,6 +231,16 @@ export function Sidebar({
 			return;
 		}
 
+		let resolvedLocation: string | null = null;
+		if (location?.trim()) {
+			resolvedLocation = matchBuilding(location);
+			if (!resolvedLocation) {
+				setError(`No matching location for "${location}".`);
+				return;
+			}
+		}
+		setLocation(resolvedLocation);
+
 		const baseDate = new Date(date);
 		baseDate.setHours(0, 0, 0, 0);
 		setIsLoading(true);
@@ -225,7 +249,12 @@ export function Sidebar({
 				baseDate,
 				startTime,
 				endTime,
-				filters: { location, capacityMin, capacityMax, isTechEnhanced },
+				filters: {
+					location: resolvedLocation,
+					capacityMin,
+					capacityMax,
+					isTechEnhanced,
+				},
 			});
 			if (foundRooms) {
 				setDrawerClose(false);
