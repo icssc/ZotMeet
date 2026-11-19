@@ -231,16 +231,15 @@ export function Sidebar({
 			return;
 		}
 
-		let resolvedLocation = location;
+		let resolvedLocation: string | null = null;
 		if (location?.trim()) {
-			const match = matchBuilding(location);
-			if (!match) {
+			resolvedLocation = matchBuilding(location);
+			if (!resolvedLocation) {
 				setError(`No matching location for "${location}".`);
 				return;
 			}
-			resolvedLocation = match;
-			setLocation(match);
 		}
+		setLocation(resolvedLocation);
 
 		const baseDate = new Date(date);
 		baseDate.setHours(0, 0, 0, 0);
