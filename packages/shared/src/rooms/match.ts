@@ -1,5 +1,6 @@
 import { formatInTimeZone } from "date-fns-tz";
 import {
+	extractRoomNumber,
 	formatLocation,
 	formatRoomChipLabel,
 	parseRoomDurationMinutes,
@@ -47,6 +48,8 @@ export interface Room {
 	key: string;
 	/** "Sci Lib 471". */
 	label: string;
+	/** "471": the label without its building, for chips under a building name. */
+	number: string;
 	location: string;
 	/** "Sci Lib"; the building name when it has no short form. */
 	building: string;
@@ -95,6 +98,7 @@ export function normalizeRooms(raw: readonly StudyRoomLike[]): Room[] {
 				room: {
 					key,
 					label: formatRoomChipLabel(entry.location, name),
+					number: extractRoomNumber(name) ?? name,
 					location: entry.location,
 					building: formatLocation(entry.location),
 					capacity: entry.capacity || null,
@@ -224,7 +228,7 @@ function compareNatural(a: string, b: string): number {
  * 0: seats the group without being oversized (up to double, or 2 spare);
  * 1: oversized; 2: too small or unknown.
  */
-export function seatFit(capacity: number | null, groupSize: number): number {
+function seatFit(capacity: number | null, groupSize: number): number {
 	if (capacity == null || capacity < groupSize) return 2;
 	const roomy = Math.max(groupSize * 2, groupSize + 2);
 	return capacity <= roomy ? 0 : 1;
@@ -329,30 +333,4 @@ export function studyRoomQueryFor(stretch: TimeWindow): {
 		date: formatInTimeZone(start, CAMPUS_TIME_ZONE, "yyyy-MM-dd"),
 		timeRange: `${formatCampusClock(start)}-${formatCampusClock(end)}`,
 	};
-}
-
-/** "1:00–3:00 PM", or "11:30 AM–1:00 PM" across noon, in `timeZone`. */
-export function formatWindow(window: TimeWindow, timeZone: string): string {
-	const startMeridiem = formatInTimeZone(window.start, timeZone, "a");
-	const endMeridiem = formatInTimeZone(window.end, timeZone, "a");
-	const end = formatInTimeZone(window.end, timeZone, "h:mm a");
-	const start = formatInTimeZone(
-		window.start,
-		timeZone,
-		startMeridiem === endMeridiem ? "h:mm" : "h:mm a",
-	);
-	return `${start}–${end}`;
-}
-
-/** "Tue, Oct 13 · 1:00–3:00 PM". */
-export function formatDayAndWindow(
-	window: TimeWindow,
-	timeZone: string,
-): string {
-	return `${formatInTimeZone(window.start, timeZone, "EEE, MMM d")} · ${formatWindow(window, timeZone)}`;
-}
-
-/** "1:00 PM". */
-export function formatClock(ms: number, timeZone: string): string {
-	return formatInTimeZone(ms, timeZone, "h:mm a");
 }

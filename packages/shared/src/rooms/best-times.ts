@@ -133,25 +133,3 @@ export function computeBestTimes({
 		.slice(0, limit)
 		.map((stretch, index) => ({ ...stretch, rank: index + 1 }));
 }
-
-/** "2h", "1h 30m", "45m". */
-export function formatMinutes(minutes: number): string {
-	const hours = Math.floor(minutes / 60);
-	const rest = minutes % 60;
-	if (hours === 0) return `${rest}m`;
-	return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`;
-}
-
-/** The note under a best time: "Everyone · 2h", "Erin busy · 2h", "3 busy · 1h". */
-export function formatBestTimeNote(
-	missingNames: readonly string[],
-	minutes: number,
-): string {
-	const who =
-		missingNames.length === 0
-			? "Everyone"
-			: missingNames.length <= 2
-				? `${missingNames.join(" & ")} busy`
-				: `${missingNames.length} busy`;
-	return `${who} · ${formatMinutes(minutes)}`;
-}
