@@ -26,7 +26,7 @@ export function RoomsPanel({
 	return (
 		<div className="flex min-h-0 flex-1 flex-col">
 			<div className="flex shrink-0 flex-col gap-3 px-4 pt-4 pb-3">
-				<RoomsStepper step={step} onStepClick={(next) => setStep(next)} />
+				<RoomsStepper step={step} onStepClick={setStep} />
 			</div>
 
 			<div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-y-contain px-4 pb-4">

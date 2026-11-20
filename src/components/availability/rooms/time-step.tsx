@@ -31,20 +31,7 @@ const pinkText = {
 			: darken(t.palette.primary.main, 0.42),
 };
 
-/** Rooms a time offers in the current mode: whole only, or partial too. */
-export function roomsFor(time: BestTimeRooms, includePartial: boolean) {
-	return includePartial
-		? time.whole.length + time.partial.length
-		: time.whole.length;
-}
-
-function RoomCount({
-	time,
-	includePartial,
-}: {
-	time: BestTimeRooms;
-	includePartial: boolean;
-}) {
+function RoomCount({ time }: { time: BestTimeRooms }) {
 	if (time.status === "loading") {
 		return (
 			<Skeleton
@@ -56,7 +43,7 @@ function RoomCount({
 			/>
 		);
 	}
-	const count = roomsFor(time, includePartial);
+	const count = time.shown.length;
 	return (
 		<Chip
 			icon={<ApartmentIcon />}
@@ -77,7 +64,6 @@ function TimeCard({
 	time,
 	timeZone,
 	memberCount,
-	includePartial,
 	checked,
 	onSelect,
 	onNext,
@@ -85,7 +71,6 @@ function TimeCard({
 	time: BestTimeRooms;
 	timeZone: string;
 	memberCount: number;
-	includePartial: boolean;
 	checked: boolean;
 	onSelect: () => void;
 	onNext: () => void;
@@ -97,7 +82,9 @@ function TimeCard({
 			direction="next"
 			title="Choose a Room"
 			onAction={onNext}
-			actionDisabled={time.status !== "ready"}
+			// Partly free rooms still open the room step, below the whole ones,
+			// even while the time step counts only whole rooms.
+			actionDisabled={time.status !== "ready" || time.fits.length === 0}
 			showAction={checked}
 			as="label"
 			className="cursor-pointer has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2"
@@ -141,7 +128,7 @@ function TimeCard({
 						{formatMinutes(time.minutes)}
 					</Typography>
 				)}
-				<RoomCount time={time} includePartial={includePartial} />
+				<RoomCount time={time} />
 			</div>
 		</StepCard>
 	);
@@ -262,11 +249,6 @@ export function TimeStep({
 		);
 	}
 
-	const isEmpty =
-		!flow.isLoading &&
-		flow.errorCount === 0 &&
-		flow.times.every((time) => roomsFor(time, includePartial) === 0);
-
 	return (
 		<div className="flex flex-col gap-3">
 			<div>
@@ -293,11 +275,9 @@ export function TimeStep({
 				</Alert>
 			)}
 
-			{isEmpty && (
+			{flow.isEmpty && (
 				<NoRoomsPanel
-					canIncludePartial={
-						!includePartial && flow.times.some((t) => t.partial.length > 0)
-					}
+					canIncludePartial={flow.canIncludePartial}
 					showMoreTimes={showMoreTimes}
 				/>
 			)}
@@ -324,7 +304,6 @@ export function TimeStep({
 						time={time}
 						timeZone={timeZone}
 						memberCount={flow.memberCount}
-						includePartial={includePartial}
 						checked={selectedTimeId === time.id}
 						onSelect={() => selectTime(time.id)}
 						onNext={() => setStep(1)}
