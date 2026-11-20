@@ -154,7 +154,7 @@ export const RoomsHeatmap = ({
 												key={s.start}
 												disabled={!s.url}
 												onPress={() => s.url && Linking.openURL(s.url)}
-												accessibilityLabel={`${room.name}, ${s.isAvailable ? "available" : "booked"}`}
+												accessibilityLabel={`${room.name}, ${bucket.intervalLabel}, ${s.isAvailable ? "available" : "booked"}`}
 												className={cn(
 													"flex-1",
 													s.isAvailable ? "bg-green-300" : "bg-red-300",

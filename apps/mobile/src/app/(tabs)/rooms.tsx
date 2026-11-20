@@ -57,7 +57,8 @@ export function getDefaultWindow() {
 const pad = (n: number) => String(n).padStart(2, "0");
 const toDateParam = (d: Date) =>
 	`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-const toTimeParam = (d: Date) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const toTimeParam = (d: Date) =>
+	`${d.getHours() % 12 || 12}:${pad(d.getMinutes())}${d.getHours() >= 12 ? "pm" : "am"}`;
 
 export default function RoomsScreen() {
 	const [{ defaultDate, defaultStart, defaultEnd }] = useState(() => {
@@ -104,7 +105,6 @@ export default function RoomsScreen() {
 				r.name.toLowerCase().includes(q),
 		);
 	}, [rooms, query]);
-	const insets = useSafeAreaInsets();
 	return (
 		<Screen title="Rooms" scroll={false}>
 			<ScrollView
