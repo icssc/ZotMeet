@@ -534,10 +534,7 @@ export function Availability({
 								<AvailabilityActions {...actionsProps} />
 							)}
 							<SidebarTabs
-								attendeeCount={Math.max(
-									0,
-									members.length - pendingMembers.length,
-								)}
+								attendeeCount={roomFlow.memberCount}
 								roomCount={roomFlow.roomCount}
 								attendees={<GroupResponses {...groupResponsesProps} />}
 								rooms={<RoomsPanel />}
@@ -547,10 +544,7 @@ export function Availability({
 						<div className="block sm:hidden">
 							{availabilityView === "schedule" ? (
 								<MobileScheduleSettings
-									respondedMembersCount={Math.max(
-										0,
-										members.length - pendingMembers.length,
-									)}
+									respondedMembersCount={roomFlow.memberCount}
 									totalMembersCount={members.length}
 									onOpenAttendees={handleMobileOpenAttendees}
 								/>
@@ -558,10 +552,7 @@ export function Availability({
 								<>
 									<MobileGroupResponses
 										isOwner={isMeetingOwner}
-										respondedMembersCount={Math.max(
-											0,
-											members.length - pendingMembers.length,
-										)}
+										respondedMembersCount={roomFlow.memberCount}
 										pendingMembersCount={pendingMembers.length}
 										roomCount={roomFlow.roomCount}
 										onAddAvailability={handleMobileAddAvailability}
