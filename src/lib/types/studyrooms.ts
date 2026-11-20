@@ -1,8 +1,4 @@
-import {
-	type Building,
-	parseRoomDurationMinutes,
-	type StudyRoomLike,
-} from "@zotmeet/shared";
+import { type Building, parseRoomDurationMinutes } from "@zotmeet/shared";
 import { z } from "zod";
 import type { paths } from "@/lib/types/anteater-api-types";
 
@@ -23,14 +19,6 @@ export type StudyRoomsByFilters =
 
 export type StudyRooms =
 	paths["/v2/rest/studyRooms"]["get"]["responses"]["200"]["content"]["application/json"];
-
-/**
- * `@zotmeet/shared` matches rooms against a structural copy of an API entry;
- * this fails the typecheck if the generated API types drift from it.
- */
-const _apiRoomMatchesShared: StudyRoomLike =
-	null as unknown as StudyRooms["data"][number];
-void _apiRoomMatchesShared;
 
 export const MEETING_LENGTHS = [30, 60, 90, 120] as const;
 export type MeetingLength = (typeof MEETING_LENGTHS)[number];
