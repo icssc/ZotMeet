@@ -2,7 +2,7 @@
 
 import { Typography } from "@mui/material";
 import { formatShortDayAndWindow } from "@zotmeet/shared";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import type { BestTimeRooms, StudyRoomFlow } from "@/hooks/use-study-room-flow";
 import { useRoomFlowStore } from "@/store/useRoomFlowStore";
@@ -59,30 +59,26 @@ export function RoomsPanel({
 		[flow.times, selectedTimeId],
 	);
 	// Until the time's rooms load, the room step can't tell "none free" from
-	// "not fetched", and a failed lookup's Retry lives on the time step.
-	const canPickRoom = time?.status === "ready";
-
-	// New availability can remove the chosen time or refetch its rooms; fall
-	// back a step rather than show one with nothing in it.
-	useEffect(() => {
-		if (step > 0 && !canPickRoom) setStep(0);
-	}, [step, canPickRoom, setStep]);
+	// "not fetched", and a failed lookup's Retry lives on the time step. So
+	// while new availability removes the chosen time or refetches its rooms,
+	// show the time step, and come back once the rooms are in.
+	const shownStep = time?.status === "ready" ? step : 0;
 
 	return (
 		<div className="flex min-h-0 flex-1 flex-col">
 			<div className="flex shrink-0 flex-col gap-3 px-4 pt-4 pb-3">
-				<RoomsStepper step={step} onStepClick={setStep} />
+				<RoomsStepper step={shownStep} onStepClick={setStep} />
 			</div>
 
 			<div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-y-contain px-4 pb-4">
-				{step === 0 && (
+				{shownStep === 0 && (
 					<TimeStep
 						flow={flow}
 						timeZone={timeZone}
 						onShowAttendees={onShowAttendees}
 					/>
 				)}
-				{step === 1 && time && (
+				{shownStep === 1 && time && (
 					<>
 						<SelectedTimeCard
 							time={time}

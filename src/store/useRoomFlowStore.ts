@@ -54,11 +54,14 @@ export const useRoomFlowStore = create<RoomFlowStore>((set) => ({
 
 	setStep: (step) => set({ step }),
 	// A different time invalidates the room and slot picked for the old one.
+	// Times are picked on step 0; resetting `step` keeps a step the panel was
+	// hiding (its time had gone) from opening by itself for the new one.
 	selectTime: (id) =>
 		set((state) =>
 			state.selectedTimeId === id
 				? state
 				: {
+						step: 0,
 						selectedTimeId: id,
 						selectedRoomKey: null,
 						selectedSlotStart: null,

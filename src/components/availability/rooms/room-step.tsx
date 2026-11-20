@@ -1,45 +1,29 @@
 "use client";
 
-import AddIcon from "@mui/icons-material/Add";
-import CloseIcon from "@mui/icons-material/Close";
-import DesktopWindowsOutlinedIcon from "@mui/icons-material/DesktopWindowsOutlined";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import PersonIcon from "@mui/icons-material/Person";
 import PlaceIcon from "@mui/icons-material/Place";
-import RemoveIcon from "@mui/icons-material/Remove";
-import {
-	Button,
-	Chip,
-	Collapse,
-	IconButton,
-	Menu,
-	MenuItem,
-	Typography,
-} from "@mui/material";
-import { alpha } from "@mui/material/styles";
+import { Button, Chip, Collapse, Typography } from "@mui/material";
 import {
 	filterRoomFits,
 	formatLocation,
 	formatMinutes,
 	formatWindow,
 	groupSimilarRooms,
-	type Room,
 	type RoomFit,
 	type RoomFitGroup,
 	sortRoomFits,
 } from "@zotmeet/shared";
-import { type MouseEvent, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useShallow } from "zustand/shallow";
 import type { BestTimeRooms } from "@/hooks/use-study-room-flow";
 import { cn } from "@/lib/utils";
-import {
-	type RoomFlowFilters,
-	useRoomFlowStore,
-} from "@/store/useRoomFlowStore";
+import { useRoomFlowStore } from "@/store/useRoomFlowStore";
 import { ChoiceGroup, useChoiceGroupName } from "./choice-row";
+import { RoomDetails } from "./room-details";
+import { FilterChip, SeatsStepper } from "./room-filters";
 import { StepCard } from "./step-card";
-import { useRoomFlowColors } from "./use-room-flow-colors";
+import { pinkText } from "./styles";
 
 const INITIAL_ROWS = 4;
 const MINUTE_OPTIONS = [30, 60, 90, 120] as const;
@@ -47,182 +31,6 @@ const MINUTE_OPTIONS = [30, 60, 90, 120] as const;
 /** "30m", "1h", "1.5h", "2h": the Free for menu's lengths. */
 function formatFreeFor(minutes: number) {
 	return minutes < 60 ? `${minutes}m` : `${minutes / 60}h`;
-}
-
-/**
- * "Seats" as a −/+ stepper in a chip-height pill. Unset, it shows the attendee
- * count faded and filters nothing; the first press sets a minimum, × clears it.
- */
-function SeatsStepper({
-	value,
-	attendees,
-	max,
-	onChange,
-}: {
-	value: number | null;
-	attendees: number;
-	/** The roomiest room; past it nothing would match. */
-	max: number;
-	onChange: (value: number | null) => void;
-}) {
-	const colors = useRoomFlowColors();
-	const isOn = value != null;
-	const shown = value ?? attendees;
-	// MUI sets IconButton's padding, so a class can't shrink it to fit the pill.
-	const buttonSx = { p: "2px", color: "inherit" } as const;
-
-	return (
-		<Typography
-			variant="body2"
-			component="span"
-			role="group"
-			aria-label="Minimum seats"
-			className={cn(
-				"inline-flex h-6 items-center rounded-2xl border px-px",
-				isOn && "border-primary bg-primary/15 dark:bg-primary/20",
-			)}
-			style={isOn ? undefined : { borderColor: colors.divider }}
-		>
-			<IconButton
-				size="small"
-				aria-label="Fewer seats"
-				disabled={shown <= 1}
-				onClick={() => onChange(Math.max(1, shown - 1))}
-				sx={buttonSx}
-			>
-				<RemoveIcon sx={{ fontSize: 16 }} />
-			</IconButton>
-			<span
-				className={cn(
-					"flex min-w-16 items-center justify-center gap-1 px-1 tabular-nums",
-					isOn && "font-semibold",
-				)}
-				style={isOn ? undefined : { color: colors.textSecondary }}
-				aria-live="polite"
-			>
-				<PersonIcon sx={{ fontSize: 16 }} />
-				{shown} {shown === 1 ? "seat" : "seats"}
-			</span>
-			<IconButton
-				size="small"
-				aria-label="More seats"
-				disabled={shown >= max}
-				onClick={() => onChange(Math.min(max, shown + 1))}
-				sx={buttonSx}
-			>
-				<AddIcon sx={{ fontSize: 16 }} />
-			</IconButton>
-			{isOn && (
-				<IconButton
-					size="small"
-					aria-label="Clear seats"
-					onClick={() => onChange(null)}
-					sx={buttonSx}
-				>
-					<CloseIcon sx={{ fontSize: 16 }} />
-				</IconButton>
-			)}
-		</Typography>
-	);
-}
-
-function FilterChip<T extends string | number>({
-	label,
-	activeLabel,
-	value,
-	options,
-	getOptionLabel,
-	onChange,
-}: {
-	label: string;
-	activeLabel: (value: T) => string;
-	value: T | null;
-	options: readonly T[];
-	getOptionLabel: (value: T) => string;
-	onChange: (value: T | null) => void;
-}) {
-	const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-	const isOn = value != null;
-	return (
-		<>
-			<Chip
-				size="small"
-				variant="outlined"
-				clickable
-				label={isOn ? activeLabel(value) : `${label} ▾`}
-				onClick={(e: MouseEvent<HTMLElement>) => setAnchor(e.currentTarget)}
-				onDelete={isOn ? () => onChange(null) : undefined}
-				deleteIcon={
-					isOn ? <CloseIcon aria-label={`Clear ${label}`} /> : undefined
-				}
-				aria-haspopup="menu"
-				sx={
-					isOn
-						? {
-								backgroundColor: (theme) =>
-									alpha(
-										theme.palette.primary.main,
-										theme.palette.mode === "dark" ? 0.2 : 0.15,
-									),
-								borderColor: "primary.main",
-								fontWeight: 600,
-							}
-						: undefined
-				}
-			/>
-			<Menu
-				anchorEl={anchor}
-				open={Boolean(anchor)}
-				onClose={() => setAnchor(null)}
-			>
-				{options.map((option) => (
-					<MenuItem
-						key={String(option)}
-						selected={option === value}
-						onClick={() => {
-							onChange(option);
-							setAnchor(null);
-						}}
-					>
-						{getOptionLabel(option)}
-					</MenuItem>
-				))}
-			</Menu>
-		</>
-	);
-}
-
-/** "2111" from "Gateway 2111": the building is already the card's title. */
-export function roomNumber(room: Room) {
-	const prefix = `${room.building} `;
-	return room.label.startsWith(prefix)
-		? room.label.slice(prefix.length)
-		: room.label;
-}
-
-/** "👤 3 seats  🖥 Tech Enhanced", under a room card's building name. */
-export function RoomDetails({ room }: { room: Room }) {
-	return (
-		<Typography
-			variant="body2"
-			color="textSecondary"
-			component="span"
-			className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1"
-		>
-			{room.capacity != null && (
-				<span className="flex items-center gap-1.5">
-					<PersonIcon fontSize="small" />
-					{room.capacity} {room.capacity === 1 ? "seat" : "seats"}
-				</span>
-			)}
-			{room.techEnhanced && (
-				<span className="flex items-center gap-1.5">
-					<DesktopWindowsOutlinedIcon fontSize="small" />
-					Tech Enhanced
-				</span>
-			)}
-		</Typography>
-	);
 }
 
 /**
@@ -285,7 +93,7 @@ function RoomGroupCard({
 						<Chip
 							key={fit.room.key}
 							icon={<PlaceIcon />}
-							label={roomNumber(fit.room)}
+							label={fit.room.number}
 							size="small"
 							color={isActive ? "primary" : "default"}
 							variant={isActive ? "filled" : "outlined"}
@@ -314,7 +122,6 @@ function GroupedRoomList({
 	timeZone: string;
 	label: string;
 }) {
-	const colors = useRoomFlowColors();
 	const [showAll, setShowAll] = useState(false);
 	const groups = useMemo(() => groupSimilarRooms(fits), [fits]);
 	const visible = showAll ? groups : groups.slice(0, INITIAL_ROWS);
@@ -332,7 +139,7 @@ function GroupedRoomList({
 					size="small"
 					className="self-start"
 					onClick={() => setShowAll((v) => !v)}
-					sx={{ color: colors.pinkText }}
+					sx={pinkText}
 				>
 					{showAll ? "Show fewer" : `Show all ${fits.length} rooms`}
 				</Button>
@@ -359,13 +166,10 @@ export function RoomStep({
 	const [partialOpen, setPartialOpen] = useState(false);
 
 	const groupSize = time.freeMemberIds.length;
-	const primaryFits = includePartial
-		? [...time.whole, ...time.partial]
-		: time.whole;
 
 	const sortedPrimary = useMemo(
-		() => sortRoomFits(filterRoomFits(primaryFits, filters), groupSize),
-		[primaryFits, filters, groupSize],
+		() => sortRoomFits(filterRoomFits(time.shown, filters), groupSize),
+		[time.shown, filters, groupSize],
 	);
 	const sortedPartial = useMemo(
 		() =>
@@ -376,25 +180,14 @@ export function RoomStep({
 	);
 
 	const locations = useMemo(
-		() =>
-			[
-				...new Set(
-					[...time.whole, ...time.partial].map((f) => f.room.location),
-				),
-			].sort(),
-		[time.whole, time.partial],
+		() => [...new Set(time.fits.map((f) => f.room.location))].sort(),
+		[time.fits],
 	);
 
 	const maxSeats = useMemo(
-		() =>
-			Math.max(
-				1,
-				...[...time.whole, ...time.partial].map((f) => f.room.capacity ?? 0),
-			),
-		[time.whole, time.partial],
+		() => Math.max(1, ...time.fits.map((f) => f.room.capacity ?? 0)),
+		[time.fits],
 	);
-
-	const set = (patch: Partial<RoomFlowFilters>) => setFilters(patch);
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -412,7 +205,7 @@ export function RoomStep({
 					value={filters.minSeats}
 					attendees={Math.max(1, groupSize)}
 					max={maxSeats}
-					onChange={(minSeats) => set({ minSeats })}
+					onChange={(minSeats) => setFilters({ minSeats })}
 				/>
 				<FilterChip
 					label="Building"
@@ -420,7 +213,7 @@ export function RoomStep({
 					options={locations}
 					getOptionLabel={(l) => l}
 					activeLabel={formatLocation}
-					onChange={(location) => set({ location })}
+					onChange={(location) => setFilters({ location })}
 				/>
 				<FilterChip
 					label="Free for"
@@ -428,7 +221,7 @@ export function RoomStep({
 					options={MINUTE_OPTIONS}
 					getOptionLabel={(m) => `At least ${formatFreeFor(m)}`}
 					activeLabel={(m) => `${formatFreeFor(m)}+ free`}
-					onChange={(minMinutes) => set({ minMinutes })}
+					onChange={(minMinutes) => setFilters({ minMinutes })}
 				/>
 			</div>
 
@@ -440,7 +233,7 @@ export function RoomStep({
 				/>
 			) : (
 				<Typography variant="body2" color="textSecondary">
-					{primaryFits.length === 0
+					{time.shown.length === 0
 						? "No rooms are free for this whole time."
 						: "No rooms match these filters."}
 				</Typography>
