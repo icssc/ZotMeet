@@ -79,7 +79,7 @@ export const MIN_PARTIAL_MINUTES = 30;
 export const CAMPUS_TIME_ZONE = "America/Los_Angeles";
 
 const QUERY_ROUNDING_MS = 30 * 60_000;
-export const EARLY_BOOKING_MINUTES = 60;
+const EARLY_BOOKING_MINUTES = 60;
 
 function campusDate(ms: number): string {
 	return formatInTimeZone(ms, CAMPUS_TIME_ZONE, "yyyy-MM-dd");

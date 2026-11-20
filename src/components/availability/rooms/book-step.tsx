@@ -1,6 +1,6 @@
 "use client";
 
-import { Chip, Typography } from "@mui/material";
+import { Box, Chip, Typography } from "@mui/material";
 import {
 	bookingUrlFor,
 	formatClock,
@@ -10,7 +10,6 @@ import {
 import { useMemo } from "react";
 import { useShallow } from "zustand/shallow";
 import { useRoomFlowStore } from "@/store/useRoomFlowStore";
-import { useRoomFlowColors } from "./use-room-flow-colors";
 
 /** Step 3: start times near the best time; each opens the library with it selected. */
 export function BookStep({
@@ -20,7 +19,6 @@ export function BookStep({
 	fit: RoomFit;
 	timeZone: string;
 }) {
-	const colors = useRoomFlowColors();
 	const { selectedSlotStart, setSelectedSlotStart } = useRoomFlowStore(
 		useShallow((s) => ({
 			selectedSlotStart: s.selectedSlotStart,
@@ -50,9 +48,9 @@ export function BookStep({
 				</Typography>
 			</div>
 
-			<div
+			<Box
 				className="flex flex-col gap-3 rounded-[10px] border p-4"
-				style={{ borderColor: colors.divider }}
+				sx={{ borderColor: "divider" }}
 			>
 				<Typography variant="subtitle1" component="p">
 					Start Time
@@ -85,7 +83,7 @@ export function BookStep({
 						})}
 					</div>
 				)}
-			</div>
+			</Box>
 		</div>
 	);
 }

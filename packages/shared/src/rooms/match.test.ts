@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-	bookableSlots,
 	bookingUrlFor,
 	classifyRooms,
 	filterRoomFits,
 	groupSimilarRooms,
 	normalizeRooms,
 	type StudyRoomLike,
+	slotsNearStart,
 	sortRoomFits,
 	studyRoomQueryFor,
 } from "./match";
@@ -177,15 +177,15 @@ describe("sortRoomFits + groupSimilarRooms", () => {
 	});
 });
 
-describe("bookableSlots", () => {
-	it("lists the free slots inside the room's window, each with its link", () => {
+describe("slotsNearStart", () => {
+	it("offers free starts from an hour before to an hour after, each with its link", () => {
 		const [r] = normalizeRooms([room("Science 471", [[at(19), at(23)]])]);
-		const slots = bookableSlots(r, stretch);
+		const slots = slotsNearStart(r, at(20));
 		assert.deepEqual(
 			slots.map((s) => new Date(s.start).toISOString().slice(11, 16)),
-			["20:00", "20:30", "21:00", "21:30"],
+			["19:00", "19:30", "20:00", "20:30", "21:00"],
 		);
-		assert.match(bookingUrlFor(slots[0], 30), /date=2026-10-13T20:00/);
+		assert.match(bookingUrlFor(slots[2], 30), /date=2026-10-13T20:00/);
 	});
 
 	it("links the shortest booking length that covers the request", () => {
@@ -194,7 +194,7 @@ describe("bookableSlots", () => {
 			room("Science 471 (30 minutes)", [[at(19), at(23)]]),
 			room("Science 471 (1 hour)", [[at(19), at(23)]]),
 		]);
-		const [slot] = bookableSlots(r, stretch);
+		const [slot] = slotsNearStart(r, at(20));
 		assert.deepEqual(
 			slot.options.map((o) => o.minutes),
 			[30, 60, 120],
@@ -206,22 +206,34 @@ describe("bookableSlots", () => {
 		assert.match(bookingUrlFor(slot, 180), /\(2 hours\)/);
 	});
 
-	it("supports 15-minute rooms", () => {
+	it("supports 15-minute rooms and skips booked starts", () => {
 		const [r] = normalizeRooms([
 			room("GML Quiet Room", [[at(20), at(21)]], {
 				location: "Grunigen Medical Library",
 				slotMinutes: 15,
 			}),
 		]);
-		assert.equal(bookableSlots(r, { start: at(20), end: at(21) }).length, 4);
+		assert.equal(slotsNearStart(r, at(20)).length, 4);
 	});
 });
 
 describe("studyRoomQueryFor", () => {
-	it("asks in campus time, widened to the half hour", () => {
+	it("asks in campus time, widened to the half hour, an hour early", () => {
+		// 1:15 PM rounds down to 1:00, then reaches back an hour for early starts.
 		assert.deepEqual(studyRoomQueryFor({ start: at(20, 15), end: at(22) }), {
 			date: "2026-10-13",
-			timeRange: "1:00pm-3:00pm",
+			timeRange: "12:00pm-3:00pm",
 		});
+	});
+
+	it("stops the lookback at campus midnight", () => {
+		// 12:30–1:30 AM PDT on Oct 13; an hour back would be Oct 12.
+		assert.deepEqual(
+			studyRoomQueryFor({
+				start: Date.UTC(2026, 9, 13, 7, 30),
+				end: Date.UTC(2026, 9, 13, 8, 30),
+			}),
+			{ date: "2026-10-13", timeRange: "12:00am-1:30am" },
+		);
 	});
 });
