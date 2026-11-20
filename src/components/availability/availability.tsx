@@ -366,6 +366,7 @@ export function Availability({
 		onCancel: handleCancelEditing,
 		onSave: confirmSave,
 		setChangeableTimezone,
+		userTimezone,
 		isMeetingDeletionPending,
 	});
 
