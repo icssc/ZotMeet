@@ -21,8 +21,8 @@ export interface MobileGroupResponsesProps {
 	isOwner: boolean;
 	respondedMembersCount: number;
 	pendingMembersCount: number;
-	roomCount: number;
-	hasSearchedRooms: boolean;
+	/** Null while loading: the button reads plain "Rooms". */
+	roomCount: number | null;
 	onAddAvailability: () => void;
 	onOpenAttendees: () => void;
 	onOpenRooms: () => void;
@@ -34,15 +34,15 @@ export function MobileGroupResponses({
 	respondedMembersCount,
 	pendingMembersCount,
 	roomCount,
-	hasSearchedRooms,
 	onAddAvailability,
 	onOpenAttendees,
 	onOpenRooms,
 	onSchedule,
 }: MobileGroupResponsesProps) {
-	const roomsLabel = hasSearchedRooms
-		? `${roomCount} ${roomCount === 1 ? "Room" : "Rooms"}`
-		: "Rooms";
+	const roomsLabel =
+		roomCount == null
+			? "Rooms"
+			: `${roomCount} ${roomCount === 1 ? "Room" : "Rooms"}`;
 
 	return (
 		<div>
