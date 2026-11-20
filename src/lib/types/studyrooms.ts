@@ -3,11 +3,7 @@ import type { paths } from "@/lib/types/anteater-api-types";
 // Room naming lives in `@zotmeet/shared`; re-exported so imports stay put.
 export {
 	BUILDINGS,
-	type Building,
-	extractRoomNumber,
 	formatLocation,
-	formatRoomChipLabel,
-	LOCATION_DISPLAY_NAMES,
 	matchBuilding,
 	stripRoomDurationSuffix,
 } from "@zotmeet/shared";
