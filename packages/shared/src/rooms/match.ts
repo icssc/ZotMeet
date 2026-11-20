@@ -298,19 +298,6 @@ export function bookableSlots(room: Room, window: TimeWindow): BookableSlot[] {
 	return room.slots.filter((s) => s.start < window.end && s.end > window.start);
 }
 
-export function countRoomsFreeForAnyBestTime(
-	roomsByStretch: ReadonlyMap<string, readonly Room[]>,
-	stretches: readonly (TimeWindow & { id: string })[],
-): number {
-	const keys = new Set<string>();
-	for (const stretch of stretches) {
-		for (const room of roomsByStretch.get(stretch.id) ?? []) {
-			if (fitRoom(room, stretch)?.kind === "whole") keys.add(room.key);
-		}
-	}
-	return keys.size;
-}
-
 function formatCampusClock(ms: number): string {
 	const [h, m, ampm] = formatInTimeZone(ms, CAMPUS_TIME_ZONE, "h mm a").split(
 		" ",

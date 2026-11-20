@@ -4,7 +4,6 @@ import {
 	bookableSlots,
 	bookingUrlFor,
 	classifyRooms,
-	countRoomsFreeForAnyBestTime,
 	filterRoomFits,
 	groupSimilarRooms,
 	normalizeRooms,
@@ -215,29 +214,6 @@ describe("bookableSlots", () => {
 			}),
 		]);
 		assert.equal(bookableSlots(r, { start: at(20), end: at(21) }).length, 4);
-	});
-});
-
-describe("countRoomsFreeForAnyBestTime", () => {
-	it("counts distinct rooms free for a whole best time, once each", () => {
-		const day1 = normalizeRooms([
-			room("Science 471", [[at(20), at(22)]]),
-			room("Science 402", [[at(20), at(21)]]),
-		]);
-		const day2 = normalizeRooms([
-			room("Science 471", [[at(20), at(22)]]),
-			room("Science 403", [[at(20), at(22)]]),
-		]);
-		const stretches = [
-			{ id: "0_0", ...stretch },
-			{ id: "1_0", ...stretch },
-		];
-		const byStretch = new Map([
-			["0_0", day1],
-			["1_0", day2],
-		]);
-		assert.equal(countRoomsFreeForAnyBestTime(byStretch, stretches), 2);
-		assert.equal(countRoomsFreeForAnyBestTime(new Map(), stretches), 0);
 	});
 });
 

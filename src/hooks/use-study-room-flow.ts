@@ -2,7 +2,7 @@ import {
 	type BestTime,
 	classifyRooms,
 	computeBestTimes,
-	countRoomsFreeForAnyBestTime,
+	DEFAULT_BEST_TIME_LIMIT,
 	normalizeRooms,
 	type Room,
 	type RoomFit,
@@ -18,8 +18,7 @@ import { useRoomFlowStore } from "@/store/useRoomFlowStore";
 export interface BestTimeRooms extends BestTime {
 	/** Display names of `missingMemberIds`. */
 	missingNames: string[];
-	status: "loading" | "error" | "ready";
-	rooms: Room[];
+	status: QueryResult["status"];
 	whole: RoomFit[];
 	partial: RoomFit[];
 }
@@ -43,12 +42,9 @@ type QueryResult =
 	| { status: "error" }
 	| { status: "ready"; rooms: Room[] };
 
-const DEFAULT_LIMIT = 5;
 const MORE_TIMES_LIMIT = 8;
 
-function queryKey({ date, timeRange }: { date: string; timeRange: string }) {
-	return `${date}|${timeRange}`;
-}
+type StudyRoomQuery = ReturnType<typeof studyRoomQueryFor>;
 
 /**
  * Best times plus the study rooms free during each. One API call per best
@@ -78,6 +74,7 @@ export function useStudyRoomFlow({
 	const [results, setResults] = useState<ReadonlyMap<string, QueryResult>>(
 		() => new Map(),
 	);
+	/** Keys with a fetch in flight; state lags a render behind, this doesn't. */
 	const requested = useRef(new Set<string>());
 	const controllers = useRef(new Set<AbortController>());
 
@@ -100,7 +97,7 @@ export function useStudyRoomFlow({
 						blockCount,
 						timeZone,
 						slack: showMoreTimes ? 1 : 0,
-						limit: showMoreTimes ? MORE_TIMES_LIMIT : DEFAULT_LIMIT,
+						limit: showMoreTimes ? MORE_TIMES_LIMIT : DEFAULT_BEST_TIME_LIMIT,
 					}),
 		[
 			isAnchorMeeting,
@@ -114,67 +111,62 @@ export function useStudyRoomFlow({
 		],
 	);
 
-	const queries = useMemo(
-		() =>
-			bestTimes.map((time) => {
-				const query = studyRoomQueryFor(time);
-				return { key: queryKey(query), query };
-			}),
-		[bestTimes],
-	);
+	// Best times can share a query (same campus day and half hours), so
+	// `queries` holds each once and `timeKeys[i]` points `bestTimes[i]` at it.
+	const { timeKeys, queries } = useMemo(() => {
+		const queries = new Map<string, StudyRoomQuery>();
+		const timeKeys = bestTimes.map((time) => {
+			const query = studyRoomQueryFor(time);
+			const key = `${query.date}|${query.timeRange}`;
+			queries.set(key, query);
+			return key;
+		});
+		return { timeKeys, queries };
+	}, [bestTimes]);
 
-	const fetchQuery = useCallback(
-		(key: string, query: { date: string; timeRange: string }) => {
-			requested.current.add(key);
-			const controller = new AbortController();
-			controllers.current.add(controller);
-			setResults((prev) => new Map(prev).set(key, { status: "loading" }));
-			fetchStudyRooms(query, { signal: controller.signal })
-				.then(({ data }) => {
-					setResults((prev) =>
-						new Map(prev).set(key, {
-							status: "ready",
-							rooms: normalizeRooms(data ?? []),
-						}),
-					);
-				})
-				.catch((err: unknown) => {
-					requested.current.delete(key);
-					if ((err as Error)?.name === "AbortError") {
-						// Cancelled (Strict Mode's dev remount does this): forget the
-						// query so the fetch effect starts it again.
-						setResults((prev) => {
-							const next = new Map(prev);
-							next.delete(key);
-							return next;
-						});
-						return;
-					}
-					console.error("Failed to fetch study rooms:", err);
-					setResults((prev) => new Map(prev).set(key, { status: "error" }));
-				})
-				.finally(() => controllers.current.delete(controller));
-		},
-		[],
-	);
+	const fetchQuery = useCallback((key: string, query: StudyRoomQuery) => {
+		if (requested.current.has(key)) return;
+		requested.current.add(key);
+		const controller = new AbortController();
+		controllers.current.add(controller);
+		setResults((prev) => new Map(prev).set(key, { status: "loading" }));
+		fetchStudyRooms(query, { signal: controller.signal })
+			.then(({ data }) => {
+				setResults((prev) =>
+					new Map(prev).set(key, {
+						status: "ready",
+						rooms: normalizeRooms(data ?? []),
+					}),
+				);
+			})
+			.catch((err: unknown) => {
+				requested.current.delete(key);
+				if ((err as Error)?.name === "AbortError") {
+					// Cancelled (Strict Mode's dev remount does this): forget the
+					// query so the fetch effect starts it again.
+					setResults((prev) => {
+						const next = new Map(prev);
+						next.delete(key);
+						return next;
+					});
+					return;
+				}
+				console.error("Failed to fetch study rooms:", err);
+				setResults((prev) => new Map(prev).set(key, { status: "error" }));
+			})
+			.finally(() => controllers.current.delete(controller));
+	}, []);
 
 	useEffect(() => {
 		if (!enabled) return;
-		for (const { key, query } of queries) {
-			if (!requested.current.has(key) && !results.has(key)) {
-				fetchQuery(key, query);
-			}
+		for (const [key, query] of queries) {
+			if (!results.has(key)) fetchQuery(key, query);
 		}
 	}, [enabled, queries, results, fetchQuery]);
 
 	const retry = useCallback(() => {
-		// Several best times can share a query; fetch each once, or the
-		// duplicates race to write the same result.
-		const retried = new Set<string>();
-		for (const { key, query } of queries) {
-			if (retried.has(key) || results.get(key)?.status !== "error") continue;
-			retried.add(key);
-			fetchQuery(key, query);
+		for (const [key, query] of queries) {
+			if (results.get(key)?.status === "error") fetchQuery(key, query);
 		}
 	}, [queries, results, fetchQuery]);
 
@@ -183,24 +175,22 @@ export function useStudyRoomFlow({
 			respondedMembers.map((m) => [m.memberId, m.displayName]),
 		);
 		return bestTimes.map((time, i) => {
-			const result = results.get(queries[i].key);
-			const rooms = result?.status === "ready" ? result.rooms : [];
-			const { whole, partial } = classifyRooms(rooms, time);
+			const result = results.get(timeKeys[i]);
+			const { whole, partial } = classifyRooms(
+				result?.status === "ready" ? result.rooms : [],
+				time,
+			);
 			return {
 				...time,
 				missingNames: time.missingMemberIds.map(
 					(id) => names.get(id) ?? "Someone",
 				),
-				status:
-					result?.status === "ready" || result?.status === "error"
-						? result.status
-						: "loading",
-				rooms,
+				status: result?.status ?? "loading",
 				whole,
 				partial,
 			};
 		});
-	}, [bestTimes, queries, results, respondedMembers]);
+	}, [bestTimes, timeKeys, results, respondedMembers]);
 
 	const isLoading = times.some((t) => t.status === "loading");
 	const errorCount = times.filter((t) => t.status === "error").length;
@@ -209,10 +199,8 @@ export function useStudyRoomFlow({
 	// unknown, and counting without them would understate the total.
 	const roomCount = useMemo(() => {
 		if (isLoading || errorCount > 0) return null;
-		return countRoomsFreeForAnyBestTime(
-			new Map(times.map((t) => [t.id, t.rooms])),
-			times,
-		);
+		// A room free for two best times is still one room.
+		return new Set(times.flatMap((t) => t.whole.map((f) => f.room.key))).size;
 	}, [isLoading, errorCount, times]);
 
 	return {
