@@ -17,6 +17,7 @@ import {
 	CalendarSkeleton,
 	UpcomingSkeleton,
 } from "@/components/dashboard/dashboard-skeletons";
+import { LibraryTraffic } from "@/components/dashboard/library-traffic";
 import { QuickBook } from "@/components/dashboard/quick-book";
 import { RecentRooms } from "@/components/dashboard/recent-rooms";
 import { UpcomingMeetings } from "@/components/dashboard/upcoming-meetings";
@@ -188,6 +189,7 @@ export function Dashboard({
 							<UpcomingSkeleton />
 						</>
 					)}
+					<LibraryTraffic />
 					<Box sx={{ mt: 2 }}>
 						<RecentRooms />
 					</Box>

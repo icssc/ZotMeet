@@ -146,7 +146,10 @@ export async function getMeetings(memberId: string) {
 		.where(
 			and(
 				eq(availabilities.memberId, memberId),
-				sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+				or(
+					sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+					sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+				),
 			),
 		);
 
@@ -335,6 +338,29 @@ export async function getScheduledTimeBlocks(meetingId: string) {
 	}
 
 	return rows; // array of scheduled blocks
+}
+
+/**
+ * Returns auth user IDs for all meeting participants (members with an
+ * availability row, i.e. invited or joined, whether or not they've responded),
+ * excluding the host.
+ */
+export async function getMeetingParticipantUserIds(
+	meetingId: string,
+	hostMemberId: string,
+): Promise<string[]> {
+	const rows = await db
+		.select({ userId: users.id })
+		.from(availabilities)
+		.innerJoin(users, eq(users.memberId, availabilities.memberId))
+		.where(
+			and(
+				eq(availabilities.meetingId, meetingId),
+				ne(availabilities.memberId, hostMemberId),
+			),
+		);
+
+	return rows.map((r) => r.userId);
 }
 
 /** Non-archived meetings the member has availability for, excluding one meeting (e.g. current poll). */

@@ -1,6 +1,17 @@
 import "server-only";
 
-import { and, count, countDistinct, eq, gte, inArray, lte } from "drizzle-orm";
+import {
+	and,
+	count,
+	countDistinct,
+	eq,
+	gte,
+	inArray,
+	isNull,
+	lte,
+	or,
+	sql,
+} from "drizzle-orm";
 import { db } from "@/db";
 import {
 	availabilities,
@@ -281,6 +292,8 @@ export async function getGroupsWithDetails(
 export type MeetingWithStats = SelectMeeting & {
 	hostName: string;
 	scheduledDate: Date | null;
+	scheduledFromTime: string | null;
+	scheduledToTime: string | null;
 	totalMembers: number;
 	respondedCount: number;
 	userHasResponded: boolean;
@@ -300,17 +313,30 @@ export async function getGroupMeetingsWithStats(
 	const meetingIds = groupMeetings.map((m) => m.id);
 	const hostIds = Array.from(new Set(groupMeetings.map((m) => m.hostId)));
 
+	// A row with no actual availability (e.g. someone opened the page without
+	// submitting) doesn't count as a response — matches
+	// `getResponderCountsByMeetingIds`.
+	const hasNonEmptyAvailability = or(
+		sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+		sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+	);
+
 	// Fetch everything in bulk
-	const [responseCounts, userResponses, scheduledBlocks, hosts] =
+	const [responseCounts, userResponses, scheduledBlocks, hosts, extraInvitees] =
 		await Promise.all([
-			// Count responses per meeting
+			// Count responses per meeting.
 			db
 				.select({
 					meetingId: availabilities.meetingId,
 					respondedCount: countDistinct(availabilities.memberId),
 				})
 				.from(availabilities)
-				.where(inArray(availabilities.meetingId, meetingIds))
+				.where(
+					and(
+						inArray(availabilities.meetingId, meetingIds),
+						hasNonEmptyAvailability,
+					),
+				)
 				.groupBy(availabilities.meetingId),
 
 			// Check if the current user responded
@@ -321,6 +347,7 @@ export async function getGroupMeetingsWithStats(
 					and(
 						eq(availabilities.memberId, currentMemberId),
 						inArray(availabilities.meetingId, meetingIds),
+						hasNonEmptyAvailability,
 					),
 				),
 
@@ -333,22 +360,72 @@ export async function getGroupMeetingsWithStats(
 			db.query.members.findMany({
 				where: inArray(members.id, hostIds),
 			}),
+
+			// People invited to the meeting directly who aren't in this group
+			db
+				.select({
+					meetingId: availabilities.meetingId,
+					extraCount: countDistinct(availabilities.memberId),
+				})
+				.from(availabilities)
+				.leftJoin(users, eq(users.memberId, availabilities.memberId))
+				.leftJoin(
+					usersInGroup,
+					and(
+						eq(usersInGroup.userId, users.id),
+						eq(usersInGroup.groupId, groupId),
+					),
+				)
+				.where(
+					and(
+						inArray(availabilities.meetingId, meetingIds),
+						isNull(usersInGroup.userId),
+					),
+				)
+				.groupBy(availabilities.meetingId),
 		]);
 
 	const responseMap = new Map(
 		responseCounts.map((r) => [r.meetingId, r.respondedCount]),
 	);
 	const userRespondedSet = new Set(userResponses.map((r) => r.meetingId));
-	const scheduledMap = new Map(
-		scheduledBlocks.map((s) => [s.meetingId, s.scheduledDate]),
-	);
+
+	// A meeting can be scheduled as several time blocks (e.g. 15-minute
+	// rows); merge them into the earliest start and latest end instead of
+	// keeping whichever block happened to come last.
+	const scheduledMap = new Map<
+		string,
+		{ scheduledDate: Date; scheduledFromTime: string; scheduledToTime: string }
+	>();
+	for (const block of scheduledBlocks) {
+		const existing = scheduledMap.get(block.meetingId);
+		scheduledMap.set(block.meetingId, {
+			scheduledDate:
+				!existing || block.scheduledDate < existing.scheduledDate
+					? block.scheduledDate
+					: existing.scheduledDate,
+			scheduledFromTime:
+				!existing || block.scheduledFromTime < existing.scheduledFromTime
+					? block.scheduledFromTime
+					: existing.scheduledFromTime,
+			scheduledToTime:
+				!existing || block.scheduledToTime > existing.scheduledToTime
+					? block.scheduledToTime
+					: existing.scheduledToTime,
+		});
+	}
 	const hostMap = new Map(hosts.map((h) => [h.id, h.displayName]));
+	const extraInviteeMap = new Map(
+		extraInvitees.map((r) => [r.meetingId, r.extraCount]),
+	);
 
 	return groupMeetings.map((meeting) => ({
 		...meeting,
 		hostName: hostMap.get(meeting.hostId) ?? "Unknown",
-		scheduledDate: scheduledMap.get(meeting.id) ?? null,
-		totalMembers,
+		scheduledDate: scheduledMap.get(meeting.id)?.scheduledDate ?? null,
+		scheduledFromTime: scheduledMap.get(meeting.id)?.scheduledFromTime ?? null,
+		scheduledToTime: scheduledMap.get(meeting.id)?.scheduledToTime ?? null,
+		totalMembers: totalMembers + (extraInviteeMap.get(meeting.id) ?? 0),
 		respondedCount: responseMap.get(meeting.id) ?? 0,
 		userHasResponded: userRespondedSet.has(meeting.id),
 	}));

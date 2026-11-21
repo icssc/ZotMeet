@@ -79,8 +79,8 @@
 		"@commitlint/config-conventional": "^19.6.0",
 		"@types/node": "^20",
 		"@types/pg": "^8.11.10",
-		"@types/react": "19.2.7",
-		"@types/react-dom": "19.2.3",
+		"@types/react": "19.3.0",
+		"@types/react-dom": "19.3.0",
 		"@types/tinycolor2": "^1.4.6",
 		"devmoji": "^2.3.0",
 		"drizzle-kit": "0.28.1",
@@ -100,8 +100,8 @@
 	},
 	"pnpm": {
 		"overrides": {
-			"@types/react": "19.2.7",
-			"@types/react-dom": "19.2.3"
+			"@types/react": "19.3.0",
+			"@types/react-dom": "19.3.0"
 		}
 	}
 }

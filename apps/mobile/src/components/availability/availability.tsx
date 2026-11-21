@@ -232,6 +232,7 @@ export function Availability({
 				ifNeededAvailabilityTimes: ifNeededDates.flatMap(
 					(date) => date.availability,
 				),
+				timezone: viewerTimezone,
 			});
 		} catch (error) {
 			setSaveError(
@@ -252,6 +253,7 @@ export function Availability({
 		isSaving,
 		meetingData.id,
 		setAvailabilityView,
+		viewerTimezone,
 	]);
 
 	const handlePaint = useCallback(
