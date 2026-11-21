@@ -21,6 +21,8 @@ export interface BestTimeRooms extends BestTime {
 	status: QueryResult["status"];
 	whole: RoomFit[];
 	partial: RoomFit[];
+	fits: RoomFit[];
+	shown: RoomFit[];
 }
 
 export interface StudyRoomFlow {
@@ -31,6 +33,10 @@ export interface StudyRoomFlow {
 	retry: () => void;
 	roomCount: number | null;
 	memberCount: number;
+	/** Every lookup settled and no time has a room to show. */
+	isEmpty: boolean;
+	/** Partly free rooms exist and aren't shown yet. */
+	canIncludePartial: boolean;
 }
 
 type QueryResult =
@@ -78,6 +84,7 @@ export function useStudyRoomFlow({
 	}, [members, pendingMembers]);
 
 	const showMoreTimes = useRoomFlowStore((state) => state.showMoreTimes);
+	const includePartial = useRoomFlowStore((state) => state.includePartial);
 	const [results, setResults] = useState<ReadonlyMap<string, QueryResult>>(
 		() => new Map(),
 	);
@@ -187,6 +194,7 @@ export function useStudyRoomFlow({
 				result?.status === "ready" ? result.rooms : [],
 				time,
 			);
+			const fits = [...whole, ...partial];
 			return {
 				...time,
 				missingNames: time.missingMemberIds.map(
@@ -195,9 +203,11 @@ export function useStudyRoomFlow({
 				status: result?.status ?? "loading",
 				whole,
 				partial,
+				fits,
+				shown: includePartial ? fits : whole,
 			};
 		});
-	}, [bestTimes, timeKeys, results, respondedMembers]);
+	}, [bestTimes, timeKeys, results, respondedMembers, includePartial]);
 
 	const isLoading = times.some((t) => t.status === "loading");
 	const errorCount = times.filter((t) => t.status === "error").length;
@@ -218,5 +228,11 @@ export function useStudyRoomFlow({
 		retry,
 		roomCount,
 		memberCount: respondedMembers.length,
+		isEmpty:
+			!isLoading &&
+			errorCount === 0 &&
+			times.every((t) => t.shown.length === 0),
+		canIncludePartial:
+			!includePartial && times.some((t) => t.partial.length > 0),
 	};
 }

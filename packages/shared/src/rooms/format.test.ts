@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { formatClock, formatMinutes, formatWindow } from "./format";
+import {
+	formatClock,
+	formatMinutes,
+	formatShortDayAndWindow,
+	formatWindow,
+} from "./format";
 
 const TZ = "America/Los_Angeles";
 /** 2026-10-13, 1:00 PM PDT is 20:00Z. */
@@ -31,5 +36,14 @@ describe("formatClock", () => {
 	it("reads in the given time zone", () => {
 		assert.equal(formatClock(at(20), TZ), "1:00 PM");
 		assert.equal(formatClock(at(20), "UTC"), "8:00 PM");
+	});
+});
+
+describe("formatShortDayAndWindow", () => {
+	it("gives the day and both ends, lower-case meridiem", () => {
+		assert.equal(
+			formatShortDayAndWindow({ start: at(20), end: at(22) }, TZ),
+			"Tue. 10/13, 1:00pm-3:00pm",
+		);
 	});
 });

@@ -25,6 +25,7 @@ import { useCalendarOverlays } from "@/hooks/use-calendar-overlays";
 import { useGridInteraction } from "@/hooks/use-grid-interaction";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useReturnToPath } from "@/hooks/use-return-to-path";
+import { useSidebarPanel } from "@/hooks/use-sidebar-panel";
 import { useStudyRoomFlow } from "@/hooks/use-study-room-flow";
 import { loginPathWithReturnTo } from "@/lib/auth/return-to";
 import type { UserProfile } from "@/lib/auth/user";
@@ -223,6 +224,11 @@ export function Availability({
 		blockCount: availabilityTimeBlocks.length,
 		timeZone: userTimezone,
 	});
+	const [, setSidebarPanel] = useSidebarPanel();
+	const showAttendeesPanel = useCallback(
+		() => void setSidebarPanel("attendees"),
+		[setSidebarPanel],
+	);
 
 	const [isMobileRoomsDrawerOpen, setIsMobileRoomsDrawerOpen] = useState(false);
 
@@ -537,7 +543,13 @@ export function Availability({
 								attendeeCount={roomFlow.memberCount}
 								roomCount={roomFlow.roomCount}
 								attendees={<GroupResponses {...groupResponsesProps} />}
-								rooms={<RoomsPanel />}
+								rooms={
+									<RoomsPanel
+										flow={roomFlow}
+										timeZone={userTimezone}
+										onShowAttendees={showAttendeesPanel}
+									/>
+								}
 							/>
 						</div>
 
@@ -563,6 +575,9 @@ export function Availability({
 									<MobileRoomRecommendations
 										open={isMobileRoomsDrawerOpen}
 										onClose={handleCloseMobileRooms}
+										flow={roomFlow}
+										timeZone={userTimezone}
+										onShowAttendees={handleMobileOpenAttendees}
 									/>
 								</>
 							)}
