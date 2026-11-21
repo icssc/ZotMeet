@@ -3,16 +3,7 @@
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import CancelIcon from "@mui/icons-material/Cancel";
-import {
-	Alert,
-	Box,
-	Button,
-	Chip,
-	Skeleton,
-	type Theme,
-	Typography,
-} from "@mui/material";
-import { darken, lighten } from "@mui/material/styles";
+import { Alert, Box, Button, Chip, Skeleton, Typography } from "@mui/material";
 import { formatMinutes, formatShortDayAndWindow } from "@zotmeet/shared";
 import { useShallow } from "zustand/shallow";
 import type { BestTimeRooms, StudyRoomFlow } from "@/hooks/use-study-room-flow";
@@ -20,16 +11,9 @@ import { cn } from "@/lib/utils";
 import { useRoomFlowStore } from "@/store/useRoomFlowStore";
 import { ChoiceGroup, useChoiceGroupName } from "./choice-row";
 import { AvailableCount, StepCard } from "./step-card";
+import { pinkText } from "./styles";
 
 export const UCI_LIBRARIES_URL = "https://spaces.lib.uci.edu/";
-
-// Pink that passes 4.5:1 as text on the surface; no theme token for it.
-const pinkText = {
-	color: (t: Theme) =>
-		t.palette.mode === "dark"
-			? lighten(t.palette.primary.main, 0.45)
-			: darken(t.palette.primary.main, 0.42),
-};
 
 function RoomCount({ time }: { time: BestTimeRooms }) {
 	if (time.status === "loading") {
