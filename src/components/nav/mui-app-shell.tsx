@@ -27,8 +27,8 @@ function routeSkipsEncapsulationPanel(pathname: string) {
 
 function footerClasses(pathname: string) {
 	return pathname === "/"
-		? { footer: undefined, aboveFooter: "min-h-screen" }
-		: { footer: "hidden lg:block", aboveFooter: "lg:min-h-screen" };
+		? { footer: "mt-40", aboveFooter: "min-h-screen" }
+		: { footer: "hidden lg:block lg:mt-40", aboveFooter: "lg:min-h-screen" };
 }
 
 const GUTTER_SIZE = 16;
