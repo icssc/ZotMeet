@@ -87,6 +87,10 @@ export function buildGroupMeetingsModel({
 	actionRequired: GroupMeetingItem[];
 	upcoming: GroupMeetingItem[];
 	rest: GroupMeetingItem[];
+	/** The group has no meetings at all. */
+	isEmpty: boolean;
+	/** The group has meetings, but the search or filter matches none of them. */
+	isFilteredEmpty: boolean;
 } {
 	const query = search.trim().toLowerCase();
 	const filtered = meetings
@@ -112,5 +116,11 @@ export function buildGroupMeetingsModel({
 		}
 	}
 
-	return { actionRequired, upcoming, rest };
+	return {
+		actionRequired,
+		upcoming,
+		rest,
+		isEmpty: meetings.length === 0,
+		isFilteredEmpty: meetings.length > 0 && filtered.length === 0,
+	};
 }

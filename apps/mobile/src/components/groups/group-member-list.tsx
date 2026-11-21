@@ -36,7 +36,7 @@ export function GroupMemberList({
 	const { group, isAdmin, memberId, meetings } = detail;
 
 	const todayMs = getStartOfTodayMs();
-	const { actionRequired, upcoming, rest } = useMemo(
+	const { actionRequired, upcoming, rest, isEmpty, isFilteredEmpty } = useMemo(
 		() =>
 			buildGroupMeetingsModel({
 				meetings,
@@ -140,14 +140,14 @@ export function GroupMemberList({
 					</View>
 				</View>
 
-				{meetings.length === 0 ? (
+				{isEmpty || isFilteredEmpty ? (
 					<View className="items-center py-24">
 						<Typography
 							variant="h6"
 							color="textSecondary"
 							className="font-figtree-italic"
 						>
-							No meetings yet!
+							{isEmpty ? "No meetings yet!" : "No meetings found!"}
 						</Typography>
 					</View>
 				) : (

@@ -114,4 +114,21 @@ describe("buildGroupMeetingsModel", () => {
 		assert.deepEqual(ids(build("all", "retr").rest), ["later"]);
 		assert.deepEqual(ids(build("all", "retr").actionRequired), []);
 	});
+
+	it("tells an empty group apart from a search with no matches", () => {
+		assert.equal(build("all").isEmpty, false);
+		assert.equal(build("all").isFilteredEmpty, false);
+		assert.equal(build("all", "nothing matches").isFilteredEmpty, true);
+		assert.equal(build("all", "nothing matches").isEmpty, false);
+
+		const empty = buildGroupMeetingsModel({
+			meetings: [],
+			memberId: "me",
+			filter: "all",
+			search: "",
+			todayMs: TODAY,
+		});
+		assert.equal(empty.isEmpty, true);
+		assert.equal(empty.isFilteredEmpty, false);
+	});
 });
