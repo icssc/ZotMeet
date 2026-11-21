@@ -73,6 +73,16 @@ const light = {
 	"primary-tint": "340 100% 97%" /* rgba(255,135,166,0.1) on white */,
 	"primary-ledge": "344.6 55.3% 57.1%" /* rgba(0,0,0,0.15) over primary */,
 	"action-hover": "0 0% 96%" /* rgba(0,0,0,0.04) on white */,
+
+	/*
+	 * Mobile-only semantic colours for the Figma group cards. Native-only for
+	 * the same reason as the inks above: `divider` and the `-tint`s are
+	 * pre-composited on the mode's background, and the dark `error-main` /
+	 * `success-main` are lightened for dark surfaces, whereas the web's MUI
+	 * `divider` / `error` / `success` stay translucent or single-valued in
+	 * `src/theme.ts`. Promote one to the shared block only together with
+	 * wiring `getTheme` to it.
+	 */
 	divider: "0 0% 88%",
 	"card-muted-foreground": "215.6 15.4% 34.3%",
 	"card-gradient": "0 100% 92.5%",

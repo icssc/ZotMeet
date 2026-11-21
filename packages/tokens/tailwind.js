@@ -67,9 +67,10 @@ const colors = {
 };
 
 /**
- * The pre-composited MUI inks — native-only, for the reason given next to
- * their definition in `index.js`. The Expo config spreads these after
- * `colors`; the web config must not.
+ * Native-only colours: the pre-composited MUI inks plus the mobile-only
+ * semantic colours (`divider`, `card-*`, `error-*`, `success-*`), for the
+ * reasons given next to their definitions in `index.js`. The Expo config
+ * spreads these after `colors`; the web config must not.
  */
 const nativeInkColors = {
 	"text-disabled": "hsl(var(--text-disabled))",
