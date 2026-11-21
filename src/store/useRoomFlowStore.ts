@@ -68,11 +68,13 @@ export const useRoomFlowStore = create<RoomFlowStore>((set) => ({
 						filters: NO_FILTERS,
 					},
 		),
+	// Rooms are picked on step 1; as with `selectTime`, a hidden book step
+	// mustn't open by itself for the new room.
 	selectRoom: (key) =>
 		set((state) =>
 			state.selectedRoomKey === key
 				? state
-				: { selectedRoomKey: key, selectedSlotStart: null },
+				: { step: 1, selectedRoomKey: key, selectedSlotStart: null },
 		),
 	setSelectedSlotStart: (selectedSlotStart) => set({ selectedSlotStart }),
 	setFilters: (filters) =>
