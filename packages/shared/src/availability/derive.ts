@@ -1,4 +1,7 @@
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
+import { getTimeFromHourMinuteString } from "../chrono/time";
+import { type HourMinuteString, TimeConstants } from "../chrono/types";
+import { shiftCalendarDate } from "./grid";
 import type { MemberMeetingAvailability } from "./types";
 import { ZotDate } from "./zotdate";
 
@@ -27,6 +30,26 @@ export function deriveInitialAvailability(args: {
 		timezone,
 	} = args;
 
+	const earliestMinutes = availabilityTimeBlocks[0] ?? 480;
+	const latestMinutes =
+		(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] ?? 1035) + 15;
+
+	// Slots before this time of day belong to the previous day's column.
+	const minutesPastMidnight = latestMinutes - TimeConstants.MINUTES_PER_DAY;
+
+	const columnDateFor = (timestamp: string): string => {
+		const [dateStr, time] = formatInTimeZone(
+			new Date(timestamp),
+			timezone,
+			"yyyy-MM-dd HH:mm:ss",
+		).split(" ");
+		const minutesInDay = getTimeFromHourMinuteString(time as HourMinuteString);
+
+		return minutesInDay < minutesPastMidnight
+			? shiftCalendarDate(dateStr, -1)
+			: dateStr;
+	};
+
 	const getTimestamps = (member: MemberMeetingAvailability) =>
 		mode === "availabilities"
 			? member.meetingAvailabilities
@@ -38,11 +61,7 @@ export function deriveInitialAvailability(args: {
 	const availabilitiesByDate = new Map<string, string[]>();
 	if (userAvailability) {
 		getTimestamps(userAvailability).forEach((timeStr) => {
-			const dateStr = formatInTimeZone(
-				new Date(timeStr),
-				timezone,
-				"yyyy-MM-dd",
-			);
+			const dateStr = columnDateFor(timeStr);
 			if (!availabilitiesByDate.has(dateStr)) {
 				availabilitiesByDate.set(dateStr, []);
 			}
@@ -53,11 +72,7 @@ export function deriveInitialAvailability(args: {
 	const timestampsByDate = new Map<string, Map<string, string[]>>();
 	for (const member of allAvailabilities) {
 		for (const timestamp of getTimestamps(member)) {
-			const dateStr = formatInTimeZone(
-				new Date(timestamp),
-				timezone,
-				"yyyy-MM-dd",
-			);
+			const dateStr = columnDateFor(timestamp);
 			let dateMap = timestampsByDate.get(dateStr);
 			if (dateMap === undefined) {
 				dateMap = new Map();
@@ -74,11 +89,6 @@ export function deriveInitialAvailability(args: {
 		.map((meetingDate) => {
 			const dateStr = meetingDate.split("T")[0];
 			const date = fromZonedTime(`${dateStr}T00:00:00`, timezone);
-
-			const earliestMinutes = availabilityTimeBlocks[0] ?? 480;
-			const latestMinutes =
-				(availabilityTimeBlocks[availabilityTimeBlocks.length - 1] ?? 1035) +
-				15;
 
 			return new ZotDate(
 				date,
