@@ -3,8 +3,9 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/lib/api/client";
 import { getGroup } from "@/lib/api/groups";
+import { useAuthStore } from "@/store/useAuthStore";
 
-/** Loads one group for its detail screen through `GET /api/groups/:id`. */
+/** Loads one group for its detail screen through `GET /api/groups/:id`, like `useGroups`: a response only lands for the user who asked, and a failed quiet refetch keeps the loaded group. */
 
 export type GroupState =
 	| { status: "loading" }
@@ -21,13 +22,17 @@ export function useGroup(id: string | undefined): GroupState & {
 	const [state, setState] = useState<GroupState>({ status: "loading" });
 	const [refreshing, setRefreshing] = useState(false);
 	const [attempt, setAttempt] = useState(0);
+	const userId = useAuthStore((s) => s.user?.id ?? null);
 	const mounted = useRef(false);
 	const latestRequest = useRef(0);
 
 	const fetchGroup = useCallback(
 		async (quiet: boolean) => {
 			const ticket = ++latestRequest.current;
-			const isCurrent = () => latestRequest.current === ticket;
+			const requestUserId = useAuthStore.getState().user?.id ?? null;
+			const isCurrent = () =>
+				latestRequest.current === ticket &&
+				(useAuthStore.getState().user?.id ?? null) === requestUserId;
 
 			if (!id) {
 				setState({ status: "not-found", error: "Group not found." });
@@ -49,11 +54,17 @@ export function useGroup(id: string | undefined): GroupState & {
 				) {
 					setState({ status: "not-found", error: error.message });
 				} else {
-					setState({
-						status: "error",
-						error:
-							error instanceof Error ? error.message : "Failed to load group.",
-					});
+					setState((prev) =>
+						quiet && prev.status === "ready"
+							? prev
+							: {
+									status: "error",
+									error:
+										error instanceof Error
+											? error.message
+											: "Failed to load group.",
+								},
+					);
 				}
 			} finally {
 				if (isCurrent()) setRefreshing(false);
@@ -64,12 +75,13 @@ export function useGroup(id: string | undefined): GroupState & {
 
 	useEffect(() => {
 		void attempt;
+		void userId;
 
 		void fetchGroup(false);
 		return () => {
 			latestRequest.current += 1;
 		};
-	}, [attempt, fetchGroup]);
+	}, [attempt, userId, fetchGroup]);
 
 	useFocusEffect(
 		useCallback(() => {
