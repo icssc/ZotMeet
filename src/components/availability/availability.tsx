@@ -306,27 +306,6 @@ export function Availability({
 		resetSelection,
 	]);
 
-	const personalSidebarProps = useMemo(
-		() => ({
-			meetingId: meetingData.id,
-			userTimezone,
-			importGridIsoSet,
-			canImport: Boolean(user?.memberId),
-			onImportSlots: handleImportSlotsFromMeeting,
-			onClearAvailability: handleClearAvailability,
-			googleCalendars,
-		}),
-		[
-			meetingData.id,
-			userTimezone,
-			importGridIsoSet,
-			user?.memberId,
-			handleImportSlotsFromMeeting,
-			handleClearAvailability,
-			googleCalendars,
-		],
-	);
-
 	const handleOpenInviteDialog = useCallback(
 		() => setIsInviteDialogOpen(true),
 		[],
@@ -354,6 +333,37 @@ export function Availability({
 		userTimezone,
 		isMeetingDeletionPending,
 	});
+
+	const handlePersonalSaveClick = useCallback(() => {
+		handlePersonalSave().catch((error) => {
+			console.error("Save failed", error);
+		});
+	}, [handlePersonalSave]);
+
+	const personalSidebarProps = useMemo(
+		() => ({
+			meetingId: meetingData.id,
+			userTimezone,
+			importGridIsoSet,
+			canImport: Boolean(user?.memberId),
+			onImportSlots: handleImportSlotsFromMeeting,
+			onClearAvailability: handleClearAvailability,
+			googleCalendars,
+			onCancel: handlePersonalCancel,
+			onSave: handlePersonalSaveClick,
+		}),
+		[
+			meetingData.id,
+			userTimezone,
+			importGridIsoSet,
+			user?.memberId,
+			handleImportSlotsFromMeeting,
+			handleClearAvailability,
+			googleCalendars,
+			handlePersonalCancel,
+			handlePersonalSaveClick,
+		],
+	);
 
 	const runScheduleSaveForMobile = useCallback(
 		() => handleScheduleSave({ skipExitToGroup: true }),
@@ -549,8 +559,63 @@ export function Availability({
 										timeZone={userTimezone}
 										onShowAttendees={showAttendeesPanel}
 									/>
-								}
-							/>
+								) : (
+									<>
+										{hasSearchedRooms &&
+											studyRooms.length > 0 &&
+											!isMobileRoomsDrawerOpen && (
+												<MobileRoomWheelPicker
+													rawRooms={studyRooms}
+													rawRoomsByKey={rawRoomsByKey}
+													filters={roomFilters}
+													selectedRoomIds={selectedRoomIds}
+													onSelectedRoomIdsChange={setSelectedRoomIds}
+												/>
+											)}
+										<MobileGroupResponses
+											isOwner={isMeetingOwner}
+											respondedMembersCount={Math.max(
+												0,
+												members.length - pendingMembers.length,
+											)}
+											pendingMembersCount={pendingMembers.length}
+											roomCount={mobileRoomCount}
+											hasSearchedRooms={hasSearchedRooms}
+											onAddAvailability={handleMobileAddAvailability}
+											onOpenAttendees={handleMobileOpenAttendees}
+											onOpenRooms={handleMobileOpenRooms}
+											onSchedule={handleMobileSchedule}
+										/>
+										<MobileRoomRecommendations
+											open={isMobileRoomsDrawerOpen}
+											onClose={handleCloseMobileRooms}
+											rawRooms={studyRooms}
+											hasSearched={hasSearchedRooms}
+											filters={roomFilters}
+											onFiltersChange={setRoomFilters}
+											onShowBestRooms={handleShowBestRooms}
+											isLoading={isRoomsLoading}
+											errorMessage={studyRoomsError}
+											selectedRoomIds={selectedRoomIds}
+											onSelectedRoomIdsChange={setSelectedRoomIds}
+										/>
+									</>
+								)}
+							</div>
+						</div>
+					)}
+
+					{availabilityView === "personal" && (
+						<div className="mt-4 hidden w-96 min-w-0 shrink-0 flex-col items-stretch gap-3 lg:flex lg:min-h-0">
+							<Paper
+								variant="outlined"
+								className="flex min-h-[24rem] min-w-0 flex-1 flex-col overflow-hidden"
+								sx={{ p: 0 }}
+							>
+								{isLgUp ? (
+									<PersonalAvailabilitySidebar {...personalSidebarProps} />
+								) : null}
+							</Paper>
 						</div>
 
 						<div className="block sm:hidden">
