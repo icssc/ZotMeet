@@ -15,12 +15,15 @@ import { cn } from "@/lib/utils";
  */
 
 /** Height of the box. MUI's outlined field is 56px at the default size. */
-const FIELD_HEIGHT = 56;
+const FIELD_HEIGHTS = { small: 40, medium: 56 } as const;
+
+type FieldSize = keyof typeof FIELD_HEIGHTS;
 
 type FieldState = {
 	focused?: boolean;
 	invalid?: boolean;
 	disabled?: boolean;
+	size?: FieldSize;
 };
 
 export function FieldShell({
@@ -28,6 +31,7 @@ export function FieldShell({
 	focused = false,
 	invalid = false,
 	disabled = false,
+	size = "medium",
 	className,
 	startAdornment,
 	endAdornment,
@@ -52,7 +56,7 @@ export function FieldShell({
 				disabled && "opacity-50",
 				className,
 			)}
-			style={{ height: FIELD_HEIGHT }}
+			style={{ height: FIELD_HEIGHTS[size] }}
 		>
 			{startAdornment ? <View className="pr-2">{startAdornment}</View> : null}
 			{children}
@@ -70,6 +74,7 @@ type InputProps = TextInputProps & {
 	/** Shown under the field. Pair with `invalid` for an error message. */
 	helperText?: string;
 	containerClassName?: string;
+	size?: FieldSize;
 };
 
 export function Input({
@@ -79,6 +84,7 @@ export function Input({
 	endAdornment,
 	invalid = false,
 	helperText,
+	size,
 	editable = true,
 	onFocus,
 	onBlur,
@@ -98,6 +104,7 @@ export function Input({
 				endAdornment={endAdornment}
 				focused={focused}
 				invalid={invalid}
+				size={size}
 				startAdornment={startAdornment}
 			>
 				<TextInput

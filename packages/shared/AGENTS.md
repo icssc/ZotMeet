@@ -6,7 +6,7 @@ Repo-wide rules are in [../../AGENTS.md](../../AGENTS.md).
 
 Code that **both apps could use** and that **touches nothing platform-specific**: time maths, `ZotDate`, availability grid/paint/fill logic, meeting helpers, zod schemas, API request/response types, and the OAuth contract.
 
-Folders are by domain: `auth/`, `availability/`, `chrono/`, `meetings/`, `library-traffic/`. Export everything through `src/index.ts`.
+Folders are by domain: `auth/`, `availability/`, `chrono/`, `groups/`, `meetings/`, `library-traffic/`. Export everything through `src/index.ts`.
 
 ## Rules
 

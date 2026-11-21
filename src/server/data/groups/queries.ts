@@ -188,6 +188,14 @@ export type GroupWithDetails = SelectGroup & {
 	creatorAvatar: string | null;
 };
 
+// A row with no actual availability (e.g. someone opened the page without
+// submitting) doesn't count as a response — matches
+// `getResponderCountsByMeetingIds`.
+const hasNonEmptyAvailability = or(
+	sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
+	sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
+);
+
 export async function getGroupsWithDetails(
 	userId: string,
 	memberId: string,
@@ -214,6 +222,7 @@ export async function getGroupsWithDetails(
 						and(
 							eq(availabilities.memberId, memberId),
 							inArray(availabilities.meetingId, meetingIds),
+							hasNonEmptyAvailability,
 						),
 					);
 
@@ -289,6 +298,20 @@ export async function getGroupsWithDetails(
 	return groupsWithDetails;
 }
 
+export async function listGroupsForMember(
+	memberId: string,
+): Promise<GroupWithDetails[]> {
+	const [user] = await db
+		.select({ id: users.id })
+		.from(users)
+		.where(eq(users.memberId, memberId))
+		.limit(1);
+
+	if (!user) return [];
+
+	return getGroupsWithDetails(user.id, memberId);
+}
+
 export type MeetingWithStats = SelectMeeting & {
 	hostName: string;
 	scheduledDate: Date | null;
@@ -312,14 +335,6 @@ export async function getGroupMeetingsWithStats(
 
 	const meetingIds = groupMeetings.map((m) => m.id);
 	const hostIds = Array.from(new Set(groupMeetings.map((m) => m.hostId)));
-
-	// A row with no actual availability (e.g. someone opened the page without
-	// submitting) doesn't count as a response — matches
-	// `getResponderCountsByMeetingIds`.
-	const hasNonEmptyAvailability = or(
-		sql`COALESCE(jsonb_array_length(${availabilities.meetingAvailabilities}), 0) > 0`,
-		sql`COALESCE(jsonb_array_length(${availabilities.ifNeededAvailabilities}), 0) > 0`,
-	);
 
 	// Fetch everything in bulk
 	const [responseCounts, userResponses, scheduledBlocks, hosts, extraInvitees] =

@@ -80,6 +80,9 @@ const nativeInkColors = {
 	"primary-tint": "hsl(var(--primary-tint))",
 	"primary-ledge": "hsl(var(--primary-ledge))",
 	"action-hover": "hsl(var(--action-hover))",
+	divider: "hsl(var(--divider))",
+	"card-muted-foreground": "hsl(var(--card-muted-foreground))",
+	"card-gradient": "hsl(var(--card-gradient))",
 };
 
 /** `--radius` is set to `0.3rem` in each app's global stylesheet. */

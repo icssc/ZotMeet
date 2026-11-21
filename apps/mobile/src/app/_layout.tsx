@@ -5,6 +5,7 @@ import {
 	Figtree_500Medium,
 	Figtree_600SemiBold,
 	Figtree_700Bold,
+	Figtree_700Bold_Italic,
 	useFonts,
 } from "@expo-google-fonts/figtree";
 import { PortalHost } from "@rn-primitives/portal";
@@ -36,6 +37,7 @@ export default function RootLayout() {
 		Figtree_500Medium,
 		Figtree_600SemiBold,
 		Figtree_700Bold,
+		Figtree_700Bold_Italic,
 		...materialIconsFont,
 	});
 

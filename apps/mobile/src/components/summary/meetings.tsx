@@ -85,7 +85,7 @@ export function Meetings({
 	// Read on every render, not defaulted inside the memo, so a list that stays
 	// mounted across midnight re-buckets on its next render.
 	const todayMs = getStartOfTodayMs();
-	const { counts, meetings: displayMeetings } = useMemo(
+	const { meetings: displayMeetings } = useMemo(
 		() =>
 			buildMeetingsListModel({
 				meetings,
@@ -203,7 +203,6 @@ export function Meetings({
 						<FilterChip
 							key={f}
 							label={MEETINGS_LIST_FILTER_LABELS[f]}
-							count={counts[f]}
 							active={activeFilter === f}
 							onPress={() => setActiveFilter(f)}
 						/>

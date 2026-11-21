@@ -73,6 +73,9 @@ const light = {
 	"primary-tint": "340 100% 97%" /* rgba(255,135,166,0.1) on white */,
 	"primary-ledge": "344.6 55.3% 57.1%" /* rgba(0,0,0,0.15) over primary */,
 	"action-hover": "0 0% 96%" /* rgba(0,0,0,0.04) on white */,
+	divider: "0 0% 88%",
+	"card-muted-foreground": "215.6 15.4% 34.3%",
+	"card-gradient": "0 100% 92.5%",
 
 	/*
 	 * MUI palette entries the meeting cards paint their banners with. Unlike the
@@ -138,6 +141,9 @@ const dark = {
 	"primary-tint": "344 30% 18%",
 	"primary-ledge": "344.6 55.3% 57.1%",
 	"action-hover": "0 0% 18%" /* rgba(255,255,255,0.08) on #1C1B1B */,
+	divider: "0 0% 26%",
+	"card-muted-foreground": "215 20.2% 65.1%",
+	"card-gradient": "344 30% 22%",
 
 	"secondary-main": "222.2 37.4% 19.4%",
 	"secondary-main-foreground": "0 0% 100%",
