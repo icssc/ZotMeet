@@ -3,7 +3,7 @@ import SearchBar from "@/components/studyrooms/searchbar";
 import { Card } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
 
-export const BUILDINGS = [
+const BUILDINGS = [
 	"Anteater Learning Pavilion",
 	"Science Library",
 	"Langson Library",
