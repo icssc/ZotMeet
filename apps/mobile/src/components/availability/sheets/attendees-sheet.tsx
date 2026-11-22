@@ -5,6 +5,7 @@ import { Chip } from "@/components/ui/chip";
 import { SheetGrabber } from "@/components/ui/sheet-grabber";
 import { Switch } from "@/components/ui/switch";
 import { Typography } from "@/components/ui/typography";
+import { useAvailabilityStore } from "@/store/useAvailabilityStore";
 
 export interface AttendeesSheetProps {
 	open: boolean;
@@ -17,6 +18,9 @@ export function AttendeesSheet({
 	onClose,
 	members,
 }: AttendeesSheetProps) {
+	const showBestTimes = useAvailabilityStore((s) => s.showBestTimes);
+	const setShowBestTimes = useAvailabilityStore((s) => s.setShowBestTimes);
+
 	return (
 		<Modal
 			animationType="slide"
@@ -48,13 +52,8 @@ export function AttendeesSheet({
 
 					<View className="mt-4 flex-row gap-6">
 						<View className="flex-row items-center gap-2">
-							<Switch />
+							<Switch value={showBestTimes} onValueChange={setShowBestTimes} />
 							<Typography>Best Times</Typography>
-						</View>
-
-						<View className="flex-row items-center gap-2">
-							<Switch />
-							<Typography>"If-Needed" Times</Typography>
 						</View>
 					</View>
 
@@ -65,7 +64,7 @@ export function AttendeesSheet({
 						</Typography>
 					</View>
 
-					<Pressable className="mt-6">
+					<View className="mt-6 flex-row flex-wrap gap-2">
 						{members.map((member) => (
 							<Chip
 								key={member.memberId}
@@ -79,7 +78,7 @@ export function AttendeesSheet({
 								color="primary"
 							/>
 						))}
-					</Pressable>
+					</View>
 				</View>
 			</View>
 		</Modal>
