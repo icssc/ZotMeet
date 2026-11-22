@@ -21,6 +21,9 @@ interface AvailabilityStore {
 	setCurrentPage: (page: number) => void;
 	setItemsPerPage: (itemsPerPage: number) => void;
 
+	showBestTimes: boolean;
+	setShowBestTimes: (show: boolean) => void;
+
 	availabilityView: AvailabilityView;
 	setAvailabilityView: (view: AvailabilityView) => void;
 
@@ -38,6 +41,9 @@ export const useAvailabilityStore = create<AvailabilityStore>((set) => ({
 	prevPage: () => set((state) => prevPageState(state)),
 	setCurrentPage: (page) => set((state) => pageState(state, page)),
 	setItemsPerPage: (itemsPerPage) => set({ itemsPerPage }),
+
+	showBestTimes: false,
+	setShowBestTimes: (show) => set({ showBestTimes: show }),
 
 	availabilityView: "group",
 	setAvailabilityView: (view) =>
