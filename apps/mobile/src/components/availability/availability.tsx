@@ -382,6 +382,7 @@ export function Availability({
 			<AttendeesSheet
 				open={attendeesOpen}
 				onClose={() => setAttendeesOpen(false)}
+				members={members}
 			/>
 		</View>
 	);

@@ -1,3 +1,4 @@
+import type { Member } from "@zotmeet/shared";
 import { Modal, Pressable, View } from "react-native";
 import { SheetGrabber } from "@/components/ui/sheet-grabber";
 import { Switch } from "@/components/ui/switch";
@@ -6,6 +7,7 @@ import { Typography } from "@/components/ui/typography";
 export interface AttendeesSheetProps {
 	open: boolean;
 	onClose: () => void;
+	members: Member[];
 }
 
 export function AttendeesSheet({ open, onClose }: AttendeesSheetProps) {
@@ -48,6 +50,13 @@ export function AttendeesSheet({ open, onClose }: AttendeesSheetProps) {
 							<Switch />
 							<Typography>"If-Needed" Times</Typography>
 						</View>
+					</View>
+
+					<View className="mt-4">
+						<Typography>Responders</Typography>
+						<Typography variant="caption" color="textSecondary">
+							Available
+						</Typography>
 					</View>
 				</View>
 			</View>
