@@ -1,5 +1,6 @@
 import { Modal, Pressable, View } from "react-native";
 import { SheetGrabber } from "@/components/ui/sheet-grabber";
+import { Switch } from "@/components/ui/switch";
 import { Typography } from "@/components/ui/typography";
 
 export interface AttendeesSheetProps {
@@ -35,6 +36,18 @@ export function AttendeesSheet({ open, onClose }: AttendeesSheetProps) {
 						<Typography variant="caption" color="textSecondary">
 							Filter how responder availability shows together on the map.
 						</Typography>
+					</View>
+
+					<View className="mt-4 flex-row gap-6">
+						<View className="flex-row items-center gap-2">
+							<Switch />
+							<Typography>Best Times</Typography>
+						</View>
+
+						<View className="flex-row items-center gap-2">
+							<Switch />
+							<Typography>"If-Needed" Times</Typography>
+						</View>
 					</View>
 				</View>
 			</View>
