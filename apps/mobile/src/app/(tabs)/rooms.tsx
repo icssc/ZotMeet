@@ -1,4 +1,5 @@
 import type { StudyRooms } from "@zotmeet/shared";
+import { BUILDINGS } from "@zotmeet/shared";
 import { fetchStudyRoomsShared } from "@zotmeet/shared/src/studyrooms/get-rooms";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -12,14 +13,6 @@ import { RoomsHeatmap } from "@/components/studyrooms/rooms-heatmap";
 import SearchBar from "@/components/studyrooms/searchbar";
 import { Screen } from "@/components/ui/screen";
 import { getNextHalfHour, WINDOW_MS } from "@/lib/rooms/utils";
-export const BUILDINGS = [
-	"Anteater Learning Pavilion",
-	"Science Library",
-	"Langson Library",
-	"Gateway Study Center",
-	"Plaza Verde",
-	"Multimedia Resources Center",
-] as const;
 
 export function getDefaultWindow() {
 	const now = new Date();
