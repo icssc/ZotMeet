@@ -8,11 +8,10 @@ import {
 	Text,
 	View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RoomsHeatmap } from "@/components/studyrooms/rooms-heatmap";
 import SearchBar from "@/components/studyrooms/searchbar";
 import { Screen } from "@/components/ui/screen";
-
+import { getNextHalfHour, WINDOW_MS } from "@/lib/rooms/utils";
 export const BUILDINGS = [
 	"Anteater Learning Pavilion",
 	"Science Library",
@@ -21,18 +20,6 @@ export const BUILDINGS = [
 	"Plaza Verde",
 	"Multimedia Resources Center",
 ] as const;
-
-/* needs to be moved at some point from utils.ts */
-const WINDOW_MS = 6 * 60 * 60 * 1000;
-
-export function getNextHalfHour(from: Date = new Date()): Date {
-	const d = new Date(from);
-	const remainder = d.getMinutes() % 30;
-	if (remainder === 0 && d.getSeconds() === 0 && d.getMilliseconds() === 0)
-		return d;
-	d.setMinutes(d.getMinutes() + (remainder === 0 ? 30 : 30 - remainder), 0, 0);
-	return d;
-}
 
 export function getDefaultWindow() {
 	const now = new Date();
@@ -73,16 +60,20 @@ export default function RoomsScreen() {
 			),
 		};
 	});
+	const [date, setDate] = useState(defaultDate);
+	const [startTime, setStartTime] = useState(defaultStart);
+	const [endTime, setEndTime] = useState(defaultEnd);
 	const [rooms, setRooms] = useState<StudyRooms["data"] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [query, setQuery] = useState("");
+	const [buildingsSelected, setBuildingsSelected] = useState<string[]>([]);
 
 	useEffect(() => {
 		const controller = new AbortController();
 		fetchStudyRoomsShared(
 			{
-				date: toDateParam(defaultDate),
-				timeRange: `${toTimeParam(defaultStart)}-${toTimeParam(defaultEnd)}`,
+				date: toDateParam(date),
+				timeRange: `${toTimeParam(startTime)}-${toTimeParam(endTime)}`,
 			},
 			{ signal: controller.signal },
 		)
@@ -93,18 +84,30 @@ export default function RoomsScreen() {
 				setRooms([]);
 			});
 		return () => controller.abort();
-	}, [defaultDate, defaultStart, defaultEnd]);
+	}, [date, startTime, endTime]);
 
 	const filteredRooms = useMemo(() => {
 		if (rooms === null) return null;
-		const q = query.toLowerCase();
-		if (!q) return rooms;
-		return rooms.filter(
-			(r) =>
-				r.location.toLowerCase().includes(q) ||
-				r.name.toLowerCase().includes(q),
+		const q = query.trim().toLowerCase();
+		console.log(
+			"Filtering rooms with query:",
+			q,
+			"and buildingsSelected:",
+			buildingsSelected,
 		);
-	}, [rooms, query]);
+		return rooms.filter((r) => {
+			const matchesBuilding =
+				buildingsSelected.length === 0 ||
+				buildingsSelected.includes(r.location);
+
+			const matchesQuery =
+				!q ||
+				r.location.toLowerCase().includes(q) ||
+				r.name.toLowerCase().includes(q);
+
+			return matchesBuilding && matchesQuery;
+		});
+	}, [rooms, query, buildingsSelected]);
 	return (
 		<Screen title="Rooms" scroll={false}>
 			<ScrollView
@@ -126,9 +129,9 @@ export default function RoomsScreen() {
 				) : (
 					<RoomsHeatmap
 						rooms={filteredRooms}
-						searchDate={defaultDate}
-						startTime={defaultStart}
-						endTime={defaultEnd}
+						searchDate={date}
+						startTime={startTime}
+						endTime={endTime}
 					/>
 				)}
 			</ScrollView>
@@ -139,7 +142,18 @@ export default function RoomsScreen() {
 				className="absolute inset-x-0 bottom-0"
 			>
 				<View className="px-4 pb-6" pointerEvents="box-none">
-					<SearchBar buildings={BUILDINGS} onChangeText={setQuery} />
+					<SearchBar
+						buildings={BUILDINGS}
+						onChangeText={setQuery}
+						date={date}
+						setDate={setDate}
+						startTime={startTime}
+						setStartTime={setStartTime}
+						endTime={endTime}
+						setEndTime={setEndTime}
+						buildingsSelected={buildingsSelected}
+						setBuildingsSelected={setBuildingsSelected}
+					/>
 				</View>
 			</KeyboardAvoidingView>
 		</Screen>

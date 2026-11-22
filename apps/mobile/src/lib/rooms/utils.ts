@@ -4,6 +4,16 @@ type Slot = StudyRooms["data"][number]["slots"][number];
 
 const HALF_HOUR_MS = 30 * 60 * 1000;
 
+export const WINDOW_MS = 6 * 60 * 60 * 1000;
+
+export function getNextHalfHour(from: Date = new Date()): Date {
+	const d = new Date(from);
+	const remainder = d.getMinutes() % 30;
+	if (remainder === 0 && d.getSeconds() === 0 && d.getMilliseconds() === 0)
+		return d;
+	d.setMinutes(d.getMinutes() + (remainder === 0 ? 30 : 30 - remainder), 0, 0);
+	return d;
+}
 export function mergeDateAndTime(date: Date, time: Date): Date {
 	return new Date(
 		date.getFullYear(),
