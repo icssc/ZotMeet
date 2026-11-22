@@ -127,6 +127,20 @@
       "when": 1779145500000,
       "tag": "0017_notification_preferences",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794177494490,
+      "tag": "0018_even_captain_britain",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794948666564,
+      "tag": "0019_meeting_scheduled_pref",
+      "breakpoints": true
     }
   ]
 }

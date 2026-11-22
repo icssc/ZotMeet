@@ -26,10 +26,9 @@ export function NotificationsPanel({
 	const [isPending, startTransition] = useTransition();
 	const { showSuccess, showError } = useSnackbar();
 
-	const isDirty =
-		prefs.meetingInvites !== savedPrefs.meetingInvites ||
-		prefs.groupInvites !== savedPrefs.groupInvites ||
-		prefs.nudges !== savedPrefs.nudges;
+	const isDirty = NOTIFICATION_PREF_OPTIONS.some(
+		({ key }) => prefs[key] !== savedPrefs[key],
+	);
 
 	const handleToggle = (key: keyof NotificationPrefs) => {
 		setPrefs((prev) => ({ ...prev, [key]: !prev[key] }));
