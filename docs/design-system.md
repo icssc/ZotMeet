@@ -40,6 +40,7 @@
 | Card | `ui/mui/card` | `Card` |
 | Option card | n/a | `SelectableCard` (Figma "Member") |
 | Filter chip | `ui/filter-chip` | `FilterChip` |
+| Chip | MUI `Chip` | `Chip` (`color` default/primary × `variant` outlined/filled; no avatar or delete yet) |
 | Meeting card | `ui/meeting-card` | `MeetingCard` (same view model from `@zotmeet/shared`) |
 | Calendar | `components/creation/calendar/*` | `Calendar` + `DayCell` |
 | Toast | `useSnackbar()` (`ui/snackbar-provider`) | Not built yet. Show errors inline. |

@@ -1,5 +1,7 @@
 import type { Member } from "@zotmeet/shared";
 import { Modal, Pressable, View } from "react-native";
+import { Avatar } from "@/components/ui/avatar";
+import { Chip } from "@/components/ui/chip";
 import { SheetGrabber } from "@/components/ui/sheet-grabber";
 import { Switch } from "@/components/ui/switch";
 import { Typography } from "@/components/ui/typography";
@@ -10,7 +12,11 @@ export interface AttendeesSheetProps {
 	members: Member[];
 }
 
-export function AttendeesSheet({ open, onClose }: AttendeesSheetProps) {
+export function AttendeesSheet({
+	open,
+	onClose,
+	members,
+}: AttendeesSheetProps) {
 	return (
 		<Modal
 			animationType="slide"
@@ -55,9 +61,25 @@ export function AttendeesSheet({ open, onClose }: AttendeesSheetProps) {
 					<View className="mt-4">
 						<Typography>Responders</Typography>
 						<Typography variant="caption" color="textSecondary">
-							Available
+							{members.length} Available
 						</Typography>
 					</View>
+
+					<Pressable className="mt-6">
+						{members.map((member) => (
+							<Chip
+								key={member.memberId}
+								avatar={
+									<Avatar
+										src={member.profilePicture}
+										alt={member.displayName}
+									/>
+								}
+								label={member.displayName}
+								color="primary"
+							/>
+						))}
+					</Pressable>
 				</View>
 			</View>
 		</Modal>
