@@ -23,6 +23,7 @@ import { PersonalAvailabilityHeader } from "@/components/availability/header/per
 import { PersonalAvailability } from "@/components/availability/personal-availability";
 import { PersonalAvailabilityActions } from "@/components/availability/personal-availability-actions";
 import { PersonalAvailabilityOptionsSheet } from "@/components/availability/personal-availability-options-sheet";
+import { AttendeesSheet } from "@/components/availability/sheets/attendees-sheet";
 import {
 	MobileIsland,
 	MobileIslandContent,
@@ -64,6 +65,7 @@ export function Availability({
 	} = useAvailabilityStore();
 	const setCurrentPage = useAvailabilityStore((s) => s.setCurrentPage);
 
+	const [attendeesOpen, setAttendeesOpen] = useState(false);
 	const [toolsOpen, setToolsOpen] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [saveError, setSaveError] = useState<string | null>(null);
@@ -361,6 +363,7 @@ export function Availability({
 						<AvailabilityActions
 							attendees={attendees}
 							hasAvailability={hasAvailability}
+							onShowResponses={() => setAttendeesOpen(true)}
 							onAddAvailability={handleAddAvailability}
 						/>
 					</MobileIslandContent>
@@ -375,6 +378,11 @@ export function Availability({
 					open={toolsOpen}
 				/>
 			) : null}
+
+			<AttendeesSheet
+				open={attendeesOpen}
+				onClose={() => setAttendeesOpen(false)}
+			/>
 		</View>
 	);
 }
