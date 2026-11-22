@@ -3,6 +3,7 @@ import {
 	buildTimestampsByCell,
 	type CurrentPageAvailability,
 	calculateBlockFill,
+	computeMaxAvailability,
 	generateCellKey,
 	getRowChrome,
 	type MeetingType,
@@ -59,10 +60,10 @@ export interface GroupAvailabilityProps {
  * change it and the pager follows, and a settled swipe writes it back.
  *
  * Every cell's fill is the shared `calculateBlockFill`, fed exactly what the
- * web feeds it; only the drawing differs. The web's member filter, hover, and
- * best-times inputs are not in the mobile store yet, so they are passed as
- * their idle values (best-times is what would need `ifNeededDates` and
- * `computeMaxAvailability` here).
+ * web feeds it; only the drawing differs. Best Times comes from the store (set
+ * by the Attendees sheet); the max is computed here over every date, since a
+ * page only sees its own columns. The web's member filter and hover are not in
+ * the mobile store yet, so they are passed as their idle values.
  */
 export function GroupAvailability({
 	availabilityTimeBlocks,
@@ -77,6 +78,17 @@ export function GroupAvailability({
 	const currentPage = useAvailabilityStore((s) => s.currentPage);
 	const itemsPerPage = useAvailabilityStore((s) => s.itemsPerPage);
 	const setCurrentPage = useAvailabilityStore((s) => s.setCurrentPage);
+	const showBestTimes = useAvailabilityStore((s) => s.showBestTimes);
+	const numMembers = members.length;
+
+	// Same as the web: only scan every slot when Best Times is on.
+	const maxAvailability = useMemo(
+		() =>
+			showBestTimes && numMembers > 0
+				? computeMaxAvailability(availabilityDates, ifNeededDates)
+				: 0,
+		[showBestTimes, numMembers, availabilityDates, ifNeededDates],
+	);
 
 	const pages = useMemo(() => {
 		const pageCount = Math.max(
@@ -193,9 +205,11 @@ export function GroupAvailability({
 								availabilityTimeBlocks={availabilityTimeBlocks}
 								datePageNav={datePageNav}
 								meetingType={meetingType}
-								numMembers={members.length}
+								maxAvailability={maxAvailability}
+								numMembers={numMembers}
 								page={index}
 								pageAvailability={item}
+								showBestTimes={showBestTimes}
 								timestampsByCell={timestampsByCell}
 								width={pageWidth}
 							/>
@@ -213,10 +227,12 @@ export function GroupAvailability({
 interface GroupAvailabilityPageProps {
 	availabilityTimeBlocks: number[];
 	datePageNav?: AvailabilityDatePageNav;
+	maxAvailability: number;
 	meetingType: MeetingType;
 	numMembers: number;
 	page: number;
 	pageAvailability: CurrentPageAvailability;
+	showBestTimes: boolean;
 	timestampsByCell: Map<string, string>;
 	width: number;
 }
@@ -225,10 +241,12 @@ interface GroupAvailabilityPageProps {
 function GroupAvailabilityPage({
 	availabilityTimeBlocks,
 	datePageNav,
+	maxAvailability,
 	meetingType,
 	numMembers,
 	page,
 	pageAvailability,
+	showBestTimes,
 	timestampsByCell,
 	width,
 }: GroupAvailabilityPageProps) {
@@ -295,8 +313,8 @@ function GroupAvailabilityPage({
 											hoveredMember: null,
 											selectedMembers: [],
 											numMembers,
-											showBestTimes: false,
-											maxAvailability: 0,
+											showBestTimes,
+											maxAvailability,
 										});
 
 										return (
