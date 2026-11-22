@@ -26,3 +26,4 @@ export * from "./meetings/window";
 export * from "./studyrooms/get-rooms";
 export * from "./types/anteater-api-types";
 export * from "./types/studyrooms";
+export * from "./rooms";
