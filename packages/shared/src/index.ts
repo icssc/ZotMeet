@@ -23,6 +23,6 @@ export * from "./meetings/schedule";
 export * from "./meetings/schema";
 export * from "./meetings/utils";
 export * from "./meetings/window";
-export * from "./rooms";
 export * from "./studyrooms/get-rooms";
 export * from "./types/anteater-api-types";
+export * from "./types/studyrooms";

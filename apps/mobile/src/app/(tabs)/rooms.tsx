@@ -40,14 +40,6 @@ const toDateParam = (d: Date) =>
 const toTimeParam = (d: Date) =>
 	`${d.getHours() % 12 || 12}:${pad(d.getMinutes())}${d.getHours() >= 12 ? "pm" : "am"}`;
 
-const BUILDINGS = [
-	"Anteater Learning Pavilion",
-	"Science Library",
-	"Langson Library",
-	"Gateway Study Center",
-	"Plaza Verde",
-	"Multimedia Resources Center",
-] as const;
 export default function RoomsScreen() {
 	const [{ defaultDate, defaultStart, defaultEnd }] = useState(() => {
 		const { start, end } = getDefaultWindow();
