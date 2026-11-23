@@ -76,6 +76,7 @@ module.exports = {
 				"figtree-medium": ["Figtree_500Medium"],
 				"figtree-semibold": ["Figtree_600SemiBold"],
 				"figtree-bold": ["Figtree_700Bold"],
+				"figtree-bold-italic": ["Figtree_700Bold_Italic"],
 				default: ["Figtree_400Regular"],
 			},
 			borderRadius: {
