@@ -63,6 +63,13 @@ export default function RoomsScreen() {
 
 	useEffect(() => {
 		const controller = new AbortController();
+		setRooms(null);
+		setError(null);
+		if (startTime >= endTime) {
+			setError("Start time must be before end time");
+			setRooms([]);
+			return;
+		}
 		fetchStudyRoomsShared(
 			{
 				date: toDateParam(date),

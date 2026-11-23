@@ -37,7 +37,7 @@ export function buildHalfHourIntervals(date: Date, start: Date, end: Date) {
 				minute: "2-digit",
 			}),
 			start: new Date(t),
-			end: new Date(t + HALF_HOUR_MS),
+			end: new Date(Math.min(t + HALF_HOUR_MS, e)),
 		});
 	}
 	return out;
