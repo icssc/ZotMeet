@@ -24,21 +24,31 @@ export function formatTime(date: Date): string {
 }
 export default function SearchBar({
 	buildings,
+	onChangeText,
+	date,
+	setDate,
+	startTime,
+	setStartTime,
+	endTime,
+	setEndTime,
+	buildingsSelected,
+	setBuildingsSelected,
 }: {
 	buildings: readonly string[];
+	onChangeText?: (text: string) => void;
+	date: Date;
+	startTime: Date;
+	endTime: Date;
+	setDate: (date: Date) => void;
+	setStartTime: (time: Date) => void;
+	setEndTime: (time: Date) => void;
+	buildingsSelected: string[];
+	setBuildingsSelected: (buildings: string[]) => void;
 }) {
 	const availabilityColor = "#86efac";
 	const notAvailableColor = "#fca5a5";
-	const handleSearch = (text: string) => {
-		console.log("Searching for:", text);
-	};
+
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-	const [startTime, setStartTime] = useState<Date | null>(
-		new Date(0, 0, 0, 9, 0, 0),
-	);
-	const [endTime, setEndTime] = useState<Date | null>(
-		new Date(0, 0, 0, 17, 0, 0),
-	);
 	const { colorScheme } = useColorScheme();
 	const colors = colorsFor(colorScheme);
 
@@ -48,13 +58,12 @@ export default function SearchBar({
 
 	const activeValue = activeTime === "start" ? startTime : endTime;
 
-	const [draftDate, setDraftDate] = useState<Date | null>(null);
-	const [toggle, setToggle] = useState<string[]>([]);
 	const toggleBuilding = (b: string) =>
-		setToggle((prev) =>
-			prev.includes(b) ? prev.filter((x) => x !== b) : [...prev, b],
+		setBuildingsSelected(
+			buildingsSelected.includes(b)
+				? buildingsSelected.filter((x) => x !== b)
+				: [...buildingsSelected, b],
 		);
-
 	const closeDrawer = () => {
 		setIsDrawerOpen(false);
 		setActiveTime(null);
@@ -72,7 +81,7 @@ export default function SearchBar({
 				}}
 				placeholder="Search Rooms"
 				startAdornment={<Icon name="search" size={28} />}
-				onSubmitEditing={(e) => handleSearch(e.nativeEvent.text)}
+				onChangeText={onChangeText}
 				autoCapitalize="none"
 				autoCorrect={false}
 				returnKeyType="search"
@@ -88,7 +97,7 @@ export default function SearchBar({
 					Filter & Sort
 				</Text>
 			</Pressable>
-			<View className="bg-background p-1">
+			<View className="p-1">
 				<Drawer open={isDrawerOpen} onClose={() => closeDrawer()}>
 					<Legend
 						availabilityColor={availabilityColor}
@@ -103,17 +112,13 @@ export default function SearchBar({
 							room for you.
 						</Text>
 						<View className="mt-4">
-							<DatePicker
-								label="Date"
-								value={draftDate}
-								onChange={setDraftDate}
-							/>
+							<DatePicker label="Date" value={date} onChange={setDate} />
 						</View>
 						<View className="w-full flex-row justify-end">
 							<Button
 								color="inherit"
 								label="Clear Selected"
-								onPress={() => setDraftDate(null)}
+								onPress={() => setDate(new Date())}
 							/>
 						</View>
 
@@ -189,7 +194,7 @@ export default function SearchBar({
 									key={building}
 									label={building}
 									onPress={() => toggleBuilding(building)}
-									selected={toggle.includes(building)}
+									selected={buildingsSelected.includes(building)}
 								/>
 							))}
 						</View>
