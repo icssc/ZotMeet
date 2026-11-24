@@ -8,11 +8,11 @@ import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { addDays, format, isValid } from "date-fns";
+import { format, isValid } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 import { RoomsHeatmapLegend } from "@/components/studyrooms/legend";
+import LimitedDatePicker from "@/components/studyrooms/limited-date-picker";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
 import { toLocalStr } from "@/lib/rooms/utils";
 import {
@@ -62,9 +62,6 @@ export function Sidebar({
 	const [isTechEnhanced, setIsTechEnhanced] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
-
-	const today = new Date();
-	const sevenDaysFromNow = addDays(today, 7);
 
 	const activeFilters = [
 		date &&
@@ -310,15 +307,7 @@ export function Sidebar({
 						p: 2,
 					}}
 				>
-					<DatePicker
-						label="Date"
-						value={date}
-						onChange={setDate}
-						slotProps={{ textField: { fullWidth: true } }}
-						minDate={today}
-						maxDate={sevenDaysFromNow}
-					/>
-
+					<LimitedDatePicker date={date} onChange={setDate} />
 					<Stack direction="row" spacing={2}>
 						<TimePicker
 							label="Start Time"
