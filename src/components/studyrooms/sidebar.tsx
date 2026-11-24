@@ -10,7 +10,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { format, isValid } from "date-fns";
+import { addDays, format, isValid } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 import { RoomsHeatmapLegend } from "@/components/studyrooms/legend";
 import { fetchStudyRooms } from "@/lib/rooms/get-rooms";
@@ -62,6 +62,9 @@ export function Sidebar({
 	const [isTechEnhanced, setIsTechEnhanced] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
+
+	const today = new Date();
+	const sevenDaysFromNow = addDays(today, 7);
 
 	const activeFilters = [
 		date &&
@@ -277,6 +280,7 @@ export function Sidebar({
 			updateFormState: true,
 		});
 	}, [searchWithFallback, defaultDate, defaultStart, defaultEnd]);
+
 	return (
 		<Stack
 			direction="column"
@@ -311,6 +315,8 @@ export function Sidebar({
 						value={date}
 						onChange={setDate}
 						slotProps={{ textField: { fullWidth: true } }}
+						minDate={today}
+						maxDate={sevenDaysFromNow}
 					/>
 
 					<Stack direction="row" spacing={2}>
