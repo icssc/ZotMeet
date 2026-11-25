@@ -9,7 +9,7 @@ import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { format, isValid } from "date-fns";
+import { addDays, format, isValid } from "date-fns";
 import { useCallback, useEffect, useState } from "react";
 import { RoomsHeatmapLegend } from "@/components/studyrooms/legend";
 import LimitedDatePicker from "@/components/studyrooms/limited-date-picker";
@@ -212,8 +212,12 @@ export function Sidebar({
 
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
+		const sevenDaysFromNow = addDays(today, 7);
 		if (date < today) {
 			setError("Date cannot be in the past.");
+			return;
+		} else if (date > sevenDaysFromNow) {
+			setError("Date cannot be more than 7 days in advance.");
 			return;
 		}
 
