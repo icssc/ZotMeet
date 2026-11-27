@@ -1,8 +1,8 @@
 import { MONTHS } from "../chrono/types";
 import {
+	buildScheduledMeetingsMeta,
 	type DashboardActionKind,
 	getDashboardActionKind,
-	getStartOfTodayMs,
 	isMeetingPast,
 	type MeetingWithDates,
 	type ScheduledMeetingBlock,
@@ -22,7 +22,7 @@ export interface DashboardModelInput<T extends MeetingWithDates> {
 	meetings: T[];
 	memberId: string;
 	scheduledMeetingMap: Record<string, ScheduledMeetingBlock>;
-	todayMs?: number;
+	nowMs?: number;
 }
 
 export interface DashboardModel<T> {
@@ -34,16 +34,13 @@ export function buildDashboardModel<T extends MeetingWithDates>({
 	meetings,
 	memberId,
 	scheduledMeetingMap,
-	todayMs = getStartOfTodayMs(),
+	nowMs = Date.now(),
 }: DashboardModelInput<T>): DashboardModel<T> {
-	const scheduledDates: Record<string, number> = {};
-	for (const [id, block] of Object.entries(scheduledMeetingMap)) {
-		scheduledDates[id] = block.scheduledDate.getTime();
-	}
+	const { scheduledDates } = buildScheduledMeetingsMeta(scheduledMeetingMap);
 
 	const actionItems: DashboardActionItem<T>[] = [];
 	for (const meeting of meetings) {
-		if (isMeetingPast(meeting, scheduledDates, todayMs)) continue;
+		if (isMeetingPast(meeting, scheduledDates, nowMs)) continue;
 		const kind = getDashboardActionKind(meeting, memberId);
 		if (kind) actionItems.push({ meeting, kind });
 	}
@@ -55,13 +52,11 @@ export function buildDashboardModel<T extends MeetingWithDates>({
 	for (const meeting of meetings) {
 		const block = scheduledMeetingMap[meeting.id];
 		if (!meeting.scheduled || !block) continue;
-		if (block.scheduledDate.getTime() < todayMs) continue;
+		if (scheduledDates[meeting.id] < nowMs) continue;
 		upcoming.push({ meeting, block });
 	}
 	upcoming.sort(
-		(a, b) =>
-			a.block.scheduledDate.getTime() - b.block.scheduledDate.getTime() ||
-			a.block.scheduledFromTime.localeCompare(b.block.scheduledFromTime),
+		(a, b) => scheduledDates[a.meeting.id] - scheduledDates[b.meeting.id],
 	);
 
 	return { actionItems, upcoming };

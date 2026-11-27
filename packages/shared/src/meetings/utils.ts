@@ -196,26 +196,30 @@ export function buildScheduledMeetingsMeta(
 			sm.scheduledFromTime,
 			sm.scheduledToTime,
 		);
-		scheduledDates[id] = sm.scheduledDate.getTime();
+		const [h = "0", min = "0"] = sm.scheduledFromTime.split(":");
+		const d = sm.scheduledDate;
+		scheduledDates[id] = new Date(
+			d.getUTCFullYear(),
+			d.getUTCMonth(),
+			d.getUTCDate(),
+			Number(h),
+			Number(min),
+		).getTime();
 	}
 	return {
 		scheduledLabels,
 		scheduledDates,
-		upcomingMeetingIds: getUpcomingMeetingIds(scheduledMeetingMap),
+		upcomingMeetingIds: getUpcomingMeetingIds(scheduledDates),
 	};
 }
 
 export function getUpcomingMeetingIds(
-	scheduledMeetingMap: Record<string, { scheduledDate: Date }>,
+	scheduledDates: Record<string, number>,
+	nowMs: number = Date.now(),
 ): string[] {
-	const startOfTodayMs = getStartOfTodayMs();
-	const startOfToday = new Date(startOfTodayMs);
-	const windowEnd = new Date(startOfTodayMs + UPCOMING_WINDOW_MS);
-	return Object.entries(scheduledMeetingMap)
-		.filter(
-			([, sm]) =>
-				sm.scheduledDate >= startOfToday && sm.scheduledDate <= windowEnd,
-		)
+	const windowEnd = nowMs + UPCOMING_WINDOW_MS;
+	return Object.entries(scheduledDates)
+		.filter(([, start]) => start >= nowMs && start <= windowEnd)
 		.map(([id]) => id);
 }
 
