@@ -25,7 +25,6 @@ import type { UserProfile } from "@/lib/auth/user";
 import {
 	buildDashboardModel,
 	formatScheduledTime,
-	getStartOfTodayMs,
 	type ScheduledMeetingBlock,
 } from "@/lib/meetings/utils";
 import type { MeetingListRow } from "@/server/data/meeting/queries";
@@ -70,12 +69,23 @@ function useLocalHour() {
 	);
 }
 
-/**
- * Local midnight in ms; `null` on the server, whose "today" can already be
- * tomorrow (a UTC server during a Pacific evening).
- */
-function useStartOfToday() {
-	return useSyncExternalStore(subscribeHourly, getStartOfTodayMs, () => null);
+/** Fires every minute, and when the tab is shown again. */
+function subscribeMinutely(onChange: () => void) {
+	const timer = setInterval(onChange, 60_000);
+	document.addEventListener("visibilitychange", onChange);
+	return () => {
+		clearInterval(timer);
+		document.removeEventListener("visibilitychange", onChange);
+	};
+}
+
+/** Current time rounded to the minute, `null` on the server. */
+function useNowMs() {
+	return useSyncExternalStore(
+		subscribeMinutely,
+		() => Math.floor(Date.now() / 60_000) * 60_000,
+		() => null,
+	);
 }
 
 function greetingFor(hour: number | null) {
@@ -97,18 +107,18 @@ export function Dashboard({
 
 	// What counts as past depends on the viewer's date, so the sections that
 	// filter on it render as skeletons until the browser takes over.
-	const todayMs = useStartOfToday();
+	const nowMs = useNowMs();
 	const model = useMemo(
 		() =>
-			todayMs === null
+			nowMs === null
 				? null
 				: buildDashboardModel({
 						meetings,
 						memberId: user.memberId,
 						scheduledMeetingMap,
-						todayMs,
+						nowMs,
 					}),
-		[meetings, user.memberId, scheduledMeetingMap, todayMs],
+		[meetings, user.memberId, scheduledMeetingMap, nowMs],
 	);
 
 	// Scheduled dates are UTC calendar days (see `formatUpcomingDate`).
